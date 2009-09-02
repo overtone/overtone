@@ -1,0 +1,117 @@
+= Overtone
+
+== Rhythm and Time
+
+* keep a global BPM 
+* define time (ms) values for 
+ - whole, half, quarter, eighth, sixteenth, 32... (W, H, Q, E, S, T...)
+
+; compute ms or fraction of a second for a whole note at the given tempo and time signature
+(def tempo 120) ; bpm
+(def beat 1/4)  ; time signature
+(rhythm H tempo beat)
+
+* quantization
+ - (quantize list-of-events step-size)
+ - quantize event times to fall on multiples of step-size
+
+* rescale a series of notes to a new BPM or signature
+
+* Pattern based rhythms
+ - define piano rolls of triggers and assign instruments to each channel
+
+; Using 1/4 notes
+(def house-beat {:kick  [O _ _ _ O _ _ _ O _ _ _ O _ _ _]
+                 :o-hat [_ _ O _ _ _ O _ _ _ O _ _ _ O _]
+                 :clap  [_ _ _ _ O _ _ _ _ _ _ _ O _ _ _]})
+
+(make-beat house-beat {:base "kick.wav" 
+                       :o-hat "hat.wav"
+                       :clap "clap.wav"})
+
+== Notes
+
+* frequency
+* duration
+* attack velocity
+* decay velocity
+
+(note freq dur attack decay) ; full spec
+(note C) ; note with default octave 4
+(note Cs) ; C-sharp?
+(note C2)
+
+* modifiers for slides, bends, and atonal stuff?
+
+* conversion between notes to hz 
+(hz my-note)
+(note my-hz)
+
+; list of notes played in default octave
+(play [C D E F G A B C])
+
+; notes as arguments
+(play C D E F G A B C)
+
+; specify octaves
+(play C0 D1 E0 F1 A3 B0 C1)
+
+== Scales
+
+; Get all notes in specified scale
+(scale C-maj)
+(scale Bf-min) ; b-flat minor
+(def major [2 2 1 2 2 2 1])
+(scale 2 D3 major) ; generate 2 octaves of D major starting at 3rd octave
+
+* probably want some kind of mechanisms to mask notes in a series, for example to only play the 1st and 3rd notes of a scale for a few bars...
+
+
+* chord
+
+Note Modification:
+
+* (transpose note-or-notes amount)
+* (invert notes)
+* (reverse notes)
+* move up or down octaves, steps, half-steps
+
+== Musical Generation
+
+* various forms of random that can return random notes out of a set (e.g. a scale), weighted random from a set, random between a set range, etc..
+
+(pick n my-scale) ; pick n random notes from a scale
+(pick n my-scale weights) ; "..." with weighted probabilities
+
+* arpeggiators
+
+* shuffle notes (randomize a sequence)
+
+* Many musical packages have some notion of a repeating process that is used to generate notes.  In clojure we can just use the built-in support for lazy sequences to implement the same thing.
+ - repeat, cycle, iterate, etc...
+
+
+-------------------------
+
+Related Projects:
+
+* Common Music
+** http://commonmusic.sourceforge.net/cm/res/doc/cm.html#toolbox
+
+* JFugue
+** http://www.jfugue.org/javadoc/index.html
+
+* JMusic
+** http://jmusic.ci.qut.edu.au/
+
+* Impromptu
+** http://impromptu.moso.com.au/
+
+* Fluxus, Fluxa and LiveNoiseTools
+** http://impromptu.moso.com.au/
+
+* csound
+** http://www.csounds.com/
+
+* Super Collider
+** http://supercollider.sourceforge.net/
