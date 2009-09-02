@@ -1,0 +1,4 @@
+= Overtone
+=== Programming Music
+
+A Clojure based musical generation system for live-coding.
