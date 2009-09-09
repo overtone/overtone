@@ -29,6 +29,13 @@
                        :o-hat "hat.wav"
                        :clap "clap.wav"})
 
+* Archaeopteryx style rhythm queue, so you can push no rhythms on to start playing, but then pop off to go back to where you were before.
+
+* Keep a ref var pointing to the current rhythm function(s)
+-- returns true if it should play on the next beat?
+-- modify the ref and you get a new beat on the fly
+
+
 == Notes
 
 * frequency
@@ -54,7 +61,12 @@
 (play C D E F G A B C)
 
 ; specify octaves
-(play C0 D1 E0 F1 A3 B0 C1)
+(play [C0 D1 E0 F1 A3 B0 C1])
+
+; relative representation rather than note based, moves from previous note
+(play [A2 0 5 -5 9 0 -9])
+; or make everything relative to the start note
+(play [A2 0 5 0 9 9 0])
 
 == Scales
 
@@ -67,14 +79,27 @@
 * probably want some kind of mechanisms to mask notes in a series, for example to only play the 1st and 3rd notes of a scale for a few bars...
 
 
-* chord
+== Chords
 
-Note Modification:
+* build chords using interval sequences applied to scale sequences
+* have chord modifiers that can make things diminished, etc.
+* have genre labeled modifier presets, for example for jazzy, african, or latin chords
+
+== Grooves
+
+A groove represents a pattern of velocities that is applied to a sequence of notes.  They are used to change the feel
+of a sequence of notes and to make it feel more organic.
+
+* swing
+* jazz groove, latin groove
+* techno grooves (hard on beat one)
+
+== Note Modifiers:
 
 * (transpose note-or-notes amount)
-* (invert notes)
-* (reverse notes)
-* move up or down octaves, steps, half-steps
+* (invert notes)  ; upside down
+* (reverse notes) ; mirror view
+* (shift notes steps)   ; move up/down some number of steps
 
 == Musical Generation
 
@@ -89,6 +114,16 @@ Note Modification:
 
 * Many musical packages have some notion of a repeating process that is used to generate notes.  In clojure we can just use the built-in support for lazy sequences to implement the same thing.
  - repeat, cycle, iterate, etc...
+
+* Sequence generators 
+ - probabilistic arpeggiator
+ - take a rhythym seq, note seq, and groove seq
+ - latin sounds
+ - house sounds
+ - minimal techno sounds
+ - drum and bass sounds
+
+* create a library of sequence modifiers and harmonizers
 
 
 -------------------------
@@ -115,3 +150,54 @@ Related Projects:
 
 * Super Collider
 ** http://supercollider.sourceforge.net/
+
+------------------------------
+
+= Livecoding
+
+Clojure source editor:
+* Custom editor (incorporate the Waterfront IDE???)
+* Code in vim/emacs with socket connection to audio/graphics engine
+
+Musical programming:
+* musical structure
+ - notes, scales, chords, arpeggios (jm.JMC)
+* musical flow
+ - processes 
+   * e.g. Common Music -> http://commonmusic.sourceforge.net/cm/res/doc/cm.html#processes
+ - recursion in time
+   * impromptu style
+* Need accurate source of timing (nanoTime, ScheduledExecutorService, audio API or OpenGL timers???)
+
+= Visualization and interface 
+Use: 
+* penumbra GL/shaders for clojure http://github.com/ztellman/penumbra/tree/master
+* Game engine http://www.jmonkeyengine.com/
+
+= Distributed, real-time jamming
+Use: Plasma, graph based networking
+
+= Cloud storage and collaboration 
+Use: google app-engine/wave cloud server
+
+= VST Plugin capabliity
+Use: jVSTWrapper (http://jvstwrapper.sourceforge.net/
+
+= Computer vision (multi-touch detection and object tracking)
+
+Touch APIs:
+* Multitouch lib from TU-Berlin http://code.google.com/p/multitouch/
+* Sparsh UI http://code.google.com/p/sparsh-ui/
+
+Custom image processing:
+* http://javavis.sourceforge.net/
+* Java OpenCV http://ubaa.net/shared/processing/opencv/
+* Or implement processing pipeline in C++ with OpenCV and use 
+  clojure-jna to interface: http://github.com/Chouser/clojure-jna/tree/master
+
+-------------------------------------------------
+
+TODO: 
+
+* Figure out mutex problem in Fluxa's async sample loader
+ - the loading loop does a trylock and fails, so it doesn't load samples... I put in a spin loop hack for now...
