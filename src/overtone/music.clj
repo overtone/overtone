@@ -1,13 +1,12 @@
 (ns overtone.music
-  (:use (overtone core)))
+  (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit)))
+
 
 ;; MIDI
 (def midi-range (range 128))
 (def middle-C 60)
 
 ;; Frequencies
-(def semitone-multiplier 1.05946) ; next-semitone = current * semitone-multiplier
-
 (defn shift
   "Shift the notes in phrase by amount.  The index specified in notes starts 
   at one, not zero."
@@ -97,4 +96,34 @@
 ;(def notes (octaves (range 2 6) (scale :C :major)))
 ;(play notes rhythm groove)
 
+;; Time
 
+; System "time of day" clock => ms since the epoch (00:00 of Jan. 1, 1970)
+; Accurate to the OS clock interrupt interval, which is typically about 10ms.
+;(System/currentTimeMillis)
+
+; Uses the highest resolution timer available, returning a free-running count
+; in nanoseconds, although resolution is typically on the order of microseconds.
+; Only valid when compared with other nanoTime values, so used for event timing.
+;(System/nanoTime)
+
+(def NUM-PLAYER-THREADS 10)
+(def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS))
+
+(defn schedule [job ms-delay]
+  (.schedule *player-pool* job (long ms-delay) TimeUnit/MILLISECONDS))
+
+(defn periodic [job ms-period & [initial-delay]]
+  (let [initial-delay (if initial-delay 
+                        (long initial-delay)
+                        (long 0))]
+  (.scheduleAtFixedRate *player-pool* job initial-delay (long ms-period) TimeUnit/MILLISECONDS)))
+
+(defn stop-players [& [now]]
+  (if now
+    (.shutdownNow *player-pool*)
+    (.shutdown *player-pool*))
+  (def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS)))
+
+(defn stop-player [player & [now]]
+  (.cancel player (or now false)))

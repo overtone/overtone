@@ -4,7 +4,6 @@
                          Group Node 
                          GraphElem Control Constant
                          Synth SynthDef UGenChannel)
-     (de.sciss.jcollider.gui SynthDefDiagram)
      (de.sciss.net OSCClient OSCBundle OSCMessage))
   (:use overtone.sc))
 
@@ -134,18 +133,45 @@
 (defmacro defsynth [name node]
   `(def ~(symbol (str name)) (SynthDef. ~(str name) ~node)))
 
-(defn voice [synth & [args]]
-  (let [synth-name (cond 
-                     (string? synth) synth
-                     (= de.sciss.jcollider.SynthDef (type synth)) (.getName synth))
-        arg-names (into-array (for [k (keys args)] (str k)))
-        arg-names (if (empty? arg-names) (make-array String 0) arg-names)
-        arg-vals  (into-array (for [v (vals args)] (float v)))
-        arg-vals  (if (empty? arg-vals) (make-array (. Float TYPE) 0) arg-vals)]
-    (Synth/newPaused synth-name arg-names arg-vals (.asTarget *s*) (:pause action))))
+(defn synth-args [arg-map]
+  (if (empty? arg-map) 
+    [(make-array String 0) (make-array (. Float TYPE) 0)]
+    [(into-array (for [k (keys arg-map)] (str k)))
+     (float-array (for [v (vals arg-map)] (float v)))]))
 
-(defn play [sdef]
-  (.play sdef (root)))
+(defn trigger [synth & args]
+  (let [args (if (= 1 (count args)) (first args) args)
+        [arg-names arg-vals] (synth-args (apply hash-map args))]
+    (cond 
+      (string? synth) (Synth. synth arg-names arg-vals (.asTarget *s*))
+      (= de.sciss.jcollider.SynthDef (type synth)) (.play synth (.asTarget *s*) arg-names arg-vals)
+      true (throw (Exception. "Play can take either a synthdef object or the string name of a previously
+                               defined and stored synthdef available from the SuperCollider environment.")))))
+
+(defn update [synth & args]
+  (let [[names vals] (synth-args (apply hash-map args))]
+    (.set synth names vals)))
+
+(defn release [synth]
+  (.release synth))
+
+(defn note [voice note-num dur & args]
+  (let [synth (trigger voice args)]
+    (schedule #(release synth) dur)))
+
+;; Env -> Envelope specification for use with EnvGen
+;; Make a <list> for use with the EnvGen UGen. `levels' is a <list>
+;; containing the left to right gain values for the envelope, it has
+;; one more element than the <list> `times', having the delta times
+;; for each envelope segment. `curve' is either a string or a number
+;; or a <list> of such, in either case it is expanded to a list of the
+;; same length as `times'. `release-node' is the index of the
+;; 'release' stage of the envelope, `loop-node' is the index of the
+;; 'loop' stage of the envelope. These indices are set as invalid, by
+;; convention -1, to indicate there is no such node.
+
+;(defn play [sdef & args]
+;  (.play sdef (root)))
 
 (defn free [sdef]
   (.free sdef (root)))
