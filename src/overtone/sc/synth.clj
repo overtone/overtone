@@ -159,6 +159,8 @@
   (let [synth (trigger voice args)]
     (schedule #(release synth) dur)))
 
+
+
 ;; Env -> Envelope specification for use with EnvGen
 ;; Make a <list> for use with the EnvGen UGen. `levels' is a <list>
 ;; containing the left to right gain values for the envelope, it has

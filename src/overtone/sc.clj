@@ -217,9 +217,46 @@
 (defn release [synth]
   (.release synth))
 
+(defn play-note [voice note-num dur args]
+  (let [synth (trigger voice (assoc (apply hash-map args) :note note-num))]
+    (schedule #(release synth) dur)
+    synth))
+
 (defn note [voice note-num dur & args]
   (let [synth (trigger voice (assoc (apply hash-map args) :note note-num))]
-    (schedule #(release synth) dur)))
+    (schedule #(release synth) dur)
+    synth))
+
+(defn now []
+  (System/currentTimeMillis))
+
+; Can't figure out why this isn't working... need sleep.
+(defn play [time-ms voice note-num dur & args]
+  (let [on-time  (- time-ms (now))
+        rel-time (+ on-time dur)]
+    (println "ont: " on-time "\ntms: " time-ms "\nrel: " rel-time)
+    (if (<= on-time 0)
+      (let [synth (trigger voice (assoc (apply hash-map args) :note note-num))]
+        (schedule #(release synth) rel-time))
+      (schedule #(apply note voice note-num dur args) on-time))))
+
+(def *drums (ref []))
+(def *drum-count (ref 0))
+(defn drum [voice pattern]
+  (dosync (alter *drums conj [voice pattern])))
+
+(defn clear-drums []
+  (dosync (ref-set *drums [])))
+
+(defn play-drums [tempo beat-count]
+  (periodic (fn []
+              (let [num (rand)
+                    i   @*drum-count]
+                (doseq [[voice pattern] @*drums]
+                  (if (< num (nth pattern i))
+                    (note voice 50 200)))
+                (dosync (ref-set *drum-count (mod (inc @*drum-count) beat-count)))))
+            tempo))
 
 ;; Env -> Envelope specification for use with EnvGen
 ;; Make a <list> for use with the EnvGen UGen. `levels' is a <list>
