@@ -1,4 +1,26 @@
-= Overtone
-=== Programming Music
+== Overtone
+=== Live-coding and musical exploration
 
-A Clojure based musical generation system for live-coding.
+A Clojure based musical generation and manipulation system for live-coding and more.
+
+=== Requirements:
+
+* SuperCollider synthesis server (scsynth) 
+ - probably just needs to be on the path?
+
+* Clojure
+
+* A clojure editing environment that lets you easily evaluate and run code
+ - VimClojure (my preference... and getting better every release)
+ - Emacs with Slime
+ 
+* jCollider library (java interfacing to SuperCollider using OSC)
+
+* If you are on linux you'll want the SwingOSC system installed to for GUI support 
+related to SuperCollider. (oscilloscope, etc...)
+
+* abc4j library  (musical notation library)
+
+-----------------------
+
+Look at the "tests" for examples on how to make noise and do things.

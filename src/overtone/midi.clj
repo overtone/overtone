@@ -10,6 +10,14 @@
      (java.awt.event MouseAdapter))
   (:use clojure.set))
 
+;; TODO
+;; * Simplify this shit so in a single function call you can set either midi-in or midi-out
+;;  - take either a port number, string identifier, or gui-selector
+;; * figure out how to implement an arpeggiator that captures midi notes and then fills in
+;;   or uses the chord played to generate new stuff.
+;;
+(def *midi-out-port* (ref nil))
+
 (defn devices []
   "Get all of the currently available midi devices."
   (for [info (MidiSystem/getMidiDeviceInfo)]
@@ -91,26 +99,25 @@
 (def *sequencer* (ref (MidiSystem/getSequencer)))
 (.open @*sequencer*)
 
-(def connect-sink
-  "Connect the sequencer to the midi-out device."
-  []
-  (.setReceiver (.getTransmitter @*sequencer*) (receiver *midi-out*)))
-
-(def connect-source
-  "Connect the sequencer to the midi-in device."
-  []
-  ())
-
 (defn- receiver 
   [device]
   (.open device)
   (.getReceiver device))
 
+(defn connect-sink
+  "Connect the sequencer to the midi-out device."
+  []
+  (.setReceiver (.getTransmitter @*sequencer*) (receiver @*midi-out*)))
+
+(defn connect-source
+  "Connect the sequencer to the midi-in device."
+  []
+  ())
+
 (defn sequencer 
   "Setup and start a sequencer with a midi device connected."
   []
-  (sink-chooser (fn [] 
-                    seqr)))
+  (sink-chooser (fn [] nil)))
 
 (defn midi-out []
   (sink-chooser (sinks) connect-sink))

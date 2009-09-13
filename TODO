@@ -1,0 +1,47 @@
+=== Features:
+* Audio samples: loading, playing, and manipulating
+ - support a variety of file formats, not just wav
+
+* Tempo and time management 
+ 
+* (midi-in ...) (midi-out ...)
+ - no args brings up chooser, string does an (re-find ) on the descriptions
+
+* audio in and out
+ - select line-in/out, mic...
+ - show a scope along side the chooser and with a single click connect up
+   so it's easy to see what you are hooking up with quickly
+
+* Envelopes
+
+* SynthDef mode
+ - bring up the scope and an FFT window with some helpful controls for exploring sound spaces
+ - either bring up a window or make it easy to do in code:
+   * connect arpeggiators, chord progressors, midi-in, etc., to your
+live instrument definitions so you can mess with the parameters and the synthdef while 
+hearing useful audio input
+
+* convert instrument definitions to clojure
+
+* Arpeggiator(s)
+* Chord progressors
+ - create a library of things like 12-bar-blues, etc., and make it easy
+to connect them up to instruments.
+
+* Scales
+ - add more knowledge about scale construction, modes, etc
+ - create a library of interesting scales
+
+* musical processes
+ - lazy sequences of notes (combine or separate freq, velocity, duration?)
+ - markov models (basically gets us finite state machines too right?)
+(markov funky-jazz
+  a 3 -> b  ; b 3 times more likely than c
+  a -> c
+  b -> d
+  c -> d
+  d -> a)
+
+* synchronization 
+ - so an overtone client can be in step with an externally generated clock
+ - so multiple overtone clients can be in step
