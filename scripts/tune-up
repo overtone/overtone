@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+
+#AUDIO="FA-66"
+AUDIO="Laptop"
+
+MIXER_CHANNELS=4
+
+PORTS = {
+  :mixer, 4243,
+  :midi_osc, 4244
+}
+
+APPS = [
+#  ["midi.osc", "./midi.osc -p #{PORTS[:midi_osc]}"],
+  ["jackminimix", "jackminimix -a -c #{MIXER_CHANNELS} -p #{PORTS[:mixer]}"],
+  ["jack.plumbing", "jack.plumbing"]
+]
+
+def start_studio
+  APPS.each do |name, cmd|
+    puts "\t #{name}"
+    puts "CMD: #{cmd} &"
+    system("#{cmd} &")
+  end
+end
+
+def kill_studio
+  APPS.each {|name, cmd| `pkill -9 #{name}`}
+end
+
+puts "\nInitializing studio..."
+
+puts "Starting nailgun server..."
+`pkill -9 java`
+ENV["CLOJURE_EXT"] = "#{Dir.pwd}/lib" 
+sleep 1
+system("ng-server &")
+
+puts "Starting qjackctl..."
+`pkill -9 jack`
+sleep 1
+system("qjackctl -s -p #{AUDIO} &")
+sleep 1
+
+kill_studio
+start_studio
+puts "\n...complete"
+
+puts "\nAll systems go!\n\n"

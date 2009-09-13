@@ -24,3 +24,7 @@ related to SuperCollider. (oscilloscope, etc...)
 -----------------------
 
 Look at the "tests" for examples on how to make noise and do things.
+
+The tune-up script in scripts is for quickly starting up your environment.
+For example in linux we need to start Jack with the correct parameters, and
+the jack.plumbing tool can be helpful for auto-routing connections.
