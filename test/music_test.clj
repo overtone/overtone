@@ -1,5 +1,5 @@
 (ns music-test
-  (:use (overtone sc music)))
+  (:use (overtone drums)))
 
 (def pitches [60 62 64 65 67 69 71 72])
 (def dynamics [80 80 80 80 80 80 80 80])

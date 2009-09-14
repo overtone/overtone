@@ -95,9 +95,9 @@
 ;
 (defn scale-raw [s]
   "Create the note field for a given scale.  Scales are specified with a keyword:
-    :g => g major          :dm => d minor
-    :eb7 => eb major 7     :cm7 => c minor 7
-    :ba => b augmented     :f#i => f# diminished"
+  :g => g major          :dm => d minor
+  :eb7 => eb major 7     :cm7 => c minor 7
+  :ba => b augmented     :f#i => f# diminished"
   (let [[note intervals] (parse-scale s)]))
 ;        full-intervals (apply concat (take 12 (repeat (scales intervals))))
 ;        [result _] (reduce 
@@ -150,14 +150,19 @@
 (def NUM-PLAYER-THREADS 10)
 (def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS))
 
-(defn schedule [job ms-delay]
-  (.schedule *player-pool* job (long ms-delay) TimeUnit/MILLISECONDS))
+(defn schedule 
+  "Schedules fun to be executed after ms-delay milliseconds."
+  [fun ms-delay]
+  (.schedule *player-pool* fun (long ms-delay) TimeUnit/MILLISECONDS))
 
-(defn periodic [job ms-period & [initial-delay]]
+(defn periodic 
+  "Calls fun every ms-period, and takes an optional initial-delay for the first call."
+
+  [fun ms-period & [initial-delay]]
   (let [initial-delay (if initial-delay 
                         (long initial-delay)
                         (long 0))]
-    (.scheduleAtFixedRate *player-pool* job initial-delay (long ms-period) TimeUnit/MILLISECONDS)))
+    (.scheduleAtFixedRate *player-pool* fun initial-delay (long ms-period) TimeUnit/MILLISECONDS)))
 
 (defn stop-players [& [now]]
   (if now

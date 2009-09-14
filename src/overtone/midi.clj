@@ -1,14 +1,19 @@
 (ns overtone.midi
   (:import 
-     (javax.sound.midi 
-       MidiSystem MidiDevice Sequencer Synthesizer 
-       Receiver Transmitter Sequence MidiEvent 
+     (java.util.regex Pattern)
+     (javax.sound.midi Sequencer Synthesizer
+       MidiSystem MidiDevice Receiver Transmitter MidiEvent 
        MidiMessage ShortMessage SysexMessage
        InvalidMidiDataException MidiUnavailableException)
      (javax.swing JFrame JScrollPane JList 
                   DefaultListModel ListSelectionModel)
      (java.awt.event MouseAdapter))
-  (:use clojure.set))
+  (:use clojure.set
+     (overtone music)))
+
+;; NOTE:
+;; * The builtin "real-time" sequencer doesn't support modifying the sequence on-the-fly, so
+;; don't waste any more time messing with javax.sound.midi.Sequencer.
 
 ;; TODO
 ;; * Simplify this shit so in a single function call you can set either midi-in or midi-out
@@ -16,7 +21,6 @@
 ;; * figure out how to implement an arpeggiator that captures midi notes and then fills in
 ;;   or uses the chord played to generate new stuff.
 ;;
-(def *midi-out-port* (ref nil))
 
 (defn devices []
   "Get all of the currently available midi devices."
@@ -30,16 +34,6 @@
        :sinks        (.getMaxReceivers device)
        :info         info
        :device       device})))
-
-(defn sequencers 
-  "Get the available midi sequencers."
-  []
-  (filter #(instance? Sequencer (:device %1)) (devices)))
-
-(defn synthesizers 
-  "Get the available midi synthesizers."
-  []
-  (filter #(instance? Synthesizer (:device %1)) (devices)))
 
 (defn ports 
   "Get the available midi ports (hardware sound-card and virtual ports)."
@@ -59,13 +53,28 @@
   []
   (filter #(not (zero? (:sinks %1))) (ports)))
 
+(defn find-device 
+  "Takes a set of devices returned from either (sources) or (sinks), and a
+  search string.  Returns the first device where either the name or description
+  mathes using the search string as a regexp."
+  [devs dev-name]
+  (first (filter 
+           #(let [pat (Pattern/compile dev-name Pattern/CASE_INSENSITIVE)]
+              (or (re-find pat (:name %1)) 
+                  (re-find pat (:description %1))))
+           devs)))
+
+
 (defn- list-model [items]
   (let [model (DefaultListModel.)]
     (doseq [item items]
       (.addElement model item))
     model))
 
-(defn port-chooser [ports handler]
+(defn port-chooser 
+  "Brings up a GUI list of the provided ports and then calls handler with the port
+  that was double clicked."
+  [ports handler]
   (let [frame   (JFrame. "Midi Port Chooser")
         model   (list-model (for [port ports] 
                               (str (:name port) " - " (:description port))))
@@ -77,8 +86,7 @@
                      (println "clicked: " event)
                      (if (= (.getClickCount event) 2)
                        (.setVisible frame false)
-                       (dosync (ref-set *midi-out-port* 
-                                        (nth ports (.getSelectedIndex options)))))))]
+                       (handler (nth ports (.getSelectedIndex options))))))]
     (doto options
       (.addMouseListener listener)
       (.setSelectionMode ListSelectionModel/SINGLE_SELECTION))
@@ -88,132 +96,85 @@
       (.setSize 400 600)
       (.setVisible true))))
 
-(defn sink-chooser [handler]
-  (port-chooser (sinks) handler))
+(defn- receiver [sink-info]
+  (let [dev (:device sink-info)]
+    (if (not (.isOpen dev))
+      (.open dev))
+    (.getReceiver dev)))
 
-(defn source-chooser [handler]
-  (port-chooser (sources) handler))
+(defn- transmitter [source-info]
+  (let [dev (:device source-info)]
+    (if (not (.isOpen dev))
+      (.open dev))
+    (.getTransmitter dev)))
 
-(def *midi-in* (ref nil))
-(def *midi-out* (ref nil))
-(def *sequencer* (ref (MidiSystem/getSequencer)))
-(.open @*sequencer*)
+; TODO: Make midi-in and midi-out synchronous when called with no arguments...
+(defn midi-in 
+  "Connect the sequencer to a midi input device."
+;  ([] (port-chooser (sources) source-to-seq))
+  ([in-name] (let [source (find-device (sources) in-name)]
+                (if source
+                  (transmitter source)
+                  (do 
+                    (println "Did not find a matching midi input device for: " in-name)
+                    nil)))))
 
-(defn- receiver 
-  [device]
-  (.open device)
-  (.getReceiver device))
+(defn midi-out 
+  "Connect the sequencer to a midi output device."
+;  ([] (port-chooser (sinks) seq-to-sink))
+  ([out-name] (let [sink (find-device (sinks) out-name)]
+                (if sink
+                  (receiver sink)
+                  (do 
+                    (println "Did not find a matching midi output device for: " out-name)
+                    nil)))))
 
-(defn connect-sink
-  "Connect the sequencer to the midi-out device."
-  []
-  (.setReceiver (.getTransmitter @*sequencer*) (receiver @*midi-out*)))
+(defn midi-route 
+  "Route midi messages from a source to a sink.  Expects transmitter and receiver objects
+  returned from midi-in and midi-out."
+  [source sink]
+  (.setReceiver source sink))
 
-(defn connect-source
-  "Connect the sequencer to the midi-in device."
-  []
-  ())
+(defn midi-msg [msg]
+  (if (instance? ShortMessage msg)
+    (let [cmd (.getCommand msg)
+          data {:note (.getData1 msg)
+                :velocity (.getData2 msg)}]
+          (cond 
+            (= 0x80 cmd) (assoc data :cmd :off)
+            (= 0x90 cmd) (assoc data :cmd :on)
+            true nil))))
 
-(defn sequencer 
-  "Setup and start a sequencer with a midi device connected."
-  []
-  (sink-chooser (fn [] nil)))
+(defn midi-handler [fun]
+  (proxy [Receiver] []
+    (close [] nil)
+    (send [msg timestamp] 
+          (if-let [parsed (midi-msg msg)]
+            (fun parsed)))))
 
-(defn midi-out []
-  (sink-chooser (sinks) connect-sink))
+(defn midi-note-on [recvr note-num vel]
+  (let [on-msg  (ShortMessage.)]
+    (.setMessage on-msg ShortMessage/NOTE_ON 0 note-num vel)
+    (.send recvr on-msg -1)))
 
-(defn midi-out []
-  (sink-chooser (sinks) connect-sink))
+(defn midi-note-off [recvr note-num vel]
+  (let [off-msg (ShortMessage.)]
+    (.setMessage off-msg ShortMessage/NOTE_OFF 0 note-num 0)
+    (.send recvr off-msg -1)))
 
-(defn start [seqr]
-  (.start seqr))
+(defn midi-note [recvr note-num vel dur]
+  (midi-note-on recvr note-num vel)
+  (schedule #(midi-note-off recvr note-num 0) dur))
 
-(defn stop [seqr]
-  (.stop seqr))
-
-(defn note [out note vel dur]
-  (let [on-msg (ShortMessage.)
-        off-msg (ShortMessage.)]
-    (.setMessage on-msg ShortMessage/NOTE_ON 0 note vel)
-    (.setMessage off-msg ShortMessage/NOTE_OFF 0 note 0)
-    (.send out on-msg -1)
-    (Thread/sleep dur)
-    (.send out off-msg -1)))
-
-(defn play [out notes velocities durations]
+(defn midi-play [out notes velocities durations]
   (loop [notes notes
          velocities velocities
-         durations durations]
+         durations durations
+         cur-time  0]
     (if notes
       (let [n (first notes)
             v (first velocities)
             d (first durations)]
-        (note out n v d)
-        (recur (next notes) (next velocities) (next durations))))))
+        (schedule #(midi-note out n v d) cur-time)
+        (recur (next notes) (next velocities) (next durations) (+ cur-time d))))))
 
-; MIDI message constants
-(def NOTE-ON 144)
-(def NOTE-OFF 128)
-
-
-; 10 pulses per quarter note
-;(def session-seq (new Sequence Sequence/PPQ 10))
-;(def track-0 (.createTrack session-seq))
-;
-;(.setSequence sequencer session-seq)
-;
-
-;(defn seqr-note [seqr time note vel dur]
-;  (let [on-msg (ShortMessage.)
-;        off-msg (ShortMessage.)]
-;    (.setMessage on-msg NOTE-ON 0 note vel)
-;    (.setMessage off-msg NOTE-OFF 0 note 0)
-;    (.add track-0 (MidiEvent. on-msg time))
-;    (.add track-0 (MidiEvent. off-msg (+ time dur))))
-;  (if (not (.isRunning seqr))
-;    (start seqr)))
-
-;(def synth (MidiSystem/getSynthesizer))
-;(.open synth)
-;
-;(def soundbank (.getDefaultSoundbank synth))
-;(def instruments (.getInstruments soundbank))
-;(.loadInstrument synth (first instruments))
-;
-;(def midi-channels (.getChannels synth))
-;(def chan-data (ChannelData.))
-
-; Enable recording on a track
-; (.recordEnable track-1)
-
-; Time check
-(defn now [seqr]
-  (.getTickPosition seqr))
-; (.getMicrosecondPosition))
-
-(defn set-bpm [seqr bpm]
-  (.setTempoInBPM seqr bpm))
-
-; public void setTempoInMPQ(float mpq) (microseconds per quarter)
-; public void setTempoFactor(float factor)
-
-(defn track-mute [seqr]
-  (.setTrackMute seqr 0 true))
-
-(defn track-solo [seqr t on-off]
-  (.setTrackSolo seqr t on-off))
-
-;(play-note-seq (now) 45 120 20)
-;(play-note-seq (+ 10 (now)) 47 120 20)
-;(play-note-seq (+ 100 (now)) 45 120 20)
-
-;(play-note-external 45 100 1000)
-
-;(defn play-note-synth [note vel dur]
-;  (let [channels (.getChannels synth)
-;        chan (first channels)]
-;    (.noteOn chan note vel)
-;    (Thread/sleep dur)
-;    (.noteOff chan note vel)))
-;
-;(play-note-synth 45 100 1000)

@@ -4,8 +4,9 @@
 
 * Tempo and time management 
  
-* (midi-in ...) (midi-out ...)
- - no args brings up chooser, string does an (re-find ) on the descriptions
+* Make midi-in and midi-out synchronous by default, by generating a future
+that will be set from the gui callback, and then blocking on a .get call
+to the future.
 
 * audio in and out
  - select line-in/out, mic...
@@ -13,6 +14,8 @@
    so it's easy to see what you are hooking up with quickly
 
 * Envelopes
+ - now that they work with a hard-coded parameter array, we need some help functions
+to mimick the Env class of sclang.
 
 * SynthDef mode
  - bring up the scope and an FFT window with some helpful controls for exploring sound spaces
@@ -20,6 +23,11 @@
    * connect arpeggiators, chord progressors, midi-in, etc., to your
 live instrument definitions so you can mess with the parameters and the synthdef while 
 hearing useful audio input
+ - develop more of a dsl for:
+   * defining instruments
+   * managing voices, fx, and busses
+- synthdefs should automatically register their information with a synthdef library
+area so users can easily browse available instruments and fx.
 
 * convert instrument definitions to clojure
 

@@ -33,7 +33,7 @@ SynthDef("vintage-bass", {|out=0, note=40, vel=0.5, gate=1|
   var filt = env * MoogFF.ar(snd, env * vel * f+200, 2.2);
   Out.ar(0, Pan2.ar(filt, 0))
 }).store;
-b = Synth("vintage-bass", ["midin", 50.0, "vel", 0.6]);
+b = Synth("vintage-bass", ["note", 40.0, "vel", 0.6]);
 b.set("gate", 1);
 b.set("gate", 0);
 
