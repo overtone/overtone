@@ -1,7 +1,4 @@
-(ns overtone.music
-  (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit
-                                 PriorityBlockingQueue)
-     (java.util Comparator)))
+(ns overtone.pitch)
 
 ;; MIDI
 (def midi-range (range 128))
@@ -132,68 +129,4 @@
 
 ;(def notes (octaves (range 2 6) (scale :C :major)))
 ;(play notes rhythm groove)
-
-;; Time
-(def *bpm (ref 120))           ; beats per minute
-(def *signature (ref 4/4))     ; time signature
-
-; A metronome should let us refer to time in terms of rhythmic units like beat, bar, measure,
-; and it should convert these units to real time units (ms) based on the current BPM and signature settings.
-
-(defn beat 
-  "Given some number of beats, compute ms at the current bpm."
-  [b] 
-  (
-
-; System "time of day" clock => ms since the epoch (00:00 of Jan. 1, 1970)
-; Accurate to the OS clock interrupt interval, which is typically about 10ms.
-;(System/currentTimeMillis)
-
-; Uses the highest resolution timer available, returning a free-running count
-; in nanoseconds, although resolution is typically on the order of microseconds.
-; Only valid when compared with other nanoTime values, so used for event timing.
-;(System/nanoTime)
-
-(def NUM-PLAYER-THREADS 10)
-(def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS))
-
-(defn schedule 
-  "Schedules fun to be executed after ms-delay milliseconds."
-  [fun ms-delay]
-  (.schedule *player-pool* fun (long ms-delay) TimeUnit/MILLISECONDS))
-
-(defn periodic 
-  "Calls fun every ms-period, and takes an optional initial-delay for the first call."
-
-  [fun ms-period & [initial-delay]]
-  (let [initial-delay (if initial-delay 
-                        (long initial-delay)
-                        (long 0))]
-    (.scheduleAtFixedRate *player-pool* fun initial-delay (long ms-period) TimeUnit/MILLISECONDS)))
-
-(defn stop-players [& [now]]
-  (if now
-    (.shutdownNow *player-pool*)
-    (.shutdown *player-pool*))
-  (def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS)))
-
-(defn stop-player [player & [now]]
-  (.cancel player (or now false)))
-
-; Timer based "recursion in time" 
-;  The idea is to create something along the lines of impromptu, except do it
-; using a macro and an exception.
-;  * save the arguments inside the exception object
-;  * throw the exception to pop off the call-stack to some base level
-;  * in the exception handler lookup which function threw the exception and store it in the exception too
-;  * add an event to the task queue for the specified time in the future
-;  * when event fires call the function with the arguments saved in the exception 
-
-; By passing a function using #'foo syntax instead of just foo, when later called by the scheduler
-; it will lookup based on the symbol rather than using the instance of the function defined earlier.
-; (callback (+ dur (now)) #'my-melody arg1 arg2)
-
-(defn callback [time func & args]
-  (schedule #(apply func args)))
-
 

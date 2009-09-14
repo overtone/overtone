@@ -7,7 +7,8 @@
        InvalidMidiDataException MidiUnavailableException)
      (javax.swing JFrame JScrollPane JList 
                   DefaultListModel ListSelectionModel)
-     (java.awt.event MouseAdapter))
+     (java.awt.event MouseAdapter)
+     (java.util.concurrent FutureTask)
   (:use clojure.set
      (overtone music)))
 
@@ -16,17 +17,15 @@
 ;; don't waste any more time messing with javax.sound.midi.Sequencer.
 
 ;; TODO
-;; * Simplify this shit so in a single function call you can set either midi-in or midi-out
-;;  - take either a port number, string identifier, or gui-selector
 ;; * figure out how to implement an arpeggiator that captures midi notes and then fills in
 ;;   or uses the chord played to generate new stuff.
-;;
 
 (defn devices []
   "Get all of the currently available midi devices."
   (for [info (MidiSystem/getMidiDeviceInfo)]
     (let [device (MidiSystem/getMidiDevice info)]
-      {:name         (.getName info)
+      {:type         :device
+       :name         (.getName info)
        :description  (.getDescription info)
        :vendor       (.getVendor info)
        :version      (.getVersion info)
@@ -34,6 +33,9 @@
        :sinks        (.getMaxReceivers device)
        :info         info
        :device       device})))
+
+(defn device? [obj]
+  (and (map? obj) (= :device (:type obj))))
 
 (defn ports 
   "Get the available midi ports (hardware sound-card and virtual ports)."
@@ -74,19 +76,19 @@
 (defn port-chooser 
   "Brings up a GUI list of the provided ports and then calls handler with the port
   that was double clicked."
-  [ports handler]
+  [ports]
   (let [frame   (JFrame. "Midi Port Chooser")
         model   (list-model (for [port ports] 
                               (str (:name port) " - " (:description port))))
         options (JList. model)
         pane    (JScrollPane. options)
+        future-val (FutureTask. #(nth ports (.getSelectedIndex options)))
         listener (proxy [MouseAdapter] []
                    (mouseClicked 
                      [event] 
-                     (println "clicked: " event)
                      (if (= (.getClickCount event) 2)
                        (.setVisible frame false)
-                       (handler (nth ports (.getSelectedIndex options))))))]
+                       (.run future-val))))]
     (doto options
       (.addMouseListener listener)
       (.setSelectionMode ListSelectionModel/SINGLE_SELECTION))
@@ -94,7 +96,8 @@
       (.add pane) 
       (.pack) 
       (.setSize 400 600)
-      (.setVisible true))))
+      (.setVisible true))
+    future-val))
 
 (defn- receiver [sink-info]
   (let [dev (:device sink-info)]
@@ -111,18 +114,27 @@
 ; TODO: Make midi-in and midi-out synchronous when called with no arguments...
 (defn midi-in 
   "Connect the sequencer to a midi input device."
-;  ([] (port-chooser (sources) source-to-seq))
-  ([in-name] (let [source (find-device (sources) in-name)]
-                (if source
-                  (transmitter source)
-                  (do 
-                    (println "Did not find a matching midi input device for: " in-name)
-                    nil)))))
+  ([] (transmitter
+        (.get (port-chooser (sources))))
+
+  ([in] 
+   (let [source (cond
+                  (string? in) (find-device (sources) in)
+                  (device? in) in)]
+     (if source
+       (transmitter source)
+       (do 
+         (println "Did not find a matching midi input device for: " in-name)
+         nil)))))
 
 (defn midi-out 
   "Connect the sequencer to a midi output device."
-;  ([] (port-chooser (sinks) seq-to-sink))
-  ([out-name] (let [sink (find-device (sinks) out-name)]
+  ([] (receiver 
+        (.get (port-chooser (sinks)))))
+
+  ([out] (let [sink (cond
+                      (string? out) (find-device (sinks) out)
+                      (device? out) out)]
                 (if sink
                   (receiver sink)
                   (do 

@@ -123,3 +123,83 @@ SynthDef(\voicform, { arg out=0, gate=1, freq=440, amp=0.3, voiceGain=1.0, noise
 v = Synth(\voicform, target: s)
 v.set("freq", 100);
 v.free;
+
+
+SynthDef.new("mcldjospiano1", { | out = 0, freq = 440, gate = 1,
+amp=0.1, pan = 0|
+        var impresp, imps, dels, hammerstr, velocity, string, ampcomp,
+pldelay, cutoff;
+        velocity = Latch.kr(gate, gate);
+
+        cutoff = EnvGen.kr(Env.asr(0.00001, 1, 0.2, curve: -4), gate,
+doneAction: 2) * 15000 + 30;
+
+        // We start off by appromixating the piano's impulse response.
+        impresp = WhiteNoise.ar(1, 0, EnvGen.ar(Env.perc(0.02, 0.02)));
+        impresp = LPF.ar(impresp, freq.expexp(50, 1000, 10000, 500));
+        // FreeVerb is NOT a piano soundboard impulse response! Just a standin
+        impresp = FreeVerb.ar(impresp, 0.8, freq.linlin(300, 600, 0.1, 0.9),
+freq.linlin(300, 600, 0.19, 0.01));
+        impresp = LeakDC.ar(impresp);
+
+        // Then we simulate the multiple strikes of the hammer
+against the string
+        dels = #[0.002, 0.006, 0.009] * freq.explin(100, 1000, 1, 0.01);
+        imps = DelayN.ar(impresp, dels, dels, #[0.85, 0.32, 0.22]);
+        // Note: at higher velocity, the LPF goes higher, making the
+hammer hits more pointy & separate
+        imps = LPF.ar(imps, freq * 2 * #[1, 1.5, 1.5] * velocity * 2, mul: 8);
+        hammerstr = imps.sum;
+
+        // Now push the sound into Pluck, to simulate the string vibration
+        pldelay = (freq * [Rand(0.999, 0.9995), 1, Rand(1.00005,
+1.001)]).reciprocal;
+        string = Pluck.ar(hammerstr, Impulse.kr(0.000001), pldelay,
+pldelay, 10.5, 0.4);
+        string = LeakDC.ar(string).sum;
+
+        // patch gives un-piano-like amplitude variation across
+pitch; let's compensate
+        ampcomp = freq.max(350).min(1000).linlin(350, 1000, 1, 60);
+        string = string * ampcomp;
+
+        // filter is to damp the string when the note stops
+        string = LPF.ar(string, cutoff);
+
+        Out.ar(out, Pan2.ar(string, pan, (amp * 10)));
+}).store;
+
+
+SynthDef(\piano, { arg outBus, freq, amp, dur, pan; 
+var sig, in, n = 6, max = 0.04, min = 0.01, delay, pitch, detune, hammer;
+hammer = Decay2.ar(Impulse.ar(0.001), 0.008, 0.04,
+LFNoise2.ar([2000,4000].asSpec.map(amp), 0.25));
+sig = Mix.ar(Array.fill(3, { arg i;
+detune = #[-0.04, 0, 0.03].at(i);
+delay = (1/(freq + detune).midicps);
+CombL.ar(hammer, delay, delay, 50 * amp) + 
+SinOsc.ar(
+[(freq * 2) + SinOsc.kr(2, Rand(0, 1.0), 4), 
+freq * [4.23, 6.5]].flat , 
+0, 
+amp * [0.1, 0.25, 0.3]).sum
+}) );
+
+
+sig = HPF.ar(sig,50) * EnvGen.ar(Env.perc(0.0001,dur, amp, -1), doneAction:2);
+Out.ar(outBus, Pan2.ar(sig,pan));
+}).send(s);
+
+( //play a little ditty
+Task({ 
+36.do({ 
+2.do({arg i;
+Synth(\piano, [\freq, [0,2,3,5,7,8,10].choose + (60 + (i * 12)), \outBus, 0, 
+\amp, rrand(0.25,0.9), \dur, 1, \pan, 0], s);
+});
+[0.5,1].choose.wait
+});
+}).start
+);
+
+
