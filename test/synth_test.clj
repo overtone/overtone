@@ -1,5 +1,5 @@
 (ns synth-test
-  (:use overtone.sc)
+  (:use (overtone sc synth studio))
   (:use clj-backtrace.repl))
 
 (comment 
@@ -12,14 +12,13 @@
 
 (defsynth mouse-saw (quick (ar "LPF" (ar "Saw" [(kr "MouseX" 10 1200 1)
                                                 (kr "MouseY" 10 1200 1)]) 120)))
-(comment
+;(comment
 (trigger mouse-saw {})
 (reset)
-)
 
 (defsynth line-test (quick (ar "MulAdd" 
                               (ar "SinOsc" 
-                                  (kr "Line" 200 100 0.5) 0 )
+                                  (kr "Line" 100 600 0.5) 0 )
                               (kr "Line" 0.1 0 1) 0)))
 (comment
 (trigger line-test {})
@@ -39,6 +38,15 @@
 (trigger env-test {})
 (reset)
 )
+
+(deffoo synthdef-test 
+  (out.ar 0 
+      (mul-add.ar
+          (mul-add.ar 
+              (sin-osc.ar 440)
+              (env-gen.kr 1 1 0 1 2 [0 2 -99 -99 1 0.001 5 -4 0 0.3 5 -4])
+              (sin-osc.ar 2)) 0.8 0)))
+
 
 (defsynth harmonic-swimming (quick 
   (let [freq     50

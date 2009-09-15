@@ -57,8 +57,8 @@
 ; it will lookup based on the symbol rather than using the instance of the function defined earlier.
 ; (callback (+ dur (now)) #'my-melody arg1 arg2)
 
-(defn callback [time func & args]
-  (schedule #(apply func args)))
+(defn callback [ms func & args]
+  (schedule #(apply func args) ms))
 
 ; Rhythm
 

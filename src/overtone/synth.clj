@@ -5,7 +5,9 @@
                          Group Node Control Constant 
                          GraphElem GraphElemArray
                          Synth SynthDef UGenChannel))
-  (:use (overtone sc)))
+  (:use 
+     (clojure walk inspector)
+     (overtone sc)))
 
 ;; NOTES
 ;; It seems that the classes in sclang often times generate multiple UGen nodes for what seems like a single one.  For example, in reality a SinOsc ugen only has two inputs for frequency and phase, and then a MulAdd ugen is used to support the amplitude and dc-offset arguments.  Also, I think the control rate ugens that optionally take a completion action, for example envelopes that can free their containing synth once they are done, are also implemented using an additional ugen that is made to do just this freeing.  We should think about this and do something convenient to make our API as easy as possible.
@@ -132,9 +134,40 @@
 ;s.sendMsg("/s_new", "MyFavoriteSynth", n = s.nextNodeID;);
 ;s.sendMsg("/n_free", n);
   
-(defmacro defsynth [name node]
-  `(def ~(symbol (str name)) (SynthDef. ~(str name) ~node)))
+(defn normalize-ugen-name [n]
+  (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
 
+(defn ugen-map [names]
+  (apply hash-map (mapcat #(vector (normalize-ugen-name %1) %1) names)))
+
+(def UGEN-MAP (ugen-map (map :name (ugens))))
+
+(defn ugen-match [word]
+  (get UGEN-MAP (normalize-ugen-name (.substring word 0 (- (count word) 3)))))
+
+(defn replace-name [l]
+  (let [word (str (first l))]
+    (concat 
+      (cond 
+        (.endsWith word ".ar") ['ar (ugen-match word)]
+        (.endsWith word ".kr") ['kr (ugen-match word)]
+        (.endsWith word ".dr") ['dr (ugen-match word)]
+        true [(symbol word)]) 
+      (rest l))))
+
+(defn replace-ugens
+  "Find all the forms starting with a valid ugen identifier, and convert it to a function argument to
+  a ugen constructor compabitible with JCollider."
+  [form]
+  (postwalk (fn [x] (if (and (seq? x) 
+                             (symbol? (first x)))
+                      (replace-name x) 
+                      x)) 
+            form))
+
+(defmacro defsynth [name & body]
+  (let [renamed (replace-ugens body)]
+    `(def ~(symbol (str name)) (SynthDef. ~(str name) ~@renamed))))
 
 ;; Env -> Envelope specification for use with EnvGen
 ;; Make a <list> for use with the EnvGen UGen. `levels' is a <list>

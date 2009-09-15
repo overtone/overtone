@@ -8,7 +8,7 @@
                          GraphElem GraphElemArray
                          Synth SynthDef UGenChannel)
      (de.sciss.net OSCClient OSCBundle OSCMessage))
-  (:use (overtone music)))
+  (:use (overtone time)))
 
 (def SERVER-NAME "Overtone Audio Server")
 (def *s (ref (Server. SERVER-NAME)))

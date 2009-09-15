@@ -2,15 +2,15 @@
   (:import 
      (java.util.regex Pattern)
      (javax.sound.midi Sequencer Synthesizer
-       MidiSystem MidiDevice Receiver Transmitter MidiEvent 
-       MidiMessage ShortMessage SysexMessage
-       InvalidMidiDataException MidiUnavailableException)
+                       MidiSystem MidiDevice Receiver Transmitter MidiEvent 
+                       MidiMessage ShortMessage SysexMessage
+                       InvalidMidiDataException MidiUnavailableException)
      (javax.swing JFrame JScrollPane JList 
                   DefaultListModel ListSelectionModel)
      (java.awt.event MouseAdapter)
-     (java.util.concurrent FutureTask)
+     (java.util.concurrent FutureTask))
   (:use clojure.set
-     (overtone music)))
+     (overtone time)))
 
 ;; NOTE:
 ;; * The builtin "real-time" sequencer doesn't support modifying the sequence on-the-fly, so
@@ -66,7 +66,6 @@
                   (re-find pat (:description %1))))
            devs)))
 
-
 (defn- list-model [items]
   (let [model (DefaultListModel.)]
     (doseq [item items]
@@ -76,8 +75,8 @@
 (defn port-chooser 
   "Brings up a GUI list of the provided ports and then calls handler with the port
   that was double clicked."
-  [ports]
-  (let [frame   (JFrame. "Midi Port Chooser")
+  [title ports]
+  (let [frame   (JFrame. title)
         model   (list-model (for [port ports] 
                               (str (:name port) " - " (:description port))))
         options (JList. model)
@@ -115,7 +114,7 @@
 (defn midi-in 
   "Connect the sequencer to a midi input device."
   ([] (transmitter
-        (.get (port-chooser (sources))))
+        (.get (port-chooser "Midi Input Selector" (sources)))))
 
   ([in] 
    (let [source (cond
@@ -124,22 +123,22 @@
      (if source
        (transmitter source)
        (do 
-         (println "Did not find a matching midi input device for: " in-name)
+         (println "Did not find a matching midi input device for: " in)
          nil)))))
 
 (defn midi-out 
   "Connect the sequencer to a midi output device."
   ([] (receiver 
-        (.get (port-chooser (sinks)))))
+        (.get (port-chooser "Midi Output Selector" (sinks)))))
 
   ([out] (let [sink (cond
                       (string? out) (find-device (sinks) out)
                       (device? out) out)]
-                (if sink
-                  (receiver sink)
-                  (do 
-                    (println "Did not find a matching midi output device for: " out-name)
-                    nil)))))
+           (if sink
+             (receiver sink)
+             (do 
+               (println "Did not find a matching midi output device for: " out)
+               nil)))))
 
 (defn midi-route 
   "Route midi messages from a source to a sink.  Expects transmitter and receiver objects
@@ -152,11 +151,14 @@
     (let [cmd (.getCommand msg)
           data {:note (.getData1 msg)
                 :velocity (.getData2 msg)}]
-          (cond 
-            (= 0x80 cmd) (assoc data :cmd :off)
-            (= 0x90 cmd) (assoc data :cmd :on)
-            true nil))))
+      (cond 
+        (= 0x80 cmd) (assoc data :cmd :off)
+        (= 0x90 cmd) (assoc data :cmd :on)
+        true nil))))
 
+;; Implementing a midi receiver object so we can take in notes from another
+;; midi source, modify them on the fly, and then output them.  Have to write
+;; write a midi parser though...
 (defn midi-handler [fun]
   (proxy [Receiver] []
     (close [] nil)

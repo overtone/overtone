@@ -74,19 +74,13 @@
      :diminished dim
      :i          dim}))
 
+(defn chord [chord-type base]
+  (map #(+ %1 base) (:major CHORD)))
+
 (defn parse-scale [s]
   (let [s (name s)
         note (get NOTE (keyword (str (first s) (re-find #"#" s))))]))
 
-; Chord rules:
-;
-; minor =>  b3
-; minor7 => b3 b7
-;(defn chord [note] 
-;  (cond 
-;    (major? 
-;  (map #(+ note %1) MAJOR-TRIAD))
-;
 (defn scale-raw [s]
   "Create the note field for a given scale.  Scales are specified with a keyword:
   :g => g major          :dm => d minor

@@ -13,14 +13,15 @@ PORTS = {
 APPS = [
 #  ["midi.osc", "./midi.osc -p #{PORTS[:midi_osc]}"],
   ["jackminimix", "jackminimix -a -c #{MIXER_CHANNELS} -p #{PORTS[:mixer]}"],
-  ["jack.plumbing", "jack.plumbing"]
+  ["jack.plumbing", "jack.plumbing"],
+  ["pianoteq", "pianoteq"]
 ]
 
 def start_studio
   APPS.each do |name, cmd|
     puts "\t #{name}"
     puts "CMD: #{cmd} &"
-    system("#{cmd} &")
+    IO.popen("#{cmd} &")
   end
 end
 
@@ -32,15 +33,17 @@ puts "\nInitializing studio..."
 
 puts "Starting nailgun server..."
 `pkill -9 java`
-ENV["CLOJURE_EXT"] = "#{Dir.pwd}/lib" 
 sleep 1
-system("ng-server &")
+system("./scripts/ng-server &")
 
 puts "Starting qjackctl..."
 `pkill -9 jack`
 sleep 1
 system("qjackctl -s -p #{AUDIO} &")
 sleep 1
+
+puts "Starting pulseaudio in Jack mode..."
+`pulseaudio -nF ~/.jack.pa --start`
 
 kill_studio
 start_studio

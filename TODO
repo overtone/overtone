@@ -8,10 +8,6 @@
  - It should be as easy as possible to keep evaluating new versions of a 
 musical process so the "score" can be updated on the fly.
 
-* Make midi-in and midi-out synchronous by default, by generating a future
-that will be set from the gui callback, and then blocking on a .get call
-to the future.
-
 * audio in and out
  - select line-in/out, mic...
  - show a scope along side the chooser and with a single click connect up

@@ -1,5 +1,6 @@
 (ns studio-test
-  (:use overtone.studio))
+  (:use overtone.studio
+     clj-backtrace.repl))
 
 (reset-studio)
 (def echo (effect "echo"))

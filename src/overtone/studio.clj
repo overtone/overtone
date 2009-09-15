@@ -1,6 +1,6 @@
 (ns overtone.studio
   (:import (de.sciss.jcollider Bus Synth SynthDef Control))
-  (:use (overtone sc synth music midi))
+  (:use (overtone sc synth midi time pitch))
   (:require overtone.fx))
 
 (start-synth)
@@ -54,8 +54,8 @@
 
 (defn reset-studio []
   (reset)
-  (doseq [effect @*fx]
-    (.free effect))
+;  (doseq [effect @*fx]
+;    (.free effect))
   (dosync 
     (ref-set *voices [])
     (ref-set *fx [])))
