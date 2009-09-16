@@ -3,6 +3,17 @@
   (:use (overtone sc synth midi time pitch))
   (:require overtone.fx))
 
+; TODO
+; 
+; Use multi-methods for different voice types and auto-dispatch to the correct
+; note functions to play sound on either synth or midi in the same way.
+;
+; Audio input
+; * access samples from the microphone
+; Disk I/O
+; * recording to files
+; * reading and playing samples
+
 (start-synth)
 
 ; Busses
