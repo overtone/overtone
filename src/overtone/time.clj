@@ -21,6 +21,9 @@
 (def NUM-PLAYER-THREADS 10)
 (def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS))
 
+(defn now []
+  (System/currentTimeMillis))
+
 (defn schedule 
   "Schedules fun to be executed after ms-delay milliseconds."
   [fun ms-delay]
@@ -44,21 +47,17 @@
 (defn stop-player [player & [now]]
   (.cancel player (or now false)))
 
-; Timer based "recursion in time" 
-;  The idea is to create something along the lines of impromptu, except do it
-; using a macro and an exception.
-;  * save the arguments inside the exception object
-;  * throw the exception to pop off the call-stack to some base level
-;  * in the exception handler lookup which function threw the exception and store it in the exception too
-;  * add an event to the task queue for the specified time in the future
-;  * when event fires call the function with the arguments saved in the exception 
-
-; By passing a function using #'foo syntax instead of just foo, when later called by the scheduler
-; it will lookup based on the symbol rather than using the instance of the function defined earlier.
+; Recursion in Time 
+;   By passing a function using #'foo syntax instead of just foo, when later 
+; called by the scheduler it will lookup based on the symbol rather than using 
+; the instance of the function defined earlier.
 ; (callback (+ dur (now)) #'my-melody arg1 arg2)
 
-(defn callback [ms func & args]
-  (schedule #(apply func args) ms))
+(defn callback [ms-time func & args]
+  (let [delay-time (- ms-time (now))]
+    (if (< delay-time 0)
+      (apply func args)
+      (schedule #(apply func args) delay-time))))
 
 ; Rhythm
 
@@ -67,6 +66,7 @@
 
 (def *bpm (ref 120))           ; beats per minute
 (def *signature (ref [4 4]))     ; time signature
+(def *metronome (ref nil))
 
 (defn bpm
   ([] @*bpm)
@@ -79,10 +79,18 @@
 (defn beat 
   "Convert b beats to milliseconds at the current bpm."
   ([] (beat 1))
-  ([b] (* (/ 60000 @*bpm) b)))
+  ([b] (* (/ 60000 @*bpm) b))
+  ([b bpm] (* (/ 60000 bpm) b)))
 
 (defn bar 
   "Convert b bars to milliseconds at the current bpm."
   ([] (bar 1))
   ([b] (* (bar 1) (first @*signature) b)))
 
+; tpb = ticks-per-beat
+(defn metronome [bpm & [tpb]]
+  (let [tpb (or tpb 1)
+        start (now)
+        tick (/ (beat 1 bpm) tpb)]
+    (println "tick: " tick)
+    (fn [] (- tick (mod (- (now) start) tick)))))

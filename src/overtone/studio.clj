@@ -1,5 +1,5 @@
 (ns overtone.studio
-  (:import (de.sciss.jcollider Bus Synth SynthDef Control))
+  (:import (de.sciss.jcollider Bus Synth SynthDef Control Buffer))
   (:use (overtone sc synth midi time pitch))
   (:require overtone.fx))
 
@@ -14,8 +14,6 @@
 ; * recording to files
 ; * reading and playing samples
 
-(start-synth)
-
 ; Busses
 ; 0 & 1 => default stereo output (to jack)
 ; 2 & 3 => default stereo input
@@ -24,6 +22,9 @@
 (def *voices (ref []))
 (def *fx-bus (ref (Bus/audio (server) 2)))
 (def *fx     (ref []))
+
+(defn sample [path]
+  (Buffer/cueSoundFile (server) path))
 
 (defn voice [synth & defaults]
   (let [new-voice {:type     :voice
@@ -86,9 +87,6 @@
   (let [synth (trigger voice (assoc (apply hash-map args) :note note-num))]
     (schedule #(release synth) dur)
     synth))
-
-(defn now []
-  (System/currentTimeMillis))
 
 ; Can't figure out why this isn't working... need sleep.
 (defn play [time-ms voice note-num dur & args]

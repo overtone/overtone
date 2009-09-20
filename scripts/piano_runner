@@ -1,0 +1,8 @@
+#!/bin/bash
+
+while true
+do
+  pkill -9 pianoteq
+  pianoteq &
+  sleep 1100
+done

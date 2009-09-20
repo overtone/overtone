@@ -1,5 +1,5 @@
 (ns overtone.drums
-  (:use (overtone sc music)))
+  (:use overtone))
 
 (def *drums (ref []))
 (def *drum-count (ref 0))

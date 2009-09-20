@@ -2,7 +2,7 @@
 // Thanks especially for the SOS drums from: 
 // http://www.soundonsound.com/sos/jan02/articles/synthsecrets0102.asp
 
-s.boot
+s.boot;
 
 SynthDef("kick",
 	{ arg out = 0, freq = 50, mod_freq = 5, mod_index = 5, sustain = 0.4, amp = 0.8, beater_noise_level = 0.025;
@@ -28,7 +28,6 @@ SynthDef("kick",
 Synth("kick")
 
 SynthDef("soft-kick", {|amp= 0.5, decay= 0.1, attack= 0.001, freq= 60|
-
         var env, snd;
         env= EnvGen.kr(Env.perc(attack, decay), doneAction:2);
         snd= SinOsc.ar(freq, 0, amp);

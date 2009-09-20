@@ -61,10 +61,10 @@
    })
 
 (defn ugen-arg [arg]
-  {:name (.name arg)
-   :array? (.isArray arg) 
-   :min (.min arg)
-   :max (.max arg)})
+  (str (.name arg)
+       (if (.isArray arg)
+         "[]"
+         (str "=" (.def arg)))))
 
 (defn ugen-info [name info]
   {:name name 
@@ -112,8 +112,21 @@
 (defn kr [& args]
   (clojure.lang.Reflector/invokeStaticMethod UGen "kr" (to-array (ugenify args))))
 
+;; TODO:
+;;  It sucks to have this hack in order to support UGens that for some reason
+;;  require a number of channels to be specified when we instantiate it using
+;;  jCollider.  Figure out a better way to deal with this... Maybe by getting
+;;  rid of jCollider?
+(def NEED-CHAN 
+  {"DiskIn" true
+   "PlayBuf" true})
+
 (defn ar [& args]
-  (clojure.lang.Reflector/invokeStaticMethod UGen "ar" (to-array (ugenify args))))
+  (let [args (ugenify args)
+        args (if (contains? NEED-CHAN (first args)) 
+               (concat [(first args) (int 1)] (rest args)) 
+               args)]
+  (clojure.lang.Reflector/invokeStaticMethod UGen "ar" (to-array args))))
 
 (defn dr [& args]
   (clojure.lang.Reflector/invokeStaticMethod 
@@ -169,12 +182,8 @@
   (let [renamed (replace-ugens body)]
     `(def ~(symbol (str name)) (SynthDef. ~(str name) ~@renamed))))
 
-;; Envelope spec for use with EnvGen
-;;   The idea is to provide a description of the envelope curve to EnvGen.  It uses an array with values
-;;   organized like this:
-;;  [ <initialLevel>, <numberOfSegments>, <releaseNode>, <loopNode>, 
-;;    <segment1TargetLevel>, <segment1Duration>, <segment1Shape>, <segment1Curve>, 
-;;    <segment2...> ]
+(defmacro syn [& body]
+  (first (replace-ugens body)))
 
 (def ENV-CURVES
   {:step        0
@@ -205,6 +214,14 @@
   "Create the curves list for this curve type."
   [c]
   (repeat (if (number? c) c 0)))
+
+;; Envelope spec for use with EnvGen
+;;   We provide a description of the envelope curve to EnvGen.  
+;;   It uses an array with values organized like this:
+;;
+;;  [ <initialLevel>, <numberOfSegments>, <releaseNode>, <loopNode>, 
+;;    <segment1TargetLevel>, <segment1Duration>, <segment1Shape>, <segment1Curve>, 
+;;    <segment2...> ]
 
 (defn envelope 
   "Create an envelope curve description array suitable for the EnvGen ugen."
@@ -266,6 +283,7 @@
 
 (defn adsr [& [attack decay sustain release level curve bias]]
   (let [attack  (or attack 0.01)
+        decay   (or decay 0.3)
         sustain (or sustain 1)
         release (or release 1)
         level   (or level 1)
@@ -275,9 +293,9 @@
       (map #(+ %1 bias) [0 level (* level sustain) 0])
       [attack decay release] curve 2)))
 
-(defn asr [& [attack sustain release level curve]]
+(defn asr [& [attack sustain release curve]]
   (let [attack  (or attack 0.01)
         sustain (or sustain 1)
         release (or release 1)
-        curve   (or curve :linear)]
-    (envelope [0 level level 0] [attack sustain release] curve)))
+        curve   (or curve -4)]
+    (envelope [0 sustain 0] [attack release] curve)))

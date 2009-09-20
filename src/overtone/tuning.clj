@@ -1,5 +1,5 @@
 (ns overtone.tuning
-  (:use (overtone music)))
+  (:use (overtone pitch)))
 
 ;; TODO: Not only should we pre-compute the frequency values for standard tunings,
 ;; but it would be cool to let people explore different tunings while creating

@@ -1,5 +1,6 @@
 (ns music-test
-  (:use (overtone drums)))
+  (:use overtone
+     (overtone drums)))
 
 (def pitches [60 62 64 65 67 69 71 72])
 (def dynamics [80 80 80 80 80 80 80 80])
@@ -16,11 +17,14 @@
 (defn techno []
   (clear-drums)
   (drum "soft-kick" [1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0])
-  (drum "hat" [0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0])
+  (drum "noise-hat" [0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0])
   (play-drums (/ 60000 128 4) 16))
 
 (defn hip-hop []
   (clear-drums)
   (drum "soft-kick" [1 0 0.5 0.25 0 0.6 0 0.9 0.9 0 1 0 0.5 0 0.3 0])
-  (drum "hat" [0 0 0 0 1 0 0 0 0 0 0.3 0 1 0 0 0])
+  (drum "hat2" [0 0 0 0 1 0 0 0 0 0 0.3 0 1 0 0 0])
   (play-drums (/ 60000 85 4) 16))
+
+(techno)
+(reset-studio)

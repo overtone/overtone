@@ -13,14 +13,13 @@ musical process so the "score" can be updated on the fly.
  - show a scope along side the chooser and with a single click connect up
    so it's easy to see what you are hooking up with quickly
 
-* Envelopes
- - now that they work with a hard-coded parameter array, we need some help functions
-to mimick the Env class of sclang.
-
-* SynthDef mode
- - bring up the scope and an FFT window with some helpful controls for exploring sound spaces
- - either bring up a window or make it easy to do in code:
-   * connect arpeggiators, chord progressors, midi-in, etc., to your
+* SynthDefs 
+ - specify control args, ranges, defaults
+  * auto-generate controls, maybe auto-hookup to specially named busses
+ - sound exploration mode:
+  * bring up the scope and an FFT window with some helpful controls for exploring sound spaces
+  * either bring up a window or make it easy to do in code:
+   - connect arpeggiators, chord progressors, midi-in, etc., to your
 live instrument definitions so you can mess with the parameters and the synthdef while 
 hearing useful audio input
  - develop more of a dsl for:
@@ -53,3 +52,6 @@ to connect them up to instruments.
 * synchronization 
  - so an overtone client can be in step with an externally generated clock
  - so multiple overtone clients can be in step
+
+* Re-write the tune-up script in clojure using the shell-out (sh ...) function from clojure.contrib
+ - will need to figure out how to correctly manage classpath bullshit...
