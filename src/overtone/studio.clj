@@ -1,6 +1,6 @@
 (ns overtone.studio
   (:import (de.sciss.jcollider Bus Synth SynthDef Control Buffer))
-  (:use (overtone sc synth midi time pitch))
+  (:use (overtone sc synth midi rhythm pitch))
   (:require overtone.fx))
 
 ; TODO

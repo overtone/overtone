@@ -10,7 +10,7 @@
      (java.awt.event MouseAdapter)
      (java.util.concurrent FutureTask))
   (:use clojure.set
-     (overtone time)))
+     (overtone rhythm)))
 
 ;; NOTE:
 ;; * The builtin "real-time" sequencer doesn't support modifying the sequence on-the-fly, so
@@ -98,22 +98,22 @@
       (.setVisible true))
     future-val))
 
-(defn- receiver [sink-info]
+(defn- with-receiver [sink-info]
   (let [dev (:device sink-info)]
     (if (not (.isOpen dev))
       (.open dev))
-    (.getReceiver dev)))
+    (assoc sink-info :receiver (.getReceiver dev))))
 
-(defn- transmitter [source-info]
+(defn- with-transmitter [source-info]
   (let [dev (:device source-info)]
     (if (not (.isOpen dev))
       (.open dev))
-    (.getTransmitter dev)))
+    (assoc source-info :transmitter (.getTransmitter dev))))
 
 ; TODO: Make midi-in and midi-out synchronous when called with no arguments...
 (defn midi-in 
   "Connect the sequencer to a midi input device."
-  ([] (transmitter
+  ([] (with-transmitter
         (.get (port-chooser "Midi Input Selector" (sources)))))
 
   ([in] 
@@ -121,21 +121,21 @@
                   (string? in) (find-device (sources) in)
                   (device? in) in)]
      (if source
-       (transmitter source)
+       (with-transmitter source)
        (do 
          (println "Did not find a matching midi input device for: " in)
          nil)))))
 
 (defn midi-out 
   "Connect the sequencer to a midi output device."
-  ([] (receiver 
+  ([] (with-receiver 
         (.get (port-chooser "Midi Output Selector" (sinks)))))
 
   ([out] (let [sink (cond
                       (string? out) (find-device (sinks) out)
                       (device? out) out)]
            (if sink
-             (receiver sink)
+             (with-receiver sink)
              (do 
                (println "Did not find a matching midi output device for: " out)
                nil)))))
@@ -144,7 +144,7 @@
   "Route midi messages from a source to a sink.  Expects transmitter and receiver objects
   returned from midi-in and midi-out."
   [source sink]
-  (.setReceiver source sink))
+  (.setReceiver (:transmitter source) (:receiver sink)))
 
 (defn midi-msg [msg]
   (if (instance? ShortMessage msg)
@@ -158,7 +158,7 @@
 
 ;; Implementing a midi receiver object so we can take in notes from another
 ;; midi source, modify them on the fly, and then output them.  Have to write
-;; write a midi parser though...
+;; write a more complete midi parser though...
 (defn midi-handler [fun]
   (proxy [Receiver] []
     (close [] nil)
@@ -166,19 +166,25 @@
           (if-let [parsed (midi-msg msg)]
             (fun parsed)))))
 
-(defn midi-note-on [recvr note-num vel]
-  (let [on-msg  (ShortMessage.)]
+;; Unfortunately, it seems that either Pianoteq or the virmidi modules
+;; don't actually make use of the timestamp...
+(defn midi-note-on [sink note-num vel & [timestamp]] 
+  (let [on-msg  (ShortMessage.)
+        micro-delay (* 1000 (- timestamp (now)))
+        t (+ micro-delay (.getMicrosecondPosition (:device sink)))]
     (.setMessage on-msg ShortMessage/NOTE_ON 0 note-num vel)
-    (.send recvr on-msg -1)))
+    (if (neg? micro-delay)
+      (.send (:receiver sink) on-msg -1)
+      (.send (:receiver sink) on-msg t))))
 
-(defn midi-note-off [recvr note-num vel]
+(defn midi-note-off [sink note-num vel]
   (let [off-msg (ShortMessage.)]
     (.setMessage off-msg ShortMessage/NOTE_OFF 0 note-num 0)
-    (.send recvr off-msg -1)))
+    (.send (:receiver sink) off-msg -1)))
 
-(defn midi-note [recvr note-num vel dur]
-  (midi-note-on recvr note-num vel)
-  (schedule #(midi-note-off recvr note-num 0) dur))
+(defn midi-note [sink note-num vel dur]
+  (midi-note-on sink note-num vel)
+  (schedule #(midi-note-off sink note-num 0) dur))
 
 (defn midi-play [out notes velocities durations]
   (loop [notes notes

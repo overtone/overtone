@@ -14,7 +14,7 @@ APPS = [
 #  ["midi.osc", "./midi.osc -p #{PORTS[:midi_osc]}"],
   ["jackminimix", "jackminimix -a -c #{MIXER_CHANNELS} -p #{PORTS[:mixer]}"],
   ["jack.plumbing", "jack.plumbing"],
-  ["pianoteq", "pianoteq"]
+  ["pianoteq", "./scripts/piano_runner"]
 ]
 
 def start_studio

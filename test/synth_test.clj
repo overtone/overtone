@@ -1,5 +1,5 @@
 (ns synth-test
-  (:use (overtone sc synth studio pitch time))
+  (:use (overtone sc synth studio pitch rhythm))
   (:use clj-backtrace.repl))
 
 (comment 

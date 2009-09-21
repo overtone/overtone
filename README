@@ -5,7 +5,8 @@ A Clojure based musical generation and manipulation system for live-coding and m
 
 === Requirements:
 
-* SuperCollider synthesis server (scsynth) 
+* Super Collider
+** http://supercollider.sourceforge.net/
  - probably just needs to be on the path?
 
 * Clojure
@@ -25,6 +26,47 @@ related to SuperCollider. (oscilloscope, etc...)
 
 Look at the "tests" for examples on how to make noise and do things.
 
-The tune-up script in scripts is for quickly starting up your environment.
-For example in linux we need to start Jack with the correct parameters, and
-the jack.plumbing tool can be helpful for auto-routing connections.
+I use the tune-up script to quickly setup the audio environment with various
+external processes and tools.  Over time this will become a clojure script that
+is more easily customizable, but for now the Ruby script should be easy enough
+to understand and modify.
+
+=== Related Projects:
+* Common Music
+** http://commonmusic.sourceforge.net/cm/res/doc/cm.html#toolbox
+
+* JFugue
+** http://www.jfugue.org/javadoc/index.html
+
+* JMusic
+** http://jmusic.ci.qut.edu.au/
+
+* Impromptu
+** http://impromptu.moso.com.au/
+
+* Fluxus, Fluxa and LiveNoiseTools
+** http://impromptu.moso.com.au/
+
+* csound
+** http://www.csounds.com/
+
+* PureData
+
+=== Live-Coding practice exercises
+
+The TopLap crew has some basic resources for learning to live-code, including practice ideas.  It would be nice to expand on this list and put together a good sequence of exercises that could be followed to go from 100% newbie to jam ready beginner.
+
+==== Sonification
+* sonify basic algorithms
+
+==== Algorithmic Composition
+* markov models
+* l-systems
+* trees
+* grammars
+
+==== Recovering from errors
+* deal with compile errors
+* runtime errors
+* full crash
+

@@ -6,13 +6,19 @@
 ;; * Of all possible 7 note scales, the major scale has the highest number
 ;; of consonant intervals
 
-;; * Diatonic function
-;;   - in terms of centeredness around the root, this is the order
-;; of chord degrees: I, V, IV, vi, iii, ii, vii (The first 3 chords 
-;; being major, second 3 minor, and last diminished)
-    
-;; * Each note in a scale acts as either a generator or a collector of other notes, 
-;; depending on their relations in time within a sequence.
+
+; Other variations worth trying out...
+; notes as arguments
+;(play C D E F G A B C)
+
+; specify octaves
+;(play [C0 D1 E0 F1 A3 B0 C1])
+
+; relative representation rather than note based, moves from previous note
+;(play [A2 0 5 -5 9 0 -9])
+; or make everything relative to the start note
+;(play [A2 0 5 0 9 9 0])
+
 
 ;; MIDI
 (def midi-range (range 128))
@@ -42,6 +48,13 @@
   [phrase notes]
   (shift phrase notes +1))
 
+(defn invert
+  "Invert a sequence of notes using either the first note as the stationary
+  pivot point or the optional second argument."
+  [notes & [pivot]]
+  (let [pivot (or pivot (first notes))]
+    (for [n notes] (- pivot (- n pivot)))))
+
 (defn only 
   "Take only the specified notes from the given phrase."
   ([phrase notes] (only phrase notes []))
@@ -65,6 +78,11 @@
            :A# 10 :a# 10 :Bb 10 :bb 10
            :B  11 :b  11})
 
+;; * Each note in a scale acts as either a generator or a collector of other notes, 
+;; depending on their relations in time within a sequence.
+;;  - How can this concept be developed into parameterized sequences with knobs for
+;;  adjusting things like tension, dissonance, swing, genre (latin, asian, arabic...)
+
 ; Use a note (:C scale) or (:Eb scale) 
 (def SCALE (let [major [0 2 2 1 2 2 2 1]
                  minor (flat major [3 6 7])]
@@ -73,6 +91,11 @@
               :major-pentatonic (only major [1 2 3 5 6])
               :minor-pentatonic (only minor [1 3 4 5 7])}))
 
+;; * Diatonic function
+;;   - in terms of centeredness around the root, this is the order
+;; of chord degrees: I, V, IV, vi, iii, ii, vii (The first 3 chords 
+;; being major, second 3 minor, and last diminished)
+    
 (def CHORD 
   (let [major [0 4 7]
         minor [0 3 7]
@@ -93,7 +116,8 @@
      :diminished dim
      :i          dim}))
 
-(defn chord [key chord ]
+; TODO: finish this...
+(defn chord [base chord]
   (map #(+ %1 base) (:major CHORD)))
 
 (defn parse-scale [s]
@@ -152,6 +176,23 @@
 (defn chosen-from [notes]
   (let [num-notes (count notes)]
     (repeatedly #(get notes (rand-int num-notes)))))
+
+;; TODO:
+;; * weighted random 
+;; * arpeggiator(s)
+;; * shufflers (randomize a sequence, or notes within a scale, etc.)
+;; * 
+;;* Sequence generators 
+;; - probabilistic arpeggiator
+;; - take a rhythym seq, note seq, and groove seq
+;; - latin sounds
+;; - house sounds
+;; - minimal techno sounds
+;; - drum and bass sounds
+;;
+;;* create a library of sequence modifiers and harmonizers
+;;
+
 
 ;(def notes (octaves (range 2 6) (scale :C :major)))
 ;(play notes rhythm groove)
@@ -465,14 +506,6 @@
 ;;; retrograde list
 ;(define retrograde reverse)
 ;
-;;; invert list paying no attention to key
-;(defn invert [lst . args]      
-;      (let ((pivot (if (null? args)
-;                       (car lst)
-;                       (car args))))
-;         (cons (car lst) (map (lambda (i)
-;                                 (- pivot (- i pivot)))
-;                              (cdr lst))))))
 ;
 ;;; transpose list paying no attention to key
 ;(defn transpose [val lst]

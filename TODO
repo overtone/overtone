@@ -55,3 +55,32 @@ to connect them up to instruments.
 
 * Re-write the tune-up script in clojure using the shell-out (sh ...) function from clojure.contrib
  - will need to figure out how to correctly manage classpath bullshit...
+
+= Visualization and Dynamic Interface Generation
+
+It would be very cool if voices, fx and generators could register various named knobs, triggers and observable sequences that could be used to interact and visualize live-coded musical systems.
+
+* penumbra GL/shaders for clojure http://github.com/ztellman/penumbra/tree/master
+* Game engine http://www.jmonkeyengine.com/
+
+= Distributed, real-time jamming
+Use: Plasma, graph based networking
+
+= Cloud storage and collaboration 
+Use: google app-engine/wave cloud server
+
+= VST Plugin capabliity
+Use: jVSTWrapper (http://jvstwrapper.sourceforge.net/
+
+= Computer vision (multi-touch detection and object tracking)
+
+Touch APIs:
+* Multitouch lib from TU-Berlin http://code.google.com/p/multitouch/
+* Sparsh UI http://code.google.com/p/sparsh-ui/
+
+Custom image processing:
+* http://javavis.sourceforge.net/
+* Java OpenCV http://ubaa.net/shared/processing/opencv/
+* Or implement processing pipeline in C++ with OpenCV and use 
+  clojure-jna to interface: http://github.com/Chouser/clojure-jna/tree/master
+
