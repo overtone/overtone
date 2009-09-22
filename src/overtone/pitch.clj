@@ -116,14 +116,9 @@
      :diminished dim
      :i          dim}))
 
-<<<<<<< HEAD:src/overtone/pitch.clj
 ; TODO: finish this...
 (defn chord [base chord]
   (map #(+ %1 base) (:major CHORD)))
-=======
-;(defn chord [key chord ]
-;  (map #(+ %1 base) (:major CHORD)))
->>>>>>> 8795496f00eb0ff422547c3098467118dfebf506:src/overtone/pitch.clj
 
 (defn parse-scale [s]
   (let [s (name s)
@@ -155,11 +150,7 @@
 ;
 (def scale (memoize scale-raw))
 
-<<<<<<< HEAD:src/overtone/pitch.clj
 (defn from-scale [lower upper ] nil)
-=======
-(defn from-scale [lower upper ])
->>>>>>> 8795496f00eb0ff422547c3098467118dfebf506:src/overtone/pitch.clj
 
 (defn octave-note 
   "Convert an octave and note to a midi note."

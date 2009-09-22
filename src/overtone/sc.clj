@@ -6,14 +6,8 @@
      (de.sciss.jcollider Server Constants UGenInfo UGen
                          Group Node Control Constant 
                          GraphElem GraphElemArray
-<<<<<<< HEAD:src/overtone/sc.clj
-                         Synth SynthDef UGenChannel)
-     (de.sciss.net OSCClient OSCBundle OSCMessage))
-  (:use (overtone rhythm)))
-=======
                          Synth SynthDef UGenChannel))
-  (:use (overtone voice osc time)))
->>>>>>> 8795496f00eb0ff422547c3098467118dfebf506:src/overtone/sc.clj
+  (:use (overtone voice osc rhythm)))
 
 (def SERVER-NAME "Overtone Audio Server")
 (def START-ID 2000)
@@ -128,7 +122,7 @@
 (defn synth-voice [synth-name & args]
   {:type :voice
    :voice-type :synth
-   :synth (Synth/basicNew synth-name (server))
+   :synth synth-name
    :args args})
 
 (defmethod play-note :synth [voice note-num dur & args]
