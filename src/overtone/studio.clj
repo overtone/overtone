@@ -1,13 +1,13 @@
 (ns overtone.studio
   (:import (de.sciss.jcollider Bus Synth SynthDef Control Buffer))
-  (:use (overtone sc synth midi time pitch))
+  (:use (overtone voice sc synth midi time pitch))
   (:require overtone.fx))
+
+; The goal is to develop a standard "studio configuration" with
+; an fx rack and a set of fx busses, an output bus, etc...
 
 ; TODO
 ; 
-; Use multi-methods for different voice types and auto-dispatch to the correct
-; note functions to play sound on either synth or midi in the same way.
-;
 ; Audio input
 ; * access samples from the microphone
 ; Disk I/O
@@ -26,44 +26,6 @@
 (defn sample [path]
   (Buffer/cueSoundFile (server) path))
 
-(defn voice [synth & defaults]
-  (let [new-voice {:type     :voice
-                   :synth    synth
-                   :controls {}
-                   :defaults (apply hash-map defaults)}]
-    (dosync (alter *voices conj new-voice))
-    new-voice))
-
-(defn voice? [obj]
-  (and (map? obj) 
-       (= :voice (:type obj))))
-
-(defn- synth-args [arg-map]
-  (if (empty? arg-map) 
-    [(make-array String 0) (make-array (. Float TYPE) 0)]
-    [(into-array (for [k (keys arg-map)] 
-                   (cond 
-                     (keyword? k) (name k)
-                     (string? k) k)))
-     (float-array (for [v (vals arg-map)] (float v)))]))
-
-(defn trigger 
-  "Create a new instance of a studio voice or a standalone synth."
-  [voice arg-map]
-  (let [arg-map (if (voice? voice) (assoc arg-map "out" FX-BUS) arg-map) 
-        [arg-names arg-vals] (synth-args arg-map)]
-    (cond 
-      (map? voice) (Synth. (:synth voice) arg-names arg-vals (target))
-      (string? voice) (Synth. voice arg-names arg-vals (target))
-      (= de.sciss.jcollider.SynthDef (type voice)) (.play voice (target) arg-names arg-vals))))
-
-(defn effect [synthdef & args]
-  (let [arg-map (assoc (apply hash-map args) "bus" FX-BUS)
-        new-effect {:def synthdef
-                    :effect (trigger synthdef arg-map)}]
-    (dosync (alter *fx conj new-effect))
-    new-effect))
-
 (defn reset-studio []
   (reset)
 ;  (doseq [effect @*fx]
@@ -71,29 +33,3 @@
   (dosync 
     (ref-set *voices [])
     (ref-set *fx [])))
-
-(defn update 
-  "Update a voice or standalone synth with new settings."
-  [voice & args]
-  (let [[names vals] (synth-args (apply hash-map args))
-        synth        (if (voice? voice) (:synth voice) voice)]
-    (.set synth names vals)))
-
-(defn release 
-  [synth]
-  (.release synth))
-
-(defn note [voice note-num dur & args]
-  (let [synth (trigger voice (assoc (apply hash-map args) :note note-num))]
-    (schedule #(release synth) dur)
-    synth))
-
-; Can't figure out why this isn't working... need sleep.
-(defn play [time-ms voice note-num dur & args]
-  (let [on-time  (- time-ms (now))
-        rel-time (+ on-time dur)]
-    (if (<= on-time 0)
-      (let [synth (trigger voice (assoc (apply hash-map args) :note-num note-num))]
-        (schedule #(release synth) rel-time))
-      (schedule #(apply note voice note-num dur args) on-time))))
-

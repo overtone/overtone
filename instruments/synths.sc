@@ -171,23 +171,23 @@ pitch; let's compensate
 
 
 SynthDef(\piano, { arg outBus, freq, amp, dur, pan; 
-var sig, in, n = 6, max = 0.04, min = 0.01, delay, pitch, detune, hammer;
-hammer = Decay2.ar(Impulse.ar(0.001), 0.008, 0.04,
-LFNoise2.ar([2000,4000].asSpec.map(amp), 0.25));
-sig = Mix.ar(Array.fill(3, { arg i;
-detune = #[-0.04, 0, 0.03].at(i);
-delay = (1/(freq + detune).midicps);
-CombL.ar(hammer, delay, delay, 50 * amp) + 
-SinOsc.ar(
-[(freq * 2) + SinOsc.kr(2, Rand(0, 1.0), 4), 
-freq * [4.23, 6.5]].flat , 
-0, 
-amp * [0.1, 0.25, 0.3]).sum
-}) );
+        var sig, in, n = 6, max = 0.04, min = 0.01, delay, pitch, detune, hammer;
+        hammer = Decay2.ar(Impulse.ar(0.001), 0.008, 0.04,
+            LFNoise2.ar([2000,4000].asSpec.map(amp), 0.25));
+        sig = Mix.ar(Array.fill(3, { arg i;
+                detune = #[-0.04, 0, 0.03].at(i);
+                delay = (1/(freq + detune).midicps);
+                CombL.ar(hammer, delay, delay, 50 * amp) + 
+                SinOsc.ar(
+                    [(freq * 2) + SinOsc.kr(2, Rand(0, 1.0), 4), 
+                    freq * [4.23, 6.5]].flat , 
+                    0, 
+                    amp * [0.1, 0.25, 0.3]).sum
+                }) );
 
 
-sig = HPF.ar(sig,50) * EnvGen.ar(Env.perc(0.0001,dur, amp, -1), doneAction:2);
-Out.ar(outBus, Pan2.ar(sig,pan));
+        sig = HPF.ar(sig,50) * EnvGen.ar(Env.perc(0.0001,dur, amp, -1), doneAction:2);
+        Out.ar(outBus, Pan2.ar(sig,pan));
 }).send(s);
 
 ( //play a little ditty

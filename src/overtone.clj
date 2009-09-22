@@ -18,6 +18,7 @@
   (dosync (alter *on-start-callbacks dissoc id)))
 
 (immigrate
+  'overtone.voice
   'overtone.pitch
   'overtone.time
   'overtone.tuning
