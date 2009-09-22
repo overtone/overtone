@@ -130,15 +130,14 @@
                 (.endsWith s "i")  :diminished
                 true               :major)
         intervals (scale SCALE)]
-    [base intervals]
-    ))
+    [base intervals]))
 
 (defn scale-raw [s]
   "Create the note field for a given scale.  Scales are specified with a keyword:
   :g => g major          :dm => d minor
   :eb7 => eb major 7     :cm7 => c minor 7
   :ba => b augmented     :f#i => f# diminished"
-  (let [[note intervals] (parse-scale s)]
+  (let [[note intervals] (parse-scale s)]))
     
 ;        full-intervals (apply concat (take 12 (repeat (scales intervals))))
 ;        [result _] (reduce 
@@ -151,7 +150,7 @@
 ;
 (def scale (memoize scale-raw))
 
-(defn from-scale [lower upper ]
+(defn from-scale [lower upper ] nil)
 
 (defn octave-note 
   "Convert an octave and note to a midi note."

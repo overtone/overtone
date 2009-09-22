@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Make sure we don't have multiple instances running...
+pkill piano_runner
+
 while true
 do
   pkill -9 pianoteq

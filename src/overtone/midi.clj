@@ -169,13 +169,19 @@
 ;; Unfortunately, it seems that either Pianoteq or the virmidi modules
 ;; don't actually make use of the timestamp...
 (defn midi-note-on [sink note-num vel & [timestamp]] 
-  (let [on-msg  (ShortMessage.)
-        micro-delay (* 1000 (- timestamp (now)))
-        t (+ micro-delay (.getMicrosecondPosition (:device sink)))]
+  (let [on-msg  (ShortMessage.)]
     (.setMessage on-msg ShortMessage/NOTE_ON 0 note-num vel)
-    (if (neg? micro-delay)
-      (.send (:receiver sink) on-msg -1)
-      (.send (:receiver sink) on-msg t))))
+    (.send (:receiver sink) on-msg -1)))
+
+;(defn midi-note-on [sink note-num vel & [timestamp]] 
+;  (let [timestamp (or timestamp 0)
+;        on-msg  (ShortMessage.)
+;        micro-delay (* 1000 (- timestamp (now)))
+;        t (+ micro-delay (.getMicrosecondPosition (:device sink)))]
+;    (.setMessage on-msg ShortMessage/NOTE_ON 0 note-num vel)
+;    (if (neg? micro-delay)
+;      (.send (:receiver sink) on-msg -1)
+;      (.send (:receiver sink) on-msg t))))
 
 (defn midi-note-off [sink note-num vel]
   (let [off-msg (ShortMessage.)]

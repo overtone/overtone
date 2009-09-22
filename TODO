@@ -13,6 +13,8 @@ musical process so the "score" can be updated on the fly.
  - show a scope along side the chooser and with a single click connect up
    so it's easy to see what you are hooking up with quickly
 
+* write an OSC driver for the jackminimixer so we can easily control global volume 
+
 * SynthDefs 
  - specify control args, ranges, defaults
   * auto-generate controls, maybe auto-hookup to specially named busses
