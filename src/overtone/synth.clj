@@ -10,9 +10,11 @@
      (overtone sc)))
 
 ;; NOTES
-;; It seems that the classes in sclang often times generate multiple UGen nodes for what seems like a single one.  For example, in reality a SinOsc ugen only has two inputs for frequency and phase, and then a MulAdd ugen is used to support the amplitude and dc-offset arguments.  Also, I think the control rate ugens that optionally take a completion action, for example envelopes that can free their containing synth once they are done, are also implemented using an additional ugen that is made to do just this freeing.  We should think about this and do something convenient to make our API as easy as possible.
+;; 
+;; sclang will sometimes generate multiple ugens when you think it is
+;; just making one.  Need to add support for something similar to make
+;; it easy to use: multiplier, adder, completion-actions
 
-;; Hmmmmmmm, not even sure how we can use these
 (def action 
   {; free the enclosing synth
    :free Constants/kDoneFree 

@@ -19,6 +19,7 @@
 
 (immigrate
   'overtone.rhythm
+  'overtone.voice
   'overtone.pitch
   'overtone.tuning
   'overtone.midi

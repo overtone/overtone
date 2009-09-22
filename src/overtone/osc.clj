@@ -24,10 +24,12 @@
 
 (defn osc-bundle 
   "Wrap msgs in an OSC bundle to be executed simultaneously."
-  [msgs]
-  (let [bndl (OSCBundle. (System/currentTimeMillis))]
+  [msgs & [timestamp]]
+  (let [t (or timestamp (System/currentTimeMillis))
+        bndl (OSCBundle. t)]
     (doseq [msg msgs]
-      (.addPacket bndl msg))))
+      (.addPacket bndl msg))
+    bndl))
 
 (defn osc-msg 
   "Create an OSC message sending args to addr.  The type field is automatically created, so be sure to use the correct types or coerce them if necessary."

@@ -3,6 +3,8 @@
 // http://www.soundonsound.com/sos/jan02/articles/synthsecrets0102.asp
 
 s.boot;
+s.quit;
+
 
 SynthDef("kick",
 	{ arg out = 0, freq = 50, mod_freq = 5, mod_index = 5, sustain = 0.4, amp = 0.8, beater_noise_level = 0.025;
@@ -24,7 +26,7 @@ SynthDef("kick",
 	beater_env = beater_lpf * EnvGen.ar(Env.perc, 1.0, doneAction: 2);
 	kick_mix = Mix.new([drum_env, beater_env]) * 2 * amp;
 	Out.ar(out, [kick_mix, kick_mix])
-	}).store
+}).store
 Synth("kick")
 
 SynthDef("soft-kick", {|amp= 0.5, decay= 0.1, attack= 0.001, freq= 60|
@@ -32,7 +34,7 @@ SynthDef("soft-kick", {|amp= 0.5, decay= 0.1, attack= 0.001, freq= 60|
         env= EnvGen.kr(Env.perc(attack, decay), doneAction:2);
         snd= SinOsc.ar(freq, 0, amp);
         Out.ar(0, Pan2.ar(snd*env, 0));
-        }).send; 
+}).send; 
 
 Synth("soft-kick")
 Synth("soft-kick", [\freq, 100])
@@ -44,7 +46,7 @@ SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
         env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
         snd= SinOsc.ar(freq, pi*0.5, amp);
         Out.ar(0, Pan2.ar(snd*env, 0));
-        }).store; 
+}).store; 
 
 Synth("round-kick")
 Synth("round-kick", [\freq, 70, \decay, 0.6]) 
