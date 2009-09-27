@@ -1,5 +1,5 @@
 (ns overtone.studio
-  (:import (de.sciss.jcollider Bus Synth SynthDef Control Buffer))
+;  (:import (de.sciss.jcollider Bus Synth SynthDef Control Buffer))
   (:use (overtone voice sc synth midi rhythm pitch))
   (:require overtone.fx))
 
@@ -20,16 +20,14 @@
 (def FX-BUS  16) ; Makes space for 8 channels of audio in and out
 
 (def *voices (ref []))
-(def *fx-bus (ref (Bus/audio (server) 2)))
+;(def *fx-bus (ref (Bus/audio (server) 2)))
 (def *fx     (ref []))
 
-(defn sample [path]
-  (Buffer/cueSoundFile (server) path))
+;(defn sample [path]
+;  (Buffer/cueSoundFile (server) path))
 
-(defn reset-studio []
+(defn session-reset []
   (reset)
-;  (doseq [effect @*fx]
-;    (.free effect))
   (dosync 
     (ref-set *voices [])
     (ref-set *fx [])))

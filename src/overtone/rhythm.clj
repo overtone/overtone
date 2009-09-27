@@ -1,7 +1,8 @@
 (ns overtone.rhythm
   (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit
                                  PriorityBlockingQueue)
-     (java.util Timer TimerTask)))
+     (java.util Timer TimerTask))
+  (:use (overtone utils)))
 
 ; Time
 
@@ -32,9 +33,6 @@
 
 (def NUM-PLAYER-THREADS 10)
 (def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS))
-
-(defn now []
-  (System/currentTimeMillis))
 
 (defn schedule 
   "Schedules fun to be executed after ms-delay milliseconds."

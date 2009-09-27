@@ -1,5 +1,8 @@
 (ns overtone.utils)
 
+(defn now []
+  (System/currentTimeMillis))
+
 ; TODO: Modify this function so we can also add namespace prefixes.
 ; (e.g. (immigrate [overtone.sc :as sc]))
 
@@ -20,3 +23,6 @@
 
 (defn print-classpath []
   (println (seq (.getURLs (java.lang.ClassLoader/getSystemClassLoader)))))
+
+(defn stringify [col]
+  (map #(if (keyword? %1) (name %1) %1) col))

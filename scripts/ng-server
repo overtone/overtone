@@ -35,6 +35,8 @@
 #               default:
 #               example:"-Xms32M -Xmx128M -server"
 
+pkill -9 java
+
 CLASSPATH=`pwd`/test:`pwd`/extra:`pwd`/session:$CLASSPATH
 CLOJURE_EXT="`pwd`/lib"
 

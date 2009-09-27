@@ -2,132 +2,239 @@
   (:import 
      (java.net InetSocketAddress)
      (java.util.regex Pattern)
-     (javax.sound.midi Receiver)
-     (de.sciss.jcollider Server Constants UGenInfo UGen
-                         Group Node Control Constant 
-                         GraphElem GraphElemArray
-                         Synth SynthDef UGenChannel))
-  (:use (overtone voice osc rhythm)))
+     (java.util.concurrent LinkedBlockingDeque))
+  (:use 
+     clojure.contrib.shell-out
+     clojure.contrib.seq-utils
+     (overtone utils voice osc rhythm)))
 
-(def SERVER-NAME "Overtone Audio Server")
-(def START-ID 2000)
+(def SERVER-HOST "localhost")
+(def SERVER-PORT 57110)
 
-(def *s (ref (Server. SERVER-NAME)))
-(def *node-id-counter (ref START-ID))
+(def START-GROUP-ID 1)
+(def START-NODE-ID 1000)
 
-(defn reset-id-counter []
-  (dosync (ref-set *node-id-counter START-ID)))
+(defonce *synth-thread (ref nil))
+(defonce *synth        (ref nil))
 
-(defn next-id []
+(defonce *node-id-counter (ref START-NODE-ID))
+(defonce *group-id-counter (ref START-GROUP-ID))
+
+(def *synth-msgs (LinkedBlockingDeque. ))
+
+;; We use a binding to *msg-bundle* for handling groups of messages that
+;; need to be bundled together with an OSC timestamp.
+(def *msg-bundle* nil)
+
+(defn reset-id-counters []
+  (dosync 
+    (ref-set *node-id-counter START-NODE-ID)
+    (ref-set *group-id-counter START-GROUP-ID)))
+
+(defn next-node-id []
   (dosync (alter *node-id-counter inc)))
 
-(UGenInfo/readDefinitions)
+(defn next-group-id []
+  (dosync (alter *group-id-counter inc)))
 
-(defn server [] @*s)
+(defn synth-listener [msg timestamp]
+  (.addFirst *synth-msgs [msg timestamp]))
 
 (defn running? []
-  (and @*s (.isRunning @*s)))
+  (not (nil? @*synth)))
 
-(defn start-synth
-  ([]
-   (if (not (running?))
-     (.boot @*s)))
+;; TODO: remote server support
+(defn boot
+  ([] (boot SERVER-HOST SERVER-PORT))
   ([host port]
-   (start-synth SERVER-NAME host port))
-  ([server-name host port]
-   (dosync (ref-set *s (Server. server-name (InetSocketAddress. host port))))
-   (.boot @*s)))
+   (let [sc-thread (Thread. #(sh "scsynth" "-u" (str port)))]
+     (.setDaemon sc-thread true)
+     (.start sc-thread)
 
-(defn stop-synth []
-  (.quit @*s))
+     (dosync 
+       (ref-set *synth-thread sc-thread)
+       (ref-set *synth (osc-client host port)))
 
-(defn root []
-  (.getDefaultGroup @*s))
+     (osc-listen @*synth synth-listener))))
 
-(defn target []
-  (.asTarget @*s))
+(defmacro at-time [timestamp & body]
+  `(binding [*msg-bundle* (atom [])]
+     (let [retval# ~@body]
+       (osc-snd @*synth (osc-bundle @*msg-bundle* ~timestamp))
+       retval#)))
 
-(defn reset []
-  (.freeAll (root))
-  (stop-players true))
+(defn snd-to-synth [msg]
+  (if (not (running?))
+    (boot)
+    (osc-snd @*synth msg)))
 
-(defn debug []
-  (.dumpOSC @*s Constants/kDumpBoth))
+(defn snd 
+  "Creates an OSC message and either sends it to the server immediately 
+  or if a bundle is currently being formed it adds it to the list of messages."
+  [& args]
+  (let [msg (apply osc-msg args)]
+    (if *msg-bundle*
+      (swap! *msg-bundle* #(conj %1 msg))
+      (snd-to-synth msg))))
 
-(defn debug-off []
-  (.dumpOSC @*s Constants/kDumpOff))
+(defn- wait-msg [& [with-time?]]
+  (let [[msg tstamp] (.takeFirst *synth-msgs)]
+    (if with-time?
+      [msg tstamp]
+      msg)))
+
+(defn quit 
+  "Quit the SuperCollider synth process."
+  []
+  (if (running?)
+    (snd "/quit"))
+  (dosync (ref-set *synth nil))
+  (.stop @*synth-thread))
+
+(defn notify [notify?]
+  (snd "/notify" (if notify? 1 0))
+  (wait-msg))
 
 (defn status []
-  (let [stat (.getStatus @*s)]
-    {:sample-rate (.sampleRate stat)
-     :actual-sample-rate (.actualSampleRate stat)
+  (snd "/status")
+  (let [sts (wait-msg)]
+    {:num-ugens (.getArg sts 1)
+     :num-synths (.getArg sts 2)
+     :num-groups (.getArg sts 3)
+     :num-loaded-synths (.getArg sts 4)
+     :avg-cpu (.getArg sts 5)
+     :peak-cpu (.getArg sts 6)
+     :nominal-sample-rate (.getArg sts 7)
+     :actual-sample-rate (.getArg sts 8)}))
 
-     :num-groups (.numGroups stat)
-     :num-synth-defs (.numSynthDefs stat)
-     :num-synths (.numSynths stat)
-     :num-nodes  (.numUGens stat)
+; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists,
+; and group zero is the root of the graph.  Nodes can be added to a group in
+; one of these 5 positions relative to either the full list, or a specified node.
+(def POSITION
+  {:head         0
+   :tail         1
+   :before-node  2
+   :after-node   3
+   :replace-node 4})
 
-     :avg-cpu (.avgCPU stat)
-     :peak-cpu (.peakCPU stat)}))
+;; Sending a synth-id of -1 lets the server choose an ID
+(defn node-new [synth-name & args]
+  (let [argmap (apply hash-map args)
+        id (next-node-id)
+        position ((get argmap :position :tail) POSITION)
+        target (get argmap :target 0)
+        argmap (-> argmap (dissoc :position) (dissoc :target))]
+    (apply snd "/s_new" synth-name id position target (flatten (seq argmap)))
+    id))
 
-(defn- synth-args [arg-map]
-  (if (empty? arg-map) 
-    [(make-array String 0) (make-array (. Float TYPE) 0)]
-    [(into-array (for [k (keys arg-map)] 
-                   (cond 
-                     (keyword? k) (name k)
-                     (string? k) k)))
-     (float-array (for [v (vals arg-map)] (float v)))]))
+(defn node-free 
+  "Instantly remove a node from the graph."
+  [node-id & node-ids]
+  (apply snd "/n_free" node-id node-ids))
 
-(defn trigger 
-  "Triggers the named synth by creating a new instance."
-  [synth-name arg-map]
-  (let [[arg-names arg-vals] (synth-args arg-map)]
-      (Synth. synth-name arg-names arg-vals (target))))
+(defn node-run
+  "Start a stopped node."
+  [node-id]
+  (snd "/n_run" node-id 1))
 
-; Add-node actions:
-; 0 - add to the the head of the group specified by the target ID.
-; 1 - add to the the tail of the group specified by the target ID.
-; 2 - add just before the node specified by the target ID.
-; 3 - add just after the node specified by the target ID.
-; 4 - replace the node specified by the target ID. (target is freed)
+(defn node-stop
+  "Stop a running node."
+  [node-id]
+  (snd "/n_run" node-id 0))
 
-; Sending a synth-id of -1 lets the server choose an ID
+(defn node-place
+  "Place a node :before or :after another node."
+  [node-id position target-id]
+  (cond
+    (= :before position) (snd "/n_before" node-id target-id)
+    (= :after  position) (snd "/n_after" node-id target-id)))
 
-(defn trigger-at [synth-name time-ms]
-  (let [msg (osc-msg "/s_new" synth-name 
-                               -1 ; (next-id) 
-                               1 
-                               (.getNodeID (target)))]
-  (.sendBundle @*s (osc-bundle [msg] time-ms))))
+(defn node-control
+  "Set control values for a node."
+  [node-id & name-values]
+  (apply snd "/n_set" node-id name-values))
 
-;(defn effect [synthdef & args]
-;  (let [arg-map (assoc (apply hash-map args) "bus" FX-BUS)
-;        new-effect {:def synthdef
-;                    :effect (trigger synthdef arg-map)}]
-;    (dosync (alter *fx conj new-effect))
-;    new-effect))
+; This can be extended to support setting multiple ranges at once if necessary...
+(defn node-control-range
+  "Set a range of controls all at once, or if node-id is a group control 
+  all nodes in the group."
+  [node-id ctl-start & ctl-vals]
+  (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
 
-(defn update 
-  "Update a voice or standalone synth with new settings."
-  [voice & args]
-  (let [[names vals] (synth-args (apply hash-map args))
-        synth        (if (voice? voice) (:synth voice) voice)]
-    (.set synth names vals)))
+(defn node-map-controls
+  "Connect a node's controls to a control bus."
+  [node-id & names-busses]
+  (apply snd "/n_map" node-id names-busses))
 
-(defn release 
-  [synth]
-  (.release synth))
+(defn new-group 
+  "Create a new group as a child of the target group."
+  [position target-id]
+  (let [id (next-group-id)]
+    (snd "/g_new" id (get POSITION position) target-id)
+    id))
 
-(defn synth-voice [synth-name & args]
-  {:type :voice
-   :voice-type :synth
-   :synth synth-name
-   :args args})
+(defn group-free-children [group-id]
+  (snd "/g_freeAll" group-id))
 
-(defmethod play-note :synth [voice note-num dur & args]
-  (let [args (assoc (apply hash-map args) :note note-num)
-        synth (trigger (:synth voice) args)]
-    (schedule #(release synth) dur)
-    synth))
+(defn reset []
+  (group-free-children 0)
+  (reset-id-counters))
 
+(defn restart 
+  "Reset everything and restart the SuperCollider process."
+  []
+  (reset)
+  (quit)
+  (boot))
+;  (stop-players true))
+
+(defn hit 
+  "Fire off the named synth at a specified time."
+  [time-ms synth-name & args]
+  (at-time time-ms (apply node-new synth-name (stringify args))))
+
+(defn mod 
+  "Modify a synth parameter at the specified time."
+  [time-ms node-id & args]
+  (at-time time-ms (apply node-new synth-name (stringify args))))
+
+
+;(defn status []
+;  (let [stat (.getStatus @*s)]
+;    {:sample-rate (.sampleRate stat)
+;     :actual-sample-rate (.actualSampleRate stat)
+;
+;     :num-groups (.numGroups stat)
+;     :num-synth-defs (.numSynthDefs stat)
+;     :num-synths (.numSynths stat)
+;     :num-nodes  (.numUGens stat)
+;
+;     :avg-cpu (.avgCPU stat)
+;     :peak-cpu (.peakCPU stat)}))
+;
+;;(defn effect [synthdef & args]
+;;  (let [arg-map (assoc (apply hash-map args) "bus" FX-BUS)
+;;        new-effect {:def synthdef
+;;                    :effect (trigger synthdef arg-map)}]
+;;    (dosync (alter *fx conj new-effect))
+;;    new-effect))
+;
+;(defn update 
+;  "Update a voice or standalone synth with new settings."
+;  [voice & args]
+;  (let [[names vals] (synth-args (apply hash-map args))
+;        synth        (if (voice? voice) (:synth voice) voice)]
+;    (.set synth names vals)))
+
+;(defn synth-voice [synth-name & args]
+;  {:type :voice
+;   :voice-type :synth
+;   :synth synth-name
+;   :args args})
+;
+;(defmethod play-note :synth [voice note-num dur & args]
+;  (let [args (assoc (apply hash-map args) :note note-num)
+;        synth (trigger (:synth voice) args)]
+;    (schedule #(release synth) dur)
+;    synth))
+;

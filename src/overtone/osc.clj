@@ -1,17 +1,19 @@
 (ns overtone.osc
   (:import (java.net InetSocketAddress))
-  (:import (de.sciss.net OSCClient OSCBundle OSCMessage)))
+  (:import (de.sciss.net OSCClient OSCBundle OSCMessage OSCListener)))
 
 (def DUMP-OFF 0)
 (def DUMP-ON  1) 
 
+;; TODO: Replace this frustrating OSC client or figure out how to get it
+;; working correctly on remote servers also...
 (defn osc-client 
  "Returns an OSC client ready to communicate with host on port.  
  Use :protocol in the options map to \"tcp\" if you don't want \"udp\"."
   [host port & argmap]
   (let [protocol (get argmap :protocol "udp")
         addr (InetSocketAddress. host port)
-        client (OSCClient/newUsing protocol)]
+        client (OSCClient/newUsing protocol 0 true)]
     (.setTarget client addr)
     (.start client)
     client))
@@ -40,6 +42,13 @@
   "Send OSC msg to client."
   [client msg]
   (.send client msg))
+
+(defn osc-listen
+  "Set a handler function for incoming osc messages."
+  [client fun]
+  (let [listener (proxy [OSCListener] []
+                   (messageReceived [msg sender timestamp] (fun msg sender timestamp)))]
+    (.addOSCListener client listener)))
 
 (defn print-msg [msg]
   (println (apply str "osc-msg: " (.getName msg)

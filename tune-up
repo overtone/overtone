@@ -13,19 +13,20 @@ PORTS = {
 APPS = [
 #  ["midi.osc", "./midi.osc -p #{PORTS[:midi_osc]}"],
   ["jackminimix", "jackminimix -a -c #{MIXER_CHANNELS} -p #{PORTS[:mixer]}"],
-  ["jack.plumbing", "jack.plumbing"],
-  ["pianoteq", "./scripts/piano_runner"]
+  ["jack.plumbing", "jack.plumbing -q"]
+#  ["pianoteq", "./scripts/piano_runner"]
 ]
 
 def start_studio
   APPS.each do |name, cmd|
-    puts "\t #{name}"
-    puts "CMD: #{cmd} &"
+    print "#{name}... "
     IO.popen("#{cmd} &")
+    puts "done"
   end
 end
 
 def kill_studio
+  `pkill -9 scsynth`
   APPS.each {|name, cmd| `pkill -9 #{name}`}
 end
 

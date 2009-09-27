@@ -1,13 +1,16 @@
 (ns overtone.synth
   (:import 
      (java.util.regex Pattern)
-     (de.sciss.jcollider Server Constants UGenInfo UGen
+     (de.sciss.jcollider Constants UGenInfo UGen
                          Group Node Control Constant 
                          GraphElem GraphElemArray
                          Synth SynthDef UGenChannel))
   (:use 
+     clojure.contrib.seq-utils
      (clojure walk inspector)
-     (overtone sc)))
+     (overtone sc utils)))
+
+(UGenInfo/readDefinitions)
 
 ;; NOTES
 ;; 
@@ -124,11 +127,14 @@
    "PlayBuf" true})
 
 (defn ar [& args]
-  (let [args (ugenify args)
+  (let [ugen-name (first args)
+        args (rest args)
+        args (ugenify args)
         args (if (contains? NEED-CHAN (first args)) 
                (concat [(first args) (int 1)] (rest args)) 
                args)]
-  (clojure.lang.Reflector/invokeStaticMethod UGen "ar" (to-array args))))
+    (UGen/construct ugen-name "audio" -1 (into-array GraphElem args))))
+;  (clojure.lang.Reflector/invokeStaticMethod UGen "ar" (to-array args))))
 
 (defn dr [& args]
   (clojure.lang.Reflector/invokeStaticMethod 
@@ -140,10 +146,31 @@
     "de.sciss.jcollider.Control" 
     "ir" (to-array (ugenify args))))
 
-(defn ctl-kr [args]
-  (clojure.lang.Reflector/invokeStaticMethod 
-    "de.sciss.jcollider.Control" 
-    "kr" (to-array (ugenify args))))
+(defn ctl-args [keyvals]
+  (let [[names defaults] (loop [keyvals keyvals
+                                names   []
+                                defs    []]
+                           (if (empty? keyvals)
+                             [names defs]
+                             (recur (rest (rest keyvals))
+                                    (conj names (name  (first keyvals)))
+                                    (conj defs  (float (second keyvals))))))
+        names (into-array String names)
+        defaults (into-array Float/TYPE defaults)]
+    [names defaults]))
+
+(defn ctl-chan-map [ctl names]
+  (apply hash-map (flatten 
+                    (for [i (range (count names)) n names] 
+                      [(keyword n) (.getChannel ctl i)]))))
+
+
+; Takes a series of key-value pairs, and returns a map of key -> control-channel suitable for
+; inserting in synthdefs.
+(defn ctl-kr [& keyvals]
+  (let [[names defaults] (ctl-args keyvals)
+        ctl (Control/kr names defaults)]
+    (ctl-chan-map ctl names)))
   
 ;; TODO: Look into doing things with simple OSC messaging if creating client-side representations of synths is slow.  We can do it like this:
 ;s.sendMsg("/s_new", "MyFavoriteSynth", n = s.nextNodeID;);
@@ -182,10 +209,25 @@
 
 (defmacro defsynth [name & body]
   (let [renamed (replace-ugens body)]
-    `(def ~(symbol (str name)) (SynthDef. ~(str name) ~@renamed))))
+    `(def ~(symbol (str name)) 
+       (let [sdef# (SynthDef. ~(str name) ~@renamed)]
+         (snd-to-synth (.recvMsg sdef#))
+         ~(str name)))))
 
 (defmacro syn [& body]
   (first (replace-ugens body)))
+
+(defn- build-mix 
+  [cur inputs]
+  (if (empty? inputs) 
+    cur
+    (recur (syn (mul-add.ar cur 0.8 (first inputs)))
+           (rest inputs))))
+
+(defn mix 
+  "Mix any number of input channels down to one.
+  (mix (sin-osc 440) (sin-osc 400))"
+  [in & chans] (build-mix in chans))
 
 (def ENV-CURVES
   {:step        0
@@ -301,3 +343,4 @@
         release (or release 1)
         curve   (or curve -4)]
     (envelope [0 sustain 0] [attack release] curve)))
+
