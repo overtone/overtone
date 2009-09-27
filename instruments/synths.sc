@@ -203,3 +203,37 @@ Synth(\piano, [\freq, [0,2,3,5,7,8,10].choose + (60 + (i * 12)), \outBus, 0,
 );
 
 
+// Create FM synth SynthDef ======================================
+(
+ SynthDef("fm-synth", {
+     arg freq = 440, amp = 0, gate = 0;
+
+     Out.ar(0, Pan2.ar(SinOsc.ar(MouseY.kr(4000, 0) * SinOsc.ar(MouseX.kr(20, 4000), 0, 
+                     MouseButton.kr(0, 1, 0.2), 0, 0.2)), 0, 0.2));
+
+     FreeSelf.kr(1 - gate);  // FreeSelf automatically releases on neg-pos transition
+     }).store;
+ )
+
+// Test FM synth using test variable
+a = Synth('fm-synth');
+a.free;
+
+(
+ SynthDef(\sine_osc, {
+     arg amp = 0.1, gate = 1;
+
+     // I tried to figure out how to use .do for this but it eluded me this time!
+     var freq_array = [Rand(40.0, 2000.0), Rand(40.0, 2000.0), Rand(40.0, 2000.0), Rand(40.0, 2000.0), Rand(40.0, 2000.0)];
+     var ampmod_array = [MouseX.kr(0.0, 1.0), MouseY.kr(1.0, 0.0)];
+
+     // Five SinOscs with randomly selected frequency are created and spread across the stereo image
+     // The amp mod applied to left and right output channels is controlled by mouse position
+     Out.ar(0, SinOsc.ar(ampmod_array, 0, 1.0) * Splay.ar(SinOsc.ar(freq_array, 0, amp)));
+
+     FreeSelf.kr(1 - gate);
+     }).store;
+ )
+
+d = Synth(\sine_osc);
+d.free;

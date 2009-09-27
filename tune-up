@@ -12,8 +12,8 @@ PORTS = {
 
 APPS = [
 #  ["midi.osc", "./midi.osc -p #{PORTS[:midi_osc]}"],
-  ["jackminimix", "jackminimix -a -c #{MIXER_CHANNELS} -p #{PORTS[:mixer]}"],
-  ["jack.plumbing", "jack.plumbing -q"]
+#  ["jackminimix", "jackminimix -a -c #{MIXER_CHANNELS} -p #{PORTS[:mixer]}"]
+#  ["jack.plumbing", "jack.plumbing -q"]
 #  ["pianoteq", "./scripts/piano_runner"]
 ]
 
@@ -51,3 +51,8 @@ start_studio
 puts "\n...complete"
 
 puts "\nAll systems go!\n\n"
+
+if ARGV[0] == "-r"
+  puts "Preparing to record session..."
+  system("gtk-recordMyDesktop &")
+end
