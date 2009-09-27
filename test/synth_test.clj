@@ -29,6 +29,23 @@
 (hit (now) line-test)
 )
 
+; TODO: Neither of these is working, and I think it has something to do with the
+; JCollider interfacing...  
+;(defsynth play-mono
+;  (let [ctl (ctl-kr :bufnum 1)]
+;    (quick (play-buf.ar 1 (:bufnum ctl) (buf-rate-scale.kr (:bufnum ctl)) 1 0 0))))
+;
+;(defsynth play-mono-disk 
+;  (quick (disk-in.ar 1 2)))
+;
+;(load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/boom.wav")
+
+;SynthDef(\diskIn2, { | bufnum, out,  gate = 1, sustain,  amp = 1, ar = 0, dr = 0.01 |
+;                    Out.ar(out, DiskIn.ar(2, bufnum) 
+;                               * Linen.kr(gate, ar, 1, dr, 2)
+;                               * EnvGen.kr(Env.linen(0, sustain - ar - dr max: 0 ,dr),1, doneAction: 2) * amp)
+;                    });
+
 (defsynth harmonic-swimming (quick 
   (let [freq     50
         partials 20

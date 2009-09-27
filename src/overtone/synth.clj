@@ -129,12 +129,12 @@
 (defn ar [& args]
   (let [ugen-name (first args)
         args (rest args)
-        args (ugenify args)
-        args (if (contains? NEED-CHAN (first args)) 
-               (concat [(first args) (int 1)] (rest args)) 
-               args)]
-    (UGen/construct ugen-name "audio" -1 (into-array GraphElem args))))
-;  (clojure.lang.Reflector/invokeStaticMethod UGen "ar" (to-array args))))
+        chans (if (contains? NEED-CHAN ugen-name)
+                (first args)
+                -1)
+        args (if chans (ugenify (rest args)) (ugenify args))] 
+    (println "ar ugen: " ugen-name " chans: " chans)
+    (UGen/construct ugen-name "audio" chans (into-array GraphElem args))))
 
 (defn dr [& args]
   (clojure.lang.Reflector/invokeStaticMethod 

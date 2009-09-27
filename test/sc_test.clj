@@ -1,5 +1,5 @@
 (ns sc-test
-  (:use (overtone sc utils)
+  (:use (overtone sc utils pitch)
      clojure.contrib.seq-utils
      clj-backtrace.repl))
 
@@ -16,36 +16,29 @@
     (for [[inst pat] pattern]
       (for [[index note] (indexed pat)]
         (if note
-          (hit (get voice-map inst)
-                      (+ (* index TICK) t)))))))
+          (hit (+ (* index TICK) t) (get voice-map inst)))))))
   
 (def house-beat {:kick  [x _ _ _ x _ _ _ x _ _ _ x _ _ _]
                  :hat   [_ _ x _ _ _ x _ _ _ x _ _ _ x _]
                  :snare [_ _ _ _ x _ _ _ _ _ _ _ x _ _ _]})
 
 (def house-drums {:kick "kick" 
-                  :hat "noise-hat"
+                  :hat (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav")
+;                  :hat "noise-hat"
                   :snare "clap"})
 
 (defn get-tick [tick beat]
 ;  (println "tick: " tick " beat: " beat)
   (map (fn [[inst pat]] [inst (nth pat (mod tick (count pat)))]) beat))
 
-(defn make-beat2 [voices beat num-ticks]
-  (let [t (now)]
-    (for [i (range num-ticks)]
-      (for [[inst note] (get-tick i beat)]
-        (if note
-          (hit (inst voices)
-                      (+ (* i TICK) t)))))))
-
 (defn play-beat [voices beat num-ticks]
   (let [t (now)]
     (doseq [i (range num-ticks)]
       (doseq [[inst note] (get-tick i beat)]
         (if note
-          (hit (+ (* i TICK) t)
-                      (inst voices)))))))
+          (if (number? (inst voices))
+            (hit (+ (* i TICK) t) "play-mono" :bufnum (inst voices))
+            (hit (+ (* i TICK) t) (inst voices))))))))
 
 ;(defn forever [tick pat cur]
 ;  (lazy-seq
@@ -53,7 +46,7 @@
 ;           (first vels)
 ;           (first durs)]
 ;          (forever (rest notes) (rest vels) (rest durs)))))
-(make-beat house-beat house-drums)
+;(make-beat house-beat house-drums)
 
 
 ;;(def echo (effect "echo"))

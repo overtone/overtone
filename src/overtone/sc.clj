@@ -12,13 +12,14 @@
 (def SERVER-PORT 57110)
 
 (def START-GROUP-ID 1)
+(def START-BUFFER-ID 1)
 (def START-NODE-ID 1000)
 
 (defonce *synth-thread (ref nil))
 (defonce *synth        (ref nil))
 
-(defonce *node-id-counter (ref START-NODE-ID))
-(defonce *group-id-counter (ref START-GROUP-ID))
+(defonce *counters (ref {}))
+(defonce *counter-defaults (ref {}))
 
 (def *synth-msgs (LinkedBlockingDeque. ))
 
@@ -26,16 +27,26 @@
 ;; need to be bundled together with an OSC timestamp.
 (def *msg-bundle* nil)
 
+
+(defmacro defcounter [counter-name start-id]
+  (let [next-fn (symbol (str "next-" (name counter-name) "-id"))]
+    `(do
+       (dosync 
+         (alter *counters assoc ~counter-name (ref ~start-id))
+         (alter *counter-defaults assoc ~counter-name ~start-id))
+       (defn ~next-fn [] 
+         (dec 
+           (dosync (alter (~counter-name @*counters) inc)))))))
+
+
 (defn reset-id-counters []
-  (dosync 
-    (ref-set *node-id-counter START-NODE-ID)
-    (ref-set *group-id-counter START-GROUP-ID)))
+  (doseq [[cname counter] @*counters]
+    (dosync 
+    (ref-set counter (cname @*counter-defaults)))))
 
-(defn next-node-id []
-  (dosync (alter *node-id-counter inc)))
-
-(defn next-group-id []
-  (dosync (alter *group-id-counter inc)))
+(defcounter :group START-GROUP-ID)
+(defcounter :node START-NODE-ID)
+(defcounter :buffer START-BUFFER-ID)
 
 (defn synth-listener [msg timestamp]
   (.addFirst *synth-msgs [msg timestamp]))
@@ -43,7 +54,10 @@
 (defn running? []
   (not (nil? @*synth)))
 
-;; TODO: remote server support
+(defn connect [host port]
+  (dosync (ref-set *synth (osc-client host port)))
+     (osc-listen @*synth synth-listener))
+
 (defn boot
   ([] (boot SERVER-HOST SERVER-PORT))
   ([host port]
@@ -51,11 +65,8 @@
      (.setDaemon sc-thread true)
      (.start sc-thread)
 
-     (dosync 
-       (ref-set *synth-thread sc-thread)
-       (ref-set *synth (osc-client host port)))
-
-     (osc-listen @*synth synth-listener))))
+     (dosync (ref-set *synth-thread sc-thread))
+     (connect host port))))
 
 (defmacro at-time [timestamp & body]
   `(binding [*msg-bundle* (atom [])]
@@ -89,7 +100,8 @@
   (if (running?)
     (snd "/quit"))
   (dosync (ref-set *synth nil))
-  (.stop @*synth-thread))
+  (if @*synth-thread
+    (.stop @*synth-thread)))
 
 (defn notify [notify?]
   (snd "/notify" (if notify? 1 0))
@@ -118,7 +130,7 @@
    :replace-node 4})
 
 ;; Sending a synth-id of -1 lets the server choose an ID
-(defn node-new [synth-name & args]
+(defn node [synth-name & args]
   (let [argmap (apply hash-map args)
         id (next-node-id)
         position ((get argmap :position :tail) POSITION)
@@ -166,19 +178,51 @@
   [node-id & names-busses]
   (apply snd "/n_map" node-id names-busses))
 
-(defn new-group 
+(defn group 
   "Create a new group as a child of the target group."
   [position target-id]
   (let [id (next-group-id)]
     (snd "/g_new" id (get POSITION position) target-id)
     id))
 
+(defn prepend-node 
+  "Add a node to the end of a group list."
+  [g n]
+  (snd "/g_head" g n))
+
+(defn append-node 
+  "Add a node to the end of a group list."
+  [g n]
+  (snd "/g_tail" g n)) 
+
 (defn group-free-children [group-id]
   (snd "/g_freeAll" group-id))
 
+(defn buffer []
+  (let [id (next-buffer-id)]
+    (snd "/b_alloc" id)
+    id))
+
+(defn load-sample [path]
+  (let [id (next-buffer-id)]
+    (snd "/b_allocRead" id path)
+    id))
+
+(defn save-buffer [buf-id path]
+  (snd "/b_write" buf-id path "wav" "float"))
+  
 (defn reset []
   (group-free-children 0)
   (reset-id-counters))
+
+(defn debug [& [on-off]]
+  (if (or on-off (nil? on-off))
+    (do 
+      (osc-debug @*synth true)
+      (snd "/dumpOSC" 1))
+    (do 
+      (osc-debug @*synth false)
+      (snd "/dumpOSC" 0))))
 
 (defn restart 
   "Reset everything and restart the SuperCollider process."
@@ -191,13 +235,12 @@
 (defn hit 
   "Fire off the named synth at a specified time."
   [time-ms synth-name & args]
-  (at-time time-ms (apply node-new synth-name (stringify args))))
+  (at-time time-ms (apply node synth-name (stringify args))))
 
-(defn mod 
+(defn ctl
   "Modify a synth parameter at the specified time."
   [time-ms node-id & args]
-  (at-time time-ms (apply node-new synth-name (stringify args))))
-
+  (at-time time-ms (apply node-control node-id (stringify args))))
 
 ;(defn status []
 ;  (let [stat (.getStatus @*s)]
