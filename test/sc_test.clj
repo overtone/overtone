@@ -21,9 +21,10 @@
 (def house-beat {:kick  [x _ _ _ x _ _ _ x _ _ _ x _ _ _]
                  :hat   [_ _ x _ _ _ x _ _ _ x _ _ _ x _]
                  :snare [_ _ _ _ x _ _ _ _ _ _ _ x _ _ _]})
+(def hat-buf (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
 
 (def house-drums {:kick "kick" 
-                  :hat (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav")
+                  :hat hat-buf
 ;                  :hat "noise-hat"
                   :snare "clap"})
 

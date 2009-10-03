@@ -22,6 +22,10 @@ Help.gui;
 )
 q.value;
 
+SynthDef("foo", {|note=50|
+  Out.ar(0, Saw.ar(midicps(note)));
+}).store;
+
 SynthDef("vintage-bass", {|out=0, note=40, vel=0.5, gate=1|
   var f = midicps(note);
   var f2 = midicps(note-12);

@@ -4,7 +4,8 @@
      (de.sciss.jcollider Constants UGenInfo UGen
                          Group Node Control Constant 
                          GraphElem GraphElemArray
-                         Synth SynthDef UGenChannel))
+                         Synth SynthDef UGenChannel)
+     (de.sciss.jcollider.gui SynthDefDiagram))
   (:use 
      clojure.contrib.seq-utils
      (clojure walk inspector)
@@ -66,24 +67,31 @@
    })
 
 (defn ugen-arg [arg]
-  (str (.name arg)
+  (str (.name arg) ": "
        (if (.isArray arg)
-         "[]"
-         (str "=" (.def arg)))))
+         "[ array ]"
+         (.def arg))))
 
 (defn ugen-info [name info]
   {:name name 
-   :args (for [arg (.args info)] (ugen-arg arg))})
+   :args (doall (for [arg (.args info)] (ugen-arg arg)))})
 
 (defn ugens []
   (for [[name info] (UGenInfo/infos)] (ugen-info name info)))
+
+(defmethod print-method Constant [const w]
+  (.write w (str "#<Const: " (.getValue const) " >")))
+
+(defmethod print-method UGen [ugen w]
+  (.write w (str "#<" (.getName ugen) " >")))
 
 (defn print-ugens 
   ([] (print-ugens (ugens)))
   ([ugens]
    (doseq [ugen ugens]
-     (println (str (:name ugen) ": ") (vec (for [arg (:args ugen)] 
-                                             (str (:name arg) (if (:array? arg) "." nil))))))))
+     (println (str (:name ugen) ": ") (vec (:args ugen))))))
+                                        ;(doseq [arg (:args ugen)] 
+                                         ;    (str (:name arg) (if (:array? arg) "." nil))))))))
 
 (defn find-ugen 
   "Returns the ugens with a name or description containing phrase."
@@ -92,6 +100,9 @@
                    #(= phrase (:name %1)) 
                    #(re-find (Pattern/compile phrase Pattern/CASE_INSENSITIVE) (:name %1)))]
       (filter filt-fun (ugens))))
+
+(defn show [& args]
+  (print-ugens (apply find-ugen args)))
 
 (defn ugen-ir [args]
   (clojure.lang.Reflector/invokeStaticMethod "de.sciss.jcollider.UGen" "ir" (to-array args)))
@@ -133,7 +144,7 @@
                 (first args)
                 -1)
         args (if chans (ugenify (rest args)) (ugenify args))] 
-    (println "ar ugen: " ugen-name " chans: " chans)
+    (println "ar ugen: " ugen-name " chans: " chans "args: " args)
     (UGen/construct ugen-name "audio" chans (into-array GraphElem args))))
 
 (defn dr [& args]
@@ -207,12 +218,16 @@
                       x)) 
             form))
 
+;(def *synths (ref {}))
+
 (defmacro defsynth [name & body]
   (let [renamed (replace-ugens body)]
     `(def ~(symbol (str name)) 
        (let [sdef# (SynthDef. ~(str name) ~@renamed)]
          (snd-to-synth (.recvMsg sdef#))
          ~(str name)))))
+
+;(dosync (alter *synths assoc ~(str name) sdef#))
 
 (defmacro syn [& body]
   (first (replace-ugens body)))
@@ -228,6 +243,14 @@
   "Mix any number of input channels down to one.
   (mix (sin-osc 440) (sin-osc 400))"
   [in & chans] (build-mix in chans))
+
+(defn stereo [in & args]
+  (let [args (merge {:vol 0.2 :pan 0} (apply hash-map args))
+        ctl (ctl-kr :vol (:vol args) :pan (:pan args))]
+    (syn (out.ar 0 (pan2.ar in))))); (:pan ctl) (:vol ctl))))))
+
+(defn view [sdef]
+  (SynthDefDiagram. sdef))
 
 (def ENV-CURVES
   {:step        0

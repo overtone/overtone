@@ -13,7 +13,7 @@
 (defsynth mouse-saw 
   (let [ctl (ctl-kr :freq 120)]
     (quick (lpf.ar (saw.ar [(mousex.kr 10 1200 1)
-                            (mousey.kr 10 1200 1)]) (:freq ctl)))))
+                            (mousey.kr 10 1200 1)]) 400))));(:freq ctl)))))
 (comment
 (hit (now) mouse-saw)
 (reset)

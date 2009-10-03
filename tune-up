@@ -13,8 +13,8 @@ PORTS = {
 APPS = [
 #  ["midi.osc", "./midi.osc -p #{PORTS[:midi_osc]}"],
 #  ["jackminimix", "jackminimix -a -c #{MIXER_CHANNELS} -p #{PORTS[:mixer]}"]
-#  ["jack.plumbing", "jack.plumbing -q"]
-#  ["pianoteq", "./scripts/piano_runner"]
+  ["jack.plumbing", "jack.plumbing -q"]
+#  ["pianoteq", "./script/piano_runner"]
 ]
 
 def start_studio
@@ -35,7 +35,7 @@ puts "\nInitializing studio..."
 puts "Starting nailgun server..."
 `pkill -9 java`
 sleep 1
-system("./scripts/ng-server &")
+system("./script/ng-server &")
 
 puts "Starting qjackctl..."
 `pkill -9 jack`
@@ -52,7 +52,20 @@ puts "\n...complete"
 
 puts "\nAll systems go!\n\n"
 
-if ARGV[0] == "-r"
-  puts "Preparing to record session..."
-  system("gtk-recordMyDesktop &")
+if ARGV.size > 0
+  if ARGV[0] == "-r"
+    puts "Preparing to record session..."
+    system("gtk-recordMyDesktop &")
+
+    session = ARGV[1]
+    if session.nil?
+      print "Session name: "
+      session = gets ""
+    else
+      session = ARGV[0]
+    end
+   
+    IO.popen("gvim session/#{session}.clj &")
+  end
 end
+
