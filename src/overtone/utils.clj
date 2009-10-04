@@ -27,3 +27,5 @@
 (defn stringify [col]
   (map #(if (keyword? %1) (name %1) %1) col))
 
+(defn type-checker [t]
+  (fn [obj] (and (map? obj) (= (:type obj) t))))

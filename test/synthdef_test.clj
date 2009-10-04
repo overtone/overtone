@@ -3,7 +3,7 @@
      clojure.test
      clj-backtrace.repl))
 
-(defn saw []
+(defn jsaw-full []
   {:name "jsaw" 
    :n-constants 1
    :constants [0.0]
@@ -23,28 +23,34 @@
                {:outputs [], :inputs [{:index 0, :src -1} {:index 0, :src 2}], 
                 :special 0, :n-outputs 0, :n-inputs 2, :rate 2, :name "Out"}]})
 
+(defsynth mini-sin
+  (out.ar 0 (sin-osc.ar 440)))
 
-(defn foo []
-  (bundle [(saw)]))
+(defn jsaw []
+  (synthdef-file (jsaw-full)))
 
 (def FOO "/home/rosejn/projects/overtone/foo.scd")
 (def FURL (java.net.URL. (str "file:" FOO)))
 (def FOO2 "/home/rosejn/projects/overtone/foo2.scd")
 (def FURL2 (java.net.URL. (str "file:" FOO2)))
 
-(defn jc []
-  (synthdef-write-file (foo) FOO2)
-  (de.sciss.jcollider.SynthDef/readDefFile FURL2))
+;(defn jc []
+;  (synthdef-write-file (foo) FOO2)
+;  (de.sciss.jcollider.SynthDef/readDefFile FURL2))
+;
+;(defn show [url]
+;  (de.sciss.jcollider.gui.SynthDefDiagram. 
+;    (first (de.sciss.jcollider.SynthDef/readDefFile url))))
+(defn bytes-and-back [sdef]
+  (synthdef-read-bytes (synthdef-write-bytes (synthdef-file sdef))))
 
-(defn show [url]
-  (de.sciss.jcollider.gui.SynthDefDiagram. 
-    (first (de.sciss.jcollider.SynthDef/readDefFile url))))
+(defn jc-load [path]
+  (de.sciss.jcollider.SynthDef/readDefFile (java.net.URL. (str "file:" path))))
 
 (deftest read-write-bundle
-  (let [a (bundle [(saw)])
-        bytes (synthdef-write-bytes a)
-        b (synthdef-read-bytes bytes)]
-    (is (= (:version a) (:version a)))))
+  (let [a (jsaw)
+        b (bytes-and-back a)]
+    (is (= (:n-sdefs b) 1))))
 
 (defn go []
   (binding [*test-out* *out*]

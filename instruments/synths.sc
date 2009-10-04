@@ -6,7 +6,16 @@
 //  * fx processing
 
 s.boot;
+s.quit;
 Help.gui;
+
+SynthDef("test-sin", {
+  Out.ar(0, SinOsc.ar(234));
+}).store;
+  
+c = Synth("test-sin");
+c = Synth("kick");
+    
 
 // For testing instruments with a midi keyboard...
 (

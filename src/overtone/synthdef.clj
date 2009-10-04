@@ -5,8 +5,9 @@
                     ByteArrayOutputStream ByteArrayInputStream)
      (java.net URL))
   (:use
-     (overtone osc ugens)
-     (clojure walk inspector)))
+     (overtone utils ugens)
+     (clojure walk inspector)
+     clojure.contrib.seq-utils))
 
 ;; SuperCollider Synthesizer Definition 
 
@@ -41,7 +42,7 @@
               })
 
 (def WRITERS {
-							:int8   #(.writeByte *spec-out* %1)
+              :int8   #(.writeByte *spec-out* %1)
 							:int16  #(.writeShort *spec-out* %1)
 							:int32  #(.writeInt *spec-out*  %1)
               :float32 #(.writeFloat *spec-out* %1)
@@ -85,36 +86,36 @@
 (declare spec-read)
 
 (defn spec-read-array [spec size]
-  (print "READ-A: ")
-  (if (map? spec)
-    (println (str (:name spec) "[" size "]"))
-    (println (str spec "[" size "]")))
+;  (print "READ-A: ")
+;  (if (map? spec)
+;    (println (str (:name spec) "[" size "]"))
+;    (println (str spec "[" size "]")))
   (loop [i size
          ary []]
     (if (pos? i)
       (let [next-val (if (contains? READERS spec)
                        ((spec READERS))
                        (spec-read spec))]
-        (println spec ":" next-val)
+;        (println spec ":" next-val)
         (recur (dec i) (conj ary next-val)))
       ary)))
 
 (defn spec-read [spec]
   (loop [specs (:specs spec)
          data  {}]
-  (print "READ [" (:name spec) "]")
+    ;  (print "READ [" (:name spec) "]")
     (if specs
       (let [{:keys [fname ftype default]} (first specs)
-            _ (println (str fname ": " 
-                            (if (vector? ftype) (str "[]") ftype)
-                            default))
+;            _ (println (str fname ": " 
+;                            (if (vector? ftype) (str "[]") ftype)
+;                            default))
             fval (cond
                    ; basic type
                    (contains? READERS ftype) ((ftype READERS))
 
                    ; array
                    (vector? ftype) (spec-read-array (first ftype)
-                                               ((keyword (str "n-" (name fname))) data)))]
+                                                    ((keyword (str "n-" (name fname))) data)))]
         (recur (next specs) (assoc data fname fval)))
       data)))
 
@@ -130,10 +131,10 @@
 (declare spec-write)
 
 (defn spec-write-array [spec ary]
-  (print "WRITE-A: ")
-  (if (map? spec)
-    (println (str (:name spec) "[" (count ary) "]"))
-    (println (str spec "[" (count ary) "]")))
+;  (print "WRITE-A: ")
+;  (if (map? spec)
+;    (println (str (:name spec) "[" (count ary) "]"))
+;    (println (str spec "[" (count ary) "]")))
   (let [writer (cond
                  (contains? WRITERS spec) (spec WRITERS)
                  (map? spec) (partial spec-write spec)
@@ -144,10 +145,10 @@
 
 (defn spec-write [spec data]
   (doseq [{:keys [fname ftype default]} (:specs spec)]
-    (print "WRITE (" (:name spec) ") ")
-    (println (str fname ": " 
-                  (if (vector? ftype) (str "[]") ftype) ": "
-                  (if (contains? WRITERS ftype) (or (fname data) default))))
+;    (print "WRITE (" (:name spec) ") ")
+;    (println (str fname ": " 
+;                  (if (vector? ftype) (str "[]") ftype) ": "
+;                  (if (contains? WRITERS ftype) (or (fname data) default))))
     (cond 
       ; count of another field starting with n-
       (.startsWith (name fname) "n-")
@@ -193,6 +194,14 @@
 				 :src   :int16
 				 :index :int16)
  
+;; Outputs have a specified calculation rate
+;;   0 = scalar rate - one sample is computed at initialization time only. 
+;;   1 = control rate - one sample is computed each control period.
+;;   2 = audio rate - one sample is computed for each sample of audio output.
+(def RATES {:scalar  0
+           :control 1
+           :audio   2})
+
 ;; an output-spec is :
 ;;   int8 - calculation rate
 ;; end
@@ -207,11 +216,6 @@
 ;;   int16 - special index
 ;;   [input-spec] * I
 ;;   [output-spec] * O
-;;
-;;  * Outputs have a specified calculation rate
-;;    0 = scalar rate - one sample is computed at initialization time only. 
-;;    1 = control rate - one sample is computed each control period.
-;;    2 = audio rate - one sample is computed for each sample of audio output.
 ;;
 ;;  * special index - custom argument used by some ugens
 ;;    - (e.g. UnaryOpUGen and BinaryOpUGen use it to indicate which operator to perform.)
@@ -275,8 +279,13 @@
 (defn synthdef-read-bytes [bytes]
   (spec-read-bytes synthdef-spec bytes))
 
+; TODO: Either figure out how to do it with duck-streams, or patch
+; duck-streams so it will work.
 (defn synthdef-read-url [url]
   (spec-read-url synthdef-spec url))
+
+(defn synthdef-read-file [url]
+  (spec-read-url synthdef-spec (java.net.URL. (str "file:" url))))
 
 ;;  * Unit generators are listed in the order they will be executed.  
 ;;  * Inputs must refer to constants or previous unit generators.  
@@ -289,14 +298,130 @@
 ;;
 ;;  * Unit generators should be listed in an order that permits efficient reuse
 ;;  of connection buffers, so use a depth first topological sort of the graph. 
-;;
-(defn synthdef [name constants params ugens]
-  {:name name
-   :n-constants (count constants)
-   :constants (map #(float %1) constants)
-   :n-pvals params})
 
-(defn bundle [sdefs]
+(defn normalize-ugen-name [n]
+  (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
+
+(def UGEN-MAP (reduce 
+                (fn [mem ugen] 
+                  (assoc mem (normalize-ugen-name (:name ugen)) ugen)) 
+                UGENS))
+
+(defn ugen-match [word]
+  (get UGEN-MAP (normalize-ugen-name word)))
+
+(defn ugen [name rate & args]
+  (let [info (ugen-match name)]
+    (if (nil? info)
+      (throw (IllegalArgumentException. (str "Unknown ugen: " name))))
+    {:type :ugen
+    :name name
+    :rate (rate RATES)
+    :args args}))
+
+(def ugen? (type-checker :ugen))
+
+;; TODO: Figure out the complete list of control types
+;; This is used to determine the controls we list in the synthdef, so we need
+;; all ugens which should be specified as external controls.
+(def CONTROLS #{"control"})
+
+(defn control? [ugen]
+  (and (map? ugen)
+       (CONTROLS (normalize-ugen-name (:name ugen)))))
+
+(def *synthdef* nil)
+
+;(defn memory [init-val] 
+;  (let [m (atom init-val)] 
+;    {:next #(swap! c inc)
+;    :reset #(reset! c init-val)}))
+
+(def *ugens* nil)
+(def *constants* nil)
+(def *params* nil)
+(defn do-col-ugens [ugen]
+  (let [children (filter #(ugen? %1) (:args ugen))
+        constants (filter #(number? %1) (:args ugen))
+        params    (filter #(control? %1) (:args ugen))]
+    (doseq [child children]
+      (do-col-ugens child))
+    (doseq [const constants]
+      (if (not ((set *constants*) const))
+        (set! *constants* (conj *constants* const))))
+    (doseq [param params]
+      (if (not ((set *params*) param))
+        (set! *params* (conj *params* param))))
+    (set! *ugens* (conj *ugens* ugen))))
+
+(defn collect-ugen-info 
+  "Return a list of all the ugens in the ugen graph."
+  [ugen] 
+  (binding [*ugens*     []
+            *constants* []
+            *params*    []]
+    (do-col-ugens ugen)
+    [*ugens* *constants* *params*]))
+
+(defn index-of [col item]
+  (first (first (filter (fn [[i v]] 
+                          (= v item)) 
+                        (indexed col)))))
+
+(defn with-inputs [ugen ugens constants]
+  (let [inputs (map (fn [arg]
+                      (cond
+                        (number? arg) {:src -1 :index (index-of constants arg)}
+                        (ugen? arg)   {:src (index-of ugens ugen) :index 0}))
+                    (:args ugen))]
+    (assoc ugen :inputs inputs)))
+
+(def FIXED 0)
+(def ARG   1)
+(def ARY   2)
+ 
+; TODO: This seems nonsensical...  Need a better way to determine output information.
+(defn with-outputs [ugen]
+  (let [spec (ugen-match (:name ugen))
+        out-type (:out-type spec)
+        num-outs (cond
+                   (= out-type FIXED) (:fixed-outs spec)
+                   (= out-type ARG)   (:fixed-outs spec)
+                   (= out-type ARY)   (:fixed-outs spec))]
+    ;(println "with-outs (" (:name ugen) "): " out-type " - " num-outs)
+    (assoc ugen :outputs (take num-outs (repeat {:rate (:rate ugen)})))))
+
+(defn detail-ugens 
+  "Fill in all the input and output details necessary for each ugen."
+  [ugens constants params]
+  (let [ins  (map #(with-inputs %1 ugens constants) ugens)
+        outs (map #(with-outputs %1) ins)]
+    outs))
+
+(defn realize-synthdef 
+  "Transform a constructed synth definition into a form that's ready to serialize
+  and send to the server."
+  [base-def]
+  (let [[ugens constants params] (collect-ugen-info (:top base-def))
+        pnames    (map #(:name %1) params)
+        detailed  (detail-ugens ugens constants params)]
+    (merge base-def
+           {:constants constants
+            :params params
+            :pnames pnames
+            :ugens (doall detailed)})))
+
+; TODO: Figure out if we ever have multiple top-level ugens, or at least
+; an array for multiple channels...
+(defn synthdef [name top-ugen]
+  (let [base-def {:type :synthdef
+                 :name name
+                 :top top-ugen}]
+    (realize-synthdef base-def)))
+
+(def synthdef? (type-checker :synthdef))
+
+(defn synthdef-file [& sdefs]
   {:spec synthdef-spec
    :n-sdefs (count sdefs)
    :sdefs sdefs})
@@ -309,31 +434,22 @@
 ;; * find controls in ugen list and store info for ctl-header
 ;; * find constants in ugen list and store info
 ;; * sort list topologically
-
-(defn normalize-ugen-name [n]
-  (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
-
-(def UGEN-MAP (reduce 
-                (fn [mem ugen] 
-                  (assoc mem (normalize-ugen-name (:name ugen)) ugen)) 
-                UGENS))
-
-(defn ugen-match [word]
-  (get UGEN-MAP (normalize-ugen-name (.substring word 0 (- (count word) 3)))))
+(defn trim [word]
+  (.substring word 0 (- (count word) 3)))
 
 (defn replace-name [l]
   (let [word (str (first l))]
     (concat 
       (cond 
-        (.endsWith word ".ar") ['ar (ugen-match word)]
-        (.endsWith word ".kr") ['kr (ugen-match word)]
-        (.endsWith word ".dr") ['dr (ugen-match word)]
+        (.endsWith word ".ar") ['ugen (trim word) :audio]
+        (.endsWith word ".kr") ['ugen (trim word) :control]
+        (.endsWith word ".dr") ['ugen (trim word) :scalar]
         true [(symbol word)]) 
       (rest l))))
 
 (defn replace-ugens
   "Find all the forms starting with a valid ugen identifier, and convert it to a function argument to
-  a ugen constructor compabitible with JCollider."
+  a ugen constructor."
   [form]
   (postwalk (fn [x] (if (and (seq? x) 
                              (symbol? (first x)))
@@ -343,10 +459,7 @@
 
 (defmacro defsynth [name & body]
   (let [renamed (replace-ugens body)]
-    `(def ~(symbol (str name)) 
-       (let [sdef# (SynthDef. ~(str name) ~@renamed)]
-         (snd-to-synth (.recvMsg sdef#))
-         ~(str name)))))
+    `(def ~(symbol (str name)) (synthdef ~(str name) ~@renamed))))
 
 ;(dosync (alter *synths assoc ~(str name) sdef#))
 
