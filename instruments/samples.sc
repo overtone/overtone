@@ -1,44 +1,35 @@
 s.boot;
+s.quit;
+
+Env.linen(0.1, 0.6, 0.1).test.plot;
 
 (
-SynthDef("play-mono", {| out = 0, bufnum = 0 |
-        Out.ar(out, Pan2.ar( 
-                PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), doneAction:2),
-                0)
-            )
-        }).store;
-        )
+SynthDef("sin", {|out = 0, pitch = 40, dur = 0.3|
+  Out.ar(out, Pan2.ar( EnvGen.kr(Env.linen(0.001, dur, 0.002), doneAction: 2) * SinOsc.ar(midicps(pitch), 0, 0.8)));
+  }).store;
+)
+Synth("sin", ["pitch", 60, "dur", 0.2]);
 
-SynthDef("play-stereo", {| out = 0, bufnum = 0 |
-        Out.ar(out, Pan2.ar( 
-                PlayBuf.ar(2, bufnum, BufRateScale.kr(bufnum), doneAction:2),
-                0)
-            )
-        }).store;
-        )
+(
+s.sendMsg("/b_allocRead", 0, "/home/rosejn/projects/overtone/instruments/samples/kit/boom.wav");
+s.sendMsg("/b_allocRead", 1, "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav");
+s.sendMsg("/b_allocRead", 2, "/home/rosejn/projects/overtone/instruments/samples/kit/crikix.wav");
+)
 
-b = Buffer.read(s, "/home/rosejn/foo.wav"); // remember to free the buffer later.
-
-
-c = Synth("play-mono", ["bufnum", 1]);
-s.sendMsg("/s_new", "play-mono", x = s.nextNodeID, 1, 2);
-
-// allocate a disk i/o buffer
-s.sendMsg("/b_alloc", 0, 65536, 1);
-
-// open an input file for this buffer, leave it open
-s.sendMsg("/b_read", 0, "/home/rosejn/foo.wav", 0, 65536, 0, 1);
-
-
-s.sendMsg("/b_close", 0); // close the file (very important!)
-
-// again 
-// don't need to reallocate and Synth is still reading
-s.sendMsg("/b_read", 0, "/home/rosejn/foo.wav", 0, 0, 0, 1);
-
-s.sendMsg("/n_free", x); // stop reading
+( 
+ SynthDef("granular", {|out = 0, buf = 0, pan = 0.0, start = 0.0, amp = 1.0, dur=0.25|
+     var grain, env; 
+     grain = PlayBuf.ar(1,buf, BufRateScale.kr(buf), 1, BufFrames.ir(buf)*start,0);
+     env = (EnvGen.kr(Env.perc(0.01,dur),doneAction:2)-0.001); 
+     Out.ar(out, Pan2.ar(grain * env, pan, amp));
+     }).store; 
+ ) 
+c = Synth("granular", ["buf", 0, "dur", 2.0, "start", 0.0]);
+c = Synth("granular", ["buf", 1, "dur", 1.0, "pan", 0.5]);
+c = Synth("granular", ["buf", 2, "dur", 2]);
 
 s.sendMsg("/b_close", 0); // close the file.
-
+s.sendMsg("/b_close", 1); // close the file.
+s.sendMsg("/b_close", 2); // close the file.
 s.sendMsg("/b_free", 0); // frees the buffer
 

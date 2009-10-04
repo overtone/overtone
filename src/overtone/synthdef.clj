@@ -4,7 +4,9 @@
                     BufferedInputStream BufferedOutputStream 
                     ByteArrayOutputStream ByteArrayInputStream)
      (java.net URL))
-  (:use (overtone synth osc)))
+  (:use
+     (overtone osc ugens)
+     (clojure walk inspector)))
 
 ;; SuperCollider Synthesizer Definition 
 
@@ -219,7 +221,7 @@
 				 :rate      :int8
 				 :n-inputs  :int16
 				 :n-outputs :int16
-         :special   :int16
+         :special   :int16 0
 				 :inputs    [input-spec]
          :outputs   [output-spec])
 
@@ -298,4 +300,56 @@
   {:spec synthdef-spec
    :n-sdefs (count sdefs)
    :sdefs sdefs})
+
+;; NOTES for synthdef processing
+;; * Synth definition defines the nodes and each of their input values
+;; * Process definition by iterating through tree and converting to a 
+;; list of ugens.
+;;
+;; * find controls in ugen list and store info for ctl-header
+;; * find constants in ugen list and store info
+;; * sort list topologically
+
+(defn normalize-ugen-name [n]
+  (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
+
+(def UGEN-MAP (reduce 
+                (fn [mem ugen] 
+                  (assoc mem (normalize-ugen-name (:name ugen)) ugen)) 
+                UGENS))
+
+(defn ugen-match [word]
+  (get UGEN-MAP (normalize-ugen-name (.substring word 0 (- (count word) 3)))))
+
+(defn replace-name [l]
+  (let [word (str (first l))]
+    (concat 
+      (cond 
+        (.endsWith word ".ar") ['ar (ugen-match word)]
+        (.endsWith word ".kr") ['kr (ugen-match word)]
+        (.endsWith word ".dr") ['dr (ugen-match word)]
+        true [(symbol word)]) 
+      (rest l))))
+
+(defn replace-ugens
+  "Find all the forms starting with a valid ugen identifier, and convert it to a function argument to
+  a ugen constructor compabitible with JCollider."
+  [form]
+  (postwalk (fn [x] (if (and (seq? x) 
+                             (symbol? (first x)))
+                      (replace-name x) 
+                      x)) 
+            form))
+
+(defmacro defsynth [name & body]
+  (let [renamed (replace-ugens body)]
+    `(def ~(symbol (str name)) 
+       (let [sdef# (SynthDef. ~(str name) ~@renamed)]
+         (snd-to-synth (.recvMsg sdef#))
+         ~(str name)))))
+
+;(dosync (alter *synths assoc ~(str name) sdef#))
+
+(defmacro syn [& body]
+  (first (replace-ugens body)))
 

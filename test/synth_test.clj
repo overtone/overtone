@@ -38,13 +38,8 @@
 ;(defsynth play-mono-disk 
 ;  (quick (disk-in.ar 1 2)))
 ;
-;(load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/boom.wav")
-
-;SynthDef(\diskIn2, { | bufnum, out,  gate = 1, sustain,  amp = 1, ar = 0, dr = 0.01 |
-;                    Out.ar(out, DiskIn.ar(2, bufnum) 
-;                               * Linen.kr(gate, ar, 1, dr, 2)
-;                               * EnvGen.kr(Env.linen(0, sustain - ar - dr max: 0 ,dr),1, doneAction: 2) * amp)
-;                    });
+;(def boom (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/boom.wav"))
+;(hit (now) boom)
 
 (defsynth harmonic-swimming (quick 
   (let [freq     50
@@ -308,15 +303,15 @@
    )
 
 ;; Playing audio samples (wav files) from disk
-;(def buf (sample "/home/rosejn/projects/overtone/samples/kit/boom.wav"))
-;(defsynth audio-sample-test
-;  (out.ar 0
-;          (play-buf.ar (.getBufNum buf)
-;                       1.0
-;                       (sin-osc.ar 2)
-;                       0.0
-;                       1.0)))
-;
+(def buf (load-sample "/home/rosejn/projects/overtone/samples/kit/boom.wav"))
+(defsynth audio-sample-test
+  (out.ar 0
+          (play-buf.ar 2
+                       1.0
+                       (sin-osc.ar 2)
+                       0.0
+                       1.0)))
+
  (comment
 (hit (now) audio-sample-test)
 (reset)

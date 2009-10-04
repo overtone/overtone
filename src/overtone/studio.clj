@@ -23,9 +23,6 @@
 ;(def *fx-bus (ref (Bus/audio (server) 2)))
 (def *fx     (ref []))
 
-;(defn sample [path]
-;  (Buffer/cueSoundFile (server) path))
-
 (defn session-reset []
   (reset)
   (dosync 

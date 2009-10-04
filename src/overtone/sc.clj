@@ -198,9 +198,10 @@
 (defn group-free-children [group-id]
   (snd "/g_freeAll" group-id))
 
-(defn buffer []
+; size is in samples
+(defn buffer [size]
   (let [id (next-buffer-id)]
-    (snd "/b_alloc" id)
+    (snd "/b_alloc" id size)
     id))
 
 (defn load-sample [path]
@@ -233,9 +234,11 @@
 ;  (stop-players true))
 
 (defn hit 
-  "Fire off the named synth at a specified time."
-  [time-ms synth-name & args]
-  (at-time time-ms (apply node synth-name (stringify args))))
+  "Fire off the named synth or loaded sample (by id) at a specified time."
+  [time-ms syn & args]
+  (if (number? syn)
+    (apply hit time-ms "granular" :buf syn args)
+    (at-time time-ms (apply node syn (stringify args)))))
 
 (defn ctl
   "Modify a synth parameter at the specified time."
