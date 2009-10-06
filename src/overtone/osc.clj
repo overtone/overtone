@@ -10,8 +10,8 @@
 (defn osc-client 
  "Returns an OSC client ready to communicate with host on port.  
  Use :protocol in the options map to \"tcp\" if you don't want \"udp\"."
-  [host port & argmap]
-  (let [protocol (get argmap :protocol "udp")
+  [host port & [proto]]
+  (let [protocol (or proto "udp")
         addr (InetSocketAddress. host port)
         client (OSCClient/newUsing protocol 0 true)]
     (.setTarget client addr)
@@ -43,11 +43,18 @@
   [client msg]
   (.send client msg))
 
+(defn- clj-msg [msg sender timestamp]
+  {:sender sender
+   :time timestamp
+   :name (.getName msg)
+   :args (doall (for [i (range (.getArgCount msg))] (.getArg msg i)))})
+
 (defn osc-listen
   "Set a handler function for incoming osc messages."
   [client fun]
   (let [listener (proxy [OSCListener] []
-                   (messageReceived [msg sender timestamp] (fun msg sender timestamp)))]
+                   (messageReceived [msg sender timestamp] 
+                                    (fun (clj-msg msg sender timestamp))))]
     (.addOSCListener client listener)))
 
 (defn print-msg [msg]

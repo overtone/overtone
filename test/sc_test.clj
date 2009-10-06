@@ -1,12 +1,12 @@
 (ns sc-test
-  (:use (overtone sc utils pitch)
+  (:use (overtone sc utils pitch rhythm)
      clojure.contrib.seq-utils
      clj-backtrace.repl))
 
 (def _ false)
 (def x true)
 
-(defn setup [] (boot))
+(boot)
 
 (def BPM 120)
 (def TICK (/ (/ 60000 BPM) 4))
@@ -20,13 +20,27 @@
   
 (def house-beat {:kick  [x _ _ _ x _ _ _ x _ _ _ x _ _ _]
                  :hat   [_ _ x _ _ _ x _ _ _ x _ _ _ x _]
-                 :snare [_ _ _ _ x _ _ _ _ _ _ _ x _ _ _]})
+                 :snare [_ _ _ _ x _ _ _ _ _ _ _ x _ _ _]
+                 :tom   [_ _ _ _ _ _ x _ _ _ x _ x x _ x]})
+
+(comment
 (def hat-buf (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
+)
 
 (def house-drums {:kick "kick" 
                   :hat hat-buf
 ;                  :hat "noise-hat"
-                  :snare "clap"})
+                  :snare "clap"
+                  :tom "tom"})
+
+(defn beats [t cnt]
+  (cond
+    (zero? (mod cnt 4)) (hit t "kick")
+    (zero? (mod cnt 8)) (hit t "snare"))
+  (callback (+ (now) 125) #'beats  (+ t 125) (inc cnt)))
+
+(beats (now) 0)
+
 
 (defn get-tick [tick beat]
 ;  (println "tick: " tick " beat: " beat)
@@ -37,9 +51,19 @@
     (doseq [i (range num-ticks)]
       (doseq [[inst note] (get-tick i beat)]
         (if note
-          (if (number? (inst voices))
-            (hit (+ (* i TICK) t) "play-mono" :bufnum (inst voices))
-            (hit (+ (* i TICK) t) (inst voices))))))))
+          (hit (+ (* i TICK) t) (inst voices)))))))
+
+(make-beat house-beat house-drums)
+(play-beat house-drums house-beat 500)
+
+(defn sin-man [start])
+  (if (< 2 (rand-int 5))
+    (doseq [i (range (rand-int 5))]
+      (hit (+ (* i 120) (now)) "sin" :pitch (+ 20 start (- (rand-int 6) 3)) :dur (* 0.29 i)))
+    (hit (now) "sin" :pitch (+ 20 start (- (rand-int 6) 3)) :dur (* 0.1 (+ 1 (rand-int 2)))))
+  (callback (+ 500 (now)) #'sin-man start))
+
+(sin-man 40)
 
 ;(defn forever [tick pat cur]
 ;  (lazy-seq
@@ -47,7 +71,6 @@
 ;           (first vels)
 ;           (first durs)]
 ;          (forever (rest notes) (rest vels) (rest durs)))))
-;(make-beat house-beat house-drums)
 
 
 ;;(def echo (effect "echo"))
