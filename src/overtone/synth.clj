@@ -82,7 +82,7 @@
   (for [[name info] (UGenInfo/infos)] (ugen-info name info)))
 
 (def UGEN-PATH "/home/rosejn/projects/overtone/src/overtone/ugens.clj")
-(defn scrape-ugens []
+(comment defn scrape-ugens []
   (binding [*out* (clojure.contrib.duck-streams/writer UGEN-PATH)]
     (println 
 "(ns overtone.ugens)

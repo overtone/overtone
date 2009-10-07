@@ -3,7 +3,8 @@
   (:use
      (overtone utils ugens bytes)
      (clojure walk inspector)
-     clojure.contrib.seq-utils))
+     clojure.contrib.seq-utils
+     clojure.contrib.logging))
 
 ;; SuperCollider Synthesizer Definition 
 
@@ -79,7 +80,7 @@
 ;;  * constants are static floating point inputs
 ;;  * parameters are named input floats that can be dynamically controlled 
 ;;    - (/s.new, /n.set, /n.setn, /n.fill, /n.map)
-(defspec sdef-spec
+(defspec synth-spec
          :name         :string
          :n-constants  :int16
          :constants    [:float32]
@@ -101,16 +102,20 @@
 (def SCGF-VERSION 1)
 
 (defspec synthdef-spec
-         :id      :int32 SCGF-MAGIC
-         :version :int32 SCGF-VERSION
-         :n-sdefs :int16 0
-         :sdefs   [sdef-spec])
+         :id       :int32 SCGF-MAGIC
+         :version  :int32 SCGF-VERSION
+         :n-synths :int16 0
+         :synths   [synth-spec])
 
-(defn synthdef-write-file [sdef path]
-  (spec-write-file synthdef-spec sdef path))
+(defn synthdef-file [& sdefs]
+  {:n-synths (count sdefs)
+   :synths sdefs})
 
-(defn synthdef-write-bytes [sdef]
-  (spec-write-bytes synthdef-spec sdef))
+(defn synthdef-bytes [& sdefs]
+  (spec-write-bytes synthdef-spec (apply synthdef-file sdefs)))
+
+(defn synthdef-write-file [path & sdefs]
+  (spec-write-file synthdef-spec (apply synthdef-file sdefs) path))
 
 (defn synthdef-read-bytes [bytes]
   (spec-read-bytes synthdef-spec bytes))
@@ -144,7 +149,7 @@
                 UGENS))
 
 (defn ugen-match [word]
-  (get UGEN-MAP (normalize-ugen-name word)))
+  (:name (get UGEN-MAP (normalize-ugen-name word))))
 
 (defn ugen [name rate & args]
   (let [info (ugen-match name)]
@@ -224,7 +229,7 @@
                    (= out-type FIXED) (:fixed-outs spec)
                    (= out-type ARG)   (:fixed-outs spec)
                    (= out-type ARY)   (:fixed-outs spec))]
-    ;(println "with-outs (" (:name ugen) "): " out-type " - " num-outs)
+    (log :debug (str "with-outs (" (:name ugen) "): " out-type " - " num-outs))
     (assoc ugen :outputs (take num-outs (repeat {:rate (:rate ugen)})))))
 
 (defn detail-ugens 
@@ -234,33 +239,23 @@
         outs (map #(with-outputs %1) ins)]
     outs))
 
-(defn realize-synthdef 
-  "Transform a constructed synth definition into a form that's ready to serialize
-  and send to the server."
-  [base-def]
-  (let [[ugens constants params] (collect-ugen-info (:top base-def))
-        pnames    (map #(:name %1) params)
-        detailed  (detail-ugens ugens constants params)]
-    (merge base-def
-           {:constants constants
-            :params params
-            :pnames pnames
-            :ugens (doall detailed)})))
-
 ; TODO: Figure out if we ever have multiple top-level ugens, or at least
 ; an array for multiple channels...
-(defn synthdef [name top-ugen]
-  (let [base-def {:type :synthdef
-                 :name name
-                 :top top-ugen}]
-    (realize-synthdef base-def)))
+(defn synthdef 
+  "Transforms a synth definition graph into a form that's ready to save to disk or 
+  send to the server."
+  [name top-ugen]
+  (let [[ugens constants params] (collect-ugen-info top-ugen)
+        pnames    (map #(:name %1) params)
+        detailed  (detail-ugens ugens constants params)]
+    {:type :synthdef
+     :name name
+     :constants constants
+     :params params
+     :pnames pnames
+     :ugens (doall detailed)}))
 
 (def synthdef? (type-checker :synthdef))
-
-(defn synthdef-file [& sdefs]
-  {:spec synthdef-spec
-   :n-sdefs (count sdefs)
-   :sdefs sdefs})
 
 ;; NOTES for synthdef processing
 ;; * Synth definition defines the nodes and each of their input values
@@ -270,16 +265,17 @@
 ;; * find controls in ugen list and store info for ctl-header
 ;; * find constants in ugen list and store info
 ;; * sort list topologically
-(defn trim [word]
-  (.substring word 0 (- (count word) 3)))
+
+(defn ugen-name [word]
+  (ugen-match (.substring word 0 (- (count word) 3))))
 
 (defn replace-name [l]
   (let [word (str (first l))]
     (concat 
       (cond 
-        (.endsWith word ".ar") ['ugen (trim word) :audio]
-        (.endsWith word ".kr") ['ugen (trim word) :control]
-        (.endsWith word ".dr") ['ugen (trim word) :scalar]
+        (.endsWith word ".ar") ['ugen (ugen-name word) :audio]
+        (.endsWith word ".kr") ['ugen (ugen-name word) :control]
+        (.endsWith word ".dr") ['ugen (ugen-name word) :scalar]
         true [(symbol word)]) 
       (rest l))))
 
@@ -295,7 +291,8 @@
 
 (defmacro defsynth [name & body]
   (let [renamed (replace-ugens body)]
-    `(def ~(symbol (str name)) (synthdef ~(str name) ~@renamed))))
+    `(def ~(symbol (str name)) (with-meta (synthdef ~(str name) ~@renamed)
+                                          {:src '~body}))))
 
 ;(dosync (alter *synths assoc ~(str name) sdef#))
 

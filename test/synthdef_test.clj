@@ -1,10 +1,19 @@
 (ns synthdef-test
-  (:use (overtone synthdef)
+  (:import (java.io FileInputStream FileOutputStream 
+              DataInputStream DataOutputStream
+              BufferedInputStream BufferedOutputStream 
+              ByteArrayOutputStream ByteArrayInputStream))
+  (:use (overtone sc synthdef)
+     bytes-test
      clojure.test
-     clj-backtrace.repl))
+     clojure.contrib.logging))
 
-(defn jsaw-full []
-  {:name "jsaw" 
+(swap! *allow-direct-logging* not)
+
+(defn sawzall-raw 
+  "This data was read by this library, but written by jcollider."
+  []
+  {:name "sawzall" 
    :n-constants 1
    :constants [0.0]
    :n-params  1
@@ -23,12 +32,6 @@
                {:outputs [], :inputs [{:index 0, :src -1} {:index 0, :src 2}], 
                 :special 0, :n-outputs 0, :n-inputs 2, :rate 2, :name "Out"}]})
 
-(defsynth mini-sin
-  (out.ar 0 (sin-osc.ar 440)))
-
-(defn jsaw []
-  (synthdef-file (jsaw-full)))
-
 (def FOO "/home/rosejn/projects/overtone/foo.scd")
 (def FURL (java.net.URL. (str "file:" FOO)))
 (def FOO2 "/home/rosejn/projects/overtone/foo2.scd")
@@ -37,20 +40,49 @@
 ;(defn jc []
 ;  (synthdef-write-file (foo) FOO2)
 ;  (de.sciss.jcollider.SynthDef/readDefFile FURL2))
-;
-;(defn show [url]
-;  (de.sciss.jcollider.gui.SynthDefDiagram. 
-;    (first (de.sciss.jcollider.SynthDef/readDefFile url))))
-(defn bytes-and-back [sdef]
-  (synthdef-read-bytes (synthdef-write-bytes (synthdef-file sdef))))
 
-(defn jc-load [path]
+(defn jc-load-file [path]
   (de.sciss.jcollider.SynthDef/readDefFile (java.net.URL. (str "file:" path))))
 
-(deftest read-write-bundle
-  (let [a (jsaw)
-        b (bytes-and-back a)]
-    (is (= (:n-sdefs b) 1))))
+(defn dia-file [path]
+  (de.sciss.jcollider.gui.SynthDefDiagram. 
+    (first (jc-load-file path))))
+
+(defn jc-load [sdef]
+ (de.sciss.jcollider.SynthDef/readDefFile 
+             (-> (synthdef-bytes sdef) (ByteArrayInputStream.) 
+               (BufferedInputStream.) (DataInputStream.))))
+
+(defn dia [sdef]
+  (de.sciss.jcollider.gui.SynthDefDiagram. 
+    (first (jc-load sdef))))
+
+(deftest self-consistent-syndef
+  (let [a (synthdef-file (sawzall-raw))
+        b (bytes-and-back synthdef-spec a)]
+    (is (same? a b))))
+
+(defsynth mini-sin
+  (out.ar 0 (sin-osc.ar 440)))
+
+(defn mini-bytes []
+  (bytes-and-back synthdef-spec (synthdef-file mini-sin)))
+
+(deftest native-synth-test
+  (let [bytes (synthdef-bytes mini-sin)
+        sdef  (synthdef-read-bytes bytes)
+        synth (first (:synths sdef))
+        [out sin] (:ugens sdef)] 
+    (is (= 1 (:version sdef)))
+    (is (= 1 (:n-synths sdef)))
+    (is (= "mini-sin" (:name synth)))
+    (is (= 2 (:n-constants synth)))
+;    (is (= (set [0.0 440.0]) (set (:constants synth))))
+    (is (= 0 (:n-params synth)))
+    (is (= 2 (:n-ugens synth)))
+    (is (= "SinOsc" (:name sin)))
+    (is (= "Out" (:name out)))
+    ))
 
 (defn go []
   (binding [*test-out* *out*]

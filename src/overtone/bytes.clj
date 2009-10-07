@@ -3,7 +3,8 @@
      (java.io FileInputStream FileOutputStream 
               DataInputStream DataOutputStream
               BufferedInputStream BufferedOutputStream 
-              ByteArrayOutputStream ByteArrayInputStream)))
+              ByteArrayOutputStream ByteArrayInputStream))
+  (:use clojure.contrib.logging))
 
 (def *spec-out* nil)
 (def *spec-in*  nil)
@@ -60,26 +61,26 @@
     (if specs
       (let [fname (first specs)
             ftype (second specs)
-            default (if (and (> (count specs) 2)
+            fdefault (if (and (> (count specs) 2)
                              (not (keyword? (nth specs 2))))
                       (nth specs 2)
                       nil)
-            default (coerce-default default ftype)
+            fdefault (coerce-default fdefault ftype)
             spec {:fname fname 
                    :ftype ftype
-                   :default default}
-            specs (if (nil? default)
+                   :fdefault fdefault}
+            specs (if (nil? fdefault)
                          (next (next specs))
                          (next (next (next specs))))
             fields (conj fields spec)]
+        (log :debug (str "field: " spec))
         (recur specs fields))
       {:name (str spec-name)
        :specs fields})))
 
 ;; A spec is just a hash-map containing a named vector of field specs
 (defmacro defspec [spec-name & field-specs]
-  (let [spec (make-spec spec-name field-specs)]
-	`(def ~spec-name ~spec)))
+  `(def ~spec-name (make-spec ~(str spec-name) [~@field-specs])))
 
 (defn spec [s & data]
   (let [field-names (map #(:fname %1) (:specs s))]
@@ -88,17 +89,13 @@
 (declare spec-read)
 
 (defn- spec-read-array [spec size]
-;  (print "READ-A: ")
-;  (if (map? spec)
-;    (println (str (:name spec) "[" size "]"))
-;    (println (str spec "[" size "]")))
+  (log :info (str "[" (if (map? spec) (:name spec) spec) "] size = " size))
   (loop [i size
          ary []]
     (if (pos? i)
       (let [next-val (if (contains? READERS spec)
                        ((spec READERS))
                        (spec-read spec))]
-;        (println spec ":" next-val)
         (recur (dec i) (conj ary next-val)))
       ary)))
 
@@ -108,12 +105,9 @@
   [spec]
   (loop [specs (:specs spec)
          data  {}]
-    ;  (print "READ [" (:name spec) "]")
+    ;(log :info (str "spec-read - " (:name spec)))
     (if specs
-      (let [{:keys [fname ftype default]} (first specs)
-;            _ (println (str fname ": " 
-;                            (if (vector? ftype) (str "[]") ftype)
-;                            default))
+      (let [{:keys [fname ftype fdefault]} (first specs)
             fval (cond
                    ; basic type
                    (contains? READERS ftype) ((ftype READERS))
@@ -121,6 +115,7 @@
                    ; array
                    (vector? ftype) (spec-read-array (first ftype)
                                                     ((keyword (str "n-" (name fname))) data)))]
+        (log :info (str fname " <- " (if (vector? fval) (str "[" (:name (first ftype)) "]") fval)))
         (recur (next specs) (assoc data fname fval)))
       data)))
 
@@ -136,10 +131,8 @@
 (declare spec-write)
 
 (defn- spec-write-array [spec ary]
-;  (print "WRITE-A: ")
-;  (if (map? spec)
-;    (println (str (:name spec) "[" (count ary) "]"))
-;    (println (str spec "[" (count ary) "]")))
+  (log :info (str "WRITE-A: [ "
+       (if (map? spec) (:name spec) spec) " ](" (count ary) ")"))
   (let [writer (cond
                  (contains? WRITERS spec) (spec WRITERS)
                  (map? spec) (partial spec-write spec)
@@ -156,11 +149,11 @@
 (defn spec-write 
   "Serializes the data according to spec, writing bytes onto *spec-out*."
   [spec data]
+  (log :info (str "(spec-write " (:name spec) ") "))
   (doseq [{:keys [fname ftype fdefault]} (:specs spec)]
-    (print "WRITE (" (:name spec) ") ")
-    (println (str fname ": " 
-                  (if (vector? ftype) (str "[]") ftype) ": "
-                  (if (contains? WRITERS ftype) (or (fname data) fdefault))))
+    (log :info (str fname " -> "  
+                  (if (vector? ftype) (str "[]")
+                    (or (fname data) fdefault))))
     (cond 
       ; count of another field starting with n-
       (.startsWith (name fname) "n-")

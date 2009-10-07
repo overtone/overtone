@@ -2,16 +2,17 @@
   (:import 
      (java.net InetSocketAddress)
      (java.util.regex Pattern)
-     (java.util.concurrent TimeUnit))
+     (java.util.concurrent TimeUnit TimeoutException))
   (:use 
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
+     clojure.contrib.logging
      (overtone utils voice osc rhythm)))
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
 (def SERVER-HOST "127.0.0.1")
-(def SERVER-PORT 57110)
+(def SERVER-PORT nil) ; nil means a random port every boot
 (def SERVER-PROTOCOL "tcp")
 
 (def START-GROUP-ID 1)
@@ -82,7 +83,11 @@
   (let [p (promise)]
     (dosync (alter *synth-listeners assoc cmd p))
     (if timeout 
-      (.get (future @p) timeout TimeUnit/MILLISECONDS)
+      (try 
+        (.get (future @p) timeout TimeUnit/MILLISECONDS)
+        (catch TimeoutException t 
+          (log :info (str "Status request timed out after " 
+                          timeout "ms."))))
       (:args @p))
     (dosync (alter *synth-listeners dissoc cmd))))
 
@@ -95,11 +100,13 @@
 (defn boot
   ([] (boot SERVER-HOST SERVER-PORT SERVER-PROTOCOL))
   ([host port proto]
-   (let [sc-thread (Thread. #(sh "scsynth" "-t" (str port)))]
+   (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
+         sc-thread (Thread. #(sh "scsynth" "-t" (str port)))]
      (.setDaemon sc-thread true)
      (.start sc-thread)
 
      (dosync (ref-set *synth-thread sc-thread))
+     (Thread/sleep 500)
      (connect host port proto))))
 
 (defmacro at-time [timestamp & body]
@@ -231,14 +238,17 @@
     (snd "/b_alloc" id size)
     id))
 
+(defn save-buffer [buf-id path]
+  (snd "/b_write" buf-id path "wav" "float"))
+  
 (defn load-sample [path]
   (let [id (next-buffer-id)]
     (snd "/b_allocRead" id path)
     id))
 
-(defn save-buffer [buf-id path]
-  (snd "/b_write" buf-id path "wav" "float"))
-  
+(defn load-synth [bytes]
+  (snd "/d_recv" bytes)) 
+
 (defn reset []
   (try
     (group-free-children 0)
@@ -266,10 +276,13 @@
 
 (defn hit 
   "Fire off the named synth or loaded sample (by id) at a specified time."
-  [time-ms syn & args]
+  ([] (hit (now) "sin" :pitch (+ 30 (rand-int 40))))
+  ([time-ms syn & args]
+   (when (odd? (count args))
+     (throw (IllegalArgumentException. "Arguments to hit must come in key-value pairs.")))
   (if (number? syn)
     (apply hit time-ms "granular" :buf syn args)
-    (at-time time-ms (apply node syn (stringify args)))))
+    (at-time time-ms (apply node syn (stringify args))))))
 
 (defn ctl
   "Modify a synth parameter at the specified time."
