@@ -5,6 +5,7 @@
   <property name="build.dir"   value="build"/>
   <property name="classes.dir" value="${build.dir}/classes"/>
   <property name="jar.dir"     value="${build.dir}/jar"/>
+  <property name="tests.dir"   value="test"/>
   <property name="lib.dir"     value="lib"/>
 
   <available property="hasclojure" file="${clojure.jar}"/>
@@ -33,6 +34,16 @@
       This will cause some parts of clojure.contrib not to work (e.g., pretty print).
       To enable compiling, run "ant -Dclojure.jar=&lt;...path to clojure.jar..&gt;"
     </echo>
+  </target>
+
+  <target name="test" description="Run tests">
+    <java fork="true" classname="clojure.lang.Script">
+      <classpath>
+          <path refid="classpath"/>
+          <path location="."/>
+      </classpath>
+      <arg value="${tests.dir}/run.clj"/>
+    </java>
   </target>
 
   <target name="compile" depends="init"

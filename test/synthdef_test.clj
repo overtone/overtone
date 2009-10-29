@@ -3,12 +3,10 @@
               DataInputStream DataOutputStream
               BufferedInputStream BufferedOutputStream 
               ByteArrayOutputStream ByteArrayInputStream))
-  (:use (overtone sc synthdef)
+  (:use (overtone sc synthdef utils)
      bytes-test
      clojure.test
-     clojure.contrib.logging))
-
-(swap! *allow-direct-logging* not)
+     clj-backtrace.repl))
 
 (defn sawzall-raw 
   "This data was read by this library, but written by jcollider."
@@ -31,6 +29,8 @@
 
                {:outputs [], :inputs [{:index 0, :src -1} {:index 0, :src 2}], 
                 :special 0, :n-outputs 0, :n-inputs 2, :rate 2, :name "Out"}]})
+
+(def sz (synthdef-file (sawzall-raw)))
 
 (def FOO "/home/rosejn/projects/overtone/foo.scd")
 (def FURL (java.net.URL. (str "file:" FOO)))
@@ -63,27 +63,43 @@
     (is (same? a b))))
 
 (defsynth mini-sin
-  (out.ar 0 (sin-osc.ar 440)))
+  (out.ar 0 (sin-osc.ar 440 0)))
 
 (defn mini-bytes []
   (bytes-and-back synthdef-spec (synthdef-file mini-sin)))
+
+(defn load-tom []
+  (let [bytes (synthdef-read-file "test/data/tom.scsyndef")]
+    (load-synth bytes)))
 
 (deftest native-synth-test
   (let [bytes (synthdef-bytes mini-sin)
         sdef  (synthdef-read-bytes bytes)
         synth (first (:synths sdef))
-        [out sin] (:ugens sdef)] 
+        ugens (:ugens synth)
+        sin (first ugens)
+        out (second ugens)]
     (is (= 1 (:version sdef)))
     (is (= 1 (:n-synths sdef)))
     (is (= "mini-sin" (:name synth)))
     (is (= 2 (:n-constants synth)))
-;    (is (= (set [0.0 440.0]) (set (:constants synth))))
+    (is (= (sort [0.0 440.0]) (sort (:constants synth))))
     (is (= 0 (:n-params synth)))
     (is (= 2 (:n-ugens synth)))
+    (is (= 2 (count (:ugens synth))))
     (is (= "SinOsc" (:name sin)))
     (is (= "Out" (:name out)))
+    (is (= 2 (:rate sin)))
+    (is (= 2 (:rate out)))
+    (is (= 1 (:n-inputs sin)))
+    (is (= 2 (:n-inputs out)))
+    (is (= 1 (:n-outputs sin)))
+    (is (= 0 (:n-outputs out)))
+    (is (= {:src -1 :index 0} (first (:inputs sin))))
+    (is (= {:src -1, :index 1} (first (:inputs out))))
+    (is (= {:src 0, :index 0} (second (:inputs out))))
     ))
 
-(defn go []
+(defn sgo []
   (binding [*test-out* *out*]
     (run-tests 'synthdef-test)))

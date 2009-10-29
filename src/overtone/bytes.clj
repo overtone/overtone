@@ -3,8 +3,7 @@
      (java.io FileInputStream FileOutputStream 
               DataInputStream DataOutputStream
               BufferedInputStream BufferedOutputStream 
-              ByteArrayOutputStream ByteArrayInputStream))
-  (:use clojure.contrib.logging))
+              ByteArrayOutputStream ByteArrayInputStream)))
 
 (def *spec-out* nil)
 (def *spec-in*  nil)
@@ -73,7 +72,7 @@
                          (next (next specs))
                          (next (next (next specs))))
             fields (conj fields spec)]
-        (log :debug (str "field: " spec))
+        ;(println (str "field: " spec))
         (recur specs fields))
       {:name (str spec-name)
        :specs fields})))
@@ -89,7 +88,7 @@
 (declare spec-read)
 
 (defn- spec-read-array [spec size]
-  (log :info (str "[" (if (map? spec) (:name spec) spec) "] size = " size))
+  ;(println (str "[" (if (map? spec) (:name spec) spec) "] size = " size))
   (loop [i size
          ary []]
     (if (pos? i)
@@ -105,17 +104,21 @@
   [spec]
   (loop [specs (:specs spec)
          data  {}]
-    ;(log :info (str "spec-read - " (:name spec)))
+    ;(println (str "spec-read - " (:name spec)))
     (if specs
       (let [{:keys [fname ftype fdefault]} (first specs)
+            ;_ (println (str ftype ": " fname " default: -" fdefault "-" ))
             fval (cond
                    ; basic type
                    (contains? READERS ftype) ((ftype READERS))
 
+                   ; sub-spec
+                   (map? ftype) (spec-read ftype)
+
                    ; array
                    (vector? ftype) (spec-read-array (first ftype)
                                                     ((keyword (str "n-" (name fname))) data)))]
-        (log :info (str fname " <- " (if (vector? fval) (str "[" (:name (first ftype)) "]") fval)))
+        ;(println (str ftype ": " fname " <- " (if (vector? fval) (str "[" (:name (first ftype)) "]") fval)))
         (recur (next specs) (assoc data fname fval)))
       data)))
 
@@ -131,33 +134,40 @@
 (declare spec-write)
 
 (defn- spec-write-array [spec ary]
-  (log :info (str "WRITE-A: [ "
-       (if (map? spec) (:name spec) spec) " ](" (count ary) ")"))
-  (let [writer (cond
+  ;(println (str "WRITE-A: [ "
+  ;     (if (map? spec) (:name spec) spec) " ](" (count ary) ")"))
+  ;(println "ary: " ary)
+  (let [nxt-writer (cond
                  (contains? WRITERS spec) (spec WRITERS)
                  (map? spec) (partial spec-write spec)
                  true (throw (IllegalArgumentException.
                                (str "Invalid spec: " spec))))]
     (doseq [item ary]
-      (writer item))))
+      (nxt-writer item))))
 
 (defn spec-write-basic [ftype fname fval fdefault]
   (if-let [val (or fval fdefault)]
     ((ftype WRITERS) val)
     (throw (Exception. (str "No value was given for '" fname "' field and it has no default.")))))
 
+(defn count-for [fname]
+  (keyword (.substring (name fname) 2)))
+
 (defn spec-write 
   "Serializes the data according to spec, writing bytes onto *spec-out*."
   [spec data]
-  (log :info (str "(spec-write " (:name spec) ") "))
+  ;;(println "spec-write: " (:name spec) "data: " data "\n---------------\n")
   (doseq [{:keys [fname ftype fdefault]} (:specs spec)]
-    (log :info (str fname " -> "  
-                  (if (vector? ftype) (str "[]")
-                    (or (fname data) fdefault))))
+   ; (if (vector? ftype) 
+   ;   ;(println "[" (count (fname data)) "] -> " (fname data))
+   ;   ;(println (str ftype ": " fname " -> " (or (fname data) fdefault))))
     (cond 
       ; count of another field starting with n-
       (.startsWith (name fname) "n-")
-      ((ftype WRITERS) (count ((keyword (.substring (name fname) 2)) data)))
+      (let [wrt (ftype WRITERS)
+            c-field (get data (count-for fname))
+            cnt (count c-field)]
+        (wrt cnt))
 
       ; an array of sub-specs
       (vector? ftype) (spec-write-array (first ftype) (fname data))
@@ -166,7 +176,10 @@
       (map? ftype) (spec-write ftype (fname data))
 
       ; a basic type
-      (contains? WRITERS ftype) (spec-write-basic ftype fname (fname data) fdefault))))
+      (contains? WRITERS ftype) (spec-write-basic ftype fname (fname data) fdefault)
+
+      true (throw (IllegalArgumentException.
+                               (str "Invalid field spec: " fname " " ftype))))))
 
 (defn spec-write-file [spec data path]
 	(with-open [spec-out (-> path (FileOutputStream.) (BufferedOutputStream.) (DataOutputStream.))]

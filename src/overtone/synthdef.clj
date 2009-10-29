@@ -111,11 +111,14 @@
   {:n-synths (count sdefs)
    :synths sdefs})
 
-(defn synthdef-bytes [& sdefs]
-  (spec-write-bytes synthdef-spec (apply synthdef-file sdefs)))
+(defn synthdef-file-bytes [sfile]
+  (spec-write-bytes synthdef-spec sfile))
 
-(defn synthdef-write-file [path & sdefs]
-  (spec-write-file synthdef-spec (apply synthdef-file sdefs) path))
+(defn synthdef-bytes [sdef]
+  (spec-write-bytes synthdef-spec (synthdef-file sdef)))
+
+(defn synthdef-write-file [path sfile]
+  (spec-write-file synthdef-spec sfile path))
 
 (defn synthdef-read-bytes [bytes]
   (spec-read-bytes synthdef-spec bytes))
@@ -125,8 +128,8 @@
 (defn synthdef-read-url [url]
   (spec-read-url synthdef-spec url))
 
-(defn synthdef-read-file [url]
-  (spec-read-url synthdef-spec (java.net.URL. (str "file:" url))))
+(defn synthdef-read-file [path]
+  (spec-read-url synthdef-spec (java.net.URL. (str "file:" path))))
 
 ;;  * Unit generators are listed in the order they will be executed.  
 ;;  * Inputs must refer to constants or previous unit generators.  
@@ -148,17 +151,21 @@
                   (assoc mem (normalize-ugen-name (:name ugen)) ugen)) 
                 UGENS))
 
-(defn ugen-match [word]
+(defn ugen-name [word]
   (:name (get UGEN-MAP (normalize-ugen-name word))))
 
+(defn get-ugen [word]
+  (get UGEN-MAP (normalize-ugen-name word)))
+
 (defn ugen [name rate & args]
-  (let [info (ugen-match name)]
+  (let [info (ugen-name name)]
     (if (nil? info)
       (throw (IllegalArgumentException. (str "Unknown ugen: " name))))
     {:type :ugen
-    :name name
-    :rate (rate RATES)
-    :args args}))
+     :id (uuid)
+     :name name
+     :rate (rate RATES)
+     :args args}))
 
 (def ugen? (type-checker :ugen))
 
@@ -209,12 +216,21 @@
                           (= v item)) 
                         (indexed col)))))
 
+(defn ugen-index [ugens ugen]
+  (first (first (filter (fn [[i v]] 
+                          (= (:id v) (:id ugen))) 
+                        (indexed ugens)))))
+
+; TODO: Figure out when we would have to connect to a different output index
+; it probably has to do with multi-channel expansion...
 (defn with-inputs [ugen ugens constants]
   (let [inputs (map (fn [arg]
                       (cond
                         (number? arg) {:src -1 :index (index-of constants arg)}
-                        (ugen? arg)   {:src (index-of ugens ugen) :index 0}))
+                        (ugen? arg)   {:src (ugen-index ugens arg) :index 0}))
                     (:args ugen))]
+    (println "ugens: " ugens)
+    (println "ugen: " (:name ugen) " with-inputs: " inputs)
     (assoc ugen :inputs inputs)))
 
 (def FIXED 0)
@@ -223,13 +239,12 @@
  
 ; TODO: This seems nonsensical...  Need a better way to determine output information.
 (defn with-outputs [ugen]
-  (let [spec (ugen-match (:name ugen))
+  (let [spec (get-ugen (:name ugen))
         out-type (:out-type spec)
         num-outs (cond
                    (= out-type FIXED) (:fixed-outs spec)
                    (= out-type ARG)   (:fixed-outs spec)
                    (= out-type ARY)   (:fixed-outs spec))]
-    (log :debug (str "with-outs (" (:name ugen) "): " out-type " - " num-outs))
     (assoc ugen :outputs (take num-outs (repeat {:rate (:rate ugen)})))))
 
 (defn detail-ugens 
@@ -266,16 +281,16 @@
 ;; * find constants in ugen list and store info
 ;; * sort list topologically
 
-(defn ugen-name [word]
-  (ugen-match (.substring word 0 (- (count word) 3))))
+(defn to-ugen-name [word]
+  (ugen-name (.substring word 0 (- (count word) 3))))
 
 (defn replace-name [l]
   (let [word (str (first l))]
     (concat 
       (cond 
-        (.endsWith word ".ar") ['ugen (ugen-name word) :audio]
-        (.endsWith word ".kr") ['ugen (ugen-name word) :control]
-        (.endsWith word ".dr") ['ugen (ugen-name word) :scalar]
+        (.endsWith word ".ar") ['ugen (to-ugen-name word) :audio]
+        (.endsWith word ".kr") ['ugen (to-ugen-name word) :control]
+        (.endsWith word ".dr") ['ugen (to-ugen-name word) :scalar]
         true [(symbol word)]) 
       (rest l))))
 

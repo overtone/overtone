@@ -6,7 +6,9 @@
 (def _ false)
 (def x true)
 
+(comment
 (boot)
+)
 
 (def BPM 120)
 (def TICK (/ (/ 60000 BPM) 4))
@@ -23,11 +25,10 @@
                  :snare [_ _ _ _ x _ _ _ _ _ _ _ x _ _ _]
                  :tom   [_ _ _ _ _ _ x _ _ _ x _ x x _ x]})
 
-(comment
-(def hat-buf (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
-)
+(defonce hat-buf (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
 
-(def house-drums {:kick "kick" 
+
+(hit (now) "kick")(def house-drums {:kick "kick" 
                   :hat hat-buf
 ;                  :hat "noise-hat"
                   :snare "clap"

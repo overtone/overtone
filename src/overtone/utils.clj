@@ -29,3 +29,8 @@
 
 (defn type-checker [t]
   (fn [obj] (and (map? obj) (= (:type obj) t))))
+
+(defn uuid 
+  "Creates a random, immutable UUID object that is comparable using the '=' function."
+  [] (. java.util.UUID randomUUID))
+

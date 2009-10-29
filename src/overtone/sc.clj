@@ -2,17 +2,17 @@
   (:import 
      (java.net InetSocketAddress)
      (java.util.regex Pattern)
-     (java.util.concurrent TimeUnit TimeoutException))
+     (java.util.concurrent TimeUnit TimeoutException)
+     (java.io BufferedInputStream))
   (:use 
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
-     clojure.contrib.logging
      (overtone utils voice osc rhythm)))
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
 (def SERVER-HOST "127.0.0.1")
-(def SERVER-PORT nil) ; nil means a random port every boot
+(def SERVER-PORT nil) ; nil means a random port 
 (def SERVER-PROTOCOL "tcp")
 
 (def START-GROUP-ID 1)
@@ -22,6 +22,7 @@
 (defonce *synth-thread (ref nil))
 (defonce *synth        (ref nil))
 (defonce *synth-listeners (ref {}))
+(def *msg-log (ref []))
 
 (defonce *counters (ref {}))
 (defonce *counter-defaults (ref {}))
@@ -29,7 +30,6 @@
 ;; We use a binding to *msg-bundle* for handling groups of messages that
 ;; need to be bundled together with an OSC timestamp.
 (def *msg-bundle* nil)
-
 
 (defmacro defcounter [counter-name start-id]
   (let [next-fn (symbol (str "next-" (name counter-name) "-id"))]
@@ -41,7 +41,6 @@
          (dec 
            (dosync (alter (~counter-name @*counters) inc)))))))
 
-
 (defn reset-id-counters []
   (doseq [[cname counter] @*counters]
     (dosync 
@@ -51,7 +50,7 @@
 (defcounter :node START-NODE-ID)
 (defcounter :buffer START-BUFFER-ID)
 
-(defn running? []
+(defn connected? []
   (not (nil? @*synth)))
 
 (declare boot)
@@ -66,8 +65,6 @@
     (if *msg-bundle*
       (swap! *msg-bundle* #(conj %1 msg))
       (osc-snd @*synth msg))))
-
-(def *msg-log (ref []))
 
 ; TODO: The listener system will currently support a single listener
 ; per message type.  Not sure if we would ever need to have multiple
@@ -86,7 +83,7 @@
       (try 
         (.get (future @p) timeout TimeUnit/MILLISECONDS)
         (catch TimeoutException t 
-          (log :info (str "Status request timed out after " 
+          (println (str "Status request timed out after " 
                           timeout "ms."))))
       (:args @p))
     (dosync (alter *synth-listeners dissoc cmd))))
@@ -97,7 +94,7 @@
    (dosync (ref-set *synth (osc-client host port proto)))
    (osc-listen @*synth synth-listener)))
 
-(defn boot
+(defn old-boot
   ([] (boot SERVER-HOST SERVER-PORT SERVER-PROTOCOL))
   ([host port proto]
    (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
@@ -106,7 +103,48 @@
      (.start sc-thread)
 
      (dosync (ref-set *synth-thread sc-thread))
-     (Thread/sleep 500)
+     (Thread/sleep 1000)
+     (connect host port proto))))
+
+(defonce *running? (atom false))
+(def *server-out* *out*)
+
+(defn server-log [stream read-buf]
+  (while (pos? (.available stream))
+    (let [n (min (.length read-buf) (.available stream))]
+      (.read stream read-buf 0 n)
+      (.write *server-out* read-buf 0 n))))
+
+(defn- boot-thread [cmd]
+  (reset! *running? true)
+  (let [proc (.exec (Runtime/getRuntime) cmd) 
+        in-stream (BufferedInputStream. (.getInputStream proc))
+        err-stream (BufferedInputStream. (.getErrorStream proc))
+        read-buf (make-array Byte/TYPE 256)]
+    (while @*running?
+      (server-log in-stream read-buf)
+      (server-log err-stream read-buf)
+      (Thread/sleep 250))
+    (.destroy proc)))
+
+(defn connect-jack-ports [n-channels]
+  (doseq [i (range n-channels)]
+    (sh "jack_connect" 
+        (str "SuperCollider:out_" (+ i 1))
+        (str "system:playback_" (+ i 1)))))
+
+(defn boot
+  ([] (boot SERVER-HOST SERVER-PORT SERVER-PROTOCOL))
+  ([host port proto]
+   (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
+         cmd-proto (str "-" (if (= "tcp" proto) "t" "u"))
+         cmd (into-array String ["scsynth" cmd-proto (str port)])
+         sc-thread (Thread. #(boot-thread cmd))]
+     (.setDaemon sc-thread true)
+     (.start sc-thread)
+     (dosync (ref-set *synth-thread sc-thread))
+     (Thread/sleep 200)
+     (connect-jack-ports 2)
      (connect host port proto))))
 
 (defmacro at-time [timestamp & body]
@@ -118,11 +156,10 @@
 (defn quit 
   "Quit the SuperCollider synth process."
   []
-  (if (running?)
+  (if (connected?)
     (snd "/quit"))
-  (dosync (ref-set *synth nil))
-  (if @*synth-thread
-    (.stop @*synth-thread)))
+  (reset! *running? false)
+  (dosync (ref-set *synth nil)))
 
 (defn notify [notify?]
   (snd "/notify" (if notify? 1 0)))
