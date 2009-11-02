@@ -1,8 +1,5 @@
 (ns overtone.utils)
 
-(defn now []
-  (System/currentTimeMillis))
-
 ; TODO: Modify this function so we can also add namespace prefixes.
 ; (e.g. (immigrate [overtone.sc :as sc]))
 
@@ -34,3 +31,5 @@
   "Creates a random, immutable UUID object that is comparable using the '=' function."
   [] (. java.util.UUID randomUUID))
 
+(defn now []
+  (System/currentTimeMillis))

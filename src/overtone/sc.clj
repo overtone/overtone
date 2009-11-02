@@ -21,15 +21,9 @@
 
 (defonce *synth-thread (ref nil))
 (defonce *synth        (ref nil))
-(defonce *synth-listeners (ref {}))
-(def *msg-log (ref []))
 
 (defonce *counters (ref {}))
 (defonce *counter-defaults (ref {}))
-
-;; We use a binding to *msg-bundle* for handling groups of messages that
-;; need to be bundled together with an OSC timestamp.
-(def *msg-bundle* nil)
 
 (defmacro defcounter [counter-name start-id]
   (let [next-fn (symbol (str "next-" (name counter-name) "-id"))]
@@ -62,49 +56,17 @@
   (if (nil? @*synth)
     (throw (Exception. "Not connected to a SuperCollider server.")))
   (let [msg (apply osc-msg args)]
-    (if *msg-bundle*
-      (swap! *msg-bundle* #(conj %1 msg))
-      (osc-snd @*synth msg))))
+      (osc-snd-msg @*synth msg)))
 
-; TODO: The listener system will currently support a single listener
-; per message type.  Not sure if we would ever need to have multiple
-; listeners for the same message...
-(defn synth-listener [msg]
-  (dosync (alter *msg-log conj msg))
-
-  (let [msg-name (:name msg)]
-    (if-let [recvr (msg-name @*synth-listeners)]
-      (send recvr (fn [] msg)))))
-
-(defn recv [cmd & [timeout]]
-  (let [p (promise)]
-    (dosync (alter *synth-listeners assoc cmd p))
-    (if timeout 
-      (try 
-        (.get (future @p) timeout TimeUnit/MILLISECONDS)
-        (catch TimeoutException t 
-          (println (str "Status request timed out after " 
-                          timeout "ms."))))
-      (:args @p))
-    (dosync (alter *synth-listeners dissoc cmd))))
+(defn recv
+  [path & [timeout]]
+  {:path "foo" :args []})
 
 (defn connect 
   ([] (connect SERVER-HOST SERVER-PORT SERVER-PROTOCOL))
-  ([host port proto]
-   (dosync (ref-set *synth (osc-client host port proto)))
-   (osc-listen @*synth synth-listener)))
-
-(defn old-boot
-  ([] (boot SERVER-HOST SERVER-PORT SERVER-PROTOCOL))
-  ([host port proto]
-   (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-         sc-thread (Thread. #(sh "scsynth" "-t" (str port)))]
-     (.setDaemon sc-thread true)
-     (.start sc-thread)
-
-     (dosync (ref-set *synth-thread sc-thread))
-     (Thread/sleep 1000)
-     (connect host port proto))))
+  ([host port]
+   (dosync (ref-set *synth (osc-client host port)))
+   (comment osc-listen @*synth synth-listener)))
 
 (defonce *running? (atom false))
 (def *server-out* *out*)
@@ -145,13 +107,7 @@
      (dosync (ref-set *synth-thread sc-thread))
      (Thread/sleep 200)
      (connect-jack-ports 2)
-     (connect host port proto))))
-
-(defmacro at-time [timestamp & body]
-  `(binding [*msg-bundle* (atom [])]
-     (let [retval# ~@body]
-       (osc-snd @*synth (osc-bundle @*msg-bundle* ~timestamp))
-       retval#)))
+     (connect host port))))
 
 (defn quit 
   "Quit the SuperCollider synth process."
@@ -296,12 +252,8 @@
 
 (defn debug [& [on-off]]
   (if (or on-off (nil? on-off))
-    (do 
-      (osc-debug @*synth true)
-      (snd "/dumpOSC" 1))
-    (do 
-      (osc-debug @*synth false)
-      (snd "/dumpOSC" 0))))
+      (snd "/dumpOSC" 1)
+      (snd "/dumpOSC" 0)))
 
 (defn restart 
   "Reset everything and restart the SuperCollider process."
@@ -317,14 +269,14 @@
   ([time-ms syn & args]
    (when (odd? (count args))
      (throw (IllegalArgumentException. "Arguments to hit must come in key-value pairs.")))
-  (if (number? syn)
-    (apply hit time-ms "granular" :buf syn args)
-    (at-time time-ms (apply node syn (stringify args))))))
+   (if (number? syn)
+     (apply hit time-ms "granular" :buf syn args)
+     (in-osc-bundle @*synth time-ms (apply node syn (stringify args))))))
 
 (defn ctl
   "Modify a synth parameter at the specified time."
   [time-ms node-id & args]
-  (at-time time-ms (apply node-control node-id (stringify args))))
+  (in-osc-bundle @*synth time-ms (apply node-control node-id (stringify args))))
 
 ;(defn status []
 ;  (let [stat (.getStatus @*s)]

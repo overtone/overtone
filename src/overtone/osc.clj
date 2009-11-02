@@ -1,9 +1,19 @@
 (ns overtone.osc
   (:import 
+     (java.util.concurrent TimeUnit TimeoutException)
      (java.net InetSocketAddress DatagramSocket DatagramPacket)
      (java.nio.channels DatagramChannel)
      (java.nio ByteBuffer ByteOrder))
   (:use (clojure.contrib fcase)))
+
+(defn osc-now []
+  (System/currentTimeMillis))
+
+(def OSC-TIMETAG-NOW 1) ; Timetag representing right now.
+(def SEVENTY-YEAR-SECS 2208988800)
+
+(defn- byte-array [size]
+  (make-array Byte/TYPE size))
 
 ; OSC Data Types:
 ; int => i
@@ -24,71 +34,307 @@
 ; OSC-timetag 
 ;  * 64-bit big-endian fixed-point timestamp 
 
-(def *buf (ByteBuffer/allocate 8192))
-(def PAD (make-array Byte/TYPE 4))
+;(defmacro deftype [type-name arg-vec & body] 
+;  `(defn ~type-name ~arg-vec
+;     (assoc (do @body) :type (keyword type-name)))
+;  `(defn (str ~type-name "?") [obj#] 
+;     (= (keyword type-name) (get obj# :type))))
+;
+;(deftype osc-msg [path & args]
+;  {:path path
+;   :type-tag (first args)
+;   :args (next args)})
 
-(defn put-string [buf s]
+(defn osc-msg
+  "Construct an osc message."
+  [path & args]
+  {:type :osc-msg
+   :path path
+   :type-tag (first args)
+   :args (next args)})
+
+(defn osc-msg? [obj]
+  (= :osc-msg (get obj :type)))
+
+(defn osc-bundle
+  [timestamp & items]
+  {:type :osc-bundle
+   :timestamp timestamp
+   :items items})
+
+(defn osc-bundle? [obj]
+  (= :osc-bundle (get obj :type)))
+
+(def PAD (byte-array 4))
+
+(defn osc-pad 
+  "Add zero bytes to make 4 byte aligned.  If already 4 byte aligned adds an additional
+  4 bytes of zeros."
+  [buf]
+  (.put buf PAD 0 (- 4 (mod (.position buf) 4))))
+
+(defn osc-align
+  "Jump the current position to a 4 byte boundary for OSC compatible alignment."
+  [buf]
+  (.position buf (bit-and (bit-not 3) (+ 3 (.position buf)))))
+
+(defn encode-string [buf s]
   (.put buf (.getBytes s))
-  (.put buf PAD 0 (- 4 (bit-and (.position *buf) 0x03))))
+  (.put buf (byte 0))
+  (osc-pad buf))
 
-(defn osc-encode [buf address type-tag args]
-  (.clear buf)
-  (put-string buf address)
-  (put-string buf (str "," type-tag))
-  (doseq [[t arg] (map vector type-tag args)]
-    (println "type: " t "arg: " arg)
-    (case t
-          \i (.putInt buf (int arg))
-          \h (.putLong buf (long arg))
-          \f (.putFloat buf (float arg))
-          \d (.putDouble buf (double arg))
-          \s (put-string buf arg))))
+(defn encode-blob [buf b]
+  (.putInt buf (count b))
+  (.put buf b)
+  (osc-pad buf))
 
-(defn get-string [])
-(defn osc-decode [buf])
+(defn encode-timetag
+  ([] (encode-timetag (osc-now)))
+  ([timestamp]
+   (let [secs (+ (/ timestamp 1000) ; secs since Jan. 1, 1970
+                 SEVENTY-YEAR-SECS) ; to Jan. 1, 1900
+         fracs (/ (bit-shift-left (mod timestamp 1000) 32) 
+                  1000)
+         tag (bit-or (bit-shift-left secs 32) fracs)]
+     (.putLong (long tag)))))
 
-(defn osc-send 
+(defn osc-encode-msg [buf msg]
+  (let [{:keys [path type-tag args]} msg]
+    (encode-string buf path)
+    (encode-string buf (str "," type-tag))
+    (doseq [[t arg] (map vector type-tag args)]
+      (case t
+            \i (.putInt buf (int arg))
+            \h (.putLong buf (long arg))
+            \f (.putFloat buf (float arg))
+            \d (.putDouble buf (double arg))
+            \b (encode-blob buf arg)
+            \s (encode-string buf arg))
+      (println "type(" (type t)"): " t " arg: " arg " pos: " (.position buf)))
+    (.flip buf)))
+
+(defn osc-encode-bundle [buf bundle] 
+  (encode-string buf "#bundle")
+  (encode-timetag (:timestamp bundle))
+  (doseq [item (:items bundle)]
+    (cond
+      (osc-msg? item) (osc-encode-msg buf item)
+      (osc-bundle? item) (osc-encode-bundle buf item))))
+
+(defn decode-string [buf]
+  (let [start (.position buf)]
+    (while (not (zero? (.get buf))) nil)
+    (let [end (.position buf)
+          len (- end start)
+          str-buf (byte-array len)]
+      (.position buf start)
+      (.get buf str-buf 0 len)
+      (osc-align buf)
+      (String. str-buf 0 (dec len)))))
+
+(defn decode-blob [buf]
+  (let [size (.getInt buf)
+        blob (byte-array size)]
+    (.get buf blob 0 size)
+    (osc-align buf)
+    blob))
+
+
+;(let [secs (+ (/ timestamp 1000) ; secs since Jan. 1, 1970
+;              SEVENTY-YEAR-SECS) ; to Jan. 1, 1900
+;      fracs (/ (bit-shift-left (mod timestamp 1000) 32) 
+;               1000)
+;      tag (bit-or (bit-shift-left secs 32) fracs)]
+          
+(defn decode-msg
+  [buf]
+  (println "decoding from pos: " (.position buf))
+  (let [path (decode-string buf)
+        _ (println "path: " path " pos: " (.position buf))
+        type-tag (decode-string buf)
+        args (reduce (fn [mem t] 
+                       (println "decoded: " mem)
+                       (conj mem 
+                             (case t
+                                   \i (.getInt buf)
+                                   \h (.getLong buf)
+                                   \f (.getFloat buf)
+                                   \d (.getDouble buf)
+                                   \b (decode-blob buf)
+                                   \s (decode-string buf))))
+                     []
+                     (rest type-tag))]
+    {:path path
+     :args args}))
+
+(defn decode-timetag [buf]
+  (let [tag (.getLong buf)
+        secs (- (bit-shift-right tag 32) SEVENTY-YEAR-SECS)
+        ms-frac (bit-shift-right (* (bit-and tag (bit-shift-left 0xffffffff 32))
+                                    1000) 32)]
+    (+ (* secs 1000) ; secs as ms
+       ms-frac)))
+
+(defn osc-bundle-buf? [buf]
+  (let [start-char (.get buf)]
+    (.position buf (- (.position buf) 1))
+    (= \# start-char)))
+
+(defn decode-bundle [buf] 
+  (let [
+        b-tag (decode-string buf)
+        timestamp (decode-timetag buf)]))
+
+(defn osc-decode-packet
+  "Decode an OSC packet buffer into a bundle or message map."
+  [buf]
+  (if (osc-bundle-buf? buf)
+    (decode-bundle buf)
+    (decode-msg buf)))
+
+;; We use binding to *osc-msg-bundle* to bundle messages 
+;; and send combined with an OSC timestamp.
+(def *osc-msg-bundle* nil)
+
+(defn snd-client [client]
+  (let [{:keys [buf chan addr]} client]
+    (.send chan buf addr)
+    (.clear buf)))
+
+(defn osc-snd-msg 
   "Send OSC msg to client."
-  ([client address] (osc-send client address nil))
-  ([client address type-tag & args]
-  (osc-encode *buf address type-tag args)
-  (.send (:chan client) *buf (:addr client))))
+  [client msg]
+  (osc-encode-msg (:buf client) msg)
+  (snd-client client))
+
+(defn osc-snd-bundle
+  "Send OSC bundle to client."
+  [client bundle]
+  (osc-encode-bundle (:buf client) bundle)
+  (snd-client client))
+
+(defn osc-snd 
+  "Creates an OSC message and either sends it to the server immediately 
+  or if a bundle is currently being formed it adds it to the list of messages."
+  [client & args]
+  (let [msg (apply osc-msg args)]
+    (if *osc-msg-bundle*
+      (swap! *osc-msg-bundle* #(conj %1 msg))
+      (osc-snd-msg client msg))))
+
+(defmacro in-osc-bundle [client timestamp & body]
+  `(binding [*osc-msg-bundle* (atom [])]
+     ~@body
+     (osc-snd-bundle ~client (osc-bundle @*osc-msg-bundle* ~timestamp))))
+
+; TODO: The listener system will currently support a single listener
+; per message type.  Not sure if we would ever need to have multiple
+; listeners for the same message...
+(defonce *synth-listeners (ref {}))
+(def *response-msg-log (ref []))
+
+(defn synth-listener [msg]
+  (dosync (alter *response-msg-log conj msg))
+
+  (let [msg-name (:name msg)]
+    (if-let [recvr (msg-name @*synth-listeners)]
+      (send recvr (fn [] msg)))))
+
+(defn osc-recv [client path & [timeout]]
+  (let [listeners (:response-listeners client)
+        p (promise)]
+    (swap! listeners assoc path p)
+    (try 
+      (let [msg (if timeout 
+                  (.get (future @p) timeout TimeUnit/MILLISECONDS) ; Blocks until 
+                  @p)]
+        (swap! (:response-listeners client) dissoc path)
+        msg)
+      (catch TimeoutException t 
+        (println (str "Status request timed out after " 
+                      timeout "ms."))))))
+
+;TODO: use some real logging and get rid of this garbage...
+(def msg-count (ref 0))
+(def msgs (ref []))
+
+(defn recv-next-msg [chan buf]
+  (let [src-addr (.receive chan buf)
+        _ (.flip buf)
+        msg (osc-decode-packet buf)]
+    (dosync 
+      (alter msg-count inc)
+      (alter msgs conj (str "(" src-addr "): " msg)))
+    (assoc msg :src-addr src-addr)))
+
+(defn- handle-packet [pkt listeners handlers]
+  (cond 
+    (osc-bundle? pkt) (doseq [item (:items pkt)]
+                        (handle-packet item listeners handlers)) 
+    (osc-msg? pkt) (do
+                     ; Listeners receive every message
+                     (doseq [[id listener] @listeners] 
+                       (listener pkt))
+                     ; Handlers are filtered by path
+                     (doseq [[id handler] (get @handlers (:path pkt))] 
+                       (handler pkt)))))
+
+(defn- listen-thread
+  [chan buf running? listeners handlers]
+  (try
+    (while @running?
+      (.clear buf)
+      (recv-next-msg chan buf)
+      (handle-packet (osc-decode-packet buf) listeners handlers))
+    (catch Exception e
+      (dosync (alter msgs conj e)))
+    (finally
+      (.close chan))))
 
 (defn osc-client 
  "Returns an OSC client ready to communicate with host on port.  
  Use :protocol in the options map to \"tcp\" if you don't want \"udp\"."
   [host port]
   (let [chan (DatagramChannel/open)
-        sock (.socket chan)]
-  {:host host
-   :port port
-   :addr (InetSocketAddress. host port)
-   :chan chan}))
+        buf (ByteBuffer/allocate 8192)
+        resp-buf (ByteBuffer/allocate 8192)
+        listening? true
+        listeners (atom {})
+        response-handlers (atom {})
+        response-thread (Thread. (listen-thread chan resp-buf listening? listeners response-handlers))]
+    (.start response-thread)
+    {:host host
+     :port port
+     :addr (InetSocketAddress. host port)
+     :chan chan
+     :buf buf 
+     :listeners listeners
+     :response-listeners response-handlers
+     :resp-buf resp-buf}))
 
-(comment defn osc-bundle 
-  "Wrap msgs in an OSC bundle to be executed simultaneously."
-  [msgs & [timestamp]]
-  (let [t (or timestamp (System/currentTimeMillis))
-        bndl (OSCBundle. t)]
-    (doseq [msg msgs]
-      (.addPacket bndl msg))
-    bndl))
+(defn osc-server
+  "Returns a live OSC server ready to register handler functions."
+  [port]
+  (let [chan (DatagramChannel/open)
+        sock (.socket chan)
+        buf (ByteBuffer/allocate 8192)
+        out *out*
+        running? (atom true)
+        listeners (atom {})
+        handlers (atom {})
+        listener (Thread. #(binding [*out* out]
+                             (listen-thread chan buf running? listeners handlers)))]
+    (.bind sock (InetSocketAddress. port))
+    (.start listener)
+    {:chan chan
+     :buf buf
+     :running? running?
+     :listeners listeners
+     :handlers handlers
+     :thread listener}))
 
-(defn- clj-msg [msg sender timestamp]
-  {:sender sender
-   :time timestamp
-   :name (.getName msg)
-   :args (doall (for [i (range (.getArgCount msg))] (.getArg msg i)))})
-
-(comment defn osc-listen
-  "Set a handler function for incoming osc messages."
-  [client fun]
-  (let [listener (proxy [OSCListener] []
-                   (messageReceived [msg sender timestamp] 
-                                    (fun (clj-msg msg sender timestamp))))]
-    (.addOSCListener client listener)))
-
-(comment defn print-msg [msg]
-  (println (apply str "osc-msg: " (.getName msg)
-                  (for [i (range (.getArgCount msg))] 
-                    (str " " (.getArg msg i))))))
+(defn osc-close
+  [server & hard]
+  (reset! (:running? server) false)
+  (if hard 
+    (.interrupt (:thread server))))
