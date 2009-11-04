@@ -1,5 +1,5 @@
 (ns overtone.sc
-  (:import 
+ (:import 
      (java.net InetSocketAddress)
      (java.util.regex Pattern)
      (java.util.concurrent TimeUnit TimeoutException)

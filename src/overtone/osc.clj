@@ -227,33 +227,6 @@
      ~@body
      (osc-snd-bundle ~client (osc-bundle @*osc-msg-bundle* ~timestamp))))
 
-; TODO: The listener system will currently support a single listener
-; per message type.  Not sure if we would ever need to have multiple
-; listeners for the same message...
-(defonce *synth-listeners (ref {}))
-(def *response-msg-log (ref []))
-
-(defn synth-listener [msg]
-  (dosync (alter *response-msg-log conj msg))
-
-  (let [msg-name (:name msg)]
-    (if-let [recvr (msg-name @*synth-listeners)]
-      (send recvr (fn [] msg)))))
-
-(defn osc-recv [client path & [timeout]]
-  (let [listeners (:response-listeners client)
-        p (promise)]
-    (swap! listeners assoc path p)
-    (try 
-      (let [msg (if timeout 
-                  (.get (future @p) timeout TimeUnit/MILLISECONDS) ; Blocks until 
-                  @p)]
-        (swap! (:response-listeners client) dissoc path)
-        msg)
-      (catch TimeoutException t 
-        (println (str "Status request timed out after " 
-                      timeout "ms."))))))
-
 ;TODO: use some real logging and get rid of this garbage...
 (def msg-count (ref 0))
 (def msgs (ref []))
@@ -267,29 +240,68 @@
       (alter msgs conj (str "(" src-addr "): " msg)))
     (assoc msg :src-addr src-addr)))
 
-(defn- handle-packet [pkt listeners handlers]
+(defn- handle-packet [pkt listeners]
   (cond 
     (osc-bundle? pkt) (doseq [item (:items pkt)]
-                        (handle-packet item listeners handlers)) 
+                        (handle-packet item listeners)) 
     (osc-msg? pkt) (do
                      ; Listeners receive every message
                      (doseq [[id listener] @listeners] 
-                       (listener pkt))
-                     ; Handlers are filtered by path
-                     (doseq [[id handler] (get @handlers (:path pkt))] 
-                       (handler pkt)))))
+                       (listener pkt)))))
 
-(defn- listen-thread
-  [chan buf running? listeners handlers]
-  (try
-    (while @running?
-      (.clear buf)
-      (recv-next-msg chan buf)
-      (handle-packet (osc-decode-packet buf) listeners handlers))
-    (catch Exception e
-      (dosync (alter msgs conj e)))
-    (finally
-      (.close chan))))
+                     ; Handlers are filtered by path
+  ;                   (doseq [[id handler] (get @handlers (:path pkt))] 
+   ;                    (handler pkt)))))
+
+(defn- generic-listen-thread
+  [chan buf running? listeners]
+  (let [thread (Thread. #(try
+                           (while @running?
+                             (.clear buf)
+                             (recv-next-msg chan buf)
+                             (handle-packet (osc-decode-packet buf) listeners))
+                           (catch Exception e
+                             (dosync (alter msgs conj e)))
+                           (finally
+                             (.close chan))))]
+    (.start thread)
+    thread))
+
+(def handler-id-counter* (atom 0))
+(defn handler-id []
+  (let [id @handler-id-counter*]
+    (swap! handler-id-counter* inc)
+    id))
+
+(defn msg-dispatcher [msg-log handlers]
+  (fn [msg]
+    (if-let [handler (get @handlers (:path msg))]
+      (handler msg)
+      (swap! msg-log assoc (:path msg) msg))))
+
+; TODO: Messages should timeout and get wiped from the msg buffer
+ 
+(defn osc-recv 
+  "Receive on a connection, being either a client or a server object."
+  [con path & [timeout]]
+  ; First check the 1-msg buffer
+  (if-let [recvd (get @(:msg-log con) path)]
+    (do (swap! @(:msg-log con) dissoc path)
+      recvd))
+
+  (let [handlers (:handlers con)
+        p (promise)]
+    (swap! handlers assoc path p) ; set the handler
+    (try 
+      (if timeout 
+        (.get (future @p) timeout TimeUnit/MILLISECONDS) ; Blocks until 
+        @p)
+      (catch TimeoutException t 
+        (println (str "Status request timed out after " 
+                      timeout "ms."))
+        nil)
+      (finally  ; remove the handler
+        (swap! handlers dissoc path)))))
 
 (defn osc-client 
  "Returns an OSC client ready to communicate with host on port.  
@@ -299,17 +311,17 @@
         buf (ByteBuffer/allocate 8192)
         resp-buf (ByteBuffer/allocate 8192)
         listening? true
-        listeners (atom {})
-        response-handlers (atom {})
-        response-thread (Thread. (listen-thread chan resp-buf listening? listeners response-handlers))]
-    (.start response-thread)
+        msg-log (atom {})
+        handlers (atom {})
+        listeners (atom {(handler-id) (msg-dispatcher msg-log handlers)})
+        response-thread (generic-listen-thread chan resp-buf listening? listeners)]
     {:host host
      :port port
      :addr (InetSocketAddress. host port)
      :chan chan
      :buf buf 
      :listeners listeners
-     :response-listeners response-handlers
+     :handlers handlers
      :resp-buf resp-buf}))
 
 (defn osc-server
@@ -320,16 +332,18 @@
         buf (ByteBuffer/allocate 8192)
         out *out*
         running? (atom true)
-        listeners (atom {})
+        msg-log (atom {})
         handlers (atom {})
+        listeners (atom {(handler-id) (msg-dispatcher msg-log handlers)})
         listener (Thread. #(binding [*out* out]
-                             (listen-thread chan buf running? listeners handlers)))]
+                             (generic-listen-thread chan buf running? listeners)))]
     (.bind sock (InetSocketAddress. port))
     (.start listener)
     {:chan chan
      :buf buf
      :running? running?
      :listeners listeners
+     :msg-log msg-log
      :handlers handlers
      :thread listener}))
 
