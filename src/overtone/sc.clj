@@ -19,8 +19,8 @@
 (def START-BUFFER-ID 1)
 (def START-NODE-ID 1000)
 
-(defonce *synth-thread (ref nil))
-(defonce *synth        (ref nil))
+(defonce server-thread* (ref nil))
+(defonce server*        (ref nil))
 
 (defonce *counters (ref {}))
 (defonce *counter-defaults (ref {}))
@@ -45,7 +45,7 @@
 (defcounter :buffer START-BUFFER-ID)
 
 (defn connected? []
-  (not (nil? @*synth)))
+  (not (nil? @server*)))
 
 (declare boot)
 
@@ -53,10 +53,10 @@
   "Creates an OSC message and either sends it to the server immediately 
   or if a bundle is currently being formed it adds it to the list of messages."
   [& args]
-  (if (nil? @*synth)
+  (if (nil? @server*)
     (throw (Exception. "Not connected to a SuperCollider server.")))
   (let [msg (apply osc-msg args)]
-      (osc-snd-msg @*synth msg)))
+      (osc-snd-msg @server* msg)))
 
 (defn recv
   [path & [timeout]]
@@ -65,8 +65,8 @@
 (defn connect 
   ([] (connect SERVER-HOST SERVER-PORT SERVER-PROTOCOL))
   ([host port]
-   (dosync (ref-set *synth (osc-client host port)))
-   (comment osc-listen @*synth synth-listener)))
+   (dosync (ref-set server* (osc-client host port)))
+   (comment osc-listen @server* synth-listener)))
 
 (defonce *running? (atom false))
 (def *server-out* *out*)
@@ -104,7 +104,7 @@
          sc-thread (Thread. #(boot-thread cmd))]
      (.setDaemon sc-thread true)
      (.start sc-thread)
-     (dosync (ref-set *synth-thread sc-thread))
+     (dosync (ref-set server-thread* sc-thread))
      (Thread/sleep 200)
      (connect-jack-ports 2)
      (connect host port))))
@@ -115,7 +115,7 @@
   (if (connected?)
     (snd "/quit"))
   (reset! *running? false)
-  (dosync (ref-set *synth nil)))
+  (dosync (ref-set server* nil)))
 
 (defn notify [notify?]
   (snd "/notify" (if notify? 1 0)))
@@ -150,8 +150,9 @@
         id (next-node-id)
         position ((get argmap :position :tail) POSITION)
         target (get argmap :target 0)
-        argmap (-> argmap (dissoc :position) (dissoc :target))]
-    (apply snd "/s_new" synth-name id position target (flatten (seq argmap)))
+        argmap (-> argmap (dissoc :position) (dissoc :target))
+        type-tag (apply str "siii" (repeat (count argmap) "si"))]
+    (apply snd "/s_new" type-tag synth-name id position target (stringify (flatten (seq argmap))))
     id))
 
 (defn node-free 
@@ -247,13 +248,12 @@
     (group-free-children 0)
     (catch Exception e nil))
   (clear-msg-queue)
-  (reset-id-counters)
-  (dosync (ref-set *synth-listeners {})))
+  (reset-id-counters))
 
 (defn debug [& [on-off]]
   (if (or on-off (nil? on-off))
-      (snd "/dumpOSC" 1)
-      (snd "/dumpOSC" 0)))
+      (snd "/dumpOSC" "i" 1)
+      (snd "/dumpOSC" "i" 0)))
 
 (defn restart 
   "Reset everything and restart the SuperCollider process."
@@ -261,7 +261,6 @@
   (reset)
   (quit)
   (boot))
-;  (stop-players true))
 
 (defn hit 
   "Fire off the named synth or loaded sample (by id) at a specified time."
@@ -271,12 +270,12 @@
      (throw (IllegalArgumentException. "Arguments to hit must come in key-value pairs.")))
    (if (number? syn)
      (apply hit time-ms "granular" :buf syn args)
-     (in-osc-bundle @*synth time-ms (apply node syn (stringify args))))))
+     (in-osc-bundle @server* time-ms (apply node syn (stringify args))))))
 
 (defn ctl
   "Modify a synth parameter at the specified time."
   [time-ms node-id & args]
-  (in-osc-bundle @*synth time-ms (apply node-control node-id (stringify args))))
+  (in-osc-bundle @server* time-ms (apply node-control node-id (stringify args))))
 
 ;(defn status []
 ;  (let [stat (.getStatus @*s)]

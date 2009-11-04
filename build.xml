@@ -1,4 +1,4 @@
-<project name="overtone" default="plugin">
+<project name="overtone" default="test">
   <description>Builds the ${ant.project.name} plugin.</description>
 
   <property name="src.dir"     value="src"/>
@@ -46,21 +46,7 @@
     </java>
   </target>
 
-  <target name="compile" depends="init"
-    description="Compile the clojure files that have gen-class."
-    if="hasclojure">
-    <java classname="clojure.lang.Compile">
-      <classpath>
-        <path location="${build.dir}"/>
-        <path location="${src.dir}"/>
-        <path location="${clojure.jar}"/>
-      </classpath>
-      <sysproperty key="clojure.compile.path" value="${build.dir}"/>
-      <arg value="com.demandevolution.demystifier"/>
-    </java>
-  </target>
-
-  <target name="jar" depends="compile">
+  <target name="jar" depends="">
     <jar jarfile="build/${ant.project.name}.jar">
       <fileset dir="${src.dir}" includes="**/*.clj"/>
       <fileset dir="${build.dir}" includes="**/*.class"/>
@@ -68,14 +54,5 @@
         <attribute name="Class-Path" value="."/>
       </manifest>
     </jar>
-  </target>
-
-  <target name="plugin" depends="jar" description="Create the full plugin directory.">
-    <mkdir dir="build/${ant.project.name}"/>
-    <copy file="build/${ant.project.name}.jar" todir="build/${ant.project.name}"/>
-    <copy file="plugin.ini" tofile="build/${ant.project.name}/${ant.project.name}.ini"/>
-    <copy todir="build/${ant.project.name}">
-      <fileset dir="lib"/>
-    </copy>
   </target>
 </project>

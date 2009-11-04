@@ -7,27 +7,38 @@
   (:import (java.nio ByteBuffer)))
 
 (def HOST "127.0.0.1")
-(def PORT 1234)
+(def PORT (+ 1000 (rand-int 10000)))
 
 (def STR "test-string")
 
 (deftest osc-msg-test []
   (let [buf (ByteBuffer/allocate 128)
-        args [42 4.2 "qwerasdf"]
-        _ (osc-encode-msg buf (apply osc-msg "/asdf" "ifs" args))
+        t-args [(make-array Byte/TYPE 20) 
+              42 
+              (float 4.2) 
+              "qwerasdf" 
+              (double 123.23) 
+              (long 123412341234)]
+        _ (osc-encode-msg buf (apply osc-msg "/asdf" "bifsdh" t-args))
         _ (.position buf 0)
-        msg (osc-decode-packet buf)]
+        {:keys [path args] :as msg} (osc-decode-packet buf)
+        ]
     (println "msg: " msg)
-    (is (= "/asdf" (:path msg)))
-    (is (= (count args) (count (:args msg))))
-    (is (= args (:args msg)))))
+    (is (= "/asdf" path))
+    (is (= (count t-args) (count args)))
+    (is (= (ffirst t-args) (ffirst args)))
+    (is (= (last (first t-args)) (last (first args))))
+    (is (= (next t-args) (next args)))))
 
-(deftest osc-basic-test [])
+(deftest osc-basic-test []
   (let [server (osc-server PORT)
         client (osc-client HOST PORT)]
-    (osc-snd client "/test" "i" 42)
-
-    (is true)))
+    (try
+      (osc-snd client "/test" "i" 42)
+      (is true)
+      (finally 
+        (osc-close server true)
+        (osc-close client true)))))
 
 (defn osc-tests []
   (binding [*test-out* *out*]
