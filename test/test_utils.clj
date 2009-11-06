@@ -1,5 +1,7 @@
-(ns test.utils
-  (:use [clojure.contrib.str-utils :only (re-split re-gsub)])
+(ns test-utils
+  (:use 
+     (overtone bytes)
+     [clojure.contrib.str-utils :only (re-split re-gsub)])
   (:import (java.io File)))
 
 ; Thanks to code from this blog post:
@@ -33,4 +35,18 @@
                          (fn [f] [(.getName f) 
                                   (file-to-ns-string f dir)])
                          test-file?)))
+
+;TODO: WTF???!!!  Am I retarded here?  Why isn't this working correctly?
+(defn without-sizes [obj]
+  (reduce (fn [mem [k v]]
+            (cond 
+              (and (vector? v) (map? (first v))) (assoc mem k (map without-sizes v))
+              (map? v) (assoc mem k (without-sizes v))
+              (not (.startsWith (name k) "n-")) (assoc mem k v)
+              :default mem))
+          {}
+          obj))
+
+(defn bytes-and-back [spec obj]
+  (spec-read-bytes spec (spec-write-bytes spec obj)))
 

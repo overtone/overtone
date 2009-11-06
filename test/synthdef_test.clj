@@ -3,8 +3,8 @@
               DataInputStream DataOutputStream
               BufferedInputStream BufferedOutputStream 
               ByteArrayOutputStream ByteArrayInputStream))
-  (:use (overtone sc synthdef utils)
-     bytes-test
+  (:use (overtone sc synthdef envelope utils)
+     test-utils
      clojure.test
      clj-backtrace.repl))
 
@@ -12,25 +12,23 @@
   "This data was read by this library, but written by jcollider."
   []
   {:name "sawzall" 
-   :n-constants 1
-   :constants [0.0]
-   :n-params  1
-   :params    [50.0]
-   :n-pnames  1 
-   :pnames    [{:index 0, :name "note"}]
-   :n-ugens   4
-   :ugens     [{:outputs [{:rate 1}], :inputs [], :special 0, :n-outputs 1, :n-inputs 0, :rate 1, :name "Control"}
+   :n-constants (short 1)
+   :constants [(float 0.0)]
+   :n-params  (short 1)
+   :params    [(float 50.0)]
+   :n-pnames  (short 1)
+   :pnames    [{:index (short 0), :name "note"}]
+   :n-ugens   (short 4)
+   :ugens     [{:outputs [{:rate (byte 1)}], :inputs [], :special (short 0), :n-outputs (short 1), :n-inputs (short 0), :rate (short 1), :name "Control"}
 
-               {:outputs [{:rate 1}], :inputs [{:index 0, :src 0}], :special 17, 
-                :n-outputs 1, :n-inputs 1, :rate 1, :name "UnaryOpUGen"}
+               {:outputs [{:rate (byte 1)}], :inputs [{:index (short 0), :src (short 0)}], :special (short 17), 
+                :n-outputs (short 1), :n-inputs (short 1), :rate (byte 1), :name "UnaryOpUGen"}
 
-               {:outputs [{:rate 2}], :inputs [{:index 0, :src 1}], :special 0, 
-                :n-outputs 1, :n-inputs 1, :rate 2, :name "Saw"}
+               {:outputs [{:rate (byte 2)}], :inputs [{:index (short 0), :src (short 1)}], :special (short 0), 
+                :n-outputs (short 1), :n-inputs (short 1), :rate (byte 2), :name "Saw"}
 
-               {:outputs [], :inputs [{:index 0, :src -1} {:index 0, :src 2}], 
-                :special 0, :n-outputs 0, :n-inputs 2, :rate 2, :name "Out"}]})
-
-(def sz (synthdef-file (sawzall-raw)))
+               {:outputs [], :inputs [{:index (short 0), :src (short -1)} {:index (short 0), :src (short 2)}], 
+                :special (short 0), :n-outputs (short 0), :n-inputs (short 2), :rate (byte 2), :name "Out"}]})
 
 (def FOO "/home/rosejn/projects/overtone/foo.scd")
 (def FURL (java.net.URL. (str "file:" FOO)))
@@ -60,17 +58,24 @@
 (deftest self-consistent-syndef
   (let [a (synthdef-file (sawzall-raw))
         b (bytes-and-back synthdef-spec a)]
-    (is (same? a b))))
+    (is (= a (dissoc b :version :id)))))
 
 (defsynth mini-sin
   (out.ar 0 (sin-osc.ar 440 0)))
 
+;SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
+;        var env, snd;
+;        env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
+;        snd= SinOsc.ar(freq, pi*0.5, amp);
+;        Out.ar(0, Pan2.ar(snd*env, 0));
+;}).store;
+(defsynth test-kick []
+  (out.ar 0 (pan2.ar (sin-osc.ar :freq (* Math/PI 0.5) :amp)
+                     (env-gen.ar (perc 0 :decay) :
+)
+
 (defn mini-bytes []
   (bytes-and-back synthdef-spec (synthdef-file mini-sin)))
-
-(defn load-tom []
-  (let [bytes (synthdef-read-file "test/data/tom.scsyndef")]
-    (load-synth bytes)))
 
 (deftest native-synth-test
   (let [bytes (synthdef-bytes mini-sin)
@@ -101,6 +106,18 @@
     (is (= {:src 0, :index 0} (second (:inputs out))))
     ))
 
-(defn sgo []
+(def TOM-DEF "test/data/tom.scsyndef")
+(def KICK-DEF "test/data/round-kick.scsyndef")
+
+(defn rw-file-test [path]
+  (let [a (synthdef-read-file path)
+        b (bytes-and-back synthdef-spec a)]
+    (is (= a b))))
+
+(deftest read-write-test []
+  (rw-file-test TOM-DEF)
+  (rw-file-test KICK-DEF))
+
+(defn synthdef-tests []
   (binding [*test-out* *out*]
     (run-tests 'synthdef-test)))

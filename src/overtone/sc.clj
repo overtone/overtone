@@ -4,16 +4,19 @@
      (java.util.regex Pattern)
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream))
+  (:require [org.enclojure.commons.c-slf4j :as log])
   (:use 
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
+     clj-backtrace.repl
      (overtone utils voice osc rhythm)))
+
+(log/ensure-logger)
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
 (def SERVER-HOST "127.0.0.1")
 (def SERVER-PORT nil) ; nil means a random port 
-(def SERVER-PROTOCOL "tcp")
 
 (def START-GROUP-ID 1)
 (def START-BUFFER-ID 1)
@@ -52,69 +55,72 @@
 (defn snd 
   "Creates an OSC message and either sends it to the server immediately 
   or if a bundle is currently being formed it adds it to the list of messages."
-  [& args]
+  [path & args]
   (if (nil? @server*)
     (throw (Exception. "Not connected to a SuperCollider server.")))
-  (let [msg (apply osc-msg args)]
-      (osc-snd-msg @server* msg)))
+      (osc-snd-msg @server* 
+                   (apply osc-msg path (osc-type-tag args) args)))
 
 (defn recv
   [path & [timeout]]
   {:path "foo" :args []})
 
 (defn connect 
-  ([] (connect SERVER-HOST SERVER-PORT SERVER-PROTOCOL))
+  ([] (connect SERVER-HOST SERVER-PORT))
   ([host port]
+   (log/info (str "(connect " host ":" port))
    (dosync (ref-set server* (osc-client host port)))
    (comment osc-listen @server* synth-listener)))
 
-(defonce *running? (atom false))
+(defonce running?* (atom false))
 (def *server-out* *out*)
 
 (defn server-log [stream read-buf]
   (while (pos? (.available stream))
-    (let [n (min (.length read-buf) (.available stream))]
+    (let [n (min (count read-buf) (.available stream))]
       (.read stream read-buf 0 n)
-      (.write *server-out* read-buf 0 n))))
+      (.write *server-out* (String. read-buf 0 n)))))
 
 (defn- boot-thread [cmd]
-  (reset! *running? true)
+  (reset! running?* true)
   (let [proc (.exec (Runtime/getRuntime) cmd) 
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
         read-buf (make-array Byte/TYPE 256)]
-    (while @*running?
+    (while @running?*
       (server-log in-stream read-buf)
       (server-log err-stream read-buf)
       (Thread/sleep 250))
     (.destroy proc)))
 
 (defn connect-jack-ports [n-channels]
+  (let [port-list (sh "jack_lsp")
+        sc-outputs (re-find #"SuperCollider.*:out_" port-list)]
   (doseq [i (range n-channels)]
     (sh "jack_connect" 
-        (str "SuperCollider:out_" (+ i 1))
-        (str "system:playback_" (+ i 1)))))
+        (str sc-outputs (+ i 1))
+        (str "system:playback_" (+ i 1))))))
 
 (defn boot
-  ([] (boot SERVER-HOST SERVER-PORT SERVER-PROTOCOL))
-  ([host port proto]
+  ([] (boot SERVER-HOST SERVER-PORT))
+  ([host port]
    (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-         cmd-proto (str "-" (if (= "tcp" proto) "t" "u"))
-         cmd (into-array String ["scsynth" cmd-proto (str port)])
+         cmd (into-array String ["scsynth" "-u" (str port)])
          sc-thread (Thread. #(boot-thread cmd))]
      (.setDaemon sc-thread true)
      (.start sc-thread)
      (dosync (ref-set server-thread* sc-thread))
-     (Thread/sleep 200)
+     (Thread/sleep 1000)
      (connect-jack-ports 2)
      (connect host port))))
 
 (defn quit 
   "Quit the SuperCollider synth process."
   []
+  (log/info "quiting supercollider")
   (if (connected?)
     (snd "/quit"))
-  (reset! *running? false)
+  (reset! running?* false)
   (dosync (ref-set server* nil)))
 
 (defn notify [notify?]
@@ -122,8 +128,8 @@
 
 (defn status []
   (snd "/status")
-  (let [sts (recv "status.reply" 250)]
-    (println "status: " sts)
+  (let [sts (osc-recv @server*)]
+    (log/debug "got status: " (:args sts))
     (if-let [{[ugens synths groups loaded avg peak nominal actual] :args} sts]
       {:num-ugens ugens
        :num-synths synths
@@ -150,9 +156,9 @@
         id (next-node-id)
         position ((get argmap :position :tail) POSITION)
         target (get argmap :target 0)
-        argmap (-> argmap (dissoc :position) (dissoc :target))
-        type-tag (apply str "siii" (repeat (count argmap) "si"))]
-    (apply snd "/s_new" type-tag synth-name id position target (stringify (flatten (seq argmap))))
+        args (flatten (seq (-> argmap (dissoc :position) (dissoc :target))))
+        args (stringify (floatify args))]
+    (apply snd "/s_new" synth-name id position target args)
     id))
 
 (defn node-free 
@@ -252,8 +258,8 @@
 
 (defn debug [& [on-off]]
   (if (or on-off (nil? on-off))
-      (snd "/dumpOSC" "i" 1)
-      (snd "/dumpOSC" "i" 0)))
+      (snd "/dumpOSC" 1)
+      (snd "/dumpOSC" 0)))
 
 (defn restart 
   "Reset everything and restart the SuperCollider process."
@@ -270,7 +276,7 @@
      (throw (IllegalArgumentException. "Arguments to hit must come in key-value pairs.")))
    (if (number? syn)
      (apply hit time-ms "granular" :buf syn args)
-     (in-osc-bundle @server* time-ms (apply node syn (stringify args))))))
+     (in-osc-bundle @server* time-ms (apply node syn args)))))
 
 (defn ctl
   "Modify a synth parameter at the specified time."

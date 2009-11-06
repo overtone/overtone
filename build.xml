@@ -12,7 +12,7 @@
 
   <path id="classpath">
     <path location="${build.dir}"/>
-    <path location="${source.dir}"/>
+    <path location="${src.dir}"/>
     <fileset dir="${lib.dir}">
       <include name="*.jar"/>
     </fileset>
@@ -40,7 +40,7 @@
     <java fork="true" classname="clojure.lang.Script">
       <classpath>
           <path refid="classpath"/>
-          <path location="."/>
+          <path location="test"/>
       </classpath>
       <arg value="${tests.dir}/run.clj"/>
     </java>

@@ -4,16 +4,21 @@
      (java.net InetSocketAddress DatagramSocket DatagramPacket)
      (java.nio.channels DatagramChannel)
      (java.nio ByteBuffer ByteOrder))
+  (:require [org.enclojure.commons.c-slf4j :as log])
   (:use (clojure.contrib fcase)))
 
-(defn osc-now []
-  (System/currentTimeMillis))
+(log/ensure-logger)
 
 (def OSC-TIMETAG-NOW 1) ; Timetag representing right now.
 (def SEVENTY-YEAR-SECS 2208988800)
 
 (defn- byte-array [size]
   (make-array Byte/TYPE size))
+
+(def PAD (byte-array 4))
+
+(defn osc-now []
+  (System/currentTimeMillis))
 
 ; OSC Data Types:
 ; int => i
@@ -34,19 +39,19 @@
 ; OSC-timetag 
 ;  * 64-bit big-endian fixed-point timestamp 
 
-;(defmacro deftype [type-name arg-vec & body] 
-;  `(defn ~type-name ~arg-vec
-;     (assoc (do @body) :type (keyword type-name)))
-;  `(defn (str ~type-name "?") [obj#] 
-;     (= (keyword type-name) (get obj# :type))))
-;
-;(deftype osc-msg [path & args]
-;  {:path path
-;   :type-tag (first args)
-;   :args (next args)})
+
+(defn osc-type-tag [args]
+  (apply str 
+    (map #(instance-case %1
+            Integer "i"
+            Long    "h"
+            Float   "f"
+            Double  "d"
+            (type PAD) "b" ; This is lame... what is a byte array an instance of?
+            String  "s") 
+         args)))
 
 (defn osc-msg
-  "Construct an osc message."
   [path & args]
   {:type :osc-msg
    :path path
@@ -64,8 +69,6 @@
 
 (defn osc-bundle? [obj]
   (= :osc-bundle (get obj :type)))
-
-(def PAD (byte-array 4))
 
 (defn osc-pad 
   "Add 0-3 null bytes to make buffer position 32-bit aligned."
@@ -85,7 +88,7 @@
   (osc-pad buf))
 
 (defn encode-blob [buf b]
-  ;(println "Encoding blob size: " (count b))
+  ;(log/debug (str "Encoding blob size: " (count b)))
   (.putInt buf (count b))
   (.put buf b)
   (osc-pad buf))
@@ -102,7 +105,7 @@
 
 (defn osc-encode-msg [buf msg]
   (let [{:keys [path type-tag args]} msg]
-    (println "osc-encode-msg " path type-tag)
+    ;(log/debug (str "osc-encode-msg " path type-tag))
     (encode-string buf path)
     (encode-string buf (str "," type-tag))
     (doseq [[t arg] (map vector type-tag args)]
@@ -113,11 +116,11 @@
             \d (.putDouble buf (double arg))
             \b (encode-blob buf arg)
             \s (encode-string buf arg))
-      (println "pos:" (.position buf) "type:" t "arg: " arg )
+      ;(log/debug (str "pos:" (.position buf) "type:" t "arg: " arg ))
       )))
 
 (defn osc-encode-bundle [buf bundle] 
-  (println "osc-encode-bundle")
+  ;(log/debug "osc-encode-bundle")
   (encode-string buf "#bundle")
   (encode-timetag buf (:timestamp bundle))
   (doseq [item (:items bundle)]
@@ -155,13 +158,13 @@
 
 (defn decode-msg
   [buf]
-  ;(println "decoding from pos: " (.position buf))
+  ;(log/debug (str "decoding from pos: " (.position buf)))
   (let [path (decode-string buf)
-        ;_ (println "path: " path " pos: " (.position buf))
+        ;_ (log/debug (str "path: " path " pos: " (.position buf)))
         type-tag (decode-string buf)
-        ;_ (println "type-tag: " type-tag)
+        ;_ (log/debug (str "type-tag: " type-tag))
         args (reduce (fn [mem t] 
-                       ;(println "decoded: " mem)
+                       ;(log/debug (str "decoded: " mem))
                        (conj mem 
                              (case t
                                    \i (.getInt buf)
@@ -200,18 +203,12 @@
     (decode-bundle buf)
     (decode-msg buf)))
 
-;TODO: use some real logging and get rid of this garbage...
-(def msg-count (ref 0))
-(def msg-log* (ref []))
-
 (defn recv-next-msg [chan buf]
   (let [src-addr (.receive chan buf)
-        _ (dosync (alter msg-log* conj (str "msg-from: " src-addr)))
+        _ (log/debug (str "msg-from: " src-addr))
         _ (.flip buf)
         msg (osc-decode-packet buf)]
-    (dosync 
-      (alter msg-count inc)
-      (alter msg-log* conj (str "(" src-addr "): " msg)))
+    (log/debug (str "(" src-addr "): " msg))
     (assoc msg :src-addr src-addr)))
 
 (defn- handle-packet [pkt listeners]
@@ -229,7 +226,7 @@
       (.clear buf)
       (handle-packet (recv-next-msg chan buf) listeners))
     (catch Exception e
-      (dosync (alter msg-log* conj e)))
+      (log/error (str "Exception in listen-loop: " e)))
     (finally
       (.close chan))))
 
@@ -250,9 +247,13 @@
       (handler msg)
       (swap! msg-log assoc (:path msg) msg))))
 
-; TODO: Messages should timeout and get wiped from the msg buffer
- 
 (defn osc-recv 
+  "Synchronous receive on a connection."
+  [con]
+  (recv-next-msg (:chan con) (:resp-buf con)))
+
+; TODO: Messages should timeout and get wiped from the msg buffer
+(defn old-osc-recv 
   "Receive on a connection, being either a client or a server object."
   [con path & [timeout]]
   ; First check the 1-msg buffer
@@ -268,7 +269,7 @@
         (.get (future @p) timeout TimeUnit/MILLISECONDS) ; Blocks until 
         @p)
       (catch TimeoutException t 
-        ;(println (str "Status request timed out after " timeout "ms."))
+        (log/debug (str "osc-recv timed out."))
         nil)
       (finally  ; remove the handler
         (swap! handlers dissoc path)))))
@@ -308,7 +309,7 @@
 (defmacro in-osc-bundle [client timestamp & body]
   `(binding [*osc-msg-bundle* (atom [])]
      ~@body
-     (println "in-osc-bundle (" (count @*osc-msg-bundle*) "): " @*osc-msg-bundle*)
+     ;(log/debug (str "in-osc-bundle (" (count @*osc-msg-bundle*) "): " @*osc-msg-bundle*))
      (osc-snd-bundle ~client (osc-bundle ~timestamp @*osc-msg-bundle*))))
 
 (defn osc-client 
@@ -333,7 +334,8 @@
      :running? running?
      :thread thread
      :listeners listeners
-     :handlers handlers}))
+     :handlers handlers
+     :msg-log msg-log}))
 
 (defn osc-server
   "Returns a live OSC server ready to register handler functions."

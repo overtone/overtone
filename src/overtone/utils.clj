@@ -21,8 +21,15 @@
 (defn print-classpath []
   (println (seq (.getURLs (java.lang.ClassLoader/getSystemClassLoader)))))
 
-(defn stringify [col]
+(defn stringify 
+  "Convert all keywords in col to strings without ':' prefixed."
+  [col]
   (map #(if (keyword? %1) (name %1) %1) col))
+
+(defn floatify
+  "Convert all numbers in col to floats." 
+  [col]
+  (map #(if (number? %1) (float %1) %1) col))
 
 (defn type-checker [t]
   (fn [obj] (and (map? obj) (= (:type obj) t))))

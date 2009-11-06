@@ -1,24 +1,8 @@
 (ns bytes-test
   (:use 
      clojure.test
-     (overtone bytes)))
-
-;; TODO!!!!: I really don't understand why the = operator isn't working
-;; for my result data maps.  I should be able to do (is (= a b)), but
-;; it says identical maps aren't equal... Figure this out.
-
-(defn bytes-and-back [spec obj]
-  (spec-read-bytes spec (spec-write-bytes spec obj)))
-
-(defn no-sizes [obj]
-  (apply hash-map 
-         (apply concat
-                (filter (fn [[k v]] (not (.startsWith (name k) "n-")))
-                             obj))))
-
-(defn same? [a b]
-  (for [[k v] (no-sizes a) [kb vb] (no-sizes b)]
-    (is (and (= k kb) (= v vb)))))
+     (overtone bytes utils)
+     test-utils))
 
 (defspec basic-type-spec
          :a :int8
@@ -46,12 +30,14 @@
          :c [:string])
 
 (deftest array-test []
-  (let [a {:a [1 2 3 4] 
-           :b [3.23 4.3223 53.32 253.2 53.2 656.5] 
+  (let [a {:n-a (byte 4)
+           :a [1 2 3 4] 
+           :n-b (int 6)
+           :b (floatify [3.23 4.3223 53.32 253.2 53.2 656.5])
+           :n-c (long 3)
            :c ["foo" "bar" "baz"]}
         b (bytes-and-back array-spec a)]
-    ;(is (= (assoc a :n-a 4 :n-b 6 :n-c 3) b))
-    (is (same? a b))
+    (is (= a b))
     (is (= 4 (:n-a b)))
     (is (= 6 (:n-b b)))
     (is (= 3 (:n-c b)))))
@@ -74,19 +60,19 @@
          :melody melody-spec)
 
 (deftest nested-spec-test []
-  (let [r (spec rhythm-spec "test rhythm" 100 nil [1 2 3 4 5])
-        m (spec melody-spec "test melody" nil [2 3 4 54 23 43 98 23 98 54 87 23])
+  (let [r (spec rhythm-spec "test rhythm" 100 (short 5) [1 2 3 4 5])
+        m (spec melody-spec "test melody" (int 12) [2 3 4 54 23 43 98 23 98 54 87 23])
         s (spec song-spec "test song" 234 r m)
         s2 (bytes-and-back song-spec s)
         m2 (:melody s2)
         r2 (:rhythm s2)]
     (is (= 5 (:n-triggers r2)))
     (is (= 12 (:n-notes m2)))
-    (is (same? r r2))
-    (is (same? m m2))
-    (is (same? s s2))))
+    (is (= r2))
+    (is (= m2))
+    (is (= s s))))
 
-(defn go []
+(defn bytes-tests []
   (binding [*test-out* *out*]
     (run-tests 'bytes-test)))
 

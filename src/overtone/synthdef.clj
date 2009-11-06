@@ -108,7 +108,7 @@
          :synths   [synth-spec])
 
 (defn synthdef-file [& sdefs]
-  {:n-synths (count sdefs)
+  {:n-synths (short (count sdefs))
    :synths sdefs})
 
 (defn synthdef-file-bytes [sfile]
@@ -188,7 +188,7 @@
 (def *ugens* nil)
 (def *constants* nil)
 (def *params* nil)
-(defn do-col-ugens [ugen]
+(defn- do-col-ugens [ugen]
   (let [children (filter #(ugen? %1) (:args ugen))
         constants (filter #(number? %1) (:args ugen))
         params    (filter #(control? %1) (:args ugen))]
@@ -202,7 +202,7 @@
         (set! *params* (conj *params* param))))
     (set! *ugens* (conj *ugens* ugen))))
 
-(defn collect-ugen-info 
+(defn- collect-ugen-info 
   "Return a list of all the ugens in the ugen graph."
   [ugen] 
   (binding [*ugens*     []
@@ -211,12 +211,12 @@
     (do-col-ugens ugen)
     [*ugens* *constants* *params*]))
 
-(defn index-of [col item]
+(defn- index-of [col item]
   (first (first (filter (fn [[i v]] 
                           (= v item)) 
                         (indexed col)))))
 
-(defn ugen-index [ugens ugen]
+(defn- ugen-index [ugens ugen]
   (first (first (filter (fn [[i v]] 
                           (= (:id v) (:id ugen))) 
                         (indexed ugens)))))
@@ -229,8 +229,8 @@
                         (number? arg) {:src -1 :index (index-of constants arg)}
                         (ugen? arg)   {:src (ugen-index ugens arg) :index 0}))
                     (:args ugen))]
-    (println "ugens: " ugens)
-    (println "ugen: " (:name ugen) " with-inputs: " inputs)
+    ;(println "ugens: " ugens)
+    ;(println "ugen: " (:name ugen) " with-inputs: " inputs)
     (assoc ugen :inputs inputs)))
 
 (def FIXED 0)

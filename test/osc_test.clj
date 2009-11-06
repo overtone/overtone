@@ -3,8 +3,10 @@
      clojure.test
      clojure.contrib.seq-utils
      clj-backtrace.repl)
-     
+  (:require [org.enclojure.commons.c-slf4j :as log])
   (:import (java.nio ByteBuffer)))
+
+(log/ensure-logger)
 
 (def HOST "127.0.0.1")
 (def PORT (+ 1000 (rand-int 10000)))
@@ -23,7 +25,6 @@
         _ (.position buf 0)
         {:keys [path args] :as msg} (osc-decode-packet buf)
         ]
-    (println "msg: " msg)
     (is (= "/asdf" path))
     (is (= (count t-args) (count args)))
     (is (= (ffirst t-args) (ffirst args)))
@@ -39,7 +40,3 @@
       (finally 
         (osc-close server true)
         (osc-close client true)))))
-
-(defn osc-tests []
-  (binding [*test-out* *out*]
-    (run-tests 'osc-test)))

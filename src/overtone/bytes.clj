@@ -34,6 +34,14 @@
 							:int64  #(.readLong *spec-in*)
 							:float32  #(.readFloat *spec-in*)
               :float64 #(.readDouble *spec-in*)
+
+              :byte   #(.readByte *spec-in*)
+							:short  #(.readShort *spec-in*)
+							:int    #(.readInt *spec-in*)
+							:long   #(.readLong *spec-in*)
+							:float    #(.readFloat *spec-in*)
+              :double  #(.readDouble *spec-in*)
+
 							:string read-pstring
               })
 
