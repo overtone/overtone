@@ -104,7 +104,7 @@
 (defspec synthdef-spec
          :id       :int32 SCGF-MAGIC
          :version  :int32 SCGF-VERSION
-         :n-synths :int16 0
+         :n-synths :int16 1
          :synths   [synth-spec])
 
 (defn synthdef-file [& sdefs]
@@ -154,20 +154,20 @@
 (defn ugen-name [word]
   (:name (get UGEN-MAP (normalize-ugen-name word))))
 
-(defn get-ugen [word]
+(defn lookup-ugen [word]
   (get UGEN-MAP (normalize-ugen-name word)))
 
 (defn ugen [name rate & args]
   (let [info (ugen-name name)]
     (if (nil? info)
       (throw (IllegalArgumentException. (str "Unknown ugen: " name))))
-    {:type :ugen
-     :id (uuid)
-     :name name
-     :rate (rate RATES)
-     :args args}))
+    (with-meta {:id (uuid)
+                :name name
+                :rate (rate RATES)
+                :args args}
+               {:type :ugen})))
 
-(def ugen? (type-checker :ugen))
+(defn ugen? [obj] (= :ugen (type obj)))
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
@@ -178,38 +178,9 @@
   (and (map? ugen)
        (CONTROLS (normalize-ugen-name (:name ugen)))))
 
-(def *synthdef* nil)
-
-;(defn memory [init-val] 
-;  (let [m (atom init-val)] 
-;    {:next #(swap! c inc)
-;    :reset #(reset! c init-val)}))
-
 (def *ugens* nil)
 (def *constants* nil)
 (def *params* nil)
-(defn- do-col-ugens [ugen]
-  (let [children (filter #(ugen? %1) (:args ugen))
-        constants (filter #(number? %1) (:args ugen))
-        params    (filter #(control? %1) (:args ugen))]
-    (doseq [child children]
-      (do-col-ugens child))
-    (doseq [const constants]
-      (if (not ((set *constants*) const))
-        (set! *constants* (conj *constants* const))))
-    (doseq [param params]
-      (if (not ((set *params*) param))
-        (set! *params* (conj *params* param))))
-    (set! *ugens* (conj *ugens* ugen))))
-
-(defn- collect-ugen-info 
-  "Return a list of all the ugens in the ugen graph."
-  [ugen] 
-  (binding [*ugens*     []
-            *constants* []
-            *params*    []]
-    (do-col-ugens ugen)
-    [*ugens* *constants* *params*]))
 
 (defn- index-of [col item]
   (first (first (filter (fn [[i v]] 
@@ -223,7 +194,10 @@
 
 ; TODO: Figure out when we would have to connect to a different output index
 ; it probably has to do with multi-channel expansion...
-(defn with-inputs [ugen ugens constants]
+(defn with-inputs 
+  "Returns ugen object with its input ports connected to constants and upstream 
+  ugens according to the arguments in the initial definition."
+  [ugen ugens constants]
   (let [inputs (map (fn [arg]
                       (cond
                         (number? arg) {:src -1 :index (index-of constants arg)}
@@ -237,9 +211,10 @@
 (def ARG   1)
 (def ARY   2)
  
-; TODO: This seems nonsensical...  Need a better way to determine output information.
-(defn with-outputs [ugen]
-  (let [spec (get-ugen (:name ugen))
+(defn with-outputs 
+  "Returns a ugen with its output port connections setup according to the spec."
+  [ugen]
+  (let [spec (lookup-ugen (:name ugen))
         out-type (:out-type spec)
         num-outs (cond
                    (= out-type FIXED) (:fixed-outs spec)
@@ -247,22 +222,59 @@
                    (= out-type ARY)   (:fixed-outs spec))]
     (assoc ugen :outputs (take num-outs (repeat {:rate (:rate ugen)})))))
 
+(defn with-params 
+  ""
+  [ugen] ugen)
+
 (defn detail-ugens 
-  "Fill in all the input and output details necessary for each ugen."
+  "Fill in all the input and output specs for each ugen."
   [ugens constants params]
   (let [ins  (map #(with-inputs %1 ugens constants) ugens)
-        outs (map #(with-outputs %1) ins)]
-    outs))
+        outs (map #(with-outputs %1) ins)
+        params (map #(with-params %1) outs)]
+    params))
+
+(defn- collect-ugen-helper [ugen]
+  (let [children (filter #(ugen? %1) (:args ugen))
+        constants (filter #(number? %1) (:args ugen))]
+    (doseq [child children]
+      (collect-ugen-helper child))
+    (doseq [const constants]
+      (if (not ((set *constants*) const))
+        (set! *constants* (conj *constants* const))))
+    (set! *ugens* (conj *ugens* ugen))))
+
+(defn- collect-ugen-info 
+  "Return a list of all the ugens in the ugen graph in topological, depth first order.  
+  SuperCollider wants the ugens listed in the order they should be executed."
+  [ugen] 
+  (binding [*ugens*     []
+            *constants* []
+            *params*    []]
+    (collect-ugen-helper ugen)
+    [*ugens* *constants*]))
+
+(def DEFAULT-RATE :control)
+
+(defn- parse-params [params]
+  (for [[p-name p-val] params] 
+    (let [[p-val p-rate] (if (vector? p-val)
+                           p-val
+                           [p-val DEFAULT-RATE])]
+      {:name (as-str p-name)
+       :value (float p-val)
+       :rate p-rate})))
 
 ; TODO: Figure out if we ever have multiple top-level ugens, or at least
 ; an array for multiple channels...
 (defn synthdef 
   "Transforms a synth definition graph into a form that's ready to save to disk or 
   send to the server."
-  [name top-ugen]
-  (let [[ugens constants params] (collect-ugen-info top-ugen)
-        pnames    (map #(:name %1) params)
-        detailed  (detail-ugens ugens constants params)]
+  [name params top-ugen]
+  (let [[ugens constants] (collect-ugen-info top-ugen)
+        params (sort #(compare (:rate %1) (:rate %2)) (parse-params params))
+        pnames (map #(:name %1) params)
+        detailed (detail-ugens ugens constants params)]
     {:type :synthdef
      :name name
      :constants constants
@@ -271,15 +283,6 @@
      :ugens (doall detailed)}))
 
 (def synthdef? (type-checker :synthdef))
-
-;; NOTES for synthdef processing
-;; * Synth definition defines the nodes and each of their input values
-;; * Process definition by iterating through tree and converting to a 
-;; list of ugens.
-;;
-;; * find controls in ugen list and store info for ctl-header
-;; * find constants in ugen list and store info
-;; * sort list topologically
 
 (defn to-ugen-name [word]
   (ugen-name (.substring word 0 (- (count word) 3))))
@@ -291,7 +294,7 @@
         (.endsWith word ".ar") ['ugen (to-ugen-name word) :audio]
         (.endsWith word ".kr") ['ugen (to-ugen-name word) :control]
         (.endsWith word ".dr") ['ugen (to-ugen-name word) :scalar]
-        true [(symbol word)]) 
+        :default [(symbol word)]) 
       (rest l))))
 
 (defn replace-ugens
@@ -304,13 +307,47 @@
                       x)) 
             form))
 
-(defmacro defsynth [name & body]
+(defmacro defsynth [name params & body]
   (let [renamed (replace-ugens body)]
-    `(def ~(symbol (str name)) (with-meta (synthdef ~(str name) ~@renamed)
+    `(def ~(symbol (str name)) (with-meta (synthdef ~(str name) ~params ~@renamed)
                                           {:src '~body}))))
 
 ;(dosync (alter *synths assoc ~(str name) sdef#))
 
 (defmacro syn [& body]
   (first (replace-ugens body)))
+
+(defn ugen-print [u]
+  (println
+    "--"
+    "\n    name: " (:name u)
+    "\n    rate: " (:rate u)
+    "\n    n-inputs: " (:n-inputs u)
+    "\n    n-outputs: " (:n-outputs u)
+    "\n    special: " (:special u)
+    "\n    inputs: " (:inputs u)
+    "\n    outputs: " (:outputs u)))
+
+(defn synthdef-print [s]
+  (println
+    "  name: " (:name s)
+    "\n  n-constants: " (:n-constants s)
+    "\n  constants: " (:constants s)
+    "\n  n-params: " (:n-params s) 
+    "\n  params: " (:params s)
+    "\n  n-pnames: " (:n-pnames s) 
+    "\n  pnames: " (:pnames s)
+    "\n  n-ugens: " (:n-ugens s))
+  (doseq [ugen (:ugens s)]
+    (ugen-print ugen)))
+
+(defn synthdef-file-print [s]
+  (println
+    "id: " (:id s)
+    "\nversion: " (:version s)
+    "\nn-synths: " (:n-synths s)
+    "\nsynths:")
+  (doseq [synth (:synths s)] 
+    (synthdef-print synth)))
+
 

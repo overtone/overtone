@@ -1,4 +1,4 @@
-(ns sc-test
+(ns sc-examples
   (:use (overtone sc utils pitch rhythm)
      clojure.contrib.seq-utils
      clj-backtrace.repl))
@@ -40,8 +40,7 @@
     (zero? (mod cnt 8)) (hit t "snare"))
   (callback (+ (now) 125) #'beats  (+ t 125) (inc cnt)))
 
-(beats (now) 0)
-
+;(beats (now) 0)
 
 (defn get-tick [tick beat]
 ;  (println "tick: " tick " beat: " beat)
@@ -54,7 +53,7 @@
         (if note
           (hit (+ (* i TICK) t) (inst voices)))))))
 
-(make-beat house-beat house-drums)
+;(make-beat house-beat house-drums)
 (play-beat house-drums house-beat 500)
 
 (defn sin-man [start])

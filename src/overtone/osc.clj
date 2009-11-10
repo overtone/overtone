@@ -53,22 +53,20 @@
 
 (defn osc-msg
   [path & args]
-  {:type :osc-msg
-   :path path
-   :type-tag (first args)
-   :args (next args)})
+  (with-meta {:path path
+              :type-tag (first args)
+              :args (next args)} 
+             {:type :osc-msg}))
 
-(defn osc-msg? [obj]
-  (= :osc-msg (get obj :type)))
+(defn osc-msg? [obj] (= :osc-msg (type obj)))
 
 (defn osc-bundle
   [timestamp items]
-  {:type :osc-bundle
-   :timestamp timestamp
-   :items items})
+  (with-meta {:timestamp timestamp
+              :items items}
+             {:type :osc-bundle}))
 
-(defn osc-bundle? [obj]
-  (= :osc-bundle (get obj :type)))
+(defn osc-bundle? [obj] (= :osc-bundle (type obj)))
 
 (defn osc-pad 
   "Add 0-3 null bytes to make buffer position 32-bit aligned."

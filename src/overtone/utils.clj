@@ -21,10 +21,13 @@
 (defn print-classpath []
   (println (seq (.getURLs (java.lang.ClassLoader/getSystemClassLoader)))))
 
+(defn as-str [s]
+  (if (keyword? s) (name s) (str s)))
+
 (defn stringify 
   "Convert all keywords in col to strings without ':' prefixed."
   [col]
-  (map #(if (keyword? %1) (name %1) %1) col))
+  (map #(as-str %1) col))
 
 (defn floatify
   "Convert all numbers in col to floats." 

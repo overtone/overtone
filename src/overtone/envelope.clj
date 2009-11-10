@@ -1,4 +1,4 @@
-(ns overtone.envelope
+(ns overtone.envelope)
 
 (def ENV-CURVES
   {:step        0
@@ -14,7 +14,7 @@
    :squared     6
    :cub         7
    :cubed       7
- })
+   })
 
 (defn- curve-to-shapes 
   "Create the shapes list corresponding to either a curve type or a set of curve types."
@@ -47,8 +47,8 @@
         shapes (curve-to-shapes curve)
         curves (curve-to-curves curve)]
     (apply vector 
-      (concat [(first levels) (count durations) reln loopn]
-            (interleave (rest levels) durations shapes curves)))))
+           (concat [(first levels) (count durations) reln loopn]
+                   (interleave (rest levels) durations shapes curves)))))
 
 (defn triangle [& [dur level]]
   (let [dur   (or dur 1)

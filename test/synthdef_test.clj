@@ -60,7 +60,7 @@
         b (bytes-and-back synthdef-spec a)]
     (is (= a (dissoc b :version :id)))))
 
-(defsynth mini-sin
+(defsynth mini-sin {}
   (out.ar 0 (sin-osc.ar 440 0)))
 
 ;SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
@@ -69,11 +69,10 @@
 ;        snd= SinOsc.ar(freq, pi*0.5, amp);
 ;        Out.ar(0, Pan2.ar(snd*env, 0));
 ;}).store;
-(defsynth test-kick []
-  (out.ar 0 (pan2.ar (sin-osc.ar :freq (* Math/PI 0.5) :amp)
-                     (env-gen.ar (perc 0 :decay) :
-)
-
+;(defsynth test-kick {:amp 0.5 :decay 0.6 :freq 65}
+;  (out.ar 0 (pan2.ar (sin-osc.ar :freq (* Math/PI 0.5) :amp)
+;                     (env-gen.ar (perc 0 :decay) :done-free))))
+;
 (defn mini-bytes []
   (bytes-and-back synthdef-spec (synthdef-file mini-sin)))
 

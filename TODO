@@ -1,14 +1,9 @@
-=== Testing:
-* Figure out a decent way to test the synthdef stuff
- - read a def from scvim, write it back to bytes, read it again, and compare
- - compare the same definition read from an scvim file and a natively generated def
- - create a series of test sdefs in clojure that match defs in sclang, and then do a/b
-testing to make sure they are identical, both when read in and in binary format.
-
 === Project:
 * pull bytes out into a separate project
+
 * put together a one-shot ubuntu install script that sets you up with
 scsynth, the necessary jar-files, etc...
+
 * create a series of livecode session movies going through how things work
 
 === Features:
@@ -42,8 +37,6 @@ hearing useful audio input
    * managing voices, fx, and busses
 - synthdefs should automatically register their information with a synthdef library
 area so users can easily browse available instruments and fx.
-
-* convert instrument definitions to clojure
 
 * Arpeggiator(s)
 * Chord progressors
