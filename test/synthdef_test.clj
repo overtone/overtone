@@ -28,7 +28,9 @@
                 :n-outputs (short 1), :n-inputs (short 1), :rate (byte 2), :name "Saw"}
 
                {:outputs [], :inputs [{:index (short 0), :src (short -1)} {:index (short 0), :src (short 2)}], 
-                :special (short 0), :n-outputs (short 0), :n-inputs (short 2), :rate (byte 2), :name "Out"}]})
+                :special (short 0), :n-outputs (short 0), :n-inputs (short 2), :rate (byte 2), :name "Out"}]
+   :n-variants 0
+   :variants []})
 
 (def FOO "/home/rosejn/projects/overtone/foo.scd")
 (def FURL (java.net.URL. (str "file:" FOO)))

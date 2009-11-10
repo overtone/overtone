@@ -62,6 +62,13 @@
 				 :inputs    [input-spec]
          :outputs   [output-spec])
 
+;; variants are a mechanism to store a number of presets for a synthdef
+;;   pstring - name of the variant
+;;   [float32] - an array of preset values, one for each synthdef parameter
+(defspec variant-spec
+         :name :string
+         :params [:float32])
+
 ;; synth-definition (sdef):
 ;;   pstring - the name of the synth definition
 ;;   
@@ -89,7 +96,9 @@
          :n-pnames     :int16
          :pnames       [param-spec]
          :n-ugens      :int16
-         :ugens        [ugen-spec])
+         :ugens        [ugen-spec]
+         :n-variants   :int16 0
+         :variants     [variant-spec])
  
 ;; a synth-definition-file is :
 ;;   int32 - four byte file type id containing the ASCII characters: "SCgf"
@@ -108,14 +117,20 @@
          :synths   [synth-spec])
 
 (defn synthdef-file [& sdefs]
-  {:n-synths (short (count sdefs))
+  {:type :synthdef-file
+   :n-synths (short (count sdefs))
    :synths sdefs})
+
+(def synthdef-file? (type-checker :synthdef-file))
 
 (defn synthdef-file-bytes [sfile]
   (spec-write-bytes synthdef-spec sfile))
 
 (defn synthdef-bytes [sdef]
-  (spec-write-bytes synthdef-spec (synthdef-file sdef)))
+  (spec-write-bytes synthdef-spec 
+    (cond
+      (synthdef? sdef) (synthdef-file sdef)
+      (synthdef-file? sdef) sdef)))
 
 (defn synthdef-write-file [path sfile]
   (spec-write-file synthdef-spec sfile path))

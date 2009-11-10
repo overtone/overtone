@@ -9,7 +9,7 @@
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
      clj-backtrace.repl
-     (overtone utils voice osc rhythm)))
+     (overtone utils voice osc rhythm synthdef)))
 
 (log/ensure-logger)
 
@@ -246,8 +246,9 @@
     (snd "/b_allocRead" id path)
     id))
 
-(defn load-synth [bytes]
-  (snd "/d_recv" bytes)) 
+(defn load-synth [sdef]
+  (assert (or (synthdef-file? sdef) (synthdef? sdef)))
+  (snd "/d_recv" (synthdef-bytes sdef))) 
 
 (defn reset []
   (try

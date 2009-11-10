@@ -9,13 +9,13 @@ s.boot;
 s.quit;
 Help.gui;
 
-SynthDef("test-sin", {
-  Out.ar(0, SinOsc.ar(234));
-}).store;
-  
-c = Synth("test-sin");
-c = Synth("kick");
-    
+(
+SynthDef("sin", {|out = 0, pitch = 40, dur = 0.3|
+  Out.ar(out, Pan2.ar( EnvGen.kr(Env.linen(0.001, dur, 0.002), doneAction: 2) * SinOsc.ar(midicps(pitch), 0, 0.8)));
+  }).store;
+)
+Synth("sin", ["pitch", 60, "dur", 0.2]);
+c = Synth("sin");
 
 // For testing instruments with a midi keyboard...
 (
@@ -46,7 +46,7 @@ SynthDef("vintage-bass", {|out=0, note=40, vel=0.5, gate=1|
   var filt = env * MoogFF.ar(snd, env * vel * f+200, 2.2);
   Out.ar(0, Pan2.ar(filt, 0))
 }).store;
-b = Synth("vintage-bass", ["note", 40.0, "vel", 0.6]);
+b = Synth("vintage-bass", ["note", 30.0, "vel", 0.6]);
 b.set("gate", 1);
 b.set("gate", 0);
 
