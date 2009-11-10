@@ -6,9 +6,7 @@
      overtone.utils)
   (:require 
      [overtone.sc :as sc]
-     [org.enclojure.commons.c-slf4j :as log]))
-
-(log/ensure-logger)
+     [overtone.log :as log]))
 
 (def ditty-notes [50 50 57 50 48 62 62 50])
 (def ditty-durs  [0.25 0.25 0.5 0.125 0.125 0.25 0.25 0.5])
@@ -21,7 +19,7 @@
          durs durs
          t (now)]
     (when (and notes durs)
-      (println t ": " (first notes) " -> " (first durs))
+      ;(println t ": " (first notes) " -> " (first durs))
       (sc/hit t inst :pitch (first notes) :dur (ms (first durs)))
       (recur (next notes) (next durs) (+ t (ms (first durs)))))))
 

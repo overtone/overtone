@@ -3,10 +3,8 @@
      clojure.test
      clojure.contrib.seq-utils
      clj-backtrace.repl)
-  (:require [org.enclojure.commons.c-slf4j :as log])
+  (:require [overtone.log :as log])
   (:import (java.nio ByteBuffer)))
-
-(log/ensure-logger)
 
 (def HOST "127.0.0.1")
 (def PORT (+ 1000 (rand-int 10000)))

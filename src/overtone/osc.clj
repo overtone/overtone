@@ -4,10 +4,8 @@
      (java.net InetSocketAddress DatagramSocket DatagramPacket)
      (java.nio.channels DatagramChannel)
      (java.nio ByteBuffer ByteOrder))
-  (:require [org.enclojure.commons.c-slf4j :as log])
+  (:require [overtone.log :as log])
   (:use (clojure.contrib fcase)))
-
-(log/ensure-logger)
 
 (def OSC-TIMETAG-NOW 1) ; Timetag representing right now.
 (def SEVENTY-YEAR-SECS 2208988800)
@@ -203,10 +201,10 @@
 
 (defn recv-next-msg [chan buf]
   (let [src-addr (.receive chan buf)
-        _ (log/debug (str "msg-from: " src-addr))
+        ;_ (log/debug (str "msg-from: " src-addr))
         _ (.flip buf)
         msg (osc-decode-packet buf)]
-    (log/debug (str "(" src-addr "): " msg))
+    ;(log/debug (str "(" src-addr "): " msg))
     (assoc msg :src-addr src-addr)))
 
 (defn- handle-packet [pkt listeners]

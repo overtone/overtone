@@ -116,6 +116,8 @@
          :n-synths :int16 1
          :synths   [synth-spec])
 
+(def synthdef? (type-checker :synthdef))
+
 (defn synthdef-file [& sdefs]
   {:type :synthdef-file
    :n-synths (short (count sdefs))
@@ -296,8 +298,6 @@
      :params params
      :pnames pnames
      :ugens (doall detailed)}))
-
-(def synthdef? (type-checker :synthdef))
 
 (defn to-ugen-name [word]
   (ugen-name (.substring word 0 (- (count word) 3))))

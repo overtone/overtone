@@ -4,14 +4,12 @@
      (java.util.regex Pattern)
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream))
-  (:require [org.enclojure.commons.c-slf4j :as log])
+  (:require [overtone.log :as log])
   (:use 
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
      clj-backtrace.repl
      (overtone utils voice osc rhythm synthdef)))
-
-(log/ensure-logger)
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
@@ -68,7 +66,7 @@
 (defn connect 
   ([] (connect SERVER-HOST SERVER-PORT))
   ([host port]
-   (log/info (str "(connect " host ":" port))
+   (log/info "(connect " host ":" port)
    (dosync (ref-set server* (osc-client host port)))
    (comment osc-listen @server* synth-listener)))
 

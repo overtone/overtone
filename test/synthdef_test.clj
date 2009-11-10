@@ -29,17 +29,13 @@
 
                {:outputs [], :inputs [{:index (short 0), :src (short -1)} {:index (short 0), :src (short 2)}], 
                 :special (short 0), :n-outputs (short 0), :n-inputs (short 2), :rate (byte 2), :name "Out"}]
-   :n-variants 0
+   :n-variants (short 0)
    :variants []})
 
 (def FOO "/home/rosejn/projects/overtone/foo.scd")
 (def FURL (java.net.URL. (str "file:" FOO)))
 (def FOO2 "/home/rosejn/projects/overtone/foo2.scd")
 (def FURL2 (java.net.URL. (str "file:" FOO2)))
-
-;(defn jc []
-;  (synthdef-write-file (foo) FOO2)
-;  (de.sciss.jcollider.SynthDef/readDefFile FURL2))
 
 (defn jc-load-file [path]
   (de.sciss.jcollider.SynthDef/readDefFile (java.net.URL. (str "file:" path))))
@@ -59,8 +55,10 @@
 
 (deftest self-consistent-syndef
   (let [a (synthdef-file (sawzall-raw))
-        b (bytes-and-back synthdef-spec a)]
-    (is (= a (dissoc b :version :id)))))
+        a (dissoc a :type)
+        b (bytes-and-back synthdef-spec a)
+        b (dissoc b :version :id)]
+    (is (= a b))))
 
 (defsynth mini-sin {}
   (out.ar 0 (sin-osc.ar 440 0)))
@@ -71,10 +69,10 @@
 ;        snd= SinOsc.ar(freq, pi*0.5, amp);
 ;        Out.ar(0, Pan2.ar(snd*env, 0));
 ;}).store;
-;(defsynth test-kick {:amp 0.5 :decay 0.6 :freq 65}
-;  (out.ar 0 (pan2.ar (sin-osc.ar :freq (* Math/PI 0.5) :amp)
-;                     (env-gen.ar (perc 0 :decay) :done-free))))
-;
+(comment defsynth test-kick [amp 0.5 decay 0.6 freq 65]
+  (out.ar 0 (pan2.ar (sin-osc.ar freq (* Math/PI 0.5) amp)
+                     (env-gen.ar (perc 0 decay) :done-free))))
+
 (defn mini-bytes []
   (bytes-and-back synthdef-spec (synthdef-file mini-sin)))
 
