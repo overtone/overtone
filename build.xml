@@ -2,18 +2,20 @@
   <description>Builds the ${ant.project.name} plugin.</description>
 
   <property name="src.dir"     value="src"/>
-  <property name="build.dir"   value="build"/>
-  <property name="classes.dir" value="${build.dir}/classes"/>
-  <property name="jar.dir"     value="${build.dir}/jar"/>
-  <property name="tests.dir"   value="test"/>
-  <property name="lib.dir"     value="lib"/>
+  <property name="test.dir"    value="test"/>
+  <property name="session.dir" value="session"/>
+
+  <property name="deps.dir"    value="deps"/>
+  <property name="deps.file"   value="deps.zip"/>
+  <property name="deps.url"    value="http://cloud.github.com/downloads/rosejn/overtone/${deps.file}"/>
 
   <available property="hasclojure" file="${clojure.jar}"/>
 
   <path id="classpath">
-    <path location="${build.dir}"/>
+    <path location="${test.dir}"/>
     <path location="${src.dir}"/>
-    <fileset dir="${lib.dir}">
+    <path location="${session.dir}"/>
+    <fileset dir="${deps.dir}">
       <include name="*.jar"/>
     </fileset>
   </path>
@@ -42,7 +44,7 @@
           <path refid="classpath"/>
           <path location="test"/>
       </classpath>
-      <arg value="${tests.dir}/run.clj"/>
+      <arg value="${test.dir}/run.clj"/>
     </java>
   </target>
 
@@ -54,5 +56,10 @@
         <attribute name="Class-Path" value="."/>
       </manifest>
     </jar>
+  </target>
+
+  <target name="deps" description="Download dependencies and unzip">
+    <get usetimestamp="true" description="Clojure dependencies." src="${deps.url}" dest="${deps.file}"/>
+    <unzip src="${deps.file}" dest="."/>
   </target>
 </project>

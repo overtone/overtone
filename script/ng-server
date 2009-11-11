@@ -37,8 +37,8 @@
 
 pkill -9 java
 
-CLASSPATH=`pwd`/test:`pwd`/extra:`pwd`/session:$CLASSPATH
-CLOJURE_EXT="`pwd`/lib"
+CLASSPATH=`pwd`/src:`pwd`/test:`pwd`/session:`pwd`/src/extra
+CLOJURE_EXT="`pwd`/deps"
 
 if [ -d "${CLOJURE_EXT:-}" ]; then
 	EXT="`find ${CLOJURE_EXT} -maxdepth 1 -print0 | tr \\\\0 :`"
