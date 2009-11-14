@@ -35,12 +35,12 @@ Overtone is a Clojure based musical generation and manipulation system for live-
 Install:
 
 * Super Collider (http://supercollider.sourceforge.net/)
- - Make sure it's available on your path.
+  - Make sure it's available on your path.
 
 * Java 6 JDK
 
 * Apache Ant build tool 
- - If someone contributes a Maven file that would be sweet...
+  - If someone contributes a Maven file that would be sweet...
 
 * Linux users will need a working Jackd setup, as well as the jack_lsp, and
 jack_connect utilities (jack-tools package in Ubuntu).
@@ -58,12 +58,14 @@ editor.
 
 ### Getting Started:
 
-(use 'overtone.sc)
-(boot)
-(hit) ; makes a test noise
-(hit (now) "kick") ; hits the kick drum right now
-(hit (+ (now) 1000) "kick") ; hits the kick drum in 1 second (1,000 ms)
-(quit)
+{% highlight clojure %}
+    (use 'overtone.sc)
+    (boot)
+    (hit) ; makes a test noise
+    (hit (now) "kick") ; hits the kick drum right now
+    (hit (+ (now) 1000) "kick") ; hits the kick drum in 1 second (1,000 ms)
+    (quit)
+{% endhighlight %}
 
 For now you can look in the "tests" for examples on how to make noise and do things.
 Submissions of cool musical examples, tutorials, and general fixes and features
@@ -76,36 +78,25 @@ understand and modify.
 
 ### Related Projects:
 
-* Impromptu
-** http://impromptu.moso.com.au/
+* [Impromptu](http://impromptu.moso.com.au/)
 
-* Fluxus, Fluxa and LiveNoiseTools
-** http://impromptu.moso.com.au/
+* [Fluxus](http://impromptu.moso.com.au/)
 
-* Chuck
-** http://chuck.cs.princeton.edu/
+* [Chuck](http://chuck.cs.princeton.edu/)
 
-* csound
-** http://www.csounds.com/
+* [csound](http://www.csounds.com/)
 
-* PureData
-** http://puredata.info/
+* [PureData](http://puredata.info/)
 
-* JCollider
-** http://www.sciss.de/jcollider/
+* [JCollider](http://www.sciss.de/jcollider/)
 
-* SCRuby - Ruby SuperCollider
-** http://github.com/maca/scruby
+* [SCRuby](http://github.com/maca/scruby) - Ruby SuperCollider
 
-* RSC3 - Scheme SuperCollider
-** http://www.slavepianos.org/rd/sw/rsc3/README
+* [RSC3](http://www.slavepianos.org/rd/sw/rsc3/README) - Scheme SuperCollider
 
-* Common Music
-** http://commonmusic.sourceforge.net/cm/res/doc/cm.html#toolbox
+* [Common Music](http://commonmusic.sourceforge.net/cm/res/doc/cm.html#toolbox)
 
-* JFugue
-** http://www.jfugue.org/javadoc/index.html
+* [JFugue](http://www.jfugue.org/javadoc/index.html)
 
-* JMusic
-** http://jmusic.ci.qut.edu.au/
+* [JMusic](http://jmusic.ci.qut.edu.au/)
 
