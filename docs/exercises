@@ -1,0 +1,21 @@
+=== Live-Coding practice exercises
+
+The TopLap crew has some basic resources for learning to live-code, including
+practice ideas.  It would be nice to expand on this list and put together a
+good sequence of exercises that could be followed to go from 100% newbie to jam
+ready beginner.
+
+==== Sonification
+* sonify basic algorithms
+
+==== Algorithmic Composition
+* markov models
+* l-systems
+* trees
+* grammars
+
+==== Recovering from errors
+* deal with compile errors
+* runtime errors
+* full crash
+
