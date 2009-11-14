@@ -58,14 +58,7 @@ editor.
 
 ### Getting Started:
 
-{% highlight clojure %}
-    (use 'overtone.sc)
-    (boot)
-    (hit) ; makes a test noise
-    (hit (now) "kick") ; hits the kick drum right now
-    (hit (+ (now) 1000) "kick") ; hits the kick drum in 1 second (1,000 ms)
-    (quit)
-{% endhighlight %}
+<script src="http://gist.github.com/234818.js"></script>
 
 For now you can look in the "tests" for examples on how to make noise and do things.
 Submissions of cool musical examples, tutorials, and general fixes and features
