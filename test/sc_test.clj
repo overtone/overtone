@@ -8,6 +8,8 @@
      [overtone.sc :as sc]
      [overtone.log :as log]))
 
+(def DEBUG? true)
+
 (def ditty-notes [50 50 57 50 48 62 62 50])
 (def ditty-durs  [0.25 0.25 0.5 0.125 0.125 0.25 0.25 0.5])
 
@@ -27,9 +29,26 @@
   (try 
     (sc/boot)
     (is (not (nil? @sc/server*)))
-    (is (= 1 (:num-ugens (sc/status))))
+    ;(is (= 1 (:n-ugens (sc/status))))
     (play "sin" ditty-notes ditty-durs)
     (Thread/sleep 3000)
+    (finally 
+      (sc/quit))))
+
+(defn groups-test []
+  (sc/group :head sc/DEFAULT-GROUP)
+  (sc/group :head sc/DEFAULT-GROUP)
+  (sc/group :head sc/DEFAULT-GROUP)
+  (is (= 4 (:n-groups (sc/status)))))
+
+(defn nodes-test [])
+
+(deftest server-messaging-test []
+  (try
+    (sc/boot)
+;    (if DEBUG? (sc/notify))
+    (groups-test)
+    (nodes-test)
     (finally 
       (sc/quit))))
 

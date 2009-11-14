@@ -1,7 +1,7 @@
 (ns overtone.synthdef
   (:import (java.net URL))
   (:use
-     (overtone utils ugens bytes)
+     (overtone utils ugens ops bytes)
      (clojure walk inspector)
      clojure.contrib.seq-utils
      clojure.contrib.logging))
@@ -171,16 +171,20 @@
 (defn ugen-name [word]
   (:name (get UGEN-MAP (normalize-ugen-name word))))
 
-(defn lookup-ugen [word]
+(defn find-ugen [word]
   (get UGEN-MAP (normalize-ugen-name word)))
 
-(defn ugen [name rate & args]
+(defn ugen-search [regexp]
+  (filter (fn [[k v]] (re-find (re-pattern regexp) (str k))) UGEN-MAP))
+
+(defn ugen [name rate special & args]
   (let [info (ugen-name name)]
     (if (nil? info)
       (throw (IllegalArgumentException. (str "Unknown ugen: " name))))
     (with-meta {:id (uuid)
                 :name name
                 :rate (rate RATES)
+                :special special
                 :args args}
                {:type :ugen})))
 
@@ -231,7 +235,7 @@
 (defn with-outputs 
   "Returns a ugen with its output port connections setup according to the spec."
   [ugen]
-  (let [spec (lookup-ugen (:name ugen))
+  (let [spec (find-ugen (:name ugen))
         out-type (:out-type spec)
         num-outs (cond
                    (= out-type FIXED) (:fixed-outs spec)
@@ -285,7 +289,7 @@
 ; TODO: Figure out if we ever have multiple top-level ugens, or at least
 ; an array for multiple channels...
 (defn synthdef 
-  "Transforms a synth definition graph into a form that's ready to save to disk or 
+  "Transforms a synth definition (ugen-tree) into a form that's ready to save to disk or 
   send to the server."
   [name params top-ugen]
   (let [[ugens constants] (collect-ugen-info top-ugen)
@@ -306,9 +310,9 @@
   (let [word (str (first l))]
     (concat 
       (cond 
-        (.endsWith word ".ar") ['ugen (to-ugen-name word) :audio]
-        (.endsWith word ".kr") ['ugen (to-ugen-name word) :control]
-        (.endsWith word ".dr") ['ugen (to-ugen-name word) :scalar]
+        (.endsWith word ".ar") ['ugen (to-ugen-name word) :audio 0]
+        (.endsWith word ".kr") ['ugen (to-ugen-name word) :control 0]
+        (.endsWith word ".dr") ['ugen (to-ugen-name word) :scalar 0]
         :default [(symbol word)]) 
       (rest l))))
 
@@ -322,12 +326,50 @@
                       x)) 
             form))
 
-(defmacro defsynth [name params & body]
-  (let [renamed (replace-ugens body)]
-    `(def ~(symbol (str name)) (with-meta (synthdef ~(str name) ~params ~@renamed)
-                                          {:src '~body}))))
+(defn ugen-form? [form]
+  (= 'ugen (first form)))
 
-;(dosync (alter *synths assoc ~(str name) sdef#))
+(defn unary-op? [form]
+  (and (seq? form)
+       (= 2 (count form))
+       (ugen-form? (second form))
+       (contains? UNARY-OPS (str (first form)))))
+
+(defn binary-op? [form]
+  (and (seq? form)
+       (= 3 (count form))
+       (ugen-form? (second form))
+       (ugen-form? (nth form 2))
+       (contains? BINARY-OPS (str (first form)))))
+
+(defn replace-unary [form]
+  (concat 
+    ['ugen  "UnaryOpUGen" (nth (fnext form) 2) (get UNARY-OPS (str (first form)))]
+    (next form)))
+
+(defn replace-binary [form]
+  (concat
+  ['ugen  "BinaryOpUGen" (nth (fnext form) 2) (get BINARY-OPS (str (first form)))]
+    (next form)))
+
+(defn replace-arithmetic
+  "Replace all arithmetic operations on ugens with unary and binary ugen operators."
+  [form]
+  (postwalk (fn [x] (cond
+                      (unary-op? x) (replace-unary x)
+                      (binary-op? x) (replace-binary x)
+                      :default x))
+            form))
+
+(defn to-ugen-tree [form]
+  (let [t1 (replace-ugens form)
+        t2 (replace-arithmetic t1)]
+    t2))
+
+(defmacro defsynth [name params & body]
+  (let [ugen-tree (to-ugen-tree body)]
+    `(def ~(symbol (str name)) (with-meta (synthdef ~(str name) ~params ~@ugen-tree)
+                                          {:src '~body}))))
 
 (defmacro syn [& body]
   (first (replace-ugens body)))

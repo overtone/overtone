@@ -4,7 +4,9 @@
      (java.util.regex Pattern)
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream))
-  (:require [overtone.log :as log])
+  (:require [overtone.log :as log]
+     [clojure.zip :as zip]
+     [overtone.insertion-point :as ip])
   (:use 
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
@@ -19,6 +21,8 @@
 (def START-GROUP-ID 1)
 (def START-BUFFER-ID 1)
 (def START-NODE-ID 1000)
+
+(def DEFAULT-GROUP 0)
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
@@ -73,11 +77,20 @@
 (defonce running?* (atom false))
 (def *server-out* *out*)
 
+(def server-log* (ref []))
+
+(defn print-server-log []
+  (doseq [msg @server-log*]
+    (print msg)))
+
 (defn server-log [stream read-buf]
   (while (pos? (.available stream))
-    (let [n (min (count read-buf) (.available stream))]
-      (.read stream read-buf 0 n)
-      (.write *server-out* (String. read-buf 0 n)))))
+    (let [n (min (count read-buf) (.available stream))
+          _ (.read stream read-buf 0 n)
+          msg (String. read-buf 0 n)]
+      (dosync (alter server-log* conj msg))
+      (log/info (String. read-buf 0 n)))))
+;      (.write *server-out* (String. read-buf 0 n)))))
 
 (defn- boot-thread [cmd]
   (reset! running?* true)
@@ -121,18 +134,29 @@
   (reset! running?* false)
   (dosync (ref-set server* nil)))
 
-(defn notify [notify?]
-  (snd "/notify" (if notify? 1 0)))
+(defn notify [& [notify?]]
+  (snd "/notify" (if (false? notify?) 0 1)))
 
+;Replies to sender with the following message.
+;status.reply
+;	int - 1. unused.
+;	int - number of unit generators.
+;	int - number of synths.
+;	int - number of groups.
+;	int - number of loaded synth definitions.
+;	float - average percent CPU usage for signal processing
+;	float - peak percent CPU usage for signal processing
+;	double - nominal sample rate
+;	double - actual sample rate
 (defn status []
   (snd "/status")
   (let [sts (osc-recv @server*)]
     (log/debug "got status: " (:args sts))
-    (if-let [{[ugens synths groups loaded avg peak nominal actual] :args} sts]
-      {:num-ugens ugens
-       :num-synths synths
-       :num-groups groups
-       :num-loaded-synths loaded
+    (if-let [[_ ugens synths groups loaded avg peak nominal actual] (:args sts)]
+      {:n-ugens ugens
+       :n-synths synths
+       :n-groups groups
+       :n-loaded-synths loaded
        :avg-cpu avg
        :peak-cpu peak
        :nominal-sample-rate nominal
@@ -205,6 +229,74 @@
     (snd "/g_new" id (get POSITION position) target-id)
     id))
 
+(defn group-free
+  "Free the specified groups."
+  [group-id & group-ids]
+  (apply node-free group-id group-ids))
+
+(defn node-free 
+  "Instantly remove a node from the graph."
+  [node-id & node-ids]
+  (apply snd "/n_free" node-id node-ids))
+
+(defn post-tree 
+  "Posts a representation of this group's node subtree, i.e. all the groups and
+  synths contained within it, optionally including the current control values
+  for synths."
+  [id & [with-args?]]
+  (snd "/g_dumpTree" id with-args?))
+  
+;/g_queryTree				get a representation of this group's node subtree.
+;	[
+;		int - group ID
+;		int - flag: if not 0 the current control (arg) values for synths will be included
+;	] * N
+;	
+; Request a representation of this group's node subtree, i.e. all the groups and
+; synths contained within it. Replies to the sender with a /g_queryTree.reply
+; message listing all of the nodes contained within the group in the following
+; format:
+;
+;	int - flag: if synth control values are included 1, else 0
+;	int - node ID of the requested group
+;	int - number of child nodes contained within the requested group
+;	then for each node in the subtree:
+;	[
+;		int - node ID
+;		int - number of child nodes contained within this node. If -1this is a synth, if >=0 it's a group
+;		then, if this node is a synth:
+;		symbol - the SynthDef name for this node.
+;		then, if flag (see above) is true:
+;		int - numControls for this synth (M)
+;		[
+;			symbol or int: control name or index
+;			float or symbol: value or control bus mapping symbol (e.g. 'c1')
+;		] * M
+;	] * the number of nodes in the subtree
+
+;(defn parse-synth-vec [data loc ctls?])
+
+(comment
+(defn parse-node-tree [t]
+  (let [loc (-> [] z/vector-zip (insertion-point :append))
+        ctls? (first t)]
+    (loop [data (next t)
+           loc loc]
+      (cond
+        (empty? data) (zip/root loc)
+        (neg? (second data)) (let [[d l] (parse-synth-vec data loc ctls?)]
+                               (recur d l))
+        :default (recur (nnext data) (insert-right loc ???))))))
+)
+
+; N.B. The order of nodes corresponds to their execution order on the server.
+; Thus child nodes (those contained within a group) are listed immediately
+; following their parent. See the method Server:queryAllNodes for an example of
+; how to process this reply.
+(defn get-graph [id & [with-args?]]
+  (snd "/g_queryTree" id with-args?)
+  (let [tree (osc-recv @server*)]))
+
 (defn prepend-node 
   "Add a node to the end of a group list."
   [g n]
@@ -215,8 +307,8 @@
   [g n]
   (snd "/g_tail" g n)) 
 
-(defn group-free-children 
-  "Free all synth nodes from the processing graph."
+(defn group-clear
+  "Free all child synth nodes in a group."
   [group-id]
   (snd "/g_freeAll" group-id))
 
@@ -250,15 +342,20 @@
 
 (defn reset []
   (try
-    (group-free-children 0)
+    (group-clear 0)
     (catch Exception e nil))
   (clear-msg-queue)
-  (reset-id-counters))
+  (reset-id-counters)
+  (dosync (ref-set server-log* [])))
 
 (defn debug [& [on-off]]
   (if (or on-off (nil? on-off))
-      (snd "/dumpOSC" 1)
-      (snd "/dumpOSC" 0)))
+    (do
+      (log/level :debug)
+      (snd "/dumpOSC" 1))
+    (do 
+      (log/level :error)
+      (snd "/dumpOSC" 0))))
 
 (defn restart 
   "Reset everything and restart the SuperCollider process."
@@ -277,24 +374,20 @@
      (apply hit time-ms "granular" :buf syn args)
      (in-osc-bundle @server* time-ms (apply node syn args)))))
 
+(defmacro check
+  "Try out a synth definition without actually defining it.  Useful for experimentation."
+  [& body]
+  (let [sdef (synthdef "audition-synth" [] (to-ugen-tree body))
+        _    (load-synth sdef)
+        node-id (hit (now) "audition-synth")]
+    (Thread/sleep 2000)
+    (node-free node-id)))
+
 (defn ctl
   "Modify a synth parameter at the specified time."
   [time-ms node-id & args]
   (in-osc-bundle @server* time-ms (apply node-control node-id (stringify args))))
 
-;(defn status []
-;  (let [stat (.getStatus @*s)]
-;    {:sample-rate (.sampleRate stat)
-;     :actual-sample-rate (.actualSampleRate stat)
-;
-;     :num-groups (.numGroups stat)
-;     :num-synth-defs (.numSynthDefs stat)
-;     :num-synths (.numSynths stat)
-;     :num-nodes  (.numUGens stat)
-;
-;     :avg-cpu (.avgCPU stat)
-;     :peak-cpu (.peakCPU stat)}))
-;
 ;;(defn effect [synthdef & args]
 ;;  (let [arg-map (assoc (apply hash-map args) "bus" FX-BUS)
 ;;        new-effect {:def synthdef
@@ -320,4 +413,4 @@
 ;        synth (trigger (:synth voice) args)]
 ;    (schedule #(release synth) dur)
 ;    synth))
-;
+

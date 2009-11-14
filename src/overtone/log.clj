@@ -3,18 +3,34 @@
                               SimpleFormatter)))
 
 (defonce LOGGER (Logger/getLogger "overtone"))
-(defonce LOG_FILE "log")
+(defonce LOG-FILE "log")
 
-(defonce LOG_APPEND false)
-(defonce LOG_CONSOLE (ConsoleHandler.))
-(defonce LOG_FILE_HANDLER (FileHandler. LOG_FILE LOG_APPEND))
+(defonce LOG-APPEND false)
+(defonce LOG-CONSOLE (ConsoleHandler.))
+(defonce LOG-FILE-HANDLER (FileHandler. LOG-FILE LOG-APPEND))
 
-(defonce LOG_SETUP?
+(def LEVELS {:debug Level/FINE
+             :info  Level/INFO
+             :warn  Level/WARNING
+             :error Level/SEVERE})
+
+(def DEFAULT-LEVEL :error)
+
+(defn level [& [lvl]]
+  (if (nil? lvl)
+    (.getLevel LOGGER)
+    (do
+      (assert (contains? LEVELS lvl))
+      (.setLevel LOGGER (lvl LEVELS)))))
+
+(level DEFAULT-LEVEL)
+
+(defonce LOG-SETUP?
   (do 
-    ;(.setOutputStream LOG_CONSOLE *out*)
-    (.setFormatter LOG_FILE_HANDLER (SimpleFormatter.))
-    (.addHandler LOGGER LOG_CONSOLE)
-    (.addHandler LOGGER LOG_FILE_HANDLER)
+    ;(.setOutputStream LOG-CONSOLE *out*)
+    (.setFormatter LOG-FILE-HANDLER (SimpleFormatter.))
+    (.addHandler LOGGER LOG-CONSOLE)
+    (.addHandler LOGGER LOG-FILE-HANDLER)
     true))
 
 (defn debug [& msg]
@@ -29,11 +45,3 @@
 (defn error [& msg]
   (.log LOGGER Level/SEVERE (str msg)))
 
-(def LEVELS {:debug Level/FINE
-             :info  Level/INFO
-             :warn  Level/WARNING
-             :error Level/SEVERE})
-
-(defn level [lvl]
-  (assert (contains? LEVELS lvl))
-  (.setLevel LOGGER (lvl LEVELS)))

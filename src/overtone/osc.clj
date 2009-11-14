@@ -200,11 +200,12 @@
     (decode-msg buf)))
 
 (defn recv-next-msg [chan buf]
+  (.clear buf)
   (let [src-addr (.receive chan buf)
         ;_ (log/debug (str "msg-from: " src-addr))
         _ (.flip buf)
         msg (osc-decode-packet buf)]
-    ;(log/debug (str "(" src-addr "): " msg))
+    (log/debug "OSC: (" src-addr "): " msg)
     (assoc msg :src-addr src-addr)))
 
 (defn- handle-packet [pkt listeners]
