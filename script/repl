@@ -1,11 +1,11 @@
-#!/bin/sh 
+#!/bin/sh
 
-# A simple script to start a repl with the project jar files (in the lib 
+# A simple script to start a repl with the project jar files (in the lib
 # directory) on the classpath.
 
 CLASSPATH=".:./src"
 
-for f in lib/*.jar; do
+for f in deps/*.jar; do
     CLASSPATH=$CLASSPATH:$f
 done
 
