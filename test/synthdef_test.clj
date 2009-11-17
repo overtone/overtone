@@ -9,9 +9,9 @@
      clj-backtrace.repl))
 
 (defn sawzall-raw 
-  "This data was read by this library, but written by jcollider."
   []
-  {:name "sawzall" 
+  {:type :synthdef
+   :name "sawzall" 
    :n-constants (short 1)
    :constants [(float 0.0)]
    :n-params  (short 1)
@@ -60,8 +60,27 @@
         b (dissoc b :version :id)]
     (is (= a b))))
 
+;(defsynth mini-sin {:freq 440}
+;  (out.ar 0 (sin-osc.ar :freq 0)))
+
 (defsynth mini-sin {}
   (out.ar 0 (sin-osc.ar 440 0)))
+;
+;(def mini-sin (synthdef "mini-sin" {} 
+;  (ugen "Out" :audio 0 0 (ugen "SinOsc" :audio 0 440 0))))
+;
+;(defsynth saw-sin {}
+;  (out.ar 0 (+ (saw.ar 443) 
+;               (sin-osc.ar 440 0))))
+;
+;(def saw-sin (synthdef "mini-sin" {} 
+;  (ugen "Out" :audio 0 0 (ugen "BinaryOpUGen" :audio 0 
+;                               (ugen "Saw" :audio 0 443) 
+;                               (ugen "SinOsc" :audio 0 440 0)))))
+;
+; The defsynth above is in effect the same as
+; (def mini-sin (synthdef "mini-sin" {} 
+;   (ugen "Out" :audio 0 0 (ugen "SinOsc" :audio 0 440 0))))
 
 ;SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
 ;        var env, snd;

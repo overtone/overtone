@@ -1,19 +1,10 @@
 (ns overtone.fx
   (:use (overtone synth)))
 
-;; FX 
-(def ECHO-DELAY 0.2)
-(def ECHO-DECAY 4)
+;; The goal is to eventually build up a nice library of effects processors.
 
-(defsynth echo
-  (let [in (ar "In" 0)]
-    (ar "Out" 0 
-        (ar "Pan2" 
-            (ar "MulAdd" 
-                (ar "CombN" in 0.5 ECHO-DELAY ECHO-DECAY)
-                1 in)
-            0))))
-
+; An example echo effect in SClang:
+;
 ;z = SynthDef(\src, {|mix = 0.25, room = 0.15, damp = 0.5|
 ;Out.ar(0,
 ;FreeVerb.ar(
@@ -28,6 +19,16 @@
 ;z.set(\room, 0.7)
 ;z.set(\mix, 0.4)
 ;z.set(\damp, 0.2)
-;
 
+(def ECHO-DELAY 0.2)
+(def ECHO-DECAY 4)
+
+(defsynth echo
+  (let [in (ar "In" 0)]
+    (ar "Out" 0 
+        (ar "Pan2" 
+            (ar "MulAdd" 
+                (ar "CombN" in 0.5 ECHO-DELAY ECHO-DECAY)
+                1 in)
+            0))))
 

@@ -13,6 +13,8 @@
      clj-backtrace.repl
      (overtone utils voice osc rhythm synthdef)))
 
+; This is at heart an OSC client library for the SuperCollider scsynth engine.
+
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
 (def SERVER-HOST "127.0.0.1")

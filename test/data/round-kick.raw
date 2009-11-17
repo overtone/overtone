@@ -1,0 +1,51 @@
+; This is an annotated version of this synth definition to help in understanding
+; the way that synths are encoded.
+
+;SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
+;        var env, snd;
+;        env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
+;        snd= SinOsc.ar(freq, pi*0.5, amp);
+;        Out.ar(0, Pan2.ar(snd*env, 0));
+;});
+
+(defsynth rnd-kick {:amp 0.5 :decay 0.6 :freq 65}
+  (let [env (env-gen.ar (perc 0 decay) :done-free)
+        snd (sin-osc.ar freq (* Math/PI 0.5) amp)]
+    (out.ar 0 (pan2.ar (* snd env) 0)))) 
+
+(defsynth rnd-kick {:amp 0.5 :decay 0.6 :freq 65}
+  (out.ar 0 (pan2.ar (* (sin-osc.ar freq (* Math/PI 0.5) amp)
+                        (env-gen.ar (perc 0 decay) :done-free)) 
+                     0)))
+
+{
+:name "round-kick", 
+:n-params 3, 
+:params [0.5 0.6 65.0], 
+:n-pnames 3, 
+:pnames [{:index 0, :name "amp"} {:index 1, :name "decay"} {:index 2, :name "freq"}], 
+:n-constants 7, 
+:constants [1.0 0.0 2.0 -99.0 5.0 -4.0 1.5707964]
+:n-ugens 7, 
+:ugens [
+
+; A Control UGen for input parameters at :control rate (versus audio, or scalar)
+{:outputs [{:rate 1} {:rate 1} {:rate 1}], :inputs [], :special 0, :n-outputs 3, :n-inputs 0, :rate 1, :name "Control"}
+
+{:outputs [{:rate 2}], :inputs [{:index 0, :src -1} {:index 0, :src -1} {:index 1, :src -1} {:index 0, :src -1} {:index 2, :src -1} {:index 1, :src -1} {:index 2, :src -1} {:index 3, :src -1} {:index 3, :src -1} {:index 0, :src -1} {:index 1, :src -1} {:index 4, :src -1} {:index 5, :src -1} {:index 1, :src -1} {:index 1, :src 0} {:index 4, :src -1} {:index 5, :src -1}], :special 0, :n-outputs 1, :n-inputs 17, :rate 2, :name "EnvGen"}
+
+{:outputs [{:rate 2}], :inputs [{:index 2, :src 0} {:index 6, :src -1}], :special 0, :n-outputs 1, :n-inputs 2, :rate 2, :name "SinOsc"}
+
+; Multiplying the sin-osc with the amplitude control value
+{:outputs [{:rate 2}], :inputs [{:index 0, :src 2} {:index 0, :src 0}], :special 2, :n-outputs 1, :n-inputs 2, :rate 2, :name "BinaryOpUGen"}
+
+; Multiplying the env and snd components
+{:outputs [{:rate 2}], :inputs [{:index 0, :src 3} {:index 0, :src 1}], :special 2, :n-outputs 1, :n-inputs 2, :rate 2, :name "BinaryOpUGen"}
+
+{:outputs [{:rate 2} {:rate 2}], :inputs [{:index 0, :src 4} {:index 1, :src -1} {:index 0, :src -1}], :special 0, :n-outputs 2, :n-inputs 3, :rate 2, :name "Pan2"}
+
+{:outputs [], :inputs [{:index 1, :src -1} {:index 0, :src 5} {:index 1, :src 5}], :special 0, :n-outputs 0, :n-inputs 3, :rate 2, :name "Out"}], 
+
+:n-variants 0, 
+:variants [], 
+} 

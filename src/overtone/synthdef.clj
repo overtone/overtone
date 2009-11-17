@@ -195,6 +195,18 @@
 ;; all ugens which should be specified as external controls.
 (def CONTROLS #{"control"})
 
+(defn control-ugen [rate n-outputs]
+  (with-meta {:id (uuid)
+              :name "Control"
+              :rate (rate RATES)
+              :special 0
+              :args nil
+              :n-outputs n-outputs
+              :outputs (repeat n-outputs {:rate (rate RATES)})
+              :n-inputs 0
+              :inputs []}
+            {:type :ugen}))
+
 (defn control? [ugen]
   (and (map? ugen)
        (CONTROLS (normalize-ugen-name (:name ugen)))))
@@ -213,19 +225,42 @@
                           (= (:id v) (:id ugen))) 
                         (indexed ugens)))))
 
+; TODO: Ugh...  There must be a nicer way to do this.  I need to get the group
+; number (source) and param index within the group (index) from a grouped
+; parameter structure like this (2x2 in this example):
+;
+;[[{:name :freq :value 440.0 :rate  1} {:name :amp :value 0.4 :rate  1}]
+; [{:name :adfs :value 20.23 :rate  2} {:name :bar :value 8.6 :rate  2}]]
+(defn- param-input-spec [grouped-params param-name]
+  (let [ctl-filter (fn [[idx ctl]] (= param-name (:name ctl)))
+        [[src group] foo] (take 1 (filter 
+                              (fn [[src grp]] 
+                                (not (empty? 
+                                       (filter ctl-filter (indexed grp)))))
+                              (indexed grouped-params)))
+        _ (println "src: " src "\ngrp: " group)
+        [[idx param] bar] (take 1 (filter ctl-filter (indexed group)))]
+    (if (or (nil? src) (nil? idx))
+      (throw (IllegalArgumentException. (str "Invalid parameter name: " param-name ". Please make sure you have named all parameters in the param map in order to use them inside the synth definition."))))
+    {:src src :index idx}))
+
 ; TODO: Figure out when we would have to connect to a different output index
 ; it probably has to do with multi-channel expansion...
 (defn with-inputs 
   "Returns ugen object with its input ports connected to constants and upstream 
   ugens according to the arguments in the initial definition."
-  [ugen ugens constants]
+  [ugen ugens constants grouped-params]
   (let [inputs (map (fn [arg]
                       (cond
+                        ; constant
                         (number? arg) {:src -1 :index (index-of constants arg)}
+                        
+                        ; control
+                        (keyword? arg) (param-input-spec grouped-params arg)
+
+                        ; child ugen
                         (ugen? arg)   {:src (ugen-index ugens arg) :index 0}))
                     (:args ugen))]
-    ;(println "ugens: " ugens)
-    ;(println "ugen: " (:name ugen) " with-inputs: " inputs)
     (assoc ugen :inputs inputs)))
 
 (def FIXED 0)
@@ -235,34 +270,41 @@
 (defn with-outputs 
   "Returns a ugen with its output port connections setup according to the spec."
   [ugen]
-  (let [spec (find-ugen (:name ugen))
-        out-type (:out-type spec)
-        num-outs (cond
-                   (= out-type FIXED) (:fixed-outs spec)
-                   (= out-type ARG)   (:fixed-outs spec)
-                   (= out-type ARY)   (:fixed-outs spec))]
-    (assoc ugen :outputs (take num-outs (repeat {:rate (:rate ugen)})))))
-
-(defn with-params 
-  ""
-  [ugen] ugen)
+  ; Don't modify controls or anything that comes with pre-setup outputs.
+  (if (contains? ugen :outputs)
+    ugen
+    (let [spec (find-ugen (:name ugen))
+          out-type (:out-type spec)
+          num-outs (cond
+                     (= out-type FIXED) (:fixed-outs spec)
+                     (= out-type ARG)   (:fixed-outs spec)
+                     (= out-type ARY)   (:fixed-outs spec))]
+            (println "outputs: " (take num-outs (repeat {:rate (:rate ugen)})))
+            (assoc ugen :outputs (take num-outs (repeat {:rate (:rate ugen)}))))))
 
 (defn detail-ugens 
   "Fill in all the input and output specs for each ugen."
-  [ugens constants params]
-  (let [ins  (map #(with-inputs %1 ugens constants) ugens)
-        outs (map #(with-outputs %1) ins)
-        params (map #(with-params %1) outs)]
-    params))
+  [ugens constants grouped-params]
+  (map (fn [ugen]
+         (with-outputs 
+            (with-inputs ugen ugens constants grouped-params)))
+       ugens))
 
 (defn- collect-ugen-helper [ugen]
   (let [children (filter #(ugen? %1) (:args ugen))
         constants (filter #(number? %1) (:args ugen))]
+
+    ; We want depth first (topological) ordering of ugens, so dig down to the
+    ; child ugens before adding the current ugen to the list.
     (doseq [child children]
       (collect-ugen-helper child))
+    
+    ; Each constant value should appear only once in the set of constants
     (doseq [const constants]
       (if (not ((set *constants*) const))
         (set! *constants* (conj *constants* const))))
+
+    ; Add the current ugen to the list
     (set! *ugens* (conj *ugens* ugen))))
 
 (defn- collect-ugen-info 
@@ -270,10 +312,28 @@
   SuperCollider wants the ugens listed in the order they should be executed."
   [ugen] 
   (binding [*ugens*     []
-            *constants* []
-            *params*    []]
+            *constants* []]
     (collect-ugen-helper ugen)
     [*ugens* *constants*]))
+
+(defn- make-control-ugens
+  "Controls are grouped by rate, so that a single Control ugen represents
+  each rate present in the params.  The Control ugens are always the top nodes
+  in the graph, so they can be prepended to the topologically sorted tree."
+  [grouped-params]
+  (map #(control-ugen (:rate (first %1)) (count %1)) grouped-params))
+
+(defn- group-params 
+  "Groups params by rate.  Groups a list of parameters into a
+   list of lists, one per rate."
+  [params]
+  (let [by-rate (reduce (fn [mem param] 
+                          (let [rate (:rate param)
+                                rate-group (get mem rate [])]
+                            (assoc mem rate (conj rate-group param))))
+                        {} params)]
+    (filter #(not (nil? %1))
+            (conj [] (:scalar by-rate) (:control by-rate) (:audio by-rate)))))
 
 (def DEFAULT-RATE :control)
 
@@ -282,26 +342,37 @@
     (let [[p-val p-rate] (if (vector? p-val)
                            p-val
                            [p-val DEFAULT-RATE])]
-      {:name (as-str p-name)
+      {:name  p-name
        :value (float p-val)
-       :rate p-rate})))
+       :rate  p-rate})))
 
-; TODO: Figure out if we ever have multiple top-level ugens, or at least
-; an array for multiple channels...
+; TODO: Either add support for multi-channel expansion, or get rid of the idea
+; and do it in a more lispy way.
+            
+; NOTES:
+; * The ugen tree is turned into a ugen list that is sorted by the order in 
+; which nodes should be processed.  (Depth first, starting at outermost leaf 
+; of the first branch.
+; * params are sorted by rate, and then a Control ugen per rate is created
+; and prepended to the ugen list
+; * finally, ugen inputs are specified using their index  
+; in the sorted ugen list.
 (defn synthdef 
-  "Transforms a synth definition (ugen-tree) into a form that's ready to save to disk or 
-  send to the server."
+  "Transforms a synth definition (ugen-tree) into a form that's ready to save 
+  to disk or send to the server."
   [name params top-ugen]
-  (let [[ugens constants] (collect-ugen-info top-ugen)
-        params (sort #(compare (:rate %1) (:rate %2)) (parse-params params))
-        pnames (map #(:name %1) params)
-        detailed (detail-ugens ugens constants params)]
+  (let [[ugens constants] (collect-ugen-info top-ugen) 
+        grouped-params (group-params (parse-params params))
+        params (map #(:value %1) (flatten grouped-params))
+        pnames (map #(:name %1) (flatten grouped-params))
+        with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
+        detailed (detail-ugens with-ctl-ugens constants grouped-params)]
     {:type :synthdef
      :name name
      :constants constants
      :params params
      :pnames pnames
-     :ugens (doall detailed)}))
+     :ugens detailed}))
 
 (defn to-ugen-name [word]
   (ugen-name (.substring word 0 (- (count word) 3))))
@@ -332,15 +403,18 @@
 (defn unary-op? [form]
   (and (seq? form)
        (= 2 (count form))
-       (ugen-form? (second form))
-       (contains? UNARY-OPS (str (first form)))))
+       (contains? UNARY-OPS (str (first form)))
+       (or (ugen-form? (second form))
+           (keyword? (second form)))))
 
 (defn binary-op? [form]
   (and (seq? form)
        (= 3 (count form))
-       (ugen-form? (second form))
-       (ugen-form? (nth form 2))
-       (contains? BINARY-OPS (str (first form)))))
+       (contains? BINARY-OPS (str (first form)))
+       (or (ugen-form? (second form))
+           (keyword? (second form)))
+       (or (ugen-form? (nth form 2))
+           (keyword? (nth form 2)))))
 
 (defn replace-unary [form]
   (concat 
@@ -369,7 +443,7 @@
 (defmacro defsynth [name params & body]
   (let [ugen-tree (to-ugen-tree body)]
     `(def ~(symbol (str name)) (with-meta (synthdef ~(str name) ~params ~@ugen-tree)
-                                          {:src '~body}))))
+                                          {:src-code '~body}))))
 
 (defmacro syn [& body]
   (first (replace-ugens body)))
@@ -406,5 +480,4 @@
     "\nsynths:")
   (doseq [synth (:synths s)] 
     (synthdef-print synth)))
-
 

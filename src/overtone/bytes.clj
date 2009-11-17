@@ -5,6 +5,10 @@
               BufferedInputStream BufferedOutputStream 
               ByteArrayOutputStream ByteArrayInputStream)))
 
+; This file implements a DSL for specifying the layout of binary data formats.
+; Look at synthdef.clj that defines the format for SuperCollider
+; synthesizer definition (.scsyndef) files for an example of usage.
+
 (def *spec-out* nil)
 (def *spec-in*  nil)
 
@@ -52,6 +56,14 @@
 							:int64  #(.writeLong *spec-out*  %1)
               :float32 #(.writeFloat *spec-out* %1)
               :float64 #(.writeDouble *spec-out* %1)
+
+              :byte   #(.writeByte *spec-out* %1)
+							:short  #(.writeShort *spec-out* %1)
+							:int    #(.writeInt *spec-out*  %1)
+							:long   #(.writeLong *spec-out*  %1)
+              :float   #(.writeFloat *spec-out* %1)
+              :double  #(.writeDouble *spec-out* %1)
+
 							:string write-pstring
               })
 

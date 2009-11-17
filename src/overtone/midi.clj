@@ -12,6 +12,9 @@
   (:use clojure.set
      (overtone rhythm)))
 
+; This is basically a higher-level wrapper on top of the Java MIDI apis.  It makes it
+; easier to configure midi input/output devices, route between devices, etc.
+
 ;; NOTE:
 ;; * The builtin "real-time" sequencer doesn't support modifying the sequence on-the-fly, so
 ;; don't waste any more time messing with javax.sound.midi.Sequencer.

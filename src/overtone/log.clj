@@ -2,6 +2,8 @@
   (:import (java.util.logging Logger Level ConsoleHandler FileHandler
                               SimpleFormatter)))
 
+; Sets up some basic logging infrastructure and helpers for the project.
+
 (defonce LOGGER (Logger/getLogger "overtone"))
 (defonce LOG-FILE "log")
 
