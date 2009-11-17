@@ -10,8 +10,7 @@
 
 (defn sawzall-raw 
   []
-  {:type :synthdef
-   :name "sawzall" 
+  {:name "sawzall" 
    :n-constants (short 1)
    :constants [(float 0.0)]
    :n-params  (short 1)
@@ -31,11 +30,6 @@
                 :special (short 0), :n-outputs (short 0), :n-inputs (short 2), :rate (byte 2), :name "Out"}]
    :n-variants (short 0)
    :variants []})
-
-(def FOO "/home/rosejn/projects/overtone/foo.scd")
-(def FURL (java.net.URL. (str "file:" FOO)))
-(def FOO2 "/home/rosejn/projects/overtone/foo2.scd")
-(def FURL2 (java.net.URL. (str "file:" FOO2)))
 
 (defn jc-load-file [path]
   (de.sciss.jcollider.SynthDef/readDefFile (java.net.URL. (str "file:" path))))
@@ -60,27 +54,13 @@
         b (dissoc b :version :id)]
     (is (= a b))))
 
-;(defsynth mini-sin {:freq 440}
-;  (out.ar 0 (sin-osc.ar :freq 0)))
-
 (defsynth mini-sin {}
   (out.ar 0 (sin-osc.ar 440 0)))
-;
-;(def mini-sin (synthdef "mini-sin" {} 
-;  (ugen "Out" :audio 0 0 (ugen "SinOsc" :audio 0 440 0))))
-;
-;(defsynth saw-sin {}
-;  (out.ar 0 (+ (saw.ar 443) 
-;               (sin-osc.ar 440 0))))
-;
-;(def saw-sin (synthdef "mini-sin" {} 
-;  (ugen "Out" :audio 0 0 (ugen "BinaryOpUGen" :audio 0 
-;                               (ugen "Saw" :audio 0 443) 
-;                               (ugen "SinOsc" :audio 0 440 0)))))
-;
-; The defsynth above is in effect the same as
-; (def mini-sin (synthdef "mini-sin" {} 
-;   (ugen "Out" :audio 0 0 (ugen "SinOsc" :audio 0 440 0))))
+
+(defsynth saw-sin {:freq-a 443
+                   :freq-b 440}
+  (out.ar 0 (+ (saw.ar :freq-a) 
+               (sin-osc.ar :freq-b 0))))
 
 ;SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
 ;        var env, snd;
@@ -88,9 +68,10 @@
 ;        snd= SinOsc.ar(freq, pi*0.5, amp);
 ;        Out.ar(0, Pan2.ar(snd*env, 0));
 ;}).store;
-(comment defsynth test-kick [amp 0.5 decay 0.6 freq 65]
-  (out.ar 0 (pan2.ar (sin-osc.ar freq (* Math/PI 0.5) amp)
-                     (env-gen.ar (perc 0 decay) :done-free))))
+;(defsynth test-kick {:amp 0.5 :decay 0.6 :freq 65}
+;  (out.ar 0 (pan2.ar (* (sin-osc.ar :freq (* Math/PI 0.5)) 
+;                        :amp)
+;                     (env-gen.ar (perc 0 :decay) :done-free))))
 
 (defn mini-bytes []
   (bytes-and-back synthdef-spec (synthdef-file mini-sin)))

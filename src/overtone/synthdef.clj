@@ -3,8 +3,7 @@
   (:use
      (overtone utils ugens ops bytes)
      (clojure walk inspector)
-     clojure.contrib.seq-utils
-     clojure.contrib.logging))
+     clojure.contrib.seq-utils))
 
 ;; SuperCollider Synthesizer Definition 
 
@@ -116,17 +115,17 @@
          :n-synths :int16 1
          :synths   [synth-spec])
 
-(def synthdef? (type-checker :synthdef))
-
 (defn synthdef-file [& sdefs]
-  {:type :synthdef-file
-   :n-synths (short (count sdefs))
-   :synths sdefs})
+  (with-meta {:n-synths (short (count sdefs))
+              :synths sdefs}
+             {:type :synthdef-file}))
 
-(def synthdef-file? (type-checker :synthdef-file))
+(defn synthdef-file? [obj] (= :synthdef-file (type obj)))
 
 (defn synthdef-file-bytes [sfile]
   (spec-write-bytes synthdef-spec sfile))
+
+(declare synthdef?)
 
 (defn synthdef-bytes [sdef]
   (spec-write-bytes synthdef-spec 
@@ -238,7 +237,7 @@
                                 (not (empty? 
                                        (filter ctl-filter (indexed grp)))))
                               (indexed grouped-params)))
-        _ (println "src: " src "\ngrp: " group)
+        ;_ (println "src: " src "\ngrp: " group)
         [[idx param] bar] (take 1 (filter ctl-filter (indexed group)))]
     (if (or (nil? src) (nil? idx))
       (throw (IllegalArgumentException. (str "Invalid parameter name: " param-name ". Please make sure you have named all parameters in the param map in order to use them inside the synth definition."))))
@@ -263,10 +262,6 @@
                     (:args ugen))]
     (assoc ugen :inputs inputs)))
 
-(def FIXED 0)
-(def ARG   1)
-(def ARY   2)
- 
 (defn with-outputs 
   "Returns a ugen with its output port connections setup according to the spec."
   [ugen]
@@ -276,18 +271,19 @@
     (let [spec (find-ugen (:name ugen))
           out-type (:out-type spec)
           num-outs (cond
-                     (= out-type FIXED) (:fixed-outs spec)
-                     (= out-type ARG)   (:fixed-outs spec)
-                     (= out-type ARY)   (:fixed-outs spec))]
-            (println "outputs: " (take num-outs (repeat {:rate (:rate ugen)})))
+                     (= out-type :fixed)    (:fixed-outs spec)
+                     (= out-type :variable) (:fixed-outs spec)
+                     (= out-type :array)    (:fixed-outs spec))]
+;            (println "\n\ncur-outputs: " ugen num-outs (take num-outs (repeat {:rate (:rate ugen)})) "\n")
             (assoc ugen :outputs (take num-outs (repeat {:rate (:rate ugen)}))))))
 
 (defn detail-ugens 
   "Fill in all the input and output specs for each ugen."
   [ugens constants grouped-params]
   (map (fn [ugen]
-         (with-outputs 
-            (with-inputs ugen ugens constants grouped-params)))
+         (-> ugen 
+            (with-inputs ugens constants grouped-params)
+            (with-outputs)))
        ugens))
 
 (defn- collect-ugen-helper [ugen]
@@ -346,6 +342,17 @@
        :value (float p-val)
        :rate  p-rate})))
 
+(defn- make-params 
+  "Create the param value vector and parameter name vector."
+  [grouped-params]
+  (let [param-list (flatten grouped-params)
+        pvals  (map #(:value %1) param-list)
+        pnames (map (fn [[idx param]] 
+                      {:name (as-str (:name param))
+                       :index idx})
+                    (indexed param-list))]
+    [pvals pnames]))
+
 ; TODO: Either add support for multi-channel expansion, or get rid of the idea
 ; and do it in a more lispy way.
             
@@ -363,16 +370,17 @@
   [name params top-ugen]
   (let [[ugens constants] (collect-ugen-info top-ugen) 
         grouped-params (group-params (parse-params params))
-        params (map #(:value %1) (flatten grouped-params))
-        pnames (map #(:name %1) (flatten grouped-params))
+        [params pnames] (make-params grouped-params)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
-    {:type :synthdef
-     :name name
-     :constants constants
-     :params params
-     :pnames pnames
-     :ugens detailed}))
+    (with-meta {:name name
+                :constants constants
+                :params params
+                :pnames pnames
+                :ugens detailed}
+            {:type :synthdef})))
+
+(defn synthdef? [obj] (= :synthdef (type obj)))
 
 (defn to-ugen-name [word]
   (ugen-name (.substring word 0 (- (count word) 3))))
@@ -442,8 +450,10 @@
 
 (defmacro defsynth [name params & body]
   (let [ugen-tree (to-ugen-tree body)]
-    `(def ~(symbol (str name)) (with-meta (synthdef ~(str name) ~params ~@ugen-tree)
-                                          {:src-code '~body}))))
+    `(def ~(symbol (str name))
+            (let [sdef# (synthdef ~(str name) ~params ~@ugen-tree)]
+              (with-meta sdef# 
+                         (assoc (meta sdef#) :src-code '~body))))))
 
 (defmacro syn [& body]
   (first (replace-ugens body)))
@@ -480,4 +490,11 @@
     "\nsynths:")
   (doseq [synth (:synths s)] 
     (synthdef-print synth)))
+
+(defn synth-controls 
+  "Returns the set of control parameter name/default-value pairs for a synth definition."
+  [sdef]
+  (let [names (map #(keyword (:name %1)) (:pnames sdef))
+        vals (:params sdef)]
+  (apply hash-map (interleave names vals))))
 

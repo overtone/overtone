@@ -106,7 +106,10 @@
       (Thread/sleep 250))
     (.destroy proc)))
 
-(defn connect-jack-ports [n-channels]
+(defn connect-jack-ports 
+  "Maybe this isn't necessary, since we can use the SC_JACK_DEFAULT_OUTPUTS
+  environment variable..."
+  [n-channels]
   (let [port-list (sh "jack_lsp")
         sc-outputs (re-find #"SuperCollider.*:out_" port-list)]
   (doseq [i (range n-channels)]
@@ -124,7 +127,6 @@
      (.start sc-thread)
      (dosync (ref-set server-thread* sc-thread))
      (Thread/sleep 1000)
-     (connect-jack-ports 2)
      (connect host port))))
 
 (defn quit 

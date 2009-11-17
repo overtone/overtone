@@ -1,4 +1,5 @@
 (ns overtone.bytes
+  (:require [overtone.log :as log])
   (:import (java.net URL)
      (java.io FileInputStream FileOutputStream 
               DataInputStream DataOutputStream
@@ -28,8 +29,7 @@
   (.writeByte *spec-out* (count s))
   (.write *spec-out* (.getBytes s)))
 
-;; The server uses a binary file format containing these types:
-;; int32, int16, int8, float32
+;; Standard numeric types + Pascal style strings.
 ;; pstring => a byte giving the string length followed by the ascii bytes 
 (def READERS {
               :int8   #(.readByte *spec-in*)
@@ -176,11 +176,8 @@
 (defn spec-write 
   "Serializes the data according to spec, writing bytes onto *spec-out*."
   [spec data]
-  ;;(println "spec-write: " (:name spec) "data: " data "\n---------------\n")
+  (log/info "spec-write: " (:name spec) "data: " data "\n")
   (doseq [{:keys [fname ftype fdefault]} (:specs spec)]
-   ; (if (vector? ftype) 
-   ;   ;(println "[" (count (fname data)) "] -> " (fname data))
-   ;   ;(println (str ftype ": " fname " -> " (or (fname data) fdefault))))
     (cond 
       ; count of another field starting with n-
       (.startsWith (name fname) "n-")
@@ -204,6 +201,7 @@
 (defn spec-write-file [spec data path]
 	(with-open [spec-out (-> path (FileOutputStream.) (BufferedOutputStream.) (DataOutputStream.))]
    (binding [*spec-out* spec-out]
+     (log/info "Writing spec to file: " (:name spec))
      (spec-write spec data))))
 
 (defn spec-write-bytes [spec data]

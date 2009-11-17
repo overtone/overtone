@@ -1,2 +1,10 @@
+* simplify the synthdef API
+ - get rid of synthdef-file from the users point of view and just
+   deal with reading and writing single synths.
+ - (synthdef-read path-or-url) ; return an sdef object
+ - (synthdef-write sdef path-or-url) ; write to filesystem
+ - (synthdef-bytes sdef) ; return a byte-array
+ - (synthdef-print sdef) ; print to *out*
+
 * return a basic sample "object" rather than an ID after loading a sample
  - modify hit and ctl to understand these instead of IDs
