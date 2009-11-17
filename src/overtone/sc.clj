@@ -177,9 +177,8 @@
    :replace-node 4})
 
 ;; Sending a synth-id of -1 lets the server choose an ID
-(defn node [synth-name & args]
+(defn node [synth-name id & args]
   (let [argmap (apply hash-map args)
-        id (next-node-id)
         position ((get argmap :position :tail) POSITION)
         target (get argmap :target 0)
         args (flatten (seq (-> argmap (dissoc :position) (dissoc :target))))
@@ -212,7 +211,7 @@
 (defn node-control
   "Set control values for a node."
   [node-id & name-values]
-  (apply snd "/n_set" node-id name-values))
+  (apply snd "/n_set" node-id (stringify name-values)))
 
 ; This can be extended to support setting multiple ranges at once if necessary...
 (defn node-control-range
@@ -341,8 +340,8 @@
     id))
 
 (defn load-synth [sdef]
-  (assert (or (synthdef-file? sdef) (synthdef? sdef)))
-  (snd "/d_recv" (synthdef-bytes sdef))) 
+  (assert (synthdef? sdef))
+  (snd "/d_recv" (synthdef-bytes sdef)))
 
 (defn reset []
   (try
@@ -374,18 +373,19 @@
   ([time-ms syn & args]
    (when (odd? (count args))
      (throw (IllegalArgumentException. "Arguments to hit must come in key-value pairs.")))
-   (if (number? syn)
-     (apply hit time-ms "granular" :buf syn args)
-     (in-osc-bundle @server* time-ms (apply node syn args)))))
+   (let [id (next-node-id)]
+     (if (number? syn)
+       (apply hit time-ms "granular" :buf syn args)
+       (in-osc-bundle @server* time-ms (apply node syn id args)))
+     id)))
 
 (defmacro check
   "Try out a synth definition without actually defining it.  Useful for experimentation."
   [& body]
-  (let [sdef (synthdef "audition-synth" [] (to-ugen-tree body))
-        _    (load-synth sdef)
-        node-id (hit (now) "audition-synth")]
-    (Thread/sleep 2000)
-    (node-free node-id)))
+  `(let [node-id# (next-node-id)]
+     (load-synth (synth "audition-synth" {} ~@body)
+       (Thread/sleep 2000)
+       (node-free node-id#))))
 
 (defn ctl
   "Modify a synth parameter at the specified time."

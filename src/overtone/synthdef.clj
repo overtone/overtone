@@ -1,5 +1,6 @@
 (ns overtone.synthdef
   (:import (java.net URL))
+  (:require [overtone.log :as log])
   (:use
      (overtone utils ugens ops bytes)
      (clojure walk inspector)
@@ -109,43 +110,53 @@
 (def SCGF-MAGIC "SCgf")
 (def SCGF-VERSION 1)
 
-(defspec synthdef-spec
+(defspec synthdef-file-spec
          :id       :int32 SCGF-MAGIC
          :version  :int32 SCGF-VERSION
          :n-synths :int16 1
          :synths   [synth-spec])
 
-(defn synthdef-file [& sdefs]
+(defn- synthdef-file [& sdefs]
   (with-meta {:n-synths (short (count sdefs))
               :synths sdefs}
              {:type :synthdef-file}))
 
-(defn synthdef-file? [obj] (= :synthdef-file (type obj)))
+(defn- synthdef-file? [obj] (= :synthdef-file (type obj)))
 
-(defn synthdef-file-bytes [sfile]
-  (spec-write-bytes synthdef-spec sfile))
+(defn- synthdef-file-bytes [sfile]
+  (spec-write-bytes synthdef-file-spec sfile))
 
 (declare synthdef?)
 
-(defn synthdef-bytes [sdef]
-  (spec-write-bytes synthdef-spec 
+; TODO: byte array shouldn't really be the default here, but I don't 
+; know how to test for one correctly... (byte-array? data) please?
+(defn synthdef-read 
+  "Reads synthdef data from either a file specified using a string path,
+  a URL, or a byte array."
+  [data]
+  (first (:synths 
+    (cond 
+      (string? data) 
+      (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" data)))
+      (instance? java.net.URL data)
+      (spec-read-url synthdef-file-spec data)
+      (byte-array? data) (spec-read-bytes synthdef-file-spec data)
+      :default (throw (IllegalArgumentException. (str "synthdef-read expects either a string, a URL, or a byte-array argument.")))))))
+
+(defn synthdef-write 
+  "Write a synth definition to a new file at the given path, which includes
+  the name of the file itself.  (e.g. /home/rosejn/synths/bass.scsyndef)"
+  [path sdef]
+  (spec-write-file synthdef-file-spec (synthdef-file sdef) path))
+
+(defn synthdef-bytes 
+  "Produces a serialized representation of the synth definition understood
+  by SuperCollider, and returns it in a byte array."
+  [sdef]
+  (spec-write-bytes synthdef-file-spec 
     (cond
       (synthdef? sdef) (synthdef-file sdef)
       (synthdef-file? sdef) sdef)))
-
-(defn synthdef-write-file [path sfile]
-  (spec-write-file synthdef-spec sfile path))
-
-(defn synthdef-read-bytes [bytes]
-  (spec-read-bytes synthdef-spec bytes))
-
-; TODO: Either figure out how to do it with duck-streams, or patch
-; duck-streams so it will work.
-(defn synthdef-read-url [url]
-  (spec-read-url synthdef-spec url))
-
-(defn synthdef-read-file [path]
-  (spec-read-url synthdef-spec (java.net.URL. (str "file:" path))))
 
 ;;  * Unit generators are listed in the order they will be executed.  
 ;;  * Inputs must refer to constants or previous unit generators.  
@@ -159,7 +170,7 @@
 ;;  * Unit generators should be listed in an order that permits efficient reuse
 ;;  of connection buffers, so use a depth first topological sort of the graph. 
 
-(defn normalize-ugen-name [n]
+(defn- normalize-ugen-name [n]
   (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
 
 (def UGEN-MAP (reduce 
@@ -189,12 +200,14 @@
 
 (defn ugen? [obj] (= :ugen (type obj)))
 
+;; -----------------------------------------------------------------
+
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
 ;; all ugens which should be specified as external controls.
 (def CONTROLS #{"control"})
 
-(defn control-ugen [rate n-outputs]
+(defn- control-ugen [rate n-outputs]
   (with-meta {:id (uuid)
               :name "Control"
               :rate (rate RATES)
@@ -206,7 +219,7 @@
               :inputs []}
             {:type :ugen}))
 
-(defn control? [ugen]
+(defn- control? [ugen]
   (and (map? ugen)
        (CONTROLS (normalize-ugen-name (:name ugen)))))
 
@@ -245,7 +258,7 @@
 
 ; TODO: Figure out when we would have to connect to a different output index
 ; it probably has to do with multi-channel expansion...
-(defn with-inputs 
+(defn- with-inputs 
   "Returns ugen object with its input ports connected to constants and upstream 
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
@@ -262,7 +275,7 @@
                     (:args ugen))]
     (assoc ugen :inputs inputs)))
 
-(defn with-outputs 
+(defn- with-outputs 
   "Returns a ugen with its output port connections setup according to the spec."
   [ugen]
   ; Don't modify controls or anything that comes with pre-setup outputs.
@@ -277,7 +290,7 @@
 ;            (println "\n\ncur-outputs: " ugen num-outs (take num-outs (repeat {:rate (:rate ugen)})) "\n")
             (assoc ugen :outputs (take num-outs (repeat {:rate (:rate ugen)}))))))
 
-(defn detail-ugens 
+(defn- detail-ugens 
   "Fill in all the input and output specs for each ugen."
   [ugens constants grouped-params]
   (map (fn [ugen]
@@ -353,6 +366,75 @@
                     (indexed param-list))]
     [pvals pnames]))
 
+(defn- to-ugen-name [word]
+  (ugen-name (.substring word 0 (- (count word) 3))))
+
+(defn- replace-name [l]
+  (let [word (str (first l))]
+    (concat 
+      (cond 
+        (.endsWith word ".ar") ['ugen (to-ugen-name word) :audio 0]
+        (.endsWith word ".kr") ['ugen (to-ugen-name word) :control 0]
+        (.endsWith word ".dr") ['ugen (to-ugen-name word) :scalar 0]
+        :default [(symbol word)]) 
+      (rest l))))
+
+(defn- replace-ugens
+  "Find all the forms starting with a valid ugen identifier, and convert it to a function argument to
+  a ugen constructor."
+  [form]
+  (postwalk (fn [x] (if (and (seq? x) 
+                             (symbol? (first x)))
+                      (replace-name x) 
+                      x)) 
+            form))
+
+(defn- ugen-form? [form]
+  (and (seq? form)
+       (= 'ugen (first form))))
+
+(defn- unary-op? [form]
+  (and (seq? form)
+       (= 2 (count form))
+       (contains? UNARY-OPS (str (first form)))
+       (or (ugen-form? (second form))
+           (keyword? (second form)))))
+
+(defn- binary-op? [form]
+  (and (seq? form)
+       (= 3 (count form))
+       (contains? BINARY-OPS (str (first form)))
+       (or (ugen-form? (second form))
+           (ugen-form? (nth form 2)))))
+
+(defn- replace-unary [form]
+  (concat 
+    ['ugen  "UnaryOpUGen" (nth (fnext form) 2) (get UNARY-OPS (str (first form)))]
+    (next form)))
+
+(defn- replace-binary [form]
+  (log/debug "replace-binary: " form)
+  (let [ugen-arg (first (take 1 (filter #(ugen-form? %1) form)))
+        _ (log/debug "ugen-arg:" ugen-arg)
+        rate (nth ugen-arg 2)]
+    (concat
+      ['ugen  "BinaryOpUGen" rate (get BINARY-OPS (str (first form)))]
+      (next form))))
+
+(defn- replace-arithmetic
+  "Replace all arithmetic operations on ugens with unary and binary ugen operators."
+  [form]
+  (postwalk (fn [x] (cond
+                      (unary-op? x) (replace-unary x)
+                      (binary-op? x) (replace-binary x)
+                      :default x))
+            form))
+
+(defn- to-ugen-tree [form]
+  (let [t1 (replace-ugens form)
+        t2 (replace-arithmetic t1)]
+    t2))
+
 ; TODO: Either add support for multi-channel expansion, or get rid of the idea
 ; and do it in a more lispy way.
             
@@ -364,101 +446,34 @@
 ; and prepended to the ugen list
 ; * finally, ugen inputs are specified using their index  
 ; in the sorted ugen list.
-(defn synthdef 
-  "Transforms a synth definition (ugen-tree) into a form that's ready to save 
-  to disk or send to the server."
+(defn build-synthdef
   [name params top-ugen]
   (let [[ugens constants] (collect-ugen-info top-ugen) 
         grouped-params (group-params (parse-params params))
         [params pnames] (make-params grouped-params)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
-    (with-meta {:name name
-                :constants constants
-                :params params
-                :pnames pnames
-                :ugens detailed}
-            {:type :synthdef})))
+    {:name name
+     :constants constants
+     :params params
+     :pnames pnames
+     :ugens detailed}))
+
+(defmacro synth
+  "Transforms a synth definition (ugen-tree) into a form that's ready to save 
+  to disk or send to the server."
+  [name params & body]
+  (let [ugen-tree (to-ugen-tree body)]
+    `(with-meta (build-synthdef ~(str name) ~params ~@ugen-tree)
+            {:type :synthdef
+             :src-code '~body})))
+
+(defmacro defsynth [synth-name params & body]
+  `(def ~synth-name (synth ~synth-name ~params ~@body))) 
 
 (defn synthdef? [obj] (= :synthdef (type obj)))
 
-(defn to-ugen-name [word]
-  (ugen-name (.substring word 0 (- (count word) 3))))
-
-(defn replace-name [l]
-  (let [word (str (first l))]
-    (concat 
-      (cond 
-        (.endsWith word ".ar") ['ugen (to-ugen-name word) :audio 0]
-        (.endsWith word ".kr") ['ugen (to-ugen-name word) :control 0]
-        (.endsWith word ".dr") ['ugen (to-ugen-name word) :scalar 0]
-        :default [(symbol word)]) 
-      (rest l))))
-
-(defn replace-ugens
-  "Find all the forms starting with a valid ugen identifier, and convert it to a function argument to
-  a ugen constructor."
-  [form]
-  (postwalk (fn [x] (if (and (seq? x) 
-                             (symbol? (first x)))
-                      (replace-name x) 
-                      x)) 
-            form))
-
-(defn ugen-form? [form]
-  (= 'ugen (first form)))
-
-(defn unary-op? [form]
-  (and (seq? form)
-       (= 2 (count form))
-       (contains? UNARY-OPS (str (first form)))
-       (or (ugen-form? (second form))
-           (keyword? (second form)))))
-
-(defn binary-op? [form]
-  (and (seq? form)
-       (= 3 (count form))
-       (contains? BINARY-OPS (str (first form)))
-       (or (ugen-form? (second form))
-           (keyword? (second form)))
-       (or (ugen-form? (nth form 2))
-           (keyword? (nth form 2)))))
-
-(defn replace-unary [form]
-  (concat 
-    ['ugen  "UnaryOpUGen" (nth (fnext form) 2) (get UNARY-OPS (str (first form)))]
-    (next form)))
-
-(defn replace-binary [form]
-  (concat
-  ['ugen  "BinaryOpUGen" (nth (fnext form) 2) (get BINARY-OPS (str (first form)))]
-    (next form)))
-
-(defn replace-arithmetic
-  "Replace all arithmetic operations on ugens with unary and binary ugen operators."
-  [form]
-  (postwalk (fn [x] (cond
-                      (unary-op? x) (replace-unary x)
-                      (binary-op? x) (replace-binary x)
-                      :default x))
-            form))
-
-(defn to-ugen-tree [form]
-  (let [t1 (replace-ugens form)
-        t2 (replace-arithmetic t1)]
-    t2))
-
-(defmacro defsynth [name params & body]
-  (let [ugen-tree (to-ugen-tree body)]
-    `(def ~(symbol (str name))
-            (let [sdef# (synthdef ~(str name) ~params ~@ugen-tree)]
-              (with-meta sdef# 
-                         (assoc (meta sdef#) :src-code '~body))))))
-
-(defmacro syn [& body]
-  (first (replace-ugens body)))
-
-(defn ugen-print [u]
+(defn- ugen-print [u]
   (println
     "--"
     "\n    name: " (:name u)
@@ -468,6 +483,16 @@
     "\n    special: " (:special u)
     "\n    inputs: " (:inputs u)
     "\n    outputs: " (:outputs u)))
+
+(declare synthdef-print)
+(defn- synthdef-file-print [s]
+  (println
+    "id: " (:id s)
+    "\nversion: " (:version s)
+    "\nn-synths: " (:n-synths s)
+    "\nsynths:")
+  (doseq [synth (:synths s)] 
+    (synthdef-print synth)))
 
 (defn synthdef-print [s]
   (println
@@ -481,15 +506,6 @@
     "\n  n-ugens: " (:n-ugens s))
   (doseq [ugen (:ugens s)]
     (ugen-print ugen)))
-
-(defn synthdef-file-print [s]
-  (println
-    "id: " (:id s)
-    "\nversion: " (:version s)
-    "\nn-synths: " (:n-synths s)
-    "\nsynths:")
-  (doseq [synth (:synths s)] 
-    (synthdef-print synth)))
 
 (defn synth-controls 
   "Returns the set of control parameter name/default-value pairs for a synth definition."

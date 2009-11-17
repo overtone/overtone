@@ -48,10 +48,8 @@
     (first (jc-load sdef))))
 
 (deftest self-consistent-syndef
-  (let [a (synthdef-file (sawzall-raw))
-        a (dissoc a :type)
-        b (bytes-and-back synthdef-spec a)
-        b (dissoc b :version :id)]
+  (let [a (sawzall-raw)
+        b (bytes-and-back synth-spec a)]
     (is (= a b))))
 
 (defsynth mini-sin {}
@@ -59,8 +57,8 @@
 
 (defsynth saw-sin {:freq-a 443
                    :freq-b 440}
-  (out.ar 0 (+ (saw.ar :freq-a) 
-               (sin-osc.ar :freq-b 0))))
+  (out.ar 0 (+ (* 0.3 (saw.ar :freq-a))
+               (* 0.3 (sin-osc.ar :freq-b 0)))))
 
 ;SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
 ;        var env, snd;
@@ -73,19 +71,12 @@
 ;                        :amp)
 ;                     (env-gen.ar (perc 0 :decay) :done-free))))
 
-(defn mini-bytes []
-  (bytes-and-back synthdef-spec (synthdef-file mini-sin)))
-
 (deftest native-synth-test
   (let [bytes (synthdef-bytes mini-sin)
-        sdef  (synthdef-read-bytes bytes)
-        synth (first (:synths sdef))
+        synth (synthdef-read bytes)
         ugens (:ugens synth)
         sin (first ugens)
         out (second ugens)]
-    (is (= 1 (:version sdef)))
-    (is (= 1 (:n-synths sdef)))
-    (is (= "mini-sin" (:name synth)))
     (is (= 2 (:n-constants synth)))
     (is (= (sort [0.0 440.0]) (sort (:constants synth))))
     (is (= 0 (:n-params synth)))
@@ -109,8 +100,8 @@
 (def KICK-DEF "test/data/round-kick.scsyndef")
 
 (defn rw-file-test [path]
-  (let [a (synthdef-read-file path)
-        b (bytes-and-back synthdef-spec a)]
+  (let [a (synthdef-read path)
+        b (bytes-and-back synth-spec a)]
     (is (= a b))))
 
 (deftest read-write-test []

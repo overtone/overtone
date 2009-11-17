@@ -8,3 +8,6 @@
 
 * return a basic sample "object" rather than an ID after loading a sample
  - modify hit and ctl to understand these instead of IDs
+
+* make the id counters in overtone.sc use a smarter algorithm so they can
+reuse old IDs.

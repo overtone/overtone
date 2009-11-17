@@ -16,6 +16,11 @@
 (defn- byte-array [len]
   (make-array (. Byte TYPE) len))
 
+(def BYTE-ARRAY (byte-array 1))
+
+(defn byte-array? [obj]
+  (= (type BYTE-ARRAY) (type obj)))
+
 (defn- bytes-to-int [bytes]
   (-> bytes (ByteArrayInputStream.) (DataInputStream.) (.readInt)))
 
