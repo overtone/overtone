@@ -31,22 +31,6 @@
    :n-variants (short 0)
    :variants []})
 
-(defn jc-load-file [path]
-  (de.sciss.jcollider.SynthDef/readDefFile (java.net.URL. (str "file:" path))))
-
-(defn dia-file [path]
-  (de.sciss.jcollider.gui.SynthDefDiagram. 
-    (first (jc-load-file path))))
-
-(defn jc-load [sdef]
- (de.sciss.jcollider.SynthDef/readDefFile 
-             (-> (synthdef-bytes sdef) (ByteArrayInputStream.) 
-               (BufferedInputStream.) (DataInputStream.))))
-
-(defn dia [sdef]
-  (de.sciss.jcollider.gui.SynthDefDiagram. 
-    (first (jc-load sdef))))
-
 (deftest self-consistent-syndef
   (let [a (sawzall-raw)
         b (bytes-and-back synth-spec a)]
