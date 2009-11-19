@@ -282,28 +282,45 @@
 ;		] * M
 ;	] * the number of nodes in the subtree
 
-;(defn parse-synth-vec [data loc ctls?])
+(def *data* nil)
 
-(comment
-(defn parse-node-tree [t]
-  (let [loc (-> [] z/vector-zip (insertion-point :append))
-        ctls? (first t)]
-    (loop [data (next t)
-           loc loc]
-      (cond
-        (empty? data) (zip/root loc)
-        (neg? (second data)) (let [[d l] (parse-synth-vec data loc ctls?)]
-                               (recur d l))
-        :default (recur (nnext data) (insert-right loc ???))))))
-)
+(defn- parse-synth-tree [ctls?]
+  (let [sname (first *data*)]
+    (if ctls?
+      (let [n-ctls (second *data*)
+            [ctl-data new-data] (split-at (* 2 n-ctls) (nnext *data*))
+            ctls (apply hash-map ctl-data)]
+        (set! *data* new-data)
+        {:synth sname
+         :controls ctls})
+      (do 
+        (set! *data* (next *data*))
+        {:synth sname}))))
+
+(defn- parse-node-tree-helper [ctls?]
+  (let [[id n-children & new-data] *data*]
+    (set! *data* new-data)
+    (cond 
+      (neg? n-children) (parse-synth-tree ctls?) ; synth
+      (= 0 n-children) {:group id :children nil}
+      (pos? n-children) 
+      {:group id
+       :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
+
+(defn parse-node-tree [data]
+  (let [ctls? (= 1 (first data))]
+    (binding [*data* (next data)]
+      (parse-node-tree-helper ctls?))))
 
 ; N.B. The order of nodes corresponds to their execution order on the server.
 ; Thus child nodes (those contained within a group) are listed immediately
 ; following their parent. See the method Server:queryAllNodes for an example of
 ; how to process this reply.
-(defn get-graph [id & [with-args?]]
-  (snd "/g_queryTree" id with-args?)
-  (let [tree (osc-recv @server*)]))
+(defn node-tree [id & [ctls?]]
+  (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
+    (snd "/g_queryTree" id ctls?)
+    (let [tree (:args (osc-recv @server*))]
+      (parse-node-tree tree))))
 
 (defn prepend-node 
   "Add a node to the end of a group list."
