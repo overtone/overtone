@@ -22,7 +22,7 @@
   (println (seq (.getURLs (java.lang.ClassLoader/getSystemClassLoader)))))
 
 (defn as-str [s]
-  (if (keyword? s) (name s) (str s)))
+  (if (keyword? s) (name s) s))
 
 (defn stringify 
   "Convert all keywords in col to strings without ':' prefixed."

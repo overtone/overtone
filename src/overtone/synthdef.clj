@@ -256,23 +256,32 @@
       (throw (IllegalArgumentException. (str "Invalid parameter name: " param-name ". Please make sure you have named all parameters in the param map in order to use them inside the synth definition."))))
     {:src src :index idx}))
 
+(defn- inputs-from-outputs [src src-ugen]
+  ;(println "inputs-from-outputs: " src-ugen "\nhas " (count (:outputs src-ugen)) " outputs")
+  (for [i (range (count (:outputs src-ugen)))]
+    {:src src :index i}))
+
 ; TODO: Figure out when we would have to connect to a different output index
 ; it probably has to do with multi-channel expansion...
 (defn- with-inputs 
   "Returns ugen object with its input ports connected to constants and upstream 
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
-  (let [inputs (map (fn [arg]
-                      (cond
-                        ; constant
-                        (number? arg) {:src -1 :index (index-of constants arg)}
-                        
-                        ; control
-                        (keyword? arg) (param-input-spec grouped-params arg)
+  ;(println "with-inputs: " (:name ugen))
+  (let [inputs (flatten 
+                 (map (fn [arg]
+                        (cond
+                          ; constant
+                          (number? arg) {:src -1 :index (index-of constants arg)}
 
-                        ; child ugen
-                        (ugen? arg)   {:src (ugen-index ugens arg) :index 0}))
-                    (:args ugen))]
+                          ; control
+                          (keyword? arg) (param-input-spec grouped-params arg)
+
+                          ; child ugen
+                          (ugen? arg) (let [idx (ugen-index ugens arg)
+                                            updated-ugen (nth ugens idx)]
+                                        (inputs-from-outputs idx updated-ugen))))
+                      (:args ugen)))]
     (assoc ugen :inputs inputs)))
 
 (defn- with-outputs 
@@ -286,18 +295,20 @@
           num-outs (cond
                      (= out-type :fixed)    (:fixed-outs spec)
                      (= out-type :variable) (:fixed-outs spec)
-                     (= out-type :array)    (:fixed-outs spec))]
-;            (println "\n\ncur-outputs: " ugen num-outs (take num-outs (repeat {:rate (:rate ugen)})) "\n")
-            (assoc ugen :outputs (take num-outs (repeat {:rate (:rate ugen)}))))))
+                     (= out-type :array)    (:fixed-outs spec))
+          outputs (take num-outs (repeat {:rate (:rate ugen)}))]
+      ;(println "\noutputs: " (:name ugen) num-outs outputs)
+            (assoc ugen :outputs outputs))))
 
+; IMPORTANT NOTE: We need to add outputs before inputs, so that multi-channel
+; outputs can be correctly connected.
 (defn- detail-ugens 
   "Fill in all the input and output specs for each ugen."
   [ugens constants grouped-params]
-  (map (fn [ugen]
-         (-> ugen 
-            (with-inputs ugens constants grouped-params)
-            (with-outputs)))
-       ugens))
+  (let [outs (doall (map with-outputs ugens))
+        ins (doall (map #(with-inputs %1 outs constants grouped-params) outs))
+        final (map #(dissoc %1 :args) ins)]
+    final))
 
 (defn- collect-ugen-helper [ugen]
   (let [children (filter #(ugen? %1) (:args ugen))
@@ -461,15 +472,59 @@
 
 (defmacro synth
   "Transforms a synth definition (ugen-tree) into a form that's ready to save 
-  to disk or send to the server."
-  [name params & body]
-  (let [ugen-tree (to-ugen-tree body)]
-    `(with-meta (build-synthdef ~(str name) ~params ~@ugen-tree)
+  to disk or send to the server.
+  
+  Stereo output instruments are the default.  If the root ugen is not out.ar, 
+  then the synth is wrapped in pan2.ar and out.ar.  To create mono synths or
+  effects make sure to define your own out.ar.
+
+  Synth definitions with no controllable parameters:
+      (synth :foo (saw.ar 200))
+      (synth :foo (out.ar 0 (pan2.ar (saw.ar 200)))) 
+      (synth \"foo\" {} (out.ar 0 (pan2.ar (saw.ar 200)))) 
+
+  A map of parameter-name to default-value is an optional second argument, so
+  these are the same:
+
+      (synth :foo {:freq 200 :amp 0.4} 
+        (out.ar 0 (pan2.ar (* :amp 
+                              (saw.ar :freq)))))
+
+  "
+  [sname & args]
+  (let [sname (str (as-str sname))
+        [params body] (if (map? (first args))
+                        [(first args) (second args)]
+                        [{} (first args)])
+        wrapped (if (= 'out.ar (first body))
+                  body
+                  `(out.ar 0 (pan2.ar ~body 0)))
+        ugen-tree (to-ugen-tree wrapped)]
+    ;(log/debug "synth: " {:args args
+    ;                    :params params
+    ;                    :body body
+    ;                    :wrapped wrapped
+    ;                    :ugen-tree ugen-tree})
+    `(with-meta (build-synthdef ~sname ~params ~ugen-tree)
             {:type :synthdef
              :src-code '~body})))
 
-(defmacro defsynth [synth-name params & body]
-  `(def ~synth-name (synth ~synth-name ~params ~@body))) 
+(defmacro defsynth 
+  "Define a named synthesizer, with optional synth controls.
+
+  defsynth is short for:
+      (def synth-name (synth synth-name params root))
+
+  These are the same:
+      (defsynth :asdf (out.ar 0 (pan2.ar (saw.ar 400) 0)))
+      (defsynth :asdf {} (out.ar 0 (pan2.ar (saw.ar 400) 0)))
+  "
+  [synth-name & args]
+  (let [sname (as-str synth-name)]
+    `(do
+       (def ~(symbol sname) (synth ~sname ~@args)))))
+
+
 
 (defn synthdef? [obj] (= :synthdef (type obj)))
 

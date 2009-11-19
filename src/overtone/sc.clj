@@ -65,6 +65,11 @@
       (osc-snd-msg @server* 
                    (apply osc-msg path (osc-type-tag args) args)))
 
+(defmacro at
+  "Schedule the messages sent in body at a single time."
+  [time-ms & body]
+  `(in-osc-bundle @server* ~time-ms ~@body))
+
 (defn recv
   [path & [timeout]]
   {:path "foo" :args []})
@@ -367,30 +372,58 @@
   (quit)
   (boot))
 
+; Turn hit into a multimethod
+; Convert samples to be a map object instead of an ID
 (defn hit 
-  "Fire off the named synth or loaded sample (by id) at a specified time."
+  "Fire off the named synth or loaded sample (by id) at a specified time.
+  These are the same:
+      (hit :kick)
+      (hit \"kick\")
+      (hit (now) \"kick\")
+
+  Or you can get fancier like this:
+      (hit (now) :sin :pitch 60)
+      (doseq [i (range 10)] (hit (+ (now) (* i 250)) :sin :pitch 60 :dur 0.1))
+
+  "
   ([] (hit (now) "sin" :pitch (+ 30 (rand-int 40))))
-  ([time-ms syn & args]
-   (when (odd? (count args))
-     (throw (IllegalArgumentException. "Arguments to hit must come in key-value pairs.")))
-   (let [id (next-node-id)]
-     (if (number? syn)
-       (apply hit time-ms "granular" :buf syn args)
-       (in-osc-bundle @server* time-ms (apply node syn id args)))
+  ([& args]
+   (let [[time-ms synth args] (if (= Long (type (first args)))
+                                [(first args) (second args) (nnext args)] 
+                                [(now) (first args) (next args)])
+         id (next-node-id)
+         synth (cond
+                 (synthdef? synth) (as-str (:name synth))
+                 (keyword? synth) (name synth)
+                 (string? synth) synth
+                 :default (throw 
+                            (Exception. "Not connected to a SuperCollider server.")))
+         args (-> args (stringify) (floatify))]
+     (if (number? synth)
+       (apply hit time-ms "granular" :buf synth args)
+       (at time-ms (apply node synth id args)))
      id)))
 
 (defmacro check
-  "Try out a synth definition without actually defining it.  Useful for experimentation."
-  [& body]
-  `(let [node-id# (next-node-id)]
-     (load-synth (synth "audition-synth" {} ~@body)
-       (Thread/sleep 2000)
-       (node-free node-id#))))
+  "Try out an anonymous synth definition.  Useful for experimentation.  If the
+  root node is not an out ugen, then it will add one automatically."
+  [body]
+  `(do
+     (load-synth (synth "audition-synth" {} ~body))
+     (let [note# (hit (now) "audition-synth")]
+       (at (+ (now) 1000) (node-free note#)))))
 
 (defn ctl
   "Modify a synth parameter at the specified time."
   [time-ms node-id & args]
-  (in-osc-bundle @server* time-ms (apply node-control node-id (stringify args))))
+  (at time-ms 
+      (apply node-control node-id (stringify args))))
+
+(defn kill
+  "Instantly free all the given synths, stopping their sound."
+  [time-ms & ids]
+  (at time-ms 
+      (apply node-free ids)))
 
 ;;(defn effect [synthdef & args]
 ;;  (let [arg-map (assoc (apply hash-map args) "bus" FX-BUS)

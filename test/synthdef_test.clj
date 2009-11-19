@@ -52,13 +52,20 @@
         b (bytes-and-back synth-spec a)]
     (is (= a b))))
 
-(defsynth mini-sin {}
-  (out.ar 0 (sin-osc.ar 440 0)))
+(defsynth mini-sin {:freq 440}
+  (out.ar 0 (sin-osc.ar :freq 0)))
 
 (defsynth saw-sin {:freq-a 443
                    :freq-b 440}
   (out.ar 0 (+ (* 0.3 (saw.ar :freq-a))
                (* 0.3 (sin-osc.ar :freq-b 0)))))
+
+(comment 
+(load-synth saw-sin)
+(let [note (hit (now) saw-sin :freq-a 400 :freq-b 402)]
+  (ctl (+ (now) 500) note :freq-a 300 :freq-b 303)
+  (kill (+ (now) 1000) note))
+  )
 
 ;SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
 ;        var env, snd;
@@ -70,7 +77,7 @@
 ;  (out.ar 0 (pan2.ar (* (sin-osc.ar :freq (* Math/PI 0.5)) 
 ;                        :amp)
 ;                     (env-gen.ar (perc 0 :decay) :done-free))))
-
+;
 (deftest native-synth-test
   (let [bytes (synthdef-bytes mini-sin)
         synth (synthdef-read bytes)
