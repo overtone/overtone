@@ -181,7 +181,7 @@
 (defn spec-write 
   "Serializes the data according to spec, writing bytes onto *spec-out*."
   [spec data]
-  (log/info "spec-write: " (:name spec) "data: " data "\n")
+  ;(log/debug "spec-write: " (:name spec) "data: " data "\n")
   (doseq [{:keys [fname ftype fdefault]} (:specs spec)]
     (cond 
       ; count of another field starting with n-

@@ -1,3 +1,6 @@
+* setup an on-boot handler mechanism so we can load up synthdefs, connect
+status machinery, etc...
+
 * simplify the synthdef API
  - get rid of synthdef-file from the users point of view and just
    deal with reading and writing single synths.

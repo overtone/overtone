@@ -1,47 +1,5 @@
 (ns overtone.ops)
 
-(def BINARY-OPS 
-  (apply hash-map ["+" 0
-   "-" 1
-   "*" 2
-   "div" 3
-   "/" 4
-   "mod" 5
-   "<=" 10
-   ">=" 11
-   "minimum" 12
-   "maximum" 13 
-   "lcm" 17
-   "gcd" 18
-   "round" 19
-   "roundUp" 20
-   "trunc" 21
-   "atan2" 22
-   "hypot" 23
-   "hypotApx" 24
-   "pow" 25
-   "leftShift" 26
-   "rightShift" 27
-   "unsignedRightShift" 28
-   "ring1" 30
-   "ring2" 31
-   "ring3" 32
-   "ring4" 33
-   "difsqr" 34
-   "sumsqr" 35
-   "sqrsum" 36
-   "sqrdif" 37
-   "absdif" 38
-   "thresh" 39
-   "amclip" 40
-   "scaleneg" 41
-   "clip2" 42
-   "excess" 43
-   "fold2" 44
-   "wrap2" 45
-   "rrand" 47
-   "exprand" 48]))
-
 (def UNARY-OPS
   {"neg" 0
    "bitNot" 4
@@ -91,3 +49,46 @@
    "ramp" 52
    "scurve" 53})
 
+(def BINARY-OPS 
+  (apply hash-map ["+" 0
+   "-" 1
+   "*" 2
+   "div" 3
+   "/" 4
+   "mod" 5
+   "<=" 10
+   ">=" 11
+   "minimum" 12
+   "maximum" 13 
+   "lcm" 17
+   "gcd" 18
+   "round" 19
+   "roundUp" 20
+   "trunc" 21
+   "atan2" 22
+   "hypot" 23
+   "hypotApx" 24
+   "pow" 25
+   "leftShift" 26
+   "rightShift" 27
+   "unsignedRightShift" 28
+   "ring1" 30
+   "ring2" 31
+   "ring3" 32
+   "ring4" 33
+   "difsqr" 34
+   "sumsqr" 35
+   "sqrsum" 36
+   "sqrdif" 37
+   "absdif" 38
+   "thresh" 39
+   "amclip" 40
+   "scaleneg" 41
+   "clip2" 42
+   "excess" 43
+   "fold2" 44
+   "wrap2" 45
+   "rrand" 47
+   "exprand" 48]))
+
+(def SPECIAL-OPS (merge UNARY-OPS BINARY-OPS))

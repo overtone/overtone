@@ -36,9 +36,6 @@
         b (bytes-and-back synth-spec a)]
     (is (= a b))))
 
-(defsynth mini-sin {:freq 440}
-  (out.ar 0 (sin-osc.ar :freq 0)))
-
 (defsynth saw-sin {:freq-a 443
                    :freq-b 440}
   (out.ar 0 (+ (* 0.3 (saw.ar :freq-a))
@@ -62,29 +59,33 @@
 ;                        :amp)
 ;                     (env-gen.ar (perc 0 :decay) :done-free))))
 ;
+(defsynth mini-sin {:freq 440}
+  (out.ar 0 (sin-osc.ar :freq 0)))
+
 (deftest native-synth-test
   (let [bytes (synthdef-bytes mini-sin)
         synth (synthdef-read bytes)
         ugens (:ugens synth)
-        sin (first ugens)
-        out (second ugens)]
-    (is (= 2 (:n-constants synth)))
-    (is (= (sort [0.0 440.0]) (sort (:constants synth))))
-    (is (= 0 (:n-params synth)))
-    (is (= 2 (:n-ugens synth)))
-    (is (= 2 (count (:ugens synth))))
+        [control sin out] ugens]
+    (is (= 1 (:n-constants synth)))
+    (is (= [0.0] (:constants synth)))
+    (is (= 1 (:n-params synth)))
+    (is (= 3 (:n-ugens synth)))
+    (is (= 3 (count (:ugens synth))))
+    (is (= "Control" (:name control)))
     (is (= "SinOsc" (:name sin)))
     (is (= "Out" (:name out)))
+    (is (= 1 (:rate control)))
     (is (= 2 (:rate sin)))
     (is (= 2 (:rate out)))
     (is (= 2 (:n-inputs sin)))
     (is (= 2 (:n-inputs out)))
     (is (= 1 (:n-outputs sin)))
     (is (= 0 (:n-outputs out)))
-    (is (= {:src -1 :index 0} (first (:inputs sin))))
-    (is (= {:src -1 :index 1} (second (:inputs sin))))
-    (is (= {:src -1, :index 1} (first (:inputs out))))
-    (is (= {:src 0, :index 0} (second (:inputs out))))
+    (is (= {:src 0 :index 0} (first (:inputs sin))))
+    (is (= {:src -1 :index 0} (second (:inputs sin))))
+    (is (= {:src -1, :index 0} (first (:inputs out))))
+    (is (= {:src 1, :index 0} (second (:inputs out))))
     ))
 
 (def TOM-DEF "test/data/tom.scsyndef")

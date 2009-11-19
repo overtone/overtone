@@ -43,3 +43,10 @@
 
 (defn now []
   (System/currentTimeMillis))
+
+(defn invert-map 
+  "Make the keys the values and the values the keys.  Note, if there are
+  duplicate values in the map they will result in key collisions and a smaller
+  result map."
+  [m] 
+  (apply hash-map (interleave (vals m) (keys m))))

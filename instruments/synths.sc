@@ -10,12 +10,28 @@ s.quit;
 Help.gui;
 
 (
-SynthDef("sin", {|out = 0, pitch = 40, dur = 0.3|
-  Out.ar(out, Pan2.ar( EnvGen.kr(Env.linen(0.001, dur, 0.002), doneAction: 2) * SinOsc.ar(midicps(pitch), 0, 0.8)));
+SynthDef("sin", {|out = 0, pitch = 40, dur = 300|
+  Out.ar(out, Pan2.ar( EnvGen.kr(Env.linen(0.001, dur / 1000.0, 0.002), doneAction: 2) * SinOsc.ar(midicps(pitch), 0, 0.8), 0));
   }).store;
 )
-Synth("sin", ["pitch", 60, "dur", 0.2]);
-c = Synth("sin");
+Synth("sin", ["pitch", 60, "dur", 100]);
+
+// Making chords
+
+// Just trigger 3 single note synths at the same time
+(
+ Synth("sin", ["pitch", 60, "dur", 0.2]);
+ Synth("sin", ["pitch", 64, "dur", 0.2]);
+ Synth("sin", ["pitch", 67, "dur", 0.2]);
+)
+
+// Define a major-chorded synth
+(
+SynthDef("sin-chord", {|out = 0, pitch = 40, dur = 0.3|
+  Out.ar(out, Pan2.ar( EnvGen.kr(Env.linen(0.001, dur, 0.002), doneAction: 2) * SinOsc.ar(midicps([pitch, pitch + 4, pitch + 7]), 0, 0.8), 0));
+  }).store;
+)
+Synth("sin-chord", ["pitch", 60, "dur", 0.2]);
 
 // For testing instruments with a midi keyboard...
 (

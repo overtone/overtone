@@ -38,6 +38,14 @@ hearing useful audio input
 - synthdefs should automatically register their information with a synthdef library
 area so users can easily browse available instruments and fx.
 
+* Implement some basic optimizations for BinaryOpUGens to do things like:
+ - pre-compute constants
+ - combine '*' and '+' ops into MulAdd
+ * look at BasicOpsUGen.sc in supercollider source
+ * we can do this either at the form processing phase, connected to (replace-arithmetic ...)
+   or in the ugen connection phase in (detail-ugens ...)
+
+
 * Arpeggiator(s)
 * Chord progressors
  - create a library of things like 12-bar-blues, etc., and make it easy

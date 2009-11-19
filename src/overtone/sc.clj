@@ -375,7 +375,7 @@
 ; Turn hit into a multimethod
 ; Convert samples to be a map object instead of an ID
 (defn hit 
-  "Fire off the named synth or loaded sample (by id) at a specified time.
+  "Fire off a synth or sample at a specified time.
   These are the same:
       (hit :kick)
       (hit \"kick\")
@@ -420,10 +420,24 @@
       (apply node-control node-id (stringify args))))
 
 (defn kill
-  "Instantly free all the given synths, stopping their sound."
-  [time-ms & ids]
-  (at time-ms 
-      (apply node-free ids)))
+  "Free one or more synth nodes.
+  Functions that create instance of synth definitions, such as hit, return
+  a handle for the synth node that was created.
+      (let [handle (hit :sin)] ; returns => synth-handle
+        (kill (+ 1000 (now)) handle))
+  
+      ; a single handle without a time kills immediately
+      (kill handle) 
+
+      ; or a seq of synth handles can be removed at once
+      (kill (+ (now) 1000) [(hit) (hit) (hit)])
+  "
+  [& args]
+  (let [[time-ms ids] (if (= 1 (count args))
+                        [(now) (flatten args)]
+                        [(first args) (flatten (next args))])]
+        (at time-ms 
+            (apply node-free ids))))
 
 ;;(defn effect [synthdef & args]
 ;;  (let [arg-map (assoc (apply hash-map args) "bus" FX-BUS)

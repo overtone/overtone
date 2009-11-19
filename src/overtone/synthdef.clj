@@ -32,8 +32,11 @@
 ;;   1 = control rate - one sample is computed each control period.
 ;;   2 = audio rate - one sample is computed for each sample of audio output.
 (def RATES {:scalar  0
-           :control 1
-           :audio   2})
+            :control 1
+            :audio   2
+            :demand  3})
+
+(def REVERSE-RATES (invert-map RATES))
 
 ;; an output-spec is :
 ;;   int8 - calculation rate
@@ -170,19 +173,19 @@
 ;;  * Unit generators should be listed in an order that permits efficient reuse
 ;;  of connection buffers, so use a depth first topological sort of the graph. 
 
-(defn- normalize-ugen-name [n]
+(defn- normalize-name [n]
   (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
 
 (def UGEN-MAP (reduce 
                 (fn [mem ugen] 
-                  (assoc mem (normalize-ugen-name (:name ugen)) ugen)) 
+                  (assoc mem (normalize-name (:name ugen)) ugen)) 
                 UGENS))
 
 (defn ugen-name [word]
-  (:name (get UGEN-MAP (normalize-ugen-name word))))
+  (:name (get UGEN-MAP (normalize-name word))))
 
 (defn find-ugen [word]
-  (get UGEN-MAP (normalize-ugen-name word)))
+  (get UGEN-MAP (normalize-name word)))
 
 (defn ugen-search [regexp]
   (filter (fn [[k v]] (re-find (re-pattern regexp) (str k))) UGEN-MAP))
@@ -221,7 +224,7 @@
 
 (defn- control? [ugen]
   (and (map? ugen)
-       (CONTROLS (normalize-ugen-name (:name ugen)))))
+       (CONTROLS (normalize-name (:name ugen)))))
 
 (def *ugens* nil)
 (def *constants* nil)
@@ -404,46 +407,47 @@
   (and (seq? form)
        (= 'ugen (first form))))
 
-(defn- unary-op? [form]
-  (and (seq? form)
-       (= 2 (count form))
-       (contains? UNARY-OPS (str (first form)))
-       (or (ugen-form? (second form))
-           (keyword? (second form)))))
+;(defn- unary-op? [form]
+;  (or (ugen-form? (second form))
+;      (keyword? (second form))
+;      (number? (second form))))
+;
+;(defn- binary-op? [form]
+;  (or (ugen-form? (second form))
+;      (ugen-form? (nth form 2))))
 
-(defn- binary-op? [form]
-  (and (seq? form)
-       (= 3 (count form))
-       (contains? BINARY-OPS (str (first form)))
-       (or (ugen-form? (second form))
-           (ugen-form? (nth form 2)))))
+(defn- fastest-rate [& rates]
+  (REVERSE-RATES (first (reverse (sort (map RATES rates))))))
 
-(defn- replace-unary [form]
-  (concat 
-    ['ugen  "UnaryOpUGen" (nth (fnext form) 2) (get UNARY-OPS (str (first form)))]
-    (next form)))
+(defn- unary-op [op-num arg]
+  (let [rate (cond
+               (ugen-form? arg) (nth arg 2)
+               (keyword? arg) :control 
+               :default :scalar)]
+    ['ugen  "UnaryOpUGen" rate op-num arg]))
 
-(defn- replace-binary [form]
-  (log/debug "replace-binary: " form)
-  (let [ugen-arg (first (take 1 (filter #(ugen-form? %1) form)))
-        _ (log/debug "ugen-arg:" ugen-arg)
-        rate (nth ugen-arg 2)]
-    (concat
-      ['ugen  "BinaryOpUGen" rate (get BINARY-OPS (str (first form)))]
-      (next form))))
+(defn- binary-op [op-num a b]
+  (let [rates (map #(nth %1 2) (filter #(ugen-form? %1) [a b]))
+        rate (fastest-rate rates)]
+    ['ugen  "BinaryOpUGen" rate op-num a b]))
 
-(defn- replace-arithmetic
-  "Replace all arithmetic operations on ugens with unary and binary ugen operators."
+(defn- replace-basic-ops
+  "Replace all basic operations on ugens with unary and binary ugen operators."
   [form]
-  (postwalk (fn [x] (cond
-                      (unary-op? x) (replace-unary x)
-                      (binary-op? x) (replace-binary x)
-                      :default x))
+  (postwalk (fn [x] 
+              (if (seq? x)
+                (if-let [op-num (get SPECIAL-OPS (normalize-name (first x)))]
+                  (cond
+                    (= 2 (count x)) (unary-op op-num (second x))
+                    (= 3 (count x)) (binary-op op-num (second x) (nth x 2))
+                    :default x)
+                  x)
+                x))
             form))
 
 (defn- to-ugen-tree [form]
   (let [t1 (replace-ugens form)
-        t2 (replace-arithmetic t1)]
+        t2 (replace-basic-ops t1)]
     t2))
 
 ; TODO: Either add support for multi-channel expansion, or get rid of the idea
@@ -500,11 +504,11 @@
                   body
                   `(out.ar 0 (pan2.ar ~body 0)))
         ugen-tree (to-ugen-tree wrapped)]
-    ;(log/debug "synth: " {:args args
-    ;                    :params params
-    ;                    :body body
-    ;                    :wrapped wrapped
-    ;                    :ugen-tree ugen-tree})
+    (log/debug "synth: " {:args args
+                        :params params
+                        :body body
+                        :wrapped wrapped
+                        :ugen-tree ugen-tree})
     `(with-meta (build-synthdef ~sname ~params ~ugen-tree)
             {:type :synthdef
              :src-code '~body})))

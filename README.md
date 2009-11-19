@@ -68,28 +68,3 @@ I use the tune-up script to quickly setup the audio environment and the nailgun
 server used by vimclojure.  Over time this will become a clojure script that is
 more easily customizable, but for now the Ruby script should be easy enough to
 understand and modify.
-
-### Related Projects:
-
-* [Impromptu](http://impromptu.moso.com.au/)
-
-* [Fluxus](http://impromptu.moso.com.au/)
-
-* [Chuck](http://chuck.cs.princeton.edu/)
-
-* [csound](http://www.csounds.com/)
-
-* [PureData](http://puredata.info/)
-
-* [JCollider](http://www.sciss.de/jcollider/)
-
-* [SCRuby](http://github.com/maca/scruby) - Ruby SuperCollider
-
-* [RSC3](http://www.slavepianos.org/rd/sw/rsc3/README) - Scheme SuperCollider
-
-* [Common Music](http://commonmusic.sourceforge.net/cm/res/doc/cm.html#toolbox)
-
-* [JFugue](http://www.jfugue.org/javadoc/index.html)
-
-* [JMusic](http://jmusic.ci.qut.edu.au/)
-
