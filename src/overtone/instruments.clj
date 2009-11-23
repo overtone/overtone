@@ -1,5 +1,5 @@
 (ns overtone.instruments
-  (:use (overtone synthdef envelope pitch)))
+  (:use (overtone synth envelope pitch)))
 
 ;SynthDef("sin", {|out = 0, pitch = 40, dur = 300|
 ;  Out.ar(out, Pan2.ar( EnvGen.kr(Env.linen(0.001, dur / 1000.0, 0.002), doneAction: 2) * SinOsc.ar(midicps(pitch), 0, 0.8), 0));
@@ -85,23 +85,23 @@
                     :attack  ; clamp time (attack)
                     :release)))) ; relax time (release)
 
-(defmacro mix [& args]
-  (reduce (fn [mem arg] (list '+ mem arg))
-          args))
-
-(defn wand [n]
-  (mix 
-    (syn (sin-osc.ar (mhz (- n octave))))
-    (syn 
-      (lpf.ar (saw.ar [(mhz n) (mhz (+ n fifth))]) 
-          (mul-add.kr
-              (sin-osc.kr 4)
-              30
-              300)))))
-
-(defsynth triangle-test 
-  (out.ar 0 
-          (mul-add.ar 
-            (wand 60)
-            (env-gen.kr 1 1 0 1 2 (triangle 3 0.8))
-            0)))
+;(defmacro mix [& args]
+;  (reduce (fn [mem arg] (list '+ mem arg))
+;          args))
+;
+;(defn wand [n]
+;  (syn 
+;  (mix 
+;    (sin-osc.ar (mhz (- n octave)))
+;    (lpf.ar (saw.ar [(mhz n) (mhz (+ n fifth))]) 
+;          (mul-add.kr
+;              (sin-osc.kr 4)
+;              30
+;              300)))))
+;
+;(defsynth triangle-test 
+;  (out.ar 0 
+;          (mul-add.ar 
+;            (wand 60)
+;            (env-gen.kr 1 1 0 1 2 (triangle 3 0.8))
+;            0)))

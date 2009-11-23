@@ -9,8 +9,9 @@
      (com.raelity.jvi ViManager ColonCommands)
      (com.raelity.jvi.swing DefaultViFactory StatusDisplay TextView))
   (:require [clojure.inspector :as inspector])
-  (:use clojure.contrib.seq-utils))
-;     org.enclojure.ide.repl.factory))
+  (:use clojure.contrib.seq-utils
+     clj-backtrace.repl
+     org.enclojure.ide.repl.factory))
 
 (def APP-NAME "Overtone")
 (def DEFAULT-FONT "Sans")
@@ -152,7 +153,7 @@
       (.add status-pane BorderLayout/SOUTH))))
 
 (defn make-repl []
-;  (.getReplPanel (create-in-proc-repl)))
+  (.getReplPanel (create-in-proc-repl))
   (JPanel.))
 
 (defonce factory (ViManager/setViFactory (DefaultViFactory.)))

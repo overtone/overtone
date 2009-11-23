@@ -3,7 +3,7 @@
               DataInputStream DataOutputStream
               BufferedInputStream BufferedOutputStream 
               ByteArrayOutputStream ByteArrayInputStream))
-  (:use (overtone sc synthdef envelope utils)
+  (:use (overtone sc synthdef synth envelope utils)
      test-utils
      clojure.test
      clj-backtrace.repl))
