@@ -10,9 +10,6 @@
 ; 
 ; Audio input
 ; * access samples from the microphone
-; Disk I/O
-; * recording to files
-; * reading and playing samples
 
 ; Busses
 ; 0 & 1 => default stereo output (to jack)

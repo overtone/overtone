@@ -307,7 +307,7 @@
       {:group id
        :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
 
-(defn parse-node-tree [data]
+(defn- parse-node-tree [data]
   (let [ctls? (= 1 (first data))]
     (binding [*data* (next data)]
       (parse-node-tree-helper ctls?))))
@@ -316,7 +316,10 @@
 ; Thus child nodes (those contained within a group) are listed immediately
 ; following their parent. See the method Server:queryAllNodes for an example of
 ; how to process this reply.
-(defn node-tree [id & [ctls?]]
+(defn node-tree 
+  "Returns a data structure representing the current arrangement of groups and synthesizer
+  instances residing on the audio server."
+  [id & [ctls?]]
   (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
     (snd "/g_queryTree" id ctls?)
     (let [tree (:args (osc-recv @server*))]
@@ -348,30 +351,66 @@
   (recv "/synced"))
 
 ; size is in samples
-(defn buffer [size]
+(defn buffer 
+  "Allocate a new buffer for storing audio data."
+  [size]
   (let [id (next-buffer-id)]
     (snd "/b_alloc" id size)
-    id))
+    {:type :buffer
+     :id id
+     :size size}))
 
-(defn save-buffer [buf-id path]
-  (snd "/b_write" buf-id path "wav" "float"))
+(defn buffer? [buf]
+  (and (map? buf) (= (:type buf) :buffer)))
+
+(defn buffer-read [buf start len]
+  (assert (buffer? buf))
+  (snd "/b_getn" (:id buf) start len))
+
+(defn buffer-write [buf start len data]
+  (snd "/b_setn" (:id buf) start len data))
+
+(defn save-buffer 
+  "Save the float audio data in an audio buffer to a wav file."
+  [buf path]
+  (assert (buffer? buf))
+  (snd "/b_write" (:id buf) path "wav" "float"))
   
-(defn load-sample [path]
+(defn load-sample 
+  "Load a wav file into memory so it can be played as a sample."
+  [path]
   (let [id (next-buffer-id)]
     (snd "/b_allocRead" id path)
-    id))
+    {:type :sample
+     :buf {:type :buffer
+           :id id}
+     :path path}))
 
-(defn load-synth [sdef]
+(defn sample? [s]
+  (and (map? s) (= :sample (:type s))))
+
+(defn load-synth 
+  "Load a Clojure synth definition onto the audio server."
+  [sdef]
   (assert (synthdef? sdef))
   (snd "/d_recv" (synthdef-bytes sdef)))
 
-(defn reset []
+(defn load-synth-file
+  "Load a synth definition file onto the audio server."
+  [path]
+  (snd "/d_recv" (synthdef-bytes (synthdef-read path))))
+
+(defn reset 
+  "Clear all synthesizers, groups and pending messages from the audio server."
+  []
   (try
     (group-clear 0)
     (catch Exception e nil))
   (clear-msg-queue)
-  (reset-id-counters)
-  (dosync (ref-set server-log* [])))
+  (reset-id-counters))
+
+;  Maybe it's better to keep the server log around???
+;  (dosync (ref-set server-log* [])))
 
 (defn debug [& [on-off]]
   (if (or on-off (nil? on-off))
@@ -411,13 +450,14 @@
          id (next-node-id)
          synth (cond
                  (synthdef? synth) (as-str (:name synth))
+                 (sample? synth) synth
                  (keyword? synth) (name synth)
                  (string? synth) synth
                  :default (throw 
-                            (Exception. "Not connected to a SuperCollider server.")))
+                            (Exception. "Hit doesn't know how to play the given synth: " synth)))
          args (-> args (stringify) (floatify))]
-     (if (number? synth)
-       (apply hit time-ms "granular" :buf synth args)
+     (if (sample? synth)
+       (apply hit time-ms "granular" :buf (get-in synth [:buf :id]) args)
        (at time-ms (apply node synth id args)))
      id)))
 
@@ -455,6 +495,13 @@
                         [(first args) (flatten (next args))])]
         (at time-ms 
             (apply node-free ids))))
+
+(defn load-instruments []
+  (doseq [synth (filter #(synthdef? %1) 
+                        (map #(var-get %1) 
+                             (vals (ns-publics 'overtone.instruments))))]
+    (println "loading synth: " (:name synth))
+    (load-synth synth)))
 
 ;;(defn effect [synthdef & args]
 ;;  (let [arg-map (assoc (apply hash-map args) "bus" FX-BUS)

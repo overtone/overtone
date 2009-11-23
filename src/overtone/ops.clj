@@ -1,4 +1,5 @@
-(ns overtone.ops)
+(ns overtone.ops
+  (:use (overtone utils)))
 
 (def UNARY-OPS
   {"neg" 0
@@ -92,3 +93,4 @@
    "exprand" 48]))
 
 (def SPECIAL-OPS (merge UNARY-OPS BINARY-OPS))
+(def REVERSE-SPECIAL-OPS (invert-map SPECIAL-OPS))

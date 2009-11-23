@@ -1,6 +1,15 @@
 (ns overtone.ugens)
          
-;; SuperCollider ugen data scraped from JCollider. Thanks sciss!!! 
+;; SuperCollider ugen data originally scraped from JCollider. Thanks sciss!!! 
+
+;; There are 3 types of ugen outputs:
+;;  * :fixed
+;;  * :from-arg
+;;  * :variable
+;;
+;;  * UGens that have an argument determining how many output channels they will have
+;;  must name the argument 'numChannels' so the in/out machinery gets wired up correctly.
+
 (def UGENS [
   {:name "!=", :args '({:name "a", :array? false, :default Float/NaN} {:name "b", :array? false, :default Float/NaN}), :rates #{"demand" "scalar" "audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
@@ -106,13 +115,13 @@
   
   {:name "BufRateScale", :args '({:name "bufnum", :array? false, :default Float/NaN}), :rates #{"scalar" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "BufRd", :args '({:name "bufnum", :array? false, :default 0.0} {:name "phase", :array? false, :default 0.0} {:name "loop", :array? false, :default 1.0} {:name "interpolation", :array? false, :default 2.0}), :rates #{"audio" "control"}, :fixed-outs -1, :out-type :from-arg}
+  {:name "BufRd", :args '({:name "numChannels", :array? false, :default 1.0} {:name "bufnum", :array? false, :default 0.0} {:name "phase", :array? false, :default 0.0} {:name "loop", :array? false, :default 1.0} {:name "interpolation", :array? false, :default 2.0}), :rates #{"audio" "control"}, :fixed-outs -1, :out-type :from-arg}
   
   {:name "BufSampleRate", :args '({:name "bufnum", :array? false, :default Float/NaN}), :rates #{"scalar" "control"}, :fixed-outs 1, :out-type :fixed}
   
   {:name "BufSamples", :args '({:name "bufnum", :array? false, :default Float/NaN}), :rates #{"scalar" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "BufWr", :args '({:name "bufnum", :array? false, :default 0.0} {:name "phase", :array? false, :default 0.0} {:name "loop", :array? false, :default 1.0} {:name "inputArray", :array? true, :default Float/NaN}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
+  {:name "BufWr", :args '({:name "inputArray", :array? true, :default Float/NaN} {:name "bufnum", :array? false, :default 0.0} {:name "phase", :array? false, :default 0.0} {:name "loop", :array? false, :default 1.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
   {:name "COsc", :args '({:name "bufnum", :array? false, :default Float/NaN} {:name "freq", :array? false, :default 440.0} {:name "beats", :array? false, :default 0.5}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
@@ -164,7 +173,7 @@
   
   {:name "Decay2", :args '({:name "in", :array? false, :default 0.0} {:name "attackTime", :array? false, :default 0.01} {:name "decayTime", :array? false, :default 1.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "DecodeB2", :args '({:name "w", :array? false, :default Float/NaN} {:name "x", :array? false, :default Float/NaN} {:name "y", :array? false, :default Float/NaN} {:name "orientation", :array? false, :default 0.5}), :rates #{"audio" "control"}, :fixed-outs -1, :out-type :from-arg}
+  {:name "DecodeB2", :args '({:name "numChannels", :array? false, :default 1.0} {:name "w", :array? false, :default Float/NaN} {:name "x", :array? false, :default Float/NaN} {:name "y", :array? false, :default Float/NaN} {:name "orientation", :array? false, :default 0.5}), :rates #{"audio" "control"}, :fixed-outs -1, :out-type :from-arg}
   
   {:name "DegreeToKey", :args '({:name "bufnum", :array? false, :default Float/NaN} {:name "in", :array? false, :default 0.0} {:name "octave", :array? false, :default 12.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
@@ -190,7 +199,7 @@
   
   {:name "Dibrown", :args '({:name "lo", :array? false, :default Float/NaN} {:name "hi", :array? false, :default Float/NaN} {:name "step", :array? false, :default Float/NaN} {:name "length", :array? false, :default Float/POSITIVE_INFINITY}), :rates #{"demand"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "DiskIn", :args '({:name "bufnum", :array? false, :default Float/NaN} {:name "loop", :array? false, :default 0.0}), :rates #{"audio"}, :fixed-outs -1, :out-type :from-arg}
+  {:name "DiskIn", :args '({:name "numChannels", :array? false, :default 1.0} {:name "bufnum", :array? false, :default Float/NaN} {:name "loop", :array? false, :default 0.0}), :rates #{"audio"}, :fixed-outs -1, :out-type :from-arg}
   
   {:name "DiskOut", :args '({:name "bufnum", :array? false, :default Float/NaN} {:name "channelsArray", :array? true, :default Float/NaN}), :rates #{"audio"}, :fixed-outs 0, :out-type :fixed}
   
@@ -302,15 +311,15 @@
   
   {:name "Impulse", :args '({:name "freq", :array? false, :default 440.0} {:name "phase", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "In", :args '({:name "bus", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :from-arg}
+  {:name "In", :args '({:name "bus", :array? false, :default 0.0} {:name "numChannels", :array? false, :default 1.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :from-arg}
   
-  {:name "InFeedback", :args '({:name "bus", :array? false, :default 0.0}), :rates #{"audio"}, :fixed-outs 1, :out-type :from-arg}
+  {:name "InFeedback", :args '({:name "bus", :array? false, :default 0.0} {:name "numChannels", :array? false, :default 1.0}), :rates #{"audio"}, :fixed-outs 1, :out-type :from-arg}
   
   {:name "InRange", :args '({:name "in", :array? false, :default 0.0} {:name "lo", :array? false, :default 0.0} {:name "hi", :array? false, :default 1.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
   {:name "InRect", :args '({:name "y", :array? false, :default 0.0} {:name "y", :array? false, :default 0.0} {:name "left", :array? false, :default Float/NaN} {:name "top", :array? false, :default Float/NaN} {:name "right", :array? false, :default Float/NaN} {:name "bottom", :array? false, :default Float/NaN}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "InTrig", :args '({:name "bus", :array? false, :default 0.0}), :rates #{"control"}, :fixed-outs 1, :out-type :from-arg}
+  {:name "InTrig", :args '({:name "bus", :array? false, :default 0.0} {:name "numChannels", :array? false, :default 1.0}), :rates #{"control"}, :fixed-outs 1, :out-type :from-arg}
   
   {:name "Index", :args '({:name "bufnum", :array? false, :default Float/NaN} {:name "in", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
@@ -372,7 +381,7 @@
   
   {:name "Lag3UD", :args '({:name "in", :array? false, :default 0.0} {:name "lagTimeU", :array? false, :default 0.1} {:name "lagTimeD", :array? false, :default 0.1}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "LagIn", :args '({:name "bus", :array? false, :default 0.0} {:name "lag", :array? false, :default 0.1}), :rates #{"control"}, :fixed-outs 1, :out-type :from-arg}
+  {:name "LagIn", :args '({:name "bus", :array? false, :default 0.0} {:name "numChannels", :array? false, :default 1.0} {:name "lag", :array? false, :default 0.1}), :rates #{"control"}, :fixed-outs 1, :out-type :from-arg}
   
   {:name "LagUD", :args '({:name "in", :array? false, :default 0.0} {:name "lagTimeU", :array? false, :default 0.1} {:name "lagTimeD", :array? false, :default 0.1}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
@@ -414,7 +423,7 @@
   
   {:name "Linen", :args '({:name "gate", :array? false, :default 1.0} {:name "attackTime", :array? false, :default 0.01} {:name "susLevel", :array? false, :default 1.0} {:name "releaseTime", :array? false, :default 1.0} {:name "doneAction", :array? false, :default 0.0}), :rates #{"control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "LocalIn", :args '(), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :from-arg}
+  {:name "LocalIn", :args '({:name "numChannels", :array? false, :default 1.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :from-arg}
   
   {:name "LocalOut", :args '({:name "channelsArray", :array? true, :default Float/NaN}), :rates #{"audio" "control"}, :fixed-outs 0, :out-type :fixed}
   
@@ -424,7 +433,7 @@
   
   {:name "Loudness", :args '({:name "chain", :array? false, :default Float/NaN} {:name "smask", :array? false, :default 0.25} {:name "tmask", :array? false, :default 1.0}), :rates #{"control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "MFCC", :args '({:name "in", :array? false, :default Float/NaN} {:name "numcoeff", :array? false, :default 13.0}), :rates #{"control"}, :fixed-outs 1, :out-type :from-arg}
+  {:name "MFCC", :args '({:name "in", :array? false, :default Float/NaN} {:name "numcoeff", :array? false, :default 13.0}), :rates #{"control"}, :fixed-outs 1, :out-type :fixed}
   
   {:name "MantissaMask", :args '({:name "in", :array? false, :default 0.0} {:name "bits", :array? false, :default 3.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
@@ -550,7 +559,7 @@
   
   {:name "Pan4", :args '({:name "in", :array? false, :default Float/NaN} {:name "xpos", :array? false, :default 0.0} {:name "ypos", :array? false, :default 0.0} {:name "level", :array? false, :default 1.0}), :rates #{"audio" "control"}, :fixed-outs 4, :out-type :fixed}
   
-  {:name "PanAz", :args '({:name "in", :array? false, :default Float/NaN} {:name "pos", :array? false, :default 0.0} {:name "level", :array? false, :default 1.0} {:name "width", :array? false, :default 2.0} {:name "orientation", :array? false, :default 0.5}), :rates #{"audio" "control"}, :fixed-outs -1, :out-type :from-arg}
+  {:name "PanAz", :args '({:name "numChannels", :array? false, :default 1.0} {:name "in", :array? false, :default Float/NaN} {:name "pos", :array? false, :default 0.0} {:name "level", :array? false, :default 1.0} {:name "width", :array? false, :default 2.0} {:name "orientation", :array? false, :default 0.5}), :rates #{"audio" "control"}, :fixed-outs -1, :out-type :from-arg}
   
   {:name "PanB", :args '({:name "in", :array? false, :default Float/NaN} {:name "azimuth", :array? false, :default 0.0} {:name "elevation", :array? false, :default 0.0} {:name "gain", :array? false, :default 1.0}), :rates #{"audio" "control"}, :fixed-outs 4, :out-type :fixed}
   
@@ -576,7 +585,7 @@
   
   {:name "PitchShift", :args '({:name "in", :array? false, :default 0.0} {:name "windowSize", :array? false, :default 0.2} {:name "pitchRatio", :array? false, :default 1.0} {:name "pitchDispersion", :array? false, :default 0.0} {:name "timeDispersion", :array? false, :default 0.0}), :rates #{"audio"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "PlayBuf", :args '({:name "bufnum", :array? false, :default 0.0} {:name "rate", :array? false, :default 1.0} {:name "trigger", :array? false, :default 1.0} {:name "startPos", :array? false, :default 0.0} {:name "loop", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs -1, :out-type :from-arg}
+  {:name "PlayBuf", :args '({:name "numChannels", :array? false, :default 1.0} {:name "bufnum", :array? false, :default 0.0} {:name "rate", :array? false, :default 1.0} {:name "trigger", :array? false, :default 1.0} {:name "startPos", :array? false, :default 0.0} {:name "loop", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs -1, :out-type :from-arg}
   
   {:name "Pluck", :args '({:name "in", :array? false, :default 0.0} {:name "trig", :array? false, :default 1.0} {:name "maxdelaytime", :array? false, :default 0.2} {:name "delaytime", :array? false, :default 0.2} {:name "decaytime", :array? false, :default 1.0} {:name "coef", :array? false, :default 0.5}), :rates #{"audio"}, :fixed-outs 1, :out-type :fixed}
   
@@ -606,7 +615,7 @@
   
   {:name "RandSeed", :args '({:name "trig", :array? false, :default 0.0} {:name "seed", :array? false, :default 56789.0}), :rates #{"scalar" "control"}, :fixed-outs 0, :out-type :fixed}
   
-  {:name "RecordBuf", :args '({:name "bufnum", :array? false, :default 0.0} {:name "offset", :array? false, :default 0.0} {:name "recLevel", :array? false, :default 1.0} {:name "preLevel", :array? false, :default 0.0} {:name "run", :array? false, :default 1.0} {:name "loop", :array? false, :default 1.0} {:name "trigger", :array? false, :default 1.0} {:name "inputArray", :array? true, :default Float/NaN}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
+  {:name "RecordBuf", :args '({:name "inputArray", :array? true, :default Float/NaN} {:name "bufnum", :array? false, :default 0.0} {:name "offset", :array? false, :default 0.0} {:name "recLevel", :array? false, :default 1.0} {:name "preLevel", :array? false, :default 0.0} {:name "run", :array? false, :default 1.0} {:name "loop", :array? false, :default 1.0} {:name "trigger", :array? false, :default 1.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
   {:name "ReplaceOut", :args '({:name "bus", :array? false, :default Float/NaN} {:name "channelsArray", :array? true, :default Float/NaN}), :rates #{"audio" "control"}, :fixed-outs 0, :out-type :fixed}
   
@@ -632,7 +641,7 @@
   
   {:name "Schmidt", :args '({:name "in", :array? false, :default 0.0} {:name "lo", :array? false, :default 0.0} {:name "hi", :array? false, :default 1.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "ScopeOut", :args '({:name "bufnum", :array? false, :default 0.0} {:name "inputArray", :array? true, :default Float/NaN}), :rates #{"audio" "control"}, :fixed-outs 0, :out-type :fixed}
+  {:name "ScopeOut", :args '({:name "inputArray", :array? true, :default Float/NaN} {:name "bufnum", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs 0, :out-type :fixed}
   
   {:name "Select", :args '({:name "which", :array? false, :default Float/NaN} {:name "array", :array? true, :default Float/NaN}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
@@ -642,11 +651,11 @@
   
   {:name "Shaper", :args '({:name "bufnum", :array? false, :default Float/NaN} {:name "in", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "SharedIn", :args '({:name "bus", :array? false, :default 0.0}), :rates #{"control"}, :fixed-outs 1, :out-type :from-arg}
+  {:name "SharedIn", :args '({:name "bus", :array? false, :default 0.0} {:name "numChannels", :array? false, :default 1.0}), :rates #{"control"}, :fixed-outs 1, :out-type :from-arg}
   
   {:name "SharedOut", :args '({:name "bus", :array? false, :default Float/NaN} {:name "channelsArray", :array? true, :default Float/NaN}), :rates #{"control"}, :fixed-outs 0, :out-type :fixed}
   
-  {:name "Silent", :args '(), :rates #{"audio"}, :fixed-outs 1, :out-type :from-arg}
+  {:name "Silent", :args '({:name "numChannels", :array? false, :default 1.0}), :rates #{"audio"}, :fixed-outs 1, :out-type :from-arg}
   
   {:name "SinOsc", :args '({:name "freq", :array? false, :default 440.0} {:name "phase", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
@@ -690,7 +699,7 @@
   
   {:name "TExpRand", :args '({:name "lo", :array? false, :default 0.01} {:name "hi", :array? false, :default 1.0} {:name "trig", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "TGrains", :args '({:name "trigger", :array? false, :default 0.0} {:name "bufnum", :array? false, :default 0.0} {:name "rate", :array? false, :default 1.0} {:name "centerPos", :array? false, :default 0.0} {:name "dur", :array? false, :default 0.1} {:name "pan", :array? false, :default 0.0} {:name "amp", :array? false, :default 0.1} {:name "interp", :array? false, :default 4.0}), :rates #{"audio"}, :fixed-outs -1, :out-type :from-arg}
+  {:name "TGrains", :args '({:name "numChannels", :array? false, :default 1.0} {:name "trigger", :array? false, :default 0.0} {:name "bufnum", :array? false, :default 0.0} {:name "rate", :array? false, :default 1.0} {:name "centerPos", :array? false, :default 0.0} {:name "dur", :array? false, :default 0.1} {:name "pan", :array? false, :default 0.0} {:name "amp", :array? false, :default 0.1} {:name "interp", :array? false, :default 4.0}), :rates #{"audio"}, :fixed-outs -1, :out-type :from-arg}
   
   {:name "TIRand", :args '({:name "lo", :array? false, :default 0.0} {:name "hi", :array? false, :default 127.0} {:name "trig", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
@@ -716,7 +725,7 @@
   
   {:name "UnaryOpUGen", :args '({:name "a", :array? false, :default Float/NaN}), :rates #{"demand" "scalar" "audio" "control"}, :fixed-outs 1, :out-type :fixed}
   
-  {:name "VDiskIn", :args '({:name "bufnum", :array? false, :default Float/NaN} {:name "rate", :array? false, :default 1.0} {:name "loop", :array? false, :default 0.0} {:name "sendID", :array? false, :default 0.0}), :rates #{"audio"}, :fixed-outs -1, :out-type :from-arg}
+  {:name "VDiskIn", :args '({:name "numChannels", :array? false, :default 1.0} {:name "bufnum", :array? false, :default Float/NaN} {:name "rate", :array? false, :default 1.0} {:name "loop", :array? false, :default 0.0} {:name "sendID", :array? false, :default 0.0}), :rates #{"audio"}, :fixed-outs -1, :out-type :from-arg}
   
   {:name "VOsc", :args '({:name "bufpos", :array? false, :default Float/NaN} {:name "freq", :array? false, :default 440.0} {:name "phase", :array? false, :default 0.0}), :rates #{"audio" "control"}, :fixed-outs 1, :out-type :fixed}
   

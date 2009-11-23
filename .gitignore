@@ -1,2 +1,5 @@
+*.swp
+*.swo
 deps
 log*
+*.lck

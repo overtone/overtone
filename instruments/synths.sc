@@ -266,3 +266,5 @@ a.free;
 
 d = Synth(\sine_osc);
 d.free;
+
+{ Out.ar(1, SinOsc.ar(300, 0)) }.scope;

@@ -176,26 +176,118 @@
 (defn- normalize-name [n]
   (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
 
+;; Done actions are typically executed when an envelope ends, or a sample ends
+;; 0	do nothing when the UGen is finished
+;; 1	pause the enclosing synth, but do not free it
+;; 2	free the enclosing synth
+;; 3	free both this synth and the preceding node
+;; 4	free both this synth and the following node
+;; 5	free this synth; if the preceding node is a group then do g_freeAll on it, else free it
+;; 6	free this synth; if the following node is a group then do g_freeAll on it, else free it
+;; 7	free this synth and all preceding nodes in this group
+;; 8	free this synth and all following nodes in this group
+;; 9	free this synth and pause the preceding node
+;; 10	free this synth and pause the following node
+;; 11	free this synth and if the preceding node is a group then do g_deepFree on it, else free it
+;; 12	free this synth and if the following node is a group then do g_deepFree on it, else free it
+;; 13	free this synth and all other nodes in this group (before and after)
+;; 14	free the enclosing group and all nodes within it (including this synth)
+(def DONE-ACTIONS  
+  {:done-nothing 0	
+   :done-pause 1	
+   :done-free 2	
+   :done-free-and-before 3	
+   :done-free-and-after 4
+   :done-free-and-group-before 5	
+   :done-free-and-group-after 6
+   :done-free-upto-this 7	
+   :done-free-from-this-on 8	
+   :done-free-pause-before 9
+   :done-free-pause-after 10
+   :done-free-and-group-before-deep 11
+   :done-free-and-group-after-deep 12	
+   :done-free-children 13	
+   :done-free-group 14})
+
 (def UGEN-MAP (reduce 
                 (fn [mem ugen] 
                   (assoc mem (normalize-name (:name ugen)) ugen)) 
                 UGENS))
 
-(defn ugen-name [word]
-  (:name (get UGEN-MAP (normalize-name word))))
-
 (defn find-ugen [word]
   (get UGEN-MAP (normalize-name word)))
+
+(defn ugen-name [word]
+  (:name (find-ugen word)))
 
 (defn ugen-search [regexp]
   (filter (fn [[k v]] (re-find (re-pattern regexp) (str k))) UGEN-MAP))
 
+(def ugen-id-counter* (ref 0))
+
+(defn- next-ugen-id []
+  (dosync (alter ugen-id-counter* inc)))
+
+(defn- add-default-args [spec args]
+  (let [defaults (map #(%1 :default) (:args spec))]
+    ;(println (:name spec) " defaults: " defaults "\nargs: " args)
+    (cond 
+      ; Many ugens (e.g. EnvGen) have an array of values as their last argument,
+      ; so when the last arg is a coll? we insert missing defaults between the passed
+      ; args and the array.
+      (and (< (count args) (count defaults))
+           (and (coll? (last args)) (:array? (last (:args spec)))))
+      (concat (drop-last args) (drop (count args) (drop-last defaults)) (last args))
+
+      ; Replace regular missing args as long as they are all valid numbers
+      (and (< (count args) (count defaults)) 
+           (not-any? #(= Float/NaN %1) args))
+      (concat args (drop (count args) defaults))
+
+      ; Otherwise we just missed something
+      (< (count args) (count defaults))
+      (throw (IllegalArgumentException. 
+        (str "Missing arguments to ugen: " (:name spec) " => "  
+             (doall (drop (count args) (map #(%1 :name) (:args spec)))))))
+
+      :default args)))
+
+(defn- replace-action-args [args]
+  (map #(get DONE-ACTIONS %1 %1) args))
+
+; Since envelopes are used so often with done actions we make them
+; as easy as possible.  In effect this lets you put the first and last
+; argument only.
+; TODO: Look into replacing this garbage with some kind of keyword argument system  
+(defn- envelope-args [spec args]
+  (replace-action-args 
+    (if (= "EnvGen" (:name spec))
+      (let [env-ary (first args)
+            args (next args) 
+            defaults (drop-last (map #(%1 :default) (:args spec)))
+            with-defs (cond 
+                        (and (< (count args) (count defaults))
+                             (contains? DONE-ACTIONS (last args)))
+                        (concat (drop-last args) 
+                                (drop (dec (count args)) (drop-last defaults)) 
+                                [(last args)])
+
+                        (< (count args) (count defaults))
+                        (concat args (drop (count args) defaults))
+
+                        :default args)]
+        (flatten (concat with-defs [env-ary])))
+      args)))
+
 (defn ugen [name rate special & args]
-  (let [info (ugen-name name)]
-    (if (nil? info)
+  ;(println "ugen: " name rate special)
+  (let [spec (find-ugen name)
+        args (envelope-args spec args)
+        args (add-default-args spec args)]
+    (if (nil? spec)
       (throw (IllegalArgumentException. (str "Unknown ugen: " name))))
-    (with-meta {:id (uuid)
-                :name name
+    (with-meta {:id (next-ugen-id)
+                :name (:name spec)
                 :rate (rate RATES)
                 :special special
                 :args args}
@@ -211,7 +303,7 @@
 (def CONTROLS #{"control"})
 
 (defn- control-ugen [rate n-outputs]
-  (with-meta {:id (uuid)
+  (with-meta {:id (next-ugen-id)
               :name "Control"
               :rate (rate RATES)
               :special 0
@@ -260,12 +352,10 @@
     {:src src :index idx}))
 
 (defn- inputs-from-outputs [src src-ugen]
-  ;(println "inputs-from-outputs: " src-ugen "\nhas " (count (:outputs src-ugen)) " outputs")
+  ;(println "inputs-from-outputs: " (:name src-ugen))
   (for [i (range (count (:outputs src-ugen)))]
     {:src src :index i}))
 
-; TODO: Figure out when we would have to connect to a different output index
-; it probably has to do with multi-channel expansion...
 (defn- with-inputs 
   "Returns ugen object with its input ports connected to constants and upstream 
   ugens according to the arguments in the initial definition."
@@ -287,6 +377,19 @@
                       (:args ugen)))]
     (assoc ugen :inputs inputs)))
 
+; If the arity of the function call creating the ugen is greater than the
+; expected position of the 'numChannels' argument, then we use the value
+; from the arguments.  Otherwise it is expected that it was
+; left out intentionally, so we use a default value.
+(defn- num-channels-from-arg [ugen spec]
+  (let [[idx arg-info] (first (filter (fn [[idx arg]] 
+                                        (= "numChannels" (:name arg)))
+                                      (indexed (:args spec))))
+        default-num (:default arg-info)]
+    (if (> (count (:args ugen)) idx)
+      (nth (:args ugen) idx)
+      default-num)))
+
 (defn- with-outputs 
   "Returns a ugen with its output port connections setup according to the spec."
   [ugen]
@@ -298,7 +401,7 @@
           num-outs (cond
                      (= out-type :fixed)    (:fixed-outs spec)
                      (= out-type :variable) (:fixed-outs spec)
-                     (= out-type :array)    (:fixed-outs spec))
+                     (= out-type :from-arg) (num-channels-from-arg ugen spec))
           outputs (take num-outs (repeat {:rate (:rate ugen)}))]
       ;(println "\noutputs: " (:name ugen) num-outs outputs)
             (assoc ugen :outputs outputs))))
@@ -407,42 +510,39 @@
   (and (seq? form)
        (= 'ugen (first form))))
 
-;(defn- unary-op? [form]
-;  (or (ugen-form? (second form))
-;      (keyword? (second form))
-;      (number? (second form))))
-;
-;(defn- binary-op? [form]
-;  (or (ugen-form? (second form))
-;      (ugen-form? (nth form 2))))
-
-(defn- fastest-rate [& rates]
+(defn- fastest-rate [rates]
   (REVERSE-RATES (first (reverse (sort (map RATES rates))))))
 
-(defn- unary-op [op-num arg]
-  (let [rate (cond
-               (ugen-form? arg) (nth arg 2)
-               (keyword? arg) :control 
-               :default :scalar)]
-    ['ugen  "UnaryOpUGen" rate op-num arg]))
+(defn- special-op-args? [args]
+  (some #(or (ugen? %1) (keyword? %1)) args))
 
-(defn- binary-op [op-num a b]
-  (let [rates (map #(nth %1 2) (filter #(ugen-form? %1) [a b]))
-        rate (fastest-rate rates)]
-    ['ugen  "BinaryOpUGen" rate op-num a b]))
+(defn find-rate [args]
+  (fastest-rate (map #(cond
+                        (ugen? %1) (REVERSE-RATES (:rate %1))
+                        (keyword? %1) :control) 
+                     args)))
+
+(defn op-check 
+  "Checks the types of the arguments after evaluation to determine whether
+  this should be a DSP ugen operator or just a function call to evaluate
+  once at definition."
+  [arity op-num & args]
+  (if (special-op-args? args)    ; or do the inverse...? (every? number? args)
+    (apply ugen arity (find-rate args) op-num args)
+    (eval (apply list (symbol (REVERSE-SPECIAL-OPS op-num)) args))))
 
 (defn- replace-basic-ops
   "Replace all basic operations on ugens with unary and binary ugen operators."
   [form]
   (postwalk (fn [x] 
               (if (seq? x)
-                (if-let [op-num (get SPECIAL-OPS (normalize-name (first x)))]
+                (if-let [op-num (get SPECIAL-OPS (normalize-name (first x)) false)]
                   (cond
-                    (= 2 (count x)) (unary-op op-num (second x))
-                    (= 3 (count x)) (binary-op op-num (second x) (nth x 2))
+                    (= 2 (count x)) (list 'op-check "UnaryOpUGen" op-num (second x))
+                    (= 3 (count x)) (list 'op-check "BinaryOpUGen" op-num (second x) (nth x 2))
                     :default x)
                   x)
-                x))
+                x)) 
             form))
 
 (defn- to-ugen-tree [form]
@@ -474,6 +574,17 @@
      :pnames pnames
      :ugens detailed}))
 
+; TODO: Need to abstract a bit from synth, and put auto-wrapping only here.
+;(defmacro check
+;  "Evaluates the synth definition, sends it to the server, and runs it immediately 
+;  for 1 second."
+;  [& args]
+;  (let [
+;        wrapped (if (= 'out.ar (first body))
+;                  body
+;                  `(out.ar 0 (pan2.ar ~body 0)))
+
+
 (defmacro synth
   "Transforms a synth definition (ugen-tree) into a form that's ready to save 
   to disk or send to the server.
@@ -500,11 +611,8 @@
         [params body] (if (map? (first args))
                         [(first args) (second args)]
                         [{} (first args)])
-        wrapped (if (= 'out.ar (first body))
-                  body
-                  `(out.ar 0 (pan2.ar ~body 0)))
-        ugen-tree (to-ugen-tree wrapped)]
-    (log/debug "synth: " {:args args
+        ugen-tree (to-ugen-tree body)]
+    (comment log/debug "synth: " {:args args
                         :params params
                         :body body
                         :wrapped wrapped
@@ -512,6 +620,12 @@
     `(with-meta (build-synthdef ~sname ~params ~ugen-tree)
             {:type :synthdef
              :src-code '~body})))
+
+(defmacro syn
+  "Useful for making synth definition helpers..."
+  [body]
+  (let [b (to-ugen-tree body)]
+    `(do ~b)))
 
 (defmacro defsynth 
   "Define a named synthesizer, with optional synth controls.
@@ -525,12 +639,25 @@
   "
   [synth-name & args]
   (let [sname (as-str synth-name)]
-    `(do
-       (def ~(symbol sname) (synth ~sname ~@args)))))
-
-
+    `(def ~(symbol sname) (synth ~sname ~@args))))
 
 (defn synthdef? [obj] (= :synthdef (type obj)))
+
+(defn- decomp-params [s]
+  (let [pvals (:params s)]
+    (apply hash-map (flatten 
+      (map #(list (keyword (:name %1)) 
+                  (nth pvals (:index %1))) 
+            (:pnames s))))))
+
+;TODO: Finish this...  It will be really helpful for people who want to explore
+; synths and effects, no matter which SC client they were generated with.
+(defn synthdef-decompile 
+  "Decompile a parsed SuperCollider synth definition back into clojure code
+  that could be used to generate an identical synth."
+  [synth]
+  (let [params decomp-params]
+    params))
 
 (defn- ugen-print [u]
   (println

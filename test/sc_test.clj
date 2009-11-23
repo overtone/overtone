@@ -40,8 +40,7 @@
   (sc/group :head 0)
   (sc/group :tail 0)
   (sc/hit :sin :dur 10000 :target 2)
-  (is (= 1 (:n-synths (sc/status))))
-  (
+  (is (= 1 (:n-synths (sc/status)))))
 
 ; These are what the responses look like for a queryTree msg.  The first
 ; without and the second with control information.
@@ -52,8 +51,6 @@
   (try
     (sc/boot)
     (groups-test)
-    (nodes-test)
+    (node-tree-test)
     (finally 
       (sc/quit))))
-
-

@@ -6,44 +6,24 @@
 (def _ false)
 (def x true)
 
-(comment
-(boot)
-)
+;(boot)
 
 (def BPM 120)
 (def TICK (/ (/ 60000 BPM) 4))
 
-(defn make-beat [pattern voice-map]
-  (let [t (now)]
-    (for [[inst pat] pattern]
-      (for [[index note] (indexed pat)]
-        (if note
-          (hit (+ (* index TICK) t) (get voice-map inst)))))))
-  
+(def hat-buf (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
+
+(def house-drums {:kick "kick" 
+                  :hat hat-buf
+                  :snare "clap"
+                  :tom "tom"})
+
 (def house-beat {:kick  [x _ _ _ x _ _ _ x _ _ _ x _ _ _]
                  :hat   [_ _ x _ _ _ x _ _ _ x _ _ _ x _]
                  :snare [_ _ _ _ x _ _ _ _ _ _ _ x _ _ _]
                  :tom   [_ _ _ _ _ _ x _ _ _ x _ x x _ x]})
 
-(defonce hat-buf (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
-
-
-(hit (now) "kick")(def house-drums {:kick "kick" 
-                  :hat hat-buf
-;                  :hat "noise-hat"
-                  :snare "clap"
-                  :tom "tom"})
-
-(defn beats [t cnt]
-  (cond
-    (zero? (mod cnt 4)) (hit t "kick")
-    (zero? (mod cnt 8)) (hit t "snare"))
-  (callback (+ (now) 125) #'beats  (+ t 125) (inc cnt)))
-
-;(beats (now) 0)
-
 (defn get-tick [tick beat]
-;  (println "tick: " tick " beat: " beat)
   (map (fn [[inst pat]] [inst (nth pat (mod tick (count pat)))]) beat))
 
 (defn play-beat [voices beat num-ticks]
@@ -53,9 +33,25 @@
         (if note
           (hit (+ (* i TICK) t) (inst voices)))))))
 
-;(make-beat house-beat house-drums)
 (play-beat house-drums house-beat 500)
 
+(defn beats [t cnt]
+  (cond
+    (zero? (mod cnt 4)) (hit t "kick")
+    (zero? (mod cnt 8)) (hit t "snare"))
+  (callback (+ (now) 125) #'beats  (+ t 125) (inc cnt)))
+
+;(beats (now) 0)
+
+(defn make-beat [pattern voice-map]
+  (let [t (now)]
+    (for [[inst pat] pattern]
+      (for [[index note] (indexed pat)]
+        (if note
+          (hit (+ (* index TICK) t) (get voice-map inst)))))))
+
+;(make-beat house-beat house-drums)
+  
 (defn sin-man [start])
   (if (< 2 (rand-int 5))
     (doseq [i (range (rand-int 5))]

@@ -34,7 +34,7 @@ SynthDef("soft-kick", {|amp= 0.5, decay= 0.1, attack= 0.001, freq= 60|
         env= EnvGen.kr(Env.perc(attack, decay), doneAction:2);
         snd= SinOsc.ar(freq, 0, amp);
         Out.ar(0, Pan2.ar(snd*env, 0));
-}).send; 
+}).store; 
 
 Synth("soft-kick")
 Synth("soft-kick", [\freq, 100])

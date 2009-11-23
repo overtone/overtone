@@ -1,6 +1,6 @@
-(ns overtone.app.main
+(ns overtone.gui.main
   (:import 
-     (java.awt Toolkit EventQueue Font FontMetrics Dimension BorderLayout)
+     (java.awt Toolkit EventQueue Color Font FontMetrics Dimension BorderLayout)
      (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane 
                   JSplitPane JMenuBar JMenu JMenuItem SwingUtilities) 
      (javax.swing.tree TreeModel DefaultTreeCellRenderer)
@@ -9,15 +9,15 @@
      (com.raelity.jvi ViManager ColonCommands)
      (com.raelity.jvi.swing DefaultViFactory StatusDisplay TextView))
   (:require [clojure.inspector :as inspector])
-  (:use clojure.contrib.seq-utils
-     org.enclojure.ide.repl.factory))
-
+  (:use clojure.contrib.seq-utils))
+;     org.enclojure.ide.repl.factory))
 
 (def APP-NAME "Overtone")
 (def DEFAULT-FONT "Sans")
 (def DEFAULT-FONT-SIZE 12)
 
 (def TAB-STOP 4)
+(def CARET-COLOR Color/BLACK)
 
 (defn screen-dim []
   (.getScreenSize (Toolkit/getDefaultToolkit)))
@@ -119,7 +119,11 @@
         editor (JTextPane.)
         scroller (JScrollPane. editor)
         status-pane (JPanel.)
-        status (JLabel. "Overtone Live!")
+        general-status (JLabel. "general status")
+        stroke-status (JLabel. "stroke status")
+        mode-status (JLabel. "mode-status")
+
+        status-display (-> (ViManager/getViTextView editor) (.getStatusDisplay))
         font (Font. DEFAULT-FONT 
                     Font/PLAIN
                     DEFAULT-FONT-SIZE)
@@ -128,13 +132,30 @@
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 30 (.getHeight fm))]
+    
+    ; Hookup the status bar labels to the Vi machinery
+    (set! (.generalStatus status-display) general-status)
+    (set! (.strokeStatus status-display) stroke-status)
+    (set! (.modeStatus status-display) mode-status)
+
+    (ViManager/activateAppEditor editor nil "initial-frame")
+    (ViManager/requestSwitch editor)
+    (ViManager/installKeymap editor)
+
+    (doto editor
+      (.setCaretColor CARET-COLOR)
+      (.requestFocusInWindow))
+
     (doto editor-pane
       (.setLayout (BorderLayout.))
       (.add scroller BorderLayout/CENTER)
       (.add status-pane BorderLayout/SOUTH))))
 
 (defn make-repl []
-  (.getReplPanel (create-in-proc-repl)))
+;  (.getReplPanel (create-in-proc-repl)))
+  (JPanel.))
+
+(defonce factory (ViManager/setViFactory (DefaultViFactory.)))
 
 (defn main []
   (let [app-frame (JFrame. APP-NAME)

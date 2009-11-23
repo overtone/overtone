@@ -37,7 +37,7 @@
 ; OSC-timetag 
 ;  * 64-bit big-endian fixed-point timestamp 
 
-
+; TODO: Figure out how to detect a byte array correctly...
 (defn osc-type-tag [args]
   (apply str 
     (map #(instance-case %1

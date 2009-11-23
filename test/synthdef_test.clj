@@ -100,6 +100,19 @@
   (rw-file-test TOM-DEF)
   (rw-file-test KICK-DEF))
 
+; Some other day...
+;(deftest decompile-test []
+;  (is (= (synthdef-decompile mini-sin) (:src-code (meta mini-sin)))))
+
+(defsynth overtone-scope {:in 0 :buf 1}
+  (record-buf.ar (in.ar :in) :buf))
+
+
+(comment deftest buf-synths-test []
+  (let [s (synth "scope-synth" {:in 0 :buf 1} 
+                 (record-buf.ar (in.ar :in) :buf))]
+    s))
+
 (defn synthdef-tests []
   (binding [*test-out* *out*]
     (run-tests 'synthdef-test)))

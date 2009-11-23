@@ -1,5 +1,5 @@
-(ns synth-test
-  (:use (overtone sc synth pitch utils))
+(ns synth-examples
+  (:use (overtone sc synthdef pitch utils))
   (:use clj-backtrace.repl))
 
 (comment 
