@@ -1,4 +1,4 @@
-(ns music-test
+(ns music-examples
   (:use overtone
      (overtone drums)))
 
