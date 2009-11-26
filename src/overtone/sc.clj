@@ -11,7 +11,7 @@
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
      clj-backtrace.repl
-     (overtone utils voice osc rhythm synthdef)))
+     (overtone utils voice osc time synthdef)))
 
 ; This is at heart an OSC client library for the SuperCollider scsynth engine.
 
@@ -471,10 +471,20 @@
        (at (+ (now) 1000) (node-free note#)))))
 
 (defn ctl
-  "Modify a synth parameter at the specified time."
-  [time-ms node-id & args]
-  (at time-ms 
-      (apply node-control node-id (stringify args))))
+  "Modify synth parameters, optionally at a specified time.
+  
+  (hit :sin :pitch 50) => 1000 
+  (ctl 1000 :pitch 40)
+  (ctl (+ (now) 2000) 1000 :pitch 60)
+  
+  "
+  [& args]
+  (let [[time-ms synth-id ctls] (if (odd? (count args))
+                                    [(now) (first args) (next args)]
+                                    [(first args) (second args) (drop 2 args)])]
+    (println time-ms synth-id ": " ctls)
+    (at time-ms 
+        (apply node-control synth-id (stringify ctls)))))
 
 (defn kill
   "Free one or more synth nodes.

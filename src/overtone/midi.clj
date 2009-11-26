@@ -10,7 +10,7 @@
      (java.awt.event MouseAdapter)
      (java.util.concurrent FutureTask))
   (:use clojure.set
-     (overtone rhythm)))
+     (overtone time)))
 
 ; This is basically a higher-level wrapper on top of the Java MIDI apis.  It makes it
 ; easier to configure midi input/output devices, route between devices, etc.

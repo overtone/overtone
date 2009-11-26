@@ -7,7 +7,7 @@
      (org.jfree.chart.plot PlotOrientation)
      (org.jfree.data.xy DefaultXYDataset))
   (:use clj-backtrace.repl
-     (overtone sc synthdef utils)))
+     (overtone sc synth utils)))
 
 (def SCOPE-BUF-SIZE 4096)
 
@@ -22,9 +22,9 @@
   (if (nil? @scope-buf*)
     (dosync (ref-set scope-buf* (buffer SCOPE-BUF-SIZE))))
 
-  (hit overtone-scope :in bus :buf (:id @scope-buf)))
+  (hit overtone-scope :in bus :buf (:id @scope-buf*)))
 
-(defn make-dataset []
+(defn scope-dataset []
   (let [ds (DefaultXYDataset.)
         ary (make-array Double/TYPE 2 10000)]
     (loop [idx (range 1500)
@@ -39,10 +39,9 @@
     (.addSeries ds "fake" ary)
     ds))
 
-(defn scope []
+(defn scope [data]
   (let [frame (JFrame. "Scope")
         content (.getContentPane frame)
-        data (make-dataset)
         chart (ChartFactory/createXYLineChart "" "" ""
                                               data PlotOrientation/VERTICAL
                                               false false false)
@@ -61,7 +60,40 @@
 (defn test-scope []
   (try 
     (boot)
-    (load-scope)
-    (scope)
+    ;(load-scope)
+    (scope (scope-dataset))
     (finally (quit))))
 
+; Envelope arrays are structured like this:
+  ; * initial level
+  ; * n-segments
+  ; * release node (int or -99, tells envelope where to optionally stop until released)
+  ; * loop node (int or -99, tells envelope which node to loop back to until released)
+  ; [
+  ;   - segment 1 endpoint level
+  ;   - segment 1 duration
+  ;   - segment shape
+  ;   - segment curve
+  ; ] * n-segments
+(defn show-curve 
+  "Display a SuperCollider envelope curve in a graphical window."
+  [c]
+  (let [[start-y n-segs rel-node loop-node & segments] c
+        ds (DefaultXYDataset.)
+        ary (make-array Double/TYPE 2 (inc n-segs))]
+    (aset-double ary 0 0 0.0)
+    (aset-double ary 1 0 (double start-y))
+    (println "0.0" start-y)
+    (loop [segs segments
+           cur-x 0.0
+           idx 1]
+      (when segs
+        (let [[y dur shape curve & segs] segs
+              x (double (+ cur-x (* 1000 dur)))
+              y (double y)]
+          (aset-double ary 0 idx x)
+          (aset-double ary 1 idx y)
+          (println x y)
+          (recur segs x (inc idx)))))
+    (.addSeries ds "envelope" ary)
+    (scope ds)))

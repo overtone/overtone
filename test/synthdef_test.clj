@@ -107,6 +107,12 @@
 (defsynth overtone-scope {:in 0 :buf 1}
   (record-buf.ar (in.ar :in) :buf))
 
+;TODO: Use this synthdef for a regression test, it found a few bugs
+; * first we need better OSC feedback from the server
+(defsynth buzz {:pitch 40 :cutoff 300}
+  (let [a (lpf.ar (saw.ar (midicps :pitch)) (+ (lf-noise-1.kr 10) :cutoff))
+        b (sin-osc.ar (midicps (- :pitch 12)))]
+  (out.ar 0 (pan2.ar (+ a b)))))
 
 (comment deftest buf-synths-test []
   (let [s (synth "scope-synth" {:in 0 :buf 1} 

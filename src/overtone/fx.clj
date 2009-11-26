@@ -24,11 +24,7 @@
 (def ECHO-DECAY 4)
 
 (defsynth echo
-  (let [in (ar "In" 0)]
-    (ar "Out" 0 
-        (ar "Pan2" 
-            (ar "MulAdd" 
-                (ar "CombN" in 0.5 ECHO-DELAY ECHO-DECAY)
-                1 in)
-            0))))
+  (let [in (in.ar 0)
+        echo (comb-n.ar in 0.5 ECHO-DELAY ECHO-DECAY)]
+    (out.ar 0 (pan2.ar (+ echo in) 0))))
 

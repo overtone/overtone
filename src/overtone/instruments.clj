@@ -1,14 +1,21 @@
 (ns overtone.instruments
   (:use (overtone synth envelope pitch)))
 
+(defsynth buzz {:pitch 40 :cutoff 300}
+  (let [a (lpf.ar (saw.ar (midicps :pitch)) (+ (lf-noise-1.kr 10) :cutoff))
+        b (sin-osc.ar (midicps (- :pitch 12)))]
+  (out.ar 0 (pan2.ar (+ a b)))))
+
 ;SynthDef("sin", {|out = 0, pitch = 40, dur = 300|
 ;  Out.ar(out, Pan2.ar( EnvGen.kr(Env.linen(0.001, dur / 1000.0, 0.002), doneAction: 2) * SinOsc.ar(midicps(pitch), 0, 0.8), 0));
 ;  }).store;
 ;)
 ;Synth("sin", ["pitch", 60, "dur", 100]);
 ;
-;(defsynth sin {:out 0 :pitch 40 :dur 300}
-;  (out.ar :out (pan2.ar (env-gen.kr 
+(defsynth sin {:out 0 :pitch 40 :dur 300}
+  (let [snd (sin-osc.ar (midicps :pitch))
+        env (env-gen.kr (linen 0.001 0.3 0.002) :done-free)]
+    (out.ar :out (pan2.ar (* snd env) 0))))
 
 (defn quick [signal]
   (syn
@@ -17,13 +24,18 @@
 (defsynth mouse-saw 
   (out.ar 0 (pan2.ar (sin-osc.ar (mouse-y.kr 10 1200 1 0) 0) 0)))
 
-(defsynth line-test 
-  (quick (mul-add.ar (sin-osc.ar (line.kr 100 100 0.5) 0 ) 
-                     (line.kr 0.5 0 1) 0)))
 (comment
   (load-synth mouse-saw)
   (hit mouse-saw)
   )
+
+(defsynth line-test 
+  (quick (mul-add.ar (sin-osc.ar (line.kr 100 100 0.5) 0 ) 
+                     (line.kr 0.5 0 1) 0)))
+
+(defsynth noise-filter {:cutoff 500}
+  (quick (lpf.ar (* 0.4 (pink-noise.ar)) :cutoff)))
+
 
 (comment defsynth harmonic-swimming (quick 
   (let [freq     50

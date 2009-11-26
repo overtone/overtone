@@ -60,10 +60,16 @@
 (defn ugen-search [regexp]
   (filter (fn [[k v]] (re-find (re-pattern regexp) (str k))) UGEN-MAP))
 
-(def ugen-id-counter* (ref 0))
+(defn ugen-print [& ugens]
+  (doseq [[name ugen] ugens]
+    (println "ugen:" (str "\"" (:name ugen) "\"")
+             "\nargs: " (map #(:name %1) (:args ugen))
+             "\nrates: " (seq (:rates ugen))
+             "\nouts: " (:fixed-outs ugen) (str "(" (:out-type ugen) ")")
+             "\n- - - - - - - - - -\n")))
 
-(defn- next-ugen-id []
-  (dosync (alter ugen-id-counter* inc)))
+(defn ugen-doc [word]
+  (apply ugen-print (ugen-search word)))
 
 (defn- add-default-args [spec args]
   (let [defaults (map #(%1 :default) (:args spec))]
@@ -118,12 +124,12 @@
 
 (defn ugen [name rate special & args]
   ;(println "ugen: " name rate special)
-  (let [spec (find-ugen name)
+  (let [spec (if-let [ug (find-ugen name)]
+               ug
+               (throw (IllegalArgumentException. (str "Unknown ugen: " name))))
         args (envelope-args spec args)
         args (add-default-args spec args)]
-    (if (nil? spec)
-      (throw (IllegalArgumentException. (str "Unknown ugen: " name))))
-    (with-meta {:id (next-ugen-id)
+    (with-meta {:id (next-id :ugen)
                 :name (:name spec)
                 :rate (rate RATES)
                 :special special
@@ -140,7 +146,7 @@
 (def CONTROLS #{"control"})
 
 (defn- control-ugen [rate n-outputs]
-  (with-meta {:id (next-ugen-id)
+  (with-meta {:id (next-id :ugen)
               :name "Control"
               :rate (rate RATES)
               :special 0
@@ -369,17 +375,17 @@
   immediately."
   [op arity op-num & args]
   (if (special-op-args? args)
-    (do (println "op-check: ugen -> " op op-num args)
+    (do ;(println "op-check: ugen -> " op op-num args)
     (apply ugen arity (find-rate args) op-num args))
     
-    (do (println "op-check: operator -> " op args)
-    (eval (apply list op args)))))
+    (do ;(println "op-check: operator -> " op args)
+    (eval (apply list (symbol op) args)))))
 
 (defn unary-op-num [name]
-  (get UNARY-OPS (normalize-name name) false))
+  (get UNARY-OPS (str name) false))
 
 (defn binary-op-num [name]
-  (get BINARY-OPS (normalize-name name) false))
+  (get BINARY-OPS (str name) false))
 
 (defn- replace-basic-ops
   "Replace all basic operations on ugens with unary and binary ugen operators."
@@ -388,10 +394,10 @@
               (if (seq? x)
                 (cond
                   (and (unary-op-num (first x)) (= 2 (count x))) 
-                  (list 'op-check (first x) "UnaryOpUGen" (unary-op-num (first x)) (second x))
+                  (list 'op-check (str (first x)) "UnaryOpUGen" (unary-op-num (first x)) (second x))
 
                   (and (binary-op-num (first x)) (= 3 (count x)))
-                  (list 'op-check (first x) "BinaryOpUGen" (binary-op-num (first x)) (second x) (nth x 2))
+                  (list 'op-check (str (first x)) "BinaryOpUGen" (binary-op-num (first x)) (second x) (nth x 2))
 
                   :default x)
                 x))
@@ -432,7 +438,7 @@
         [params pnames] (make-params grouped-params)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
-    {:name name
+    {:name (str name)
      :constants constants
      :params params
      :pnames pnames
@@ -458,6 +464,7 @@
   effects make sure to define your own out.ar.
 
   Synth definitions with no controllable parameters:
+      (synth (saw.ar 100))                 ; An anonymous synth
       (synth :foo (saw.ar 200))
       (synth :foo (out.ar 0 (pan2.ar (saw.ar 200)))) 
       (synth \"foo\" {} (out.ar 0 (pan2.ar (saw.ar 200)))) 
@@ -470,8 +477,10 @@
                               (saw.ar :freq)))))
 
   "
-  [sname & args]
-  (let [sname (str (as-str sname))
+  [& args]
+  (let [[sname args] (if (string? (first args))
+                       [(str (as-str (first args))) (next args)]
+                       [(str "anonymous-" (next-id :anonymous)) args])
         [params body] (if (map? (first args))
                         [(first args) (second args)]
                         [{} (first args)])
@@ -502,7 +511,7 @@
       (defsynth :asdf {} (out.ar 0 (pan2.ar (saw.ar 400) 0)))
   "
   [synth-name & args]
-  (let [sname (as-str synth-name)]
+  (let [sname (str (as-str synth-name))]
     `(def ~(symbol sname) (synth ~sname ~@args))))
 
 (defn- decomp-params [s]
