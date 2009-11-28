@@ -1,11 +1,14 @@
-(ns test.run
+(ns run
   (:use 
      test-utils
      clojure.test))
 
-(def TEST-DIR "test")
-
-(def TEST-NAMESPACES (test-namespaces TEST-DIR))
+(def TEST-NAMESPACES 
+  ['osc-test
+   'bytes-test
+   'sc-test
+   'synthdef-test
+   ])
 
 (defn run
   "Runs all defined tests"

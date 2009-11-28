@@ -9,6 +9,8 @@
   <property name="deps.file"   value="deps.zip"/>
   <property name="deps.url"    value="http://cloud.github.com/downloads/rosejn/overtone/${deps.file}"/>
 
+  <property name="build.dir"    value="build"/>
+
   <available property="hasclojure" file="${clojure.jar}"/>
 
   <path id="classpath">
@@ -56,6 +58,17 @@
         <attribute name="Class-Path" value="."/>
       </manifest>
     </jar>
+  </target>
+
+  <target name="compile" description="Run the Clojure Compiler">
+    <property name="classpath" refid="classpath" />
+    <echo message="classpath=${classpath}" />
+    <mkdir dir="${build.dir}"/>
+    <java classname="clojure.lang.Compile" fork="true">
+      <sysproperty key="clojure.compile.path" value="${build.dir}" />
+      <classpath refid="classpath" />
+      <arg value="overtone.gui.main" />
+    </java>
   </target>
 
   <target name="deps" description="Download dependencies and unzip">

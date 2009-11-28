@@ -5,13 +5,11 @@
      (java.nio.channels DatagramChannel)
      (java.nio ByteBuffer ByteOrder))
   (:require [overtone.log :as log])
-  (:use (clojure.contrib fcase)))
+  (:use (overtone utils)
+     (clojure.contrib fcase)))
 
 (def OSC-TIMETAG-NOW 1) ; Timetag representing right now.
 (def SEVENTY-YEAR-SECS 2208988800)
-
-(defn- byte-array [size]
-  (make-array Byte/TYPE size))
 
 (def PAD (byte-array 4))
 

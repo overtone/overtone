@@ -11,7 +11,7 @@
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
      clj-backtrace.repl
-     (overtone utils voice osc time synthdef)))
+     (overtone config utils voice osc time synthdef)))
 
 ; This is at heart an OSC client library for the SuperCollider scsynth engine.
 
@@ -90,6 +90,31 @@
   (doseq [msg @server-log*]
     (print msg)))
 
+;Replies to sender with the following message.
+;status.reply
+;	int - 1. unused.
+;	int - number of unit generators.
+;	int - number of synths.
+;	int - number of groups.
+;	int - number of loaded synth definitions.
+;	float - average percent CPU usage for signal processing
+;	float - peak percent CPU usage for signal processing
+;	double - nominal sample rate
+;	double - actual sample rate
+(defn status []
+  (snd "/status")
+  (let [sts (osc-recv @server*)]
+    (log/debug "got status: " (:args sts))
+    (if-let [[_ ugens synths groups loaded avg peak nominal actual] (:args sts)]
+      {:n-ugens ugens
+       :n-synths synths
+       :n-groups groups
+       :n-loaded-synths loaded
+       :avg-cpu avg
+       :peak-cpu peak
+       :nominal-sample-rate nominal
+       :actual-sample-rate actual})))
+
 (defn server-log [stream read-buf]
   (while (pos? (.available stream))
     (let [n (min (count read-buf) (.available stream))
@@ -122,17 +147,26 @@
         (str sc-outputs (+ i 1))
         (str "system:playback_" (+ i 1))))))
 
+(def SC-PATHS {:linux "scsynth"
+               :windows "C:/Program Files/SuperCollider/scsynth.exe"
+               :mac "scsynth"})
+
+(def SC-PATH (SC-PATHS (config :os)))
+
 (defn boot
   ([] (boot SERVER-HOST SERVER-PORT))
   ([host port]
    (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-         cmd (into-array String ["scsynth" "-u" (str port)])
+         cmd (into-array String [SC-PATH "-u" (str port)])
          sc-thread (Thread. #(boot-thread cmd))]
      (.setDaemon sc-thread true)
+     (log/info "Booting SuperCollider server (scsynth)...")
      (.start sc-thread)
      (dosync (ref-set server-thread* sc-thread))
      (Thread/sleep 1000)
-     (connect host port))))
+     (log/info "Connecting to server...")
+     (connect host port)
+     (log/info "status check: " (status)))))
 
 (defn quit 
   "Quit the SuperCollider synth process."
@@ -145,31 +179,6 @@
 
 (defn notify [& [notify?]]
   (snd "/notify" (if (false? notify?) 0 1)))
-
-;Replies to sender with the following message.
-;status.reply
-;	int - 1. unused.
-;	int - number of unit generators.
-;	int - number of synths.
-;	int - number of groups.
-;	int - number of loaded synth definitions.
-;	float - average percent CPU usage for signal processing
-;	float - peak percent CPU usage for signal processing
-;	double - nominal sample rate
-;	double - actual sample rate
-(defn status []
-  (snd "/status")
-  (let [sts (osc-recv @server*)]
-    (log/debug "got status: " (:args sts))
-    (if-let [[_ ugens synths groups loaded avg peak nominal actual] (:args sts)]
-      {:n-ugens ugens
-       :n-synths synths
-       :n-groups groups
-       :n-loaded-synths loaded
-       :avg-cpu avg
-       :peak-cpu peak
-       :nominal-sample-rate nominal
-       :actual-sample-rate actual})))
 
 ; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists,
 ; and group zero is the root of the graph.  Nodes can be added to a group in
