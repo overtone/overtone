@@ -3,7 +3,7 @@
      clojure.test
      clojure.contrib.seq-utils
      clj-backtrace.repl
-     (overtone sc time))
+     (overtone sc time instruments))
   (:require 
      [overtone.log :as log]))
 
@@ -23,6 +23,8 @@
     (boot)
     (is (not (nil? @server*)))
     (is (= 1 (:n-groups (status))))
+    (load-synth sin)
+    (Thread/sleep 1000)
     (play "sin" ditty-notes ditty-durs)
     (Thread/sleep 3000)
     (finally 
@@ -50,6 +52,7 @@
 (deftest server-messaging-test []
   (try
     (boot)
+    (load-synth sin)
     (groups-test)
     (node-tree-test)
     (finally 

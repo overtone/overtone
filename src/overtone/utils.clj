@@ -1,4 +1,5 @@
-(ns overtone.utils)
+(ns overtone.utils
+  (:use clojure.contrib.def))
 
 ; Some generic counters 
 (def id-counters* (ref {}))
@@ -29,6 +30,14 @@
   "Convert all numbers in col to floats." 
   [col]
   (map #(if (number? %1) (float %1) %1) col))
+
+;(defn byte-array [len]
+;  (make-array (. Byte TYPE) len))
+
+(def BYTE-ARRAY (byte-array 1))
+
+(defn byte-array? [obj]
+  (= (type BYTE-ARRAY) (type obj)))
 
 (defn type-checker [t]
   (fn [obj] (and (map? obj) (= (:type obj) t))))

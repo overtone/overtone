@@ -1,4 +1,5 @@
 (ns overtone.gui.main
+  (:gen-class)
   (:import 
      (java.awt Toolkit EventQueue Color Font FontMetrics Dimension BorderLayout)
      (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane 
@@ -158,7 +159,11 @@
 
 (defonce factory (ViManager/setViFactory (DefaultViFactory.)))
 
-(defn main []
+(defn help []
+  "Project Overtone: an audio/musical programming experiment.  
+  - There are no arguments.")
+
+(defn -main [& args]
   (let [app-frame (JFrame. APP-NAME)
         app-pane (.getContentPane app-frame)
         synth-tree (synth-tree)

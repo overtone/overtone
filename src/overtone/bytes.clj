@@ -1,5 +1,6 @@
 (ns overtone.bytes
   (:require [overtone.log :as log])
+  (:use overtone.utils)
   (:import (java.net URL)
      (java.io FileInputStream FileOutputStream 
               DataInputStream DataOutputStream
@@ -12,14 +13,6 @@
 
 (def *spec-out* nil)
 (def *spec-in*  nil)
-
-(defn- byte-array [len]
-  (make-array (. Byte TYPE) len))
-
-(def BYTE-ARRAY (byte-array 1))
-
-(defn byte-array? [obj]
-  (= (type BYTE-ARRAY) (type obj)))
 
 (defn- bytes-to-int [bytes]
   (-> bytes (ByteArrayInputStream.) (DataInputStream.) (.readInt)))

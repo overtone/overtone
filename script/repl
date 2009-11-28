@@ -3,20 +3,22 @@
 # A simple script to start a repl with the project jar files (in the lib
 # directory) on the classpath.
 
-CLASSPATH=".:./src"
+DEPS=deps
 
-for f in deps/*.jar; do
+CLASSPATH=".:./src:./test:./src/extra:./session"
+
+for f in "$DEPS"/*.jar; do
     CLASSPATH=$CLASSPATH:$f
 done
+echo "Using classpath: $CLASSPATH"
 
-# Need to figure out windows stuff again later...
-#if [[ "$OSTYPE" == 'cygwin' ]]; then
-#  CLASSPATH=`cygpath -wp "$CLASSPATH"`
-#fi
+if [[ "$OSTYPE" == 'cygwin' ]]; then
+  CLASSPATH=`cygpath -wp "$CLASSPATH"`
+fi
 
 BREAK_CHARS="(){}[],^%$#@\"\";:''|\\"
 
-echo "Using classpath: $CLASSPATH"
+DEFINITIONS=-Djava.library.path=lib/opengl clojure.lang.Repl
 
 # Ignore the opengl stuff for now...
 rlwrap -a --remember -c -b "$BREAK_CHARS" -f "$HOME/.clj_completions" \

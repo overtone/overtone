@@ -60,16 +60,10 @@
         b (sin-osc.ar (midicps (- :pitch 12)))]
   (out.ar 0 (pan2.ar (+ a b)))))
 
-;SynthDef("sin", {|out = 0, pitch = 40, dur = 300|
-;  Out.ar(out, Pan2.ar( EnvGen.kr(Env.linen(0.001, dur / 1000.0, 0.002), doneAction: 2) * SinOsc.ar(midicps(pitch), 0, 0.8), 0));
-;  }).store;
-;)
-;Synth("sin", ["pitch", 60, "dur", 100]);
-;
-(defsynth sin {:out 0 :pitch 40 :dur 300}
+(defsynth sin {:out 0 :amp 0.1 :pitch 40 :dur 300}
   (let [snd (sin-osc.ar (midicps :pitch))
-        env (env-gen.kr (linen 0.001 0.3 0.002) :done-free)]
-    (out.ar :out (pan2.ar (* snd env) 0))))
+        env (env-gen.kr (linen 0.001 (/ :dur 1000.0) 0.002) :done-free)]
+    (out.ar :out (pan2.ar (* (* snd env) :amp) 0))))
 
 (defn quick [signal]
   (syn

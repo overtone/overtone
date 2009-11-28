@@ -7,16 +7,11 @@ to convert these to binary-op-ugens for supercollider.
 * setup an on-boot handler mechanism so we can load up synthdefs, connect
 status machinery, etc...
 
-* simplify the synthdef API
- - get rid of synthdef-file from the users point of view and just
-   deal with reading and writing single synths.
- - (synthdef-read path-or-url) ; return an sdef object
- - (synthdef-write sdef path-or-url) ; write to filesystem
- - (synthdef-bytes sdef) ; return a byte-array
- - (synthdef-print sdef) ; print to *out*
-
-* return a basic sample "object" rather than an ID after loading a sample
- - modify hit and ctl to understand these instead of IDs
-
 * make the id counters in overtone.sc use a smarter algorithm so they can
 reuse old IDs.
+
+* automatically recognize when binary-op-ugens need to be expanded across 
+argument lists greater than two.  (e.g. (+ :foo snd1 snd2) becomes (+ :foo (+ snd1 snd2)))
+
+* IDEA: can the general concept of a ugen function be abstracted so that custom ugen functions like a mixer or
+some other thing can easily be defined in Clojure?

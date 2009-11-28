@@ -37,8 +37,9 @@
 
 pkill -9 java
 
-CLASSPATH=`pwd`/src:`pwd`/test:`pwd`/session:`pwd`/src/extra
-CLOJURE_EXT="`pwd`/deps"
+#CLASSPATH=`pwd`/src:`pwd`/test:`pwd`/session:`pwd`/src/extra
+CLASSPATH=./src:./test:./session:./src/extra
+CLOJURE_EXT="./deps"
 
 if [ -d "${CLOJURE_EXT:-}" ]; then
 	EXT="`find ${CLOJURE_EXT} -maxdepth 1 -print0 | tr \\\\0 :`"
@@ -50,11 +51,12 @@ if [ -d "${CLOJURE_EXT:-}" ]; then
 		fi
 	fi
 fi
-export CLASSPATH
 
-if [ -z "${CLOJURE_JAVA}" ]; then
-	CLOJURE_JAVA="java"
+if [[ "$OSTYPE" == 'cygwin' ]]; then
+  CLASSPATH=`cygpath -wp $CLASSPATH`
 fi
 
-# Since we do not provide any security we at least bind only to the loopback.
-exec ${CLOJURE_JAVA} ${CLOJURE_OPTS} com.martiansoftware.nailgun.NGServer 127.0.0.1
+echo "Classpath: ${CLASSPATH}"
+echo "exec ${CLOJURE_JAVA} -cp ${CLASSPATH} com.martiansoftware.nailgun.NGServer 127.0.0.1"
+
+exec java com.martiansoftware.nailgun.NGServer 127.0.0.1
