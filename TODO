@@ -1,3 +1,7 @@
+* although many Clojure arithmetic operators can take more than two args, we need
+to convert these to binary-op-ugens for supercollider.  
+  - so this: (+ foo bar baz) should become this (+ foo (+ bar baz))
+
 * improve OSC receiving so messages can be received by path, (pattern match?) etc...
 
 * setup an on-boot handler mechanism so we can load up synthdefs, connect

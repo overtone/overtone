@@ -1,4 +1,6 @@
-(ns overtone)
+(ns overtone
+  (:require (overtone time sc synth envelope synthdef midi 
+                      rhythm pitch tuning voice studio)))
 
 ; Thanks to James Reeves for this, taken from Compojure.
 
@@ -32,11 +34,14 @@
 ;
 (immigrate
   'overtone.time
-  'overtone.rhythm
-  'overtone.voice
-  'overtone.pitch
-  'overtone.tuning
-  'overtone.midi
   'overtone.sc
   'overtone.synth
-  'overtone.studio)
+  'overtone.envelope
+  'overtone.synthdef
+  'overtone.midi
+  'overtone.rhythm
+  'overtone.pitch
+  'overtone.tuning
+  'overtone.voice
+  'overtone.studio
+  )
