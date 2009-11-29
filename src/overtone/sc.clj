@@ -1,5 +1,5 @@
 (ns overtone.sc
- (:import 
+ (:import
      (java.net InetSocketAddress)
      (java.util.regex Pattern)
      (java.util.concurrent TimeUnit TimeoutException)
@@ -7,7 +7,7 @@
   (:require [overtone.log :as log]
      [clojure.zip :as zip]
      [overtone.insertion-point :as ip])
-  (:use 
+  (:use
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
      clj-backtrace.repl
@@ -18,7 +18,7 @@
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
 (def SERVER-HOST "127.0.0.1")
-(def SERVER-PORT nil) ; nil means a random port 
+(def SERVER-PORT nil) ; nil means a random port
 
 ; Max number of milliseconds to wait for a reply from the server
 (def REPLY-TIMEOUT 300)
@@ -38,16 +38,16 @@
 (defmacro defcounter [counter-name start-id]
   (let [next-fn (symbol (str "next-" (name counter-name) "-id"))]
     `(do
-       (dosync 
+       (dosync
          (alter *counters assoc ~counter-name (ref ~start-id))
          (alter *counter-defaults assoc ~counter-name ~start-id))
-       (defn ~next-fn [] 
-         (dec 
+       (defn ~next-fn []
+         (dec
            (dosync (alter (~counter-name @*counters) inc)))))))
 
 (defn reset-id-counters []
   (doseq [[cname counter] @*counters]
-    (dosync 
+    (dosync
     (ref-set counter (cname @*counter-defaults)))))
 
 (defcounter :group START-GROUP-ID)
@@ -59,13 +59,13 @@
 
 (declare boot)
 
-(defn snd 
-  "Creates an OSC message and either sends it to the server immediately 
+(defn snd
+  "Creates an OSC message and either sends it to the server immediately
   or if a bundle is currently being formed it adds it to the list of messages."
   [path & args]
   (if (nil? @server*)
     (throw (Exception. "Not connected to a SuperCollider server.")))
-      (osc-snd-msg @server* 
+      (osc-snd-msg @server*
                    (apply osc-msg path (osc-type-tag args) args)))
 
 (defmacro at
@@ -77,7 +77,7 @@
   [path & [timeout]]
   (osc-recv @server* path timeout))
 
-(defn connect 
+(defn connect
   ([] (connect SERVER-HOST SERVER-PORT))
   ([host port]
    (log/info "(connect " host ":" port)
@@ -121,7 +121,7 @@
 ; Wait until SuperCollider has completed all asynchronous commands currently in execution.
 (defn wait-sync [& [timeout]]
   (let [sync-id (rand-int 999999)
-        _ (snd "/sync" sync-id) 
+        _ (snd "/sync" sync-id)
         reply (osc-recv @server* "/synced" (if timeout timeout REPLY-TIMEOUT))
         reply-id (first (:args reply))]
     (= sync-id reply-id)))
@@ -137,7 +137,7 @@
 
 (defn- boot-thread [cmd]
   (reset! running?* true)
-  (let [proc (.exec (Runtime/getRuntime) cmd) 
+  (let [proc (.exec (Runtime/getRuntime) cmd)
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
         read-buf (make-array Byte/TYPE 256)]
@@ -147,28 +147,33 @@
       (Thread/sleep 250))
     (.destroy proc)))
 
-(defn connect-jack-ports 
+(defn connect-jack-ports
   "Maybe this isn't necessary, since we can use the SC_JACK_DEFAULT_OUTPUTS
   environment variable..."
   [n-channels]
   (let [port-list (sh "jack_lsp")
         sc-outputs (re-find #"SuperCollider.*:out_" port-list)]
   (doseq [i (range n-channels)]
-    (sh "jack_connect" 
+    (sh "jack_connect"
         (str sc-outputs (+ i 1))
         (str "system:playback_" (+ i 1))))))
 
 (def SC-PATHS {:linux "scsynth"
                :windows "C:/Program Files/SuperCollider/scsynth.exe"
-               :mac "scsynth"})
+               :mac  "/Applications/SuperCollider/scsynth" })
+
+(def SC-ARGS  {:linux []
+               :windows []
+               :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
 (def SC-PATH (SC-PATHS (config :os)))
+(def SC-ARG (SC-ARGS (config :os)))
 
 (defn boot
   ([] (boot SERVER-HOST SERVER-PORT))
   ([host port]
    (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-         cmd (into-array String [SC-PATH "-u" (str port)])
+         cmd (into-array String (concat [SC-PATH "-u" (str port)] SC-ARG))
          sc-thread (Thread. #(boot-thread cmd))]
      (.setDaemon sc-thread true)
      (log/info "Booting SuperCollider server (scsynth)...")
@@ -179,7 +184,7 @@
      (connect host port)
      (log/info "status check: " (status)))))
 
-(defn quit 
+(defn quit
   "Quit the SuperCollider synth process."
   []
   (log/info "quiting supercollider")
@@ -191,7 +196,7 @@
 (defn notify [& [notify?]]
   (snd "/notify" (if (false? notify?) 0 1)))
 
-; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists,
+; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists
 ; and group zero is the root of the graph.  Nodes can be added to a group in
 ; one of these 5 positions relative to either the full list, or a specified node.
 (def POSITION
@@ -211,7 +216,7 @@
     (apply snd "/s_new" synth-name id position target args)
     id))
 
-(defn node-free 
+(defn node-free
   "Instantly remove a node from the graph."
   [node-id & node-ids]
   (apply snd "/n_free" node-id node-ids))
@@ -240,7 +245,7 @@
 
 ; This can be extended to support setting multiple ranges at once if necessary...
 (defn node-control-range
-  "Set a range of controls all at once, or if node-id is a group control 
+  "Set a range of controls all at once, or if node-id is a group control
   all nodes in the group."
   [node-id ctl-start & ctl-vals]
   (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
@@ -250,7 +255,7 @@
   [node-id & names-busses]
   (apply snd "/n_map" node-id names-busses))
 
-(defn group 
+(defn group
   "Create a new group as a child of the target group."
   [position target-id]
   (let [id (next-group-id)]
@@ -262,24 +267,24 @@
   [group-id & group-ids]
   (apply node-free group-id group-ids))
 
-(defn node-free 
+(defn node-free
   "Instantly remove a node from the graph."
   [node-id & node-ids]
   (apply snd "/n_free" node-id node-ids))
 
-(defn post-tree 
+(defn post-tree
   "Posts a representation of this group's node subtree, i.e. all the groups and
   synths contained within it, optionally including the current control values
   for synths."
   [id & [with-args?]]
   (snd "/g_dumpTree" id with-args?))
-  
+
 ;/g_queryTree				get a representation of this group's node subtree.
 ;	[
 ;		int - group ID
 ;		int - flag: if not 0 the current control (arg) values for synths will be included
 ;	] * N
-;	
+;
 ; Request a representation of this group's node subtree, i.e. all the groups and
 ; synths contained within it. Replies to the sender with a /g_queryTree.reply
 ; message listing all of the nodes contained within the group in the following
@@ -313,17 +318,17 @@
         (set! *data* new-data)
         {:synth sname
          :controls ctls})
-      (do 
+      (do
         (set! *data* (next *data*))
         {:synth sname}))))
 
 (defn- parse-node-tree-helper [ctls?]
   (let [[id n-children & new-data] *data*]
     (set! *data* new-data)
-    (cond 
+    (cond
       (neg? n-children) (parse-synth-tree ctls?) ; synth
       (= 0 n-children) {:group id :children nil}
-      (pos? n-children) 
+      (pos? n-children)
       {:group id
        :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
 
@@ -336,7 +341,7 @@
 ; Thus child nodes (those contained within a group) are listed immediately
 ; following their parent. See the method Server:queryAllNodes for an example of
 ; how to process this reply.
-(defn node-tree 
+(defn node-tree
   "Returns a data structure representing the current arrangement of groups and synthesizer
   instances residing on the audio server."
   [id & [ctls?]]
@@ -345,22 +350,22 @@
     (let [tree (:args (osc-recv @server* "/g_queryTree.reply" REPLY-TIMEOUT))]
       (parse-node-tree tree))))
 
-(defn prepend-node 
+(defn prepend-node
   "Add a node to the end of a group list."
   [g n]
   (snd "/g_head" g n))
 
-(defn append-node 
+(defn append-node
   "Add a node to the end of a group list."
   [g n]
-  (snd "/g_tail" g n)) 
+  (snd "/g_tail" g n))
 
 (defn group-clear
   "Free all child synth nodes in a group."
   [group-id]
   (snd "/g_freeAll" group-id))
 
-(defn clear-msg-queue 
+(defn clear-msg-queue
   "Remove any scheduled OSC messages from the run queue."
   []
   (snd "/clearSched"))
@@ -371,7 +376,7 @@
   (recv "/synced"))
 
 ; size is in samples
-(defn buffer 
+(defn buffer
   "Allocate a new buffer for storing audio data."
   [size]
   (let [id (next-buffer-id)]
@@ -390,13 +395,13 @@
 (defn buffer-write [buf start len data]
   (snd "/b_setn" (:id buf) start len data))
 
-(defn save-buffer 
+(defn save-buffer
   "Save the float audio data in an audio buffer to a wav file."
   [buf path]
   (assert (buffer? buf))
   (snd "/b_write" (:id buf) path "wav" "float"))
-  
-(defn load-sample 
+
+(defn load-sample
   "Load a wav file into memory so it can be played as a sample."
   [path]
   (let [id (next-buffer-id)]
@@ -409,7 +414,7 @@
 (defn sample? [s]
   (and (map? s) (= :sample (:type s))))
 
-(defn load-synth 
+(defn load-synth
   "Load a Clojure synth definition onto the audio server."
   [sdef]
   (assert (synthdef? sdef))
@@ -420,7 +425,7 @@
   [path]
   (snd "/d_recv" (synthdef-bytes (synthdef-read path))))
 
-(defn reset 
+(defn reset
   "Clear all synthesizers, groups and pending messages from the audio server."
   []
   (try
@@ -437,11 +442,11 @@
     (do
       (log/level :debug)
       (snd "/dumpOSC" 1))
-    (do 
+    (do
       (log/level :error)
       (snd "/dumpOSC" 0))))
 
-(defn restart 
+(defn restart
   "Reset everything and restart the SuperCollider process."
   []
   (reset)
@@ -450,7 +455,7 @@
 
 ; Turn hit into a multimethod
 ; Convert samples to be a map object instead of an ID
-(defn hit 
+(defn hit
   "Fire off a synth or sample at a specified time.
   These are the same:
       (hit :kick)
@@ -465,7 +470,7 @@
   ([] (hit (now) "sin" :pitch (+ 30 (rand-int 40))))
   ([& args]
    (let [[time-ms synth args] (if (= Long (type (first args)))
-                                [(first args) (second args) (nnext args)] 
+                                [(first args) (second args) (nnext args)]
                                 [(now) (first args) (next args)])
          id (next-node-id)
          synth (cond
@@ -473,7 +478,7 @@
                  (sample? synth) synth
                  (keyword? synth) (name synth)
                  (string? synth) synth
-                 :default (throw 
+                 :default (throw
                             (Exception. "Hit doesn't know how to play the given synth: " synth)))
          args (-> args (stringify) (floatify))]
      (if (sample? synth)
@@ -492,18 +497,18 @@
 
 (defn ctl
   "Modify synth parameters, optionally at a specified time.
-  
-  (hit :sin :pitch 50) => 1000 
+
+  (hit :sin :pitch 50) => 1000
   (ctl 1000 :pitch 40)
   (ctl (+ (now) 2000) 1000 :pitch 60)
-  
+
   "
   [& args]
   (let [[time-ms synth-id ctls] (if (odd? (count args))
                                     [(now) (first args) (next args)]
                                     [(first args) (second args) (drop 2 args)])]
     (println time-ms synth-id ": " ctls)
-    (at time-ms 
+    (at time-ms
         (apply node-control synth-id (stringify ctls)))))
 
 (defn kill
@@ -512,9 +517,9 @@
   a handle for the synth node that was created.
       (let [handle (hit :sin)] ; returns => synth-handle
         (kill (+ 1000 (now)) handle))
-  
+
       ; a single handle without a time kills immediately
-      (kill handle) 
+      (kill handle)
 
       ; or a seq of synth handles can be removed at once
       (kill (+ (now) 1000) [(hit) (hit) (hit)])
@@ -523,12 +528,12 @@
   (let [[time-ms ids] (if (= 1 (count args))
                         [(now) (flatten args)]
                         [(first args) (flatten (next args))])]
-        (at time-ms 
+        (at time-ms
             (apply node-free ids))))
 
 (defn load-instruments []
-  (doseq [synth (filter #(synthdef? %1) 
-                        (map #(var-get %1) 
+  (doseq [synth (filter #(synthdef? %1)
+                        (map #(var-get %1)
                              (vals (ns-publics 'overtone.instruments))))]
     (println "loading synth: " (:name synth))
     (load-synth synth)))
@@ -540,7 +545,7 @@
 ;;    (dosync (alter *fx conj new-effect))
 ;;    new-effect))
 ;
-;(defn update 
+;(defn update
 ;  "Update a voice or standalone synth with new settings."
 ;  [voice & args]
 ;  (let [[names vals] (synth-args (apply hash-map args))
