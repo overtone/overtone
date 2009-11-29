@@ -31,6 +31,7 @@
   [col]
   (map #(if (number? %1) (float %1) %1) col))
 
+; Now available in recent Clojure versions as of Nov. 29, 2009...
 ;(defn byte-array [len]
 ;  (make-array (. Byte TYPE) len))
 

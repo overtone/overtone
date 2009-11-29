@@ -29,12 +29,33 @@
     (is (= (last (first t-args)) (last (first args))))
     (is (= (next t-args) (next args)))))
 
+(defn check-msg [msg path & args]
+  (is (not (nil? msg)))
+  (let [m-args (:args msg)]
+    (is (= (:path msg) path))
+    (doseq [i (range (count args))]
+      (is (= (nth m-args i) (nth args i))))))
+
 (deftest osc-basic-test []
   (let [server (osc-server PORT)
-        client (osc-client HOST PORT)]
+        client (osc-client HOST PORT)
+        flag (atom false)]
     (try
+      (osc-handle server "/test" (fn [msg] (reset! flag true)))
       (osc-snd client "/test" "i" 42)
-      (is true)
+      (Thread/sleep 100)
+      (is (= true @flag))
+      (.run (Thread.
+        (fn []
+          (Thread/sleep 10)
+          (overtone.log/debug "sending foo now!!!!!!!!!!!!!!")
+          (osc-snd client "/foo" "i" 42))))
+      (check-msg (osc-recv server "/foo" 20) "/foo" 42)
+      (is (nil? (osc-recv server "/foo" 0)))
       (finally 
         (osc-close server true)
         (osc-close client true)))))
+
+(defn osc-tests []
+  (binding [*test-out* *out*]
+    (run-tests 'osc-test)))

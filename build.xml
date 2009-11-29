@@ -78,4 +78,9 @@
     <unzip src="${deps.file}" dest="."/>
     <delete file="${deps.file}" />
   </target>
+
+  <target name="make-deps" description="Create dependency zip-file based on current contents of the deps directory.">
+    <echo>Creating the deps zip archive...</echo>
+    <zip destfile="${deps.file}" basedir="${deps.dir}" />
+  </target>
 </project>

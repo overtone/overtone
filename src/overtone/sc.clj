@@ -20,6 +20,9 @@
 (def SERVER-HOST "127.0.0.1")
 (def SERVER-PORT nil) ; nil means a random port 
 
+; Max number of milliseconds to wait for a reply from the server
+(def REPLY-TIMEOUT 300)
+
 (def START-GROUP-ID 1)
 (def START-BUFFER-ID 1)
 (def START-NODE-ID 1000)
@@ -72,7 +75,7 @@
 
 (defn recv
   [path & [timeout]]
-  {:path "foo" :args []})
+  (osc-recv @server* path timeout))
 
 (defn connect 
   ([] (connect SERVER-HOST SERVER-PORT))
@@ -103,7 +106,7 @@
 ;	double - actual sample rate
 (defn status []
   (snd "/status")
-  (let [sts (osc-recv @server*)]
+  (let [sts (osc-recv @server* "status.reply" REPLY-TIMEOUT)]
     (log/debug "got status: " (:args sts))
     (if-let [[_ ugens synths groups loaded avg peak nominal actual] (:args sts)]
       {:n-ugens ugens
@@ -114,6 +117,14 @@
        :peak-cpu peak
        :nominal-sample-rate nominal
        :actual-sample-rate actual})))
+
+; Wait until SuperCollider has completed all asynchronous commands currently in execution.
+(defn wait-sync [& [timeout]]
+  (let [sync-id (rand-int 999999)
+        _ (snd "/sync" sync-id) 
+        reply (osc-recv @server* "/synced" (if timeout timeout REPLY-TIMEOUT))
+        reply-id (first (:args reply))]
+    (= sync-id reply-id)))
 
 (defn server-log [stream read-buf]
   (while (pos? (.available stream))
@@ -331,7 +342,7 @@
   [id & [ctls?]]
   (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
     (snd "/g_queryTree" id ctls?)
-    (let [tree (:args (osc-recv @server*))]
+    (let [tree (:args (osc-recv @server* "/g_queryTree.reply" REPLY-TIMEOUT))]
       (parse-node-tree tree))))
 
 (defn prepend-node 

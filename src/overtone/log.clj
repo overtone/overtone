@@ -25,25 +25,26 @@
       (assert (contains? LEVELS lvl))
       (.setLevel LOGGER (lvl LEVELS)))))
 
-(level DEFAULT-LEVEL)
 
 (defonce LOG-SETUP?
   (do 
+    (level DEFAULT-LEVEL)
+    
     ;(.setOutputStream LOG-CONSOLE *out*)
     (.setFormatter LOG-FILE-HANDLER (SimpleFormatter.))
-    (.addHandler LOGGER LOG-CONSOLE)
+    ;(.addHandler LOGGER LOG-CONSOLE)
     (.addHandler LOGGER LOG-FILE-HANDLER)
     true))
 
 (defn debug [& msg]
-  (.log LOGGER Level/FINE (str msg)))
+  (.log LOGGER Level/FINE (apply str msg)))
 
 (defn info [& msg]
-  (.log LOGGER Level/INFO (str msg)))
+  (.log LOGGER Level/INFO (apply str msg)))
 
 (defn warning [& msg]
-  (.log LOGGER Level/WARNING (str msg)))
+  (.log LOGGER Level/WARNING (apply str msg)))
 
 (defn error [& msg]
-  (.log LOGGER Level/SEVERE (str msg)))
+  (.log LOGGER Level/SEVERE (apply str msg)))
 

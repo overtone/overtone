@@ -2,10 +2,11 @@
   (:import 
      (java.util.concurrent TimeUnit TimeoutException)
      (java.net InetSocketAddress DatagramSocket DatagramPacket)
-     (java.nio.channels DatagramChannel)
+     (java.nio.channels DatagramChannel AsynchronousCloseException)
      (java.nio ByteBuffer ByteOrder))
   (:require [overtone.log :as log])
   (:use (overtone utils)
+     clojure.set
      (clojure.contrib fcase)))
 
 (def OSC-TIMETAG-NOW 1) ; Timetag representing right now.
@@ -13,7 +14,7 @@
 
 (def PAD (byte-array 4))
 
-(defn osc-now []
+(defn- osc-now []
   (System/currentTimeMillis))
 
 ; OSC Data Types:
@@ -64,30 +65,30 @@
 
 (defn osc-bundle? [obj] (= :osc-bundle (type obj)))
 
-(defn osc-pad 
+(defn- osc-pad 
   "Add 0-3 null bytes to make buffer position 32-bit aligned."
   [buf]
   (let [extra (mod (.position buf) 4)]
     (if (pos? extra)
       (.put buf PAD 0 (- 4 extra)))))
 
-(defn osc-align
+(defn- osc-align
   "Jump the current position to a 4 byte boundary for OSC compatible alignment."
   [buf]
   (.position buf (bit-and (bit-not 3) (+ 3 (.position buf)))))
 
-(defn encode-string [buf s]
+(defn- encode-string [buf s]
   (.put buf (.getBytes s))
   (.put buf (byte 0))
   (osc-pad buf))
 
-(defn encode-blob [buf b]
+(defn- encode-blob [buf b]
   ;(log/debug (str "Encoding blob size: " (count b)))
   (.putInt buf (count b))
   (.put buf b)
   (osc-pad buf))
 
-(defn encode-timetag
+(defn- encode-timetag
   ([buf] (encode-timetag buf (osc-now)))
   ([buf timestamp]
    (let [secs (+ (/ timestamp 1000) ; secs since Jan. 1, 1970
@@ -132,7 +133,7 @@
         (.putInt buf (- end-pos start-pos 4))
         (.position buf end-pos)))))
 
-(defn decode-string [buf]
+(defn- decode-string [buf]
   (let [start (.position buf)]
     (while (not (zero? (.get buf))) nil)
     (let [end (.position buf)
@@ -143,20 +144,18 @@
       (osc-align buf)
       (String. str-buf 0 (dec len)))))
 
-(defn decode-blob [buf]
+(defn- decode-blob [buf]
   (let [size (.getInt buf)
         blob (byte-array size)]
     (.get buf blob 0 size)
     (osc-align buf)
     blob))
 
-(defn decode-msg
+(defn- decode-msg
   [buf]
   ;(log/debug (str "decoding from pos: " (.position buf)))
   (let [path (decode-string buf)
-        ;_ (log/debug (str "path: " path " pos: " (.position buf)))
         type-tag (decode-string buf)
-        ;_ (log/debug (str "type-tag: " type-tag))
         args (reduce (fn [mem t] 
                        ;(log/debug (str "decoded: " mem))
                        (conj mem 
@@ -169,10 +168,11 @@
                                    \s (decode-string buf))))
                      []
                      (rest type-tag))]
+    (log/debug "osc msg decoded: " path " " type-tag  " " args)
     {:path path
      :args args}))
 
-(defn decode-timetag [buf]
+(defn- decode-timetag [buf]
   (let [tag (.getLong buf)
         secs (- (bit-shift-right tag 32) SEVENTY-YEAR-SECS)
         ms-frac (bit-shift-right (* (bit-and tag (bit-shift-left 0xffffffff 32))
@@ -180,14 +180,13 @@
     (+ (* secs 1000) ; secs as ms
        ms-frac)))
 
-(defn osc-bundle-buf? [buf]
+(defn- osc-bundle-buf? [buf]
   (let [start-char (.get buf)]
     (.position buf (- (.position buf) 1))
     (= \# start-char)))
 
-(defn decode-bundle [buf] 
-  (let [
-        b-tag (decode-string buf)
+(defn- decode-bundle [buf] 
+  (let [b-tag (decode-string buf)
         timestamp (decode-timetag buf)]))
 
 (defn osc-decode-packet
@@ -199,75 +198,83 @@
 
 (defn recv-next-msg [chan buf]
   (.clear buf)
-  (let [src-addr (.receive chan buf)
-        ;_ (log/debug (str "msg-from: " src-addr))
-        _ (.flip buf)
-        msg (osc-decode-packet buf)]
-    (log/debug "OSC: (" src-addr "): " msg)
-    (assoc msg :src-addr src-addr)))
-
-(defn- handle-packet [pkt listeners]
-  (cond 
-    (osc-bundle? pkt) (doseq [item (:items pkt)]
-                        (handle-packet item listeners)) 
-    (osc-msg? pkt) (do
-                     ; Listeners receive every message
-                     (doseq [[id listener] @listeners] 
-                       (listener pkt)))))
+  (let [src-addr (.receive chan buf)]
+    (log/debug "osc-msg-from: " src-addr)
+    (when (pos? (.position buf))
+      (.flip buf)
+      (assoc (osc-decode-packet buf) :src-addr src-addr))))
 
 (defn- listen-loop [chan buf running? listeners]
   (try
     (while @running?
-      (.clear buf)
-      (handle-packet (recv-next-msg chan buf) listeners))
-    (catch Exception e
-      (log/error (str "Exception in listen-loop: " e)))
-    (finally
-      (.close chan))))
+      (let [pkt (recv-next-msg chan buf)
+            msgs (if (osc-bundle? pkt)
+                   (:items pkt)
+                   [pkt])]
+        (log/debug "listen-loop: " (count msgs) " messages for " (count @listeners) " listeners.")
+        (doseq [msg msgs]
+          (doseq [[id listener] @listeners] 
+            (listener msg)))))
+  (catch AsynchronousCloseException e nil) ; No problem if the connection is closed
+  (catch Exception e
+    (log/error "Exception in listen-loop: " e " \nstacktrace: " (.printStackTrace e)))
+  (finally
+    (.close chan))))
 
 (defn- generic-listen-thread [chan buf running? listeners]
   (let [thread (Thread. #(listen-loop chan buf running? listeners))]
     (.start thread)
     thread))
 
-(def handler-id-counter* (atom 0))
-(defn handler-id []
-  (let [id @handler-id-counter*]
-    (swap! handler-id-counter* inc)
+(def listener-id-counter* (atom 0))
+
+(defn- listener-id []
+  (let [id @listener-id-counter*]
+    (swap! listener-id-counter* inc)
     id))
 
-(defn msg-dispatcher [msg-log handlers]
+(declare *osc-handlers*)
+(declare *osc-handler*)
+(declare *osc-path*)
+
+(defn- msg-handler-dispatcher [handlers]
   (fn [msg]
-    (if-let [handler (get @handlers (:path msg))]
-      (handler msg)
-      (swap! msg-log assoc (:path msg) msg))))
+    (doseq [handler (get @handlers (:path msg))]
+      (binding [*osc-handlers* handlers
+                *osc-handler* handler
+                *osc-path* (:path msg)]
+        (handler msg)))))
 
-(defn osc-recv 
-  "Synchronous receive on a connection."
-  [con]
-  (recv-next-msg (:chan con) (:resp-buf con)))
+(defn osc-remove-handler []
+  (reset! *osc-handlers* (assoc @*osc-handlers* *osc-path* 
+                                (difference (get @*osc-handlers* *osc-path*) #{*osc-handler*}))))
 
-; TODO: Messages should timeout and get wiped from the msg buffer
-(defn old-osc-recv 
+(defn osc-handle
   "Receive on a connection, being either a client or a server object."
-  [con path & [timeout]]
-  ; First check the 1-msg buffer
-  (if-let [recvd (get @(:msg-log con) path)]
-    (do (swap! @(:msg-log con) dissoc path)
-      recvd))
-
+  [con path handler & [one-shot]]
   (let [handlers (:handlers con)
-        p (promise)]
-    (swap! handlers assoc path p) ; set the handler
+        phandlers (get @handlers path #{})
+        handler (if one-shot
+                  (fn [msg] 
+                    (handler msg)
+                    (osc-remove-handler))
+                  handler)]
+    (swap! handlers assoc path (union phandlers #{handler})))) ; save the handler
+
+(defn osc-recv
+  "Receive a message on an osc node with an optional timeout."
+  [con path & [timeout]]
+  (let [p (promise)]
+    (osc-handle con path (fn [msg] 
+                           (osc-remove-handler)
+                           (deliver p msg)))
     (try 
       (if timeout 
         (.get (future @p) timeout TimeUnit/MILLISECONDS) ; Blocks until 
         @p)
       (catch TimeoutException t 
-        (log/debug (str "osc-recv timed out."))
-        nil)
-      (finally  ; remove the handler
-        (swap! handlers dissoc path)))))
+        (log/debug "osc-path-recv: " path " timed out.")
+        nil))))
 
 ;; We use binding to *osc-msg-bundle* to bundle messages 
 ;; and send combined with an OSC timestamp.
@@ -307,51 +314,42 @@
      ;(log/debug (str "in-osc-bundle (" (count @*osc-msg-bundle*) "): " @*osc-msg-bundle*))
      (osc-snd-bundle ~client (osc-bundle ~timestamp @*osc-msg-bundle*))))
 
-(defn osc-client 
- "Returns an OSC client ready to communicate with host on port.  
- Use :protocol in the options map to \"tcp\" if you don't want \"udp\"."
-  [host port]
+; OSC peers have listeners and handlers.  A listener is sent every message received, and
+; handlers are dispatched by OSC node (a.k.a. path).
+  
+(defn- osc-peer []
   (let [chan (DatagramChannel/open)
-        snd-buf (ByteBuffer/allocate 8192)
-        resp-buf (ByteBuffer/allocate 8192)
-        running? (atom true)
-        msg-log (atom {})
-        handlers (atom {})
-        listeners (atom {(handler-id) (msg-dispatcher msg-log handlers)})
-        thread (Thread. #(+ 3 2))]
-        ;thread (generic-listen-thread chan resp-buf running? listeners)]
-    {:host host
-     :port port
-     :addr (InetSocketAddress. host port)
-     :chan chan
-     :snd-buf snd-buf 
-     :resp-buf resp-buf
-     :running? running?
-     :thread thread
-     :listeners listeners
-     :handlers handlers
-     :msg-log msg-log}))
-
-(defn osc-server
-  "Returns a live OSC server ready to register handler functions."
-  [port]
-  (let [chan (DatagramChannel/open)
-        sock (.socket chan)
-        _    (.bind sock (InetSocketAddress. port))
         rcv-buf (ByteBuffer/allocate 8192)
-        out *out*
         running? (atom true)
-        msg-log (atom {})
         handlers (atom {})
-        listeners (atom {(handler-id) (msg-dispatcher msg-log handlers)})
+        listeners (atom {(listener-id) (msg-handler-dispatcher handlers)})
         thread (generic-listen-thread chan rcv-buf running? listeners)]
     {:chan chan
      :rcv-buf rcv-buf
      :running? running?
      :thread thread
      :listeners listeners
-     :msg-log msg-log
      :handlers handlers}))
+
+(defn osc-client 
+ "Returns an OSC client ready to communicate with a host on a given port.  
+ Use :protocol in the options map to \"tcp\" if you don't want \"udp\"."
+  [host port]
+  (let [peer (osc-peer)
+        snd-buf (ByteBuffer/allocate 8192)]
+    (assoc peer
+           :host host
+           :port port
+           :addr (InetSocketAddress. host port)
+           :snd-buf snd-buf)))
+
+(defn osc-server
+  "Returns a live OSC server ready to register handler functions."
+  [port]
+  (let [peer (osc-peer)
+        sock (.socket (:chan peer))
+        _    (.bind sock (InetSocketAddress. port))]
+    peer))
 
 (defn osc-close
   [server & hard]

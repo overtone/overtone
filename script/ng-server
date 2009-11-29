@@ -56,7 +56,11 @@ if [[ "$OSTYPE" == 'cygwin' ]]; then
   CLASSPATH=`cygpath -wp $CLASSPATH`
 fi
 
+echo "OS-TYPE: $OSTYPE"
+
+export CLASSPATH
+
 echo "Classpath: ${CLASSPATH}"
-echo "exec ${CLOJURE_JAVA} -cp ${CLASSPATH} com.martiansoftware.nailgun.NGServer 127.0.0.1"
+echo "exec java com.martiansoftware.nailgun.NGServer 127.0.0.1"
 
 exec java com.martiansoftware.nailgun.NGServer 127.0.0.1

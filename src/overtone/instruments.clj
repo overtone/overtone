@@ -35,7 +35,7 @@
         snd (* :amp (sin-osc.ar :freq (* Math/PI 0.5)))]
     (out.ar 0 (pan2.ar (* snd env) 0))))
 
-(defsynth snare {:out 0 :freq 405 :amp 0.8 :sustain 0.1 
+(comment defsynth snare {:out 0 :freq 405 :amp 0.8 :sustain 0.1 
                  :drum-amp 0.25 :crackle-amp 40 :tightness 1000}
   (let [drum-env (* 0.5 (env-gen.ar (perc 0.005 :sustain) :done-free))
         drum-s1 (* drum-env (sin-osc.ar :freq))
