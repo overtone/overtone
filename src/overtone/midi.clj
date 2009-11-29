@@ -10,7 +10,8 @@
      (java.awt.event MouseAdapter)
      (java.util.concurrent FutureTask))
   (:use clojure.set
-     (overtone time)))
+     (overtone time))
+  (:require [overtone.log :as log]))
 
 ; This is basically a higher-level wrapper on top of the Java MIDI apis.  It makes it
 ; easier to configure midi input/output devices, route between devices, etc.
@@ -113,7 +114,6 @@
       (.open dev))
     (assoc source-info :transmitter (.getTransmitter dev))))
 
-; TODO: Make midi-in and midi-out synchronous when called with no arguments...
 (defn midi-in 
   "Connect the sequencer to a midi input device."
   ([] (with-transmitter
@@ -165,9 +165,10 @@
 (defn midi-handler [fun]
   (proxy [Receiver] []
     (close [] nil)
-    (send [msg timestamp] 
-          (if-let [parsed (midi-msg msg)]
-            (fun parsed)))))
+    (send [msg timestamp] (fun msg timestamp))))
+
+          ;(if-let [parsed (midi-msg msg)]
+          ;  (fun parsed)))))
 
 ;; Unfortunately, it seems that either Pianoteq or the virmidi modules
 ;; don't actually make use of the timestamp...
@@ -190,6 +191,18 @@
   (let [off-msg (ShortMessage.)]
     (.setMessage off-msg ShortMessage/NOTE_OFF 0 note-num 0)
     (.send (:receiver sink) off-msg -1)))
+
+(defn byte-seq-to-array [bseq]
+  (let [ary (byte-array (count bseq))]
+    (doseq [i (range (count bseq))]
+      (aset-byte ary i (nth bseq i)))
+    ary))
+
+(defn midi-sysex [sink byte-seq]
+  (let [sys-msg (SysexMessage.)
+        bytes (byte-seq-to-array byte-seq)]
+    (.setMessage sys-msg bytes (count bytes))
+    (.send (:receiver sink) sys-msg -1)))
 
 (defn midi-note [sink note-num vel dur]
   (midi-note-on sink note-num vel)

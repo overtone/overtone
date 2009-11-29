@@ -1,4 +1,4 @@
-(ns overtone.instruments
+(ns overtone.instrument
   (:use (overtone synth envelope pitch)))
 
 ;; Helpers

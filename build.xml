@@ -81,6 +81,6 @@
 
   <target name="make-deps" description="Create dependency zip-file based on current contents of the deps directory.">
     <echo>Creating the deps zip archive...</echo>
-    <zip destfile="${deps.file}" basedir="${deps.dir}" />
+    <zip destfile="${deps.file}" basedir="." includes="deps/*" />
   </target>
 </project>

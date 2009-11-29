@@ -5,8 +5,7 @@
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream))
   (:require [overtone.log :as log]
-     [clojure.zip :as zip]
-     [overtone.insertion-point :as ip])
+     [clojure.zip :as zip])
   (:use 
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
@@ -167,17 +166,18 @@
 (defn boot
   ([] (boot SERVER-HOST SERVER-PORT))
   ([host port]
-   (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-         cmd (into-array String [SC-PATH "-u" (str port)])
-         sc-thread (Thread. #(boot-thread cmd))]
-     (.setDaemon sc-thread true)
-     (log/info "Booting SuperCollider server (scsynth)...")
-     (.start sc-thread)
-     (dosync (ref-set server-thread* sc-thread))
-     (Thread/sleep 1000)
-     (log/info "Connecting to server...")
-     (connect host port)
-     (log/info "status check: " (status)))))
+   (if (not @running?*)
+     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
+           cmd (into-array String [SC-PATH "-u" (str port)])
+           sc-thread (Thread. #(boot-thread cmd))]
+       (.setDaemon sc-thread true)
+       (log/info "Booting SuperCollider server (scsynth)...")
+       (.start sc-thread)
+       (dosync (ref-set server-thread* sc-thread))
+       (Thread/sleep 1000)
+       (log/info "Connecting to server...")
+       (connect host port)
+       (log/info "status check: " (status))))))
 
 (defn quit 
   "Quit the SuperCollider synth process."
@@ -529,7 +529,7 @@
 (defn load-instruments []
   (doseq [synth (filter #(synthdef? %1) 
                         (map #(var-get %1) 
-                             (vals (ns-publics 'overtone.instruments))))]
+                             (vals (ns-publics 'overtone.instrument))))]
     (println "loading synth: " (:name synth))
     (load-synth synth)))
 

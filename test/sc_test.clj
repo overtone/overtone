@@ -3,7 +3,7 @@
      clojure.test
      clojure.contrib.seq-utils
      clj-backtrace.repl
-     (overtone sc time instruments))
+     (overtone sc time instrument))
   (:require 
      [overtone.log :as log]))
 

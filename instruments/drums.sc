@@ -5,6 +5,7 @@
 s.boot;
 s.quit;
 
+s.name;
 
 SynthDef("kick",
 	{ arg out = 0, freq = 50, mod_freq = 5, mod_index = 5, sustain = 0.4, amp = 0.8, beater_noise_level = 0.025;
