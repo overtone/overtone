@@ -68,3 +68,8 @@ I use the tune-up script to quickly setup the audio environment and the nailgun
 server used by vimclojure.  Over time this will become a clojure script that is
 more easily customizable, but for now the Ruby script should be easy enough to
 understand and modify.
+
+### Contributors
+
+* Jeff Rose
+* Sam Aaron
