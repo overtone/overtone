@@ -46,10 +46,9 @@
    :done-free-children 13	
    :done-free-group 14})
 
-(def UGEN-MAP (reduce 
-                (fn [mem ugen] 
-                  (assoc mem (normalize-name (:name ugen)) ugen)) 
-                UGENS))
+(def UGEN-MAP (reduce (fn [mem ugen] 
+                        (assoc mem (normalize-name (:name ugen)) ugen)) 
+                      UGENS))
 
 (defn find-ugen [word]
   (get UGEN-MAP (normalize-name word)))
@@ -387,6 +386,15 @@
 (defn binary-op-num [name]
   (get BINARY-OPS (str name) false))
 
+(defn- expand-ops [form]
+  (let [op (first form)
+        op-prefix (list 'op-check (str op) "BinaryOpUGen" (binary-op-num op))]
+    (loop [args (reverse (next form))
+           i 0]
+      (if (or (= i 5) (= 1 (count args)))
+        (first args)
+        (recur (cons (concat op-prefix [(second args) (first args)]) (drop 2 args)) (inc i))))))
+
 (defn- replace-basic-ops
   "Replace all basic operations on ugens with unary and binary ugen operators."
   [form]
@@ -398,6 +406,11 @@
 
                   (and (binary-op-num (first x)) (= 3 (count x)))
                   (list 'op-check (str (first x)) "BinaryOpUGen" (binary-op-num (first x)) (second x) (nth x 2))
+
+                  ; Expand addition and multiplication of more than 2 elements so we can do things in a lispy way, 
+                  ; even when operating on UGens.  (e.g. (* snd env 0.2) => (* snd (* env 0.2)))
+                  (and (or (= '+ (first x)) (= '* (first x))))
+                  (expand-ops x)
 
                   :default x)
                 x))

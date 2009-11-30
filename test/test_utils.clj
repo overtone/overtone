@@ -4,8 +4,10 @@
      [clojure.contrib.str-utils :only (re-split re-gsub)])
   (:import (java.io File)))
 
-; Thanks to code from this blog post:
-; http://formpluslogic.blogspot.com/2009/08/clojure-unit-testing-part-1.html
+(defn refer-private [ns] 
+  (doseq [[symbol var] (ns-interns ns)] 
+    (when (:private (meta var)) 
+      (intern *ns* symbol var))))
 
 (def TEST-FILE-SUFFIX "_test.clj")
 
