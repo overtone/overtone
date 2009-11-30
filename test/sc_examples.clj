@@ -1,5 +1,5 @@
 (ns sc-examples
-  (:use (overtone sc synth time pitch rhythm)
+  (:use overtone
      clojure.contrib.seq-utils
      clj-backtrace.repl))
 
@@ -12,9 +12,17 @@
 (def TICK (/ (/ 60000 BPM) 4))
 
 (defsynth sin-chord {:out 0 :pitch 52 :dur 500 :amp 0.2}
-  (out.ar :out (+ (* :amp (sin-osc.ar (midicps :pitch)))
-                  (* :amp (sin-osc.ar (midicps (+ :pitch 4))))
-                  (* :amp (sin-osc.ar (midicps (+ :pitch 7)))))))
+  (let [dur-half (/ (/ :dur 1000.0) 2)
+        env (env-gen.ar (perc dur-half dur-half) :done-free)]
+  (out.ar :out (* env :amp (+ (sin-osc.ar (midicps :pitch))
+                              (sin-osc.ar (midicps (+ :pitch 4)))
+                              (sin-osc.ar (midicps (+ :pitch 7))))))))
+
+(defn chords [t n]
+  (hit t sin-chord :pitch (choose [52 55 57 61 63]) :amp 0.2 :dur 500)
+  (callback (+ (now) 260) #'chords (+ t 125) n))
+
+(chords (now) [52 57 59 64])
 
 (def hat-buf (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
 
@@ -38,7 +46,7 @@
         (if note
           (hit (+ (* i TICK) t) (inst voices)))))))
 
-;(play-beat house-drums house-beat 500)
+(play-beat house-drums house-beat 500)
 
 (defn beats [t cnt]
   (cond
@@ -64,7 +72,7 @@
     (hit (now) "sin" :pitch (+ 20 start (- (rand-int 6) 3)) :dur (* 0.1 (+ 1 (rand-int 2)))))
   (callback (+ 500 (now)) #'sin-man start))
 
-;(sin-man 40)
+(sin-man 40)
 
 ;(defn forever [tick pat cur]
 ;  (lazy-seq
