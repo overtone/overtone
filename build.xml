@@ -74,6 +74,7 @@
   <target name="deps" description="Download dependencies and unzip">
     <echo>Downloading dependencies from GitHub.  Be patient, it's a 5mb zip
       file so this could take a few minutes.</echo>
+    <delete file="${deps.dir}" />
     <get usetimestamp="true" description="Clojure dependencies." src="${deps.url}" dest="${deps.file}"/>
     <unzip src="${deps.file}" dest="."/>
     <delete file="${deps.file}" />

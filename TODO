@@ -1,3 +1,5 @@
+* Figure out how to handle multi-channel stuff
+
 * Put some nice error messages in the midi code so you know when you pass the wrong type of device, etc... 
 
 * although many Clojure arithmetic operators can take more than two args, we need
