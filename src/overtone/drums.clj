@@ -34,7 +34,7 @@
                     i   @*drum-count]
                 (doseq [[voice pattern] @*drums]
                   (if (< num (nth pattern i))
-                    (note voice 50 200)))
+                    (hit voice :pitch 50 :dur 200)))
                 (dosync (ref-set *drum-count (mod (inc @*drum-count) beat-count)))))
             tempo))
 

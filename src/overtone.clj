@@ -1,6 +1,6 @@
 (ns overtone
   (:require (overtone time sc synth envelope synthdef midi 
-                      rhythm pitch tuning voice studio)))
+                      rhythm pitch tuning voice studio log)))
 
 ; Thanks to James Reeves for this, taken from Compojure.
 
@@ -44,4 +44,5 @@
   'overtone.tuning
   'overtone.voice
   'overtone.studio
+  'overtone.instrument
   )

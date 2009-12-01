@@ -1,12 +1,11 @@
-(ns sc-examples
+(ns extra.sc-examples
   (:use overtone
-     clojure.contrib.seq-utils
-     clj-backtrace.repl))
+     clojure.contrib.seq-utils))
 
 (def _ false)
 (def x true)
 
-(boot)
+;(boot)
 
 (def BPM 120)
 (def TICK (/ (/ 60000 BPM) 4))
@@ -22,9 +21,12 @@
   (hit t sin-chord :pitch (choose [52 55 57 61 63]) :amp 0.2 :dur 500)
   (callback (+ (now) 260) #'chords (+ t 125) n))
 
-(chords (now) [52 57 59 64])
+;(chords (now) [52 57 59 64])
 
-(def hat-buf (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
+;; TODO: Figure out the best way to deal with stuff like this in the code
+;; that can really only execute at runtime...  do we have to use refs?
+(def hat-buf nil)
+;(def hat-buf (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
 
 (def house-drums {:kick "kick" 
                   :hat hat-buf
@@ -46,7 +48,7 @@
         (if note
           (hit (+ (* i TICK) t) (inst voices)))))))
 
-(play-beat house-drums house-beat 500)
+;(play-beat house-drums house-beat 500)
 
 (defn beats [t cnt]
   (cond
@@ -72,7 +74,7 @@
     (hit (now) "sin" :pitch (+ 20 start (- (rand-int 6) 3)) :dur (* 0.1 (+ 1 (rand-int 2)))))
   (callback (+ 500 (now)) #'sin-man start))
 
-(sin-man 40)
+;(sin-man 40)
 
 ;(defn forever [tick pat cur]
 ;  (lazy-seq

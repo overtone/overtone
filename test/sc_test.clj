@@ -2,8 +2,7 @@
   (:use 
      clojure.test
      clojure.contrib.seq-utils
-     clj-backtrace.repl
-     (overtone sc time instrument))
+     overtone)
   (:require 
      [overtone.log :as log]))
 
@@ -40,8 +39,8 @@
   (reset)
   (group :head 0)
   (group :tail 0)
-  (hit :sin :dur 10000 :target 2)
-  ;(is (= 1 (:n-synths (status))))
+  (hit :sin :dur 1000 :target 2)
+  (is (= 1 (:n-synths (status))))
   )
 
 ; These are what the responses look like for a queryTree msg.  The first

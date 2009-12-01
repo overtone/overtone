@@ -1,7 +1,7 @@
-(ns midi-test
+(ns extra.midi-examples
   (:use (overtone midi rhythm)))
 
-(def recvr (midi-out "vir"))
+;(def recvr (midi-out "vir"))
 ;(def txer (midi-in "axiom"))
 
 (comment

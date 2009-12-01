@@ -5,7 +5,7 @@
   <property name="test.dir"    value="test"/>
   <property name="session.dir" value="session"/>
 
-  <property name="deps.dir"    value="deps"/>
+  <property name="deps.dir"    value="lib"/>
   <property name="deps.file"   value="deps.zip"/>
   <property name="deps.url"    value="http://cloud.github.com/downloads/rosejn/overtone/${deps.file}"/>
 
@@ -67,7 +67,7 @@
     <java classname="clojure.lang.Compile" fork="true">
       <sysproperty key="clojure.compile.path" value="${build.dir}" />
       <classpath refid="classpath" />
-      <arg value="overtone.gui.main" />
+      <!-- <arg value="overtone.gui.main" /> -->
     </java>
   </target>
 

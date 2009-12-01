@@ -1,8 +1,7 @@
 (ns osc-test
   (:use (overtone osc)
      clojure.test
-     clojure.contrib.seq-utils
-     clj-backtrace.repl)
+     clojure.contrib.seq-utils)
   (:require [overtone.log :as log])
   (:import (java.nio ByteBuffer)))
 
@@ -45,13 +44,15 @@
       (osc-snd client "/test" "i" 42)
       (Thread/sleep 100)
       (is (= true @flag))
-      (.run (Thread.
-        (fn []
-          (Thread/sleep 10)
-          (overtone.log/debug "sending foo now!!!!!!!!!!!!!!")
-          (osc-snd client "/foo" "i" 42))))
-      (check-msg (osc-recv server "/foo" 20) "/foo" 42)
-      (is (nil? (osc-recv server "/foo" 0)))
+      (let [t (Thread.
+                (fn []
+                  (Thread/sleep 10)
+                  (overtone.log/debug "sending foo now!!!!!!!!!!!!!!")
+                  (osc-snd client "/foo" "i" 42)))]
+        (.run t)
+        (check-msg (osc-recv server "/foo" 400) "/foo" 42)
+        (is (nil? (osc-recv server "/foo" 0)))
+        (.join t))
       (finally 
         (osc-close server true)
         (osc-close client true)))))

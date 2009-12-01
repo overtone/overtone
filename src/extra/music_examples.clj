@@ -1,7 +1,7 @@
-(ns music-examples
-  (:use overtone
-     (overtone drums)))
+(ns extra.music-examples
+  (:use overtone))
 
+(comment 
 (def pitches [60 62 64 65 67 69 71 72])
 (def dynamics [80 80 80 80 80 80 80 80])
 (def rhythms [0.5 0.25 0.25 0.25 0.25 0.25 0.25 0.5])
@@ -26,5 +26,6 @@
   (drum "hat2" [0 0 0 0 1 0 0 0 0 0 0.3 0 1 0 0 0])
   (play-drums (/ 60000 85 4) 16))
 
-(techno)
-(reset-studio)
+;(techno)
+;(reset-studio)
+)

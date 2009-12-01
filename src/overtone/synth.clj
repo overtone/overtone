@@ -6,7 +6,7 @@
   file."
   (:require [overtone.log :as log])
   (:use
-     (overtone utils ugens ops synthdef)
+     (overtone util ops synthdef)
      (clojure walk inspector)
      clojure.contrib.seq-utils))
 
@@ -46,6 +46,8 @@
    :done-free-children 13	
    :done-free-group 14})
 
+(def UGENS (read-string (slurp "src/overtone/ugen.clj")))
+
 (def UGEN-MAP (reduce (fn [mem ugen] 
                         (assoc mem (normalize-name (:name ugen)) ugen)) 
                       UGENS))
@@ -71,7 +73,7 @@
   (apply ugen-print (ugen-search word)))
 
 (defn- add-default-args [spec args]
-  (let [defaults (map #(%1 :default) (:args spec))]
+  (let [defaults (map #(:default %1) (:args spec))]
     ;(println (:name spec) " defaults: " defaults "\nargs: " args)
     (cond 
       ; Many ugens (e.g. EnvGen) have an array of values as their last argument,

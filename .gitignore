@@ -5,3 +5,6 @@ deps
 log*
 *.lck
 *.class
+*.scsyndef
+Manifest.txt
+pom.xml

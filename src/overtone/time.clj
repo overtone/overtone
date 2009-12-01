@@ -1,7 +1,7 @@
 (ns overtone.time
   (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit
                                  PriorityBlockingQueue))
-  (:use (overtone utils)))
+  (:use (overtone util)))
 
 ; Time
 

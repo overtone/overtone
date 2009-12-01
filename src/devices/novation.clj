@@ -1,9 +1,13 @@
-(ns novation
+(ns devices.novation
   (:use (overtone midi))
   (:require [overtone.log :as log]))
 
-(def NOV-OUT (midi-out "ReMOTE"))
-(def NOV-IN (midi-in))
+(declare NOV-OUT)
+(declare NOV-IN)
+
+(defn start []
+  (def NOV-OUT (midi-out "ReMOTE"))
+  (def NOV-IN (midi-in)))
 
 (def PID 0x03)
 (def MSG-PREFIX [0xF0 0x00 0x20 0x29 0x03 0x03 0x20 0x02 PID])
@@ -33,5 +37,5 @@
   (midi-sysex NOV-OUT (concat MSG-PREFIX WRITE-TXT [pos row 0x04] data [0xF7]))))
 
 (defn clear-screens []
-  (midi-sysex NOV-OUT clear-left)
-  (midi-sysex NOV-OUT clear-right))
+  (midi-sysex NOV-OUT CLEAR-LEFT)
+  (midi-sysex NOV-OUT CLEAR-RIGHT))

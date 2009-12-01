@@ -1,4 +1,4 @@
-(ns overtone.utils
+(ns overtone.util
   (:use clojure.contrib.def))
 
 ; Some generic counters 

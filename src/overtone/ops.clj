@@ -1,5 +1,4 @@
-(ns overtone.ops
-  (:use (overtone utils)))
+(ns overtone.ops)
 
 (def UNARY-OPS
   {"neg" 0
@@ -91,3 +90,4 @@
    "wrap2" 45
    "rrand" 47
    "exprand" 48]))
+

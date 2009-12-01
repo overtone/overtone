@@ -6,7 +6,7 @@
   (:import (java.net URL))
   (:require [overtone.log :as log])
   (:use
-     (overtone utils ugens ops bytes)
+     (overtone util bytes)
      clojure.contrib.seq-utils))
 
 

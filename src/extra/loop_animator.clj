@@ -1,4 +1,4 @@
-(ns loop-animator
+(ns extra.loop-animator
   (:use rosado.processing)
   (:import (javax.swing JFrame))
   (:import (processing.core PApplet)))
@@ -63,14 +63,15 @@
                       (ref-set mouse-x (.getX event))
                       (ref-set mouse-y (.getY event))))))
   
-(.init hypno-applet)
+(defn go []
+  (.init hypno-applet)
 
-(def swing-frame (JFrame. "Hypnotize"))
+  (def swing-frame (JFrame. "Hypnotize"))
 
-(doto swing-frame
-	(.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
-	(.setSize 200 200)
-	(.add hypno-applet)
-	(.pack)
-	(.show))
+  (doto swing-frame
+    (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
+    (.setSize 200 200)
+    (.add hypno-applet)
+    (.pack)
+    (.show)))
 

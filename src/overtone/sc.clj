@@ -8,8 +8,7 @@
   (:use
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
-     clj-backtrace.repl
-     (overtone config utils voice osc time synthdef)))
+     (overtone config util voice osc time synthdef)))
 
 ; This is at heart an OSC client library for the SuperCollider scsynth engine.
 

@@ -1,7 +1,7 @@
 (ns bytes-test
   (:use 
      clojure.test
-     (overtone bytes utils)
+     (overtone bytes util)
      test-utils))
 
 (defspec basic-type-spec

@@ -1,6 +1,6 @@
 (ns overtone.bytes
   (:require [overtone.log :as log])
-  (:use overtone.utils)
+  (:use overtone.util)
   (:import (java.net URL)
      (java.io FileInputStream FileOutputStream 
               DataInputStream DataOutputStream

@@ -7,58 +7,7 @@
   (syn (reduce (fn [mem arg] (list '+ mem arg))
           args)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Drums
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defsynth kick {:out 0 :freq 50 :mod-freq 5 :mod-index 5 
-                :sustain 0.4 :amp 0.8 :noise 0.025}
-  (let [pitch-contour (line.kr (* 2 :freq), :freq 0.02)
-        drum (lpf.ar (pm-osc.ar pitch-contour :mod-freq (/ :mod-index 1.3))
-                     1000)
-        drum-env (env-gen.ar (perc 0.005, :sustain) :done-free)
-        hit (hpf.ar (* :noise (white-noise.ar)) 500)
-        hit (lpf.ar hit (lin.kr 6000 500 0.03))
-        hit-env (env-gen.ar (perc) :done-free)]
-    (out.ar :out (pan2.ar (* :amp (+ (* drum drum-env) (* hit hit-env))) 0))))
-
-(defsynth soft-kick 
-  (out.ar 0 (pan2.ar
-              (mul-add.ar
-                (sin-osc.ar 60 (* Math/PI 2))
-                (env-gen.ar (perc 0.001 0.1))
-                0) 
-              0)))
-
-(defsynth round-kick {:amp 0.5 :decay 0.6 :freq 65}
-  (let [env (env-gen.ar (perc 0 :decay) :done-free)
-        snd (* :amp (sin-osc.ar :freq (* Math/PI 0.5)))]
-    (out.ar 0 (pan2.ar (* snd env) 0))))
-
-(comment defsynth snare {:out 0 :freq 405 :amp 0.8 :sustain 0.1 
-                 :drum-amp 0.25 :crackle-amp 40 :tightness 1000}
-  (let [drum-env (* 0.5 (env-gen.ar (perc 0.005 :sustain) :done-free))
-        drum-s1 (* drum-env (sin-osc.ar :freq))
-        drum-s2 (* drum-env (sin-osc.ar (* :freq 0.53)))
-        drum-s3 (* drum-env (pm-osc.ar (saw.ar (* :freq 0.85)) 184 (/ 0.5 1.3)))
-        drum (* :drum-amp (mix drum-s1 drum-s2 drum-s3))
-        noise (lf-noise-0.ar 20000 0.1)
-        filtered (* 0.5 (brf.ar noise 8000 0.1))
-        filtered (* 0.5 (brf.ar filtered 5000 0.1))
-        filtered (* 0.5 (brf.ar filtered 3600 0.1))
-        filtered (* (env-gen.ar (perc 0.005 :sustain) :done-free)
-                    (brf.ar filtered 2000 0.0001))
-        crackle (* (resonz.ar filtered :tightness) :crackle-amp)]
-    (out.ar :out (pan2.ar (* :amp (* 5 (+ drum crackle))) 0))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Basses
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defsynth buzz {:pitch 40 :cutoff 300}
-  (let [a (lpf.ar (saw.ar (midicps :pitch)) (+ (lf-noise-1.kr 10) :cutoff))
-        b (sin-osc.ar (midicps (- :pitch 12)))]
-  (out.ar 0 (pan2.ar (+ a b)))))
+;; Toy synths... clean up eventually
 
 (defsynth sin {:out 0 :amp 0.1 :pitch 40 :dur 300}
   (let [snd (sin-osc.ar (midicps :pitch))

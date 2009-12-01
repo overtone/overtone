@@ -5,7 +5,7 @@
      (java.nio.channels DatagramChannel AsynchronousCloseException)
      (java.nio ByteBuffer ByteOrder))
   (:require [overtone.log :as log])
-  (:use (overtone utils)
+  (:use (overtone util)
      clojure.set
      (clojure.contrib fcase)))
 
@@ -262,7 +262,12 @@
     (swap! handlers assoc path (union phandlers #{handler})))) ; save the handler
 
 (defn osc-recv
-  "Receive a message on an osc node with an optional timeout."
+  "Receive a single message on an osc path (node) with an optional timeout.
+
+      ; Wait a max of 250 ms to receive the next incoming OSC message
+      ; addressed to the /magic node.
+      (osc-recv client \"/magic\" 250)
+  "
   [con path & [timeout]]
   (let [p (promise)]
     (osc-handle con path (fn [msg] 

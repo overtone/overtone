@@ -3,10 +3,10 @@
               DataInputStream DataOutputStream
               BufferedInputStream BufferedOutputStream 
               ByteArrayOutputStream ByteArrayInputStream))
-  (:use (overtone sc synthdef synth envelope utils)
+  (:use overtone
      test-utils
-     clojure.test
-     clj-backtrace.repl))
+     clojure.test)
+  (:require [overtone.log :as log]))
 
 (defn sawzall-raw 
   []
@@ -76,6 +76,9 @@
 (deftest read-write-test []
   (rw-file-test TOM-DEF)
   (rw-file-test KICK-DEF))
+
+(deftest zzz-test []
+  (log/info "Active Threads: " (Thread/activeCount)))
 
 (defn synthdef-tests []
   (binding [*test-out* *out*]

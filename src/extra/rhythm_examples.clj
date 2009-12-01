@@ -1,6 +1,7 @@
-(ns rhythm-test
+(ns extra.rhythm-examples
   (:use overtone))
 
+(comment 
 (def piano (midi-out "vir"))
 (def metro (metronome 120))
 
@@ -37,3 +38,4 @@
 (on-tick metro #(send piano-voice player))
 (stop metro)
 
+)

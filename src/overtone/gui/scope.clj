@@ -6,8 +6,8 @@
      (org.jfree.chart ChartFactory ChartPanel)
      (org.jfree.chart.plot PlotOrientation)
      (org.jfree.data.xy DefaultXYDataset))
-  (:use clj-backtrace.repl
-     (overtone sc synth utils)))
+  (:use 
+     (overtone sc synth util)))
 
 (def SCOPE-BUF-SIZE 4096)
 

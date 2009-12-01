@@ -23,8 +23,8 @@
 (def ECHO-DELAY 0.2)
 (def ECHO-DECAY 4)
 
-(defsynth echo
-  (let [in (in.ar 0)
+(defsynth echo {:out 0 :in 3}
+  (let [in (in.ar :in)
         echo (comb-n.ar in 0.5 ECHO-DELAY ECHO-DECAY)]
-    (out.ar 0 (pan2.ar (+ echo in) 0))))
+    (out.ar :out (pan2.ar (+ echo in) 0))))
 
