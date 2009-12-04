@@ -10,7 +10,7 @@ Overtone is a Clojure based musical generation and manipulation system for live-
 #### Source Repository
 Downloads and the source repository can be found on GitHub:
 
-    http://github.com/rosejn/overtone
+  http://github.com/rosejn/overtone
 
 The project is 100% open source and free, and contributions of code,
 documentation, feedback, thoughts and ideas are welcome.  Clone the repository on GitHub to get
@@ -22,7 +22,7 @@ Make sure to jump onto the mailing list before getting started so we don't dupli
 The project mailing list is hosted at http://librelist.com/, and you can subscribe by simply
 sending a message to:
 
-    overtone@librelist.com
+  overtone@librelist.com
 
 Note, the list will receive the first message you send, and you will automatically be subscribed.
 
