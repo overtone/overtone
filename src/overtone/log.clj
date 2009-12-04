@@ -1,11 +1,11 @@
 (ns overtone.log
   (:import (java.util.logging Logger Level ConsoleHandler FileHandler
-                              SimpleFormatter)))
+                              StreamHandler SimpleFormatter)))
 
 ; Sets up some basic logging infrastructure and helpers for the project.
 
 (defonce LOGGER (Logger/getLogger "overtone"))
-(defonce LOG-FILE "log")
+(defonce LOG-FILE ".overtone-log")
 
 (defonce LOG-APPEND false)
 (defonce LOG-CONSOLE (ConsoleHandler.))
@@ -25,6 +25,13 @@
       (assert (contains? LEVELS lvl))
       (.setLevel LOGGER (lvl LEVELS)))))
 
+(defn- print-handler []
+  (let [formatter (SimpleFormatter.)]
+    (proxy [StreamHandler] []
+      (publish [msg] (println (.format formatter msg))))))
+
+(defn console []
+  (.addHandler LOGGER (print-handler)))
 
 (defonce LOG-SETUP?
   (do 

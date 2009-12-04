@@ -1,10 +1,4 @@
-* Figure out how to handle multi-channel stuff
-
-* Put some nice error messages in the midi code so you know when you pass the wrong type of device, etc... 
-
-* although many Clojure arithmetic operators can take more than two args, we need
-to convert these to binary-op-ugens for supercollider.  
-  - so this: (+ foo bar baz) should become this (+ foo (+ bar baz))
+== General:
 
 * setup an on-boot handler mechanism so we can load up synthdefs, connect
 status machinery, etc...
@@ -12,8 +6,22 @@ status machinery, etc...
 * make the id counters in overtone.sc use a smarter algorithm so they can
 reuse old IDs.
 
-* automatically recognize when binary-op-ugens need to be expanded across 
-argument lists greater than two.  (e.g. (+ :foo snd1 snd2) becomes (+ :foo (+ snd1 snd2)))
+== Synths and Audio:
+
+* Figure out how to handle multi-channel expansion in the synth definitions...
 
 * IDEA: can the general concept of a ugen function be abstracted so that custom ugen functions like a mixer or
 some other thing can easily be defined in Clojure?
+
+== Midi and Devices:
+
+* Put some nice error messages in the midi code so you know when you pass the wrong type of device, etc... 
+
+== OSC: 
+
+* convert the listen-loop to using the non-blocking, selectable channel interface
+so we can timeout on receive to periodically check whether the server thread should end or not.
+
+* complete implementation of osc bundle reception, and beef up the unit tests
+ - bundles need to be recursively decoded
+ - should return a collection of packets, and each bundle and message should have the src-host and src-port attached so we can reply to anything.

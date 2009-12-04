@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Mostly keeping this as a reminder for how to use this very finnicky but nice utility...
+# TODO: hook up to the jam script so we can have one command to setup the environment,
+# start the editor in a jam session and record that window.
+
+recordmydesktop --use-jack=SuperCollider:out_1,SuperCollider:out_2 -x 661 -y 56 --width=764 --height=827

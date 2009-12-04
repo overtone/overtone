@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 #
 # Copyright (c) Stephen C. Gilardi. All rights reserved.  The use and
 # distribution terms for this software are covered by the Eclipse Public
@@ -37,8 +37,8 @@
 
 pkill -9 java
 
-#CLASSPATH=`pwd`/src:`pwd`/test:`pwd`/session:`pwd`/src/extra
-CLASSPATH=./src:./test:./session:./src/extra
+CLASSPATH=`pwd`/src:`pwd`/test:`pwd`/session:`pwd`/src
+#CLASSPATH=./src:./test:./session:./src/extra
 CLOJURE_EXT="./deps"
 
 if [ -d "${CLOJURE_EXT:-}" ]; then
@@ -52,7 +52,7 @@ if [ -d "${CLOJURE_EXT:-}" ]; then
 	fi
 fi
 
-if [[ "$OSTYPE" == 'cygwin' ]]; then
+if [ "$OSTYPE" == "cygwin" ]; then
   CLASSPATH=`cygpath -wp $CLASSPATH`
 fi
 
