@@ -469,8 +469,9 @@
 ;                  body
 ;                  `(out.ar 0 (pan2.ar ~body 0)))
 
+(def synthdefs* (ref {}))
 
-(defmacro synth
+(defmacro defsynth
   "Transforms a synth definition (ugen-tree) into a form that's ready to save 
   to disk or send to the server.
   
@@ -495,19 +496,18 @@
   [& args]
   (let [[sname args] (if (string? (first args))
                        [(str (as-str (first args))) (next args)]
-                       [(str "anonymous-" (next-id :anonymous)) args])
+                       [(str "s-" (next-id :anonymous)) args])
         [params body] (if (map? (first args))
                         [(first args) (second args)]
                         [{} (first args)])
+        kname (keyword sname)
         ugen-tree (to-ugen-tree body)]
-    (comment log/debug "synth: " {:args args
-                        :params params
-                        :body body
-                        :wrapped wrapped
-                        :ugen-tree ugen-tree})
-    `(with-meta (build-synthdef ~sname ~params ~ugen-tree)
-            {:type :synthdef
-             :src-code '~body})))
+    `(let [s# (with-meta (build-synthdef ~sname ~params ~ugen-tree)
+                         {:type :synthdef
+                          :src-code '~body})]
+       (dosync (alter synthdefs* assoc ~kname s#))
+       (overtone.sc/load-synth s#)
+       ~kname)))
 
 (defmacro syn
   "Useful for making synth definition helpers..."
@@ -515,7 +515,7 @@
   (let [b (to-ugen-tree body)]
     `(do ~b)))
 
-(defmacro defsynth 
+(comment defmacro defsynth 
   "Define a named synthesizer, with optional synth controls.
 
   defsynth is short for:

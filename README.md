@@ -83,7 +83,7 @@ editor.
 I use the tune-up script to quickly setup the audio environment and the nailgun
 server used by vimclojure.  
 
-<%= gist 234818 %>
+<script src="http://gist.github.com/234818.js?file=getting-started.clj"></script>
 
 For now you can look in the "tests" for examples on how to make noise and do things.
 Submissions of cool musical examples, tutorials, and general fixes and features

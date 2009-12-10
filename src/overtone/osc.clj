@@ -2,12 +2,14 @@
   (:import 
      (java.util.concurrent TimeUnit TimeoutException)
      (java.net InetSocketAddress DatagramSocket DatagramPacket)
-     (java.nio.channels DatagramChannel AsynchronousCloseException)
+     (java.nio.channels DatagramChannel AsynchronousCloseException ClosedChannelException)
      (java.nio ByteBuffer ByteOrder))
   (:require [overtone.log :as log])
   (:use (overtone util)
      clojure.set
      (clojure.contrib fcase)))
+
+(log/level :debug)
 
 (def OSC-TIMETAG-NOW 1) ; Timetag representing right now.
 (def SEVENTY-YEAR-SECS 2208988800)
@@ -50,10 +52,14 @@
 
 (defn osc-msg
   [path & args]
-  (with-meta {:path path
-              :type-tag (first args)
-              :args (next args)} 
-             {:type :osc-msg}))
+  (let [type-tag (first args)
+        type-tag (if (.startsWith type-tag ",")
+                   (.substring type-tag 1)
+                   type-tag)]
+    (with-meta {:path path
+                :type-tag type-tag
+                :args (next args)} 
+               {:type :osc-msg})))
 
 (defn osc-msg? [obj] (= :osc-msg (type obj)))
 
@@ -100,7 +106,7 @@
 
 (defn osc-encode-msg [buf msg]
   (let [{:keys [path type-tag args]} msg]
-    ;(log/debug (str "osc-encode-msg " path type-tag))
+    ;(log/debug "osc-encode: " path type-tag args)
     (encode-string buf path)
     (encode-string buf (str "," type-tag))
     (doseq [[t arg] (map vector type-tag args)]
@@ -152,12 +158,11 @@
     blob))
 
 (defn- decode-msg
+  "Pull data out of the message according to the type tag."
   [buf]
-  ;(log/debug (str "decoding from pos: " (.position buf)))
   (let [path (decode-string buf)
         type-tag (decode-string buf)
         args (reduce (fn [mem t] 
-                       ;(log/debug (str "decoded: " mem))
                        (conj mem 
                              (case t
                                    \i (.getInt buf)
@@ -168,9 +173,8 @@
                                    \s (decode-string buf))))
                      []
                      (rest type-tag))]
-    (log/debug "osc msg decoded: " path " " type-tag  " " args)
-    {:path path
-     :args args}))
+    (log/debug "osc-decoded: " path " " type-tag  " " args)
+    (apply osc-msg path type-tag args)))
 
 (defn- decode-timetag [buf]
   (let [tag (.getLong buf)
@@ -189,6 +193,9 @@
   (let [b-tag (decode-string buf)
         timestamp (decode-timetag buf)]))
 
+; TODO: complete implementation of receiving osc bundles 
+; * We need to recursively go through the bundle and decode either
+;   sub-bundles or a series of messages.
 (defn osc-decode-packet
   "Decode an OSC packet buffer into a bundle or message map."
   [buf]
@@ -196,33 +203,51 @@
     (decode-bundle buf)
     (decode-msg buf)))
 
-(defn recv-next-msg [chan buf]
+(defn recv-next-packet [chan buf]
   (.clear buf)
   (let [src-addr (.receive chan buf)]
-    (log/debug "osc-msg-from: " src-addr)
     (when (pos? (.position buf))
       (.flip buf)
-      (assoc (osc-decode-packet buf) :src-addr src-addr))))
+      [src-addr (osc-decode-packet buf)])))
+
+(defn- handle-bundle [listeners src bundle]
+  (log/error "Receiving OSC bundles not yet implemented!")
+  (throw Exception "Receiving OSC bundles not yet implemented!"))
+
+(defn- handle-msg [listeners src msg]
+  (let [msg (assoc msg 
+                   :src-host (.getHostName src) 
+                   :src-port (.getPort src))]
+    (log/debug "handling message: " msg)
+    (log/debug "n-listeners: " (count @listeners))
+    (doseq [[id listener] @listeners] 
+      (listener msg))))
 
 (defn- listen-loop [chan buf running? listeners]
-  (try
-    (while @running?
-      (let [pkt (recv-next-msg chan buf)
-            msgs (if (osc-bundle? pkt)
-                   (:items pkt)
-                   [pkt])]
-        (log/debug "listen-loop: " (count msgs) " messages for " (count @listeners) " listeners.")
-        (doseq [msg msgs]
-          (doseq [[id listener] @listeners] 
-            (listener msg)))))
-  (catch AsynchronousCloseException e nil) ; No problem if the connection is closed
-  (catch Exception e
-    (log/error "Exception in listen-loop: " e " \nstacktrace: " (.printStackTrace e)))
-  (finally
-    (.close chan))))
+  ;(log/debug "########\nlisten-loop: " (.getId (Thread/currentThread)))
+  (while @running?
+    (try
+      (let [[src pkt] (recv-next-packet chan buf)]
+        (log/debug "listen-loop msg: " src pkt)
+        (cond 
+          (osc-bundle? pkt) (handle-bundle listeners src pkt) 
+          (osc-msg? pkt)    (handle-msg listeners src pkt)))
+      (catch AsynchronousCloseException e 
+        (log/debug "AsynchronousCloseException: " @running?) )
+      (catch ClosedChannelException e 
+        (log/debug "ClosedChannelException: " @running?)
+        (log/debug (.printStackTrace e)))
+      (catch Exception e
+        (log/error "Exception in listen-loop: " e " \nstacktrace: " 
+                   (.printStackTrace e))
+        (throw e))))
+  ;(log/debug "########\ncompleted listen-loop: " (.getId (Thread/currentThread)))
+  (if (.isOpen chan)
+    (.close chan)))
 
-(defn- generic-listen-thread [chan buf running? listeners]
+(defn- listen-thread [chan buf running? listeners]
   (let [thread (Thread. #(listen-loop chan buf running? listeners))]
+    (.setDaemon thread true)
     (.start thread)
     thread))
 
@@ -234,20 +259,21 @@
     id))
 
 (declare *osc-handlers*)
-(declare *osc-handler*)
-(declare *osc-path*)
+(declare *current-handler*)
+(declare *current-path*)
 
 (defn- msg-handler-dispatcher [handlers]
   (fn [msg]
     (doseq [handler (get @handlers (:path msg))]
       (binding [*osc-handlers* handlers
-                *osc-handler* handler
-                *osc-path* (:path msg)]
+                *current-handler* handler
+                *current-path* (:path msg)]
+        (log/debug "dispatching msg: " msg)
         (handler msg)))))
 
 (defn osc-remove-handler []
-  (reset! *osc-handlers* (assoc @*osc-handlers* *osc-path* 
-                                (difference (get @*osc-handlers* *osc-path*) #{*osc-handler*}))))
+  (dosync (alter *osc-handlers* assoc *current-path* 
+                 (difference (get @*osc-handlers* *current-path*) #{*current-handler*}))))
 
 (defn osc-handle
   "Receive on a connection, being either a client or a server object."
@@ -259,7 +285,7 @@
                     (handler msg)
                     (osc-remove-handler))
                   handler)]
-    (swap! handlers assoc path (union phandlers #{handler})))) ; save the handler
+    (dosync (alter handlers assoc path (union phandlers #{handler}))))) ; save the handler
 
 (defn osc-recv
   "Receive a single message on an osc path (node) with an optional timeout.
@@ -285,39 +311,39 @@
 ;; and send combined with an OSC timestamp.
 (def *osc-msg-bundle* nil)
 
-(defn- snd-client [client]
-  (let [{:keys [snd-buf chan addr]} client]
+(defn- peer-send [peer]
+  (let [{:keys [snd-buf chan addr]} peer]
     ; Flip sets limit to current position and resets position to start.
     (.flip snd-buf) 
     (.send chan snd-buf addr)
     (.clear snd-buf))) ; clear resets everything 
 
-(defn osc-snd-msg 
-  "Send OSC msg to client."
-  [client msg]
+(defn osc-send-msg 
+  "Send OSC msg to peer."
+  [peer msg]
   (if *osc-msg-bundle*
     (swap! *osc-msg-bundle* #(conj %1 msg))
     (do
-      (osc-encode-msg (:snd-buf client) msg)
-      (snd-client client))))
+      (osc-encode-msg (:snd-buf peer) msg)
+      (peer-send peer))))
 
-(defn osc-snd-bundle
-  "Send OSC bundle to client."
-  [client bundle]
-  (osc-encode-bundle (:snd-buf client) bundle)
-  (snd-client client))
+(defn osc-send-bundle
+  "Send OSC bundle to peer."
+  [peer bundle]
+  (osc-encode-bundle (:snd-buf peer) bundle)
+  (peer-send peer))
 
-(defn osc-snd 
+(defn osc-send 
   "Creates an OSC message and either sends it to the server immediately 
   or if a bundle is currently being formed it adds it to the list of messages."
   [client & args]
-  (osc-snd-msg client (apply osc-msg args)))
+  (osc-send-msg client (apply osc-msg args)))
 
 (defmacro in-osc-bundle [client timestamp & body]
   `(binding [*osc-msg-bundle* (atom [])]
      ~@body
      ;(log/debug (str "in-osc-bundle (" (count @*osc-msg-bundle*) "): " @*osc-msg-bundle*))
-     (osc-snd-bundle ~client (osc-bundle ~timestamp @*osc-msg-bundle*))))
+     (osc-send-bundle ~client (osc-bundle ~timestamp @*osc-msg-bundle*))))
 
 ; OSC peers have listeners and handlers.  A listener is sent every message received, and
 ; handlers are dispatched by OSC node (a.k.a. path).
@@ -325,12 +351,14 @@
 (defn- osc-peer []
   (let [chan (DatagramChannel/open)
         rcv-buf (ByteBuffer/allocate 8192)
-        running? (atom true)
-        handlers (atom {})
-        listeners (atom {(listener-id) (msg-handler-dispatcher handlers)})
-        thread (generic-listen-thread chan rcv-buf running? listeners)]
+        snd-buf (ByteBuffer/allocate 8192)
+        running? (ref true)
+        handlers (ref {})
+        listeners (ref {(listener-id) (msg-handler-dispatcher handlers)})
+        thread (listen-thread chan rcv-buf running? listeners)]
     {:chan chan
      :rcv-buf rcv-buf
+     :snd-buf snd-buf
      :running? running?
      :thread thread
      :listeners listeners
@@ -340,13 +368,20 @@
  "Returns an OSC client ready to communicate with a host on a given port.  
  Use :protocol in the options map to \"tcp\" if you don't want \"udp\"."
   [host port]
-  (let [peer (osc-peer)
-        snd-buf (ByteBuffer/allocate 8192)]
+  (let [peer (osc-peer)]
     (assoc peer
            :host host
            :port port
-           :addr (InetSocketAddress. host port)
-           :snd-buf snd-buf)))
+           :addr (InetSocketAddress. host port))))
+
+(defn osc-target
+  "Update the target address of an OSC client so successive calls to osc-send
+  will go to a new destination."
+  [client host port]
+  (assoc client 
+         :host host
+         :port port
+         :addr (InetSocketAddress. host port)))
 
 (defn osc-server
   "Returns a live OSC server ready to register handler functions."
@@ -357,9 +392,9 @@
     peer))
 
 (defn osc-close
-  [server & hard]
-  (reset! (:running? server) false)
-  (Thread/sleep 200)
-  (.close (:chan server))
-  (if hard 
-    (.interrupt (:thread server))))
+  [peer & wait]
+  (log/debug "closing osc-peer...")
+  (dosync (ref-set (:running? peer) false))
+  (.close (:chan peer))
+  (if wait
+    (.join (:thread peer))))

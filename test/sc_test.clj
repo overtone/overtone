@@ -37,11 +37,11 @@
 
 (defn node-tree-test []
   (reset)
-  (group :head 0)
-  (group :tail 0)
-  (hit :sin :dur 1000 :target 2)
-  (is (= 1 (:n-synths (status))))
-  )
+  (let [g1 (group :head 0)
+        g2 (group :tail 0)]
+    (hit :sin :dur 2000 :target g2)
+    (Thread/sleep 100)
+    (is (= 1 (:n-synths (status))))))
 
 ; These are what the responses look like for a queryTree msg.  The first
 ; without and the second with control information.
@@ -54,5 +54,6 @@
     (load-synth sin)
     (groups-test)
     (node-tree-test)
+    (reset)
     (finally 
       (quit))))

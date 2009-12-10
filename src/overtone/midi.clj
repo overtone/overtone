@@ -20,47 +20,46 @@
 ;; * The builtin "real-time" sequencer doesn't support modifying the sequence on-the-fly, so
 ;; don't waste any more time messing with javax.sound.midi.Sequencer.
 
-;; TODO
-;; * figure out how to implement an arpeggiator that captures midi notes and then fills in
-;;   or uses the chord played to generate new stuff.
-
-(defn devices []
+(defn midi-devices []
   "Get all of the currently available midi devices."
   (for [info (MidiSystem/getMidiDeviceInfo)]
     (let [device (MidiSystem/getMidiDevice info)]
-      {:type         :device
-       :name         (.getName info)
-       :description  (.getDescription info)
-       :vendor       (.getVendor info)
-       :version      (.getVersion info)
-       :sources      (.getMaxTransmitters device)
-       :sinks        (.getMaxReceivers device)
-       :info         info
-       :device       device})))
+      (with-meta 
+        {:name         (.getName info)
+         :description  (.getDescription info)
+         :vendor       (.getVendor info)
+         :version      (.getVersion info)
+         :sources      (.getMaxTransmitters device)
+         :sinks        (.getMaxReceivers device)
+         :info         info
+         :device       device}
+        {:type :midi-device}))))
 
-(defn device? [obj]
-  (and (map? obj) (= :device (:type obj))))
+(defn midi-device? 
+  "Check whether obj is a midi device."
+  [obj]
+  (= :midi-device (type obj)))
 
-(defn ports 
-  "Get the available midi ports (hardware sound-card and virtual ports)."
+(defn midi-ports 
+  "Get the available midi I/O ports (hardware sound-card and virtual ports)."
   []
   (filter #(and (not (instance? Sequencer   (:device %1)))
                 (not (instance? Synthesizer (:device %1))))
-          (devices)))
+          (midi-devices)))
 
 ;; NOTE: devices use -1 to signify unlimited sources or sinks
 
-(defn sources []
+(defn midi-sources []
   "Get the midi input sources."
-  (filter #(not (zero? (:sources %1))) (ports)))
+  (filter #(not (zero? (:sources %1))) (midi-ports)))
 
-(defn sinks 
+(defn midi-sinks 
   "Get the midi output sinks."
   []
-  (filter #(not (zero? (:sinks %1))) (ports)))
+  (filter #(not (zero? (:sinks %1))) (midi-ports)))
 
-(defn find-device 
-  "Takes a set of devices returned from either (sources) or (sinks), and a
+(defn midi-find-device 
+  "Takes a set of devices returned from either (midi-sources) or (midi-sinks), and a
   search string.  Returns the first device where either the name or description
   mathes using the search string as a regexp."
   [devs dev-name]
@@ -70,14 +69,16 @@
                   (re-find pat (:description %1))))
            devs)))
 
-(defn- list-model [items]
+(defn- list-model 
+  "Create a swing list model based on a collection."
+  [items]
   (let [model (DefaultListModel.)]
     (doseq [item items]
       (.addElement model item))
     model))
 
-(defn port-chooser 
-  "Brings up a GUI list of the provided ports and then calls handler with the port
+(defn midi-port-chooser 
+  "Brings up a GUI list of the provided midi ports and then calls handler with the port
   that was double clicked."
   [title ports]
   (let [frame   (JFrame. title)
@@ -102,13 +103,17 @@
       (.setVisible true))
     future-val))
 
-(defn- with-receiver [sink-info]
+(defn- with-receiver 
+  "Add a midi receiver to the sink device info."
+  [sink-info]
   (let [dev (:device sink-info)]
     (if (not (.isOpen dev))
       (.open dev))
     (assoc sink-info :receiver (.getReceiver dev))))
 
-(defn- with-transmitter [source-info]
+(defn- with-transmitter 
+  "Add a midi transmitter to the source info."
+  [source-info]
   (let [dev (:device source-info)]
     (if (not (.isOpen dev))
       (.open dev))
@@ -117,12 +122,11 @@
 (defn midi-in 
   "Connect the sequencer to a midi input device."
   ([] (with-transmitter
-        (.get (port-chooser "Midi Input Selector" (sources)))))
-
+        (.get (midi-port-chooser "Midi Input Selector" (midi-sources)))))
   ([in] 
    (let [source (cond
-                  (string? in) (find-device (sources) in)
-                  (device? in) in)]
+                  (string? in) (midi-find-device (midi-sources) in)
+                  (midi-device? in) in)]
      (if source
        (with-transmitter source)
        (do 
@@ -132,11 +136,11 @@
 (defn midi-out 
   "Connect the sequencer to a midi output device."
   ([] (with-receiver 
-        (.get (port-chooser "Midi Output Selector" (sinks)))))
+        (.get (midi-port-chooser "Midi Output Selector" (midi-sinks)))))
 
   ([out] (let [sink (cond
-                      (string? out) (find-device (sinks) out)
-                      (device? out) out)]
+                      (string? out) (midi-find-device (midi-sinks) out)
+                      (midi-device? out) out)]
            (if sink
              (with-receiver sink)
              (do 
@@ -149,62 +153,60 @@
   [source sink]
   (.setReceiver (:transmitter source) (:receiver sink)))
 
-(defn midi-msg [msg]
-  (if (instance? ShortMessage msg)
-    (let [cmd (.getCommand msg)
-          data {:note (.getData1 msg)
-                :velocity (.getData2 msg)}]
-      (cond 
-        (= 0x80 cmd) (assoc data :cmd :off)
-        (= 0x90 cmd) (assoc data :cmd :on)
-        true nil))))
+(defn midi-msg 
+  "Make a clojure map out of a midi object."
+  [obj]
+  {:chan (.getChannel obj)
+   :cmd  (.getCommand obj)
+   :note (.getData1 obj)
+   :vel  (.getData2 obj)
+   :data1 (.getData1 obj)
+   :data2 (.getData2 obj)
+   })
 
-;; Implementing a midi receiver object so we can take in notes from another
-;; midi source, modify them on the fly, and then output them.  Have to write
-;; write a more complete midi parser though...
-(defn midi-handler [fun]
-  (proxy [Receiver] []
-    (close [] nil)
-    (send [msg timestamp] (fun msg timestamp))))
+(defn midi-handle-events 
+  "Specify a single handler that will receive all midi events from the input device."
+  [input fun]
+  (let [receiver (proxy [Receiver] []
+                   (close [] nil)
+                   (send [msg timestamp] (fun (midi-msg msg) timestamp)))]
+    (.setReceiver (:transmitter input) receiver)))
 
-          ;(if-let [parsed (midi-msg msg)]
-          ;  (fun parsed)))))
-
-;; Unfortunately, it seems that either Pianoteq or the virmidi modules
+;; NOTE: Unfortunately, it seems that either Pianoteq or the virmidi modules
 ;; don't actually make use of the timestamp...
-(defn midi-note-on [sink note-num vel & [timestamp]] 
+(defn midi-note-on 
+  "Send a midi on msg to the sink."
+  [sink note-num vel & [timestamp]] 
   (let [on-msg  (ShortMessage.)]
     (.setMessage on-msg ShortMessage/NOTE_ON 0 note-num vel)
     (.send (:receiver sink) on-msg -1)))
 
-;(defn midi-note-on [sink note-num vel & [timestamp]] 
-;  (let [timestamp (or timestamp 0)
-;        on-msg  (ShortMessage.)
-;        micro-delay (* 1000 (- timestamp (now)))
-;        t (+ micro-delay (.getMicrosecondPosition (:device sink)))]
-;    (.setMessage on-msg ShortMessage/NOTE_ON 0 note-num vel)
-;    (if (neg? micro-delay)
-;      (.send (:receiver sink) on-msg -1)
-;      (.send (:receiver sink) on-msg t))))
-
-(defn midi-note-off [sink note-num vel]
+(defn midi-note-off 
+  "Send a midi off msg to the sink."
+  [sink note-num vel]
   (let [off-msg (ShortMessage.)]
     (.setMessage off-msg ShortMessage/NOTE_OFF 0 note-num 0)
     (.send (:receiver sink) off-msg -1)))
 
-(defn byte-seq-to-array [bseq]
+(defn- byte-seq-to-array 
+  "Turn a seq of bytes into a native byte-array."
+  [bseq]
   (let [ary (byte-array (count bseq))]
     (doseq [i (range (count bseq))]
       (aset-byte ary i (nth bseq i)))
     ary))
 
-(defn midi-sysex [sink byte-seq]
+(defn midi-sysex
+  "Send a midi System Exclusive msg made up of the bytes in byte-seq to the sink."
+  [sink byte-seq]
   (let [sys-msg (SysexMessage.)
         bytes (byte-seq-to-array byte-seq)]
     (.setMessage sys-msg bytes (count bytes))
     (.send (:receiver sink) sys-msg -1)))
 
-(defn midi-note [sink note-num vel dur]
+(defn midi-note 
+  "Send a midi on/off msg pair to the sink."
+  [sink note-num vel dur]
   (midi-note-on sink note-num vel)
   (schedule #(midi-note-off sink note-num 0) dur))
 

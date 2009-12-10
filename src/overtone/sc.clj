@@ -14,17 +14,17 @@
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
-(def SERVER-HOST "127.0.0.1")
-(def SERVER-PORT nil) ; nil means a random port
+(defonce SERVER-HOST "127.0.0.1")
+(defonce SERVER-PORT nil) ; nil means a random port
 
 ; Max number of milliseconds to wait for a reply from the server
-(def REPLY-TIMEOUT 300)
+(defonce REPLY-TIMEOUT 300)
 
-(def START-GROUP-ID 1)
-(def START-BUFFER-ID 1)
-(def START-NODE-ID 1000)
+(defonce START-GROUP-ID 1)
+(defonce START-BUFFER-ID 1)
+(defonce START-NODE-ID 1000)
 
-(def DEFAULT-GROUP 0)
+(defonce DEFAULT-GROUP 0)
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
@@ -62,7 +62,7 @@
   [path & args]
   (if (nil? @server*)
     (throw (Exception. "Not connected to a SuperCollider server.")))
-      (osc-snd-msg @server*
+      (osc-send-msg @server*
                    (apply osc-msg path (osc-type-tag args) args)))
 
 (defmacro at
@@ -78,8 +78,7 @@
   ([] (connect SERVER-HOST SERVER-PORT))
   ([host port]
    (log/info "(connect " host ":" port)
-   (dosync (ref-set server* (osc-client host port)))
-   (comment osc-listen @server* synth-listener)))
+   (dosync (ref-set server* (osc-client host port)))))
 
 (defonce running?* (atom false))
 (def *server-out* *out*)
@@ -103,7 +102,7 @@
 ;	double - actual sample rate
 (defn status []
   (snd "/status")
-  (let [sts (osc-recv @server* "status.reply" REPLY-TIMEOUT)]
+  (let [sts (recv "status.reply" REPLY-TIMEOUT)]
     (log/debug "got status: " (:args sts))
     (if-let [[_ ugens synths groups loaded avg peak nominal actual] (:args sts)]
       {:n-ugens ugens
@@ -119,7 +118,7 @@
 (defn wait-sync [& [timeout]]
   (let [sync-id (rand-int 999999)
         _ (snd "/sync" sync-id)
-        reply (osc-recv @server* "/synced" (if timeout timeout REPLY-TIMEOUT))
+        reply (recv "/synced" (if timeout timeout REPLY-TIMEOUT))
         reply-id (first (:args reply))]
     (= sync-id reply-id)))
 
@@ -186,8 +185,10 @@
   "Quit the SuperCollider synth process."
   []
   (log/info "quiting supercollider")
-  (if (connected?)
-    (snd "/quit"))
+  (when (connected?)
+    (snd "/quit")
+    (osc-close @server* true))
+
   (reset! running?* false)
   (dosync (ref-set server* nil)))
 
@@ -345,7 +346,7 @@
   [id & [ctls?]]
   (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
     (snd "/g_queryTree" id ctls?)
-    (let [tree (:args (osc-recv @server* "/g_queryTree.reply" REPLY-TIMEOUT))]
+    (let [tree (:args (recv "/g_queryTree.reply" REPLY-TIMEOUT))]
       (parse-node-tree tree))))
 
 (defn prepend-node
@@ -472,7 +473,6 @@
                                 [(now) (first args) (next args)])
          id (next-node-id)
          synth (cond
-                 (synthdef? synth) (as-str (:name synth))
                  (sample? synth) synth
                  (keyword? synth) (name synth)
                  (string? synth) synth

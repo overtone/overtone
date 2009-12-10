@@ -10,6 +10,9 @@
 
 (def STR "test-string")
 
+(overtone.log/level :debug)
+(overtone.log/console)
+
 (deftest osc-msg-test []
   (let [buf (ByteBuffer/allocate 128)
         t-args [(make-array Byte/TYPE 20) 
@@ -28,6 +31,15 @@
     (is (= (last (first t-args)) (last (first args))))
     (is (= (next t-args) (next args)))))
 
+(deftest thread-lifetime-test []
+  (let [server (osc-server PORT)
+        client (osc-client HOST PORT)]
+    (osc-close client true)
+    (osc-close server true)
+    (Thread/sleep 100)
+    (is (= false (.isAlive (:thread client))))
+    (is (= false (.isAlive (:thread server))))))
+
 (defn check-msg [msg path & args]
   (is (not (nil? msg)))
   (let [m-args (:args msg)]
@@ -41,18 +53,18 @@
         flag (atom false)]
     (try
       (osc-handle server "/test" (fn [msg] (reset! flag true)))
-      (osc-snd client "/test" "i" 42)
-      (Thread/sleep 100)
+      (osc-send client "/test" "i" 42)
+      (Thread/sleep 200)
       (is (= true @flag))
       (let [t (Thread.
                 (fn []
-                  (Thread/sleep 10)
-                  (overtone.log/debug "sending foo now!!!!!!!!!!!!!!")
-                  (osc-snd client "/foo" "i" 42)))]
+                  (Thread/sleep 200)
+                  (osc-send client "/foo" "i" 42)))]
         (.run t)
-        (check-msg (osc-recv server "/foo" 400) "/foo" 42)
+        (Thread/sleep 200)
+        (check-msg (osc-recv server "/foo" 600) "/foo" 42)
         (is (nil? (osc-recv server "/foo" 0)))
-        (.join t))
+        (.join t 200))
       (finally 
         (osc-close server true)
         (osc-close client true)))))
