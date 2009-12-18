@@ -6,9 +6,9 @@
 (def TEST-NAMESPACES 
   [
    'osc-test
-   ;'bytes-test
-   ;'sc-test
-   ;'synthdef-test
+   'bytes-test
+   'sc-test
+   'synthdef-test
    ])
 
 (defn run

@@ -36,8 +36,8 @@
         b (bytes-and-back synth-spec a)]
     (is (= a b))))
 
-(defsynth mini-sin {:freq 440}
-  (out.ar 0 (sin-osc.ar :freq 0)))
+(def mini-sin (synth mini-sin {:freq 440}
+  (out.ar 0 (sin-osc.ar :freq 0))))
 
 (deftest native-synth-test
   (let [bytes (synthdef-bytes mini-sin)

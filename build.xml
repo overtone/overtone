@@ -5,7 +5,7 @@
   <property name="test.dir"    value="test"/>
   <property name="session.dir" value="session"/>
 
-  <property name="deps.dir"    value="deps"/>
+  <property name="deps.dir"    value="lib"/>
   <property name="deps.file"   value="deps.zip"/>
   <property name="deps.url"    value="http://cloud.github.com/downloads/rosejn/overtone/${deps.file}"/>
 

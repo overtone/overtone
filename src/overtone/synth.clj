@@ -6,7 +6,7 @@
   file."
   (:require [overtone.log :as log])
   (:use
-     (overtone util ops synthdef)
+     (overtone util ops sc synthdef)
      (clojure walk inspector)
      clojure.contrib.seq-utils))
 
@@ -340,7 +340,8 @@
       (cond 
         (.endsWith word ".ar") ['ugen (to-ugen-name word) :audio 0]
         (.endsWith word ".kr") ['ugen (to-ugen-name word) :control 0]
-        (.endsWith word ".dr") ['ugen (to-ugen-name word) :scalar 0]
+        (.endsWith word ".ir") ['ugen (to-ugen-name word) :scalar 0]
+        (.endsWith word ".dr") ['ugen (to-ugen-name word) :demand 0]
         :default [(symbol word)]) 
       (rest l))))
 
@@ -469,9 +470,7 @@
 ;                  body
 ;                  `(out.ar 0 (pan2.ar ~body 0)))
 
-(def synthdefs* (ref {}))
-
-(defmacro defsynth
+(defmacro synth
   "Transforms a synth definition (ugen-tree) into a form that's ready to save 
   to disk or send to the server.
   
@@ -494,20 +493,43 @@
 
   "
   [& args]
-  (let [[sname args] (if (string? (first args))
-                       [(str (as-str (first args))) (next args)]
-                       [(str "s-" (next-id :anonymous)) args])
+  (let [[sname args] (cond 
+                       (string? (first args)) [(first args) (next args)]
+                       (symbol? (first args)) [(str (first args)) (next args)]
+                       (keyword? (first args)) [(name (first args)) (next args)]
+                       :default [(str "anon-" (next-id :anonymous-synth)) args])
         [params body] (if (map? (first args))
                         [(first args) (second args)]
                         [{} (first args)])
         kname (keyword sname)
         ugen-tree (to-ugen-tree body)]
-    `(let [s# (with-meta (build-synthdef ~sname ~params ~ugen-tree)
+    `(with-meta (build-synthdef ~sname ~params ~ugen-tree)
                          {:type :synthdef
-                          :src-code '~body})]
-       (dosync (alter synthdefs* assoc ~kname s#))
-       (overtone.sc/load-synth s#)
-       ~kname)))
+                          :src-code '~body})))
+
+(defn with-stereo-out 
+  "Appends pan2 and out ugens to the synthdef to make it output in stereo."
+  [sdef]
+  (if (= "Out" (:name (last (:ugens sdef))))
+    sdef
+    (let [constants (concat (:constants sdef) [1.0 0])
+          zero-idx (dec (count constants))
+          one-idx (- (count constants) 2)
+          ugens (:ugens sdef)
+          last-idx (dec (count ugens))
+          pan {:inputs [{:src last-idx :index 0} {:src -1 :index zero-idx} {:src -1 :index one-idx}], :outputs [{:rate 2} {:rate 2}], :id (next-id :ugen), :name "Pan2", :rate 2, :special 0}
+          pan-idx (count (:ugens sdef))
+          out {:inputs [{:src -1, :index zero-idx} {:src pan-idx, :index 0} {:src pan-idx, :index 1}], :outputs [], :id (next-id :ugen), :name "Out", :rate 2, :special 0}]
+      (assoc sdef 
+             :constants constants
+             :ugens (concat ugens [pan out])))))
+
+(defmacro play
+  "Define an anonymous synth, load it and play it immediately."
+  [body]
+  `(let [sdef# (with-stereo-out (synth ~body))]
+     (load-synth sdef#)
+     (hit (:name sdef#))))
 
 (defmacro syn
   "Useful for making synth definition helpers..."
@@ -515,19 +537,11 @@
   (let [b (to-ugen-tree body)]
     `(do ~b)))
 
-(comment defmacro defsynth 
-  "Define a named synthesizer, with optional synth controls.
 
-  defsynth is short for:
-      (def synth-name (synth synth-name params root))
-
-  These are the same:
-      (defsynth :asdf (out.ar 0 (pan2.ar (saw.ar 400) 0)))
-      (defsynth :asdf {} (out.ar 0 (pan2.ar (saw.ar 400) 0)))
-  "
-  [synth-name & args]
-  (let [sname (str (as-str synth-name))]
-    `(def ~(symbol sname) (synth ~sname ~@args))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Synthdef de-compilation
+;;   The eventual goal is to be able to take any SuperCollider scsyndef
+;;   file, and produce equivalent clojure code that can be re-edited.
 
 (defn- decomp-params [s]
   (let [pvals (:params s)]

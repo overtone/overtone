@@ -1,6 +1,6 @@
 (ns overtone.studio
 ;  (:import (de.sciss.jcollider Bus Synth SynthDef Control Buffer))
-  (:use (overtone voice sc synth midi rhythm pitch))
+  (:use (overtone sc synth midi rhythm pitch))
   (:require overtone.fx))
 
 ; The goal is to develop a standard "studio configuration" with
@@ -14,14 +14,30 @@
 ; Busses
 ; 0 & 1 => default stereo output (to jack)
 ; 2 & 3 => default stereo input
-(def FX-BUS  16) ; Makes space for 8 channels of audio in and out
 
-(def *voices (ref []))
+; Start our busses at 1 to makes space for up to 8 on-board I/O channels
+(def BUS-MASTER 16) ; 2 channels wide for stereo
+
+; Two mono busses for doing fx sends
+(def BUS-A 18)
+(def BUS-B 19)
+
+(synth :master
+  (out.ar 0 (in.ar BUS-MASTER)))
+
+(def *tracks (ref []))
 ;(def *fx-bus (ref (Bus/audio (server) 2)))
-(def *fx     (ref []))
 
 (defn session-reset []
   (reset)
   (dosync 
-    (ref-set *voices [])
-    (ref-set *fx [])))
+    (ref-set *tracks [])))
+
+
+; A track holds an instrument with a set of effects and patches it into the mixer
+; * track group contains: 
+;     synth group => effect group => fader synth
+
+(defn track [track-name & [n-channels]]
+  {})
+

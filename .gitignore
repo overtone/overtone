@@ -1,10 +1,11 @@
 instruments
 *.swp
 *.swo
-deps
+lib
 log*
 *.lck
 *.class
 *.scsyndef
 Manifest.txt
 pom.xml
+.overtone-log

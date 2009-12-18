@@ -1,11 +1,115 @@
 (ns overtone.instrument.synth
-  (:use (overtone synth envelope pitch)))
+  (:use (overtone sc time synth envelope pitch)))
 
-(defsynth buzz {:pitch 40 :cutoff 300}
+(def buzz (synth buzz {:pitch 40 :cutoff 300 :dur 200}
   (let [a (lpf.ar (saw.ar (midicps :pitch)) (+ (lf-noise-1.kr 10) :cutoff))
-        b (sin-osc.ar (midicps (- :pitch 12)))]
-  (out.ar 0 (pan2.ar (+ a b)))))
+        b (sin-osc.ar (midicps (- :pitch 12)))
+        env (env-gen.ar (perc 0.01 (/ :dur 1000)) :done-free)] 
+  (out.ar 0 (pan2.ar (* env (+ a b)))))))
 
+(defn buzzer [t tick dur notes]
+  (let [note (first notes)]
+    (if (> (rand) 0.9)
+      (do 
+        (hit t :buzz :pitch note :dur dur)
+        (hit (+ t tick) :buzz :pitch note :dur dur)
+        (callback (+ t tick (- tick 100)) #'buzzer (+ t tick tick) tick dur (next notes)))
+      (do
+        (hit t :buzz :pitch note :dur dur)
+        (callback (+ t (- tick 100)) #'buzzer (+ t tick) tick dur (next notes))))))
+
+;(buzzer (+ (now) 200) 100 50 (cycle [68 80 48 80 92 75]))
+
+;; Helpers
+
+(defmacro mix [& args]
+  (syn (reduce (fn [mem arg] (list '+ mem arg))
+          args)))
+
+;; Toy synths... clean up eventually
+
+(def sin (synth sin {:out 0 :amp 0.1 :pitch 40 :dur 300}
+  (let [snd (sin-osc.ar (midicps :pitch))
+        env (env-gen.kr (linen 0.001 (/ :dur 1000.0) 0.002) :done-free)]
+    (out.ar :out (pan2.ar (* (* snd env) :amp) 0)))))
+
+(defn quick [signal]
+  (syn
+    (out.ar 0 (pan2.ar signal) 0)))
+
+(synth mouse-saw 
+  (out.ar 0 (pan2.ar (sin-osc.ar (mouse-y.kr 10 1200 1 0) 0) 0)))
+
+(comment
+  (load-synth mouse-saw)
+  (hit mouse-saw)
+  )
+
+(synth line-test 
+  (quick (mul-add.ar (sin-osc.ar (line.kr 100 100 0.5) 0 ) 
+                     (line.kr 0.5 0 1) 0)))
+
+(synth noise-filter {:cutoff 500}
+  (quick (lpf.ar (* 0.4 (pink-noise.ar)) :cutoff)))
+
+
+(comment synth harmonic-swimming (quick 
+  (let [freq     50
+;        partials 20
+        partials 1
+        z-init   0
+        offset   (line.kr 0 -0.02 60)]
+    (loop [z z-init
+           i 0]
+      (if (= partials i) z
+        (let [f (max.kr 0 
+                    (mul-add.kr 
+                        (lf-noise-1.kr 
+                            (+ 2 (* 8 (rand))))
+                            ; (+ 2 (* 8 (rand)))])
+                        0.02 offset))
+              newz (mul-add.ar (f-sin-osc.ar (* freq (+ i 1)) 0) f z)]
+          (recur newz (inc i))))))))
+
+(defn basic-sound []
+  (syn
+    (mul-add.ar 
+      (decay2.ar (mul-add.ar
+                 (impulse.ar 8 0) 
+                 (mul-add.kr (lf-saw.kr 0.3 0) -0.3 0.3) 
+                 0)
+               0.001) 
+      0.3 (+ (pulse.ar 80 0.3) (pulse.ar 81 0.3)))))
+
+(synth basic-synth
+  (quick (basic-sound)))
+
+(synth compressed-synth {:attack 0.01 
+                            :release 0.01}
+  (let [z (basic-sound)]
+    (quick 
+      (compander.ar z 0 
+                    (mouse-x.kr 0.1 1) ; mouse controls gain
+                    1 0.5 ; slope below and above the knee
+                    :attack  ; clamp time (attack)
+                    :release)))) ; relax time (release)
+
+;(defn wand [n]
+;  (syn 
+;  (mix 
+;    (sin-osc.ar (mhz (- n octave)))
+;    (lpf.ar (saw.ar [(mhz n) (mhz (+ n fifth))]) 
+;          (mul-add.kr
+;              (sin-osc.kr 4)
+;              30
+;              300)))))
+;
+;(synth triangle-test 
+;  (out.ar 0 
+;          (mul-add.ar 
+;            (wand 60)
+;            (env-gen.kr 1 1 0 1 2 (triangle 3 0.8))
+;            0)))
 ; TODO: Port the interesting ones to Overtone synthdefs
 
 ; SynthDef("vintage-bass", {|out=0, note=40, vel=0.5, gate=1|

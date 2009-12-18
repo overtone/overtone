@@ -4,12 +4,13 @@
      clojure.contrib.seq-utils
      overtone)
   (:require 
+      overtone.instrument.synth
      [overtone.log :as log]))
 
 (def ditty-notes [50 50 57 50 48 62 62 50])
 (def ditty-durs  [250 250 500 125 125 250 250 500])
 
-(defn play [inst notes durs]
+(defn play-seqs [inst notes durs]
   (loop [notes notes
          durs durs
          t (now)]
@@ -22,18 +23,22 @@
     (boot)
     (is (not (nil? @server*)))
     (is (= 1 (:n-groups (status))))
-    (load-synth sin)
+    (load-synth overtone.instrument.synth/sin)
     (Thread/sleep 1000)
-    (play "sin" ditty-notes ditty-durs)
+    (play-seqs "sin" ditty-notes ditty-durs)
     (Thread/sleep 3000)
     (finally 
       (quit))))
 
 (defn groups-test []
-  (group :head DEFAULT-GROUP)
-  (group :head DEFAULT-GROUP)
-  (group :head DEFAULT-GROUP)
-  (is (= 4 (:n-groups (status)))))
+  (let [a (group :head DEFAULT-GROUP)
+        b (group :head DEFAULT-GROUP)
+        c (group :head DEFAULT-GROUP)]
+    (is (= 4 (:n-groups (status))))
+    (group-free a b c)
+    (is (= 1 (:n-groups (status))))
+    ; We should get the old ID again with the bitset allocator
+    (is (= a (group :head DEFAULT-GROUP)))))
 
 (defn node-tree-test []
   (reset)
@@ -51,9 +56,13 @@
 (deftest server-messaging-test []
   (try
     (boot)
-    (load-synth sin)
+    (load-synth overtone.instrument.synth/sin)
     (groups-test)
     (node-tree-test)
     (reset)
     (finally 
       (quit))))
+
+(defn sc-tests []
+  (binding [*test-out* *out*]
+    (run-tests 'sc-test)))

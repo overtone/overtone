@@ -3,12 +3,13 @@
      (java.net InetSocketAddress)
      (java.util.regex Pattern)
      (java.util.concurrent TimeUnit TimeoutException)
-     (java.io BufferedInputStream))
+     (java.io BufferedInputStream)
+     (java.util BitSet))
   (:require [overtone.log :as log])
   (:use
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
-     (overtone config util voice osc time synthdef)))
+     (overtone config util osc time synthdef)))
 
 ; This is at heart an OSC client library for the SuperCollider scsynth engine.
 
@@ -20,36 +21,72 @@
 ; Max number of milliseconds to wait for a reply from the server
 (defonce REPLY-TIMEOUT 300)
 
-(defonce START-GROUP-ID 1)
-(defonce START-BUFFER-ID 1)
-(defonce START-NODE-ID 1000)
-
 (defonce DEFAULT-GROUP 0)
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
 
-(defonce *counters (ref {}))
-(defonce *counter-defaults (ref {}))
+;TODO: Figure out the real limits...  These are total guesses, but
+; it should be plenty.
+(def MAX-GROUPS 256)
 
-(defmacro defcounter [counter-name start-id]
-  (let [next-fn (symbol (str "next-" (name counter-name) "-id"))]
-    `(do
-       (dosync
-         (alter *counters assoc ~counter-name (ref ~start-id))
-         (alter *counter-defaults assoc ~counter-name ~start-id))
-       (defn ~next-fn []
-         (dec
-           (dosync (alter (~counter-name @*counters) inc)))))))
+(def GROUP-BITS (BitSet. MAX-GROUPS))
+(.set GROUP-BITS 0) ; Group 0 is the persistent root group
 
-(defn reset-id-counters []
-  (doseq [[cname counter] @*counters]
-    (dosync
-    (ref-set counter (cname @*counter-defaults)))))
+; Server limits
+(defonce MAX-NODES 1024)
+(defonce MAX-BUFFERS 1024)
+(defonce MAX-SDEFS 1024)
+(defonce MAX-AUDIO-BUS 128)
+(defonce MAX-CONTROL-BUS 4096)
 
-(defcounter :group START-GROUP-ID)
-(defcounter :node START-NODE-ID)
-(defcounter :buffer START-BUFFER-ID)
+(defonce allocator-bits 
+  {:node (BitSet. MAX-NODES)
+   :audio-buffer (BitSet. MAX-BUFFERS)
+   :audio-bus (BitSet. MAX-NODES)
+   :control-bus (BitSet. MAX-NODES)})
+
+(defonce allocator-limits
+  {:node MAX-NODES
+   :sdefs MAX-SDEFS
+   :audio-bus MAX-AUDIO-BUS
+   :control-bus MAX-CONTROL-BUS})
+
+(defn alloc-id 
+  "Allocate a new ID for the type corresponding to key."
+  [k]
+  (let [bits (get allocator-bits k)
+        limit (get allocator-limits k)]
+    (locking bits
+      (let [id (.nextClearBit bits 0)]
+        (if (= limit id)
+          (throw (Exception. (str "No more " (name k) " ids available!")))
+          (do
+            (.set bits id)
+            id))))))
+
+(alloc-id :node) ; ID zero is the root group
+
+(defn free-id 
+  "Free the id of type key."
+  [k id]
+  (let [bits (get allocator-bits k)
+        limit (get allocator-limits k)]
+  (locking bits
+    (.clear bits id))))
+
+(defn all-ids 
+  "Get all of the currently allocated ids for key."
+  [k]
+  (let [bits (get allocator-bits k)
+        limit (get allocator-limits k)]
+    (locking bits
+      (loop [ids []
+             idx 0]
+        (let [id (.nextSetBit bits idx)]
+          (if (and (> id -1) (< idx limit))
+            (recur (conj ids id) (inc id))
+            ids))))))
 
 (defn connected? []
   (not (nil? @server*)))
@@ -77,7 +114,7 @@
 (defn connect
   ([] (connect SERVER-HOST SERVER-PORT))
   ([host port]
-   (log/info "(connect " host ":" port)
+   (log/debug "Connecting to SuperCollider server: " host ":" port)
    (dosync (ref-set server* (osc-client host port)))))
 
 (defonce running?* (atom false))
@@ -128,7 +165,7 @@
           _ (.read stream read-buf 0 n)
           msg (String. read-buf 0 n)]
       (dosync (alter server-log* conj msg))
-      (log/info (String. read-buf 0 n)))))
+      (log/debug (String. read-buf 0 n)))))
 ;      (.write *server-out* (String. read-buf 0 n)))))
 
 (defn- boot-thread [cmd]
@@ -146,8 +183,9 @@
 (defn connect-jack-ports
   "Maybe this isn't necessary, since we can use the SC_JACK_DEFAULT_OUTPUTS
   environment variable..."
-  [n-channels]
-  (let [port-list (sh "jack_lsp")
+  [& [n-channels]]
+  (let [n-channels (or n-channels 2)
+        port-list (sh "jack_lsp")
         sc-outputs (re-find #"SuperCollider.*:out_" port-list)]
   (doseq [i (range n-channels)]
     (sh "jack_connect"
@@ -165,6 +203,23 @@
 (def SC-PATH (SC-PATHS (config :os)))
 (def SC-ARG (SC-ARGS (config :os)))
 
+(def boot-handlers* (ref {}))
+
+(defn add-boot-handler [fun & [id]]
+  (let [id (or id (next-id :boot-handler))]
+    (dosync (alter boot-handlers* assoc id fun))
+    id))
+
+(defn remove-boot-handler [id]
+  (dosync (alter boot-handlers* dissoc id)))
+
+(defn run-boot-handlers []
+  (doseq [[id handler] @boot-handlers*]
+    (handler)))
+
+(if (= :linux (config :os))
+  (add-boot-handler connect-jack-ports))
+
 (defn boot
   ([] (boot SERVER-HOST SERVER-PORT))
   ([host port]
@@ -173,18 +228,18 @@
           cmd (into-array String (concat [SC-PATH "-u" (str port)] SC-ARG))
           sc-thread (Thread. #(boot-thread cmd))]
       (.setDaemon sc-thread true)
-      (log/info "Booting SuperCollider server (scsynth)...")
+      (log/debug "Booting SuperCollider server (scsynth)...")
       (.start sc-thread)
       (dosync (ref-set server-thread* sc-thread))
       (Thread/sleep 1000)
-      (log/info "Connecting to server...")
       (connect host port)
-      (log/info "status check: " (status))))))
+      (Thread/sleep 1000)
+      (run-boot-handlers)))))
 
 (defn quit
   "Quit the SuperCollider synth process."
   []
-  (log/info "quiting supercollider")
+  (log/debug "quiting supercollider")
   (when (connected?)
     (snd "/quit")
     (osc-close @server* true))
@@ -206,8 +261,9 @@
    :replace-node 4})
 
 ;; Sending a synth-id of -1 lets the server choose an ID
-(defn node [synth-name id & args]
-  (let [argmap (apply hash-map args)
+(defn node [synth-name & args]
+  (let [id (alloc-id :node)
+        argmap (apply hash-map args)
         position ((get argmap :position :tail) POSITION)
         target (get argmap :target 0)
         args (flatten (seq (-> argmap (dissoc :position) (dissoc :target))))
@@ -217,8 +273,9 @@
 
 (defn node-free
   "Instantly remove a node from the graph."
-  [node-id & node-ids]
-  (apply snd "/n_free" node-id node-ids))
+  [& node-ids]
+  (doseq [id node-ids] (free-id :node id))
+  (apply snd "/n_free" node-ids))
 
 (defn node-run
   "Start a stopped node."
@@ -257,19 +314,15 @@
 (defn group
   "Create a new group as a child of the target group."
   [position target-id]
-  (let [id (next-group-id)]
+  (let [id (alloc-id :node)]
     (snd "/g_new" id (get POSITION position) target-id)
     id))
 
 (defn group-free
-  "Free the specified groups."
-  [group-id & group-ids]
-  (apply node-free group-id group-ids))
+  "Free the specified group."
+  [& group-ids]
+  (apply node-free group-ids))
 
-(defn node-free
-  "Instantly remove a node from the graph."
-  [node-id & node-ids]
-  (apply snd "/n_free" node-id node-ids))
 
 (defn post-tree
   "Posts a representation of this group's node subtree, i.e. all the groups and
@@ -374,15 +427,23 @@
   []
   (recv "/synced"))
 
+; TODO: Look into multi-channel buffers.  Probably requires adding multi-id allocation
+; support to the bit allocator too...
 ; size is in samples
 (defn buffer
   "Allocate a new buffer for storing audio data."
   [size]
-  (let [id (next-buffer-id)]
+  (let [id (alloc-id :audio-buffer)]
     (snd "/b_alloc" id size)
     {:type :buffer
      :id id
      :size size}))
+
+(defn buffer-free 
+  "Free an audio buffer and the memory it was consuming."
+  [b]
+  (free-id :audio-buffer)
+  (snd "/b_free" {:id b}))
 
 (defn buffer? [buf]
   (and (map? buf) (= (:type buf) :buffer)))
@@ -403,15 +464,15 @@
 (defn load-sample
   "Load a wav file into memory so it can be played as a sample."
   [path]
-  (let [id (next-buffer-id)]
+  (let [id (alloc-id :audio-buffer)]
     (snd "/b_allocRead" id path)
-    {:type :sample
-     :buf {:type :buffer
-           :id id}
-     :path path}))
+    (with-meta {:buf {:type :buffer
+                      :id id}
+                :path path}
+               {:type :sample})))
 
 (defn sample? [s]
-  (and (map? s) (= :sample (:type s))))
+  (= :sample (type s)))
 
 (defn load-synth
   "Load a Clojure synth definition onto the audio server."
@@ -424,14 +485,16 @@
   [path]
   (snd "/d_recv" (synthdef-bytes (synthdef-read path))))
 
+; TODO: need to clear all the buffers and busses
 (defn reset
   "Clear all synthesizers, groups and pending messages from the audio server."
   []
   (try
     (group-clear 0)
     (catch Exception e nil))
-  (clear-msg-queue)
-  (reset-id-counters))
+  (apply node-free (all-ids :node))
+  (alloc-id :node) ; ID zero is the root group
+  (clear-msg-queue))
 
 ;  Maybe it's better to keep the server log around???
 ;  (dosync (ref-set server-log* [])))
@@ -452,6 +515,20 @@
   (quit)
   (boot))
 
+(defmulti hit-at (fn [& args] (type (second args))))
+
+(defmethod hit-at String [time-ms synth & args]
+  (at time-ms (apply node synth args)))
+
+(defmethod hit-at clojure.lang.Keyword [time-ms synth & args]
+  (at time-ms (apply node (name synth) args)))
+
+(defmethod hit-at :sample [time-ms synth & args]
+  (apply hit-at time-ms "granular" :buf (get-in synth [:buf :id]) args))
+
+(defmethod hit-at :default [& args]
+  (throw (Exception. (str "Hit doesn't know how to play the given synth type: " args))))
+
 ; Turn hit into a multimethod
 ; Convert samples to be a map object instead of an ID
 (defn hit
@@ -466,23 +543,11 @@
       (doseq [i (range 10)] (hit (+ (now) (* i 250)) :sin :pitch 60 :dur 0.1))
 
   "
-  ([] (hit (now) "sin" :pitch (+ 30 (rand-int 40))))
+  ([] (hit-at (now) "sin" :pitch (+ 30 (rand-int 40))))
   ([& args]
-   (let [[time-ms synth args] (if (= Long (type (first args)))
-                                [(first args) (second args) (nnext args)]
-                                [(now) (first args) (next args)])
-         id (next-node-id)
-         synth (cond
-                 (sample? synth) synth
-                 (keyword? synth) (name synth)
-                 (string? synth) synth
-                 :default (throw
-                            (Exception. "Hit doesn't know how to play the given synth: " synth)))
-         args (-> args (stringify) (floatify))]
-     (if (sample? synth)
-       (apply hit time-ms "granular" :buf (get-in synth [:buf :id]) args)
-       (at time-ms (apply node synth id args)))
-     id)))
+   (apply hit-at (if (isa? (type (first args)) Number)
+                   args
+                   (cons (now) args)))))
 
 (defmacro check
   "Try out an anonymous synth definition.  Useful for experimentation.  If the

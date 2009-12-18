@@ -233,9 +233,9 @@
           (osc-bundle? pkt) (handle-bundle listeners src pkt) 
           (osc-msg? pkt)    (handle-msg listeners src pkt)))
       (catch AsynchronousCloseException e 
-        (log/debug "AsynchronousCloseException: " @running?) )
+        (log/debug "AsynchronousCloseException - running: " @running?) )
       (catch ClosedChannelException e 
-        (log/debug "ClosedChannelException: " @running?)
+        (log/debug "ClosedChannelException: - running: " @running?)
         (log/debug (.printStackTrace e)))
       (catch Exception e
         (log/error "Exception in listen-loop: " e " \nstacktrace: " 
@@ -247,7 +247,7 @@
 
 (defn- listen-thread [chan buf running? listeners]
   (let [thread (Thread. #(listen-loop chan buf running? listeners))]
-    (.setDaemon thread true)
+    ;(.setDaemon thread false)
     (.start thread)
     thread))
 
@@ -268,7 +268,7 @@
       (binding [*osc-handlers* handlers
                 *current-handler* handler
                 *current-path* (:path msg)]
-        (log/debug "dispatching msg: " msg)
+        (log/debug "dispatching msg: " msg " to: " handler)
         (handler msg)))))
 
 (defn osc-remove-handler []
@@ -276,9 +276,21 @@
                  (difference (get @*osc-handlers* *current-path*) #{*current-handler*}))))
 
 (defn osc-handle
-  "Receive on a connection, being either a client or a server object."
-  [con path handler & [one-shot]]
-  (let [handlers (:handlers con)
+  "Attach a handler function to receive on the specified path.  (Works for both clients and servers.)
+
+  (let [server (osc-server PORT)
+        client (osc-client HOST PORT)
+        flag (atom false)]
+    (try
+      (osc-handle server \"/test\" (fn [msg] (reset! flag true)))
+      (osc-send client \"/test\" \"i\" 42)
+      (Thread/sleep 200)
+      (= true @flag)))
+
+"
+                                  
+  [peer path handler & [one-shot]]
+  (let [handlers (:handlers peer)
         phandlers (get @handlers path #{})
         handler (if one-shot
                   (fn [msg] 
@@ -294,11 +306,11 @@
       ; addressed to the /magic node.
       (osc-recv client \"/magic\" 250)
   "
-  [con path & [timeout]]
+  [peer path & [timeout]]
   (let [p (promise)]
-    (osc-handle con path (fn [msg] 
-                           (osc-remove-handler)
-                           (deliver p msg)))
+    (osc-handle peer path (fn [msg] 
+                           (deliver p msg)
+                            (osc-remove-handler)))
     (try 
       (if timeout 
         (.get (future @p) timeout TimeUnit/MILLISECONDS) ; Blocks until 
@@ -356,6 +368,7 @@
         handlers (ref {})
         listeners (ref {(listener-id) (msg-handler-dispatcher handlers)})
         thread (listen-thread chan rcv-buf running? listeners)]
+    (.configureBlocking chan true)
     {:chan chan
      :rcv-buf rcv-buf
      :snd-buf snd-buf
@@ -368,14 +381,17 @@
  "Returns an OSC client ready to communicate with a host on a given port.  
  Use :protocol in the options map to \"tcp\" if you don't want \"udp\"."
   [host port]
-  (let [peer (osc-peer)]
+  (let [peer (osc-peer)
+        sock (.socket (:chan peer))
+        local (.getLocalPort sock)]
+    (.bind sock (InetSocketAddress. local))
     (assoc peer
            :host host
            :port port
            :addr (InetSocketAddress. host port))))
 
 (defn osc-target
-  "Update the target address of an OSC client so successive calls to osc-send
+  "Update the target address of an OSC client so future calls to osc-send
   will go to a new destination."
   [client host port]
   (assoc client 
@@ -387,8 +403,8 @@
   "Returns a live OSC server ready to register handler functions."
   [port]
   (let [peer (osc-peer)
-        sock (.socket (:chan peer))
-        _    (.bind sock (InetSocketAddress. port))]
+        sock (.socket (:chan peer))]
+    (.bind sock (InetSocketAddress. port))
     peer))
 
 (defn osc-close

@@ -1,7 +1,7 @@
 (ns overtone.instrument.drum
   (:use (overtone synth envelope pitch)))
 
-(defsynth kick {:out 0 :freq 50 :mod-freq 5 :mod-index 5 
+(def kick (synth kick {:out 0 :freq 50 :mod-freq 5 :mod-index 5 
                 :sustain 0.4 :amp 0.8 :noise 0.025}
   (let [pitch-contour (line.kr (* 2 :freq), :freq 0.02)
         drum (lpf.ar (pm-osc.ar pitch-contour :mod-freq (/ :mod-index 1.3))
@@ -10,9 +10,9 @@
         hit (hpf.ar (* :noise (white-noise.ar)) 500)
         hit (lpf.ar hit (lin.kr 6000 500 0.03))
         hit-env (env-gen.ar (perc) :done-free)]
-    (out.ar :out (pan2.ar (* :amp (+ (* drum drum-env) (* hit hit-env))) 0))))
+    (out.ar :out (pan2.ar (* :amp (+ (* drum drum-env) (* hit hit-env))) 0)))))
 
-(defsynth soft-kick 
+(synth soft-kick 
   (out.ar 0 (pan2.ar
               (mul-add.ar
                 (sin-osc.ar 60 (* Math/PI 2))
@@ -20,12 +20,12 @@
                 0) 
               0)))
 
-(defsynth round-kick {:amp 0.5 :decay 0.6 :freq 65}
+(def rk (synth round-kick {:amp 0.5 :decay 0.6 :freq 65}
   (let [env (env-gen.ar (perc 0 :decay) :done-free)
         snd (* :amp (sin-osc.ar :freq (* Math/PI 0.5)))]
-    (out.ar 0 (pan2.ar (* snd env) 0))))
+    (out.ar 0 (pan2.ar (* snd env) 0)))))
 
-(comment defsynth snare {:out 0 :freq 405 :amp 0.8 :sustain 0.1 
+(comment synth snare {:out 0 :freq 405 :amp 0.8 :sustain 0.1 
                  :drum-amp 0.25 :crackle-amp 40 :tightness 1000}
   (let [drum-env (* 0.5 (env-gen.ar (perc 0.005 :sustain) :done-free))
         drum-s1 (* drum-env (sin-osc.ar :freq))

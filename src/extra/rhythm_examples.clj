@@ -1,7 +1,6 @@
 (ns extra.rhythm-examples
   (:use overtone))
 
-(comment 
 (def piano (midi-out "vir"))
 (def metro (metronome 120))
 
@@ -14,6 +13,12 @@
 (def pitches (chosen-from [60 62 65 69 67 55 48 72]))
 (def vels  (chosen-from [30 60 20 80]))
 (def durs  (cycle [250 250 500 250]))
+
+(defn doh-doh-doh [t notes vels durs]
+  (midi-note piano (first notes) (first vels) (first durs))
+  (callback #'doh-doh-doh (+ t 400) (next notes) (next vels) (next durs)))
+
+(doh-doh-doh (now) pitches vels durs)
 
 (defn generator [length notes vels durs]
   (lazy-seq
