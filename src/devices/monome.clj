@@ -1,5 +1,5 @@
 (ns devices.monome
-  (:use (overtone sc instrument osc))
+  (:use overtone)
   (:require [overtone.log :as log]))
 
 (declare s)

@@ -13,8 +13,8 @@
 
 (def scope-buf* (ref nil))
 
-(defsynth overtone-scope {:in 0 :buf 1}
-  (record-buf.ar (in.ar :in) :buf))
+(def overtone-scope (synth overtone-scope {:in 0 :buf 1}
+  (record-buf.ar (in.ar :in) :buf)))
 
 (defn load-scope [bus]
   (load-synth overtone-scope)

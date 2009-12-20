@@ -53,7 +53,7 @@
 (defn osc-msg
   [path & args]
   (let [type-tag (first args)
-        type-tag (if (.startsWith type-tag ",")
+        type-tag (if (and type-tag (.startsWith type-tag ","))
                    (.substring type-tag 1)
                    type-tag)]
     (with-meta {:path path
@@ -309,15 +309,18 @@
   [peer path & [timeout]]
   (let [p (promise)]
     (osc-handle peer path (fn [msg] 
+                            (log/debug "returning promise: " msg)
                            (deliver p msg)
                             (osc-remove-handler)))
-    (try 
-      (if timeout 
-        (.get (future @p) timeout TimeUnit/MILLISECONDS) ; Blocks until 
-        @p)
-      (catch TimeoutException t 
-        (log/debug "osc-path-recv: " path " timed out.")
-        nil))))
+    (let [res (try 
+                (if timeout 
+                  (.get (future @p) timeout TimeUnit/MILLISECONDS) ; Blocks until 
+                  @p)
+                (catch TimeoutException t 
+                  (log/debug "osc-path-recv: " path " timed out.")
+                  nil))]
+      (log/debug "osc-recv result: " res)
+      res)))
 
 ;; We use binding to *osc-msg-bundle* to bundle messages 
 ;; and send combined with an OSC timestamp.
@@ -325,10 +328,11 @@
 
 (defn- peer-send [peer]
   (let [{:keys [snd-buf chan addr]} peer]
+    (println "peer-send: " addr)
     ; Flip sets limit to current position and resets position to start.
     (.flip snd-buf) 
-    (.send chan snd-buf addr)
-    (.clear snd-buf))) ; clear resets everything 
+    (.send chan snd-buf @addr)
+    (.clear snd-buf))) ; clear resets everything
 
 (defn osc-send-msg 
   "Send OSC msg to peer."
@@ -336,6 +340,7 @@
   (if *osc-msg-bundle*
     (swap! *osc-msg-bundle* #(conj %1 msg))
     (do
+      (println "sending msg: " msg)
       (osc-encode-msg (:snd-buf peer) msg)
       (peer-send peer))))
 
@@ -386,18 +391,19 @@
         local (.getLocalPort sock)]
     (.bind sock (InetSocketAddress. local))
     (assoc peer
-           :host host
-           :port port
-           :addr (InetSocketAddress. host port))))
+           :host (ref host)
+           :port (ref port)
+           :addr (ref (InetSocketAddress. host port)))))
 
 (defn osc-target
   "Update the target address of an OSC client so future calls to osc-send
   will go to a new destination."
-  [client host port]
-  (assoc client 
-         :host host
-         :port port
-         :addr (InetSocketAddress. host port)))
+  [peer host port]
+  (println "osc-target: " host port)
+  (dosync
+    (ref-set (:host peer) host)
+    (ref-set (:port peer) port)
+    (ref-set (:addr peer) (InetSocketAddress. host port))))
 
 (defn osc-server
   "Returns a live OSC server ready to register handler functions."
@@ -405,7 +411,10 @@
   (let [peer (osc-peer)
         sock (.socket (:chan peer))]
     (.bind sock (InetSocketAddress. port))
-    peer))
+    (assoc peer
+           :host (ref nil)
+           :port (ref port)
+           :addr (ref nil))))
 
 (defn osc-close
   [peer & wait]

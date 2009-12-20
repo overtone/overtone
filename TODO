@@ -32,3 +32,7 @@ so we can timeout on receive to periodically check whether the server thread sho
 == GUI
 
 * Create a node based synthdef viewer, and then editor
+
+== Dynamic Editor
+
+* accesses functions from 

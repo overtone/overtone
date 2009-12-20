@@ -10,12 +10,12 @@
 (def BPM 120)
 (def TICK (/ (/ 60000 BPM) 4))
 
-(defsynth sin-chord {:out 0 :pitch 52 :dur 500 :amp 0.2}
+(def sin-chord (synth sin-chord {:out 0 :pitch 52 :dur 500 :amp 0.2}
   (let [dur-half (/ (/ :dur 1000.0) 2)
         env (env-gen.ar (perc dur-half dur-half) :done-free)]
   (out.ar :out (* env :amp (+ (sin-osc.ar (midicps :pitch))
                               (sin-osc.ar (midicps (+ :pitch 4)))
-                              (sin-osc.ar (midicps (+ :pitch 7))))))))
+                              (sin-osc.ar (midicps (+ :pitch 7)))))))))
 
 (defn chords [t n]
   (hit t sin-chord :pitch (choose [52 55 57 61 63]) :amp 0.2 :dur 500)

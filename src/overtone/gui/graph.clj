@@ -95,8 +95,7 @@
   "Convert an sdef into some more easily dealt with tree structure so we
   can" 
   [sdef]
-  (let [ugens (reverse (:ugens sdef))
-        ]
+  (let [ugens (reverse (:ugens sdef))]))
 
 (defn sdef-view [sdef]
   (let [group (SGGroup.)

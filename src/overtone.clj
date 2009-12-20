@@ -34,6 +34,7 @@
 ;
 (immigrate
   'overtone.time
+  'overtone.osc
   'overtone.sc
   'overtone.synth
   'overtone.envelope

@@ -18,7 +18,7 @@
   (midi-note piano (first notes) (first vels) (first durs))
   (callback #'doh-doh-doh (+ t 400) (next notes) (next vels) (next durs)))
 
-(doh-doh-doh (now) pitches vels durs)
+;(doh-doh-doh (now) pitches vels durs)
 
 (defn generator [length notes vels durs]
   (lazy-seq
@@ -40,7 +40,5 @@
 (def f (forever pitches vels durs))
 (def piano-voice (agent [piano f]))
 
-(on-tick metro #(send piano-voice player))
-(stop metro)
-
-)
+;(on-tick metro #(send piano-voice player))
+;(stop metro)

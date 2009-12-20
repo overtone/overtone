@@ -21,11 +21,11 @@
 
 (def msg-log* (atom []))
 
-(defn log-input []
-  (.setReceiver (:transmitter NOV-IN) (midi-handler 
-                                        (fn [msg t]
-                                          (swap! msg-log* conj msg)))))
-
+;(defn log-input []
+;  (.setReceiver (:transmitter NOV-IN) (midi-handler 
+;                                        (fn [msg t]
+;                                          (swap! msg-log* conj msg)))))
+;
 (defn online []
   (midi-sysex NOV-OUT (concat MSG-PREFIX ONLINE)))
 

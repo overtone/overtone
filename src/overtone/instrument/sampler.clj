@@ -1,5 +1,5 @@
 (ns overtone.instrument.sampler
-  (:use (overtone synth envelope pitch)))
+  (:use (overtone sc synth envelope pitch)))
 
 ; TODO: Implement in native synthdefs a more full featured sampler 
 ; with reasonable defaults and some helpers...
@@ -33,15 +33,12 @@
                        (out.ar :out (* (pan2.ar (* grain env) :pan) :amp)))))
         
 
-(use 'overtone.sc)
-
-(def flute (load-sample (load-sample "/home/rosejn/projects/overtone/instruments/samples/flutes/flutter-flute-1.wav")))
-
 (defn test-flute [] 
+  (defonce flute (load-sample (load-sample "/home/rosejn/projects/overtone/instruments/samples/flutes/flutter-flute-1.wav")))
   (load-synth 
     (synth :granular {:out 0, :buf 0, :pan 0, :start 0, :amp 0.8, :dur 0.25}
            (let [grain (play-buf.ar 1 :buf (buf-rate-scale.kr :buf))]
              (out.ar :out (* (pan2.ar grain :pan) :amp)))))
   (hit flute :dur 2.0))
         
-(test-flute)
+;(test-flute)
