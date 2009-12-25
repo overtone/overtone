@@ -9,3 +9,4 @@ log*
 Manifest.txt
 pom.xml
 .overtone-log
+tmp
