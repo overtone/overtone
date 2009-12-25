@@ -6,7 +6,7 @@
                   JSplitPane JMenuBar JMenu JMenuItem SwingUtilities) 
      (javax.swing.tree TreeModel DefaultTreeCellRenderer)
      (javax.swing.table TableModel AbstractTableModel)
-     (org.enclojure.repl IReplWindow IReplWindowFactory IRepl)
+;     (org.enclojure.repl IReplWindow IReplWindowFactory IRepl)
      (com.raelity.jvi ViManager ColonCommands)
      (com.raelity.jvi.swing DefaultViFactory StatusDisplay TextView))
   (:require [clojure.inspector :as inspector])
