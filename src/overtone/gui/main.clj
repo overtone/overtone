@@ -8,9 +8,10 @@
      (javax.swing.table TableModel AbstractTableModel)
      (org.enclojure.repl IReplWindow IReplWindowFactory IRepl)
      (com.raelity.jvi ViManager ColonCommands)
-     (com.raelity.jvi.swing DefaultViFactory StatusDisplay TextView))
-  (:require [clojure.inspector :as inspector])
-;     [org.enclojure.ide.repl.factory :as repl])
+     (com.raelity.jvi.swing DefaultViFactory StatusDisplay TextView)
+     (jsyntaxpane DefaultSyntaxKit))
+  (:require [clojure.inspector :as inspector]
+     [org.enclojure.ide.repl.factory :as repl])
   (:use clojure.contrib.seq-utils))
 
 (def APP-NAME "Overtone")
@@ -117,7 +118,7 @@
 
 (defn editor []
   (let [editor-pane (JPanel.)
-        editor (JTextPane.)
+        editor (JEditorPane.)
         scroller (JScrollPane. editor)
         status-pane (JPanel.)
         general-status (JLabel. "general status")
@@ -139,11 +140,15 @@
     (set! (.strokeStatus status-display) stroke-status)
     (set! (.modeStatus status-display) mode-status)
 
-    (ViManager/activateAppEditor editor nil "initial-frame")
-    (ViManager/requestSwitch editor)
+    (DefaultSyntaxKit/initKit)
+
+    (ViManager/activateAppEditor editor nil "testing frame...")
+    ;(ViManager/requestSwitch editor)
     (ViManager/installKeymap editor)
 
     (doto editor
+      (.setContentType "text/clojure")
+      (.setText "(defn foo [a b] (dosync (ref-set asdf* (+ a b))))")
       (.setCaretColor CARET-COLOR)
       (.requestFocusInWindow))
 
@@ -153,8 +158,8 @@
       (.add status-pane BorderLayout/SOUTH))))
 
 (defn make-repl []
-  ;(.getReplPanel (repl/create-in-proc-repl))
-  (JPanel.))
+  (.getReplPanel (repl/create-in-proc-repl)))
+;  (JPanel.))
 
 (defonce factory (ViManager/setViFactory (DefaultViFactory.)))
 

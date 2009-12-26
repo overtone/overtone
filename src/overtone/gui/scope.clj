@@ -7,27 +7,36 @@
      (org.jfree.chart.plot PlotOrientation)
      (org.jfree.data.xy DefaultXYDataset))
   (:use 
-     (overtone sc synth util)))
+     (overtone sc synth util))
+  (:require [overtone.log :as log]))
 
-(def SCOPE-BUF-SIZE 4096)
+(def SCOPE-BUF-SIZE 10000)
 
 (def scope-buf* (ref nil))
+(def scope-bus* (ref 0))
 
 (def overtone-scope (synth overtone-scope {:in 0 :buf 1}
   (record-buf.ar (in.ar :in) :buf)))
 
+(def scope-test (synth scope-test {:out 10 :freq 220} (out.ar :out (sin-osc.ar :freq))))
+
 (defn load-scope [bus]
   (load-synth overtone-scope)
+  (load-synth scope-test)
 
   (if (nil? @scope-buf*)
     (dosync (ref-set scope-buf* (buffer SCOPE-BUF-SIZE))))
-
   (hit overtone-scope :in bus :buf (:id @scope-buf*)))
+
+; TODO: remove all the scope ugens
+;  * need to save synth objects or names stored in a lookup or something...
+(defn kill-scope []
+  )
 
 (defn scope-dataset []
   (let [ds (DefaultXYDataset.)
         ary (make-array Double/TYPE 2 10000)]
-    (loop [idx (range 1500)
+    (loop [idx (range 10000)
            y (cycle (range 0 (* Math/PI 2) (/ (* Math/PI 2) 147)))]
       (when idx
         (let [i (first idx)]
@@ -38,6 +47,9 @@
     (println "last: " (aget ary 0 1499) (aget ary 1 1499))
     (.addSeries ds "fake" ary)
     ds))
+
+(defn get-samples []
+  (buffer-read @scope-buf* 0 SCOPE-BUF-SIZE))
 
 (defn scope [data]
   (let [frame (JFrame. "Scope")
@@ -59,10 +71,10 @@
 
 (defn test-scope []
   (try 
-    (boot)
+    ;(boot)
     ;(load-scope)
-    (scope (scope-dataset))
-    (finally (quit))))
+    (scope (scope-dataset))))
+    ;(finally (quit))))
 
 ; Envelope arrays are structured like this:
   ; * initial level

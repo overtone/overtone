@@ -9,7 +9,5 @@
 (def host (.getHostName (InetAddress/getLocalHost)))
 (def ip-addr (.getAddress (InetAddress/getLocalHost)))
 
-(peer-start port)
+(start-peer)
 
-(println "peer: " PEER-ID)
-(println ip-addr port)

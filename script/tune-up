@@ -9,7 +9,7 @@ if [[ $OSTYPE == "linux-gnu" ]]; then
   else
     echo "Starting jack sound daemon..."
     pkill -9 pulseaudio
-    qjackctl -s -p Laptop &
+    qjackctl -s &
 
     puts "Starting pulseaudio in Jack mode..."
     pulseaudio -nF ~/.jack.pa --start

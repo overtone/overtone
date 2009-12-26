@@ -25,7 +25,11 @@
 (synth :master
   (out.ar 0 (in.ar BUS-MASTER)))
 
-(def *tracks (ref []))
+(def session* (ref 
+  {:tracks []
+   :instruments []
+   :players []}))
+
 ;(def *fx-bus (ref (Bus/audio (server) 2)))
 
 (defn session-reset []

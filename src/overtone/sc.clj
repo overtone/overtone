@@ -9,7 +9,7 @@
   (:use
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
-     (overtone config util osc time synthdef)))
+     (overtone setup config util osc time synthdef)))
 
 ; This is at heart an OSC client library for the SuperCollider scsynth engine.
 
@@ -170,6 +170,9 @@
 
 (defn- boot-thread [cmd]
   (reset! running?* true)
+  (log/debug "boot-thread: ")
+  (doseq [arg cmd] (println arg))
+
   (let [proc (.exec (Runtime/getRuntime) cmd)
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
@@ -200,9 +203,6 @@
                :windows []
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
-(def SC-PATH (SC-PATHS (config :os)))
-(def SC-ARG (SC-ARGS (config :os)))
-
 (def boot-handlers* (ref {}))
 
 (defn add-boot-handler [fun & [id]]
@@ -217,7 +217,7 @@
   (doseq [[id handler] @boot-handlers*]
     (handler)))
 
-(if (= :linux (config :os))
+(if (= :linux (@config* :os))
   (add-boot-handler connect-jack-ports))
 
 (defn boot
@@ -225,7 +225,7 @@
   ([host port]
   (if (not @running?*)
     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-          cmd (into-array String (concat [SC-PATH "-u" (str port)] SC-ARG))
+          cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
           sc-thread (Thread. #(boot-thread cmd))]
       (.setDaemon sc-thread true)
       (log/debug "Booting SuperCollider server (scsynth)...")
@@ -450,7 +450,11 @@
 
 (defn buffer-read [buf start len]
   (assert (buffer? buf))
-  (snd "/b_getn" (:id buf) start len))
+  (snd "/b_getn" (:id buf) start len)
+  (let [msg (recv "/b_setn" REPLY-TIMEOUT)
+        samples (first (:args msg))]
+    (log/debug "samples: " (count samples))
+    samples))
 
 (defn buffer-write [buf start len data]
   (snd "/b_setn" (:id buf) start len data))

@@ -1,6 +1,9 @@
 == General:
 
 == Synths and Audio:
+* Test and expand the Scope synth to support really nice audio and fft data
+visualization.
+ - also create level meter, pan, and EQ synths
 
 * Figure out how to handle multi-channel expansion in the synth definitions...
 
@@ -31,8 +34,14 @@ so we can timeout on receive to periodically check whether the server thread sho
 
 == GUI
 
+* Flush out the Scope viewer, upgrade color scheme, and visualize FFT data also
+
 * Create a node based synthdef viewer, and then editor
 
 == Dynamic Editor
 
 * accesses functions from 
+
+== Networking
+
+* 
