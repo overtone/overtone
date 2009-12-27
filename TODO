@@ -1,5 +1,10 @@
 == General:
 
+* Look into using clojure-jna (http://github.com/Chouser/clojure-jna) to link
+directly with supercollider and start the internal server so we don't have to
+send network messages for transmitting audio data.  (Much better oscilloscope
+and visualization performance...)
+
 == Synths and Audio:
 * Test and expand the Scope synth to support really nice audio and fft data
 visualization.

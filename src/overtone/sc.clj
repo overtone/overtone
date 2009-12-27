@@ -19,7 +19,7 @@
 (defonce SERVER-PORT nil) ; nil means a random port
 
 ; Max number of milliseconds to wait for a reply from the server
-(defonce REPLY-TIMEOUT 300)
+(defonce REPLY-TIMEOUT 500)
 
 (defonce DEFAULT-GROUP 0)
 
@@ -39,6 +39,7 @@
 (defonce MAX-SDEFS 1024)
 (defonce MAX-AUDIO-BUS 128)
 (defonce MAX-CONTROL-BUS 4096)
+(defonce MAX-OSC-SAMPLES 8192)
 
 (defonce allocator-bits 
   {:node (BitSet. MAX-NODES)
@@ -441,22 +442,37 @@
 
 (defn buffer-free 
   "Free an audio buffer and the memory it was consuming."
-  [b]
-  (free-id :audio-buffer)
-  (snd "/b_free" {:id b}))
+  [buf]
+  (assert (buffer? buf))
+  (free-id :audio-buffer (:id buf))
+  (snd "/b_free" (:id buf)))
 
 (defn buffer? [buf]
   (and (map? buf) (= (:type buf) :buffer)))
 
 (defn buffer-read [buf start len]
   (assert (buffer? buf))
-  (snd "/b_getn" (:id buf) start len)
-  (let [msg (recv "/b_setn" REPLY-TIMEOUT)
-        samples (first (:args msg))]
-    (log/debug "samples: " (count samples))
-    samples))
+  (loop [reqd 0]
+    (when (< reqd len)
+      (let [to-req (min MAX-OSC-SAMPLES (- len reqd))]
+        (snd "/b_getn" (:id buf) (+ start reqd) to-req)
+        (recur (+ reqd to-req)))))
+  (let [samples (float-array len)]
+    (loop [recvd 0]
+      (if (= recvd len)
+        samples
+        (let [msg (recv "/b_setn" REPLY-TIMEOUT)
+              _ (println "b_setn msg: " (take 3 (:args msg)))
+              [buf-id bstart blen & samps] (:args msg)]
+          (loop [idx bstart
+                 samps samps]
+            (when samps
+              (aset-float samples idx (first samps))
+              (recur (inc idx) (next samps))))
+          (recur (+ recvd blen)))))))
 
 (defn buffer-write [buf start len data]
+  (assert (buffer? buf))
   (snd "/b_setn" (:id buf) start len data))
 
 (defn save-buffer
@@ -467,9 +483,14 @@
 
 (defn load-sample
   "Load a wav file into memory so it can be played as a sample."
-  [path]
-  (let [id (alloc-id :audio-buffer)]
-    (snd "/b_allocRead" id path)
+  [path & args]
+  (let [id (alloc-id :audio-buffer)
+        args (apply hash-map args)
+        start (get args :start 0)
+        n-frames (get args :n-frames 0)
+        block (get args :block false)]
+    (snd "/b_allocRead" id path start n-frames)
+    (if block (recv "/done"))
     (with-meta {:buf {:type :buffer
                       :id id}
                 :path path}

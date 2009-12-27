@@ -9,7 +9,7 @@
      clojure.set
      (clojure.contrib fcase)))
 
-(log/level :debug)
+(log/level :info)
 
 (def OSC-TIMETAG-NOW 1) ; Timetag representing right now.
 (def SEVENTY-YEAR-SECS 2208988800)
@@ -328,7 +328,7 @@
 
 (defn- peer-send [peer]
   (let [{:keys [snd-buf chan addr]} peer]
-    (println "peer-send: " addr)
+    (log/debug "peer-send: " addr)
     ; Flip sets limit to current position and resets position to start.
     (.flip snd-buf) 
     (.send chan snd-buf @addr)
@@ -340,7 +340,7 @@
   (if *osc-msg-bundle*
     (swap! *osc-msg-bundle* #(conj %1 msg))
     (do
-      (println "sending msg: " msg)
+      (log/debug "sending msg: " msg)
       (osc-encode-msg (:snd-buf peer) msg)
       (peer-send peer))))
 
@@ -358,9 +358,10 @@
 
 (defmacro in-osc-bundle [client timestamp & body]
   `(binding [*osc-msg-bundle* (atom [])]
-     ~@body
+     (let [res# ~@body]
      ;(log/debug (str "in-osc-bundle (" (count @*osc-msg-bundle*) "): " @*osc-msg-bundle*))
-     (osc-send-bundle ~client (osc-bundle ~timestamp @*osc-msg-bundle*))))
+       (osc-send-bundle ~client (osc-bundle ~timestamp @*osc-msg-bundle*))
+       res#)))
 
 ; OSC peers have listeners and handlers.  A listener is sent every message received, and
 ; handlers are dispatched by OSC node (a.k.a. path).

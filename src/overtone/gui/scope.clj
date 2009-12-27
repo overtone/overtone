@@ -48,14 +48,24 @@
     (.addSeries ds "fake" ary)
     ds))
 
+(defn update-dataset [ds samples]
+  (let [len (count samples)
+        ary (make-array Double/TYPE 2 len)]
+    (doseq [i (range len)]
+      (aset-double ary 0 i (double i))
+      (aset-double ary 1 i (* 100.0 (aget samples i))))
+    (.addSeries ds "samples" ary)
+    ds))
+
 (defn get-samples []
   (buffer-read @scope-buf* 0 SCOPE-BUF-SIZE))
 
-(defn scope [data]
+(defn scope []
   (let [frame (JFrame. "Scope")
         content (.getContentPane frame)
+        dataset (DefaultXYDataset.)
         chart (ChartFactory/createXYLineChart "" "" ""
-                                              data PlotOrientation/VERTICAL
+                                              dataset PlotOrientation/VERTICAL
                                               false false false)
         chart-panel (ChartPanel. chart)]
     (doto chart
@@ -67,14 +77,17 @@
 
     (doto frame
       (.pack)
-      (.setVisible true))))
+      (.setVisible true))
+    dataset))
+
+(def audio (load-sample "samples/strings/STRNGD5.WAV"))
+(def abuf (:buf audio))
 
 (defn test-scope []
   (try 
-    ;(boot)
     ;(load-scope)
-    (scope (scope-dataset))))
-    ;(finally (quit))))
+    ;(scope (scope-dataset))
+    (scope (sample-dataset (buffer-read abuf 0 8000)))))
 
 ; Envelope arrays are structured like this:
   ; * initial level
