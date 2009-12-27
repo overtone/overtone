@@ -440,15 +440,15 @@
      :id id
      :size size}))
 
+(defn buffer? [buf]
+  (and (map? buf) (= (:type buf) :buffer)))
+
 (defn buffer-free 
   "Free an audio buffer and the memory it was consuming."
   [buf]
   (assert (buffer? buf))
   (free-id :audio-buffer (:id buf))
   (snd "/b_free" (:id buf)))
-
-(defn buffer? [buf]
-  (and (map? buf) (= (:type buf) :buffer)))
 
 (defn buffer-read [buf start len]
   (assert (buffer? buf))
