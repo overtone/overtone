@@ -6,9 +6,10 @@
 MY_DIR=`dirname $0`
 CLASSPATH=`$MY_DIR/java-bs`
 
-BREAK_CHARS="(){}[],^%$#@\"\";:''|\\"
-
 #DEFINITIONS=-Djava.library.path=lib/opengl 
 
-rlwrap -a --remember -c -b "$BREAK_CHARS" -f "$HOME/.clj_completions" \
-	  java -cp $CLASSPATH clojure.main $@
+java -cp $CLASSPATH jline.ConsoleRunner clojure.main $@
+
+#BREAK_CHARS="(){}[],^%$#@\"\";:''|\\"
+#rlwrap -a --remember -c -b "$BREAK_CHARS" -f "$HOME/.clj_completions" \
+#	  java -cp $CLASSPATH clojure.main $@

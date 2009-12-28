@@ -5,7 +5,7 @@
   <property name="test.dir"    value="test"/>
   <property name="session.dir" value="session"/>
 
-  <property name="deps.dir"    value="lib"/>
+  <property name="lib.dir"    value="lib"/>
   <property name="deps.file"   value="deps.zip"/>
   <property name="deps.url"    value="http://cloud.github.com/downloads/rosejn/overtone/${deps.file}"/>
 
@@ -17,7 +17,7 @@
     <path location="${test.dir}"/>
     <path location="${src.dir}"/>
     <path location="${session.dir}"/>
-    <fileset dir="${deps.dir}">
+    <fileset dir="${lib.dir}">
       <include name="*.jar"/>
     </fileset>
   </path>
@@ -74,14 +74,14 @@
   <target name="deps" description="Download dependencies and unzip">
     <echo>Downloading dependencies from GitHub.  Be patient, it's a 5mb zip
       file so this could take a few minutes.</echo>
-    <delete file="${deps.dir}" />
     <get usetimestamp="true" description="Clojure dependencies." src="${deps.url}" dest="${deps.file}"/>
     <unzip src="${deps.file}" dest="."/>
     <delete file="${deps.file}" />
   </target>
 
   <target name="make-deps" description="Create dependency zip-file based on current contents of the deps directory.">
+    <delete file="${deps.file}" />
     <echo>Creating the deps zip archive...</echo>
-    <zip destfile="${deps.file}" basedir="." includes="deps/*" />
+    <zip destfile="${deps.file}" basedir="." includes="lib/*" />
   </target>
 </project>
