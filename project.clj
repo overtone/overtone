@@ -5,7 +5,7 @@
                  [org.clojure/clojure-contrib "1.0-SNAPSHOT"]
 		 [org.clojars.fyuryu/rosado.processing "1.0.7"]
                  [net.java.dev.scenegraph/scenegraph "svn"]
-		 [com.raelity/jvi "1.2.6"]
+		 [org.clojars.rosejn/jvi "0.7.1"]
                  [jfree/jfreechart "1.0.12"]
                 ]
   :dev-dependencies [[swank-clojure "1.1.0-SNAPSHOT"]
