@@ -32,12 +32,6 @@
 
 ;(def *fx-bus (ref (Bus/audio (server) 2)))
 
-(defn session-reset []
-  (reset)
-  (dosync 
-    (ref-set *tracks [])))
-
-
 ; A track holds an instrument with a set of effects and patches it into the mixer
 ; * track group contains: 
 ;     synth group => effect group => fader synth
