@@ -499,7 +499,7 @@
 (defn sample? [s]
   (= :sample (type s)))
 
-(defn load-synth
+(defn load-synthdef
   "Load a Clojure synth definition onto the audio server."
   [sdef]
   (assert (synthdef? sdef))
@@ -579,7 +579,7 @@
   root node is not an out ugen, then it will add one automatically."
   [body]
   `(do
-     (load-synth (synth "audition-synth" {} ~body))
+     (load-synthdef (synth "audition-synth" {} ~body))
      (let [note# (hit (now) "audition-synth")]
        (at (+ (now) 1000) (node-free note#)))))
 
@@ -624,7 +624,7 @@
                         (map #(var-get %1) 
                              (vals (ns-publics 'overtone.instrument))))]
     (println "loading synth: " (:name synth))
-    (load-synth synth)))
+    (load-synthdef synth)))
 
 ;;(defn effect [synthdef & args]
 ;;  (let [arg-map (assoc (apply hash-map args) "bus" FX-BUS)

@@ -1,4 +1,5 @@
 (ns overtone
+  (:use (overtone ugen))
   (:require (overtone time sc synth envelope synthdef midi 
                       rhythm pitch tuning studio log)))
 
@@ -32,17 +33,24 @@
 ;(defn remove-on-start-cb [id]
 ;  (dosync (alter *on-start-callbacks dissoc id)))
 ;
-(immigrate
-  'overtone.time
-  'overtone.osc
-  'overtone.sc
-  'overtone.synth
-  'overtone.envelope
-  'overtone.synthdef
-  'overtone.midi
-  'overtone.rhythm
-  'overtone.pitch
-  'overtone.tuning
-  'overtone.studio
-  'overtone.inst
-  )
+(defmacro overtone []
+  `(do
+     (immigrate
+       'overtone.util
+       'overtone.time
+       'overtone.osc
+       'overtone.sc
+       'overtone.ugen
+       'overtone.envelope
+       'overtone.synth
+       'overtone.synthdef
+       'overtone.midi
+       'overtone.rhythm
+       'overtone.pitch
+       'overtone.tuning
+       'overtone.studio
+       'overtone.inst
+       )
+
+     (refer-ugens *ns*)))
+

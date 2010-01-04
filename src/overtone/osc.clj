@@ -359,7 +359,7 @@
 (defmacro in-osc-bundle [client timestamp & body]
   `(binding [*osc-msg-bundle* (atom [])]
      (let [res# ~@body]
-     ;(log/debug (str "in-osc-bundle (" (count @*osc-msg-bundle*) "): " @*osc-msg-bundle*))
+     (log/debug (str "in-osc-bundle (" (count @*osc-msg-bundle*) "): " @*osc-msg-bundle*))
        (osc-send-bundle ~client (osc-bundle ~timestamp @*osc-msg-bundle*))
        res#)))
 

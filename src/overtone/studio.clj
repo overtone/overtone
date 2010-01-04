@@ -22,8 +22,8 @@
 (def BUS-A 18)
 (def BUS-B 19)
 
-(synth :master
-  (out.ar 0 (in.ar BUS-MASTER)))
+;(synth :master
+;  (out.ar 0 (in.ar BUS-MASTER)))
 
 (def session* (ref 
   {:tracks []

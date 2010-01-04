@@ -29,17 +29,6 @@
 				 :src   :int16
 				 :index :int16)
  
-;; Outputs have a specified calculation rate
-;;   0 = scalar rate - one sample is computed at initialization time only. 
-;;   1 = control rate - one sample is computed each control period.
-;;   2 = audio rate - one sample is computed for each sample of audio output.
-(def RATES {:scalar  0
-            :control 1
-            :audio   2
-            :demand  3})
-
-(def REVERSE-RATES (invert-map RATES))
-
 ;; an output-spec is :
 ;;   int8 - calculation rate
 ;; end
@@ -124,14 +113,12 @@
 (defn- synthdef-file [& sdefs]
   (with-meta {:n-synths (short (count sdefs))
               :synths sdefs}
-             {:type :synthdef-file}))
+             {:type ::synthdef-file}))
 
-(defn- synthdef-file? [obj] (= :synthdef-file (type obj)))
+(defn- synthdef-file? [obj] (= ::synthdef-file (type obj)))
 
 (defn- synthdef-file-bytes [sfile]
   (spec-write-bytes synthdef-file-spec sfile))
-
-(defn synthdef? [obj] (= :synthdef (type obj)))
 
 ; TODO: byte array shouldn't really be the default here, but I don't 
 ; know how to test for one correctly... (byte-array? data) please?

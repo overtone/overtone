@@ -91,3 +91,9 @@
    "rrand" 47
    "exprand" 48]))
 
+(defn unary-op-num [name]
+  (get UNARY-OPS (str name) false))
+
+(defn binary-op-num [name]
+  (get BINARY-OPS (str name) false))
+

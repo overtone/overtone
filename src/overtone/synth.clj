@@ -6,161 +6,9 @@
   file."
   (:require [overtone.log :as log])
   (:use
-     (overtone util ops sc synthdef)
+     (overtone util ops ugen sc synthdef)
      (clojure walk inspector)
      clojure.contrib.seq-utils))
-
-(defn- normalize-name [n]
-  (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
-
-;; Done actions are typically executed when an envelope ends, or a sample ends
-;; 0	do nothing when the UGen is finished
-;; 1	pause the enclosing synth, but do not free it
-;; 2	free the enclosing synth
-;; 3	free both this synth and the preceding node
-;; 4	free both this synth and the following node
-;; 5	free this synth; if the preceding node is a group then do g_freeAll on it, else free it
-;; 6	free this synth; if the following node is a group then do g_freeAll on it, else free it
-;; 7	free this synth and all preceding nodes in this group
-;; 8	free this synth and all following nodes in this group
-;; 9	free this synth and pause the preceding node
-;; 10	free this synth and pause the following node
-;; 11	free this synth and if the preceding node is a group then do g_deepFree on it, else free it
-;; 12	free this synth and if the following node is a group then do g_deepFree on it, else free it
-;; 13	free this synth and all other nodes in this group (before and after)
-;; 14	free the enclosing group and all nodes within it (including this synth)
-(def DONE-ACTIONS  
-  {:done-nothing 0	
-   :done-pause 1	
-   :done-free 2	
-   :done-free-and-before 3	
-   :done-free-and-after 4
-   :done-free-and-group-before 5	
-   :done-free-and-group-after 6
-   :done-free-upto-this 7	
-   :done-free-from-this-on 8	
-   :done-free-pause-before 9
-   :done-free-pause-after 10
-   :done-free-and-group-before-deep 11
-   :done-free-and-group-after-deep 12	
-   :done-free-children 13	
-   :done-free-group 14})
-
-(def UGENS (read-string (slurp "src/overtone/ugen.clj")))
-
-(def UGEN-MAP (reduce (fn [mem ugen] 
-                        (assoc mem (normalize-name (:name ugen)) ugen)) 
-                      UGENS))
-
-(defn find-ugen [word]
-  (get UGEN-MAP (normalize-name word)))
-
-(defn ugen-name [word]
-  (:name (find-ugen word)))
-
-(defn ugen-search [regexp]
-  (filter (fn [[k v]] (re-find (re-pattern regexp) (str k))) UGEN-MAP))
-
-(defn ugen-print [& ugens]
-  (doseq [[name ugen] ugens]
-    (println "ugen:" (str "\"" (:name ugen) "\"")
-             "\nargs: " (map #(:name %1) (:args ugen))
-             "\nrates: " (seq (:rates ugen))
-             "\nouts: " (:fixed-outs ugen) (str "(" (:out-type ugen) ")")
-             "\n- - - - - - - - - -\n")))
-
-(defn ugen-doc [word]
-  (apply ugen-print (ugen-search word)))
-
-(defn- add-default-args [spec args]
-  (let [defaults (map #(:default %1) (:args spec))]
-    ;(println (:name spec) " defaults: " defaults "\nargs: " args)
-    (cond 
-      ; Many ugens (e.g. EnvGen) have an array of values as their last argument,
-      ; so when the last arg is a coll? we insert missing defaults between the passed
-      ; args and the array.
-      (and (< (count args) (count defaults))
-           (and (coll? (last args)) (:array? (last (:args spec)))))
-      (concat (drop-last args) (drop (count args) (drop-last defaults)) (last args))
-
-      ; Replace regular missing args as long as they are all valid numbers
-      (and (< (count args) (count defaults)) 
-           (not-any? #(= Float/NaN %1) args))
-      (concat args (drop (count args) defaults))
-
-      ; Otherwise we just missed something
-      (< (count args) (count defaults))
-      (throw (IllegalArgumentException. 
-        (str "Missing arguments to ugen: " (:name spec) " => "  
-             (doall (drop (count args) (map #(%1 :name) (:args spec)))))))
-
-      :default args)))
-
-(defn- replace-action-args [args]
-  (map #(get DONE-ACTIONS %1 %1) args))
-
-; Since envelopes are used so often with done actions we make them
-; as easy as possible.  In effect this lets you put the first and last
-; argument only.
-; TODO: Look into replacing this garbage with some kind of keyword argument system  
-(defn- envelope-args [spec args]
-  (replace-action-args 
-    (if (= "EnvGen" (:name spec))
-      (let [env-ary (first args)
-            args (next args) 
-            defaults (drop-last (map #(%1 :default) (:args spec)))
-            with-defs (cond 
-                        (and (< (count args) (count defaults))
-                             (contains? DONE-ACTIONS (last args)))
-                        (concat (drop-last args) 
-                                (drop (dec (count args)) (drop-last defaults)) 
-                                [(last args)])
-
-                        (< (count args) (count defaults))
-                        (concat args (drop (count args) defaults))
-
-                        :default args)]
-        (flatten (concat with-defs [env-ary])))
-      args)))
-
-(defn ugen [name rate special & args]
-  ;(println "ugen: " name rate special)
-  (let [spec (if-let [ug (find-ugen name)]
-               ug
-               (throw (IllegalArgumentException. (str "Unknown ugen: " name))))
-        args (envelope-args spec args)
-        args (add-default-args spec args)]
-    (with-meta {:id (next-id :ugen)
-                :name (:name spec)
-                :rate (rate RATES)
-                :special special
-                :args args}
-               {:type :ugen})))
-
-(defn ugen? [obj] (= :ugen (type obj)))
-
-;; -----------------------------------------------------------------
-
-;; TODO: Figure out the complete list of control types
-;; This is used to determine the controls we list in the synthdef, so we need
-;; all ugens which should be specified as external controls.
-(def CONTROLS #{"control"})
-
-(defn- control-ugen [rate n-outputs]
-  (with-meta {:id (next-id :ugen)
-              :name "Control"
-              :rate (rate RATES)
-              :special 0
-              :args nil
-              :n-outputs n-outputs
-              :outputs (repeat n-outputs {:rate (rate RATES)})
-              :n-inputs 0
-              :inputs []}
-            {:type :ugen}))
-
-(defn- control? [ugen]
-  (and (map? ugen)
-       (CONTROLS (normalize-name (:name ugen)))))
 
 (def *ugens* nil)
 (def *constants* nil)
@@ -243,14 +91,13 @@
   ; Don't modify controls or anything that comes with pre-setup outputs.
   (if (contains? ugen :outputs)
     ugen
-    (let [spec (find-ugen (:name ugen))
+    (let [spec (get-ugen (:name ugen))
           out-type (:out-type spec)
           num-outs (cond
                      (= out-type :fixed)    (:fixed-outs spec)
                      (= out-type :variable) (:fixed-outs spec)
                      (= out-type :from-arg) (num-channels-from-arg ugen spec))
           outputs (take num-outs (repeat {:rate (:rate ugen)}))]
-      ;(println "\noutputs: " (:name ugen) num-outs outputs)
             (assoc ugen :outputs outputs))))
 
 ; IMPORTANT NOTE: We need to add outputs before inputs, so that multi-channel
@@ -331,30 +178,6 @@
                     (indexed param-list))]
     [pvals pnames]))
 
-(defn- to-ugen-name [word]
-  (ugen-name (.substring word 0 (- (count word) 3))))
-
-(defn- replace-name [l]
-  (let [word (str (first l))]
-    (concat 
-      (cond 
-        (.endsWith word ".ar") ['ugen (to-ugen-name word) :audio 0]
-        (.endsWith word ".kr") ['ugen (to-ugen-name word) :control 0]
-        (.endsWith word ".ir") ['ugen (to-ugen-name word) :scalar 0]
-        (.endsWith word ".dr") ['ugen (to-ugen-name word) :demand 0]
-        :default [(symbol word)]) 
-      (rest l))))
-
-(defn- replace-ugens
-  "Find all the forms starting with a valid ugen identifier, and convert it to a function argument to
-  a ugen constructor."
-  [form]
-  (postwalk (fn [x] (if (and (seq? x) 
-                             (symbol? (first x)))
-                      (replace-name x) 
-                      x)) 
-            form))
-
 (defn- ugen-form? [form]
   (and (seq? form)
        (= 'ugen (first form))))
@@ -371,63 +194,6 @@
                         (keyword? %1) :control) 
                      args)))
 
-(defn op-check 
-  "Checks the types of the arguments after their evaluation to determine whether
-  this should be a DSP ugen operator or just a function call to evaluate
-  immediately."
-  [op arity op-num & args]
-  (if (special-op-args? args)
-    (do ;(println "op-check: ugen -> " op op-num args)
-    (apply ugen arity (find-rate args) op-num args))
-    
-    (do ;(println "op-check: operator -> " op args)
-    (eval (apply list (symbol op) args)))))
-
-(defn unary-op-num [name]
-  (get UNARY-OPS (str name) false))
-
-(defn binary-op-num [name]
-  (get BINARY-OPS (str name) false))
-
-(defn- expand-ops [form]
-  (let [op (first form)
-        op-prefix (list 'op-check (str op) "BinaryOpUGen" (binary-op-num op))]
-    (loop [args (reverse (next form))
-           i 0]
-      (if (or (= i 5) (= 1 (count args)))
-        (first args)
-        (recur (cons (concat op-prefix [(second args) (first args)]) (drop 2 args)) (inc i))))))
-
-(defn- replace-basic-ops
-  "Replace all basic operations on ugens with unary and binary ugen operators."
-  [form]
-  (postwalk (fn [x] 
-              (if (seq? x)
-                (cond
-                  (and (unary-op-num (first x)) (= 2 (count x))) 
-                  (list 'op-check (str (first x)) "UnaryOpUGen" (unary-op-num (first x)) (second x))
-
-                  (and (binary-op-num (first x)) (= 3 (count x)))
-                  (list 'op-check (str (first x)) "BinaryOpUGen" (binary-op-num (first x)) (second x) (nth x 2))
-
-                  ; Expand addition and multiplication of more than 2 elements so we can do things in a lispy way, 
-                  ; even when operating on UGens.  (e.g. (* snd env 0.2) => (* snd (* env 0.2)))
-                  (and (or (= '+ (first x)) (= '* (first x))))
-                  (expand-ops x)
-
-                  :default x)
-                x))
-            form))
-
-(defn- to-ugen-tree [form]
-  (let [t1 (replace-ugens form)
-        t2 (replace-basic-ops t1)]
-    t2))
-
-; TODO: Either add support for multi-channel expansion, or get rid of the idea
-; and do it in a more lispy way.
-            
-;;
 ;;  For greatest efficiency:
 ;;
 ;;  * Unit generators should be listed in an order that permits efficient reuse
@@ -460,83 +226,39 @@
      :pnames pnames
      :ugens detailed}))
 
-; TODO: Need to abstract a bit from synth, and put auto-wrapping only here.
-;(defmacro check
-;  "Evaluates the synth definition, sends it to the server, and runs it immediately 
-;  for 1 second."
-;  [& args]
-;  (let [
-;        wrapped (if (= 'out.ar (first body))
-;                  body
-;                  `(out.ar 0 (pan2.ar ~body 0)))
-
-(defmacro synth
-  "Transforms a synth definition (ugen-tree) into a form that's ready to save 
+(defn synthdef
+  "Transforms a synth definition (ugen-graph) into a form that's ready to save 
   to disk or send to the server.
-  
-  Stereo output instruments are the default.  If the root ugen is not out.ar, 
-  then the synth is wrapped in pan2.ar and out.ar.  To create mono synths or
-  effects make sure to define your own out.ar.
-
-  Synth definitions with no controllable parameters:
-      (synth (saw.ar 100))                 ; An anonymous synth
-      (synth :foo (saw.ar 200))
-      (synth :foo (out.ar 0 (pan2.ar (saw.ar 200)))) 
-      (synth \"foo\" {} (out.ar 0 (pan2.ar (saw.ar 200)))) 
-
-  A map of parameter-name to default-value is an optional second argument, so
-  these are the same:
-
-      (synth :foo {:freq 200 :amp 0.4} 
-        (out.ar 0 (pan2.ar (* :amp 
-                              (saw.ar :freq)))))
-
   "
-  [& args]
-  (let [[sname args] (cond 
-                       (string? (first args)) [(first args) (next args)]
-                       (symbol? (first args)) [(str (first args)) (next args)]
-                       (keyword? (first args)) [(name (first args)) (next args)]
-                       :default [(str "anon-" (next-id :anonymous-synth)) args])
-        [params body] (if (map? (first args))
-                        [(first args) (second args)]
-                        [{} (first args)])
-        kname (keyword sname)
-        ugen-tree (to-ugen-tree body)]
-    `(with-meta (build-synthdef ~sname ~params ~ugen-tree)
-                         {:type :synthdef
-                          :src-code '~body})))
+  [ugens]
+  (let [sname (str "anon-" (next-id :anonymous-synth))]
+    (with-meta (build-synthdef sname {} ugens)
+               {:type :overtone.synthdef/synthdef})))
 
-(defn with-stereo-out 
-  "Appends pan2 and out ugens to the synthdef to make it output in stereo."
-  [sdef]
-  (if (= "Out" (:name (last (:ugens sdef))))
-    sdef
-    (let [constants (concat (:constants sdef) [1.0 0])
-          zero-idx (dec (count constants))
-          one-idx (- (count constants) 2)
-          ugens (:ugens sdef)
-          last-idx (dec (count ugens))
-          pan {:inputs [{:src last-idx :index 0} {:src -1 :index zero-idx} {:src -1 :index one-idx}], :outputs [{:rate 2} {:rate 2}], :id (next-id :ugen), :name "Pan2", :rate 2, :special 0}
-          pan-idx (count (:ugens sdef))
-          out {:inputs [{:src -1, :index zero-idx} {:src pan-idx, :index 0} {:src pan-idx, :index 1}], :outputs [], :id (next-id :ugen), :name "Out", :rate 2, :special 0}]
-      (assoc sdef 
-             :constants constants
-             :ugens (concat ugens [pan out])))))
+(defn synth
+  [ugen]
+  (let [sdef (if (= "Out" (:name ugen))
+                 (synthdef ugen)
+                 (synthdef (overtone.ugens/out 0 (overtone.ugens/pan2 ugen))))
+        sname (:name sdef)]
+    (load-synthdef sdef)
+    (fn [& args] (apply hit sname args))))
+
+(defn control-proxy [cname & [crate]])
+(defn param-bindings [params] )
+
+(defmacro defsynth [sname params ugens]
+  (let [params (param-bindings params)]
+  `(def (symbol ~sname) (~ugens))))
 
 (defmacro play
   "Define an anonymous synth, load it and play it immediately."
-  [body]
-  `(let [sdef# (with-stereo-out (synth ~body))]
-     (load-synth sdef#)
+  [ugen]
+  `(let [sdef# (if (= "Out" (:name ~ugen))
+                 (synth ~ugen)
+                 (synth (overtone.ugens/out 0 (overtone.ugens/pan2 ~ugen))))]
+     (load-synthdef sdef#)
      (hit (:name sdef#))))
-
-(defmacro syn
-  "Useful for making synth definition helpers..."
-  [body]
-  (let [b (to-ugen-tree body)]
-    `(do ~b)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Synthdef de-compilation

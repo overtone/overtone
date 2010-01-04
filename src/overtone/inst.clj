@@ -10,7 +10,7 @@
 
 (defn load-instruments []
   (doseq [[sname sdef] @instruments*]
-    (overtone.sc/load-synth sdef)))
+    (overtone.sc/load-synthdef sdef)))
 
 (overtone.sc/add-boot-handler load-instruments :load-instruments)
 
@@ -20,7 +20,7 @@
               :group (overtone.sc/group :tail 0)}]
   (dosync (alter instruments* assoc (:name sdef) sdef))
   (if (overtone.sc/connected?)
-    (overtone.sc/load-synth sdef))))
+    (overtone.sc/load-synthdef sdef))))
 
 (defmacro inst [& args]
   `(load-inst (synth ~@args)))
