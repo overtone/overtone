@@ -220,11 +220,12 @@
         [params pnames] (make-params grouped-params)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
-    {:name (str name)
-     :constants constants
-     :params params
-     :pnames pnames
-     :ugens detailed}))
+    (with-meta {:name (str name)
+                :constants constants
+                :params params
+                :pnames pnames
+                :ugens detailed}
+               {:type :overtone.synthdef/synthdef})))
 
 (defn synthdef
   "Transforms a synth definition (ugen-graph) into a form that's ready to save 
@@ -232,8 +233,7 @@
   "
   [ugens]
   (let [sname (str "anon-" (next-id :anonymous-synth))]
-    (with-meta (build-synthdef sname {} ugens)
-               {:type :overtone.synthdef/synthdef})))
+    (build-synthdef sname {} ugens)))
 
 (defn synth
   [ugen]
