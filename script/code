@@ -2,6 +2,6 @@
 
 echo "Project Overtone initializing..."
 
-./script/tune-up
+./script/start.sh
 
 $EDITOR TODO

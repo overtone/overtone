@@ -207,10 +207,10 @@
                        uname (:name spec)
                        [uname special] (cond
                                          (unary-op-num uname) 
-                                         ["UnaryOpUgen" (unary-op-num uname)]
+                                         ["UnaryOpUGen" (unary-op-num uname)]
 
                                          (binary-op-num uname) 
-                                         ["BinaryOpUgen" (binary-op-num uname)]
+                                         ["BinaryOpUGen" (binary-op-num uname)]
 
                                          :default [uname 0])]
                    (with-meta {:id (next-id :ugen)
@@ -237,22 +237,22 @@
   (let [original-fn (ns-resolve ns ugen-name)]
     (ns-unmap ns ugen-name)
     (intern ns ugen-name (fn [& args]
-                           (if (some #(ugen? %1) args)
+                           (if (some #(or (ugen? %) (not (number? %))) args)
                              (apply ugen-fn args)
                              (apply original-fn args))))))
 (defn refer-ugens [ns]
-  (doseq [ugen UGENS]
-    (let [ugen-name (symbol (clojurify-ugen-name (:name ugen)))
-          ugen-name (with-meta ugen-name {:doc (with-out-str (print-ugen ugen))})
-          ugen-fn (make-ugen ugen)]
-      (if (and (ns-resolve ns ugen-name) 
-               (or (unary-op-num ugen-name) 
-                   (binary-op-num ugen-name)))
-        (overload-ugen-op ns ugen-name ugen-fn)
-        (intern ns ugen-name ugen-fn)))))
+  (let [core-ns (find-ns 'clojure.core)]
+    (doseq [ugen UGENS]
+      (let [ugen-name (symbol (clojurify-ugen-name (:name ugen)))
+            ugen-name (with-meta ugen-name {:doc (with-out-str (print-ugen ugen))})
+            ugen-fn (make-ugen ugen)]
+        (if (ns-resolve core-ns ugen-name) 
+          (overload-ugen-op ns ugen-name ugen-fn)
+          (intern ns ugen-name ugen-fn))))))
 
 (refer-ugens (create-ns 'overtone.ugens))
 
+(comment
 (defn old-ugen [name rate special & args]
   (let [spec (if-let [ug (get-ugen name)]
                ug
@@ -266,6 +266,7 @@
                 :special special
                 :args args}
                {:type :ugen})))
+            )
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
