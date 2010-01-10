@@ -30,8 +30,9 @@
 ;
 ;[[{:name :freq :value 440.0 :rate  1} {:name :amp :value 0.4 :rate  1}]
 ; [{:name :adfs :value 20.23 :rate  2} {:name :bar :value 8.6 :rate  2}]]
-(defn- param-input-spec [grouped-params param-name]
-  (let [ctl-filter (fn [[idx ctl]] (= param-name (:name ctl)))
+(defn- param-input-spec [grouped-params param-proxy]
+  (let [param-name (:name param-proxy)
+        ctl-filter (fn [[idx ctl]] (= param-name (:name ctl)))
         [[src group] foo] (take 1 (filter 
                               (fn [[src grp]] 
                                 (not (empty? 
@@ -60,15 +61,18 @@
                  (map (fn [arg]
                         (cond
                           ; constant
-                          (number? arg) {:src -1 :index (index-of constants arg)}
+                          (number? arg) 
+                          {:src -1 :index (index-of constants arg)}
 
                           ; control
-                          (keyword? arg) (param-input-spec grouped-params arg)
+                          (= ::control-proxy (type arg)) 
+                          (param-input-spec grouped-params arg)
 
                           ; child ugen
-                          (ugen? arg) (let [idx (ugen-index ugens arg)
-                                            updated-ugen (nth ugens idx)]
-                                        (inputs-from-outputs idx updated-ugen))))
+                          (ugen? arg) 
+                          (let [idx (ugen-index ugens arg)
+                                updated-ugen (nth ugens idx)]
+                            (inputs-from-outputs idx updated-ugen))))
                       (:args ugen)))]
     (assoc ugen :inputs inputs)))
 
@@ -216,7 +220,11 @@
 (defn build-synthdef
   [name params top-ugen]
   (let [[ugens constants] (collect-ugen-info top-ugen) 
-        grouped-params (group-params (parse-params params))
+        ;_ (println "input-params: " params)
+        parsed-params (parse-params params)
+        ;_ (println "parsed-params: " parsed-params)
+        grouped-params (group-params parsed-params)
+        ;_ (println "grouped-params: " grouped-params)
         [params pnames] (make-params grouped-params)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
@@ -244,21 +252,26 @@
     (load-synthdef sdef)
     (fn [& args] (apply hit sname args))))
 
-(defn control-proxy [cname & [crate]])
-(defn param-bindings [params] )
+(defn control-proxy [name]
+  (with-meta {:name (str name)}
+             {:type ::control-proxy}))
 
-(defmacro defsynth [sname params ugens]
-  (let [params (param-bindings params)]
-  `(def (symbol ~sname) (~ugens))))
+; TODO: This should eventually handle optional rate specifiers, and possibly
+; be extended with support for defining ranges of values, etc...
+(defn- parse-synth-params [params]
+  (flatten (map (fn [[param default]] 
+                  [param (control-proxy param)])
+                (apply hash-map params))))
 
-(defmacro play
-  "Define an anonymous synth, load it and play it immediately."
-  [ugen]
-  `(let [sdef# (if (= "Out" (:name ~ugen))
-                 (synth ~ugen)
-                 (synth (overtone.ugens/out 0 (overtone.ugens/pan2 ~ugen))))]
-     (load-synthdef sdef#)
-     (hit (:name sdef#))))
+(defmacro defsynth [name params & ugen-form]
+  (let [sname (str name)
+        param-proxies (parse-synth-params params)
+        param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
+    `(do
+       (let [~@param-proxies
+             sdef# (build-synthdef ~sname ~param-map ~@ugen-form)]
+         (load-synthdef sdef#))
+       (def ~name (fn [& args#] (apply hit ~sname args#))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Synthdef de-compilation

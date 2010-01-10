@@ -18,6 +18,9 @@ some other thing can easily be defined in Clojure?
 * Create a fully native Clojure implementation of the SuperCollider interface on top of Java sound
 so we can run inside of the browser, on phones, etc...
 
+* use the clojure JNA library to control jack directly without needing external
+utils in linux
+
 == Midi and Devices:
 
 * Start thinking about some kind of generic device layer abstraction so we can

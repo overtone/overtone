@@ -120,6 +120,8 @@
 (defn- synthdef-file-bytes [sfile]
   (spec-write-bytes synthdef-file-spec sfile))
 
+(defn synthdef? [obj] (= ::synthdef (type obj)))
+
 ; TODO: byte array shouldn't really be the default here, but I don't 
 ; know how to test for one correctly... (byte-array? data) please?
 (defn synthdef-read 

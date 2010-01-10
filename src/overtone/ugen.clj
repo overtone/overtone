@@ -1,7 +1,8 @@
 (ns overtone.ugen
 ;  (:refer-clojure :exclude [+ - * / = < > <= >=])
   (:use (overtone util ops)
-     clojure.contrib.seq-utils))
+     clojure.contrib.seq-utils
+     clojure.contrib.pprint))
 
 ;; Outputs have a specified calculation rate
 ;;   0 = scalar rate - one sample is computed at initialization time only. 
@@ -60,23 +61,38 @@
   (get UGEN-MAP (normalize-name word)))
 
 (defn find-ugen [regexp]
-  (filter (fn [[k v]] (re-find (re-pattern regexp) (str k))) UGEN-MAP))
+  (map #(second %)
+       (filter (fn [[k v]] (re-find (re-pattern regexp) (str k)))
+               UGEN-MAP)))
+
+(defn- print-ugen-args [args]
+  (println "args: (defaults)")
+  (doseq [arg args]
+    (print (cond 
+             (:array? arg) 
+             (format "\t%s: [ input channels ]\n" (:name arg))
+
+             (symbol? (:default arg))
+             (format "\t%s: <no-default>\n" (:name arg))
+
+             :default
+             (format "\t%s: %.2f\n" (:name arg) (:default arg))))))
 
 (defn print-ugen [& ugens]
   (doseq [ugen ugens]
-    (println "ugen:" (str "\"" (:name ugen) "\"")
-             "\nargs: " (map #(:name %1) (:args ugen))
-             "\nrates: " (seq (:rates ugen))
-             "\nouts: " (:fixed-outs ugen) (str "(" (:out-type ugen) ")")
-             "\n- - - - - - - - - -\n")))
+    (println "UGen:" (str "\"" (:name ugen) "\""))
+    (print-ugen-args (:args ugen))
+    (println "outputs: " (:fixed-outs ugen) (name (:out-type ugen))
+             (str "[" (apply str (interpose ", "(:rates ugen))) "]"))))
 
 (defn ugen-doc [word]
   (apply print-ugen (find-ugen word)))
 
-(defn inf! [sq]
+(defn inf!
   "users use this to tag infinite sequences for use as
    expanded arguments. needed or else multichannel
-   expansion will blow up"
+   expansion will blow up" 
+  [sq]
   (with-meta sq
     (merge (meta sq) {:infinite-sequence true})))
 
@@ -86,10 +102,11 @@
 (defn mapply [f coll-coll]
   (map #(apply f %) coll-coll))
 
-(defn parallel-seqs [& seqs]
+(defn parallel-seqs
   "takes n seqs and returns a seq of vectors of length n, lazily
    (take 4 (parallel-seqs (repeat 5) (cycle [1 2 3]))) ->
      ([5 1] [5 2] [5 3] [5 1])"
+  [& seqs]
   (apply map vector seqs))
 
 (defn cycle-vals [coll]
@@ -100,29 +117,35 @@
 ; to test this code you could just use this dummy function 
 (defn csproxy? [_] false)
 
-(defn multichannel-expand [& args]
-  "does sc style multichannel expansion checks for any seqs flagged infinite by
+(defn multichannel-expand
+  "Does sc style multichannel expansion checks for any seqs flagged infinite by
    the user so as not to try expand them. note that this returns a list even
    in the case of a single expansion. see fn expansive which implements the full
    expansion semantics."
-  (if (= (count args) 0)
+  [args]
+  (if (zero? (count args))
     [[]]
     (let [gc-seqs (fn [[gcount seqs] arg]
-                    (cond (inf? arg)
-                          [gcount (conj seqs arg)]
-                          (and (coll? arg)
-                               (not (csproxy? arg)))
-                          [(max gcount (count arg))
-                           (conj seqs (cycle-vals arg))]
-                          :else
-                          [gcount (conj seqs (repeat arg))]))
+                    (cond 
+                      (inf? arg) [gcount (conj seqs arg)]
+
+                      (and (coll? arg) (not (or (map? arg) (csproxy? arg))))
+                      [(max gcount (count arg)) (conj seqs (cycle-vals arg))]
+
+                      :else 
+                      [gcount (conj seqs (repeat arg))]))
           [greatest-count seqs] (reduce gc-seqs [1 []] args)]
       (take greatest-count (apply parallel-seqs seqs)))))
 
-(defn expansive [f]
-  "takes a function and returns a multichannel-expand version of the function"
+(defn expansive
+  "Takes a function and returns a multi-channel-expanding version of the function."
+  [f has-ary?]
+  ;(println "expansive: " f "\nhas-ary: " has-ary?)
   (fn [& args]
-    (let [expanded (apply multichannel-expand args)
+    (let [ary (last args)
+          expanded (if (and has-ary? (coll? ary) (not (map? ary)))
+                     (map #(concat % ary) (multichannel-expand (drop-last args)))
+                     (multichannel-expand args))
           applied (mapply f expanded)]
       (if (= (count applied) 1)
         (first applied)
@@ -176,27 +199,29 @@
 (defn make-ugen 
   "Returns a function representing the given ugen that will fill in default arguments, rates, etc."
   [spec]
-  (fn [& args]
-    (let [[rate args] (if (keyword? (first args))
-                        [(first args) (rest args)]
-                        [:audio args])
-          uname (:name spec)
-          [uname special] (cond
-                            (unary-op-num uname) 
-                            ["UnaryOpUgen" (unary-op-num uname)]
+  (let [ary? (:array? (last (:args spec)))]
+    (expansive (fn [& args]
+                 (let [[rate args] (if (keyword? (first args))
+                                     [(first args) (rest args)]
+                                     [:audio args])
+                       uname (:name spec)
+                       [uname special] (cond
+                                         (unary-op-num uname) 
+                                         ["UnaryOpUgen" (unary-op-num uname)]
 
-                            (binary-op-num uname) 
-                            ["BinaryOpUgen" (binary-op-num uname)]
+                                         (binary-op-num uname) 
+                                         ["BinaryOpUgen" (binary-op-num uname)]
 
-                            :default [uname 0])]
-      (with-meta {:id (next-id :ugen)
-                  :name uname 
-                  :rate (rate RATES)
-                  :special special
-                  :args (if (= "EnvGen" (:name spec))
-                          (envelope-args spec args)
-                          (add-default-args spec args))}
-                 {:type ::ugen}))))
+                                         :default [uname 0])]
+                   (with-meta {:id (next-id :ugen)
+                               :name uname 
+                               :rate (rate RATES)
+                               :special special
+                               :args (if (= "EnvGen" (:name spec))
+                                       (envelope-args spec args)
+                                       (add-default-args spec args))}
+                              {:type ::ugen})))
+               ary?)))
 
 (defn clojurify-ugen-name 
   "A basic camelCase to with-dash name converter.  Most likely needs improvement."
@@ -215,12 +240,14 @@
                            (if (some #(ugen? %1) args)
                              (apply ugen-fn args)
                              (apply original-fn args))))))
-  
 (defn refer-ugens [ns]
   (doseq [ugen UGENS]
     (let [ugen-name (symbol (clojurify-ugen-name (:name ugen)))
+          ugen-name (with-meta ugen-name {:doc (with-out-str (print-ugen ugen))})
           ugen-fn (make-ugen ugen)]
-      (if (ns-resolve ns ugen-name)
+      (if (and (ns-resolve ns ugen-name) 
+               (or (unary-op-num ugen-name) 
+                   (binary-op-num ugen-name)))
         (overload-ugen-op ns ugen-name ugen-fn)
         (intern ns ugen-name ugen-fn)))))
 
@@ -257,7 +284,6 @@
               :inputs []}
             {:type :ugen}))
 
-(defn control-ugen? [ugen]
-  (and (map? ugen)
-       (CONTROLS (normalize-name (:name ugen)))))
+(defn control? [obj]
+  (isa? (type obj) ::control))
 
