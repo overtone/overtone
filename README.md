@@ -101,6 +101,7 @@ http://vimeo.com/7827497
 ### Contributors
 
 * Jeff Rose
+* Jon Rose
 * Sam Aaron
 * Fabian Aussems
 * Christophe McKeon 
