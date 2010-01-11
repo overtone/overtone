@@ -104,5 +104,3 @@ http://vimeo.com/7827497
 * Sam Aaron
 * Fabian Aussems
 * Christophe McKeon 
-
-* <your name here...>
