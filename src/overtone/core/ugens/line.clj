@@ -86,7 +86,7 @@
               {:name "root", :default 261.6256}
               {:name "exp", :default 0.3333}],
        :rates #{:ir :ar :kr}
-       :check-inputs if-audio-rate-check-first-input-audio-rate}
+       :check (when-ar (check-first-input-ar "freq must be audio rate"))}
 
       ;; AmpCompA : AmpComp {
       ;;  *ir { arg freq = 1000, root = 0, minAmp = 0.32, rootAmp = 1.0; 
@@ -136,7 +136,7 @@
       ;; }
 
       {:name "T2K" :derived "A2K"
-       :check-inputs check-first-input-audio-rate}
+       :check (check-first-input-ar)}
 
       ;; T2A : K2A { // control rate to audio rate trigger converter.
       ;;  *ar { arg in = 0.0, offset = 0;
@@ -163,12 +163,7 @@
       ;; }
 
       {:name "DC",
-       :args [{:name "in", :array true}],
-       :out-type :variable
-       :init (fn [rate spec args]
-               (let [in (args 0)]
-                 {:args args
-                  :num-outs (count in)}))}
+       :args [{:name "in", :mode :prepend-sequence-set-num-outs}]}
       
       ;; Silent : MultiOutUGen {
       ;;  *ar { arg numChannels = 1;
@@ -180,8 +175,6 @@
       ;;  }
       ;; }
 
-      ;; TODO init inputs and outputs
       {:name "Silent",
        :args [{:name "numChannels", :default 1}],
-       :rates #{:ar},
-       :num-outs :from-arg}])
+       :rates #{:ar}}])

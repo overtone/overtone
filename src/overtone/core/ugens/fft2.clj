@@ -26,7 +26,12 @@
       ;;  }
       ;; }
 
-      {:name "Convolution", :args [{:name "in"} {:name "kernel"} {:name "framesize", :default 512.0}], :rates #{:ar}}
+      {:name "Convolution",
+       :args [{:name "in"}
+              {:name "kernel"}
+              {:name "framesize", :default 512.0}],
+       :rates #{:ar}
+       :muladd true}
 
       ;; //fixed kernel convolver with fix by nescivi to update the kernel on receipt of a trigger message 
       ;; Convolution2 : UGen
@@ -36,7 +41,13 @@
       ;;  }
       ;; }
 
-      {:name "Convolution2", :args [{:name "in"} {:name "kernel"} {:name "trigger"} {:name "framesize", :default 512.0}], :rates #{:ar}}
+      {:name "Convolution2",
+       :args [{:name "in"}
+              {:name "kernel"}
+              {:name "trigger"}
+              {:name "framesize", :default 512.0}],
+       :rates #{:ar}
+       :muladd true}
       
       ;; //fixed kernel convolver with linear crossfade
       ;; Convolution2L : UGen
@@ -46,7 +57,14 @@
       ;;  }
       ;; }
 
-      {:name "Convolution2L", :args [{:name "in"} {:name "kernel"} {:name "trigger"} {:name "framesize", :default 512.0} {:name "crossfade", :default 1.0}], :rates #{:ar}}
+      {:name "Convolution2L",
+       :args [{:name "in"}
+              {:name "kernel"}
+              {:name "trigger"}
+              {:name "framesize", :default 512.0}
+              {:name "crossfade", :default 1.0}],
+       :rates #{:ar}
+       :muladd true}
 
       ;; //fixed kernel stereo convolver with linear crossfade
       ;; StereoConvolution2L : MultiOutUGen
@@ -64,7 +82,16 @@
       ;;  }
       ;; }
 
-      {:name "StereoConvolution2L", :args [{:name "in"} {:name "kernelL"} {:name "kernelR"} {:name "trigger"} {:name "framesize", :default 512.0} {:name "crossfade", :default 1.0}], :rates #{:ar}}
+      {:name "StereoConvolution2L",
+       :args [{:name "in"}
+              {:name "kernelL"}
+              {:name "kernelR"}
+              {:name "trigger"}
+              {:name "framesize", :default 512.0}
+              {:name "crossfade", :default 1.0}],
+       :rates #{:ar}
+       :muladd true
+       :num-outs 2}
 
       ;; //time based convolution by nescivi
       ;; Convolution3 : UGen
@@ -78,7 +105,12 @@
       ;; }
 
 
-      {:name "Convolution3", :args [{:name "in"} {:name "kernel"} {:name "trigger", :default 0.0} {:name "framesize", :default 512.0}]}
+      {:name "Convolution3",
+       :args [{:name "in"}
+              {:name "kernel"}
+              {:name "trigger", :default 0.0}
+              {:name "framesize", :default 512.0}]
+       :muladd true}
 
       ;; //jensen andersen inspired FFT feature detector
       ;; PV_JensenAndersen : PV_ChainUGen
@@ -88,7 +120,15 @@
       ;;  }
       ;; }
 
-      {:name "PV_JensenAndersen", :args [{:name "buffer"} {:name "propsc", :default 0.25} {:name "prophfe", :default 0.25} {:name "prophfc", :default 0.25} {:name "propsf", :default 0.25} {:name "threshold", :default 1.0} {:name "waittime", :default 0.04}], :rates #{:ar}}
+      {:name "PV_JensenAndersen",
+       :args [{:name "buffer"}
+              {:name "propsc", :default 0.25}
+              {:name "prophfe", :default 0.25}
+              {:name "prophfc", :default 0.25}
+              {:name "propsf", :default 0.25}
+              {:name "threshold", :default 1.0}
+              {:name "waittime", :default 0.04}],
+       :rates #{:ar}}
 
       ;; PV_HainsworthFoote : PV_ChainUGen
       ;; {
@@ -97,7 +137,13 @@
       ;;  }
       ;; }
 
-      {:name "PV_HainsworthFoote", :args [{:name "buffer"} {:name "proph", :default 0.0} {:name "propf", :default 0.0} {:name "threshold", :default 1.0} {:name "waittime", :default 0.04}], :rates #{:ar}}
+      {:name "PV_HainsworthFoote",
+       :args [{:name "buffer"}
+              {:name "proph", :default 0.0}
+              {:name "propf", :default 0.0}
+              {:name "threshold", :default 1.0}
+              {:name "waittime", :default 0.04}],
+       :rates #{:ar}}
 
       ;; //not FFT but useful for time domain onset detection
       ;; RunningSum : UGen
@@ -114,7 +160,6 @@
       ;;  }
       ;; }
 
-      {:name "RunningSum", :args [{:name "in"} {:name "numsamp", :default 40.0}]}
-
-
-      ])
+      {:name "RunningSum",
+       :args [{:name "in"}
+              {:name "numsamp", :default 40.0}]}])

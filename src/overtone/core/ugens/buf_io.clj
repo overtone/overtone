@@ -1,5 +1,5 @@
 (ns overtone.core.ugens.buf-io
-  (:use overtone.core.ugens.common))
+  (:use overtone.core.ugens-common))
 
 (def specs
      [
@@ -82,7 +82,7 @@
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}
               {:name "interpolation", :default 2}]
-       :check (when-ar (named-input-ar "phase"))}
+       :check (when-ar (nth-input-ar 1))}   ; check phase. NB numChannels has already been popped.
       
       ;; BufWr : UGen {	
       ;; 	*ar { arg inputArray, bufnum=0, phase=0.0, loop=1.0;
@@ -106,7 +106,7 @@
               {:name "bufnum", :default 0}
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}]
-       :check (when-ar (named-input-ar "phase"))}
+       :check (when-ar (nth-input-ar 1))}
 
       ;; RecordBuf : UGen {	
       ;; 	*ar { arg inputArray, bufnum=0, offset=0.0, recLevel=1.0, preLevel=0.0, 
@@ -203,7 +203,7 @@
       ;; 	}
       ;; }
 
-      ;; TODO increment function, what does it do?
+      ;; TODO increment method, what does it do?
       {:name "MaxLocalBufs"
        :args []
        :rates #{:ir}}

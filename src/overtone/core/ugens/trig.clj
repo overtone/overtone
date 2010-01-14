@@ -19,10 +19,7 @@
       
       ;; Trig : Trig1 {}
       
-      {:name "Trig",
-       :args [{:name "in", :default 0.0}
-              {:name "dur", :default 0.1}]
-       :signal-range :unipolar}
+      {:name "Trig", :derived "Trig1"}
 
       ;; TDelay : Trig1 {
       ;;  	checkInputs { ^this.checkSameRateAsFirstInput }
@@ -32,7 +29,7 @@
        :args [{:name "in", :default 0.0}
               {:name "dur", :default 0.1}]
        :signal-range :unipolar
-       :check-inputs :same-rate-as-first}
+       :check (same-rate-as-first-input)}
 
       ;; SendTrig : UGen {
       ;; 	*ar { arg in = 0.0, id = 0, value = 0.0;
@@ -52,8 +49,8 @@
        :args [{:name "in", :default 0.0}
               {:name "id", :default 0}
               {:name "value", :default 0.0}],
-       :fixed-outs 0
-       :check-inputs :same-rate-as-first}
+       :num-outs 0
+       :check (same-rate-as-first-input)}
       
       ;; SendReply : SendTrig {
       ;; 	*kr { arg trig = 0.0, cmdName = '/reply', values, replyID = -1;
@@ -98,9 +95,7 @@
 
       ;; Gate : Latch {}
 
-      {:name "Gate",
-       :args [{:name "in", :default 0.0}
-              {:name "trig", :default 0.0}]}
+      {:name "Gate", :derived "Latch"}
       
       ;; PulseCount : UGen {
       ;; 	*ar { arg trig = 0.0, reset = 0.0;
@@ -115,35 +110,23 @@
       {:name "PulseCount",
        :args [{:name "trig", :default 0.0}
               {:name "reset", :default 0.0}]
-       :check-inputs :same-rate-as-first}
+       :check (same-rate-as-first-input)}
 
       ;; SetResetFF : PulseCount {}
 
-      {:name "SetResetFF",
-       :args [{:name "trig", :default 0.0}
-              {:name "reset", :default 0.0}]
-       :check-inputs :same-rate-as-first}
+      {:name "SetResetFF", :derived "PulseCount"}
             
       ;; Peak : PulseCount {}
       
-      {:name "Peak",
-       :args [{:name "trig", :default 0.0}
-              {:name "reset", :default 0.0}]
-       :check-inputs :same-rate-as-first}
+      {:name "Peak", :derived "PulseCount"}
       
       ;; RunningMin : Peak {}
       
-      {:name "RunningMin",
-       :args [{:name "trig", :default 0.0}
-              {:name "reset", :default 0.0}]
-       :check-inputs :same-rate-as-first}
+      {:name "RunningMin", :derived "PulseCount"}
       
       ;; RunningMax : Peak {}
       
-      {:name "RunningMax",
-       :args [{:name "trig", :default 0.0}
-              {:name "reset", :default 0.0}]
-       :check-inputs :same-rate-as-first}
+      {:name "RunningMax", :derived "PulseCount"}
 
       ;; Stepper : UGen {
       
@@ -162,19 +145,16 @@
               {:name "min", :default 0}
               {:name "max", :default 7}
               {:name "step", :default 1}
-              {:name "resetval" :default :min}] ; TODO how to do
-                                        ; previous defaults?
-       :check-inputs :same-rate-as-first}
+              {:name "resetval" :default 1}] ; TODO MAYBE? allow :default :min
+       :check (same-rate-as-first-input)}
       
       ;; PulseDivider : UGen {
-      
       ;; 	*ar { arg trig = 0.0, div = 2.0, start = 0.0;
       ;; 		^this.multiNew('audio', trig, div, start)
       ;; 	}
       ;; 	*kr { arg trig = 0.0, div = 2.0, start = 0.0;
       ;; 		^this.multiNew('control', trig, div, start)
       ;; 	}
-      
       ;; }
 
       {:name "PulseDivider",
@@ -183,7 +163,6 @@
               {:name "start", :default 0.0}]}
       
       ;; ToggleFF : UGen {
-      
       ;; 	*ar { arg trig = 0.0;
       ;; 		^this.multiNew('audio', trig)
       ;; 	}
@@ -207,7 +186,7 @@
       
       {:name "ZeroCrossing",
        :args [{:name "in", :default 0.0}]
-       :check-inputs :same-rate-as-first} ; REALLY? there's only one input
+       :check (same-rate-as-first-input)}
       
       ;; Timer : UGen {
       ;; 	// output is the time between two triggers
@@ -222,7 +201,7 @@
       
       {:name "Timer",
        :args [{:name "trig", :default 0.0}]
-       :check-inputs :same-rate-as-first} ; ??
+       :check (same-rate-as-first-input)}
       
       ;; Sweep : UGen {
       ;; 	// output sweeps up in value at rate per second
@@ -295,10 +274,9 @@
               {:name "peakThreshold", :default 0.5}
               {:name "downSample", :default 1}],
        :rates #{:kr},
-       :fixed-outs 2}
+       :num-outs 2}
       
-      ;; InRange : UGen
-      ;; {
+      ;; InRange : UGen {
       ;; 	*ar { arg in = 0.0, lo = 0.0, hi = 1.0;
       ;; 		^this.multiNew('audio', in, lo, hi)
       ;; 	}
@@ -314,31 +292,19 @@
 
       ;; Fold : InRange {}
       
-      {:name "Fold",
-       :args [{:name "in", :default 0.0}
-              {:name "lo", :default 0.0}
-              {:name "hi", :default 1.0}]}
+      {:name "Fold", :derived "InRange"}
       
       ;; Clip : InRange {}
 
-      {:name "Clip",
-       :args [{:name "in", :default 0.0}
-              {:name "lo", :default 0.0}
-              {:name "hi", :default 1.0}]}
+      {:name "Clip", :derived "InRange"}
       
       ;; Wrap : InRange {}
 
-      {:name "Wrap",
-       :args [{:name "in", :default 0.0}
-              {:name "lo", :default 0.0}
-              {:name "hi", :default 1.0}]}
+      {:name "Wrap", :derived "InRange"}
       
       ;; Schmidt : InRange {}
 
-      {:name "Schmidt",
-       :args [{:name "in", :default 0.0}
-              {:name "lo", :default 0.0}
-              {:name "hi", :default 1.0}]}
+      {:name "Schmidt", :derived "InRange"}
       
       ;; InRect : UGen
       ;; {
@@ -352,6 +318,8 @@
       ;; 	}
       ;; }
 
+	  ;; TODO maybe allow a rect datatype as arg
+	  ;;      and write init function to handle it
       {:name "InRect",
        :args [{:name "x", :default 0.0}
               {:name "y", :default 0.0}
@@ -393,9 +361,7 @@
       
       ;; LeastChange : MostChange {}
 
-      {:name "LeastChange",
-       :args [{:name "a", :default 0.0}
-              {:name "b", :default 0.0}]}
+      {:name "LeastChange", :derived "MostChange"}
       
       ;; LastValue : UGen {
       

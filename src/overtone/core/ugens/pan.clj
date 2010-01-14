@@ -196,7 +196,7 @@
                {:name "azimuth"}
                {:name "gain", :default 1.0}],
         :num-outs 3
-        :check-inputs (check-n-inputs-audio-rate 2)}
+        :check (when-ar (first-n-inputs-ar 2))}
        
        ;; DecodeB2 : Panner {
        ;;  *ar { arg numChans, w, x, y, orientation = 0.5;
@@ -219,8 +219,7 @@
                {:name "x"}
                {:name "y"}
                {:name "orientation", :default 0.5}],
-        :num-outs :from-arg
-        :check-inputs (check-n-inputs-audio-rate 3)}
+        :check (when-ar (first-n-inputs-ar 3))}
        
        ;; PanAz : Panner {
        ;;  *ar { arg numChans, in, pos = 0.0, level = 1.0, width = 2.0, orientation = 0.5;
@@ -242,8 +241,7 @@
                {:name "pos", :default 0.0}
                {:name "level", :default 1.0}
                {:name "width", :default 2.0}
-               {:name "orientation", :default 0.5}],
-        :num-outs :from-arg}  
+               {:name "orientation", :default 0.5}]}  
 
        ;; XFade2 : XFade {
        ;;  // equal power two channel cross fade
@@ -261,8 +259,8 @@
         :args [{:name "inA"}
                {:name "inB"}
                {:name "pan", :default 0.0}
-               {:name "level", :default 1.0}]
-        :check-inputs (if-audio-rate-check-n-inputs-audio-rate 2)}
+               {:name "level", :default 1.0}],
+        :check (when-ar (first-n-inputs-ar 2))}
        
        ;; LinXFade2 : XFade {
        ;;  // linear two channel cross fade
@@ -275,9 +273,9 @@
        ;;    checkInputs { ^this.checkNInputs(2) }
        ;; }
 
-       ;; level not supported as of yet
+       ;; TODO MAYBE? level not supported as of yet
        {:name "LinXFade2",
         :args [{:name "inA"}
                {:name "inB"}
-               {:name "pan", :default 0.0}]
-        :check-inputs (if-audio-rate-check-n-inputs-audio-rate 2)}]))
+               {:name "pan", :default 0.0}],
+        :check (when-ar (first-n-inputs-ar 2))}]))

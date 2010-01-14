@@ -42,7 +42,7 @@
       ;; }
 
       {:name "Klang",
-       :args [{:name "specs", :array true}
+       :args [{:name "specs", :mode :not-expanded}
               {:name "freqscale", :default 1.0}
               {:name "freqoffset", :default 0.0}],
        :rates #{:ar}
@@ -76,7 +76,7 @@
       ;; }
 
       {:name "Klank",
-       :args [{:name "specs", :array true}
+       :args [{:name "specs", :mode :not-expanded}
               {:name "input"}
               {:name "freqscale", :default 1.0}
               {:name "freqoffset", :default 0.0}

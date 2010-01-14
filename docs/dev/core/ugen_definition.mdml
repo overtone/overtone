@@ -16,7 +16,7 @@ arg entry, depending on the mode of the arg.
 
 then an expansion spec is derived from the :expanded properties.
 it is just a vector of booleans and is assigned to the :expansion-spec
-property.
+property. this is later used during MCE
 
 ## function generation
 
@@ -37,6 +37,38 @@ used instead. if a key in the fn-names map is missing
 for one of the rates, then the above method is used
 to generate the name for that particular rate.
 
+## synth def time
+
+### multi-channel expansion (MCE)
+
+when a ugen function is called. the args and the
+expansion-spec are passed to the expand function.
+which then calls the ugen function potentially multiple 
+times. 
+
+### init
+
+if the spec has an init fuction, which should have args
+[rate args spec], then this function is called. 
+if the function returns a vector, then those are used
+for the args, if it returns a map, then two keys should be
+defined. :args and :num-outs.
+
+### post init
+
+after the init function returns, given there is any, then the
+args are massaged. the args with a mode which require them to
+be popped, are popped. the args which need to be transformed are
+transformed, etc. then possibly scalar values are wrapped in
+some datastructure (TODO not sure about that).
+
+### check
+
+if a :check function with args [rate num-outs inputs spec]
+is defined, then it is called last before the ugen is added
+to the synth graph. if the check function returns a string
+then it is considered an error and an exception is thrown.
+
 ---------------------------------------------------------------
 
 the anatomy of a spec map
@@ -53,6 +85,9 @@ the anatomy of a spec map
           :default  optional; the default value if none given at synthdef time
                     note that there must not ever be any args with
                     defaults followed by args without them
+          :map   a map that the arg will be looked up in
+                 if a value exists for key arg then that
+                 is used, else the arg is used 
           :mode     optional symbol;
                     :not-expanded stops multi channel expansion on
                                   thearg
@@ -76,9 +111,6 @@ the anatomy of a spec map
                               mapped to the integer code for the
                               action. args named "doneAction" are
                               implicitly in this mode
-                    :map   a map that the arg will be looked up in
-                           if a value exists for key arg then that
-                           is used, else the arg is used
                     :as-ar  the argument is converted to audio rate
                            using the k2a ugen, if it is not already
                            audio rate. this is only done if the rate

@@ -17,12 +17,12 @@
        :args [{:name "buffer"}
               {:name "in", :default 0.0}
               {:name "hop", :default 0.5}
-              {:name "wintype", :default :welch}
+              {:name "wintype", 
+               :default :welch, 
+               :map {:welch 0, :hann 1, :rect -1}}
               {:name "active", :default 1}
               {:name "winsize", :default 0}],
-       :rates #{:kr}
-       :init (fn [rate args]
-               )} ;; TODO convert wintype to integer
+       :rates #{:kr}}
       
       ;; IFFT : UGen 
       ;; {
@@ -39,9 +39,10 @@
 
       {:name "IFFT",
        :args [{:name "buffer"}
-              {:name "wintype", :default :welch}
-              {:name "winsize", :default 0}]
-       :init }  ;; TODO convert wintype to integer
+              {:name "wintype", 
+               :default :welch, 
+               :map {:welch 0, :hann 1, :rect -1}}
+              {:name "winsize", :default 0}]}
       
       ;; PV_MagAbove : PV_ChainUGen
       ;; {

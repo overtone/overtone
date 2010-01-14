@@ -1,5 +1,5 @@
 
-(ns overtone.core.ugens.common)
+(ns overtone.core.ugens-common)
 
 ; 0 do nothing when the UGen is finished
 ; 1 pause the enclosing synth, but do not free it
@@ -41,8 +41,6 @@
 
 ;; checks
 
-(defmacro unless [p expr] `(if (not ~p) ~expr))
-
 (defn rate-of [obj]
   (:rate obj))
 
@@ -60,10 +58,10 @@
     `(defn ~name
        (~params
         (fn ~'[rate num-outs inputs spec]
-          (unless ~expr ~default-message)))
+          (when-not ~expr ~default-message)))
        (~params-with-message
         (fn ~'[rate num-outs inputs spec]
-          (unless ~expr ~message))))))
+          (when-not ~expr ~message))))))
 
 (defcheck same-rate-as-first-input []
   (str (name-of (first inputs)) "must be same rate as called ugen, i.e. " rate)
@@ -102,7 +100,7 @@
   (let [all-checks (juxt check-fns)]
     (fn [rate num-outs inputs spec]
       (let [errors (all-checks rate num-outs inputs spec)]
-        (unless (every? nil? errors)
+        (when-not (every? nil? errors)
                 (apply str errors))))))
 
 (defn when-ar [& check-fns]

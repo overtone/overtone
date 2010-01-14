@@ -56,19 +56,17 @@
       {:name "Onsets",
        :args [{:name "chain"}
               {:name "threshold", :default 0.5}
-              {:name "odftype", :default :rcomplex}
+              {:name "odftype", 
+               :default :rcomplex
+               :map {:power 0 :magsum 1 :complex 2
+                     :rcomplex 3 :phase 4 :wphase 5 :mkl 6}}
               {:name "relaxtime", :default 1}
               {:name "floor", :default 0.1}
               {:name "mingap", :default 10}
               {:name "medianspan", :default 11.0}
               {:name "whtype", :default 1}
               {:name "rawodf", :default 0}],
-       :rates #{:kr}
-       :init (fn [rate args spec]
-               (let [odftypes {:power 0 :magsum 1 :complex 2
-                               :rcomplex 3 :phase 4 :wphase 5 :mkl 6}
-                     type (args 2)]
-                 (assoc args 2 (odftypes type type))))}
+       :rates #{:kr}}
       
       ;; //transient input not currently used but reserved for future use in downweighting frames which have high transient content
       ;; KeyTrack : UGen {

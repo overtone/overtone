@@ -100,7 +100,7 @@
               {:name "levelScale", :default 1.0}
               {:name "levelBias", :default 0.0}
               {:name "timeScale", :default 1.0}
-              {:name "doneAction", :default 0}]
+              {:name "doneAction", :default :none}]
        :init (fn [rate [l d s c gate reset ls lb ts da] spec]
                (if (or (ar? gate) (ar? reset))
                  [l d s c (as-ar gate) (as-ar reset) ls lb ts da]))}
@@ -239,7 +239,7 @@
       {:name "Dwhite",
        :args [{:name "lo", :default 0.0}
               {:name "hi", :default 1.0}
-              {:name "length", :default Float/POSITIVE_INFINITY}], ; TODO inf ??
+              {:name "length", :default 100}], ; TODO inf ??
        :rates #{:dr}}
       
       ;; Diwhite : Dwhite {}
@@ -256,7 +256,7 @@
        :args [{:name "lo", :default 0.0}
               {:name "hi", :default 1.0}
               {:name "step", :default 0.01}
-              {:name "length", :default Float/POSITIVE_INFINITY}], ; TODO inf ??
+              {:name "length", :default 100}], ; TODO inf ??
        :rates #{:dr}}
       
       ;; Dibrown : Dbrown {}
