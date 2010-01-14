@@ -217,8 +217,11 @@
 ;  * No feedback loops are allowed. Feedback must be accomplished via delay lines 
 ;  or through buses. 
 ;
-(defn build-synthdef
-  [name params top-ugen]
+(defn synthdef
+  "Transforms a synth definition (ugen-graph) into a form that's ready to save 
+  to disk or send to the server.
+  "
+  [sname params top-ugen]
   (let [[ugens constants] (collect-ugen-info top-ugen) 
         ;_ (println "input-params: " params)
         parsed-params (parse-params params)
@@ -228,22 +231,14 @@
         [params pnames] (make-params grouped-params)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
-    (with-meta {:name (str name)
+    (with-meta {:name (str sname)
                 :constants constants
                 :params params
                 :pnames pnames
                 :ugens detailed}
                {:type :overtone.synthdef/synthdef})))
 
-(defn synthdef
-  "Transforms a synth definition (ugen-graph) into a form that's ready to save 
-  to disk or send to the server.
-  "
-  [ugens]
-  (let [sname (str "anon-" (next-id :anonymous-synth))]
-    (build-synthdef sname {} ugens)))
-
-(defn synth
+(comment defn synth
   [ugen]
   (let [sdef (if (= "Out" (:name ugen))
                  (synthdef ugen)
@@ -263,15 +258,63 @@
                   [param (control-proxy param)])
                 (apply hash-map params))))
 
-(defmacro defsynth [name params & ugen-form]
-  (let [sname (str name)
+(defn- name-synth-args [args names]
+  (loop [args args
+         names names
+         named []]
+    (if args
+      (recur (next args)
+             (next names)
+             (concat named [(first names) (first args)]))
+      named)))
+
+(def synth-groups* (ref {}))
+
+(defn synth-player [sname arg-names]
+  (let [sgroup (get @synth-groups* sname)
+        controller (partial node-control sgroup)
+        player (partial node sname :target sgroup)]
+    (fn [& args] 
+      (let [[tgt-fn args] (if (= :ctl (first args))
+                            [controller (rest args)]
+                            [player args])
+            named-args (if (keyword? (first args))
+                         args
+                         (name-synth-args args arg-names))]
+        ;(println (concat [sname] named-args))
+        (apply tgt-fn named-args)))))
+
+(defmacro synth [& args]
+  (let [[sname args] (cond
+                       (or (string? (first args))
+                           (symbol? (first args))) [(str (first args)) (rest args)]
+                       (keyword? (first args))     [(name (first args)) (rest args)]
+                       :default                    [:no-name args])
+        [params ugen-form] (if (vector? (first args))
+                             [(first args) (rest args)]
+                             [[] args])
+        param-names (map #(keyword (first %)) (partition 2 params))
         param-proxies (parse-synth-params params)
         param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
     `(do
        (let [~@param-proxies
-             sdef# (build-synthdef ~sname ~param-map ~@ugen-form)]
-         (load-synthdef sdef#))
-       (def ~name (fn [& args#] (apply hit ~sname args#))))))
+             ugen-root# ~@ugen-form
+             sname# (if (= :no-name ~sname)
+                      (str "anon-" (next-id :anonymous-synth))
+                      ~sname)
+             ugens# (if (and (ugen? ugen-root#)
+                             (= "Out" (:name ugen-root#)))
+                      ugen-root#
+                      (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))
+             sdef# (synthdef sname# ~param-map ugens#)]
+         (load-synthdef sdef#)
+         (dosync (alter synth-groups* assoc sname# (group :tail 0)))
+         (synth-player sname# (quote ~param-names))))))
+
+(defmacro defsynth [name params & ugen-form]
+  `(def ~name (synth ~name
+                     ~params
+                     ~@ugen-form)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Synthdef de-compilation

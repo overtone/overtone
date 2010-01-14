@@ -1,47 +1,48 @@
 (ns overtone.instrument.drum
-  (:use (overtone synth envelope pitch)))
+  (:use overtone))
 
-(def kick (synth kick {:out 0 :freq 50 :mod-freq 5 :mod-index 5 
-                :sustain 0.4 :amp 0.8 :noise 0.025}
-  (let [pitch-contour (line.kr (* 2 :freq), :freq 0.02)
-        drum (lpf.ar (pm-osc.ar pitch-contour :mod-freq (/ :mod-index 1.3))
-                     1000)
-        drum-env (env-gen.ar (perc 0.005, :sustain) :done-free)
-        hit (hpf.ar (* :noise (white-noise.ar)) 500)
-        hit (lpf.ar hit (lin.kr 6000 500 0.03))
-        hit-env (env-gen.ar (perc) :done-free)]
-    (out.ar :out (pan2.ar (* :amp (+ (* drum drum-env) (* hit hit-env))) 0)))))
+(refer-ugens *ns*)
 
-(synth soft-kick 
-  (out.ar 0 (pan2.ar
-              (mul-add.ar
-                (sin-osc.ar 60 (* Math/PI 2))
-                (env-gen.ar (perc 0.001 0.1))
-                0) 
-              0)))
+(defsynth kick [out 0 freq 50 mod-freq 5 mod-index 5 
+                sustain 0.4 amp 0.8 noise 0.025]
+  (let [pitch-contour (line :control (* 2 freq), freq 0.02)
+        drum (lpf (sin-osc pitch-contour (sin-osc mod-freq (/ mod-index 1.3))) 1000)
+        drum-env (env-gen 1 1 0 1 2 (perc 0.005 sustain))
+        hit (hpf (* noise (white-noise)) 500)
+        hit (lpf hit (line 6000 500 0.03))
+        hit-env (env-gen 1 1 0 1 2 (perc))]
+    (out out (pan2 (* amp (+ (* drum drum-env) (* hit hit-env))) 0))))
 
-(def rk (synth round-kick {:amp 0.5 :decay 0.6 :freq 65}
-  (let [env (env-gen.ar (perc 0 :decay) :done-free)
-        snd (* :amp (sin-osc.ar :freq (* Math/PI 0.5)))]
-    (out.ar 0 (pan2.ar (* snd env) 0)))))
-
-(comment synth snare {:out 0 :freq 405 :amp 0.8 :sustain 0.1 
-                 :drum-amp 0.25 :crackle-amp 40 :tightness 1000}
-  (let [drum-env (* 0.5 (env-gen.ar (perc 0.005 :sustain) :done-free))
-        drum-s1 (* drum-env (sin-osc.ar :freq))
-        drum-s2 (* drum-env (sin-osc.ar (* :freq 0.53)))
-        drum-s3 (* drum-env (pm-osc.ar (saw.ar (* :freq 0.85)) 184 (/ 0.5 1.3)))
-        drum (* :drum-amp (mix drum-s1 drum-s2 drum-s3))
-        noise (lf-noise-0.ar 20000 0.1)
-        filtered (* 0.5 (brf.ar noise 8000 0.1))
-        filtered (* 0.5 (brf.ar filtered 5000 0.1))
-        filtered (* 0.5 (brf.ar filtered 3600 0.1))
-        filtered (* (env-gen.ar (perc 0.005 :sustain) :done-free)
-                    (brf.ar filtered 2000 0.0001))
-        crackle (* (resonz.ar filtered :tightness) :crackle-amp)]
-    (out.ar :out (pan2.ar (* :amp (* 5 (+ drum crackle))) 0))))
-
-;; TODO: Port the good ones to Overtone synthdefs
+;(synth soft-kick 
+;  (out.ar 0 (pan2.ar
+;              (mul-add.ar
+;                (sin-osc.ar 60 (* Math/PI 2))
+;                (env-gen.ar (perc 0.001 0.1))
+;                0) 
+;              0)))
+;
+;(def rk (synth round-kick {:amp 0.5 :decay 0.6 :freq 65}
+;  (let [env (env-gen.ar (perc 0 :decay) :done-free)
+;        snd (* :amp (sin-osc.ar :freq (* Math/PI 0.5)))]
+;    (out.ar 0 (pan2.ar (* snd env) 0)))))
+;
+;(comment synth snare {:out 0 :freq 405 :amp 0.8 :sustain 0.1 
+;                 :drum-amp 0.25 :crackle-amp 40 :tightness 1000}
+;  (let [drum-env (* 0.5 (env-gen.ar (perc 0.005 :sustain) :done-free))
+;        drum-s1 (* drum-env (sin-osc.ar :freq))
+;        drum-s2 (* drum-env (sin-osc.ar (* :freq 0.53)))
+;        drum-s3 (* drum-env (pm-osc.ar (saw.ar (* :freq 0.85)) 184 (/ 0.5 1.3)))
+;        drum (* :drum-amp (mix drum-s1 drum-s2 drum-s3))
+;        noise (lf-noise-0.ar 20000 0.1)
+;        filtered (* 0.5 (brf.ar noise 8000 0.1))
+;        filtered (* 0.5 (brf.ar filtered 5000 0.1))
+;        filtered (* 0.5 (brf.ar filtered 3600 0.1))
+;        filtered (* (env-gen.ar (perc 0.005 :sustain) :done-free)
+;                    (brf.ar filtered 2000 0.0001))
+;        crackle (* (resonz.ar filtered :tightness) :crackle-amp)]
+;    (out.ar :out (pan2.ar (* :amp (* 5 (+ drum crackle))) 0))))
+;
+;;; TODO: Port the good ones to Overtone synthdefs
 
 ; SynthDef("kick",
 ; 	{ arg out = 0, freq = 50, mod_freq = 5, mod_index = 5, sustain = 0.4, amp = 0.8, beater_noise_level = 0.025;

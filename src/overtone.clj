@@ -1,6 +1,6 @@
 (ns overtone
-  (:use (overtone ugen))
-  (:require (overtone time sc synth envelope synthdef midi 
+;  (:refer-clojure :exclude [+ - * / = < > <= >=])
+  (:require (overtone time sc ugen synth envelope synthdef midi 
                       rhythm pitch tuning studio log)))
 
 ; Thanks to James Reeves for this, taken from Compojure.
@@ -33,24 +33,23 @@
 ;(defn remove-on-start-cb [id]
 ;  (dosync (alter *on-start-callbacks dissoc id)))
 ;
-(defmacro overtone []
-  `(do
-     (immigrate
-       'overtone.util
-       'overtone.time
-       'overtone.osc
-       'overtone.sc
-       'overtone.ugen
-       'overtone.envelope
-       'overtone.synth
-       'overtone.synthdef
-       'overtone.midi
-       'overtone.rhythm
-       'overtone.pitch
-       'overtone.tuning
-       'overtone.studio
-       'overtone.inst
-       )
 
-     (refer-ugens *ns*)))
+(immigrate
+  'overtone.util
+  'overtone.time
+  'overtone.osc
+  'overtone.sc
+  'overtone.ugen
+  'overtone.envelope
+  'overtone.synth
+  'overtone.synthdef
+  'overtone.midi
+  'overtone.rhythm
+  'overtone.pitch
+  'overtone.tuning
+  'overtone.studio
+  'overtone.inst
+  )
+
+;     (refer-ugens *ns*)
 

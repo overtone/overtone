@@ -1,5 +1,4 @@
 (ns overtone.ugen
-;  (:refer-clojure :exclude [+ - * / = < > <= >=])
   (:use (overtone util ops)
      clojure.contrib.seq-utils
      clojure.contrib.pprint))
@@ -51,7 +50,7 @@
    :done-free-children 13	
    :done-free-group 14})
 
-(def UGENS (read-string (slurp "src/overtone/ugen-data.clj")))
+(def UGENS (map eval (read-string (slurp "src/overtone/ugen-data.clj"))))
 
 (def UGEN-MAP (reduce (fn [mem ugen] 
                         (assoc mem (normalize-name (:name ugen)) ugen)) 
@@ -72,11 +71,15 @@
              (:array? arg) 
              (format "\t%s: [ input channels ]\n" (:name arg))
 
-             (symbol? (:default arg))
+             (false? (:default arg))
              (format "\t%s: <no-default>\n" (:name arg))
 
-             :default
-             (format "\t%s: %.2f\n" (:name arg) (:default arg))))))
+             (float? (:default arg))
+             (format "\t%s: %.2f\n" (:name arg) (:default arg))
+             
+             :default (throw (IllegalArgumentException. 
+                               (str "Unknown default type: " arg)))))))
+      
 
 (defn print-ugen [& ugens]
   (doseq [ugen ugens]
@@ -174,9 +177,8 @@
 
 (defn- add-default-args [spec args]
   (let [defaults (map #(:default %1) (:args spec))]
-    ;(println (:name spec) " defaults: " defaults "\nargs: " args)
     (cond 
-      ; Many ugens (e.g. EnvGen) have an array of values as their last argument,
+      ; Some ugens (e.g. EnvGen) have an array of values as their last argument,
       ; so when the last arg is a coll? we insert missing defaults between the passed
       ; args and the array.
       (and (< (count args) (count defaults))
@@ -185,7 +187,7 @@
 
       ; Replace regular missing args as long as they are all valid numbers
       (and (< (count args) (count defaults)) 
-           (not-any? #(= Float/NaN %1) args))
+           (not-any? #(= false %1) args))
       (concat args (drop (count args) defaults))
 
       ; Otherwise we just missed something
@@ -217,9 +219,7 @@
                                :name uname 
                                :rate (rate RATES)
                                :special special
-                               :args (if (= "EnvGen" (:name spec))
-                                       (envelope-args spec args)
-                                       (add-default-args spec args))}
+                               :args (add-default-args spec args)}
                               {:type ::ugen})))
                ary?)))
 
@@ -228,6 +228,7 @@
   [n]
   (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2") 
         n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2") 
+        n (.replaceAll n "_" "-") 
         n (.toLowerCase n)]
   n))
 
@@ -240,33 +241,19 @@
                            (if (some #(or (ugen? %) (not (number? %))) args)
                              (apply ugen-fn args)
                              (apply original-fn args))))))
+
 (defn refer-ugens [ns]
   (let [core-ns (find-ns 'clojure.core)]
     (doseq [ugen UGENS]
       (let [ugen-name (symbol (clojurify-ugen-name (:name ugen)))
             ugen-name (with-meta ugen-name {:doc (with-out-str (print-ugen ugen))})
             ugen-fn (make-ugen ugen)]
-        (if (ns-resolve core-ns ugen-name) 
-          (overload-ugen-op ns ugen-name ugen-fn)
-          (intern ns ugen-name ugen-fn))))))
+        (cond
+          (ns-resolve core-ns ugen-name) (overload-ugen-op ns ugen-name ugen-fn)
+          (ns-resolve ns ugen-name) nil
+          :default (intern ns ugen-name ugen-fn))))))
 
 (refer-ugens (create-ns 'overtone.ugens))
-
-(comment
-(defn old-ugen [name rate special & args]
-  (let [spec (if-let [ug (get-ugen name)]
-               ug
-               (throw (IllegalArgumentException. (str "Unknown ugen: " name))))
-        args (envelope-args spec args)
-        args (add-default-args spec args)]
-    (println "envelope args...")
-    (with-meta {:id (next-id :ugen)
-                :name (:name spec)
-                :rate (rate RATES)
-                :special special
-                :args args}
-               {:type :ugen})))
-            )
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need

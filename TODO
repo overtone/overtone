@@ -5,6 +5,9 @@ directly with supercollider and start the internal server so we don't have to
 send network messages for transmitting audio data.  (Much better oscilloscope
 and visualization performance...)
 
+* Go through everything and make everything that should be a private definition
+to cleanup the namespace that gets immigrated.
+
 == Synths and Audio:
 * Test and expand the Scope synth to support really nice audio and fft data
 visualization.
