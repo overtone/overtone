@@ -1,5 +1,6 @@
 (ns overtone.ugen
-  (:use (overtone util ops)
+;  (:refer-clojure :exclude [+ - * / = < > <= >=])
+  (:use (overtone util ops ugen-data)
      clojure.contrib.seq-utils
      clojure.contrib.pprint))
 
@@ -50,8 +51,8 @@
    :done-free-children 13	
    :done-free-group 14})
 
-(def UGENS (map eval (read-string (slurp "src/overtone/ugen-data.clj"))))
-
+;;(def UGENS (read-string (slurp "src/overtone/ugen-data.clj")))
+(def UGENS ugen-specs)
 (def UGEN-MAP (reduce (fn [mem ugen] 
                         (assoc mem (normalize-name (:name ugen)) ugen)) 
                       UGENS))
