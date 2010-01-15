@@ -1,4 +1,4 @@
-(ns overtone.gui.main
+(ns overtone.studio.gui.main
   (:gen-class)
   (:import 
      (java.awt Toolkit EventQueue Color Font FontMetrics Dimension BorderLayout)
@@ -10,8 +10,7 @@
      (com.raelity.jvi ViManager ColonCommands)
      (com.raelity.jvi.swing DefaultViFactory StatusDisplay TextView)
      (jsyntaxpane DefaultSyntaxKit))
-  (:require [clojure.inspector :as inspector]
-     [org.enclojure.ide.repl.factory :as repl])
+  (:require [clojure.inspector :as inspector])
   (:use clojure.contrib.seq-utils))
 
 (def APP-NAME "Overtone")

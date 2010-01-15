@@ -1,10 +1,10 @@
-(ns overtone.gui.controller
+(ns overtone.studio.gui.controller
   (:import 
      (java.awt Toolkit EventQueue Color Dimension BorderLayout)
      (javax.swing JFrame JPanel JLabel JSlider JScrollPane SwingUtilities BoxLayout)
      (javax.swing.event ChangeListener))
   (:use 
-     (overtone sc synth synthdef util time)
+     (overtone.core sc synth synthdef util time)
      clojure.contrib.swing-utils))
 
 (defn determine-range [val]

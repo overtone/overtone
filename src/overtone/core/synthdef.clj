@@ -1,12 +1,13 @@
-(ns overtone.synthdef
+(ns overtone.core.synthdef
   "This is primarily a specification for SuperCollider synthesizer definition 
   files.  Additionally there are functions for reading and writing to and from
    byte arrays, files, and URLs.
   "
   (:import (java.net URL))
-  (:require [overtone.log :as log])
+  (:require [overtone.lib.log :as log])
   (:use
-     (overtone util bytes)
+     (overtone.core util)
+     (overtone.lib bytes)
      clojure.contrib.seq-utils))
 
 

@@ -1,15 +1,16 @@
-(ns overtone.sc
+(ns overtone.core.sc
  (:import
      (java.net InetSocketAddress)
      (java.util.regex Pattern)
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream)
      (java.util BitSet))
-  (:require [overtone.log :as log])
+  (:require [overtone.lib.log :as log])
   (:use
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
-     (overtone setup config util osc time synthdef)))
+     (overtone.core setup util synthdef)
+     (overtone.lib config osc time)))
 
 ; This is at heart an OSC client library for the SuperCollider scsynth engine.
 

@@ -1,4 +1,4 @@
-(ns overtone.gui.graph
+(ns overtone.studio.gui.graph
   (:import 
      (java.awt Dimension Color Font RenderingHints Point BasicStroke)
      (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
@@ -8,7 +8,7 @@
      (com.sun.scenario.scenegraph.fx FXShape)
      (com.sun.scenario.animation Clip Interpolators)
      (com.sun.scenario.effect DropShadow))
-  (:use (overtone synth)))
+  (:use (overtone.core synth)))
 
 (def NODE-HEIGHT 20)
 (def NODE-ARC 4)

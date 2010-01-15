@@ -1,4 +1,4 @@
-(ns overtone.gui.scope
+(ns overtone.studio.gui.scope
   (:import 
      (java.awt Toolkit EventQueue Color Font FontMetrics Dimension BorderLayout)
      (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane 
@@ -7,7 +7,7 @@
      (org.jfree.chart.plot PlotOrientation)
      (org.jfree.data.xy DefaultXYDataset))
   (:use 
-     (overtone sc synth util))
+     (overtone.core sc synth util))
   (:require [overtone.log :as log]))
 
 (def SCOPE-BUF-SIZE 10000)

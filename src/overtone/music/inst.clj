@@ -1,4 +1,4 @@
-(ns overtone.inst
+(ns overtone.lib.inst
   (:use (overtone synth envelope pitch)))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by 

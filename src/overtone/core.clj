@@ -1,9 +1,8 @@
-(ns overtone
-;  (:refer-clojure :exclude [+ - * / = < > <= >=])
-  (:require (overtone time sc ugen synth envelope synthdef midi 
-                      rhythm pitch tuning studio log)))
-
-; Thanks to James Reeves for this, taken from Compojure.
+(ns overtone.core
+  (:require (overtone.core sc ugen synth synthdef envelope log)
+     (overtone.lib config midi time osc bytes)
+     (overtone.music rhythm pitch tuning)
+     (overtone studio)))
 
 ; TODO: make this work with namespace prefixes too... 
 ;   (immigrate 'overtone.instruments)
@@ -35,21 +34,21 @@
 ;
 
 (immigrate
-  'overtone.util
-  'overtone.time
-  'overtone.osc
-  'overtone.sc
-  'overtone.ugen
-  'overtone.envelope
-  'overtone.synth
-  'overtone.synthdef
-  'overtone.midi
-  'overtone.rhythm
-  'overtone.pitch
-  'overtone.tuning
-  'overtone.studio
-  'overtone.inst
+  'overtone.lib.osc
+  'overtone.core.util
+  'overtone.core.time
+  'overtone.core.sc
+  'overtone.core.ugen
+  'overtone.core.envelope
+  'overtone.core.synth
+  'overtone.core.synthdef
+  'overtone.lib.midi
+  'overtone.lib.rhythm
+  'overtone.lib.pitch
+  'overtone.lib.tuning
+  ;'overtone.studio
+  ;'overtone.inst
   )
 
-;     (refer-ugens *ns*)
+;(refer-ugens *ns*)
 

@@ -1,12 +1,12 @@
-(ns overtone.synth
+(ns overtone.core.synth
   "This file has two primary functions.  One is to define a language for
   creating SuperCollider synthesizer definitions in Clojure.  The second
   is to take these definitions and convert them into a correctly structured
   synthdef data structure that can be serialized to a SuperCollider compatible
   file."
-  (:require [overtone.log :as log])
+  (:require [overtone.lib.log :as log])
   (:use
-     (overtone util ops ugen sc synthdef)
+     (overtone.core util ops ugen sc synthdef)
      (clojure walk inspector)
      clojure.contrib.seq-utils))
 

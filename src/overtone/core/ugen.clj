@@ -1,6 +1,5 @@
-(ns overtone.ugen
-;  (:refer-clojure :exclude [+ - * / = < > <= >=])
-  (:use (overtone util ops ugen-data)
+(ns overtone.core.ugen
+  (:use (overtone.core util ops)
      clojure.contrib.seq-utils
      clojure.contrib.pprint))
 

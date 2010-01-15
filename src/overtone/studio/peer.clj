@@ -1,4 +1,4 @@
-(ns overtone.peer
+(ns overtone.studio.peer
   (:import (org.jgroups JChannel Message ReceiverAdapter))
   (:use clojure.set
      clojure.contrib.seq-utils

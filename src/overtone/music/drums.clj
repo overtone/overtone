@@ -1,4 +1,4 @@
-(ns overtone.drums
+(ns overtone.lib.drums
   (:use overtone))
 
 ;* Pattern based rhythms

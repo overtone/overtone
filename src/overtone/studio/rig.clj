@@ -1,7 +1,7 @@
-(ns overtone.studio
-;  (:import (de.sciss.jcollider Bus Synth SynthDef Control Buffer))
-  (:use (overtone sc synth midi rhythm pitch))
-  (:require overtone.fx))
+(ns overtone.studio.rig
+  (:use (overtone.core sc synth)
+     (overtone.music midi rhythm pitch))
+  (:require overtone.studio.fx))
 
 ; The goal is to develop a standard "studio configuration" with
 ; an fx rack and a set of fx busses, an output bus, etc...

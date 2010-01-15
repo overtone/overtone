@@ -1,4 +1,4 @@
-(ns overtone.ops)
+(ns overtone.core.ops)
 
 (def UNARY-OPS
   {"neg" 0

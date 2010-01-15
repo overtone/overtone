@@ -1,6 +1,6 @@
-(ns overtone.setup
+(ns overtone.core.setup
   (:import (java.io File))
-  (:use overtone.config))
+  (:use overtone.lib.config))
 
 (defn- get-os []
   (let [os (System/getProperty "os.name")]

@@ -1,4 +1,4 @@
-(ns overtone.envelope)
+(ns overtone.core.envelope)
 
 ; This file deals with the specification of envelopes in synthesizers.
 ; An envelope defines a waveform that will be used to control another component
