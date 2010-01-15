@@ -4,3 +4,6 @@
 [submodule "src/lib/osc-clj"]
 	path = src/lib/osc-clj
 	url = /home/rosejn/projects/osc-clj
+[submodule "src/lib/byte-spec"]
+	path = src/lib/byte-spec
+	url = /home/rosejn/projects/byte-spec
