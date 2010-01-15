@@ -1,7 +1,6 @@
 instruments
 *.swp
 *.swo
-lib
 log*
 *.lck
 *.class

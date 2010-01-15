@@ -1,0 +1,3 @@
+[submodule "src/lib/midi-clj"]
+	path = src/lib/midi-clj
+	url = /home/rosejn/projects/midi-clj
