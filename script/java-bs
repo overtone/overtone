@@ -1,10 +1,17 @@
 #!/bin/bash
 
 DEPS=lib
+SUBMODULES=src/lib
 
 CLASSPATH=".:./src:./test:./src/extra:./session"
 
+# Add jar files
 for f in "$DEPS"/*.jar; do
+    CLASSPATH=$CLASSPATH:$f
+done
+
+# Add sub-modules
+for f in "$SUBMODULES"/**/src; do
     CLASSPATH=$CLASSPATH:$f
 done
 

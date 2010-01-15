@@ -1,3 +1,6 @@
 [submodule "src/lib/midi-clj"]
 	path = src/lib/midi-clj
 	url = /home/rosejn/projects/midi-clj
+[submodule "src/lib/osc-clj"]
+	path = src/lib/osc-clj
+	url = /home/rosejn/projects/osc-clj
