@@ -1,4 +1,4 @@
-touch (ns overtone.core.ugens.envgen)
+(ns overtone.core.ugens.envgen)
 
 (def specs
      [
@@ -108,8 +108,8 @@ touch (ns overtone.core.ugens.envgen)
               {:name "timeScale", :default 1.0}
               {:name "doneAction", :default :none}]
        :init (fn [rate [env & args] spec]
-               (let [envec (TODO turn env object into vector)]
-                 (concat args envec)))}
+               (concat args env))}
+               ;(let [envec (TODO turn env object into vector)]
       
       ;; Linen : UGen {
       ;;  *kr { arg gate = 1.0, attackTime = 0.01, susLevel = 1.0, releaseTime = 1.0, doneAction = 0;

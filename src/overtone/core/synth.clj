@@ -38,14 +38,12 @@
                                 (not (empty? 
                                        (filter ctl-filter (indexed grp)))))
                               (indexed grouped-params)))
-        ;_ (println "src: " src "\ngrp: " group)
         [[idx param] bar] (take 1 (filter ctl-filter (indexed group)))]
     (if (or (nil? src) (nil? idx))
       (throw (IllegalArgumentException. (str "Invalid parameter name: " param-name ". Please make sure you have named all parameters in the param map in order to use them inside the synth definition."))))
     {:src src :index idx}))
 
 (defn- inputs-from-outputs [src src-ugen]
-  ;(println "inputs-from-outputs: " (:name src-ugen))
   (for [i (range (count (:outputs src-ugen)))]
     {:src src :index i}))
 
@@ -56,7 +54,6 @@
   "Returns ugen object with its input ports connected to constants and upstream 
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
-  ;(println "with-inputs: " (:name ugen))
   (let [inputs (flatten 
                  (map (fn [arg]
                         (cond
@@ -89,20 +86,17 @@
       (nth (:args ugen) idx)
       default-num)))
 
+; TODO: This is where we need to figure out how many outputs a ugen has...
+;   num-outs needs to hold the correct number of output ports for this ugen
+;   outputs needs to hold the output spec, which is just a map holding the rate, for each output.
 (defn- with-outputs 
   "Returns a ugen with its output port connections setup according to the spec."
   [ugen]
   ; Don't modify controls or anything that comes with pre-setup outputs.
-  (if (contains? ugen :outputs)
-    ugen
-    (let [spec (get-ugen (:name ugen))
-          out-type (:out-type spec)
-          num-outs (cond
-                     (= out-type :fixed)    (:fixed-outs spec)
-                     (= out-type :variable) (:fixed-outs spec)
-                     (= out-type :from-arg) (num-channels-from-arg ugen spec))
-          outputs (take num-outs (repeat {:rate (:rate ugen)}))]
-            (assoc ugen :outputs outputs))))
+  (let [spec (get-ugen (:name ugen))
+        num-outs (or (:num-outs spec) 1) ; (num-channels-from-arg ugen spec))
+        outputs (take num-outs (repeat {:rate 2}))]
+    (assoc ugen :outputs outputs)))
 
 ; IMPORTANT NOTE: We need to add outputs before inputs, so that multi-channel
 ; outputs can be correctly connected.
@@ -223,11 +217,8 @@
   "
   [sname params top-ugen]
   (let [[ugens constants] (collect-ugen-info top-ugen) 
-        ;_ (println "input-params: " params)
         parsed-params (parse-params params)
-        ;_ (println "parsed-params: " parsed-params)
         grouped-params (group-params parsed-params)
-        ;_ (println "grouped-params: " grouped-params)
         [params pnames] (make-params grouped-params)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
@@ -236,7 +227,7 @@
                 :params params
                 :pnames pnames
                 :ugens detailed}
-               {:type :overtone.synthdef/synthdef})))
+               {:type :overtone.core.synthdef/synthdef})))
 
 (comment defn synth
   [ugen]
@@ -281,7 +272,6 @@
             named-args (if (keyword? (first args))
                          args
                          (name-synth-args args arg-names))]
-        ;(println (concat [sname] named-args))
         (apply tgt-fn named-args)))))
 
 (defmacro synth [& args]

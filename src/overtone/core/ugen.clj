@@ -1,5 +1,5 @@
 (ns overtone.core.ugen
-  (:use (overtone.core util ops)
+  (:use (overtone.core util ops ugens-common)
      clojure.contrib.seq-utils
      clojure.contrib.pprint))
 
@@ -50,7 +50,14 @@
    :done-free-children 13	
    :done-free-group 14})
 
-(def UGENS []) ; TODO: Write a function that builds a vector of all the specs in clojure.core.ugens.*
+(defn specs-from [namespaces]
+    (mapcat (fn [ns]
+	       (let [full-ns (symbol (str "overtone.core.ugens." ns))]
+             (require [full-ns :only 'specs])
+             (var-get (ns-resolve full-ns 'specs))))
+		 namespaces))
+
+(def UGENS (specs-from '[basicops io osc pan]))
 
 (def UGEN-MAP (reduce (fn [mem ugen] 
                         (assoc mem (normalize-name (:name ugen)) ugen)) 
@@ -68,25 +75,15 @@
 (defn- print-ugen-args [args]
   (println "args: (defaults)")
   (doseq [arg args]
-    (print (cond 
-             (:array? arg) 
-             (format "\t%s: [ input channels ]\n" (:name arg))
-
-             (false? (:default arg))
-             (format "\t%s: <no-default>\n" (:name arg))
-
-             (float? (:default arg))
-             (format "\t%s: %.2f\n" (:name arg) (:default arg))
-             
-             :default (throw (IllegalArgumentException. 
-                               (str "Unknown default type: " arg)))))))
-      
+    (print (str "\t" (:name arg) ": " (if (contains? arg :default)
+                                        (:default arg)
+                                        "<no-default>\n")))))
 
 (defn print-ugen [& ugens]
   (doseq [ugen ugens]
     (println "UGen:" (str "\"" (:name ugen) "\""))
     (print-ugen-args (:args ugen))
-    (println "outputs: " (:fixed-outs ugen) (name (:out-type ugen))
+    (println "outputs: " 
              (str "[" (apply str (interpose ", "(:rates ugen))) "]"))))
 
 (defn ugen-doc [word]

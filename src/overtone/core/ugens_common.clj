@@ -101,7 +101,8 @@
           true)
 
 (defcheck num-outs-greater-than [n]
-  (str "must have " (+ n 1) " or more output channels"))
+  (str "must have " (+ n 1) " or more output channels")
+          true)
 
 (defn check-all [& check-fns]
   (let [all-checks (juxt check-fns)]

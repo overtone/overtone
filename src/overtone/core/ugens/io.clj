@@ -1,4 +1,5 @@
-(ns overtone.core.ugens.io)
+(ns overtone.core.ugens.io
+  (:use (overtone.core ugens-common)))
 
 (def specs
      [

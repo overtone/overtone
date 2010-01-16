@@ -5,15 +5,6 @@
                           control envgen fft2 grain line misc pan)))
 ;  (:require [overtone.core.ugens-common :only check-valid-inputs]))
 
-(defn- specs-from [namespaces]
-    (map (fn [ns]
-	       (let [full-ns (symbol (str "overtone.core.ugens." ns))]
-             (require [full-ns :only 'specs])
-             (ns-resolve full-ns 'specs))) 
-		 namespaces))
-
-(def specs (specs-from '[basicops]))
-
 ; (defn- normalize-name [n]
 ;   (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
 ; 

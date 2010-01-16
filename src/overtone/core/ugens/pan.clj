@@ -1,6 +1,5 @@
-
 (ns overtone.core.ugens.pan
-  (:use overtone.core.ugens.common))
+  (:use (overtone.core ugens-common)))
 
 ;; Panner : MultiOutUGen {
 ;;  checkNInputs { arg n;
@@ -32,7 +31,7 @@
 
 (def specs
      (map
-      #(assoc % :check-inputs (% :check-inputs if-audio-rate-check-first-input-audio-rate))
+       #(assoc % :check (when-ar (first-input-ar)))
       [
        ;; Pan2 : Panner {
        ;;  *ar { arg in, pos = 0.0, level = 1.0;
@@ -54,7 +53,7 @@
        {:name "Pan2",
         :args [{:name "in"}
                {:name "pos", :default 0.0}
-               {:name "level", :default 1.0}],
+               {:name "level", :default 1.0}]
         :num-outs 2}
        
        ;; LinPan2 : Pan2 {}
@@ -81,7 +80,7 @@
         :args [{:name "in"}
                {:name "xpos", :default 0.0}
                {:name "ypos", :default 0.0}
-               {:name "level", :default 1.0}],
+               {:name "level", :default 1.0}]
         :num-outs 4}
        
        ;; Balance2 : Panner {
@@ -105,7 +104,7 @@
         :args [{:name "left"}
                {:name "right"}
                {:name "pos", :default 0.0}
-               {:name "level", :default 1.0}],
+               {:name "level", :default 1.0}]
         :num-outs 2}
        
        ;; Rotate2 : Panner {
@@ -128,7 +127,7 @@
        {:name "Rotate2",
         :args [{:name "x"}
                {:name "y"}
-               {:name "pos", :default 0.0}],
+               {:name "pos", :default 0.0}]
         :num-outs 2}
 
        ;; PanB : Panner {
@@ -150,7 +149,7 @@
         :args [{:name "in"}
                {:name "azimuth", :default 0.0}
                {:name "elevation", :default 0.0}
-               {:name "gain", :default 1.0}],
+               {:name "gain", :default 1.0}]
         :num-outs 4}
        
        ;; PanB2 : Panner {
@@ -171,7 +170,7 @@
        {:name "PanB2",
         :args [{:name "in"}
                {:name "azimuth", :default 0.0}
-               {:name "gain", :default 1.0}],
+               {:name "gain", :default 1.0}]
         :num-outs 3}
        
        ;; BiPanB2 : Panner {   
@@ -194,7 +193,7 @@
         :args [{:name "inA"}
                {:name "inB"}
                {:name "azimuth"}
-               {:name "gain", :default 1.0}],
+               {:name "gain", :default 1.0}]
         :num-outs 3
         :check (when-ar (first-n-inputs-ar 2))}
        
@@ -218,7 +217,7 @@
                {:name "w"}
                {:name "x"}
                {:name "y"}
-               {:name "orientation", :default 0.5}],
+               {:name "orientation", :default 0.5}]
         :check (when-ar (first-n-inputs-ar 3))}
        
        ;; PanAz : Panner {
@@ -259,7 +258,7 @@
         :args [{:name "inA"}
                {:name "inB"}
                {:name "pan", :default 0.0}
-               {:name "level", :default 1.0}],
+               {:name "level", :default 1.0}]
         :check (when-ar (first-n-inputs-ar 2))}
        
        ;; LinXFade2 : XFade {
@@ -277,5 +276,5 @@
        {:name "LinXFade2",
         :args [{:name "inA"}
                {:name "inB"}
-               {:name "pan", :default 0.0}],
+               {:name "pan", :default 0.0}]
         :check (when-ar (first-n-inputs-ar 2))}]))
