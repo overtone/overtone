@@ -1,4 +1,4 @@
-(ns overtone.lib.config
+(ns config
   (:use clojure.contrib.duck-streams)
   (:import (java.io FileOutputStream FileInputStream)))
 

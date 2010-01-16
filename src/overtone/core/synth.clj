@@ -4,7 +4,7 @@
   is to take these definitions and convert them into a correctly structured
   synthdef data structure that can be serialized to a SuperCollider compatible
   file."
-  (:require [overtone.lib.log :as log])
+  (:require [log :as log])
   (:use
      (overtone.core util ops ugen sc synthdef)
      (clojure walk inspector)

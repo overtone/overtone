@@ -1,4 +1,4 @@
-(ns overtone.pitch)
+(ns overtone.music.pitch)
 
 ;; The goal here is to build up a set of functions that help to describe, model, 
 ;; generate and analyze musical ideas.

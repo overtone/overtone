@@ -50,10 +50,11 @@
    :done-free-children 13	
    :done-free-group 14})
 
-;;(def UGENS (read-string (slurp "src/overtone/ugen-data.clj")))
-(def UGENS ugen-specs)
+(def UGENS []) ; TODO: Write a function that builds a vector of all the specs in clojure.core.ugens.*
+
 (def UGEN-MAP (reduce (fn [mem ugen] 
                         (assoc mem (normalize-name (:name ugen)) ugen)) 
+                      {}
                       UGENS))
 
 (defn get-ugen [word]

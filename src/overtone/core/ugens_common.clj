@@ -1,4 +1,3 @@
-
 (ns overtone.core.ugens-common)
 
 ; 0 do nothing when the UGen is finished
@@ -47,6 +46,12 @@
 (defn rate-of? [obj rate]
   (= (rate-of obj) rate))
 
+(defn name-of [obj]
+  (:name obj))
+
+(defn name-of? [obj name]
+  (= (name-of obj) name))
+
 (defn ar? [obj] (= (rate-of obj) :ar))
 (defn kr? [obj] (= (rate-of obj) :kr))
 (defn ir? [obj] (= (rate-of obj) :ir))
@@ -83,18 +88,20 @@
   (str "all but the first " n " inputs must be audio rate")
   (every? ar? (drop n inputs)))
 
-(defcheck all-but-first-input-ar
-  )
+(defcheck all-but-first-input-ar []
+          ""
+          true)
 
 (defcheck nth-input-ar [index]
-  )
+          ""
+          true)
 
 (defcheck named-input-ar [name]
-  )
+          ""
+          true)
 
 (defcheck num-outs-greater-than [n]
-  (str "must have " (+ n 1) " or more output channels")
-  )
+  (str "must have " (+ n 1) " or more output channels"))
 
 (defn check-all [& check-fns]
   (let [all-checks (juxt check-fns)]
@@ -107,5 +114,4 @@
   (fn [rate num-outs inputs spec]
     (if (= rate :ar)
       (apply check-all check-fns))))
-
 

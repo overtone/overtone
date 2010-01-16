@@ -8,6 +8,7 @@
                  [net.java.dev.scenegraph/scenegraph "svn"]
                  [org.clojars.rosejn/jvi "0.7.1"]
                  [jfree/jfreechart "1.0.12"]
+                 [jline "0.9.94"]
                  [osc-clj "0.1"]
                  [byte-spec "0.1"]
                  [midi-clj "0.1"]

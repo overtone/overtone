@@ -5,12 +5,12 @@
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream)
      (java.util BitSet))
-  (:require [overtone.lib.log :as log])
+  (:require [log :as log])
   (:use
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
      (overtone.core setup util synthdef)
-     (overtone.lib config osc time)))
+     config osc time-utils))
 
 ; This is at heart an OSC client library for the SuperCollider scsynth engine.
 

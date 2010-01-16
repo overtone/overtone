@@ -1,6 +1,6 @@
-(ns overtone.rhythm
+(ns overtone.music.rhythm
   (:import (java.util Timer TimerTask))
-  (:use (overtone time)))
+  (:use time-utils))
 
 ; Rhythm
 

@@ -1,6 +1,9 @@
-
 (ns overtone.core.ugens
-  (:require [overtone.core.ugens-common :only check-valid-inputs]))
+  (:require 
+     (overtone.core.ugens basicops chaos delay ff-osc fft-unpacking info mac-ugens noise pseudo
+                          beq-suite compander demand fft filter io machine-listening osc trig buf-io 
+                          control envgen fft2 grain line misc pan)))
+;  (:require [overtone.core.ugens-common :only check-valid-inputs]))
 
 (defn- specs-from [namespaces]
     (map (fn [ns]

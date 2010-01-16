@@ -37,29 +37,7 @@
 
 pkill -9 java
 
-CLASSPATH=.:`pwd`/src:`pwd`/session:`pwd`/test
-CLOJURE_EXT="./lib"
+SCRIPT_DIR=`dirname $0`
+CLASSPATH=`$SCRIPT_DIR/java-cp`
 
-if [ -d "${CLOJURE_EXT:-}" ]; then
-	EXT="`find ${CLOJURE_EXT} -maxdepth 1 -print0 | tr \\\\0 :`"
-	if [ -n "${EXT}" ]; then
-		if [ -n "${CLASSPATH}" ]; then
-			CLASSPATH="${EXT}${CLASSPATH}"
-		else
-			CLASSPATH="${EXT}"
-		fi
-	fi
-fi
-
-if [ "$OSTYPE" == "cygwin" ]; then
-  CLASSPATH=`cygpath -wp $CLASSPATH`
-fi
-
-echo "OS-TYPE: $OSTYPE"
-
-export CLASSPATH
-
-echo "Classpath: ${CLASSPATH}"
-echo "exec java com.martiansoftware.nailgun.NGServer 127.0.0.1"
-
-exec java com.martiansoftware.nailgun.NGServer 127.0.0.1
+exec java -cp $CLASSPATH com.martiansoftware.nailgun.NGServer 127.0.0.1

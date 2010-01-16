@@ -4,10 +4,9 @@
    byte arrays, files, and URLs.
   "
   (:import (java.net URL))
-  (:require [overtone.lib.log :as log])
-  (:use
+  (:require [log :as log])
+  (:use byte-spec
      (overtone.core util)
-     (overtone.lib bytes)
      clojure.contrib.seq-utils))
 
 
