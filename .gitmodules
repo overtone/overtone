@@ -1,9 +1,9 @@
 [submodule "src/lib/midi-clj"]
 	path = src/lib/midi-clj
-	url = /home/rosejn/projects/midi-clj
+	url = git://github.com/rosejn/midi-clj.git
 [submodule "src/lib/osc-clj"]
 	path = src/lib/osc-clj
-	url = /home/rosejn/projects/osc-clj
+	url = git://github.com/rosejn/osc-clj.git
 [submodule "src/lib/byte-spec"]
 	path = src/lib/byte-spec
-	url = /home/rosejn/projects/byte-spec
+	url = git://github.com/rosejn/byte-spec.git
