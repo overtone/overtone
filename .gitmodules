@@ -7,3 +7,6 @@
 [submodule "src/lib/byte-spec"]
 	path = src/lib/byte-spec
 	url = git://github.com/rosejn/byte-spec.git
+[submodule "src/lib/clj-repl"]
+	path = src/lib/clj-repl
+	url = git://github.com/rosejn/clj-repl.git
