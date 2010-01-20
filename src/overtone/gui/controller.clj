@@ -1,4 +1,4 @@
-(ns overtone.studio.gui.controller
+(ns overtone.gui.controller
   (:import 
      (java.awt Toolkit EventQueue Color Dimension BorderLayout)
      (javax.swing JFrame JPanel JLabel JSlider JScrollPane SwingUtilities BoxLayout)

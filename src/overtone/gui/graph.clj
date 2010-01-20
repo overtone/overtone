@@ -1,4 +1,4 @@
-(ns overtone.studio.gui.graph
+(ns overtone.gui.graph
   (:import 
      (java.awt Dimension Color Font RenderingHints Point BasicStroke)
      (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)

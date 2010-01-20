@@ -1,4 +1,4 @@
-(ns overtone.studio.gui.meter
+(ns overtone.gui.meter
   (:use (overtone synth envelope)))
 
 ;(def SAMPLE-TIME 0.2) ; How long we should analyze the signal

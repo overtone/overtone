@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Run main with the classpath setup correctly
+
+SCRIPT_DIR=`dirname $0`
+CLASSPATH=`$SCRIPT_DIR/java-cp`
+
+#DEFINITIONS=-Djava.library.path=lib/opengl 
+
+java -cp $CLASSPATH overtone.app/main $@

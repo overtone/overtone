@@ -1,12 +1,10 @@
 instruments
 *.swp
 *.swo
-log*
 *.lck
 *.class
 *.scsyndef
 Manifest.txt
-pom.xml
 .overtone-log
 tmp
 synths

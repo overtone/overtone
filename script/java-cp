@@ -3,7 +3,7 @@
 DEPS=lib
 SUBMODULES=src/lib
 
-CLASSPATH=".:./src:./test:./src/lib:./session"
+CLASSPATH=".:./src:./src/lib:./test:./session"
 
 # Add jar files
 for f in "$DEPS"/*.jar; do

@@ -1,4 +1,4 @@
-(ns overtone.studio.gui.scope
+(ns overtone.gui.scope
   (:import 
      (java.awt Toolkit EventQueue Color Font FontMetrics Dimension BorderLayout)
      (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane 
