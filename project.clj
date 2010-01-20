@@ -9,5 +9,6 @@
                  [jfree/jfreechart "1.0.12"]
                 ]
   :dev-dependencies [[swank-clojure "1.1.0-SNAPSHOT"]
+                     [jline "0.9.94"]
                      [lein-clojars "0.5.0-SNAPSHOT"]]
   :main overtone.gui.main)
