@@ -15,7 +15,8 @@
                  [midi-clj "0.1"]
                 ]
 
-  :dev-dependencies [[swank-clojure "1.1.0-SNAPSHOT"]
+  :dev-dependencies [[autodoc "0.7.0"]
+                     [swank-clojure "1.1.0-SNAPSHOT"]
                      [org.clojars.ato/nailgun "0.7.1"]
                      [lein-nailgun "0.1.0"]
                      [lein-clojars "0.5.0-SNAPSHOT"]]
