@@ -3,8 +3,6 @@
 # Run main with the classpath setup correctly
 
 SCRIPT_DIR=`dirname $0`
-CLASSPATH=`$SCRIPT_DIR/java-cp`
+JAVA_ENV=`$SCRIPT_DIR/java-env`
 
-#DEFINITIONS=-Djava.library.path=lib/opengl 
-
-java -cp $CLASSPATH overtone.app/main $@
+exec java $JAVA_ENV clojure.main -e "(use 'overtone.app.main) (-main $@)"
