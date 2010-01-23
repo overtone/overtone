@@ -60,13 +60,25 @@
    :done-free-children 13	
    :done-free-group 14})
 
-(defn ot-ugen-name [n]
+(defn normalize-ugen-name 
+  "Normalizes SuperCollider and overtone-style names to squeezed lower-case."
+  [n]
   (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
+
+(defn overtone-ugen-name 
+  "A basic camelCase to with-dash name converter tuned to convert SuperCollider names to Overtone names.  
+  Most likely needs improvement."
+  [n]
+  (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2") 
+        n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2") 
+        n (.replaceAll n "_" "-") 
+        n (.toLowerCase n)]
+  n))
 
 (defn derived? [spec]
   (contains? spec :extends))
 
-(defn derive-specs
+(defn derive-ugen-specs
   "Merge the ugen spec maps to give children their parent's attributes.
   
   Recursively reduces the specs to support arbitrary levels of derivation."
@@ -82,56 +94,147 @@
                                        [(assoc full-specs (:name spec) spec) new-children]))
                                    [adults []]
                                    children)]
-     (if children 
-       (recur children adults)
-       adults))))
+            (format "derive-specs: %d - %d" (count adults) (count children))
+            (if (empty? children)
+              adults
+              (recur children adults)))))
 
 (defn with-categories
-  "Adds a :categories attribute to ugen-specs for later use in documentation,
+  "Adds a :categories attribute to a ugen-spec for later use in documentation,
   GUI and REPL interaction."
   [spec]
-  (assoc spec :categories 
-         (get UGEN-CATEGORY-MAP (:name spec) [])))
+  (let [cats (get UGEN-CATEGORY-MAP (:name spec) [])]
+    (println "categories: " (:name spec) " : " cats)
+    (assoc spec :categories cats)))
 
-(defn with-ugen-expansion 
+(defn with-expands 
   "Sets the :expands? attribute for ugen-spec arguments, which will inform the
   automatic channel expansion system when to expand argument."
   [spec]
-  (let [args (map (fn [arg] 
-                    (assoc arg :expands? 
-                           (get UGEN-SPEC-EXPANSION-MODES (get arg :mode :standard))))
-               (:args spec))]
-    (assoc :args spec)))
+  (assoc spec :args 
+         (map (fn [arg] 
+                (assoc arg :expands? 
+                       (get UGEN-SPEC-EXPANSION-MODES (get arg :mode :standard))))
+              (:args spec))))
 
-(defn with-fn-rates [spec])
+(def UGEN-DEFAULT-RATES #{:ar :kr})
+(def UGEN-RATE-PRECEDENCE [:ir :dr :ar :kr])
 
-(defn init-ugen-specs [specs]
-  (map #(-> %
-          (with-ugen-categories)
-          (with-ugen-expansion))
+(defn with-fn-names
+  "Generates all the function names for this ugen and adds a :fn-names map 
+  that maps function names to rates, representing the output rate.
+
+  All available rates get an explicit function name of the form <fn-name>:<rate>
+  like this:
+    * (env-gen:ar ...)
+    * (env-gen:kr ...)
+
+  UGens will also have a base-name without a rate suffix that uses the default rate
+  for that ugen:
+    * (env-gen ...)   ;; Uses :kr, control rate for EnvGen
+  
+  The default rate is determined by the rate precedence:
+    [:ir :dr :ar :kr]
+
+  or a :default-rate attribute can override the default precedence order."
+  [spec]
+  (let [rates (get spec :rates UGEN-DEFAULT-RATES)
+        base-name (overtone-ugen-name (:name spec))
+        base-rate (cond
+                    (contains? spec :default-rate) (:default-rate spec)
+                    (= 1 (count rates)) (first rates)
+                    :default (first (filter rates UGEN-RATE-PRECEDENCE)))
+        name-rates (reduce (fn [nr rate] (assoc nr (str base-name rate) rate))
+                           {}
+                           (:rates spec))]
+    (assoc spec
+           :rates rates
+           :fn-names (assoc name-rates base-name base-rate))))
+
+; TODO
+(defn map-ugen-args 
+  "Perform any argument mappings that needs to be done."
+  [spec args]
+  args)
+
+; TODO
+(defn do-ugen-arg-modes 
+  "Apply whatever mode specific functions need to be performed on the argument
+  list."
+  [spec args]
+  args)
+
+;  - build a new :init function which will later be called
+;    by the ugen function (after MCE), over-writing :init if it exists.
+;    note that, if an :init was given, but there are no args with :map
+;    properties AND all modes are :standard, then no new function need be
+;    defined. also if all modes are :standard, there are no args with :map,
+;    and no :init function was given, then :init can just be left
+;    undefined and the ugen function will check that and not try to call one.
+;    the function should take the same args as :init does
+;    and do the following:
+;    - for any arg with a :map property, resolves the mapping
+;      the map property can be any arbitrary function, including a map.
+;      the function or map should just return the argument, if there is no
+;      defined mapping.
+;    - calls the original :init on the args, if any was given
+;    - rearanges the args according to the modes, and returns them (jeff, i
+;      can't remember which order we decided on for this and the previous item.
+;      i'm tired)
+;    - instead of calling :check from the ugen function, it could be done from
+;      in here instead? 
+(defn with-init-fn 
+  "Creates the final argument initialization function which is applied to arguments
+  at runtime to do things like re-ordering and automatic filling in of arguments.  
+  Typically appending input arrays as the last argument and filling in the number of 
+  in or out channels for those ugens that need it.
+  
+  If an init function is already present it will get called after doing the mapping and
+  mode transformations." 
+  [spec]
+  (let [map-fn (partial map-ugen-args spec)
+        mode-fn (partial do-ugen-arg-modes spec)
+        init-fn (if (contains? spec :init)
+                  (comp mode-fn (:init spec) map-fn)
+                  (comp mode-fn map-fn))]
+    (assoc spec :init init-fn)))
+
+(defn init-ugen-specs 
+  "Perform the derivation and setup defaults for rates, names, 
+  argument initialization functions, and channel expansion flags."
+  [specs]
+  (map (fn [[ugen-name spec]] 
+            (-> spec
+              (with-categories)
+              (with-expands)
+              (with-fn-names)
+              (with-init-fn)))
        (derive-ugen-specs specs)))
 
 (defn load-ugen-specs [namespaces]
-    (mapcat (fn [ns]
-	       (let [full-ns (symbol (str "overtone.core.ugens." ns))]
-             (require [full-ns :only 'specs])
-             (var-get (ns-resolve full-ns 'specs))))
-		 namespaces))
+  (mapcat (fn [ns]
+            (let [full-ns (symbol (str "overtone.core.ugens." ns))]
+              (require [full-ns :only 'specs])
+              (var-get (ns-resolve full-ns 'specs))))
+          namespaces))
 
-(def UGENS (load-ugen-specs '[basicops io osc pan]))
+(def UGEN-NAMESPACES '[basicops buf-io compander delay envgen fft2 fft-unpacking grain io machine-listening misc osc pseudo beq-suite chaos control demand ff-osc fft filter info line mac-ugens noise pan trig])
 
-(def UGEN-MAP (reduce (fn [mem ugen] 
-                        (assoc mem (ot-ugen-name (:name ugen)) ugen)) 
-                      {}
-                      UGENS))
+(def UGEN-SPECS (init-ugen-specs 
+                  (load-ugen-specs UGEN-NAMESPACES)))
+
+(def UGEN-SPEC-MAP (doall (reduce (fn [mem spec] 
+                                    (assoc mem (normalize-ugen-name (:name spec)) spec))
+                                  {}
+                                  UGEN-SPECS)))
 
 (defn get-ugen [word]
-  (get UGEN-MAP (ot-ugen-name word)))
+  (get UGEN-SPEC-MAP (normalize-ugen-name word)))
 
 (defn find-ugen [regexp]
   (map #(second %)
        (filter (fn [[k v]] (re-find (re-pattern regexp) (str k)))
-               UGEN-MAP)))
+               UGEN-SPEC-MAP)))
 
 (defn- print-ugen-args [args]
   (println "args: (defaults)")
@@ -282,15 +385,6 @@
                               {:type ::ugen})))
                ary?)))
 
-(defn clojurify-ugen-name 
-  "A basic camelCase to with-dash name converter.  Most likely needs improvement."
-  [n]
-  (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2") 
-        n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2") 
-        n (.replaceAll n "_" "-") 
-        n (.toLowerCase n)]
-  n))
-
 (defn ugen? [obj] (= ::ugen (type obj)))
 
 (defn overload-ugen-op [ns ugen-name ugen-fn]
@@ -303,8 +397,8 @@
 
 (defn refer-ugens [ns]
   (let [core-ns (find-ns 'clojure.core)]
-    (doseq [ugen UGENS]
-      (let [ugen-name (symbol (clojurify-ugen-name (:name ugen)))
+    (doseq [ugen UGEN-SPECS]
+      (let [ugen-name (symbol (overtone-ugen-name (:name ugen)))
             ugen-name (with-meta ugen-name {:doc (with-out-str (print-ugen ugen))})
             ugen-fn (make-ugen ugen)]
         (cond

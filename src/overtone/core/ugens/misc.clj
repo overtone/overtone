@@ -1,5 +1,5 @@
 (ns overtone.core.ugens.misc
-  (:use overtone.core.ugens.check-inputs))
+  (:use overtone.core.ugens-common))
 
 (def specs
      [

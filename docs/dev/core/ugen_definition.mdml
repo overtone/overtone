@@ -22,7 +22,7 @@ property. this is later used during MCE
 
 for each rate of each initilized ugen spec, a ugen function is defined.
 
-### naming
+### ugen function naming and rates
 
 if there is only one rate defined in the spec then the function name
 is not rate qualified (i.e. having :xr postpended), if there are
@@ -30,12 +30,6 @@ more than one and the rate is :ar or :kr then it is qualified by
 default. in all cases, if the rate is :ir or :dr then it is not
 qualified. the base name for the function is given by
 (normalize-name (spec :name)). 
-
-if an :fn-names map is defined as a property in the
-spec, then the names given under each rate key are
-used instead. if a key in the fn-names map is missing
-for one of the rates, then the above method is used
-to generate the name for that particular rate.
 
 ## synth def time
 
@@ -71,7 +65,7 @@ then it is considered an error and an exception is thrown.
 
 ---------------------------------------------------------------
 
-the anatomy of a spec map
+## the anatomy of a spec map
 
 :name     mandatory string; containing the sc lang UGen name
 :derived  optional string; containing the name of a spec to merge
