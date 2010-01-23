@@ -1,9 +1,12 @@
-(ns overtone.core.synth
-  "This file has two primary functions.  One is to define a language for
-  creating SuperCollider synthesizer definitions in Clojure.  The second
-  is to take these definitions and convert them into a correctly structured
-  synthdef data structure that can be serialized to a SuperCollider compatible
-  file."
+(ns
+  #^{:doc "These functions have two primary roles.  One is to define a language for
+         creating SuperCollider synthesizer definitions in Clojure.  The second
+         is to take these definitions and convert them into a correctly structured
+         synthdef data structure that can be serialized to a SuperCollider compatible
+         file."
+    :author "Jeff Rose"}
+  overtone.core.synth
+
   (:require [log :as log])
   (:use
      (overtone.core util ops ugen sc synthdef)

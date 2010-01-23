@@ -1,15 +1,16 @@
-(ns overtone.core.envelope)
+(ns 
+  #^{:doc "An envelope defines a waveform that will be used to control another
+          component of a synthesizer over time.  It is typical to use envelopes
+          to control the amplitude of a source waveform.  For example, an
+          envelope will dictate that a sound should start quick and loud, but
+          then drop shortly and tail off gently.  Another common usage is to
+          see envelopes controlling filter cutoff values over time.
 
-; This file deals with the specification of envelopes in synthesizers.
-; An envelope defines a waveform that will be used to control another component
-; of a synthesizer over time.  It is typical to use envelopes to control the
-; amplitude of a source waveform.  For example, an envelope will dictate that a 
-; sound should start quick and loud, but then drop shortly and tail off gently.
-; Another common usage is to see envelopes controlling filter cutoff values over
-; time.
-
-; These are the typical envelope functions found in SuperCollider, and they output
-; a series of numbers that is understood by the SC synth engine.
+          These are the typical envelope functions found in SuperCollider, and
+          they output a series of numbers that is understood by the SC synth
+          engine." 
+     :author "Jeff Rose"}
+  overtone.core.envelope)
 
 (def ENV-CURVES
   {:step        0

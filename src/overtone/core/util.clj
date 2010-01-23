@@ -1,4 +1,7 @@
-(ns overtone.core.util
+(ns 
+  #^{:doc "Random utility functions for Overtone."
+     :author "Jeff Rose"}
+  overtone.core.util
   (:use clojure.contrib.def))
 
 ; Some generic counters 

@@ -1,4 +1,6 @@
-(ns 
+(ns
+  #^{:doc "UGens, or Unit Generators, are the functions that act as DSP nodes in the synthesizer definitions used by SuperCollider.  We generate most of the UGen functions for clojure based on metadata about each ugen, and eventually we hope to get this information dynamically from the server itself."
+     :author "Jeff Rose & Christophe McKeon"}
   overtone.core.ugen
   (:use (overtone.core util ops ugens-common ugen-categories)
      clojure.contrib.seq-utils

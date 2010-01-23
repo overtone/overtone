@@ -1,4 +1,7 @@
-(ns overtone.core.ugens-common)
+(ns 
+  #^{:doc "Code that is common to many ugens.  Includes validation and argument manipulation functions."
+     :author "Jeff Rose & Christophe McKeon"}
+  overtone.core.ugens-common)
 
 ; 0 do nothing when the UGen is finished
 ; 1 pause the enclosing synth, but do not free it

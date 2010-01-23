@@ -1,4 +1,7 @@
-(ns overtone.core.sc
+(ns 
+  #^{:doc "An interface to the SuperCollider synthesis server."
+     :author "Jeff Rose"}
+  overtone.core.sc
  (:import
      (java.net InetSocketAddress)
      (java.util.regex Pattern)
