@@ -26,7 +26,7 @@
 
       ;; MouseY : MouseX {}
 
-      {:name "MouseY" :derived "MouseY"}
+      {:name "MouseY" :extends "MouseY"}
 
       ;; MouseButton : UGen {
       ;; 	*kr {

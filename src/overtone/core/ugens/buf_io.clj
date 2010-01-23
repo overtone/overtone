@@ -102,7 +102,7 @@
       ;; }
 
       {:name "BufWr",
-       :args [{:name "inputArray", :mode :prepend-sequence}
+       :args [{:name "inputArray", :mode :append-sequence}
               {:name "bufnum", :default 0}
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}]
@@ -126,7 +126,7 @@
       ;; }
 
       {:name "RecordBuf",
-       :args [{:name "inputArray", :mode :prepend-sequence}
+       :args [{:name "inputArray", :mode :append-sequence}
               {:name "bufnum", :default 0}
               {:name "offset", :default 0.0}
               {:name "recLevel", :default 1.0}
@@ -148,7 +148,7 @@
       ;; }
 
       {:name "ScopeOut",
-       :args [{:name "inputArray", :mode :prepend-sequence}
+       :args [{:name "inputArray", :mode :append-sequence}
               {:name "bufnum", :default 0.0}],
        :num-outs 0}
 

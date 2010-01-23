@@ -1,6 +1,6 @@
 (ns overtone.core.ugen-categories)
 
-(def category-map
+(def CATEGORY-MAP
      {"A2K" [["Conversion" ]]
       "AbstractIn" [["InOut" ]]
       "AbstractOut" [["InOut" ]]

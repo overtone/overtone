@@ -219,13 +219,13 @@
       ;; from InOut.sc
       ;; ReplaceOut : Out {}
 
-      {:name "ReplaceOut", :derived "Out"}
+      {:name "ReplaceOut", :extends "Out"}
       
       ;; OffsetOut : Out {
       ;; 	*kr { ^this.shouldNotImplement(thisMethod) }
       ;; }
 
-      {:name "OffsetOut" :derived "Out"
+      {:name "OffsetOut" :extends "Out"
        :rates #{:ar}
        :check (all-but-first-input-ar "channelsArray must all be audio rate")}
 

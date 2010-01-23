@@ -58,7 +58,7 @@
        
        ;; LinPan2 : Pan2 {}
 
-       {:name "LinPan2" :derived "Pan2"}
+       {:name "LinPan2" :extends "Pan2"}
        
        ;; Pan4 : Panner {
        

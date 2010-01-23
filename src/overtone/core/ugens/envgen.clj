@@ -101,14 +101,12 @@
       ;; for envelope parameter o avoid expansion
       
       {:name "EnvGen",
-       :args [{:name "envelope"} 
+       :args [{:name "envelope" :mode :append-sequence} 
               {:name "gate", :default 1.0}
               {:name "levelScale", :default 1.0}
               {:name "levelBias", :default 0.0}
               {:name "timeScale", :default 1.0}
-              {:name "doneAction", :default :none}]
-       :init (fn [rate [env & args] spec]
-               (concat args env))}
+              {:name "doneAction", :default :none}]}
                ;(let [envec (TODO turn env object into vector)]
       
       ;; Linen : UGen {

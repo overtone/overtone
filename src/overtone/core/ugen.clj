@@ -1,5 +1,6 @@
-(ns overtone.core.ugen
-  (:use (overtone.core util ops ugens-common)
+(ns 
+  overtone.core.ugen
+  (:use (overtone.core util ops ugens-common ugen-categories)
      clojure.contrib.seq-utils
      clojure.contrib.pprint))
 
@@ -14,8 +15,15 @@
 
 (def REVERSE-RATES (invert-map RATES))
 
-(defn- normalize-name [n]
-  (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
+(def UGEN-SPEC-EXPANSION-MODES
+  {:not-expanded false
+   :append-sequence :false
+   :append-sequence-set-num-outs false
+   :num-outs false
+   :done-action false
+   :as-ar true ;; This should still expand right?
+   :standard true
+   })
 
 ;; Done actions are typically executed when an envelope ends, or a sample ends
 ;; 0	do nothing when the UGen is finished
@@ -50,22 +58,73 @@
    :done-free-children 13	
    :done-free-group 14})
 
-(defn specs-from [namespaces]
+(defn ot-ugen-name [n]
+  (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
+
+(defn derived? [spec]
+  (contains? spec :extends))
+
+(defn derive-specs
+  "Merge the ugen spec maps to give children their parent's attributes.
+  
+  Recursively reduces the specs to support arbitrary levels of derivation."
+  ([specs] (derive-ugen-specs specs {}))
+  ([children adults]
+   (let [[adults children] (reduce (fn [[full-specs new-children] spec]
+                                     (if (derived? spec) 
+                                       (if (contains? full-specs (:extends spec))
+                                         [(assoc full-specs (:name spec) 
+                                                 (merge (get full-specs (:extends spec)) spec)) 
+                                          new-children]
+                                         [full-specs (conj new-children spec)])
+                                       [(assoc full-specs (:name spec) spec) new-children]))
+                                   [adults []]
+                                   children)]
+     (if children 
+       (recur children adults)
+       adults))))
+
+(defn with-categories
+  "Adds a :categories attribute to ugen-specs for later use in documentation,
+  GUI and REPL interaction."
+  [spec]
+  (assoc spec :categories 
+         (get UGEN-CATEGORY-MAP (:name spec) [])))
+
+(defn with-ugen-expansion 
+  "Sets the :expands? attribute for ugen-spec arguments, which will inform the
+  automatic channel expansion system when to expand argument."
+  [spec]
+  (let [args (map (fn [arg] 
+                    (assoc arg :expands? 
+                           (get UGEN-SPEC-EXPANSION-MODES (get arg :mode :standard))))
+               (:args spec))]
+    (assoc :args spec)))
+
+(defn with-fn-rates [spec])
+
+(defn init-ugen-specs [specs]
+  (map #(-> %
+          (with-ugen-categories)
+          (with-ugen-expansion))
+       (derive-ugen-specs specs)))
+
+(defn load-ugen-specs [namespaces]
     (mapcat (fn [ns]
 	       (let [full-ns (symbol (str "overtone.core.ugens." ns))]
              (require [full-ns :only 'specs])
              (var-get (ns-resolve full-ns 'specs))))
 		 namespaces))
 
-(def UGENS (specs-from '[basicops io osc pan]))
+(def UGENS (load-ugen-specs '[basicops io osc pan]))
 
 (def UGEN-MAP (reduce (fn [mem ugen] 
-                        (assoc mem (normalize-name (:name ugen)) ugen)) 
+                        (assoc mem (ot-ugen-name (:name ugen)) ugen)) 
                       {}
                       UGENS))
 
 (defn get-ugen [word]
-  (get UGEN-MAP (normalize-name word)))
+  (get UGEN-MAP (ot-ugen-name word)))
 
 (defn find-ugen [regexp]
   (map #(second %)

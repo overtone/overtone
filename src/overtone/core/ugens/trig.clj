@@ -19,7 +19,7 @@
       
       ;; Trig : Trig1 {}
       
-      {:name "Trig", :derived "Trig1"}
+      {:name "Trig", :extends "Trig1"}
 
       ;; TDelay : Trig1 {
       ;;  	checkInputs { ^this.checkSameRateAsFirstInput }
@@ -95,7 +95,7 @@
 
       ;; Gate : Latch {}
 
-      {:name "Gate", :derived "Latch"}
+      {:name "Gate", :extends "Latch"}
       
       ;; PulseCount : UGen {
       ;; 	*ar { arg trig = 0.0, reset = 0.0;
@@ -114,19 +114,19 @@
 
       ;; SetResetFF : PulseCount {}
 
-      {:name "SetResetFF", :derived "PulseCount"}
+      {:name "SetResetFF", :extends "PulseCount"}
             
       ;; Peak : PulseCount {}
       
-      {:name "Peak", :derived "PulseCount"}
+      {:name "Peak", :extends "PulseCount"}
       
       ;; RunningMin : Peak {}
       
-      {:name "RunningMin", :derived "PulseCount"}
+      {:name "RunningMin", :extends "PulseCount"}
       
       ;; RunningMax : Peak {}
       
-      {:name "RunningMax", :derived "PulseCount"}
+      {:name "RunningMax", :extends "PulseCount"}
 
       ;; Stepper : UGen {
       
@@ -292,19 +292,19 @@
 
       ;; Fold : InRange {}
       
-      {:name "Fold", :derived "InRange"}
+      {:name "Fold", :extends "InRange"}
       
       ;; Clip : InRange {}
 
-      {:name "Clip", :derived "InRange"}
+      {:name "Clip", :extends "InRange"}
       
       ;; Wrap : InRange {}
 
-      {:name "Wrap", :derived "InRange"}
+      {:name "Wrap", :extends "InRange"}
       
       ;; Schmidt : InRange {}
 
-      {:name "Schmidt", :derived "InRange"}
+      {:name "Schmidt", :extends "InRange"}
       
       ;; InRect : UGen
       ;; {
@@ -361,7 +361,7 @@
       
       ;; LeastChange : MostChange {}
 
-      {:name "LeastChange", :derived "MostChange"}
+      {:name "LeastChange", :extends "MostChange"}
       
       ;; LastValue : UGen {
       

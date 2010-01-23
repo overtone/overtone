@@ -51,4 +51,4 @@
 
       ;; Limiter : Normalizer {}
 
-      {:name "Limiter", :derived "Normalizer"}])
+      {:name "Limiter", :extends "Normalizer"}])

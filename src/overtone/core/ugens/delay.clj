@@ -19,7 +19,7 @@
        
        ;; Delay2 : Delay1 { }
 
-       {:name "Delay2" :derived "Delay1"}
+       {:name "Delay2" :extends "Delay1"}
 
        ;; these delays use real time allocated memory.
 
@@ -39,11 +39,11 @@
 
        ;; DelayL : DelayN {}
 
-       {:name "DelayL" :derived "DelayN"}
+       {:name "DelayL" :extends "DelayN"}
        
        ;; DelayC : DelayN {}
 
-       {:name "DelayC" :derived "DelayN"}
+       {:name "DelayC" :extends "DelayN"}
        
        ;; CombN : UGen {
        ;;   *ar { arg in = 0.0, maxdelaytime = 0.2, delaytime = 0.2, decaytime = 1.0, mul = 1.0, add = 0.0;
@@ -62,23 +62,23 @@
        
        ;; CombL : CombN {}
 
-       {:name "CombL" :derived "ConmbN"}
+       {:name "CombL" :extends "ConmbN"}
        
        ;; CombC : CombN {}
 
-       {:name "CombC" :derived "ConmbN"}
+       {:name "CombC" :extends "ConmbN"}
 
        ;; AllpassN : CombN {}
 
-       {:name "AllpassN" :derived "ConmbN"}
+       {:name "AllpassN" :extends "ConmbN"}
        
        ;; AllpassL : CombN {}
 
-       {:name "AllpassL" :derived "ConmbN"}
+       {:name "AllpassL" :extends "ConmbN"}
        
        ;; AllpassC : CombN {}
 
-       {:name "AllpassC" :derived "ConmbN"}       
+       {:name "AllpassC" :extends "ConmbN"}       
 
        ;; these delays use shared buffers.
 
@@ -98,11 +98,11 @@
        
        ;; BufDelayL : BufDelayN {}
 
-       {:name "BufDelayL" :derived "BufDelayN"}
+       {:name "BufDelayL" :extends "BufDelayN"}
        
        ;; BufDelayC : BufDelayN {}
 
-       {:name "BufDelayC" :derived "BufDelayN"}
+       {:name "BufDelayC" :extends "BufDelayN"}
 
        ;; BufCombN : UGen {
        ;; 	*ar { arg buf = 0, in = 0.0, delaytime = 0.2, decaytime = 1.0, mul = 1.0, add = 0.0;
@@ -119,20 +119,20 @@
        
        ;; BufCombL : BufCombN {}
 
-       {:name "BufCombL" :derived "BufCombN"}
+       {:name "BufCombL" :extends "BufCombN"}
        
        ;; BufCombC : BufCombN {}
 
-       {:name "BufCombC" :derived "BufCombN"}       
+       {:name "BufCombC" :extends "BufCombN"}       
 
        ;; BufAllpassN : BufCombN {}
 
-       {:name "BufAllpassN" :derived "BufCombN"}
+       {:name "BufAllpassN" :extends "BufCombN"}
        
        ;; BufAllpassL : BufCombN {}
 
-       {:name "BufAllpassL" :derived "BufCombN"}
+       {:name "BufAllpassL" :extends "BufCombN"}
        
        ;; BufAllpassC : BufCombN {}
 
-       {:name "BufAllpassC" :derived "BufCombN"}]))
+       {:name "BufAllpassC" :extends "BufCombN"}]))

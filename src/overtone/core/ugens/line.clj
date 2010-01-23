@@ -100,7 +100,7 @@
       ;;  }
       ;; }
 
-      {:name "AmpCompA" :derived "AmpComp"
+      {:name "AmpCompA" :extends "AmpComp"
        :args [{:name "freq", :default 1000.0}
               {:name "root", :default 0}
               {:name "minAmp", :default 0.32}
@@ -135,7 +135,7 @@
       ;;  }
       ;; }
 
-      {:name "T2K" :derived "A2K"
+      {:name "T2K" :extends "A2K"
        :check (check-first-input-ar)}
 
       ;; T2A : K2A { // control rate to audio rate trigger converter.
@@ -163,7 +163,7 @@
       ;; }
 
       {:name "DC",
-       :args [{:name "in", :mode :prepend-sequence-set-num-outs}]}
+       :args [{:name "in", :mode :append-sequence-set-num-outs}]}
       
       ;; Silent : MultiOutUGen {
       ;;  *ar { arg numChannels = 1;
