@@ -18,7 +18,7 @@
       ;; }
 
       {:name "PlayBuf",
-       :args [{:name "numChannels"}
+       :args [{:name "numChannels" :mode :num-outs}
               {:name "bufnum", :default 0}
               {:name "rate", :default 1.0}
               {:name "trigger", :default 1.0}
@@ -44,7 +44,7 @@
       ;; }
 
       {:name "TGrains",
-       :args [{:name "numChannels" :default 2}
+       :args [{:name "numChannels" :mode :num-outs :default 2}
               {:name "trigger", :default 0}
               {:name "bufnum", :default 0}
               {:name "rate", :default 1}
@@ -77,7 +77,7 @@
       ;; }
 
       {:name "BufRd",
-       :args [{:name "numChannels", :default 1}
+       :args [{:name "numChannels" :mode :num-outs, :default 1}
               {:name "bufnum", :default 0}
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}
@@ -192,7 +192,7 @@
 
       {:name "LocalBuf"
        :args [{:name "numFrames" :default 1}
-              {:name "numChannels" :default 1}]}
+              {:name "numChannels" :mode :num-outs :default 1}]}
 
       ;; MaxLocalBufs : UGen {
       ;; 	*new {

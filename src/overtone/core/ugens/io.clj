@@ -25,7 +25,7 @@
 
       {:name "DiskOut",
        :args [{:name "bufnum"}
-              {:name "channelsArray"}],
+              {:name "channelsArray" :mode :append-sequence}],
        :rates #{:ar},
        :num-outs 0
        :check (all-but-first-input-ar "channelsArray must all be audio rate")}
@@ -42,7 +42,7 @@
       ;; }
 
       {:name "DiskIn",
-       :args [{:name "numChannels"}
+       :args [{:name "numChannels" :mode :num-outs}
               {:name "bufnum"}
               {:name "loop", :default 0}],
        :rates #{:ar}}
@@ -59,7 +59,7 @@
       ;; }
 
       {:name "VDiskIn",
-       :args [{:name "numChannels"}
+       :args [{:name "numChannels" :mode :num-outs}
               {:name "bufnum"}
               {:name "rate", :default 1}
               {:name "loop", :default 0}
@@ -211,7 +211,7 @@
 
       {:name "Out",
        :args [{:name "bus"}
-              {:name "channelsArray"}],
+              {:name "channelsArray" :mode :append-sequence}],
        :num-outs 0
        :check (when-ar
                (all-but-first-input-ar "channelsArray must all be audio rate"))}
@@ -245,7 +245,7 @@
       ;; }
 
       {:name "LocalOut",
-       :args [{:name "channelsArray"}],
+       :args [{:name "channelsArray" :mode :append-sequence}],
        :num-outs 0
        :check (when-ar (all-inputs-ar "all channels must be audio rate"))}
       
@@ -278,7 +278,7 @@
       {:name "XOut",
        :args [{:name "bus"}
               {:name "xfade"}
-              {:name "channelsArray"}],
+              {:name "channelsArray" :mode :append-sequence}],
        :num-outs 0
        :check (when-ar (after-n-inputs-rest-ar 2 "all channels must be audio rate"))}
       
@@ -293,6 +293,6 @@
 
       {:name "SharedOut",
        :args [{:name "bus"}
-              {:name "channelsArray"}],
+              {:name "channelsArray" :mode :append-sequence}],
        :rates #{:kr},
        :num-outs 0}])

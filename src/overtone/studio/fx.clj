@@ -1,5 +1,5 @@
 (ns overtone.studio.fx
-  (:use (overtone synth)))
+  (:use (overtone.core synth)))
 
 ;; The goal is to eventually build up a nice library of effects processors.
 

@@ -20,7 +20,8 @@
 
 (def specs
      (map
-      #(assoc :muladd true
+      #(assoc %
+              :muladd true
               :rates #{:ar})
       [
        ;; // General Quadratic Map

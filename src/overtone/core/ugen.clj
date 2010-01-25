@@ -82,22 +82,26 @@
   "Merge the ugen spec maps to give children their parent's attributes.
   
   Recursively reduces the specs to support arbitrary levels of derivation."
-  ([specs] (derive-ugen-specs specs {}))
-  ([children adults]
-   (let [[adults children] (reduce (fn [[full-specs new-children] spec]
-                                     (if (derived? spec) 
-                                       (if (contains? full-specs (:extends spec))
-                                         [(assoc full-specs (:name spec) 
-                                                 (merge (get full-specs (:extends spec)) spec)) 
-                                          new-children]
-                                         [full-specs (conj new-children spec)])
-                                       [(assoc full-specs (:name spec) spec) new-children]))
-                                   [adults []]
-                                   children)]
-            (format "derive-specs: %d - %d" (count adults) (count children))
-            (if (empty? children)
-              adults
-              (recur children adults)))))
+  ([specs] (derive-ugen-specs specs {} 0))
+  ([children adults depth]
+   (assert (< depth 8))
+   (println (format "top:  %d - %d" (count adults) (count children)))
+   (let [[adults children] 
+         (reduce (fn [[full-specs new-children] spec]
+                   (if (derived? spec) 
+                     (if (contains? full-specs (:extends spec))
+                       [(assoc full-specs (:name spec) 
+                               (merge (get full-specs (:extends spec)) spec)) 
+                        new-children]
+                       [full-specs (conj new-children spec)])
+                     [(assoc full-specs (:name spec) spec) new-children]))
+                 [adults []]
+                 children)]
+     (println (format "bottom: %d - %d" (count adults) (count children)))
+     (println (map #(:name %) children))
+     (if (empty? children)
+       adults
+       (recur children adults (inc depth))))))
 
 (defn with-categories
   "Adds a :categories attribute to a ugen-spec for later use in documentation,
@@ -203,13 +207,15 @@
   "Perform the derivation and setup defaults for rates, names, 
   argument initialization functions, and channel expansion flags."
   [specs]
-  (map (fn [[ugen-name spec]] 
-            (-> spec
-              (with-categories)
-              (with-expands)
-              (with-fn-names)
-              (with-init-fn)))
-       (derive-ugen-specs specs)))
+  (let [derived (derive-ugen-specs specs)]
+    (map (fn [[ugen-name spec]] 
+           (println "..." ugen-name) 
+           (-> spec
+             (with-categories)
+             (with-expands)
+             (with-fn-names)
+             (with-init-fn)))
+         derived)))
 
 (defn load-ugen-specs [namespaces]
   (mapcat (fn [ns]
@@ -217,16 +223,19 @@
               (require [full-ns :only 'specs])
               (var-get (ns-resolve full-ns 'specs))))
           namespaces))
+  
+; not including: pseudo, filter
+(def UGEN-NAMESPACES 
+  '[basicops buf-io compander delay envgen fft2 fft-unpacking grain])
+;    io machine-listening misc osc beq-suite chaos control demand 
+;    ff-osc fft info line mac-ugens noise pan trig])
 
-(def UGEN-NAMESPACES '[basicops buf-io compander delay envgen fft2 fft-unpacking grain io machine-listening misc osc pseudo beq-suite chaos control demand ff-osc fft filter info line mac-ugens noise pan trig])
-
-(def UGEN-SPECS (init-ugen-specs 
-                  (load-ugen-specs UGEN-NAMESPACES)))
-
-(def UGEN-SPEC-MAP (doall (reduce (fn [mem spec] 
-                                    (assoc mem (normalize-ugen-name (:name spec)) spec))
-                                  {}
-                                  UGEN-SPECS)))
+(def UGEN-SPECS (init-ugen-specs (load-ugen-specs UGEN-NAMESPACES)))
+(def UGEN-SPEC-MAP 
+  (doall (reduce (fn [mem spec] 
+                   (assoc mem (normalize-ugen-name (:name spec)) spec))
+                 {}
+                 UGEN-SPECS)))
 
 (defn get-ugen [word]
   (get UGEN-SPEC-MAP (normalize-ugen-name word)))
@@ -283,10 +292,10 @@
 (defn csproxy? [_] false)
 
 (defn multichannel-expand
-  "Does sc style multichannel expansion checks for any seqs flagged infinite by
-   the user so as not to try expand them. note that this returns a list even
-   in the case of a single expansion. see fn expansive which implements the full
-   expansion semantics."
+  "Does sc style multichannel expansion.
+  * does not expand seqs flagged infinite
+  * note that this returns a list even in the case of a single expansion
+  "
   [args]
   (if (zero? (count args))
     [[]]
@@ -302,10 +311,9 @@
           [greatest-count seqs] (reduce gc-seqs [1 []] args)]
       (take greatest-count (apply parallel-seqs seqs)))))
 
-(defn expansive
+(defn make-expanding
   "Takes a function and returns a multi-channel-expanding version of the function."
-  [f has-ary?]
-  ;(println "expansive: " f "\nhas-ary: " has-ary?)
+  [f expand-flags]
   (fn [& args]
     (let [ary (last args)
           expanded (if (and has-ary? (coll? ary) (not (map? ary)))
@@ -338,36 +346,20 @@
       (flatten (concat with-defs [env-ary])))))
 
 (defn- add-default-args [spec args]
-  (let [defaults (map #(:default %1) (:args spec))]
-    (cond 
-      ; Some ugens (e.g. EnvGen) have an array of values as their last argument,
-      ; so when the last arg is a coll? we insert missing defaults between the passed
-      ; args and the array.
-      (and (< (count args) (count defaults))
-           (and (coll? (last args)) (:array? (last (:args spec)))))
-      (concat (drop-last args) (drop (count args) (drop-last defaults)) (last args))
-
-      ; Replace regular missing args as long as they are all valid numbers
-      (and (< (count args) (count defaults)) 
-           (not-any? #(= false %1) args))
-      (concat args (drop (count args) defaults))
-
-      ; Otherwise we just missed something
-      (< (count args) (count defaults))
+  (let [defaults (map #(:default %1) (:args spec))
+        defaults (drop (count args) defaults)]
+    (if (some #(= :none %) defaults)
       (throw (IllegalArgumentException. 
         (str "Missing arguments to ugen: " (:name spec) " => "  
              (doall (drop (count args) (map #(%1 :name) (:args spec)))))))
-
-      :default args)))
+      (concat args defaults))))
 
 (defn make-ugen 
   "Returns a function representing the given ugen that will fill in default arguments, rates, etc."
   [spec]
-  (let [ary? (:array? (last (:args spec)))]
-    (expansive (fn [& args]
-                 (let [[rate args] (if (keyword? (first args))
-                                     [(first args) (rest args)]
-                                     [:audio args])
+  (let [expand-flags (map #(:expands %) (:args spec))]
+    (make-expanding (fn [& args]
+                 (let [args (add-default-args spec args)
                        uname (:name spec)
                        [uname special] (cond
                                          (unary-op-num uname) 
@@ -381,9 +373,9 @@
                                :name uname 
                                :rate (rate RATES)
                                :special special
-                               :args (add-default-args spec args)}
+                               :args args}
                               {:type ::ugen})))
-               ary?)))
+               expand-flags)))
 
 (defn ugen? [obj] (= ::ugen (type obj)))
 
@@ -395,6 +387,14 @@
                              (apply ugen-fn args)
                              (apply original-fn args))))))
 
+;; TODO:
+;; * Need to write a function that takes a ugen-spec, and generates a set
+;; of ugen functions for that spec.  Each of these functions will automatically
+;; set the rate for the ugen.
+;;
+;; * Need a function that iterates over all ugen-specs and generates ugen-fns
+;; * Need a function that generates all the special-ops functions
+  
 (defn refer-ugens [ns]
   (let [core-ns (find-ns 'clojure.core)]
     (doseq [ugen UGEN-SPECS]

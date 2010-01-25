@@ -60,25 +60,12 @@
                {:name "delaytime", :default 0.2}
                {:name "decaytime", :default 1.0}]}
        
-       ;; CombL : CombN {}
+       {:name "CombL" :extends "CombN"}
+       {:name "CombC" :extends "CombN"}
 
-       {:name "CombL" :extends "ConmbN"}
-       
-       ;; CombC : CombN {}
-
-       {:name "CombC" :extends "ConmbN"}
-
-       ;; AllpassN : CombN {}
-
-       {:name "AllpassN" :extends "ConmbN"}
-       
-       ;; AllpassL : CombN {}
-
-       {:name "AllpassL" :extends "ConmbN"}
-       
-       ;; AllpassC : CombN {}
-
-       {:name "AllpassC" :extends "ConmbN"}       
+       {:name "AllpassN" :extends "CombN"}
+       {:name "AllpassL" :extends "CombN"}
+       {:name "AllpassC" :extends "CombN"}       
 
        ;; these delays use shared buffers.
 

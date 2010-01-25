@@ -90,8 +90,7 @@ then it is considered an error and an exception is thrown.
                             in the inputs and concatenated to their
                             tail end. if there are several args in
                             this mode then they will be appended
-                            in argument order. args named
-                            channelsArray are implicitely this mode
+                            in argument order.
                     :append-sequence-set-num-outs
                             same as above, but also sets num-outs
                              via (count arg)

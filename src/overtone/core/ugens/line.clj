@@ -1,6 +1,5 @@
-
 (ns overtone.core.ugens.line
-  (:use overtone.core.ugens.common))
+  (:use (overtone.core ugens-common)))
 
 (def specs
      [
@@ -86,7 +85,7 @@
               {:name "root", :default 261.6256}
               {:name "exp", :default 0.3333}],
        :rates #{:ir :ar :kr}
-       :check (when-ar (check-first-input-ar "freq must be audio rate"))}
+       :check (when-ar (first-input-ar "freq must be audio rate"))}
 
       ;; AmpCompA : AmpComp {
       ;;  *ir { arg freq = 1000, root = 0, minAmp = 0.32, rootAmp = 1.0; 
@@ -136,7 +135,7 @@
       ;; }
 
       {:name "T2K" :extends "A2K"
-       :check (check-first-input-ar)}
+       :check (first-input-ar)}
 
       ;; T2A : K2A { // control rate to audio rate trigger converter.
       ;;  *ar { arg in = 0.0, offset = 0;
@@ -176,5 +175,5 @@
       ;; }
 
       {:name "Silent",
-       :args [{:name "numChannels", :default 1}],
+       :args [{:name "numChannels", :mode :num-outs, :default 1}],
        :rates #{:ar}}])

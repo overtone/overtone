@@ -1,5 +1,5 @@
-
-(ns overtone.core.ugens.filter)
+(ns overtone.core.ugens.filter
+  (:use (overtone.core ugens-common)))
 
 ;; Filter : UGen {
 ;;  	checkInputs { ^this.checkSameRateAsFirstInput }
@@ -377,11 +377,11 @@
           {:name "time", :default 0.1}
           {:name "doneAction", :default 0}],
    :num-outs 0
-   :check-inputs check-same-rate-as-first-input
+   :check-inputs same-rate-as-first-input
    :init parse-done-action})
 
 (def specs
-     (conj (map #(assoc :muladd true
-                        :check-inputs check-same-rate-as-first-input)
+     (conj (map #(assoc % :muladd true
+                        :check-inputs same-rate-as-first-input)
                 muladd-specs)
            detect-silence))

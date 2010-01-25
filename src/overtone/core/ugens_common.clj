@@ -38,8 +38,8 @@
                 :free-group 14}]
       (da-map int-or-sym int-or-sym)))
 
-(defn parse-done-action [rate argspec args]
-  )
+(defn parse-done-action [rate argspec args])
+(defn as-ar [a])
 
 ;; checks
 
@@ -102,6 +102,10 @@
 (defcheck named-input-ar [name]
           ""
           true)
+
+(defcheck same-rate-as-first-input []
+  "the rate must match the rate of the first input"
+  (= rate (:rate (first inputs))))
 
 (defcheck num-outs-greater-than [n]
   (str "must have " (+ n 1) " or more output channels")

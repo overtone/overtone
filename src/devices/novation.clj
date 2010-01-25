@@ -1,5 +1,5 @@
 (ns devices.novation
-  (:use (overtone midi))
+  (:use midi)
   (:require [overtone.log :as log]))
 
 (declare NOV-OUT)

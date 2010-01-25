@@ -15,7 +15,7 @@
 
       {:name "Tap"
        :args [{:name "bufnum", :default 0}
-              {:name "numChannels", :default 1}
+              {:name "numChannels" :mode :num-outs, :default 1}
               {:name "delaytime" :default 0.2}]
        :rates #{:ar}
        :pseudo-ugen {:ar (fn [bufnum num-channels delaytime]
