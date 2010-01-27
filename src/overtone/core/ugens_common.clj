@@ -3,42 +3,39 @@
      :author "Jeff Rose & Christophe McKeon"}
   overtone.core.ugens-common)
 
-; 0 do nothing when the UGen is finished
-; 1 pause the enclosing synth, but do not free it
-; 2 free the enclosing synth
-; 3 free both this synth and the preceding node
-; 4 free both this synth and the following node
-; 5 free this synth; if the preceding node is a group then do g_freeAll on it, else free it
-; 6 free this synth; if the following node is a group then do g_freeAll on it, else free it
-; 7 free this synth and all preceding nodes in this group
-; 8 free this synth and all following nodes in this group
-; 9 free this synth and pause the preceding node
-; 10 free this synth and pause the following node
-; 11 free this synth and if the preceding node is a group then do g_deepFree on it, else free it
-; 12 free this synth and if the following node is a group then do g_deepFree on it, else free it
-; 13 free this synth and all other nodes in this group (before and after)
-; 14 free the enclosing group and all nodes within it (including this synth)
+;; Done actions are typically executed when an envelope ends, or a sample ends
+;; 0	do nothing when the UGen is finished
+;; 1	pause the enclosing synth, but do not free it
+;; 2	free the enclosing synth
+;; 3	free both this synth and the preceding node
+;; 4	free both this synth and the following node
+;; 5	free this synth; if the preceding node is a group then do g_freeAll on it, else free it
+;; 6	free this synth; if the following node is a group then do g_freeAll on it, else free it
+;; 7	free this synth and all preceding nodes in this group
+;; 8	free this synth and all following nodes in this group
+;; 9	free this synth and pause the preceding node
+;; 10	free this synth and pause the following node
+;; 11	free this synth and if the preceding node is a group then do g_deepFree on it, else free it
+;; 12	free this synth and if the following node is a group then do g_deepFree on it, else free it
+;; 13	free this synth and all other nodes in this group (before and after)
+;; 14	free the enclosing group and all nodes within it (including this synth)
+(def DONE-ACTIONS  
+  {:none                       0	
+   :pause                      1	
+   :free                       2	
+   :free-and-before            3	
+   :free-and-after             4
+   :free-and-group-before      5	
+   :free-and-group-after       6
+   :free-upto-this             7	
+   :free-from-this-on          8	
+   :free-pause-before          9
+   :free-pause-after           10
+   :free-and-group-before-deep 11
+   :free-and-group-after-deep  12	
+   :free-children              13	
+   :free-group                 14})
 
-(defn done-action [int-or-sym]
-  (let [da-map {:none 0	
-                :nothing 0
-                :pause 1	
-                :free 2	
-                :free-with-preceding 3	
-                :free-with-following 4
-                :free-with-preceding-group 5	
-                :free-with-following-group 6
-                :free-upto-this 7	
-                :free-from-this-on 8	
-                :free-pause-preceding 9
-                :free-pause-following 10
-                :free-with-preceding-group-deep 11
-                :free-with-following-group-deep 12	
-                :free-with-siblings 13	
-                :free-group 14}]
-      (da-map int-or-sym int-or-sym)))
-
-(defn parse-done-action [rate argspec args])
 (defn as-ar [a])
 
 ;; checks

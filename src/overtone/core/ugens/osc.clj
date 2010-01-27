@@ -1,5 +1,5 @@
-
-(ns overtone.core.ugens.osc)
+(ns overtone.core.ugens.osc
+  (:use (overtone.core ugens-common)))
 
 (def specs
      [
@@ -187,7 +187,7 @@
               {:name "width", :default 0.1}
               {:name "iphase", :default 0.0}
               {:name "loop", :default 1}
-              {:name "doneAction", :default 0}]}
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]}
 
       ;; LFPulse : UGen {
       ;; 	*ar {

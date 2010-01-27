@@ -16,7 +16,7 @@
        :args [{:name "start", :default 0.0}
               {:name "end", :default 1.0}
               {:name "dur", :default 1.0}
-              {:name "doneAction", :default 0}]
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
        :muladd true} ;; TODO MAYBE? mul add offset
       
       ;; XLine : UGen { 
@@ -32,7 +32,7 @@
        :args [{:name "start", :default 1.0}
               {:name "end", :default 2.0}
               {:name "dur", :default 1.0}
-              {:name "doneAction", :default 0}]
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
        :muladd true}  ;; TODO MAYBE? mul add offset
       
       ;; LinExp : UGen {

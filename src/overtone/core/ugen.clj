@@ -19,46 +19,13 @@
 
 (def UGEN-SPEC-EXPANSION-MODES
   {:not-expanded false
-   :append-sequence :false
+   :append-sequence false
    :append-sequence-set-num-outs false
    :num-outs false
    :done-action false
    :as-ar true ;; This should still expand right?
    :standard true
    })
-
-;; Done actions are typically executed when an envelope ends, or a sample ends
-;; 0	do nothing when the UGen is finished
-;; 1	pause the enclosing synth, but do not free it
-;; 2	free the enclosing synth
-;; 3	free both this synth and the preceding node
-;; 4	free both this synth and the following node
-;; 5	free this synth; if the preceding node is a group then do g_freeAll on it, else free it
-;; 6	free this synth; if the following node is a group then do g_freeAll on it, else free it
-;; 7	free this synth and all preceding nodes in this group
-;; 8	free this synth and all following nodes in this group
-;; 9	free this synth and pause the preceding node
-;; 10	free this synth and pause the following node
-;; 11	free this synth and if the preceding node is a group then do g_deepFree on it, else free it
-;; 12	free this synth and if the following node is a group then do g_deepFree on it, else free it
-;; 13	free this synth and all other nodes in this group (before and after)
-;; 14	free the enclosing group and all nodes within it (including this synth)
-(def DONE-ACTIONS  
-  {:done-nothing 0	
-   :done-pause 1	
-   :done-free 2	
-   :done-free-and-before 3	
-   :done-free-and-after 4
-   :done-free-and-group-before 5	
-   :done-free-and-group-after 6
-   :done-free-upto-this 7	
-   :done-free-from-this-on 8	
-   :done-free-pause-before 9
-   :done-free-pause-after 10
-   :done-free-and-group-before-deep 11
-   :done-free-and-group-after-deep 12	
-   :done-free-children 13	
-   :done-free-group 14})
 
 (defn normalize-ugen-name 
   "Normalizes SuperCollider and overtone-style names to squeezed lower-case."
@@ -155,18 +122,43 @@
            :rates rates
            :fn-names (assoc name-rates base-name base-rate))))
 
-; TODO
+(defn args-with-specs
+  "Creates a list of (arg-value, arg-spec-item) pairs."
+  [args spec prop]
+  (partition 2 (interleave args (map #(get % prop) (:args spec)))))
+
 (defn map-ugen-args 
   "Perform any argument mappings that needs to be done."
   [spec args]
-  args)
+  (let [args-specs (args-with-specs args spec :map)]
+    (map (fn [[arg map-val]]
+            (if (map? map-val)
+              (get map-val arg)
+              arg))
+         args-specs)))
 
-; TODO
 (defn do-ugen-arg-modes 
   "Apply whatever mode specific functions need to be performed on the argument
   list."
   [spec args]
-  args)
+  (let [args-specs (partition 2 (interleave args (map #(:mode %) (:args spec))))
+        ; Perform the 
+        [args to-append] (reduce (fn [[args to-append] [arg mode]]
+                                   (if (and (= :append-sequence mode) (coll? arg) (not (map? arg)))
+                                     [args (concat to-append arg)]
+                                     [(conj args arg) to-append]))
+                                 [[] []]
+                                 args-specs)]
+    (concat args to-append)))
+
+(defn add-default-args [spec args]
+  (let [defaults (map #(:default %) (:args spec))
+        defaults (drop (count args) defaults)]
+    (when (some #(nil? %) defaults)
+      (throw (IllegalArgumentException. 
+        (str "\n- - -\nMissing arguments for: " (:name spec) " UGen => "  
+             (doall (drop (count args) (map #(:name %) (:args spec))))))))
+    (concat args defaults)))
 
 ;  - build a new :init function which will later be called
 ;    by the ugen function (after MCE), over-writing :init if it exists.
@@ -198,9 +190,10 @@
   [spec]
   (let [map-fn (partial map-ugen-args spec)
         mode-fn (partial do-ugen-arg-modes spec)
+        default-fn (partial add-default-args spec)
         init-fn (if (contains? spec :init)
-                  (comp mode-fn (:init spec) map-fn)
-                  (comp mode-fn map-fn))]
+                  (comp mode-fn (:init spec) map-fn default-fn)
+                  (comp mode-fn map-fn default-fn))]
     (assoc spec :init init-fn)))
 
 (defn init-ugen-specs 
@@ -256,7 +249,7 @@
   (doseq [ugen ugens]
     (println "UGen:" (str "\"" (:name ugen) "\""))
     (print-ugen-args (:args ugen))
-    (println "outputs: " 
+    (println "\n\toutputs: " 
              (str "[" (apply str (interpose ", "(:rates ugen))) "]"))))
 
 (defn ugen-doc [word]
@@ -326,24 +319,14 @@
         (first expanded)
         expanded))))
 
-(defn- add-default-args [spec args]
-  (let [defaults (map #(:default %1) (:args spec))
-        defaults (drop (count args) defaults)]
-    (if (some #(= :none %) defaults)
-      (throw (IllegalArgumentException. 
-        (str "Missing arguments to ugen: " (:name spec) " => "  
-             (doall (drop (count args) (map #(%1 :name) (:args spec)))))))
-      (concat args defaults))))
-
 (defn ugen-base-fn [spec rate special]
   (fn [& args]
-    (let [args (add-default-args spec args)
-          uname (:name spec)]
+    (let [uname (:name spec)]
       (with-meta {:id (next-id :ugen)
                   :name uname 
                   :rate (get RATES rate)
                   :special special
-                  :args args}
+                  :args ((:init spec) args)}
             {:type ::ugen}))))
 
 (defn ugen? [obj] (= ::ugen (type obj)))
