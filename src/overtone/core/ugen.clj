@@ -10,10 +10,10 @@
 ;;   0 = scalar rate - one sample is computed at initialization time only. 
 ;;   1 = control rate - one sample is computed each control period.
 ;;   2 = audio rate - one sample is computed for each sample of audio output.
-(def RATES {:scalar  0
-            :control 1
-            :audio   2
-            :demand  3})
+(def RATES {:ir 0
+            :kr 1
+            :ar 2
+            :dr 3})
 
 (def REVERSE-RATES (invert-map RATES))
 
@@ -85,7 +85,7 @@
   ([specs] (derive-ugen-specs specs {} 0))
   ([children adults depth]
    (assert (< depth 8))
-   (println (format "top:  %d - %d" (count adults) (count children)))
+   ;(println (format "top:  %d - %d" (count adults) (count children)))
    (let [[adults children] 
          (reduce (fn [[full-specs new-children] spec]
                    (if (derived? spec) 
@@ -97,8 +97,8 @@
                      [(assoc full-specs (:name spec) spec) new-children]))
                  [adults []]
                  children)]
-     (println (format "bottom: %d - %d" (count adults) (count children)))
-     (println (map #(:name %) children))
+     ;(println (format "bottom: %d - %d" (count adults) (count children)))
+     ;(println (map #(:name %) children))
      (if (empty? children)
        adults
        (recur children adults (inc depth))))))
@@ -108,7 +108,7 @@
   GUI and REPL interaction."
   [spec]
   (let [cats (get UGEN-CATEGORY-MAP (:name spec) [])]
-    (println "categories: " (:name spec) " : " cats)
+    ;(println "categories: " (:name spec) " : " cats)
     (assoc spec :categories cats)))
 
 (defn with-expands 
@@ -209,7 +209,7 @@
   [specs]
   (let [derived (derive-ugen-specs specs)]
     (map (fn [[ugen-name spec]] 
-           (println "..." ugen-name) 
+           ;(println "..." ugen-name) 
            (-> spec
              (with-categories)
              (with-expands)
@@ -226,9 +226,9 @@
   
 ; not including: pseudo, filter
 (def UGEN-NAMESPACES 
-  '[basicops buf-io compander delay envgen fft2 fft-unpacking grain])
-;    io machine-listening misc osc beq-suite chaos control demand 
-;    ff-osc fft info line mac-ugens noise pan trig])
+  '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
+    io machine-listening misc osc beq-suite chaos control demand
+    ff-osc fft info noise pan trig line input])
 
 (def UGEN-SPECS (init-ugen-specs (load-ugen-specs UGEN-NAMESPACES)))
 (def UGEN-SPEC-MAP 
@@ -246,7 +246,7 @@
                UGEN-SPEC-MAP)))
 
 (defn- print-ugen-args [args]
-  (println "args: (defaults)")
+  ;(println "args: (defaults)")
   (doseq [arg args]
     (print (str "\t" (:name arg) ": " (if (contains? arg :default)
                                         (:default arg)
@@ -286,64 +286,45 @@
 (defn cycle-vals [coll]
   (cycle (if (map? coll) (vals coll) coll)))
 
-; because i am using maps as csproxies (cient side ugens)
-; and because i wanted to expand maps, it checks if it's a csproxy before it expands.
-; to test this code you could just use this dummy function 
-(defn csproxy? [_] false)
+(defn expandable? [arg]
+  (and (coll? arg) (not (map? arg))))
 
 (defn multichannel-expand
   "Does sc style multichannel expansion.
   * does not expand seqs flagged infinite
   * note that this returns a list even in the case of a single expansion
   "
-  [args]
+  [expand-flags args]
   (if (zero? (count args))
     [[]]
     (let [gc-seqs (fn [[gcount seqs] arg]
                     (cond 
-                      (inf? arg) [gcount (conj seqs arg)]
+                      ; Infinite seqs can be used to generate values for expansion
+                      (inf? arg) [gcount 
+                                  (conj seqs arg) 
+                                  (next expand-flags)]
 
-                      (and (coll? arg) (not (or (map? arg) (csproxy? arg))))
-                      [(max gcount (count arg)) (conj seqs (cycle-vals arg))]
+                      ; Regular, non-infinite and non-map collections get expanded
+                      (and (expandable? arg) 
+                           (first expand-flags)) [(max gcount (count arg)) 
+                                                  (conj seqs (cycle-vals arg))
+                                                  (next expand-flags)]
 
-                      :else 
-                      [gcount (conj seqs (repeat arg))]))
-          [greatest-count seqs] (reduce gc-seqs [1 []] args)]
+                      :else ; Basic values get used for all expansions
+                      [gcount 
+                       (conj seqs (repeat arg)) 
+                       (next expand-flags)]))
+          [greatest-count seqs] (reduce gc-seqs [1 [] expand-flags] args)]
       (take greatest-count (apply parallel-seqs seqs)))))
 
 (defn make-expanding
   "Takes a function and returns a multi-channel-expanding version of the function."
   [f expand-flags]
   (fn [& args]
-    (let [ary (last args)
-          expanded (if (and has-ary? (coll? ary) (not (map? ary)))
-                     (map #(concat % ary) (multichannel-expand (drop-last args)))
-                     (multichannel-expand args))
-          applied (mapply f expanded)]
-      (if (= (count applied) 1)
-        (first applied)
-        applied))))
-
-(defn- replace-action-args [args]
-  (map #(get DONE-ACTIONS %1 %1) args))
-
-(defn- envelope-args [spec args]
-  (replace-action-args 
-    (let [env-ary (first args)
-          args (next args) 
-          defaults (drop-last (map #(%1 :default) (:args spec)))
-          with-defs (cond 
-                      (and (< (count args) (count defaults))
-                           (contains? DONE-ACTIONS (last args)))
-                      (concat (drop-last args) 
-                              (drop (dec (count args)) (drop-last defaults)) 
-                              [(last args)])
-
-                      (< (count args) (count defaults))
-                      (concat args (drop (count args) defaults))
-
-                      :default args)]
-      (flatten (concat with-defs [env-ary])))))
+    (let [expanded (mapply f (multichannel-expand expand-flags args))]
+      (if (= (count expanded) 1)
+        (first expanded)
+        expanded))))
 
 (defn- add-default-args [spec args]
   (let [defaults (map #(:default %1) (:args spec))
@@ -354,59 +335,24 @@
              (doall (drop (count args) (map #(%1 :name) (:args spec)))))))
       (concat args defaults))))
 
-(defn make-ugen 
-  "Returns a function representing the given ugen that will fill in default arguments, rates, etc."
-  [spec]
-  (let [expand-flags (map #(:expands %) (:args spec))]
-    (make-expanding (fn [& args]
-                 (let [args (add-default-args spec args)
-                       uname (:name spec)
-                       [uname special] (cond
-                                         (unary-op-num uname) 
-                                         ["UnaryOpUGen" (unary-op-num uname)]
-
-                                         (binary-op-num uname) 
-                                         ["BinaryOpUGen" (binary-op-num uname)]
-
-                                         :default [uname 0])]
-                   (with-meta {:id (next-id :ugen)
-                               :name uname 
-                               :rate (rate RATES)
-                               :special special
-                               :args args}
-                              {:type ::ugen})))
-               expand-flags)))
+(defn ugen-base-fn [spec rate special]
+  (fn [& args]
+    (let [args (add-default-args spec args)
+          uname (:name spec)]
+      (with-meta {:id (next-id :ugen)
+                  :name uname 
+                  :rate (get RATES rate)
+                  :special special
+                  :args args}
+            {:type ::ugen}))))
 
 (defn ugen? [obj] (= ::ugen (type obj)))
 
-(defn overload-ugen-op [ns ugen-name ugen-fn]
-  (let [original-fn (ns-resolve ns ugen-name)]
-    (ns-unmap ns ugen-name)
-    (intern ns ugen-name (fn [& args]
-                           (if (some #(or (ugen? %) (not (number? %))) args)
-                             (apply ugen-fn args)
-                             (apply original-fn args))))))
-
-;; TODO:
-;; * Need to write a function that takes a ugen-spec, and generates a set
-;; of ugen functions for that spec.  Each of these functions will automatically
-;; set the rate for the ugen.
-;;
-;; * Need a function that iterates over all ugen-specs and generates ugen-fns
-;; * Need a function that generates all the special-ops functions
-  
-(defn refer-ugens [ns]
-  (let [core-ns (find-ns 'clojure.core)]
-    (doseq [ugen UGEN-SPECS]
-      (let [ugen-name (symbol (overtone-ugen-name (:name ugen)))
-            ugen-name (with-meta ugen-name {:doc (with-out-str (print-ugen ugen))})
-            ugen-fn (make-ugen ugen)]
-        (cond
-          (ns-resolve core-ns ugen-name) (overload-ugen-op ns ugen-name ugen-fn)
-          (ns-resolve ns ugen-name) nil
-          :default (intern ns ugen-name ugen-fn))))))
-
-(refer-ugens (create-ns 'overtone.ugens))
+(defn make-ugen-fn
+  "Returns a function representing the given ugen that will fill in default arguments, rates, etc."
+  [spec rate special]
+  (let [expand-flags (map #(:expands? %) (:args spec))]
+    (make-expanding (ugen-base-fn spec rate special) expand-flags)))
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
@@ -427,4 +373,91 @@
 
 (defn control? [obj]
   (isa? (type obj) ::control))
+            
+;; TODO:
+;; * Need to write a function that takes a ugen-spec, and generates a set
+;; of ugen functions for that spec.  Each of these functions will automatically
+;; set the rate for the ugen.
 
+(defn ugen-docs
+  "Create a string representing the documentation for the given ugen-spec."
+  [ugen-spec]
+  (with-out-str (print-ugen ugen-spec)))
+
+;; TODO: Replace or modify this to work with an implementation based on contrib.generics
+(defn overload-ugen-op [ns ugen-name ugen-fn]
+  (let [original-fn (ns-resolve ns ugen-name)]
+    (ns-unmap ns ugen-name)
+    (intern ns ugen-name (fn [& args]
+                           (if (some #(or (ugen? %) (not (number? %))) args)
+                             (apply ugen-fn args)
+                             (apply original-fn args))))))
+
+(defn def-ugen
+  "Create and intern a set of functions for a given ugen-spec.
+    * base name function using default rate and no suffix (e.g. env-gen )
+    * base-name plus rate suffix functions for each rate (e.g. env-gen:ar, env-gen:kr) 
+  "
+  [to-ns spec special]
+  (let [metadata {:doc (ugen-docs spec)}
+        ugen-fns (map (fn [[uname rate]] [(with-meta (symbol uname) metadata)
+                                          (make-ugen-fn spec rate special)])
+                      (:fn-names spec))]
+    (doseq [[ugen-name ugen-fn] ugen-fns]
+      (intern to-ns ugen-name ugen-fn))))
+
+(defn op-rate [arg]
+  (if (ugen? arg)
+    (:rate arg)
+    (get RATES :ir)))
+
+(defn def-unary-op
+  [to-ns op-name special]
+  (let [spec (get UGEN-SPEC-MAP "unaryopugen")
+        ugen-name (symbol (overtone-ugen-name op-name))
+        ugen-name (with-meta ugen-name {:doc (ugen-docs spec)})
+        ugen-fn (fn [arg]
+                  (with-meta {:id (next-id :ugen)
+                              :name "UnaryOpUGen"
+                              :rate (op-rate arg)
+                              :special special
+                              :args (list arg)}
+                             {:type ::ugen}))]
+    (if (ns-resolve to-ns ugen-name)
+      (overload-ugen-op to-ns ugen-name ugen-fn)
+      (intern to-ns ugen-name ugen-fn))))
+
+(defn def-binary-op
+  [to-ns op-name special]
+  (let [spec (get UGEN-SPEC-MAP "binaryopugen")
+        ugen-name (symbol (overtone-ugen-name op-name))
+        ugen-name (with-meta ugen-name {:doc (ugen-docs spec)})
+        ugen-fn (fn [a b]
+                  (with-meta {:id (next-id :ugen)
+                              :name "BinaryOpUGen"
+                              :rate (max (op-rate a) (op-rate b))
+                              :special special
+                              :args (list a b)}
+                             {:type ::ugen}))]
+    (if (ns-resolve to-ns ugen-name)
+      (overload-ugen-op to-ns ugen-name ugen-fn)
+      (intern to-ns ugen-name ugen-fn))))
+
+(defn refer-ugens 
+  "Iterate over all UGen meta-data, generate the corresponding functions and intern them
+  in the current or otherwise specified namespace."
+  [to-ns]
+  (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %)) 
+                           (= "BinaryOpUGen" (:name %)))) 
+                       UGEN-SPECS)]
+            ;(println (:name ugen))
+            (def-ugen to-ns ugen 0))
+  (doseq [[op-name special] UNARY-OPS]
+    (def-unary-op to-ns op-name special))
+  (doseq [[op-name special] BINARY-OPS]
+    (def-binary-op to-ns op-name special)))
+
+;; We refer all the ugen functions here so they can be access by other parts
+;; of the Overtone system using a fixed namespace.  For example, to automatically
+;; stick an Out ugen on synths that don't explicitly use one.
+(refer-ugens (create-ns 'overtone.ugens))
