@@ -202,11 +202,9 @@
   [specs]
   (let [derived (derive-ugen-specs specs)]
     (map (fn [[ugen-name spec]] 
-           ;(println "..." ugen-name) 
            (-> spec
              (with-categories)
              (with-expands)
-             (with-fn-names)
              (with-init-fn)))
          derived)))
 
@@ -217,13 +215,15 @@
               (var-get (ns-resolve full-ns 'specs))))
           namespaces))
   
-; not including: pseudo, filter
+; not including: pseudo
 (def UGEN-NAMESPACES 
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
-    ff-osc fft info noise pan trig line input])
+    ff-osc fft info noise pan trig line input filter])
 
-(def UGEN-SPECS (init-ugen-specs (load-ugen-specs UGEN-NAMESPACES)))
+; TODO: I must be going insane, but with-fn-names doesn't seem to work if I put it in the 
+; string of init-ugen-specs functions, although it works in the repl...
+(def UGEN-SPECS (map with-fn-names (init-ugen-specs (load-ugen-specs UGEN-NAMESPACES))))
 (def UGEN-SPEC-MAP 
   (doall (reduce (fn [mem spec] 
                    (assoc mem (normalize-ugen-name (:name spec)) spec))
