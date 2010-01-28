@@ -1,4 +1,4 @@
-(ns overtone.core.ugens.input)
+(ns overtone.core.ugen.input)
 
 (def specs
      [      

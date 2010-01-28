@@ -1,4 +1,4 @@
-(ns overtone.core.ugens.chaos)
+(ns overtone.core.ugen.chaos)
 
 ;; /*
 ;; Non-linear Dynamic Sound Generators

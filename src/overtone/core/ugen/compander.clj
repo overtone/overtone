@@ -1,4 +1,4 @@
-(ns overtone.core.ugens.compander)
+(ns overtone.core.ugen.compander)
 
 (def specs
      [

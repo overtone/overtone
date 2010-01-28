@@ -1,4 +1,4 @@
-(ns overtone.core.ugen-categories)
+(ns overtone.core.ugen.categories)
 
 (def UGEN-CATEGORY-MAP
      {"A2K" [["Conversion" ]]

@@ -1,5 +1,5 @@
 
-(ns overtone.core.ugens.info)
+(ns overtone.core.ugen.info)
 
 ;; InfoUGenBase : UGen {
 ;; 	*ir {

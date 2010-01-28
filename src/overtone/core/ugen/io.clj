@@ -1,5 +1,5 @@
-(ns overtone.core.ugens.io
-  (:use (overtone.core ugens-common)))
+(ns overtone.core.ugen.io
+  (:use (overtone.core.ugen common)))
 
 (def specs
      [
@@ -87,7 +87,7 @@
 
       {:name "In",
        :args [{:name "bus", :default 0}
-              {:name "numChannels", :default 1}]}
+              {:name "numChannels", :mode :num-outs :default 1}]}
       
       ;; from InOut.sc
       ;; LocalIn : AbstractIn {	
@@ -103,7 +103,7 @@
       ;; }
 
       {:name "LocalIn",
-       :args [{:name "numChannels", :default 1}]}
+       :args [{:name "numChannels", :mode :num-outs :default 1}]}
       
       ;; from InOut.sc
       ;; LagIn : AbstractIn {	
@@ -118,7 +118,7 @@
 
       {:name "LagIn",
        :args [{:name "bus", :default 0}
-              {:name "numChannels", :default 1}
+              {:name "numChannels", :mode :num-outs :default 1}
               {:name "lag", :default 0.1}],
        :rates #{:kr}}
 
@@ -135,7 +135,7 @@
 
       {:name "InFeedback",
        :args [{:name "bus", :default 0}
-              {:name "numChannels", :default 1}],
+              {:name "numChannels", :mode :num-outs :default 1}],
        :rates #{:ar}}      
       
       ;; from InOut.sc
@@ -151,7 +151,7 @@
 
       {:name "InTrig",
        :args [{:name "bus", :default 0}
-              {:name "numChannels", :default 1}],
+              {:name "numChannels", :mode :num-outs :default 1}],
        :rates #{:kr}}
 
       ;; from InOut.sc
@@ -167,7 +167,7 @@
 
       {:name "SharedIn",
        :args [{:name "bus", :default 0}
-              {:name "numChannels", :default 1}],
+              {:name "numChannels", :mode :num-outs :default 1}],
        :rates #{:kr}}
 
       ;; from InOut.sc

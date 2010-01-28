@@ -1,5 +1,5 @@
-(ns overtone.core.ugens.filter
-  (:use (overtone.core ugens-common)))
+(ns overtone.core.ugen.filter
+  (:use (overtone.core.ugen common)))
 
 ;; Filter : UGen {
 ;;  	checkInputs { ^this.checkSameRateAsFirstInput }

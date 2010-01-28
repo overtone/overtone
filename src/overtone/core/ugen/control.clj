@@ -1,4 +1,4 @@
-(ns overtone.core.ugens.control)
+(ns overtone.core.ugen.control)
 
 ;; all ugens this file from InOut.sc
 

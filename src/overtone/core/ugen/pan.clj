@@ -1,5 +1,5 @@
-(ns overtone.core.ugens.pan
-  (:use (overtone.core ugens-common)))
+(ns overtone.core.ugen.pan
+  (:use (overtone.core.ugen common)))
 
 ;; Panner : MultiOutUGen {
 ;;  checkNInputs { arg n;

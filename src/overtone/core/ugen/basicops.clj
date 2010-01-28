@@ -1,4 +1,4 @@
-(ns overtone.core.ugens.basicops)
+(ns overtone.core.ugen.basicops)
 
 ;; // These Unit Generators are instantiated by math operations on UGens
 

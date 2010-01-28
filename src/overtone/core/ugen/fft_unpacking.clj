@@ -1,4 +1,4 @@
-(ns overtone.core.ugens.fft-unpacking)
+(ns overtone.core.ugen.fft-unpacking)
 
 ;; /**
 ;; "Unpack FFT" UGens (c) 2007 Dan Stowell.

@@ -1,5 +1,5 @@
 
-(ns overtone.core.ugens.delay)
+(ns overtone.core.ugen.delay)
 
 (def specs
      (map

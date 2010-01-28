@@ -1,5 +1,5 @@
 
-(ns overtone.core.ugens.machine-listening)
+(ns overtone.core.ugen.machine-listening)
 
 (def specs
      [

@@ -9,7 +9,7 @@
 
   (:require [log :as log])
   (:use
-     (overtone.core util ops ugen sc synthdef)
+     (overtone.core util ugen sc synthdef)
      (clojure walk inspector)
      clojure.contrib.seq-utils))
 
@@ -76,30 +76,18 @@
                       (:args ugen)))]
     (assoc ugen :inputs inputs)))
 
-; If the arity of the function call creating the ugen is greater than the
-; expected position of the 'numChannels' argument, then we use the value
-; from the arguments.  Otherwise it is expected that it was
-; left out intentionally, so we use a default value.
-(defn- num-channels-from-arg [ugen spec]
-  (let [[idx arg-info] (first (filter (fn [[idx arg]] 
-                                        (= "numChannels" (:name arg)))
-                                      (indexed (:args spec))))
-        default-num (:default arg-info)]
-    (if (> (count (:args ugen)) idx)
-      (nth (:args ugen) idx)
-      default-num)))
-
-; TODO: This is where we need to figure out how many outputs a ugen has...
-;   num-outs needs to hold the correct number of output ports for this ugen
-;   outputs needs to hold the output spec, which is just a map holding the rate, for each output.
+; TODO: Currently the output rate is hard coded to be the same as the
+; computation rate of the ugen.  We probably need to have some meta-data
+; capabilities for supporting varying output rates...
 (defn- with-outputs 
   "Returns a ugen with its output port connections setup according to the spec."
   [ugen]
-  ; Don't modify controls or anything that comes with pre-setup outputs.
-  (let [spec (get-ugen (:name ugen))
-        num-outs (or (:num-outs spec) 1) ; (num-channels-from-arg ugen spec))
-        outputs (take num-outs (repeat {:rate 2}))]
-    (assoc ugen :outputs outputs)))
+  (if (contains? ugen :outputs)
+    ugen
+    (let [spec (get-ugen (:name ugen))
+          num-outs (or (:n-outputs ugen) 1) 
+          outputs (take num-outs (repeat {:rate (:rate ugen)}))]
+      (assoc ugen :outputs outputs))))
 
 ; IMPORTANT NOTE: We need to add outputs before inputs, so that multi-channel
 ; outputs can be correctly connected.
@@ -145,7 +133,6 @@
   [grouped-params]
   ;(println "grouped-params: " grouped-params)
   (map #(control-ugen (:rate (first %1)) (count %1)) grouped-params))
-;  (map #(control-ugen (:rate (first %1)) (count %1)) grouped-params))
 
 (defn- group-params 
   "Groups params by rate.  Groups a list of parameters into a
@@ -159,10 +146,14 @@
     (filter #(not (nil? %1))
             (conj [] (:ir by-rate) (:kr by-rate) (:ar by-rate)))))
 
-; TODO: Implement some kind of syntax or something to specify control rates
-; in synthdefs.
 (def DEFAULT-RATE :kr)
 
+; TODO: Figure out a good way to specify rates for synth parameters
+; currently this is the syntax:
+; (defsynth foo [freq 440] ...)
+; (defsynth foo [freq [440 :ar]] ...)
+; Should probably do this with a recursive function that can pull
+; out argument pairs or triples, and get rid of the vector
 (defn- parse-params [params]
   (for [[p-name p-val] params] 
     (let [[p-val p-rate] (if (vector? p-val)
@@ -225,13 +216,13 @@
   [sname params top-ugen]
   (let [[ugens constants] (collect-ugen-info top-ugen) 
         parsed-params (parse-params params)
-;        _ (println "parsed-params: " parsed-params)
+        ;_ (println "parsed-params: " parsed-params)
         grouped-params (group-params parsed-params)
-;        _ (println "parsed-params: " grouped-params)
+        ;_ (println "parsed-params: " grouped-params)
         [params pnames] (make-params grouped-params)
-;        _ (println "params: " params " pnames: " pnames)
+        ;_ (println "params: " params " pnames: " pnames)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
-;        _ (println "with-ctl-ugens: " with-ctl-ugens)
+        ;_ (println "with-ctl-ugens: " with-ctl-ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
     (with-meta {:name (str sname)
                 :constants constants
@@ -298,6 +289,7 @@
         param-proxies (parse-synth-params params)
         param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
     ;(println "param-proxies: \n" param-proxies)
+    ;(println "param-map: \n" param-map)
     `(do
        (let [~@param-proxies
              ugen-root# ~@ugen-form

@@ -1,5 +1,5 @@
 
-(ns overtone.core.ugens.ff-osc)
+(ns overtone.core.ugen.ff-osc)
 
 ;; ugens in this file are fromm FSinOsc.sc except PSinGrain
 

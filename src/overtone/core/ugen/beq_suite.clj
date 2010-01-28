@@ -1,5 +1,5 @@
 
-(ns overtone.core.ugens.beq-suite)
+(ns overtone.core.ugen.beq-suite)
 
 ;; BEQSuite : Filter {}
 

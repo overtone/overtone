@@ -1,4 +1,4 @@
-(ns overtone.core.ugens.fft2)
+(ns overtone.core.ugen.fft2)
 
 ;; //third party FFT UGens
 

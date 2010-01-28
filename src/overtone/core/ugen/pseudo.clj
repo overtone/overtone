@@ -1,4 +1,4 @@
-(ns overtone.core.ugens.pseudo)
+(ns overtone.core.ugen.pseudo)
 
 ;; i'm not yet sure this is such a good idea.
 

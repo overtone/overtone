@@ -1,4 +1,4 @@
-(ns overtone.core.ugens.noise)
+(ns overtone.core.ugen.noise)
 
 ;; 	Noise Generators
 
@@ -19,7 +19,6 @@
 
 (def specs
      [
-
       ;; RandSeed : UGen {
       ;; 	*kr { arg trig = 0.0, seed=56789;
       ;; 		this.multiNew('control', trig, seed)

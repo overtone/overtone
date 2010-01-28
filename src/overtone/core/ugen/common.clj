@@ -1,7 +1,7 @@
 (ns 
   #^{:doc "Code that is common to many ugens.  Includes validation and argument manipulation functions."
      :author "Jeff Rose & Christophe McKeon"}
-  overtone.core.ugens-common)
+  overtone.core.ugen.common)
 
 ;; Done actions are typically executed when an envelope ends, or a sample ends
 ;; 0	do nothing when the UGen is finished

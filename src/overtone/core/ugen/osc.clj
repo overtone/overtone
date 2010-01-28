@@ -1,5 +1,5 @@
-(ns overtone.core.ugens.osc
-  (:use (overtone.core ugens-common)))
+(ns overtone.core.ugen.osc
+  (:use (overtone.core.ugen common)))
 
 (def specs
      [

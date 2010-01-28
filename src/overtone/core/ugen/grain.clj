@@ -1,5 +1,5 @@
 
-(ns overtone.core.ugens.grain)
+(ns overtone.core.ugen.grain)
 
 (def specs
      [
