@@ -1,5 +1,5 @@
 (ns overtone.core.ugens.fft
-  (:use overtone.core.ugens.common))
+  (:use (overtone.core ugens-common)))
 
 (def specs
      [
@@ -58,15 +58,15 @@
       
       ;; PV_MagBelow : PV_MagAbove {}
 
-      {:name "PV_MagBelow" :derived "PV_MagAbove"}
+      {:name "PV_MagBelow" :extends "PV_MagAbove"}
       
       ;; PV_MagClip : PV_MagAbove {}
 
-      {:name "PV_MagClip" :derived "PV_MagAbove"}
+      {:name "PV_MagClip" :extends "PV_MagAbove"}
       
       ;; PV_LocalMax : PV_MagAbove {}
 
-      {:name "PV_LocalMaxw" :derived "PV_MagAbove"}
+      {:name "PV_LocalMaxw" :extends "PV_MagAbove"}
       
       ;; PV_MagSmear : PV_ChainUGen
       ;; {
@@ -95,7 +95,7 @@
       
       ;; PV_MagShift : PV_BinShift {}
 
-      {:name "PV_MagShift" :derived "PV_BinShift"}
+      {:name "PV_MagShift" :extends "PV_BinShift"}
       
       ;; PV_MagSquared : PV_ChainUGen 
       ;; {
@@ -110,19 +110,19 @@
 
       ;; PV_MagNoise : PV_MagSquared {}
 
-      {:name "PV_MagNoise" :derived "PV_MagSquared"}
+      {:name "PV_MagNoise" :extends "PV_MagSquared"}
       
       ;; PV_PhaseShift90 : PV_MagSquared {}
 
-      {:name "PV_PhaseShift90" :derived "PV_MagSquared"}
+      {:name "PV_PhaseShift90" :extends "PV_MagSquared"}
       
       ;; PV_PhaseShift270 : PV_MagSquared {}
 
-      {:name "PV_PhaseShift270" :derived "PV_MagSquared"}
+      {:name "PV_PhaseShift270" :extends "PV_MagSquared"}
       
       ;; PV_Conj : PV_MagSquared {}
 
-      {:name "PV_Conj" :derived "PV_MagSquared"}
+      {:name "PV_Conj" :extends "PV_MagSquared"}
       
       ;; PV_PhaseShift : PV_ChainUGen 
       ;; {
@@ -175,31 +175,31 @@
       
       ;; PV_CopyPhase : PV_MagMul {}
 
-      {:name "PV_CopyPhase" :derived "PV_MagMul"}
+      {:name "PV_CopyPhase" :extends "PV_MagMul"}
       
       ;; PV_Copy : PV_MagMul {}
 
-      {:name "PV_Copy" :derived "PV_MagMul"}
+      {:name "PV_Copy" :extends "PV_MagMul"}
       
       ;; PV_Max : PV_MagMul {}
 
-      {:name "PV_Max" :derived "PV_MagMul"}
+      {:name "PV_Max" :extends "PV_MagMul"}
       
       ;; PV_Min : PV_MagMul {}
 
-      {:name "PV_Min" :derived "PV_MagMul"}
+      {:name "PV_Min" :extends "PV_MagMul"}
       
       ;; PV_Mul : PV_MagMul {}
 
-      {:name "PV_Mul" :derived "PV_MagMul"}
+      {:name "PV_Mul" :extends "PV_MagMul"}
       
       ;; PV_Div : PV_MagMul {}
 
-      {:name "PV_Div" :derived "PV_MagMul"}
+      {:name "PV_Div" :extends "PV_MagMul"}
       
       ;; PV_Add : PV_MagMul {}
 
-      {:name "PV_Add" :derived "PV_MagMul"}
+      {:name "PV_Add" :extends "PV_MagMul"}
 
       ;; PV_MagDiv : PV_ChainUGen
       ;; {

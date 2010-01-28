@@ -1,4 +1,9 @@
-(ns overtone.music.pitch)
+(ns 
+  #^{:doc "Functions to help generate and manipulate frequencies and sets of related frequencies.
+          This is the place for functions representing general musical knowledge, like scales, chords,
+          intervals, etc."
+     :author "Jeff Rose"}
+  overtone.music.pitch)
 
 ;; The goal here is to build up a set of functions that help to describe, model, 
 ;; generate and analyze musical ideas.

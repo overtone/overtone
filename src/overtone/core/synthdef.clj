@@ -1,8 +1,9 @@
-(ns overtone.core.synthdef
-  "This is primarily a specification for SuperCollider synthesizer definition 
-  files.  Additionally there are functions for reading and writing to and from
-   byte arrays, files, and URLs.
-  "
+(ns 
+  #^{:doc "This is primarily a specification for SuperCollider synthesizer
+          definition files.  Additionally there are functions for reading and
+          writing to and from byte arrays, files, and URLs.  "
+     :author "Jeff Rose"}
+  overtone.core.synthdef
   (:import (java.net URL))
   (:require [log :as log])
   (:use byte-spec

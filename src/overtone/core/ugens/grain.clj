@@ -16,7 +16,7 @@
       ;;  }
 
       {:name "GrainSin"
-       :args [{:name "numChannels" :default 1}
+       :args [{:name "numChannels" :mode :num-outs :default 1}
               {:name "trigger" :default 0}
               {:name "dur" :default 1}
               {:name "freq" :default 440.0}
@@ -80,7 +80,7 @@
       ;;  }
 
       {:name "Warp1"
-       :args [{:name "numChannels" :default 1}
+       :args [{:name "numChannels" :mode :num-outs :default 1}
               {:name "bufnum" :default 0}
               {:name "pointer" :default 0}
               {:name "freqScale" :default 1}

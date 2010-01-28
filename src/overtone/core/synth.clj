@@ -1,9 +1,12 @@
-(ns overtone.core.synth
-  "This file has two primary functions.  One is to define a language for
-  creating SuperCollider synthesizer definitions in Clojure.  The second
-  is to take these definitions and convert them into a correctly structured
-  synthdef data structure that can be serialized to a SuperCollider compatible
-  file."
+(ns
+  #^{:doc "These functions have two primary roles.  One is to define a language for
+         creating SuperCollider synthesizer definitions in Clojure.  The second
+         is to take these definitions and convert them into a correctly structured
+         synthdef data structure that can be serialized to a SuperCollider compatible
+         file."
+    :author "Jeff Rose"}
+  overtone.core.synth
+
   (:require [log :as log])
   (:use
      (overtone.core util ops ugen sc synthdef)
@@ -140,7 +143,9 @@
   each rate present in the params.  The Control ugens are always the top nodes
   in the graph, so they can be prepended to the topologically sorted tree."
   [grouped-params]
+  ;(println "grouped-params: " grouped-params)
   (map #(control-ugen (:rate (first %1)) (count %1)) grouped-params))
+;  (map #(control-ugen (:rate (first %1)) (count %1)) grouped-params))
 
 (defn- group-params 
   "Groups params by rate.  Groups a list of parameters into a
@@ -152,9 +157,11 @@
                             (assoc mem rate (conj rate-group param))))
                         {} params)]
     (filter #(not (nil? %1))
-            (conj [] (:scalar by-rate) (:control by-rate) (:audio by-rate)))))
+            (conj [] (:ir by-rate) (:kr by-rate) (:ar by-rate)))))
 
-(def DEFAULT-RATE :control)
+; TODO: Implement some kind of syntax or something to specify control rates
+; in synthdefs.
+(def DEFAULT-RATE :kr)
 
 (defn- parse-params [params]
   (for [[p-name p-val] params] 
@@ -189,7 +196,7 @@
 (defn- find-rate [args]
   (fastest-rate (map #(cond
                         (ugen? %1) (REVERSE-RATES (:rate %1))
-                        (keyword? %1) :control) 
+                        (keyword? %1) :kr) 
                      args)))
 
 ;;  For greatest efficiency:
@@ -218,9 +225,13 @@
   [sname params top-ugen]
   (let [[ugens constants] (collect-ugen-info top-ugen) 
         parsed-params (parse-params params)
+;        _ (println "parsed-params: " parsed-params)
         grouped-params (group-params parsed-params)
+;        _ (println "parsed-params: " grouped-params)
         [params pnames] (make-params grouped-params)
+;        _ (println "params: " params " pnames: " pnames)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
+;        _ (println "with-ctl-ugens: " with-ctl-ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
     (with-meta {:name (str sname)
                 :constants constants
@@ -286,6 +297,7 @@
         param-names (map #(keyword (first %)) (partition 2 params))
         param-proxies (parse-synth-params params)
         param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
+    ;(println "param-proxies: \n" param-proxies)
     `(do
        (let [~@param-proxies
              ugen-root# ~@ugen-form

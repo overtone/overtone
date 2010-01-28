@@ -20,7 +20,8 @@
 
 (def specs
      (map
-      #(assoc :muladd true
+      #(assoc %
+              :muladd true
               :rates #{:ar})
       [
        ;; // General Quadratic Map
@@ -40,11 +41,11 @@
        
        ;; QuadL : QuadN {}
        
-       {:name "QuadL" :derived "QuadN"}
+       {:name "QuadL" :extends "QuadN"}
        
        ;; QuadC : QuadN {}
        
-       {:name "QuadC", :derived "QuadN"}
+       {:name "QuadC", :extends "QuadN"}
        
        ;; // Cusp Map
        ;; CuspN : ChaosGen {
@@ -62,7 +63,7 @@
        
        ;; CuspL : CuspN {}
        
-       {:name "CuspL" :derived "CuspN"}
+       {:name "CuspL" :extends "CuspN"}
        
        ;; // Gingerbreadman Map
        ;; GbmanN : ChaosGen {
@@ -79,7 +80,7 @@
        
        ;; GbmanL : GbmanN {}
 
-       {:name "GbmanL" :derived "GbmanN"}
+       {:name "GbmanL" :extends "GbmanN"}
        
        ;; // Henon Map
        ;; HenonN : ChaosGen {
@@ -98,11 +99,11 @@
        
        ;; HenonL : HenonN {}
 
-       {:name "HenonL" :derived "HenonN"}
+       {:name "HenonL" :extends "HenonN"}
        
        ;; HenonC : HenonN {}
 
-       {:name "HenonC" :derived "HenonN"}
+       {:name "HenonC" :extends "HenonN"}
        
        ;; // Latoocarfian
        ;; LatoocarfianN : ChaosGen {
@@ -123,11 +124,11 @@
        
        ;; LatoocarfianL : LatoocarfianN {}
 
-       {:name "LatoocarfianL" :derived "LatoocarfianN"}
+       {:name "LatoocarfianL" :extends "LatoocarfianN"}
        
        ;; LatoocarfianC : LatoocarfianN {}
 
-       {:name "LatoocarfianC" :derived "LatoocarfianN"}
+       {:name "LatoocarfianC" :extends "LatoocarfianN"}
        
        ;; // Linear Congruential
        ;; LinCongN : ChaosGen {
@@ -146,11 +147,11 @@
        
        ;; LinCongL : LinCongN {}
 
-       {:name "LinCongL" :derived "LinCongN"}
+       {:name "LinCongL" :extends "LinCongN"}
        
        ;; LinCongC : LinCongN {}
 
-       {:name "LinCongC" :derived "LinCongN"}
+       {:name "LinCongC" :extends "LinCongN"}
        
        ;; // Standard Map
        ;; StandardN : ChaosGen {
@@ -168,7 +169,7 @@
        
        ;; StandardL : StandardN {}
 
-       {:name "StandardL" :derived "StandardN"}
+       {:name "StandardL" :extends "StandardN"}
        
        ;; // Feedback Sine with Linear Congruential Phase Indexing
        ;; FBSineN : ChaosGen {
@@ -189,10 +190,10 @@
        
        ;; FBSineL : FBSineN {}
 
-       {:name "FBSineL" :derived "FBSineN"}
+       {:name "FBSineL" :extends "FBSineN"}
        
        ;; FBSineC : FBSineN {}
-       {:name "FBSineC" :derived "FBSineN"}
+       {:name "FBSineC" :extends "FBSineN"}
        
        ;; // ODEs
        ;; // 'h' is integration time-step

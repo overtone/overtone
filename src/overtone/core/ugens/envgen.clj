@@ -1,4 +1,5 @@
-(ns overtone.core.ugens.envgen)
+(ns overtone.core.ugens.envgen
+  (:use (overtone.core ugens-common)))
 
 (def specs
      [
@@ -101,14 +102,12 @@
       ;; for envelope parameter o avoid expansion
       
       {:name "EnvGen",
-       :args [{:name "envelope"} 
+       :args [{:name "envelope" :mode :append-sequence} 
               {:name "gate", :default 1.0}
               {:name "levelScale", :default 1.0}
               {:name "levelBias", :default 0.0}
               {:name "timeScale", :default 1.0}
-              {:name "doneAction", :default :none}]
-       :init (fn [rate [env & args] spec]
-               (concat args env))}
+              {:name "doneAction", :default :none :map DONE-ACTIONS}]}
                ;(let [envec (TODO turn env object into vector)]
       
       ;; Linen : UGen {
@@ -122,7 +121,7 @@
               {:name "attackTime", :default 0.01}
               {:name "susLevel", :default 1.0}
               {:name "releaseTime", :default 1.0}
-              {:name "doneAction", :default :none}],
+              {:name "doneAction", :default :none :map DONE-ACTIONS}],
        :rates #{:kr}}
 
       ;; from IEnvGen.sc

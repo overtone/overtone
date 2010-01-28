@@ -1,4 +1,7 @@
-(ns overtone.music.rhythm
+(ns 
+  #^{:doc "Functions to help work with musical time."
+     :author "Jeff Rose"}
+  overtone.music.rhythm
   (:import (java.util Timer TimerTask))
   (:use time-utils))
 

@@ -58,7 +58,7 @@
        
        ;; LinPan2 : Pan2 {}
 
-       {:name "LinPan2" :derived "Pan2"}
+       {:name "LinPan2" :extends "Pan2"}
        
        ;; Pan4 : Panner {
        
@@ -213,7 +213,7 @@
        ;; }
 
        {:name "DecodeB2",
-        :args [{:name "numChannels"}
+        :args [{:name "numChannels" :mode :num-outs}
                {:name "w"}
                {:name "x"}
                {:name "y"}
@@ -235,7 +235,7 @@
        ;; }
 
        {:name "PanAz",
-        :args [{:name "numChannels"}
+        :args [{:name "numChannels" :mode :num-outs}
                {:name "in"}
                {:name "pos", :default 0.0}
                {:name "level", :default 1.0}

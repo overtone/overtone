@@ -1,6 +1,5 @@
-
 (ns overtone.core.ugens.line
-  (:use overtone.core.ugens.common))
+  (:use (overtone.core ugens-common)))
 
 (def specs
      [
@@ -17,7 +16,7 @@
        :args [{:name "start", :default 0.0}
               {:name "end", :default 1.0}
               {:name "dur", :default 1.0}
-              {:name "doneAction", :default 0}]
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
        :muladd true} ;; TODO MAYBE? mul add offset
       
       ;; XLine : UGen { 
@@ -33,7 +32,7 @@
        :args [{:name "start", :default 1.0}
               {:name "end", :default 2.0}
               {:name "dur", :default 1.0}
-              {:name "doneAction", :default 0}]
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
        :muladd true}  ;; TODO MAYBE? mul add offset
       
       ;; LinExp : UGen {
@@ -86,7 +85,7 @@
               {:name "root", :default 261.6256}
               {:name "exp", :default 0.3333}],
        :rates #{:ir :ar :kr}
-       :check (when-ar (check-first-input-ar "freq must be audio rate"))}
+       :check (when-ar (first-input-ar "freq must be audio rate"))}
 
       ;; AmpCompA : AmpComp {
       ;;  *ir { arg freq = 1000, root = 0, minAmp = 0.32, rootAmp = 1.0; 
@@ -100,7 +99,7 @@
       ;;  }
       ;; }
 
-      {:name "AmpCompA" :derived "AmpComp"
+      {:name "AmpCompA" :extends "AmpComp"
        :args [{:name "freq", :default 1000.0}
               {:name "root", :default 0}
               {:name "minAmp", :default 0.32}
@@ -135,8 +134,8 @@
       ;;  }
       ;; }
 
-      {:name "T2K" :derived "A2K"
-       :check (check-first-input-ar)}
+      {:name "T2K" :extends "A2K"
+       :check (first-input-ar)}
 
       ;; T2A : K2A { // control rate to audio rate trigger converter.
       ;;  *ar { arg in = 0.0, offset = 0;
@@ -163,7 +162,7 @@
       ;; }
 
       {:name "DC",
-       :args [{:name "in", :mode :prepend-sequence-set-num-outs}]}
+       :args [{:name "in", :mode :append-sequence-set-num-outs}]}
       
       ;; Silent : MultiOutUGen {
       ;;  *ar { arg numChannels = 1;
@@ -176,5 +175,5 @@
       ;; }
 
       {:name "Silent",
-       :args [{:name "numChannels", :default 1}],
+       :args [{:name "numChannels", :mode :num-outs, :default 1}],
        :rates #{:ar}}])

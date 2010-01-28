@@ -1,5 +1,5 @@
-
-(ns overtone.core.ugens.demand)
+(ns overtone.core.ugens.demand
+  (:use (overtone.core ugens-common)))
 
 (def specs
      [
@@ -20,7 +20,7 @@
       {:name "Demand",
        :args [{:name "trig"}
               {:name "reset"}
-              {:name "demandUGens", :mode :prepend-sequence-set-num-outs}],
+              {:name "demandUGens", :mode :append-sequence-set-num-outs}],
        :check (same-rate-as-first-input)}
       
       ;; Duty : UGen {
@@ -64,7 +64,7 @@
       ;;  }
       ;; }
 
-      {:name "TDuty" :derived "Duty"
+      {:name "TDuty" :extends "Duty"
        :args [{:name "dur", :default 1.0}
               {:name "reset", :default 0.0}
               {:name "level", :default 1.0}
@@ -201,19 +201,19 @@
       
       ;; Dser : ListDUGen {}
 
-      {:name "Dser" :derived "Dseq"}
+      {:name "Dser" :extends "Dseq"}
       
       ;; Dshuf : ListDUGen {}
 
-      {:name "Dshuf" :derived "Dseq"}
+      {:name "Dshuf" :extends "Dseq"}
       
       ;; Drand : ListDUGen {}
 
-      {:name "Drand" :derived "Dseq"}
+      {:name "Drand" :extends "Dseq"}
       
       ;; Dxrand : ListDUGen {}
       
-      {:name "Dxrand" :derived "Dseq"}
+      {:name "Dxrand" :extends "Dseq"}
       
       ;; Dswitch1 : DUGen {
       ;;  *new { arg list, index;
@@ -228,7 +228,7 @@
       
       ;; Dswitch : Dswitch1 {}
 
-      {:name "Dswitch" :derived "Dswitch1"}
+      {:name "Dswitch" :extends "Dswitch1"}
       
       ;; Dwhite : DUGen {
       ;;  *new { arg lo = 0.0, hi = 1.0, length = inf;
@@ -244,7 +244,7 @@
       
       ;; Diwhite : Dwhite {}
       
-      {:name "Diwhite" :derived "Dwhite"}
+      {:name "Diwhite" :extends "Dwhite"}
       
       ;; Dbrown : DUGen {
       ;;  *new { arg lo = 0.0, hi = 1.0, step = 0.01, length = inf;
@@ -261,7 +261,7 @@
       
       ;; Dibrown : Dbrown {}
 
-      {:name "Dibrown" :derived "Dbrown"}
+      {:name "Dibrown" :extends "Dbrown"}
       
       ;; Dstutter : DUGen {
       ;;  *new { arg n, in;

@@ -1,5 +1,4 @@
-
-(ns overtone.core.ugens.mac-ugens)
+(ns overtone.core.ugens.input)
 
 (def specs
      [      
@@ -26,7 +25,7 @@
 
       ;; MouseY : MouseX {}
 
-      {:name "MouseY" :derived "MouseY"}
+      {:name "MouseY" :extends "MouseX"}
 
       ;; MouseButton : UGen {
       ;; 	*kr {

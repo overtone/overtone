@@ -1,6 +1,6 @@
 (ns overtone.studio.rig
   (:use (overtone.core sc synth)
-     (overtone.music midi rhythm pitch))
+     (overtone.music rhythm pitch))
   (:require overtone.studio.fx))
 
 ; The goal is to develop a standard "studio configuration" with

@@ -1,5 +1,5 @@
-
-(ns overtone.core.ugens.osc)
+(ns overtone.core.ugens.osc
+  (:use (overtone.core ugens-common)))
 
 (def specs
      [
@@ -154,15 +154,15 @@
       
       ;; LFPar : LFSaw {}
 
-      {:name "LFPar" :derived "LFSaw"}
+      {:name "LFPar" :extends "LFSaw"}
       
       ;; LFCub : LFSaw {}
 
-      {:name "LFCub" :derived "LFSaw"}
+      {:name "LFCub" :extends "LFSaw"}
       
       ;; LFTri : LFSaw {}
 
-      {:name "LFTri" :derived "LFSaw"}
+      {:name "LFTri" :extends "LFSaw"}
       
       ;; LFGauss : UGen {
       ;; 	*ar { 
@@ -187,7 +187,7 @@
               {:name "width", :default 0.1}
               {:name "iphase", :default 0.0}
               {:name "loop", :default 1}
-              {:name "doneAction", :default 0}]}
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]}
 
       ;; LFPulse : UGen {
       ;; 	*ar {
@@ -277,19 +277,19 @@
 
       ;; WrapIndex : Index {}
       
-      {:name "WrapIndex" :derived "Index"}
+      {:name "WrapIndex" :extends "Index"}
 
       ;; IndexInBetween : Index {}
 
-      {:name "IndexInBetween" :derived "Index"}
+      {:name "IndexInBetween" :extends "Index"}
 
       ;; DetectIndex : Index {}
 
-      {:name "DetectIndex" :derived "Index"}
+      {:name "DetectIndex" :extends "Index"}
 
       ;; Shaper : Index {}
 
-      {:name "Shaper" :derived "Index"}
+      {:name "Shaper" :extends "Index"}
 
       ;; DegreeToKey : UGen {
       ;; 	*ar {

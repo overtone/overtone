@@ -138,5 +138,4 @@
       ;; 		^this.initOutputs(values.size, rate)
       ;; 	}
       ;; }
-
       ])

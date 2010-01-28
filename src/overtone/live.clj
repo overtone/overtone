@@ -1,4 +1,4 @@
-(ns overtone
+(ns overtone.live
   (:require config time-utils log midi osc byte-spec
      (overtone.core sc ugen synth synthdef envelope)
      (overtone.music rhythm pitch tuning)))
