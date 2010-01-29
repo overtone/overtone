@@ -3,7 +3,7 @@
      :author "Jeff Rose"}
   overtone.music.rhythm
   (:import (java.util Timer TimerTask))
-  (:use time-utils))
+  (:use (overtone.core time-utils)))
 
 ; Rhythm
 

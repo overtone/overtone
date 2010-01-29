@@ -7,7 +7,7 @@
     :author "Jeff Rose"}
   overtone.core.synth
 
-  (:require [log :as log])
+  (:require [overtone.core.log :as log])
   (:use
      (overtone.core util ugen sc synthdef)
      (clojure walk inspector)
@@ -82,6 +82,7 @@
 (defn- with-outputs 
   "Returns a ugen with its output port connections setup according to the spec."
   [ugen]
+  {:post [(every? (fn [val] (not (nil? val))) (:outputs %))]}
   (if (contains? ugen :outputs)
     ugen
     (let [spec (get-ugen (:name ugen))
@@ -276,7 +277,13 @@
                          (name-synth-args args arg-names))]
         (apply tgt-fn named-args)))))
 
-(defmacro synth [& args]
+(defmacro synth 
+  "Define a SuperCollider synthesizer using the library of ugen functions provided by overtone.core.ugen.  This will return an anonymous function which can be used to trigger the synthesizer.
+  
+  (synth (sin-osc 300))
+  
+  "
+  [& args]
   (let [[sname args] (cond
                        (or (string? (first args))
                            (symbol? (first args))) [(str (first args)) (rest args)]
@@ -305,7 +312,16 @@
          (dosync (alter synth-groups* assoc sname# (group :tail 0)))
          (synth-player sname# (quote ~param-names))))))
 
-(defmacro defsynth [name params & ugen-form]
+(defmacro defsynth 
+  "Define a synthesizer and name its trigger function.  
+
+  (defsynth foo [freq 440] (sin-osc freq))
+
+  is equivalent to:
+
+  (def foo (synth [freq 440] (sin-osc freq)))
+  "
+  [name params & ugen-form]
   `(def ~name (synth ~name
                      ~params
                      ~@ugen-form)))
@@ -324,7 +340,7 @@
 
 ;TODO: Finish this...  It will be really helpful for people who want to explore
 ; synths and effects, no matter which SC client they were generated with.
-(defn synthdef-decompile 
+(comment defn synthdef-decompile 
   "Decompile a parsed SuperCollider synth definition back into clojure code
   that could be used to generate an identical synth."
   [synth]

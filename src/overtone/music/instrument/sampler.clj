@@ -1,5 +1,6 @@
-(ns overtone.instrument.sampler
-  (:use (overtone sc synth envelope pitch)))
+(ns overtone.music.instrument.sampler
+  (:use (overtone.core sc synth envelope)
+    (overtone.music pitch)))
 
 ; TODO: Implement in native synthdefs a more full featured sampler 
 ; with reasonable defaults and some helpers...
@@ -27,18 +28,14 @@
 ; s.sendMsg("/b_close", 2); // close the file.
 ; s.sendMsg("/b_free", 0); // frees the buffer
  
-(def granular (synth :granular {:out 0, :buf 0, :pan 0, :start 0, :amp 0.8, :dur 0.25}
-                     (let [grain (play-buf.ar 1 :buf (buf-rate-scale.kr :buf) 1 (* :start (buf-frames.ir :buf)) 0)
-                           env (- (env-gen.ar (perc 0.01 :dur) :done-free) 0.001)]
-                       (out.ar :out (* (pan2.ar (* grain env) :pan) :amp)))))
-        
+(defsynth granular [out 0, buf 0, pan 0, start 0, amp 0.8, dur 0.25]
+  (let [grain (play-buf 1 buf (buf-rate-scale:kr buf) 1 
+                        (* start (buf-frames:ir buf)) 0)
+        env (- (env-gen:ar (perc 0.01 dur) 1 1 0 1 :free) 0.001)]
+    (out out (* (pan2 (* grain env) pan) amp))))
 
 (defn test-flute [] 
-  (defonce flute (load-sample (load-sample "/home/rosejn/projects/overtone/instruments/samples/flutes/flutter-flute-1.wav")))
-  (load-synth 
-    (synth :granular {:out 0, :buf 0, :pan 0, :start 0, :amp 0.8, :dur 0.25}
-           (let [grain (play-buf.ar 1 :buf (buf-rate-scale.kr :buf))]
-             (out.ar :out (* (pan2.ar grain :pan) :amp)))))
+  (defonce flute (load-sample (load-sample "/home/rosejn/projects/overtone/instruments/samples/flutes/flutter-flute-1.wav"))) 
   (hit flute :dur 2.0))
         
 ;(test-flute)

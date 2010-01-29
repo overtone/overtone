@@ -128,7 +128,7 @@
   "Perform any argument mappings that needs to be done."
   [spec args]
   (let [args-specs (args-with-specs args spec :map)]
-    (map (fn [[arg map-val]] (if (map? map-val)
+    (map (fn [[arg map-val]] (if (and (map? map-val) (keyword? arg))
                                (get map-val arg)
                                arg))
          args-specs)))
@@ -422,7 +422,8 @@
                               :rate (op-rate arg)
                               :special special
                               :args (list arg)}
-                             {:type ::ugen}))]
+                             {:type ::ugen}))
+        ugen-fn (make-expanding ugen-fn [true])]
     (if (ns-resolve to-ns ugen-name)
       (overload-ugen-op to-ns ugen-name ugen-fn)
       (intern to-ns ugen-name ugen-fn))))
@@ -438,7 +439,8 @@
                               :rate (max (op-rate a) (op-rate b))
                               :special special
                               :args (list a b)}
-                             {:type ::ugen}))]
+                             {:type ::ugen}))
+        ugen-fn (make-expanding ugen-fn [true true])]
     (if (ns-resolve to-ns ugen-name)
       (overload-ugen-op to-ns ugen-name ugen-fn)
       (intern to-ns ugen-name ugen-fn))))

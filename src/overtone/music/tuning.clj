@@ -10,19 +10,6 @@
 ;; able to generate tunings, scales, and arpeggios to let them hear their 
 ;; instrument in "western mode", "arabic mode", "indian mode", "chinese mode", etc.
 
-;; Just Intonation
-;;
-;; Notes in the scale are related by small, prime number ratios.
-
-;; The most important ratios:
-;; * 1:1 unison
-;; * 2:1 octave
-;; * 3:2 perfect fifth
-;; * 4:3 fourth
-;; * 5:3 major sixth
-;; * 5:4 major third
-;; * 6:5 minor third
-;; * 8:5 minor sixth 
 
 ;; Diatonic Just --> Indian music
 

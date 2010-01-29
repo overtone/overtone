@@ -1,3 +1,10 @@
+== 0.2 Release
+
+- use clojure.contrib.generics or else write a function that turns an arbitrary
+  application of + or * into a series if binary-op-ugens.
+
+- when mapping ugen args don't map if a non keyword value is there...
+
 == General:
 
 * Look into using clojure-jna (http://github.com/Chouser/clojure-jna) to link

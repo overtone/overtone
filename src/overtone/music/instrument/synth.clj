@@ -1,5 +1,5 @@
 (ns overtone.instrument.synth
-  (:use overtone))
+  (:use overtone.live))
 
 (refer-ugens *ns*)
 

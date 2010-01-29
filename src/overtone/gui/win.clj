@@ -6,7 +6,6 @@
                   JSplitPane JMenuBar JMenu JMenuItem SwingUtilities) 
      (javax.swing.tree TreeModel DefaultTreeCellRenderer)
      (javax.swing.table TableModel AbstractTableModel)
-;     (org.enclojure.repl IReplWindow IReplWindowFactory IRepl)
      (com.raelity.jvi ViManager ColonCommands)
      (com.raelity.jvi.swing DefaultViFactory StatusDisplay TextView)
      (jsyntaxpane DefaultSyntaxKit))
@@ -157,8 +156,7 @@
       (.add status-pane BorderLayout/SOUTH))))
 
 (defn make-repl []
-  (.getReplPanel (repl/create-in-proc-repl)))
-;  (JPanel.))
+  (JPanel.))
 
 (defonce factory (ViManager/setViFactory (DefaultViFactory.)))
 

@@ -1,6 +1,6 @@
 (ns overtone.live
-  (:require config time-utils log midi osc byte-spec
-     (overtone.core sc ugen synth synthdef envelope)
+  (:require midi osc byte-spec
+     (overtone.core config time-utils log sc ugen synth synthdef envelope)
      (overtone.music rhythm pitch tuning)))
 
 ; TODO: make this work with namespace prefixes too... 
@@ -22,7 +22,7 @@
 (immigrate
   'osc
   'midi
-  'time-utils
+  'overtone.core.time-utils
   'overtone.core.util
   'overtone.core.sc
   'overtone.core.ugen

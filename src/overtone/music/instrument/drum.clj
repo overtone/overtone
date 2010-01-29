@@ -1,11 +1,11 @@
 (ns overtone.instrument.drum
-  (:use overtone))
+  (:use overtone.live))
 
 (refer-ugens *ns*)
 
 (defsynth kick [out 0 freq 50 mod-freq 5 mod-index 5 
                 sustain 0.4 amp 0.8 noise 0.025]
-  (let [pitch-contour (line :control (* 2 freq), freq 0.02)
+  (let [pitch-contour (line:kr (* 2 freq), freq 0.02)
         drum (lpf (sin-osc pitch-contour (sin-osc mod-freq (/ mod-index 1.3))) 1000)
         drum-env (env-gen 1 1 0 1 2 (perc 0.005 sustain))
         hit (hpf (* noise (white-noise)) 500)

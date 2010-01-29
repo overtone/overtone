@@ -2,7 +2,7 @@
   (:import (org.jgroups JChannel Message ReceiverAdapter))
   (:use clojure.set
      clojure.contrib.seq-utils
-     (overtone osc)))
+     osc))
 
 (def DEFAULT-PORT 2345)
 (def GROUP-NAME "overtone")

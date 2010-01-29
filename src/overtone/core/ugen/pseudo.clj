@@ -1,8 +1,6 @@
 (ns overtone.core.ugen.pseudo)
 
-;; i'm not yet sure this is such a good idea.
-
-(def specs
+(comment def specs
      [
       ;; from BufIO.sc
       ;; Tap : UGen {
@@ -17,11 +15,11 @@
        :args [{:name "bufnum", :default 0}
               {:name "numChannels" :mode :num-outs, :default 1}
               {:name "delaytime" :default 0.2}]
-       :rates #{:ar}
-       :pseudo-ugen {:ar (fn [bufnum num-channels delaytime]
-                           (let [n (* delaytime (- (sample-rate)))]
-                             (playbuf:ar num-channels bufnum 1 0 n 1)))}}
-      
+       :rates #{:ar}}
+;       :pseudo-ugen {:ar (fn [bufnum num-channels delaytime]
+;                           (let [n (* delaytime (- (sample-rate)))]
+;                             (playbuf:ar num-channels bufnum 1 0 n 1)))}}
+;      
       ;; from Osc.sc
       ;; IndexL {
       ;; 	*ar { arg bufnum, in = 0.0, mul = 1.0, add = 0.0;

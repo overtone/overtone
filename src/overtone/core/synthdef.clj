@@ -5,7 +5,7 @@
      :author "Jeff Rose"}
   overtone.core.synthdef
   (:import (java.net URL))
-  (:require [log :as log])
+  (:require [overtone.core.log :as log])
   (:use byte-spec
      (overtone.core util)
      clojure.contrib.seq-utils))
