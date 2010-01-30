@@ -176,7 +176,6 @@
 (defn- boot-thread [cmd]
   (reset! running?* true)
   (log/debug "boot-thread: ")
-  (doseq [arg cmd] (println arg))
 
   (let [proc (.exec (Runtime/getRuntime) cmd)
         in-stream (BufferedInputStream. (.getInputStream proc))
@@ -467,7 +466,7 @@
       (if (= recvd len)
         samples
         (let [msg (recv "/b_setn" REPLY-TIMEOUT)
-              _ (println "b_setn msg: " (take 3 (:args msg)))
+              ;_ (println "b_setn msg: " (take 3 (:args msg)))
               [buf-id bstart blen & samps] (:args msg)]
           (loop [idx bstart
                  samps samps]
@@ -600,7 +599,7 @@
   (let [[time-ms synth-id ctls] (if (odd? (count args))
                                     [(now) (first args) (next args)]
                                     [(first args) (second args) (drop 2 args)])]
-    (println time-ms synth-id ": " ctls)
+    ;(println time-ms synth-id ": " ctls)
     (at time-ms
         (apply node-control synth-id (stringify ctls)))))
 
@@ -628,7 +627,7 @@
   (doseq [synth (filter #(synthdef? %1) 
                         (map #(var-get %1) 
                              (vals (ns-publics 'overtone.instrument))))]
-    (println "loading synth: " (:name synth))
+    ;(println "loading synth: " (:name synth))
     (load-synthdef synth)))
 
 ;;(defn effect [synthdef & args]

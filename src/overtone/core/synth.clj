@@ -1,9 +1,8 @@
 (ns
-  #^{:doc "These functions have two primary roles.  One is to define a language for
-         creating SuperCollider synthesizer definitions in Clojure.  The second
-         is to take these definitions and convert them into a correctly structured
-         synthdef data structure that can be serialized to a SuperCollider compatible
-         file."
+  #^{:doc "The ugen functions create a data structure representing a synthesizer
+          graph that can be executed on the synthesis server.  This is the logic
+          to \"compile\" these clojure data structures into a form that can be
+          serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.core.synth
 
@@ -248,6 +247,7 @@
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
 (defn- parse-synth-params [params]
+  {:pre [(even? (count params))]}
   (flatten (map (fn [[param default]] 
                   [param (control-proxy param)])
                 (apply hash-map params))))

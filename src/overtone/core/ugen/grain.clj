@@ -1,4 +1,3 @@
-
 (ns overtone.core.ugen.grain)
 
 (def specs
@@ -64,6 +63,14 @@
       ;;  }
       ;;  argNamesInputsOffset { ^2 }
       ;;  }
+      {:name "GrainIn"
+       :args [{:name "numChannels" :mode :num-outs :default 1}
+              {:name "trigger" :default 0}
+              {:name "dur" :default 1}
+              {:name "in" :default :none}
+              {:name "pan" :default 0}
+              {:name "envbufnum" :default -1}]
+       :rates #{:ar}}
       
       ;; Warp1 : MultiOutUGen {
       ;;  *ar { arg numChannels = 1, bufnum=0, pointer=0, freqScale = 1,

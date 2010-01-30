@@ -16,7 +16,8 @@
             :ar 2
             :dr 3})
 
-(def REVERSE-RATES (invert-map RATES))
+(def UGEN-RATE-PRECEDENCE [:ir :dr :ar :kr])
+(def UGEN-DEFAULT-RATES #{:ar :kr})
 
 (def UGEN-SPEC-EXPANSION-MODES
   {:not-expanded false
@@ -85,9 +86,6 @@
                 (assoc arg :expands? 
                        (get UGEN-SPEC-EXPANSION-MODES (get arg :mode :standard))))
               (:args spec))))
-
-(def UGEN-RATE-PRECEDENCE [:ir :dr :ar :kr])
-(def UGEN-DEFAULT-RATES #{:ar :kr})
 
 (defn with-fn-names
   "Generates all the function names for this ugen and adds a :fn-names map 
@@ -249,24 +247,35 @@
 
 (defn find-ugen [regexp]
   (map #(second %)
-       (filter (fn [[k v]] (re-find (re-pattern regexp) (str k)))
+       (filter (fn [[k v]] (re-find (re-pattern (normalize-ugen-name regexp)) 
+                                    (str k)))
                UGEN-SPEC-MAP)))
 
 (defn- print-ugen-args [args]
-  (doseq [arg args]
-    (print (str "\t" (:name arg) ": " (if (contains? arg :default)
-                                        (:default arg)
-                                        "<no-default>\n")))))
+  (let [name-vals (map #(str (:name %) " " (:default %)) args)
+        line (apply str (interpose ", " name-vals))]
+    (println line)))
+
+(defn- print-ugen-categories [cats]
+  (doseq [cat cats]
+    (println (apply str (interpose " -> " cat)))))
+
+(def UGEN-RATE-SORT-FN 
+  (apply hash-map (flatten (map reverse (indexed UGEN-RATE-PRECEDENCE)))))
+
+(defn- print-ugen-rates [rates]
+  (let [rates (sort-by UGEN-RATE-SORT-FN rates)]
+    (println (str (apply str (interpose ", " rates))))))
 
 (defn print-ugen [& ugens]
   (doseq [ugen ugens]
-    (println "UGen:" (str "\"" (:name ugen) "\""))
+    (println (str "\"" (:name ugen) "\""))
+    (print "\tcategories: \n\t\t")
+    (print-ugen-categories (:categories ugen))
+    (print "\tdefault args:\n\t\t")
     (print-ugen-args (:args ugen))
-    (println "\n\toutputs: " 
-             (str "[" (apply str (interpose ", "(:rates ugen))) "]"))))
-
-(defn ugen-doc [word]
-  (apply print-ugen (find-ugen word)))
+    (print "\trates: ") 
+    (print-ugen-rates (:rates ugen))))
 
 (defn inf!
   "users use this to tag infinite sequences for use as
@@ -399,7 +408,9 @@
     * base-name plus rate suffix functions for each rate (e.g. env-gen:ar, env-gen:kr) 
   "
   [to-ns spec special]
-  (let [metadata {:doc (ugen-docs spec)}
+  (let [metadata {:doc (ugen-docs spec)
+                  :arglists (list (vec (map #(symbol (:name %))
+                                            (:args spec))))}
         ugen-fns (map (fn [[uname rate]] [(with-meta (symbol uname) metadata)
                                           (make-ugen-fn spec rate special)])
                       (:fn-names spec))]
@@ -448,16 +459,16 @@
 (defn refer-ugens 
   "Iterate over all UGen meta-data, generate the corresponding functions and intern them
   in the current or otherwise specified namespace."
-  [to-ns]
-  (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %)) 
-                           (= "BinaryOpUGen" (:name %)))) 
-                       UGEN-SPECS)]
-            ;(println (:name ugen))
-            (def-ugen to-ns ugen 0))
-  (doseq [[op-name special] UNARY-OPS]
-    (def-unary-op to-ns op-name special))
-  (doseq [[op-name special] BINARY-OPS]
-    (def-binary-op to-ns op-name special)))
+  [& [to-ns]]
+  (let [to-ns (or to-ns *ns*)]
+    (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %)) 
+                             (= "BinaryOpUGen" (:name %)))) 
+                         UGEN-SPECS)]
+              (def-ugen to-ns ugen 0))
+    (doseq [[op-name special] UNARY-OPS]
+      (def-unary-op to-ns op-name special))
+    (doseq [[op-name special] BINARY-OPS]
+      (def-binary-op to-ns op-name special))))
 
 ;; We refer all the ugen functions here so they can be access by other parts
 ;; of the Overtone system using a fixed namespace.  For example, to automatically
