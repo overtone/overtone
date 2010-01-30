@@ -1,0 +1,25 @@
+#!/bin/bash
+
+DEPS=lib
+SUBMODULES=src/lib
+
+SCRIPT_DIR=`dirname $0`
+CLASSPATH="$SCRIPT_DIR/..:./src:./src/lib:./test:./session"
+
+# Add jar files
+for f in "$DEPS"/*.jar; do
+    CLASSPATH=$CLASSPATH:$f
+done
+
+# Add sub-modules
+for f in "$SUBMODULES"/**/src; do
+    CLASSPATH=$CLASSPATH:$f
+done
+
+if [[ "$OSTYPE" == 'cygwin' ]]; then
+  CLASSPATH=`cygpath -wp "$CLASSPATH"`
+fi
+
+DEFINES=-Djava.library.path=lib/native
+
+echo "-cp $CLASSPATH $DEFINES"

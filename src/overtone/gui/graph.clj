@@ -8,7 +8,7 @@
      (com.sun.scenario.scenegraph.fx FXShape)
      (com.sun.scenario.animation Clip Interpolators)
      (com.sun.scenario.effect DropShadow))
-  (:use (overtone synth)))
+  (:use (overtone.core synth)))
 
 (def NODE-HEIGHT 20)
 (def NODE-ARC 4)
@@ -98,35 +98,34 @@
   (let [ugens (reverse (:ugens sdef))]))
 
 (defn sdef-view [sdef]
-  (let [group (SGGroup.)
-        ugen-nodes (loop [x 0
-                          y 0
-                          nodes {}
-                          ugens (reverse (:ugens sdef))]
-                     (if ugens
-                       (let [ugen (first ugens)
-                             id (:id ugen)
-                             [x y] (if (contains? nodes id)
-                                     (+ y ROW-HEIGHT)
-                                     y)
-                             node (ugen-node-view sdef ugen x y)
-                             width (-> node (.getBounds) (.width))]
-                         (recur (+ x width NODE-MARGIN) 
-                                y
-                                (assoc nodes id node)
-                                (next ugens)))
-                       nodes))]
-    ;(position-nodes nodes)
-    (doseq [[id n] ugen-nodes]
-      (.add group n))
-    ;(dosync (ref-set sdef-group group))
+  (let [group (SGGroup.)]
+    (.add group (ugen-node-view sdef (first (:ugens sdef)) 100 100))
+;        ugen-nodes (loop [x 0
+;                          y 0
+;                          nodes {}
+;                          ugens (reverse (:ugens sdef))]
+;                     (if ugens
+;                       (let [ugen (first ugens)
+;                             id (:id ugen)
+;                             [x y] (if (contains? nodes id)
+;                                     (+ y ROW-HEIGHT)
+;                                     y)
+;                             node (ugen-node-view sdef ugen x y)
+;                             width (-> node (.getBounds) (.width))]
+;                         (recur (+ x width NODE-MARGIN) 
+;                                y
+;                                (assoc nodes id node)
+;                                (next ugens)))
+;                       nodes))]
+;    ;(position-nodes nodes)
+;    (doseq [[id n] ugen-nodes]
+;      (.add group n))
+;    ;(dosync (ref-set sdef-group group))
     group))
 
 (defn graph-window [sdef]
   (let [g-frame (JFrame.  "Project Overtone: Graph View")
-        g-panel (JSGPanel.)
-        text (SGText.)]
-    ;(.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
+        g-panel (JSGPanel.)]
     (.add (.getContentPane g-frame) g-panel)
 
     (doto g-panel

@@ -1,5 +1,4 @@
-(ns devices.axiom
-  (:use overtone))
+(ns devices.axiom)
 
 ; NOTES:
 ;   The midi system can get a bit smarter.  If each device profile also includes the device string that

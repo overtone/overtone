@@ -1,12 +1,9 @@
-instruments
 *.swp
 *.swo
-lib
-log*
 *.lck
 *.class
 *.scsyndef
-Manifest.txt
-pom.xml
 .overtone-log
-tmp
+session
+samples
+autodoc/**

@@ -1,6 +1,6 @@
 (ns devices.monome
-  (:use overtone)
-  (:require [overtone.log :as log]))
+  (:require [overtone.core.log :as log])
+  (:use overtone.live))
 
 (declare s)
 (declare hat)

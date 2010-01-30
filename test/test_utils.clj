@@ -49,6 +49,3 @@
           {}
           obj))
 
-(defn bytes-and-back [spec obj]
-  (spec-read-bytes spec (spec-write-bytes spec obj)))
-

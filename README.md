@@ -19,38 +19,60 @@ Make sure to jump onto the mailing list before getting started so we don't dupli
 
 #### Mailing List
 
-The project mailing list is hosted at http://librelist.com/, and you can subscribe by simply
-sending a message to:
-
-  overtone@librelist.com
-
-Note, the list will receive the first message you send, and you will automatically be subscribed.
+<table border=0 style="background-color: #fff; padding: 5px;" cellspacing=0>
+  <tr><td>
+  <img src="http://groups.google.com/intl/en/images/logos/groups_logo_sm.gif"
+         height=30 width=140 alt="Google Groups">
+  </td></tr>
+  <tr><td style="padding-left: 5px">
+  <b>Subscribe to Overtone</b>
+  </td></tr>
+  <form action="http://groups.google.com/group/overtone/boxsubscribe">
+  <tr><td style="padding-left: 5px;">
+  Email: <input type=text name=email>
+  <input type=submit name="sub" value="Subscribe">
+  </td></tr>
+</form>
+<tr><td align=right>
+  <a href="http://groups.google.com/group/overtone">Visit this group</a>
+</td></tr>
+</table>
 
 
 ### Ubuntu Quick Setup:
 
     sudo apt-get install supercollider-server jack-tools ant sun-java6-jdk
 
-    ;; Download jdk zip file and put in correct location...
+Download jdk zip file and put in correct location...
+
+Download and install leiningen wherever you local executables go:
+
+    wget http://github.com/technomancy/leiningen/raw/stable/bin/lein 
+    chmod u+x lein
+    mv lein ~/bin  
+    lein self-install
+
+Now get Overtone and its submodules:
 
     git clone git://github.com/rosejn/overtone.git
 
     cd overtone
 
-    ant deps
+    git submodule init
 
-    qjackctl&
+    git submodule update
 
-    ;; Start by just using Jack with Alsa and the default settings, but if you get
+    lein deps
+
+    ;; In Linux start by just using Jack with Alsa and the default settings, but if you get
     ;; serious you'll want to read up on tuning jack to minimize audio latency
     ;; and get realtime scheduling of audio threads.
 
+    ./start.sh
+
     ; Turn down the speakers to a medium/low volume
 
-    ant test
-
-    ;; All tests should pass (however minimal they might be), and you should
-    ;; hear some tones played on your speakers.
+    lein test
 
 ### General Setup:
 
@@ -61,8 +83,8 @@ Install:
 
 * Java 6 JDK
 
-* Apache Ant build tool 
-  - If someone contributes a Maven file that would be sweet...
+* Leiningen
+
 
 * Linux users will need a working Jackd setup, as well as the jack\_lsp, and
 jack\_connect utilities (jack-tools package in Ubuntu).

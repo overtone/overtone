@@ -1,9 +1,19 @@
+== 0.2 Release
+
+- use clojure.contrib.generics or else write a function that turns an arbitrary
+  application of + or * into a series if binary-op-ugens.
+
+- when mapping ugen args don't map if a non keyword value is there...
+
 == General:
 
 * Look into using clojure-jna (http://github.com/Chouser/clojure-jna) to link
 directly with supercollider and start the internal server so we don't have to
 send network messages for transmitting audio data.  (Much better oscilloscope
 and visualization performance...)
+
+* Go through everything and make everything that should be a private definition
+to cleanup the namespace that gets immigrated.
 
 == Synths and Audio:
 * Test and expand the Scope synth to support really nice audio and fft data
@@ -17,6 +27,9 @@ some other thing can easily be defined in Clojure?
 
 * Create a fully native Clojure implementation of the SuperCollider interface on top of Java sound
 so we can run inside of the browser, on phones, etc...
+
+* use the clojure JNA library to control jack directly without needing external
+utils in linux
 
 == Midi and Devices:
 
@@ -49,4 +62,4 @@ so we can timeout on receive to periodically check whether the server thread sho
 
 == Networking
 
-* 
+* search, browse and download remote synth libraries 

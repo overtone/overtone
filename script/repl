@@ -1,15 +1,6 @@
 #!/bin/bash
 
-# A simple script to start a repl with the project jar files (in the lib
-# directory) on the classpath.
+SCRIPT_DIR=`dirname $0`
+JAVA_ENV=`$SCRIPT_DIR/java-env`
 
-MY_DIR=`dirname $0`
-CLASSPATH=`$MY_DIR/java-bs`
-
-#DEFINITIONS=-Djava.library.path=lib/opengl 
-
-java -cp $CLASSPATH jline.ConsoleRunner clojure.main $@
-
-#BREAK_CHARS="(){}[],^%$#@\"\";:''|\\"
-#rlwrap -a --remember -c -b "$BREAK_CHARS" -f "$HOME/.clj_completions" \
-#	  java -cp $CLASSPATH clojure.main $@
+exec java $JAVA_ENV jline.ConsoleRunner clojure.main $@

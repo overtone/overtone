@@ -7,18 +7,21 @@
      (org.jfree.chart.plot PlotOrientation)
      (org.jfree.data.xy DefaultXYDataset))
   (:use 
-     (overtone sc synth util))
-  (:require [overtone.log :as log]))
+     (overtone.core sc synth util ugen))
+  (:require [overtone.core.log :as log]))
+
+(refer-ugens *ns*)
 
 (def SCOPE-BUF-SIZE 10000)
 
 (def scope-buf* (ref nil))
 (def scope-bus* (ref 0))
 
-(def overtone-scope (synth overtone-scope {:in 0 :buf 1}
-  (record-buf.ar (in.ar :in) :buf)))
+(defsynth overtone-scope [in 0 buf 1]
+  (record-buf (in:ar in) buf)))
 
-(def scope-test (synth scope-test {:out 10 :freq 220} (out.ar :out (sin-osc.ar :freq))))
+(defsynth scope-test [out 10 freq 220] 
+  (out.ar out (sin-osc:ar freq)))
 
 (defn load-scope [bus]
   (load-synth overtone-scope)

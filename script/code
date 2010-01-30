@@ -2,6 +2,7 @@
 
 echo "Project Overtone initializing..."
 
-./script/tune-up
+./script/ng-server &
+./script/start.sh
 
 $EDITOR TODO
