@@ -50,13 +50,36 @@ Now get Overtone and its submodules:
 
     ;; In Linux start by just using Jack with Alsa and the default settings, but if you get
     ;; serious you'll want to read up on tuning jack to minimize audio latency
-    ;; and get realtime scheduling of audio threads.
+    ;; and get realtime scheduling of audio threads.  This shouldn't be
+    ;; necessary for Windows or Mac.
+    ./script/start.sh
 
-    ./start.sh
+    ./script/repl
 
-    ; Turn down the speakers to a medium/low volume
+    (use 'overtone.live)
+    (refer-ugens)
+    (boot)
 
-    lein test
+    (synth (sin-osc 440)) ; define an anonymous synth
+    (*1) ; play it...  returns a node-id
+    (kill <node-id>) ; put the number returned from above
+
+    ;; Define a simple synth with a saw wave that has
+    ;; a vibrato effect and a percussive style envelope.
+    (defsynth foo [freq 220, lfo 8, depth 20,
+                   rise 0.05, fall 0.6]
+      (* (env-gen (perc rise fall) 1 1 0 1 :free) 
+         (saw (+ freq (* 10 (sin-osc:kr lfo))))))
+    
+    ; Call with none or some arguments and it uses the defaults
+    (foo)
+    (foo 220)
+    (foo 220 10)
+    
+    ; Or call with keyword style args
+    (foo :rise 0.1 :fall 2.0) 
+
+    (quit)
 
 ### General Setup:
 
@@ -68,7 +91,6 @@ Install:
 * Java 6 JDK
 
 * Leiningen
-
 
 * Linux users will need a working Jackd setup, as well as the jack\_lsp, and
 jack\_connect utilities (jack-tools package in Ubuntu).
@@ -83,26 +105,6 @@ environment setup.  I use the vimclojure plugin for vim, but it should be
 possible to use emacs and slime, or netbeans and enclojure, or eclipse, or
 whatever else as long as you can evaluate clojure expressions inside the
 editor.
-
-### Getting Started:
-
-I use the tune-up script to quickly setup the audio environment and the nailgun
-server used by vimclojure.  
-
-    (use 'overtone.sc)
-    (boot)
-    (hit) ; makes a test noise
-    (hit (now) "kick") ; hits the kick drum right now
-    (hit (+ (now) 1000) "kick") ; hits the kick drum in 1 second (1,000 ms)
-    (quit)
-
-For now you can look in the "tests" for examples on how to make noise and do things.
-Submissions of cool musical examples, tutorials, and general fixes and features
-are very much welcome and encouraged.
-
-Here is a very basic screencast to give you an idea of what Overtone can currently do:
-
-http://vimeo.com/7827497
 
 ### Contributors
 
