@@ -13,9 +13,10 @@
                  [byte-spec "0.1"]
                  [midi-clj "0.1"]]
   :dev-dependencies [[lein-clojars "0.5.0-SNAPSHOT"]
-                     [autodoc "0.7.0"] 
+                     [autodoc "0.7.0"]
                      [jline "0.9.94"]
                      [org.clojars.ato/nailgun "0.7.1"]
                      [lein-nailgun "0.1.0"]
-                     [swank-clojure "1.1.0-SNAPSHOT"]]
+                     [swank-clojure "1.1.0-SNAPSHOT"]
+                     [leiningen/lein-swank "1.1.0"]]]
   :main overtone.app.main)
