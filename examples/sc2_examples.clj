@@ -1,6 +1,8 @@
 (ns sc2-examples
   (:use overtone.live))
 
+(refer-ugens)
+
 ; analog bubbles
 (defsynth analog-bubbles []
   (let [f (mul-add (lf-saw:kr 0.4 0) 24 

@@ -4,7 +4,7 @@ DEPS=lib
 SUBMODULES=src/lib
 
 SCRIPT_DIR=`dirname $0`
-CLASSPATH="$SCRIPT_DIR/..:./src:./src/lib:./test:./session"
+CLASSPATH="$SCRIPT_DIR/..:./src:./src/lib:./test:./examples:./session"
 
 # Add jar files
 for f in "$DEPS"/*.jar; do

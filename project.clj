@@ -18,5 +18,5 @@
                      [org.clojars.ato/nailgun "0.7.1"]
                      [lein-nailgun "0.1.0"]
                      [swank-clojure "1.1.0-SNAPSHOT"]
-                     [leiningen/lein-swank "1.1.0"]]]
+                     [leiningen/lein-swank "1.1.0"]]
   :main overtone.app.main)
