@@ -304,7 +304,8 @@
                       (str "anon-" (next-id :anonymous-synth))
                       ~sname)
              ugens# (if (and (ugen? ugen-root#)
-                             (= "Out" (:name ugen-root#)))
+                             (or (= "Out" (:name ugen-root#))
+                                 (= :kr (get REVERSE-RATES (:rate ugen-root#)))))
                       ugen-root#
                       (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))
              sdef# (synthdef sname# ~param-map ugens#)]
