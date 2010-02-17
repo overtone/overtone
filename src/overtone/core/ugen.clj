@@ -458,6 +458,14 @@
       (overload-ugen-op to-ns ugen-name ugen-fn)
       (intern to-ns ugen-name ugen-fn))))
 
+(defn- mul-add [in mul add]
+  (with-meta {:id (next-id :ugen)
+              :name "MulAdd" 
+              :rate (or (:rate in) 2)
+              :special 0
+              :args [in mul add]}
+             {:type ::ugen}))
+  
 (defn refer-ugens 
   "Iterate over all UGen meta-data, generate the corresponding functions and intern them
   in the current or otherwise specified namespace."
@@ -470,7 +478,8 @@
     (doseq [[op-name special] UNARY-OPS]
       (def-unary-op to-ns op-name special))
     (doseq [[op-name special] BINARY-OPS]
-      (def-binary-op to-ns op-name special))))
+      (def-binary-op to-ns op-name special))
+    (intern to-ns 'mul-add (make-expanding mul-add [true true true]))))
 
 ;; We refer all the ugen functions here so they can be access by other parts
 ;; of the Overtone system using a fixed namespace.  For example, to automatically

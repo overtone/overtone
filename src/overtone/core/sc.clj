@@ -93,6 +93,12 @@
             (recur (conj ids id) (inc id))
             ids))))))
 
+(defn clear-ids
+  "Clear all ids allocated for key."
+  [k]
+  (doseq [id (all-ids k)]
+    (free-id k id)))
+
 (defn connected? []
   (not (nil? @server*)))
 
@@ -516,14 +522,17 @@
 
 ; TODO: need to clear all the buffers and busses
 (defn reset
-  "Clear all synthesizers, groups and pending messages from the audio server."
+  "Clear all synthesizers, groups and pending messages from the audio server, and then recreates the active synth groups."
   []
+  (clear-msg-queue)
   (try
     (group-clear 0)
     (catch Exception e nil))
   (apply node-free (all-ids :node))
+  (clear-ids :node)
   (alloc-id :node) ; ID zero is the root group
-  (clear-msg-queue))
+  (dosync (ref-set overtone.core.synth/synth-groups* (zipmap (keys @overtone.core.synth/synth-groups*) 
+                                          (repeat (count @overtone.core.synth/synth-groups*) (group :tail 0))))))
 
 ;  Maybe it's better to keep the server log around???
 ;  (dosync (ref-set server-log* [])))

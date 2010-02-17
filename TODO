@@ -5,7 +5,14 @@
 
 - when mapping ugen args don't map if a non keyword value is there...
 
+- don't auto-attach out and pan ugens unless it's a synth with a single root
+  that is output at audio rate
+
+- make things work where there are multiple "roots" in a synthdef graph
+
 == General:
+
+* output the server log to a file that can be tail -f'd
 
 * Look into using clojure-jna (http://github.com/Chouser/clojure-jna) to link
 directly with supercollider and start the internal server so we don't have to

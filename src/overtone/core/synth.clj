@@ -56,6 +56,10 @@
   "Returns ugen object with its input ports connected to constants and upstream 
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
+  {:pre [(contains? ugen :args)
+         (every? #(or (ugen? %) (number? %)) (:args ugen))]
+   :post [(contains? % :inputs) 
+          (every? (fn [in] (not (nil? in))) (:inputs %))]}
   (let [inputs (flatten 
                  (map (fn [arg]
                         (cond
@@ -120,10 +124,11 @@
 (defn- collect-ugen-info 
   "Return a list of all the ugens in the ugen graph in topological, depth first order.  
   SuperCollider wants the ugens listed in the order they should be executed."
-  [ugen] 
+  [& ugens] 
   (binding [*ugens*     []
             *constants* []]
-    (collect-ugen-helper ugen)
+    (doseq [ugen (flatten ugens)]
+      (collect-ugen-helper ugen))
     [*ugens* *constants*]))
 
 (defn- make-control-ugens
@@ -231,15 +236,6 @@
                 :ugens detailed}
                {:type :overtone.core.synthdef/synthdef})))
 
-(comment defn synth
-  [ugen]
-  (let [sdef (if (= "Out" (:name ugen))
-                 (synthdef ugen)
-                 (synthdef (overtone.ugens/out 0 (overtone.ugens/pan2 ugen))))
-        sname (:name sdef)]
-    (load-synthdef sdef)
-    (fn [& args] (apply hit sname args))))
-
 (defn control-proxy [name]
   (with-meta {:name (str name)}
              {:type ::control-proxy}))
@@ -265,23 +261,22 @@
 (def synth-groups* (ref {}))
 
 (defn synth-player [sname arg-names]
-  (let [sgroup (get @synth-groups* sname)
-        controller (partial node-control sgroup)
-        player (partial node sname :target sgroup)]
-    (fn [& args] 
-      (let [[tgt-fn args] (if (= :ctl (first args))
+  (fn [& args] 
+      (let [sgroup (get @synth-groups* sname)
+            controller (partial node-control sgroup)
+            player (partial node sname :target sgroup)
+            [tgt-fn args] (if (= :ctl (first args))
                             [controller (rest args)]
                             [player args])
             named-args (if (keyword? (first args))
                          args
                          (name-synth-args args arg-names))]
-        (apply tgt-fn named-args)))))
+        (apply tgt-fn named-args))))
 
 (defmacro synth 
   "Define a SuperCollider synthesizer using the library of ugen functions provided by overtone.core.ugen.  This will return an anonymous function which can be used to trigger the synthesizer.
   
-  (synth (sin-osc 300))
-  
+  (synth (sin-osc (+ 300 (* 10 (sin-osc:kr 10)))))
   "
   [& args]
   (let [[sname args] (cond
@@ -308,10 +303,15 @@
                                  (= :kr (get REVERSE-RATES (:rate ugen-root#)))))
                       ugen-root#
                       (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))
-             sdef# (synthdef sname# ~param-map ugens#)]
+             sdef# (synthdef sname# ~param-map ugens#)
+             sgroup# (or (get @synth-groups* sname#) (group :tail 0))]
          (load-synthdef sdef#)
-         (dosync (alter synth-groups* assoc sname# (group :tail 0)))
+         (dosync (alter synth-groups* assoc sname# sgroup#))
          (synth-player sname# (quote ~param-names))))))
+;         (with-meta 
+;           (synth-player sname# (quote ~param-names))
+;           {:synthdef sdef#
+;            :group    sgroup#})))))
 
 (defmacro defsynth 
   "Define a synthesizer and name its trigger function.  
