@@ -29,6 +29,7 @@
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
+(defonce synth-groups*  (ref nil))
 
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
@@ -244,7 +245,8 @@
       (Thread/sleep 1000)
       (connect host port)
       (Thread/sleep 1000)
-      (run-boot-handlers)))))
+      (run-boot-handlers)
+      "Booted"))))
 
 (defn quit
   "Quit the SuperCollider synth process."
@@ -531,8 +533,8 @@
   (apply node-free (all-ids :node))
   (clear-ids :node)
   (alloc-id :node) ; ID zero is the root group
-  (dosync (ref-set overtone.core.synth/synth-groups* (zipmap (keys @overtone.core.synth/synth-groups*) 
-                                          (repeat (count @overtone.core.synth/synth-groups*) (group :tail 0))))))
+  (dosync (ref-set synth-groups* (zipmap (keys @synth-groups*) 
+                                          (repeat (count @synth-groups*) (group :tail 0))))))
 
 ;  Maybe it's better to keep the server log around???
 ;  (dosync (ref-set server-log* [])))

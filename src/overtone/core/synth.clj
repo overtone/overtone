@@ -257,8 +257,6 @@
              (concat named [(first names) (first args)]))
       named)))
 
-(def synth-groups* (ref {}))
-
 (defn synth-player [sname arg-names]
   (fn [& args] 
       (let [sgroup (get @synth-groups* sname)
