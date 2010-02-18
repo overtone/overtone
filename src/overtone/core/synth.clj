@@ -5,7 +5,6 @@
           serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.core.synth
-
   (:require [overtone.core.log :as log])
   (:use
      (overtone.core util ugen sc synthdef)
@@ -259,6 +258,9 @@
       named)))
 
 (def synth-groups* (ref {}))
+
+(declare node-control)
+(declare node)
 
 (defn synth-player [sname arg-names]
   (fn [& args] 

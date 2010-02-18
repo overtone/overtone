@@ -8,7 +8,7 @@
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream)
      (java.util BitSet))
-  (:require [overtone.core.log :as log])
+  (:require [overtone.core.log :as log] overtone.core.synth)
   (:use
      clojure.contrib.shell-out
      clojure.contrib.seq-utils
