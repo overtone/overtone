@@ -15,6 +15,12 @@
 (def *constants* nil)
 (def *params* nil)
 
+(defn control-proxy [name]
+  (with-meta {:name (str name)}
+             {:type ::control-proxy}))
+
+(defn control-proxy? [obj] (= ::control-proxy (type obj)))
+
 (defn- index-of [col item]
   (first (first (filter (fn [[i v]] 
                           (= v item)) 
@@ -56,7 +62,7 @@
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
   {:pre [(contains? ugen :args)
-         (every? #(or (ugen? %) (number? %)) (:args ugen))]
+         (every? #(or (ugen? %) (number? %) (control-proxy? %)) (:args ugen))]
    :post [(contains? % :inputs) 
           (every? (fn [in] (not (nil? in))) (:inputs %))]}
   (let [inputs (flatten 
@@ -234,10 +240,6 @@
                 :pnames pnames
                 :ugens detailed}
                {:type :overtone.core.synthdef/synthdef})))
-
-(defn control-proxy [name]
-  (with-meta {:name (str name)}
-             {:type ::control-proxy}))
 
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
