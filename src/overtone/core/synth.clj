@@ -259,9 +259,6 @@
 
 (def synth-groups* (ref {}))
 
-(declare node-control)
-(declare node)
-
 (defn synth-player [sname arg-names]
   (fn [& args] 
       (let [sgroup (get @synth-groups* sname)
