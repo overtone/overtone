@@ -530,9 +530,8 @@
     (catch Exception e nil))
   (apply node-free (all-ids :node))
   (clear-ids :node)
-  (alloc-id :node) ; ID zero is the root group
-  (dosync (ref-set overtone.core.synth/synth-groups* (zipmap (keys @overtone.core.synth/synth-groups*) 
-                                          (repeat (count @overtone.core.synth/synth-groups*) (group :tail 0))))))
+  (alloc-id :node)) ; ID zero is the root group
+
 
 ;  Maybe it's better to keep the server log around???
 ;  (dosync (ref-set server-log* [])))
