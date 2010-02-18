@@ -36,50 +36,32 @@ Download and install leiningen wherever you local executables go:
     mv lein ~/bin  
     lein self-install
 
-Now get Overtone and its submodules:
+Now get Overtone:
 
-    git clone git://github.com/rosejn/overtone.git
+    $ git clone git://github.com/mozinator/overtone.git
 
-    cd overtone
+    $ cd overtone
 
-    git submodule init
+    $ jackd -r -d alsa -r 44100
+    $ echo play | jack_transport
 
-    git submodule update
+    $ lein deps      
+    $ lein repl
 
-    lein deps
+    user=> (use 'overtone.live)
+    user=> (refer-ugens)
+    user=> (boot)
 
-    ;; In Linux start by just using Jack with Alsa and the default settings, but if you get
-    ;; serious you'll want to read up on tuning jack to minimize audio latency
-    ;; and get realtime scheduling of audio threads.  This shouldn't be
-    ;; necessary for Windows or Mac.
-    ./script/start.sh
+    user=> (print-server-log) ; check for errors
 
-    ./script/repl
+    $ jack_connect SuperCollider:out_1 system:playback_1
+    $ jack_connect SuperCollider:out_2 system:playback_2
 
-    (use 'overtone.live)
-    (refer-ugens)
-    (boot)
+    user=> (synth (sin-osc 440)) ; define an anonymous synth
+    user=> (*1) ; play it...  returns a node-id
+    user=> (kill <node-id>) ; put the number returned from above
 
-    (synth (sin-osc 440)) ; define an anonymous synth
-    (*1) ; play it...  returns a node-id
-    (kill <node-id>) ; put the number returned from above
-
-    ;; Define a simple synth with a saw wave that has
-    ;; a vibrato effect and a percussive style envelope.
-    (defsynth foo [freq 220, lfo 8, depth 20,
-                   rise 0.05, fall 0.6]
-      (* (env-gen (perc rise fall) 1 1 0 1 :free) 
-         (saw (+ freq (* 10 (sin-osc:kr lfo))))))
-    
-    ; Call with none or some arguments and it uses the defaults
-    (foo)
-    (foo 220)
-    (foo 220 10)
-    
-    ; Or call with keyword style args
-    (foo :rise 0.1 :fall 2.0) 
-
-    (quit)
+    user=> (quit)
 
 ### General Setup:
 
@@ -94,10 +76,6 @@ Install:
 
 * Linux users will need a working Jackd setup, as well as the jack\_lsp, and
 jack\_connect utilities (jack-tools package in Ubuntu).
-
-Beyond those requirements, you can run "ant deps" to retrieve the necessary jar
-files, which are currently about 5 megs.  The footprint will go down
-substantially soon though.
 
 At this point you have enough to write musical scripts and make noise, but you
 won't be able to do any livecoding unless you have an interactive Clojure
