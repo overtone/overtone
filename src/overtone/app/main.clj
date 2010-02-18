@@ -7,86 +7,134 @@
      (javax.swing JFrame JPanel) 
      (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGAbstractShape$Mode SGComponent
                                   SGTransform)
-       (com.sun.scenario.scenegraph.event SGMouseAdapter)
+     (com.sun.scenario.scenegraph.event SGMouseAdapter)
      (com.sun.scenario.scenegraph.fx FXShape))
-     ;(com.sun.scenario.animation Clip Interpolators)
-     ;(com.sun.scenario.effect DropShadow))
-  (:use (overtone.app editor)))
 
-(def HEADER-HEIGHT 20)
-(def WINDOW-FILL   (Color. 50 50 50))
-(def WINDOW-STROKE (Color. 50 50 50))
-(def LOGO-SIZE 20)
+  (:import                  
+   (javax.swing JFrame JEditorPane JScrollPane JPanel JTextField SwingUtilities JButton)
+   (java.io StringReader PushbackReader OutputStreamWriter PrintWriter)
+   (java.util.concurrent LinkedBlockingQueue)
+   (jsyntaxpane DefaultSyntaxKit)
+   (java.awt Dimension BorderLayout))
+  
+  (:use [hiredman.hydra :only [hydra]])
+  (:require [clj-repl :as r]))
 
-(defn header-panel []
-  (let [browse-root (SGGroup.)
-        base-box (FXShape.)
-        ;glow (DropShadow.)
-        logo (SGText.)
-        width 1000]
 
-    (comment doto glow 
-      (.setRadius 1.0)
-      (.setColor (Color. 88 248 246)))
+;; Swing macros 
 
-    (doto base-box
-      (.setShape (RoundRectangle2D$Float. 0 0 width HEADER-HEIGHT 4 4))
-      (.setMode SGAbstractShape$Mode/STROKE_FILL)
-      (.setAntialiasingHint RenderingHints/VALUE_ANTIALIAS_ON)
-      (.setFillPaint WINDOW-FILL)
-      (.setDrawPaint WINDOW-STROKE)
-      (.setDrawStroke (BasicStroke. 1.15)))
+(defmacro EDT
+  "runs body on the Event-Dispatch-Thread (Swing)"
+  [& body]
+  `(SwingUtilities/invokeLater (fn [] ~@body)))
 
-    ;(.setEffect base-box glow)
+(defmacro action-performed [component event & body]
+  `(. ~component addActionListener
+      (proxy [java.awt.event.ActionListener] []
+        (actionPerformed [~event] ~@body))))
 
-    (doto logo
-      (.setText "Overtone")
-      (.setFont (Font. "SansSerif" Font/BOLD LOGO-SIZE))
-      (.setAntialiasingHint RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
-      (.setFillPaint Color/WHITE)
-      (.setLocation (Point. 10 18)))
+(defn -main []
+  (EDT
+   (let [frame      (JFrame.)
+         content    (.getContentPane frame)
+         editor     (JEditorPane.)
+         scroll     (JScrollPane. editor)
+         panel      (JPanel.)
+         prompt     (JTextField.)
+         text-field (JTextField.)
 
-    (doto browse-root
-      (.add base-box)
-      (.add logo))))
+         toolbar    (JPanel.)
+         tb-init    (JButton. "1. init")
+         tb-boot    (JButton. "2. boot")
+         tb-quit    (JButton. "5. quit")
+         tb-mn      (JButton. "4. make noise")
+         tb-slog    (JButton. "3. server log")
+         queue      (hydra)]
+     
+     (DefaultSyntaxKit/initKit) 
 
-(defn overtone-scene [args]
-  (let [root (SGGroup.)
-        header (header-panel)
-        edit (editor)
-        edit-node (SGComponent.)
-        edit-translate (SGTransform/createTranslation 100 100 edit-node)]
-    (doto edit-node
-      (.setSize 500 800)
-      (.setComponent edit))
+     (doto tb-init
+       (action-performed event (do
+                                 (r/send-to-repl queue "(use 'overtone.live)(refer-ugens)")
+                                 (r/send-to-repl queue "(refer-ugens)")
+                                 (EDT (let [ doc (.getDocument editor)
+                                            length (.getLength doc)]
+                                        (.insertString doc length ";; Make sure jackd is started" nil)))
+                                 )))
 
-    (doto root
-      (.add edit-translate)
-      (.add header))))
+     (doto tb-boot
+       (action-performed event (r/send-to-repl queue "(boot)")))
 
-(defn screen-dim []
-  (.getScreenSize (Toolkit/getDefaultToolkit)))
+     (doto tb-quit
+       (action-performed event (r/send-to-repl queue "(quit)")))
 
-(defn screen-size []
-  (let [dim (screen-dim)]
-    [(.width dim) (.height dim)]))
+     (doto tb-mn
+       (action-performed event (do
 
-;TODO: It undecorates, but it doesn't seem to change the size of the frame...
-(defn fullscreen-frame [f]
-    (.setExtendedState f JFrame/MAXIMIZED_BOTH)
-    (.setUndecorated f true))
+                                 (r/send-to-repl queue "(defsynth foo (sin-osc 440))")
+                                 (r/send-to-repl queue "(foo)")
+                                 
+                                 )))     
+     
+     (doto tb-slog
+       (action-performed event (do
+                                 (r/send-to-repl queue "(print-server-log)")
+                                 (EDT (let [ doc (.getDocument editor)
+                                            length (.getLength doc)]
+                                        (.insertString doc length ";; No errors ? Now connect your jack ports and start transport and get ready to make some noise !" nil)))
+                                 )))
+     
+     (doto toolbar
+       (.add tb-init)
+       (.add tb-boot)
+       (.add tb-slog)
+       (.add tb-mn)       
+       (.add tb-quit))
+     
+     (doto queue
+       (r/start-repl-thread (fn [q itm] (EDT                                              
+                                         (let [ doc (.getDocument editor)
+                                               length (.getLength doc)]
+                                           (.insertString doc length itm nil))))
+                          
+                            (fn [q ns] (EDT
+                                        (.setText prompt (str ns))))))
+     
+     (doto prompt
+       (.setEditable false)
+       (.setPreferredSize (Dimension. 150 20)))
 
-(defn -main [& args]
-  (let [app-frame (JFrame.  "Project Overtone")
-        main-panel (JSGPanel.)]
-    (.add (.getContentPane app-frame) main-panel)
+     (doto text-field
+       (action-performed event
+                         (EDT
+                          (r/send-to-repl queue (.getText text-field))
+                          (.setText text-field "")))
+       (.setPreferredSize (Dimension. 300 20)))
+     
+     (doto panel
+       (.setPreferredSize (Dimension. 300 30))
+       (.add prompt)
+       (.add text-field)
+       (.doLayout))
+     
+     (doto editor
+       (.setContentType "text/clojure")
+       (.setEditable false))
+        
+     (doto content
+       (.setLayout  (BorderLayout.))
+       (.add scroll (BorderLayout/CENTER))
+       (.add panel  (BorderLayout/SOUTH))
+       (.add toolbar (BorderLayout/NORTH)))
 
-    (doto main-panel
-      (.setBackground Color/BLACK)
-      (.setScene (overtone-scene args))
-      (.setPreferredSize (Dimension. 1000 1000)))
+     (doto frame
+       (.pack)        
+       (.setVisible true)
+       (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE))
 
-    (doto app-frame
-      (.add main-panel)
-      (.pack)
-      (.setVisible true))))
+     (doto text-field
+       (.requestFocus)))))
+
+(comment
+  (-main))
+  
