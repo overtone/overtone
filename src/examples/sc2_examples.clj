@@ -24,13 +24,12 @@
   (clip2 (rlpf (lf-pulse (mul-add (sin-osc:kr 0.2 0) 10 21) 0.1) 100 0.1) 0.4))
 
 ; TODO: Figure out what max is all about and why we don't have it
-;(defsynth scratchy []
-;  (rhpf (* (max (brown-noise [0.5 0.5] -0.49) 0) 20)
-;        5000
-;        1))
+(defsynth scratchy []
+  (rhpf (* (maximum (brown-noise [0.5 0.5] -0.49) 0) 20)
+        5000
+        1))
 
 ; TODO: Not sure why this is just spitting out noise...
 (defsynth sprinkler []
   (bpz2:ar (white-noise:ar (mul-add (lf-pulse:kr (mouse-x:kr 0.2 50) 0 0.25) 0.1 0))))
-
 

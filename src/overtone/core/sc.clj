@@ -246,7 +246,7 @@
       (connect host port)
       (Thread/sleep 1000)
       (run-boot-handlers)
-      "Booted"))))
+      :booted))))
 
 (defn quit
   "Quit the SuperCollider synth process."
@@ -632,7 +632,8 @@
                         [(now) (flatten args)]
                         [(first args) (flatten (next args))])]
         (at time-ms
-            (apply node-free ids))))
+            (apply node-free ids))
+  :killed))
 
 (defn load-instruments []
   (doseq [synth (filter #(synthdef? %1) 
