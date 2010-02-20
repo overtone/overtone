@@ -10,3 +10,6 @@ autodoc/**
 _site
 lib
 ext
+js
+media
+

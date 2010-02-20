@@ -1,5 +1,0 @@
-#!/bin/sh
-
-killall -9 jackd
-jackd -t 5000 -d alsa --rate 44100 --softmode -Phw:1 -Chw:1 --inchannels 2 --outchannels 2 &
-echo "play" | jack_transport
