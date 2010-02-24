@@ -29,6 +29,7 @@
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
+(defonce synth-groups*  (ref nil))
 
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
@@ -244,7 +245,8 @@
       (Thread/sleep 1000)
       (connect host port)
       (Thread/sleep 1000)
-      (run-boot-handlers)))))
+      (run-boot-handlers)
+      :booted))))
 
 (defn quit
   "Quit the SuperCollider synth process."
@@ -530,6 +532,7 @@
     (catch Exception e nil))
   (apply node-free (all-ids :node))
   (clear-ids :node)
+
   (alloc-id :node)) ; ID zero is the root group
 
 
@@ -629,7 +632,8 @@
                         [(now) (flatten args)]
                         [(first args) (flatten (next args))])]
         (at time-ms
-            (apply node-free ids))))
+            (apply node-free ids))
+  :killed))
 
 (defn load-instruments []
   (doseq [synth (filter #(synthdef? %1) 

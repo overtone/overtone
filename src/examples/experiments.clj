@@ -2,10 +2,10 @@
   (:use test-utils
      (overtone synth)))
 
-(defsynth saw-sin {:freq-a 443
-                   :freq-b 440}
-  (out.ar 0 (+ (* 0.3 (saw.ar :freq-a))
-               (* 0.3 (sin-osc.ar :freq-b 0)))))
+(defsynth saw-sin [freq-a 443
+                   freq-b 440]
+  (out 0 (+ (* 0.3 (saw freq-a))
+               (* 0.3 (sin-osc freq-b 0)))))
 
 (comment 
 (load-synth saw-sin)

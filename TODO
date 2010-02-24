@@ -12,7 +12,11 @@
 
 == General:
 
+* receive at least the synth-free messages from SuperCollider so we can free up IDs
+
 * output the server log to a file that can be tail -f'd
+
+* create a function that prints out the currently running synths
 
 * Look into using clojure-jna (http://github.com/Chouser/clojure-jna) to link
 directly with supercollider and start the internal server so we don't have to
@@ -22,7 +26,14 @@ and visualization performance...)
 * Go through everything and make everything that should be a private definition
 to cleanup the namespace that gets immigrated.
 
+* make the path to SuperCollider use the config file and add more defaults
+for fucking windows
+
+* write the log file to somewhere outside of the Overtone directory so it still 
+works when running from a jar file.
+
 == Synths and Audio:
+
 * Test and expand the Scope synth to support really nice audio and fft data
 visualization.
  - also create level meter, pan, and EQ synths
@@ -37,6 +48,7 @@ so we can run inside of the browser, on phones, etc...
 
 * use the clojure JNA library to control jack directly without needing external
 utils in linux
+ - try using byte-spec to generate struct memory layouts...
 
 == Midi and Devices:
 

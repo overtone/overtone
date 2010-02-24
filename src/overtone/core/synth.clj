@@ -5,7 +5,6 @@
           serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.core.synth
-
   (:require [overtone.core.log :as log])
   (:use
      (overtone.core util ugen sc synthdef)
@@ -15,6 +14,12 @@
 (def *ugens* nil)
 (def *constants* nil)
 (def *params* nil)
+
+(defn control-proxy [name]
+  (with-meta {:name (str name)}
+             {:type ::control-proxy}))
+
+(defn control-proxy? [obj] (= ::control-proxy (type obj)))
 
 (defn- index-of [col item]
   (first (first (filter (fn [[i v]] 
@@ -57,7 +62,7 @@
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
   {:pre [(contains? ugen :args)
-         (every? #(or (ugen? %) (number? %)) (:args ugen))]
+         (every? #(or (ugen? %) (number? %) (control-proxy? %)) (:args ugen))]
    :post [(contains? % :inputs) 
           (every? (fn [in] (not (nil? in))) (:inputs %))]}
   (let [inputs (flatten 
@@ -236,10 +241,6 @@
                 :ugens detailed}
                {:type :overtone.core.synthdef/synthdef})))
 
-(defn control-proxy [name]
-  (with-meta {:name (str name)}
-             {:type ::control-proxy}))
-
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
 (defn- parse-synth-params [params]
@@ -257,8 +258,6 @@
              (next names)
              (concat named [(first names) (first args)]))
       named)))
-
-(def synth-groups* (ref {}))
 
 (defn synth-player [sname arg-names]
   (fn [& args] 
