@@ -12,6 +12,9 @@
 
 == General:
 
+* Add a runtime shutdown hook that calls shutdown callbacks to close the server
+and do anything else necessary.
+
 * create a function that prints out the currently running synths
 
 * Look into using clojure-jna (http://github.com/Chouser/clojure-jna) to link

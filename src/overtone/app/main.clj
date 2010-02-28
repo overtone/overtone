@@ -9,25 +9,58 @@
                                   SGTransform)
        (com.sun.scenario.scenegraph.event SGMouseAdapter)
      (com.sun.scenario.scenegraph.fx FXShape))
-     ;(com.sun.scenario.animation Clip Interpolators)
-     ;(com.sun.scenario.effect DropShadow))
-  (:use (overtone.app editor)))
+  (:use (overtone.app editor)
+     (overtone.core sc)))
+
+(def APP-NAME "Overtone")
 
 (def HEADER-HEIGHT 20)
 (def WINDOW-FILL   (Color. 50 50 50))
 (def WINDOW-STROKE (Color. 50 50 50))
 (def LOGO-SIZE 20)
+(def HEADER-FONT (Font. "SansSerif" Font/BOLD 16))
 
-(defn header-panel []
+(defn header-status []
+  (let [status-txt (SGText.)]
+    (add-watch status* :header 
+               (fn [skey sref old-status new-status]
+                 (.setText status-txt (name new-status))))
+    (doto status-txt
+      (.setText (str "DSP: " (name @status*)))
+      (.setFont HEADER-FONT)
+      (.setAntialiasingHint RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
+      (.setFillPaint Color/WHITE)
+      (.setLocation (Point. 550 17)))))
+
+(defn booter []
+  (let [boot-txt (SGText.)]
+    (doto boot-txt
+      (.setText "boot")
+      (.setFont HEADER-FONT)
+      (.setAntialiasingHint RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
+      (.setFillPaint Color/WHITE)
+      (.setLocation (Point. 500 17))
+      (.addMouseListener
+        (proxy [SGMouseAdapter] []
+          (mouseClicked [event node] 
+            (if (connected?)
+              (do (quit)
+                (.setText boot-txt "boot"))
+              (do (boot)
+                (.setText boot-txt "quit")))))))))
+
+(defn logo []
+  (doto (SGText.)
+      (.setText APP-NAME)
+      (.setFont (Font. "SansSerif" Font/BOLD LOGO-SIZE))
+      (.setAntialiasingHint RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
+      (.setFillPaint Color/WHITE)
+      (.setLocation (Point. 10 18))))
+
+(defn header []
   (let [browse-root (SGGroup.)
         base-box (FXShape.)
-        ;glow (DropShadow.)
-        logo (SGText.)
         width 1000]
-
-    (comment doto glow 
-      (.setRadius 1.0)
-      (.setColor (Color. 88 248 246)))
 
     (doto base-box
       (.setShape (RoundRectangle2D$Float. 0 0 width HEADER-HEIGHT 4 4))
@@ -37,32 +70,17 @@
       (.setDrawPaint WINDOW-STROKE)
       (.setDrawStroke (BasicStroke. 1.15)))
 
-    ;(.setEffect base-box glow)
-
-    (doto logo
-      (.setText "Overtone")
-      (.setFont (Font. "SansSerif" Font/BOLD LOGO-SIZE))
-      (.setAntialiasingHint RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
-      (.setFillPaint Color/WHITE)
-      (.setLocation (Point. 10 18)))
-
     (doto browse-root
       (.add base-box)
-      (.add logo))))
+      (.add (logo))
+      (.add (booter))
+      (.add (header-status)))))
 
 (defn overtone-scene [args]
-  (let [root (SGGroup.)
-        header (header-panel)
-        edit (editor)
-        edit-node (SGComponent.)
-        edit-translate (SGTransform/createTranslation 100 100 edit-node)]
-    (doto edit-node
-      (.setSize 500 800)
-      (.setComponent edit))
-
+  (let [root (SGGroup.)]
     (doto root
-      (.add edit-translate)
-      (.add header))))
+      (.add (header))
+      (.add (editor)))))
 
 (defn screen-dim []
   (.getScreenSize (Toolkit/getDefaultToolkit)))

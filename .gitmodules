@@ -12,4 +12,4 @@
 	url = git://github.com/rosejn/clj-repl.git
 [submodule "src/lib/clj-scsynth"]
 	path = src/lib/clj-scsynth
-	url = git@github.com:rosejn/clj-scsynth.git
+  url = git://github.com/mozinator/clj-scsynth.git
