@@ -10,3 +10,9 @@
 [submodule "src/lib/clj-repl"]
 	path = src/lib/clj-repl
 	url = git://github.com/rosejn/clj-repl.git
+[submodule "src/lib/scsynth"]
+	path = src/lib/scsynth
+	url = git@github.com:rosejn/scsynth.git
+[submodule "src/lib/clj-scsynth"]
+	path = src/lib/clj-scsynth
+	url = git@github.com:rosejn/clj-scsynth.git

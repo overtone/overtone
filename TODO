@@ -12,10 +12,6 @@
 
 == General:
 
-* receive at least the synth-free messages from SuperCollider so we can free up IDs
-
-* output the server log to a file that can be tail -f'd
-
 * create a function that prints out the currently running synths
 
 * Look into using clojure-jna (http://github.com/Chouser/clojure-jna) to link

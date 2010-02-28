@@ -24,7 +24,6 @@
   (locking F-LOCK
       (spit path data)))
 
-; TODO: Can't lock a read-only channel, and the RandomAccessFile doesn't work with slurp*.  Ideally we make readers get a lock also though.
 (defmethod restore-config :file
   [path]
   (with-open [file (FileInputStream. path)]
@@ -35,7 +34,15 @@
 
 (defn live-config
   "Use the configuration database located at the given path, restoring the current config 
-values if it already exists, and optionally persisting any config-value changes as they occur."
+values if it already exists, and optionally persisting any config-value changes as they occur.
+  
+  (live-config \"~/.app-config\")
+
+  ; Anytime the config* ref is modified it will be written to the config file.  Beyond that
+  ; it's just a normal old ref.
+  (:n-handlers @config*) ; get the current config setting
+  (dosync (alter config* assoc :n-handlers 10)) ; set it to 10
+  "
   [path]
   (dosync
     (ref-set config* (restore-config path))

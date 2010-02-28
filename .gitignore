@@ -7,9 +7,6 @@
 session
 samples
 autodoc/**
-_site
 lib
 ext
-js
-media
-
+web

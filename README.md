@@ -48,13 +48,13 @@ Now get Overtone and its submodules:
 
     lein deps
 
-    ;; In Linux start by just using Jack with Alsa and the default settings, but if you get
-    ;; serious you'll want to read up on tuning jack to minimize audio latency
-    ;; and get realtime scheduling of audio threads.  This shouldn't be
-    ;; necessary for Windows or Mac.
-    ./script/start.sh
+    ; In Linux you will need to create a .jackdrc file that holds the command 
+    ; that will be used to automatically start the jack server.  On my 
+    ; laptop it looks like this:
+    ;
+    ;  /usr/bin/jackd -R -dalsa -dhw:0 -r44100 -p1024 -n3
 
-    ./script/repl
+    lein repl
 
     (use 'overtone.live)
     (refer-ugens)

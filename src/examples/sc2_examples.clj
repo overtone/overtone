@@ -1,7 +1,7 @@
 (ns examples.sc2-examples
   (:use overtone.live))
 
-;(refer-ugens)
+(refer-ugens)
 
 ;(boot)
 
