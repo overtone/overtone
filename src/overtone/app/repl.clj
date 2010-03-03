@@ -33,69 +33,63 @@
       (proxy [java.awt.event.ActionListener] []
         (actionPerformed [~event] ~@body))))
 
+(def #^{:doc "balanced pairs"}
+     pairs '((\( \))
+             (\[ \])
+             (\" \")
+             (\{ \})))
+
+(defn balanced?
+  "are all the pairs balanced in this string?"
+  [string]
+  ((comp not some)
+   false?
+   (map
+    (fn [pair] (-> pair set (filter string) count (mod 2) zero?))
+    pairs)))
+
 (defn -main []
   (EDT
    (let [frame      (JFrame.)
          content    (.getContentPane frame)
-         editor     (JEditorPane.)
-         scroll     (JScrollPane. editor)
+
+         history     (JEditorPane.)
+         history-scroll     (JScrollPane. history)
+         
          panel      (JPanel.)
          prompt     (JTextField.)
-         text-field (JTextField.)
 
+         input (JEditorPane.)
+         input-scroll (JScrollPane. input)
+         
          toolbar    (JPanel.)
-         tb-init    (JButton. "1. init")
-         tb-boot    (JButton. "2. boot")
-         tb-quit    (JButton. "5. quit")
-         tb-mn      (JButton. "4. make noise")
-         tb-slog    (JButton. "3. server log")
-         queue      (hydra)]
+         tb-init    (JButton. "init")
+         
+         queue      (hydra)
+         send       (fn [m] (r/send-to-repl queue m))
+         print      (fn [m] (EDT                                              
+                             (let [ doc (.getDocument history)
+                                   length (.getLength doc)]
+                               (.insertString doc length m nil))))
+         cls-input  (fn [] (EDT
+                            (.setText input "")))]
      
      (DefaultSyntaxKit/initKit) 
 
      (doto tb-init
        (action-performed event (do
-                                 (r/send-to-repl queue "(use 'overtone.live)(refer-ugens)")
-                                 (r/send-to-repl queue "(refer-ugens)")
-                                 (EDT (let [ doc (.getDocument editor)
-                                            length (.getLength doc)]
-                                        (.insertString doc length ";; Make sure jackd is started" nil)))
-                                 )))
-
-     (doto tb-boot
-       (action-performed event (r/send-to-repl queue "(boot)")))
-
-     (doto tb-quit
-       (action-performed event (r/send-to-repl queue "(quit)")))
-
-     (doto tb-mn
-       (action-performed event (do
-
-                                 (r/send-to-repl queue "(defsynth foo (sin-osc 440))")
-                                 (r/send-to-repl queue "(foo)")
-                                 
-                                 )))     
-     
-     (doto tb-slog
-       (action-performed event (do
-                                 (r/send-to-repl queue "(print-server-log)")
-                                 (EDT (let [ doc (.getDocument editor)
-                                            length (.getLength doc)]
-                                        (.insertString doc length ";; No errors ? Now connect your jack ports and start transport and get ready to make some noise !" nil)))
-                                 )))
-     
+                                 (send "(in-ns 'user)")
+                                 (send "(use 'overtone.live)")
+                                 (send "(refer-ugens)")
+                                 ))
+       )
+    
      (doto toolbar
        (.add tb-init)
-       (.add tb-boot)
-       (.add tb-slog)
-       (.add tb-mn)       
-       (.add tb-quit))
+       )
      
      (doto queue
-       (r/start-repl-thread (fn [q itm] (EDT                                              
-                                         (let [ doc (.getDocument editor)
-                                               length (.getLength doc)]
-                                           (.insertString doc length itm nil))))
+       (r/start-repl-thread (fn [q itm] (print itm))
                           
                             (fn [q ns] (EDT
                                         (.setText prompt (str ns))))))
@@ -104,26 +98,34 @@
        (.setEditable false)
        (.setPreferredSize (Dimension. 150 20)))
 
-     (doto text-field
-       (action-performed event
-                         (EDT
-                          (r/send-to-repl queue (.getText text-field))
-                          (.setText text-field "")))
-       (.setPreferredSize (Dimension. 300 20)))
+     (doto input
+       (.setPreferredSize (Dimension. 300 80))
+;       (.setContentType "text/clojure")
+       (.addKeyListener (proxy [java.awt.event.KeyListener] []
+                            (keyTyped [e] )
+                            (keyPressed [e] )
+                            (keyReleased [e]
+                                         (let [key-text (str (java.awt.event.KeyEvent/getKeyText (.getKeyCode e)))
+                                               text (.getText input)]
+                                           (if (and (= "Enter" key-text)
+                                                    (not (empty? text ))
+                                                    (balanced? text))
+                                             (do (send text)
+                                                 (cls-input))))
+                                           ))))
      
      (doto panel
-       (.setPreferredSize (Dimension. 300 30))
        (.add prompt)
-       (.add text-field)
+       (.add input-scroll)
        (.doLayout))
      
-     (doto editor
-       (.setContentType "text/clojure")
+     (doto history
+ ;      (.setContentType "text/clojure")
        (.setEditable false))
         
      (doto content
        (.setLayout  (BorderLayout.))
-       (.add scroll (BorderLayout/CENTER))
+       (.add history-scroll (BorderLayout/CENTER))
        (.add panel  (BorderLayout/SOUTH))
        (.add toolbar (BorderLayout/NORTH)))
 
@@ -135,10 +137,8 @@
        
        )
 
-     (doto text-field
+     (doto input
        (.requestFocus)))))
 
-(comment
-  (-main)
-  )
-  
+(comment)
+(-main)
