@@ -8,7 +8,7 @@
      (com.raelity.jvi.swing DefaultViFactory StatusDisplay TextView)
      (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                   SGAbstractShape$Mode SGComponent SGTransform)
-     (jsyntaxpane DefaultSyntaxKit)
+;     (jsyntaxpane DefaultSyntaxKit)
      ))
 
 (def DEFAULT-FONT "Sans")
@@ -56,7 +56,7 @@
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))]
-    (DefaultSyntaxKit/initKit)
+    ;(DefaultSyntaxKit/initKit)
 
     (ViManager/activateAppEditor editor nil "Overtone Editor")
     (ViManager/installKeymap editor)
