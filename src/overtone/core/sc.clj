@@ -10,12 +10,14 @@
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream)
      (java.util BitSet))
-  (:require [overtone.core.log :as log])
-  (:use
-     clojure.contrib.shell-out
-     clojure.contrib.seq-utils
-     (overtone.core config setup util time-utils synthdef)
-     osc))
+ (:use clj-scsynth.core)
+ (:require [overtone.core.log :as log])
+ (:use [clojure.contrib.java-utils :only [file]])
+ (:use
+  clojure.contrib.shell-out
+  clojure.contrib.seq-utils
+  (overtone.core config setup util time-utils synthdef)
+  osc))
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
@@ -306,6 +308,29 @@
     (Thread/sleep 1000)
     (connect host port)
     (wait-for-boot 0)))
+
+(defn booti
+  ([] (booti nil))
+  ([port]
+     (if (not @running?*)
+       (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
+             boot-thread (fn []
+                           (let [opts (sc-jna-startoptions-byref)]
+                             (set! (. opts udp-port-num) port)
+                             (set! (. opts tcp-port-num) -1)
+                             (set! (. opts verbosity) 1)
+                             (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
+                             
+                             (let [world (ScJnaStart opts)]
+                               (World_WaitForQuit world)
+                               (ScJnaCleanup))))
+             sc-thread (Thread. boot-thread)]
+         (.setDaemon sc-thread true)
+         (log/debug "Booting SuperCollider internal server (scsynth)...")
+         (.start sc-thread)
+         (dosync (ref-set server-thread* sc-thread))
+         (.run (Thread. #(wait-for-boot "127.0.0.1" port)))
+         :booting))))
 
 (defn boot
   ([] (boot SERVER-HOST SERVER-PORT))

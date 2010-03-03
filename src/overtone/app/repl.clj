@@ -28,11 +28,6 @@
   [& body]
   `(SwingUtilities/invokeLater (fn [] ~@body)))
 
-(defmacro action-performed [component event & body]
-  `(. ~component addActionListener
-      (proxy [java.awt.event.ActionListener] []
-        (actionPerformed [~event] ~@body))))
-
 (def #^{:doc "balanced pairs"}
      pairs '((\( \))
              (\[ \])
@@ -54,91 +49,106 @@
          content    (.getContentPane frame)
 
          history     (JEditorPane.)
-         history-scroll     (JScrollPane. history)
+         history-scroll (JScrollPane. history (JScrollPane/VERTICAL_SCROLLBAR_NEVER) (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER))
          
-         panel      (JPanel.)
          prompt     (JTextField.)
 
          input (JEditorPane.)
-         input-scroll (JScrollPane. input)
-         
-         toolbar    (JPanel.)
-         tb-init    (JButton. "init")
-         
+         input-scroll (JScrollPane. input (JScrollPane/VERTICAL_SCROLLBAR_NEVER) (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER))
+
+         panel     (JPanel.)
          queue      (hydra)
-         send       (fn [m] (r/send-to-repl queue m))
+
+         history-vec (ref [""])
+         history-vec-current (ref 0)
+         
          print      (fn [m] (EDT                                              
                              (let [ doc (.getDocument history)
                                    length (.getLength doc)]
                                (.insertString doc length m nil))))
-         cls-input  (fn [] (EDT
-                            (.setText input "")))]
+
+         send       (fn [m] (do (r/send-to-repl queue m)
+                                (print m)
+                                (dosync (ref-set history-vec (concat @history-vec [m])))))
+         
+         cls-input  (fn [] (EDT (.setText input "")))
+
+         get-history (fn [] (do (cls-input)                              
+                                (EDT (.setText input (nth @history-vec @history-vec-current "")))))
+         
+         get-history-next (fn [] (do (if (<= @history-vec-current (- (count @history-vec) 2))                                       
+                                       (dosync (ref-set history-vec-current (+ @history-vec-current 1))))
+                                     (get-history)))
+
+         get-history-prev (fn [] (do (if (>= @history-vec-current 1)                                    
+                                       (dosync (ref-set history-vec-current (- @history-vec-current 1))))
+                                     (get-history)))
+         ]
      
      (DefaultSyntaxKit/initKit) 
 
-     (doto tb-init
-       (action-performed event (do
-                                 (send "(in-ns 'user)")
-                                 (send "(use 'overtone.live)")
-                                 (send "(refer-ugens)")
-                                 ))
-       )
-    
-     (doto toolbar
-       (.add tb-init)
-       )
-     
      (doto queue
-       (r/start-repl-thread (fn [q itm] (print itm))
-                          
+       (r/start-repl-thread (fn [q itm] (print itm))                          
                             (fn [q ns] (EDT
                                         (.setText prompt (str ns))))))
-     
+
      (doto prompt
        (.setEditable false)
        (.setPreferredSize (Dimension. 150 20)))
 
      (doto input
-       (.setPreferredSize (Dimension. 300 80))
+       (.setPreferredSize (Dimension. 400 150))
+       (.setFont (Font. "SansSerif" (Font/PLAIN) 20))
+       (.setBackground (Color. 200 200 200 ))
 ;       (.setContentType "text/clojure")
-       (.addKeyListener (proxy [java.awt.event.KeyListener] []
-                            (keyTyped [e] )
-                            (keyPressed [e] )
-                            (keyReleased [e]
-                                         (let [key-text (str (java.awt.event.KeyEvent/getKeyText (.getKeyCode e)))
-                                               text (.getText input)]
-                                           (if (and (= "Enter" key-text)
-                                                    (not (empty? text ))
-                                                    (balanced? text))
-                                             (do (send text)
-                                                 (cls-input))))
-                                           ))))
+       )
+
+     (doto (.getKeymap input)
+       (.addActionForKeyStroke
+        (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_ENTER) 0)
+        (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt]  (let [text (.getText input)]
+                                                                         (if (and (not (empty? text))
+                                                                                  (balanced? text))
+                                                                           (do (send text)
+                                                                               (cls-input)
+                                                                               (.requestFocus input)))))))
+       (.addActionForKeyStroke
+        (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_DOWN) (java.awt.event.KeyEvent/CTRL_MASK))
+        (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt]  (get-history-prev))))
+       (.addActionForKeyStroke
+        (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_UP) (java.awt.event.KeyEvent/CTRL_MASK))
+        (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt]  (get-history-next)))))
      
      (doto panel
-       (.add prompt)
-       (.add input-scroll)
+       (.setLayout (BorderLayout.))
+       (.add prompt (BorderLayout/NORTH))       
+       (.add input-scroll (BorderLayout/CENTER))
        (.doLayout))
      
      (doto history
- ;      (.setContentType "text/clojure")
+;       (.setContentType "text/clojure")
        (.setEditable false))
         
      (doto content
        (.setLayout  (BorderLayout.))
        (.add history-scroll (BorderLayout/CENTER))
        (.add panel  (BorderLayout/SOUTH))
-       (.add toolbar (BorderLayout/NORTH)))
+       )
 
      (doto frame
        (.pack)        
        (.setVisible true)
-
        ;(.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
-       
        )
 
+     (do
+       (send "(in-ns 'user)")
+       (send "(use 'overtone.live)")
+       (send "(refer-ugens)")
+       )
+          
      (doto input
        (.requestFocus)))))
 
-(comment)
-(-main)
+(comment
+  (-main))
