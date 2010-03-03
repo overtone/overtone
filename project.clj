@@ -2,7 +2,7 @@
   :description "An audio/musical experiment."
   :repositories [["java.net" "http://download.java.net/maven/2/"]]
   :dependencies [[org.clojure/clojure "1.1.0"]
-                 [org.clojure/clojure-contrib "1.0"]
+                 [org.clojure/clojure-contrib "1.1.0" ]
                  [net.java.dev.scenegraph/scenegraph "svn"]
                  [org.clojars.rosejn/jvi "0.7.1"]
                  [org.clojars.rosejn/jsyntaxpane "0.9.5-b27"]
