@@ -138,14 +138,15 @@
      (doto frame
        (.pack)        
        (.setVisible true)
-       ;(.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
+       (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
        )
 
      (do
-       (send "(in-ns 'user)")
-       (send "(use 'overtone.live)")
-       (send "(refer-ugens)")
-       )
+       (send "(in-ns 'user)"))
+     
+ ;      (send "(use 'overtone.live)")
+;       (send "(refer-ugens)")
+;       )
           
      (doto input
        (.requestFocus)))))
