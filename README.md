@@ -47,6 +47,7 @@ Now get Overtone and its submodules:
     git submodule update
 
     lein deps
+    lein native-deps
 
     ; In Linux you will need to create a .jackdrc file that holds the command 
     ; that will be used to automatically start the jack server.  On my 
@@ -58,7 +59,8 @@ Now get Overtone and its submodules:
 
     (use 'overtone.live)
     (refer-ugens)
-    (boot)
+    (boot) ;; for external supercollider
+    (booti) ;; for internal supercollider
 
     (synth (sin-osc 440)) ; define an anonymous synth
     (*1) ; play it...  returns a node-id

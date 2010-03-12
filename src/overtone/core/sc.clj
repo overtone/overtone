@@ -319,6 +319,7 @@
                              (set! (. opts udp-port-num) port)
                              (set! (. opts tcp-port-num) -1)
                              (set! (. opts verbosity) 1)
+                             (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
                              (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
                              
                              (let [world (ScJnaStart opts)]
