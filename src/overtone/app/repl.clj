@@ -162,11 +162,5 @@
     (doto input
       (.requestFocus))))
 
-(def window (let [w (repl-window)] (EDT w) w))
-
-(defn -main []
-  (EDT
-   (repl-window)))
-
 (comment
   (-main))
