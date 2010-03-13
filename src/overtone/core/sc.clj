@@ -34,6 +34,8 @@
 (defonce status*        (ref :no-audio))
 (defonce synths*        (ref nil))
 
+(defonce world* (ref nil))
+
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
 (def MAX-GROUPS 256)
@@ -322,9 +324,10 @@
                              (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
                              (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
                              
-                             (let [world (ScJnaStart opts)]
-                               (World_WaitForQuit world)
-                               (ScJnaCleanup))))
+                             (dosync (ref-set world* (ScJnaStart opts)))
+                             
+                             (World_WaitForQuit @world*)
+                             (ScJnaCleanup)))
              sc-thread (Thread. boot-thread)]
          (.setDaemon sc-thread true)
          (log/debug "Booting SuperCollider internal server (scsynth)...")
@@ -588,6 +591,9 @@
   [buf path]
   (assert (buffer? buf))
   (snd "/b_write" (:id buf) path "wav" "float"))
+
+(defn buffer-copy [id]
+  (ScJnaCopySndBuf @world* id))
 
 (defn load-sample
   "Load a wav file into memory so it can be played as a sample."
