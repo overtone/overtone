@@ -1,9 +1,7 @@
 *.swp
 *.swo
-*.lck
 *.class
 *.scsyndef
-.overtone-log
 session
 samples
 autodoc/**

@@ -7,7 +7,7 @@
      (javax.swing JFrame JPanel) 
      (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGAbstractShape$Mode SGComponent
                                   SGTransform)
-       (com.sun.scenario.scenegraph.event SGMouseAdapter)
+     (com.sun.scenario.scenegraph.event SGMouseAdapter)
      (com.sun.scenario.scenegraph.fx FXShape))
   (:use (overtone.app editor)
      (overtone.core sc)))
@@ -108,3 +108,4 @@
       (.add main-panel)
       (.pack)
       (.setVisible true))))
+
