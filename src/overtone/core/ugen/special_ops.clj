@@ -1,46 +1,46 @@
 (ns overtone.core.ugen.special-ops)
 
 (def UNARY-OPS
-  {"neg" 0
-   "bitNot" 4
-   "abs" 5
-   "asFloat" 6
-   "ceil" 8
-   "floor" 9
-   "frac" 10
-   "sign" 11
-   "squared" 12
-   "cubed" 13
-   "sqrt" 14
-   "exp" 15
-   "reciprocal" 16
-   "midicps" 17
-   "cpsmidi" 18
-   "midiratio" 19
-   "ratiomidi" 20
-   "dbamp" 21
-   "ampdb" 22
-   "octcps" 23
-   "cpsoct" 24
-   "log" 25
-   "log2" 26
-   "log10" 27
-   "sin" 28
-   "cos" 29
-   "tam" 30
-   "asin" 31
-   "acos" 32
-   "atan" 33
-   "sinh" 34
-   "cosh" 35
-   "tanh" 36
-   "rand" 37
-   "rand2" 38
-   "linrand" 39
-   "bilinrand" 40
+  {"neg" 0          ; inversion
+   "bitNot" 4       ; reciprocal 
+   "abs" 5          ; absolute value 
+   "asFloat" 6      
+   "ceil" 8        ; next higher integer 
+   "floor" 9       ; next lower integer
+   "frac" 10       ; fractional part 
+   "sign" 11       ; -1 when a < 0, +1 when a > 0, 0 when a is 0 
+   "squared" 12    ; a*a
+   "cubed" 13      ; a*a*a 
+   "sqrt" 14       ; square root    
+   "exp" 15        ; exponential 
+   "reciprocal" 16 ; reciprocal
+   "midicps" 17    ; MIDI note number to cycles per second 
+   "cpsmidi" 18    ; cycles per second to MIDI note number
+   "midiratio" 19  ; convert an interval in MIDI notes into a frequency ratio
+   "ratiomidi" 20  ; convert a frequency ratio to an interval in MIDI notes
+   "dbamp" 21      ; decibels to linear amplitude 
+   "ampdb" 22      ; linear amplitude to decibels          
+   "octcps" 23     ; decimal octaves to cycles per second 
+   "cpsoct" 24     ; cycles per second to decimal octaves
+   "log" 25        ; natural logarithm 
+   "log2" 26       ; base 2 logarithm 
+   "log10" 27      ; base 10 logarithm 
+   "sin" 28        ; sine 
+   "cos" 29        ; cosine 
+   "tam" 30        ; tangent 
+   "asin" 31       ; arcsine 
+   "acos" 32       ; arccosine 
+   "atan" 33       ; arctangent 
+   "sinh" 34       ; hyperbolic sine 
+   "cosh" 35       ; hyperbolic cosine 
+   "tanh" 36       ; hyperbolic tangent 
+   "rand" 37       
+   "rand2" 38      
+   "linrand" 39               
+   "bilinrand" 40              
    "sum3rand" 41
-   "distort" 42
-   "softclip" 43
+   "distort" 42    ; distortion                              
+   "softclip" 43   ; distortion                        
    "coin" 44
    "rectWindow" 48
    "hanWindow" 49
@@ -49,14 +49,17 @@
    "ramp" 52
    "scurve" 53})
 
+; Commented out ops are implemented with generics instead of generated
+; see core/ops.clj
 (def BINARY-OPS 
-  (apply hash-map ["+" 0
-   "-" 1
-   "*" 2
-   "div" 3
-   "/" 4
-   "mod" 5
-   "<=" 10
+  (apply hash-map [
+   ;"+" 0           ; addition
+   ;"-" 1           ; subtraction
+   ;"*" 2           ; multiplication
+   "div" 3         ; integer division
+   ;"/" 4           ; floating point division
+   "mod" 5         ; modulus
+   "<=" 10         ; less than or equal
    ">=" 11
    "minimum" 12
    "maximum" 13 

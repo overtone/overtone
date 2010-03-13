@@ -12,9 +12,8 @@
 
 == General:
 
-* receive at least the synth-free messages from SuperCollider so we can free up IDs
-
-* output the server log to a file that can be tail -f'd
+* Add a runtime shutdown hook that calls shutdown callbacks to close the server
+and do anything else necessary.
 
 * create a function that prints out the currently running synths
 

@@ -8,8 +8,6 @@ session
 samples
 autodoc/**
 lib
-_site
-lib
 ext
-js
-media
+web
+native

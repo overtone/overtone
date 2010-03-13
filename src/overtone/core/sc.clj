@@ -1,5 +1,7 @@
 (ns 
-  #^{:doc "An interface to the SuperCollider synthesis server."
+  #^{:doc "An interface to the SuperCollider synthesis server.
+          This is at heart an OSC client library for the SuperCollider 
+          scsynth DSP engine."
      :author "Jeff Rose"}
   overtone.core.sc
  (:import
@@ -8,14 +10,14 @@
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream)
      (java.util BitSet))
-  (:require [overtone.core.log :as log])
-  (:use
-     clojure.contrib.shell-out
-     clojure.contrib.seq-utils
-     (overtone.core config setup util time-utils synthdef)
-     osc))
-
-; This is at heart an OSC client library for the SuperCollider scsynth engine.
+ (:use clj-scsynth.core)
+ (:require [overtone.core.log :as log])
+ (:use [clojure.contrib.java-utils :only [file]])
+ (:use
+  clojure.contrib.shell-out
+  clojure.contrib.seq-utils
+  (overtone.core config setup util time-utils synthdef)
+  osc))
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
@@ -29,7 +31,10 @@
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
-(defonce synth-groups*  (ref nil))
+(defonce status*        (ref :no-audio))
+(defonce synths*        (ref nil))
+
+(defonce world* (ref nil))
 
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
@@ -101,7 +106,7 @@
     (free-id k id)))
 
 (defn connected? []
-  (not (nil? @server*)))
+  (= :booted @status*))
 
 (declare boot)
 
@@ -119,22 +124,79 @@
   [time-ms & body]
   `(in-osc-bundle @server* ~time-ms ~@body))
 
+(defn debug [& [on-off]]
+  (if (or on-off (nil? on-off))
+    (do
+      (log/level :debug)
+      (snd "/dumpOSC" 1))
+    (do
+      (log/level :error)
+      (snd "/dumpOSC" 0))))
+
 (defn recv
   [path & [timeout]]
   (osc-recv @server* path timeout))
+
+; Notifications from Server
+; These messages are sent as notification of some event to all clients who have registered via the /notify command .
+; All of these have the same arguments:
+;   int - node ID
+;   int - the node's parent group ID
+;   int - previous node ID, -1 if no previous node.
+;   int - next node ID, -1 if no next node.
+;   int - 1 if the node is a group, 0 if it is a synth
+; 
+; The following two arguments are only sent if the node is a group:
+;   int - the ID of the head node, -1 if there is no head node.
+;   int - the ID of the tail node, -1 if there is no tail node.
+; 
+;   /n_go   - a node was created
+;   /n_end  - a node was destroyed
+;   /n_on   - a node was turned on
+;   /n_off  - a node was turned off
+;   /n_move - a node was moved
+;   /n_info - in reply to /n_query
+; 
+; Trigger Notifications
+;
+; This command is the mechanism that synths can use to trigger events in
+; clients.  The node ID is the node that is sending the trigger. The trigger ID
+; and value are determined by inputs to the SendTrig unit generator which is
+; the originator of this message.
+;
+; /tr a trigger message
+;
+;   int - node ID
+;   int - trigger ID
+;   float - trigger value
+
+(defn notify [notify?]
+  (snd "/notify" (if (false? notify?) 0 1)))
+
+(defn- node-destroyed [id]
+  (log/debug (format "node-destroyed: %d" id))
+  (free-id :node id))
+
+(defn- node-created [id]
+  (log/debug (format "node-created: %d" id)))
+
+(defn- register-notification-handlers 
+  []
+  (osc-handle @server* "/n_end" #(node-destroyed (first (:args %))))
+  (osc-handle @server* "/n_go" #(node-created (first (:args %)))))
 
 (defn connect
   ([] (connect SERVER-HOST SERVER-PORT))
   ([host port]
    (log/debug "Connecting to SuperCollider server: " host ":" port)
-   (dosync (ref-set server* (osc-client host port)))))
+   (dosync (ref-set server* (osc-client host port)))
+   (register-notification-handlers)))
 
 (defonce running?* (atom false))
-(def *server-out* *out*)
 
 (def server-log* (ref []))
 
-(defn print-server-log []
+(defn server-log []
   (doseq [msg @server-log*]
     (print msg)))
 
@@ -150,18 +212,21 @@
 ;	double - nominal sample rate
 ;	double - actual sample rate
 (defn status []
-  (snd "/status")
-  (let [sts (recv "status.reply" REPLY-TIMEOUT)]
-    (log/debug "got status: " (:args sts))
-    (if-let [[_ ugens synths groups loaded avg peak nominal actual] (:args sts)]
-      {:n-ugens ugens
-       :n-synths synths
-       :n-groups groups
-       :n-loaded-synths loaded
-       :avg-cpu avg
-       :peak-cpu peak
-       :nominal-sample-rate nominal
-       :actual-sample-rate actual})))
+  (if (= @status* :booted)
+    (do 
+      (snd "/status")
+      (let [sts (recv "status.reply" REPLY-TIMEOUT)]
+        (log/debug "got status: " (:args sts))
+        (if-let [[_ ugens synths groups loaded avg peak nominal actual] (:args sts)]
+          {:n-ugens ugens
+           :n-synths synths
+           :n-groups groups
+           :n-loaded-synths loaded
+           :avg-cpu avg
+           :peak-cpu peak
+           :nominal-sample-rate nominal
+           :actual-sample-rate actual})))
+    @status*))
 
 ; Wait until SuperCollider has completed all asynchronous commands currently in execution.
 (defn wait-sync [& [timeout]]
@@ -171,26 +236,24 @@
         reply-id (first (:args reply))]
     (= sync-id reply-id)))
 
-(defn server-log [stream read-buf]
+(defn sc-log [stream read-buf]
   (while (pos? (.available stream))
     (let [n (min (count read-buf) (.available stream))
           _ (.read stream read-buf 0 n)
           msg (String. read-buf 0 n)]
       (dosync (alter server-log* conj msg))
-      (log/debug (String. read-buf 0 n)))))
-;      (.write *server-out* (String. read-buf 0 n)))))
+      (log/info (String. read-buf 0 n)))))
 
 (defn- boot-thread [cmd]
   (reset! running?* true)
   (log/debug "boot-thread: ")
-
   (let [proc (.exec (Runtime/getRuntime) cmd)
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
         read-buf (make-array Byte/TYPE 256)]
     (while @running?*
-      (server-log in-stream read-buf)
-      (server-log err-stream read-buf)
+      (sc-log in-stream read-buf)
+      (sc-log err-stream read-buf)
       (Thread/sleep 250))
     (.destroy proc)))
 
@@ -231,6 +294,48 @@
 (if (= :linux (@config* :os))
   (add-boot-handler connect-jack-ports))
 
+; TODO: setup an error-handler in the case that we can't connect to the server
+(defn- wait-for-boot 
+  ([cnt]
+    (when (and (< cnt 10)
+               (= @status* :booting))
+      (snd "/status")
+      (when (recv "status.reply" REPLY-TIMEOUT)
+        (dosync (ref-set status* :booted))
+        (notify true) ; turn on notifications now that we can communicate
+        (run-boot-handlers))
+      (recur (inc cnt))))
+  ([host port] 
+    (dosync (ref-set status* :booting))
+    (Thread/sleep 1000)
+    (connect host port)
+    (wait-for-boot 0)))
+
+(defn booti
+  ([] (booti nil))
+  ([port]
+     (if (not @running?*)
+       (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
+             boot-thread (fn []
+                           (let [opts (sc-jna-startoptions-byref)]
+                             (set! (. opts udp-port-num) port)
+                             (set! (. opts tcp-port-num) -1)
+                             (set! (. opts verbosity) 1)
+                             (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
+                             (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
+                             
+                             (dosync (ref-set world* (ScJnaStart opts)))
+                             
+                             (World_WaitForQuit @world*)
+                             (ScJnaCleanup)))
+             sc-thread (Thread. boot-thread)]
+         (.setDaemon sc-thread true)
+         (log/debug "Booting SuperCollider internal server (scsynth)...")
+         (.start sc-thread)
+         (dosync (ref-set server-thread* sc-thread))
+         (.run (Thread. #(wait-for-boot "127.0.0.1" port)))
+         :booting))))
+
 (defn boot
   ([] (boot SERVER-HOST SERVER-PORT))
   ([host port]
@@ -242,11 +347,8 @@
       (log/debug "Booting SuperCollider server (scsynth)...")
       (.start sc-thread)
       (dosync (ref-set server-thread* sc-thread))
-      (Thread/sleep 1000)
-      (connect host port)
-      (Thread/sleep 1000)
-      (run-boot-handlers)
-      :booted))))
+      (.run (Thread. #(wait-for-boot host port)))
+      :booting))))
 
 (defn quit
   "Quit the SuperCollider synth process."
@@ -255,12 +357,9 @@
   (when (connected?)
     (snd "/quit")
     (osc-close @server* true))
-
   (reset! running?* false)
-  (dosync (ref-set server* nil)))
-
-(defn notify [& [notify?]]
-  (snd "/notify" (if (false? notify?) 0 1)))
+  (dosync (ref-set server* nil)
+    (ref-set status* :no-audio)))
 
 ; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists
 ; and group zero is the root of the graph.  Nodes can be added to a group in
@@ -493,6 +592,21 @@
   (assert (buffer? buf))
   (snd "/b_write" (:id buf) path "wav" "float"))
 
+(defn buffer-copy [id]
+  (ScJnaCopySndBuf @world* id))
+
+(defn buffer-info [buf]
+  (snd "/b_query" (:id buf))
+  (let [msg (recv "/b_info" REPLY-TIMEOUT)
+        [buf-id n-frames n-channels rate] (:args msg)]
+    {:n-frames n-frames
+     :n-channels n-channels
+     :rate rate}))
+
+(defn sample-info [s]
+  (buffer-info (:buf s)))
+
+
 (defn load-sample
   "Load a wav file into memory so it can be played as a sample."
   [path & args]
@@ -532,21 +646,12 @@
     (catch Exception e nil))
   (apply node-free (all-ids :node))
   (clear-ids :node)
-
-  (alloc-id :node)) ; ID zero is the root group
-
+  (alloc-id :node) ; ID zero is the root group
+  (dosync (ref-set synths* (zipmap (keys @synths*) 
+                                          (repeat (count @synths*) (group :tail 0))))))
 
 ;  Maybe it's better to keep the server log around???
 ;  (dosync (ref-set server-log* [])))
-
-(defn debug [& [on-off]]
-  (if (or on-off (nil? on-off))
-    (do
-      (log/level :debug)
-      (snd "/dumpOSC" 1))
-    (do
-      (log/level :error)
-      (snd "/dumpOSC" 0))))
 
 (defn restart
   "Reset everything and restart the SuperCollider process."
@@ -642,29 +747,39 @@
     ;(println "loading synth: " (:name synth))
     (load-synthdef synth)))
 
-;;(defn effect [synthdef & args]
-;;  (let [arg-map (assoc (apply hash-map args) "bus" FX-BUS)
-;;        new-effect {:def synthdef
-;;                    :effect (trigger synthdef arg-map)}]
-;;    (dosync (alter *fx conj new-effect))
-;;    new-effect))
-;
 ;(defn update
 ;  "Update a voice or standalone synth with new settings."
 ;  [voice & args]
 ;  (let [[names vals] (synth-args (apply hash-map args))
 ;        synth        (if (voice? voice) (:synth voice) voice)]
 ;    (.set synth names vals)))
-
-;(defn synth-voice [synth-name & args]
-;  {:type :voice
-;   :voice-type :synth
-;   :synth synth-name
-;   :args args})
-;
+               
 ;(defmethod play-note :synth [voice note-num dur & args]
 ;  (let [args (assoc (apply hash-map args) :note note-num)
 ;        synth (trigger (:synth voice) args)]
 ;    (schedule #(release synth) dur)
 ;    synth))
+
+(defn- name-synth-args [args names]
+  (loop [args args
+         names names
+         named []]
+    (if args
+      (recur (next args)
+             (next names)
+             (concat named [(first names) (first args)]))
+      named)))
+
+(defn synth-player [sname arg-names]
+  (fn [& args] 
+      (let [sgroup (get @synths* sname)
+            controller (partial node-control sgroup)
+            player (partial node sname :target sgroup)
+            [tgt-fn args] (if (= :ctl (first args))
+                            [controller (rest args)]
+                            [player args])
+            named-args (if (keyword? (first args))
+                         args
+                         (name-synth-args args arg-names))]
+        (apply tgt-fn named-args))))
 

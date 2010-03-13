@@ -10,32 +10,29 @@
      (overtone.core sc synth util ugen))
   (:require [overtone.core.log :as log]))
 
-(refer-ugens *ns*)
+;(refer-ugens *ns*)
 
 (def SCOPE-BUF-SIZE 10000)
 
 (def scope-buf* (ref nil))
 (def scope-bus* (ref 0))
 
-(defsynth overtone-scope [in 0 buf 1]
-  (record-buf (in:ar in) buf)))
-
-(defsynth scope-test [out 10 freq 220] 
-  (out.ar out (sin-osc:ar freq)))
-
-(defn load-scope [bus]
-  (load-synth overtone-scope)
-  (load-synth scope-test)
-
-  (if (nil? @scope-buf*)
-    (dosync (ref-set scope-buf* (buffer SCOPE-BUF-SIZE))))
-  (hit overtone-scope :in bus :buf (:id @scope-buf*)))
-
-; TODO: remove all the scope ugens
-;  * need to save synth objects or names stored in a lookup or something...
-(defn kill-scope []
-  )
-
+;(defsynth overtone-scope [in 0 buf 0]
+;  (record-buf (in:ar in) buf))
+;
+;(defsynth scope-test [out-bus 0 freq 220] 
+;  (out out-bus (sin-osc freq)))
+;
+;(defn load-scope [bus]
+;  (if (nil? @scope-buf*)
+;    (dosync (ref-set scope-buf* (buffer SCOPE-BUF-SIZE))))
+;  (overtone-scope bus (:id @scope-buf*)))
+;
+;; TODO: remove all the scope ugens
+;;  * need to save synth objects or names stored in a lookup or something...
+;(defn kill-scope []
+;  )
+;
 (defn scope-dataset []
   (let [ds (DefaultXYDataset.)
         ary (make-array Double/TYPE 2 10000)]
@@ -82,15 +79,18 @@
       (.pack)
       (.setVisible true))
     dataset))
+ 
+; This is the line that does it!
+;(update-dataset ds (.getFloatArray (.data (buffer-copy 0)) 0 (:n-frames (sample-info boom)))))
 
-(def audio (load-sample "samples/strings/STRNGD5.WAV"))
-(def abuf (:buf audio))
+;(def audio (load-sample "samples/strings/STRNGD5.WAV"))
+;(def abuf (:buf audio))
 
-(defn test-scope []
-  (try 
+;(defn test-scope []
+ ; (try 
     ;(load-scope)
     ;(scope (scope-dataset))
-    (scope (sample-dataset (buffer-read abuf 0 8000)))))
+    ;(scope (sample-dataset (buffer-read abuf 0 8000)))))
 
 ; Envelope arrays are structured like this:
   ; * initial level

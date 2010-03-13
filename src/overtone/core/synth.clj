@@ -105,7 +105,7 @@
   [ugens constants grouped-params]
   (let [outs (doall (map with-outputs ugens))
         ins (doall (map #(with-inputs %1 outs constants grouped-params) outs))
-        final (map #(dissoc %1 :args) ins)]
+        final (map #(assoc %1 :args nil) ins)]
     final))
 
 (defn- collect-ugen-helper [ugen]
@@ -141,7 +141,6 @@
   each rate present in the params.  The Control ugens are always the top nodes
   in the graph, so they can be prepended to the topologically sorted tree."
   [grouped-params]
-  ;(println "grouped-params: " grouped-params)
   (map #(control-ugen (:rate (first %1)) (count %1)) grouped-params))
 
 (defn- group-params 
@@ -249,29 +248,6 @@
                   [param (control-proxy param)])
                 (apply hash-map params))))
 
-(defn- name-synth-args [args names]
-  (loop [args args
-         names names
-         named []]
-    (if args
-      (recur (next args)
-             (next names)
-             (concat named [(first names) (first args)]))
-      named)))
-
-(defn synth-player [sname arg-names]
-  (fn [& args] 
-      (let [sgroup (get @synth-groups* sname)
-            controller (partial node-control sgroup)
-            player (partial node sname :target sgroup)
-            [tgt-fn args] (if (= :ctl (first args))
-                            [controller (rest args)]
-                            [player args])
-            named-args (if (keyword? (first args))
-                         args
-                         (name-synth-args args arg-names))]
-        (apply tgt-fn named-args))))
-
 (defmacro synth 
   "Define a SuperCollider synthesizer using the library of ugen functions provided by overtone.core.ugen.  This will return an anonymous function which can be used to trigger the synthesizer.
   
@@ -303,9 +279,9 @@
                       ugen-root#
                       (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))
              sdef# (synthdef sname# ~param-map ugens#)
-             sgroup# (or (get @synth-groups* sname#) (group :tail 0))]
+             sgroup# (or (get @synths* sname#) (group :tail 0))]
          (load-synthdef sdef#)
-         (dosync (alter synth-groups* assoc sname# sgroup#))
+         (dosync (alter synths* assoc sname# sgroup#))
          (synth-player sname# (quote ~param-names))))))
 ;         (with-meta 
 ;           (synth-player sname# (quote ~param-names))

@@ -42,20 +42,22 @@ Now get Overtone:
 
     $ cd overtone
 
-    $ jackd -r -d alsa -r 44100
-    $ echo play | jack_transport
+    $ jackd -r -d alsa -r 44100 ; or use qjackctl for a gui
+
+    ; In Linux you can create a .jackdrc file with this command 
+    ; to automatically start the jack server on boot.  
 
     $ lein deps      
+    $ lein native-deps
     $ lein repl
 
     user=> (use 'overtone.live)
     user=> (refer-ugens)
-    user=> (boot)
+
+    user=> (boot) ;; for external supercollider
+    user=> (booti) ;; for internal supercollider
 
     user=> (print-server-log) ; check for errors
-
-    $ jack_connect SuperCollider:out_1 system:playback_1
-    $ jack_connect SuperCollider:out_2 system:playback_2
 
     user=> (synth (sin-osc 440)) ; define an anonymous synth
     user=> (*1) ; play it...  returns a node-id

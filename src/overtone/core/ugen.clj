@@ -2,10 +2,17 @@
   #^{:doc "UGens, or Unit Generators, are the functions that act as DSP nodes in the synthesizer definitions used by SuperCollider.  We generate most of the UGen functions for clojure based on metadata about each ugen, and eventually we hope to get this information dynamically from the server itself."
      :author "Jeff Rose & Christophe McKeon"}
   overtone.core.ugen
+  (:refer-clojure :exclude (deftype))
   (:use (overtone.core util)
-        (overtone.core.ugen special-ops common categories)
+     (overtone.core.ugen special-ops common categories)
+     [clojure.contrib.types :only (deftype)]
+     [clojure.contrib.generic :only (root-type)]
      clojure.contrib.seq-utils
-     clojure.contrib.pprint))
+     clojure.contrib.pprint)
+  (:require 
+     [clojure.contrib.generic.arithmetic :as ga]
+     [clojure.contrib.generic.comparison :as gc]
+     [clojure.contrib.generic.math-functions :as gm]))
 
 ;; Outputs have a specified calculation rate
 ;;   0 = scalar rate - one sample is computed at initialization time only. 
@@ -287,26 +294,26 @@
   (with-meta sq
     (merge (meta sq) {:infinite-sequence true})))
 
-(defn inf? [obj]
+(defn- inf? [obj]
   (:infinite-sequence (meta obj)))
 
-(defn mapply [f coll-coll]
+(defn- mapply [f coll-coll]
   (map #(apply f %) coll-coll))
 
-(defn parallel-seqs
+(defn- parallel-seqs
   "takes n seqs and returns a seq of vectors of length n, lazily
    (take 4 (parallel-seqs (repeat 5) (cycle [1 2 3]))) ->
      ([5 1] [5 2] [5 3] [5 1])"
   [& seqs]
   (apply map vector seqs))
 
-(defn cycle-vals [coll]
+(defn- cycle-vals [coll]
   (cycle (if (map? coll) (vals coll) coll)))
 
-(defn expandable? [arg]
+(defn- expandable? [arg]
   (and (coll? arg) (not (map? arg))))
 
-(defn multichannel-expand
+(defn- multichannel-expand
   "Does sc style multichannel expansion.
   * does not expand seqs flagged infinite
   * note that this returns a list even in the case of a single expansion
@@ -343,19 +350,29 @@
         (first expanded)
         expanded))))
 
-(defn ugen-base-fn [spec rate special]
+(defstruct ugen-struct :id :name :rate :special :args :n-outputs)
+
+(deftype ::ugen ugen
+  (fn [spec rate special args]
+    (let [ug (struct ugen-struct 
+                       (next-id :ugen) 
+                       (:name spec)
+                       (if (keyword? rate)
+                         (get RATES rate)
+                          rate)
+                       special
+                       args)
+          ug (if (contains? spec :init) ((:init spec) ug) ug)
+          ug (assoc ug :n-outputs (or (:num-outs spec) 1))]
+      ug))
+  ; Deconstructor should produce the arguments neceessary to construct
+  (fn [u] (vals u)))
+
+(derive ::ugen root-type)
+
+(defn- ugen-base-fn [spec rate special]
   (fn [& args]
-    (let [uname (:name spec)
-          ugen {:id (next-id :ugen)
-                  :name uname 
-                  :rate (get RATES rate)
-                  :special special
-                  :args args}
-          ugen ((:init spec) ugen)
-          ugen (if (contains? spec :num-outs)
-                 (assoc ugen :n-outputs (:num-outs spec))
-                 ugen)]
-      (with-meta ugen {:type ::ugen}))))
+    (ugen spec rate special args)))
 
 (defn ugen? [obj] (= ::ugen (type obj)))
 
@@ -395,7 +412,6 @@
   [ugen-spec]
   (with-out-str (print-ugen ugen-spec)))
 
-;; TODO: Replace or modify this to work with an implementation based on contrib.generics
 (defn overload-ugen-op [ns ugen-name ugen-fn]
   (let [original-fn (ns-resolve ns ugen-name)]
     (ns-unmap ns ugen-name)
@@ -430,12 +446,7 @@
         ugen-name (symbol (overtone-ugen-name op-name))
         ugen-name (with-meta ugen-name {:doc (ugen-docs spec)})
         ugen-fn (fn [arg]
-                  (with-meta {:id (next-id :ugen)
-                              :name "UnaryOpUGen"
-                              :rate (op-rate arg)
-                              :special special
-                              :args (list arg)}
-                             {:type ::ugen}))
+                  (ugen spec (op-rate arg) special (list arg)))
         ugen-fn (make-expanding ugen-fn [true])]
     (if (ns-resolve to-ns ugen-name)
       (overload-ugen-op to-ns ugen-name ugen-fn)
@@ -447,17 +458,13 @@
         ugen-name (symbol (overtone-ugen-name op-name))
         ugen-name (with-meta ugen-name {:doc (ugen-docs spec)})
         ugen-fn (fn [a b]
-                  (with-meta {:id (next-id :ugen)
-                              :name "BinaryOpUGen"
-                              :rate (max (op-rate a) (op-rate b))
-                              :special special
-                              :args (list a b)}
-                             {:type ::ugen}))
+                  (ugen spec (max (op-rate a) (op-rate b)) special (list a b)))
         ugen-fn (make-expanding ugen-fn [true true])]
     (if (ns-resolve to-ns ugen-name)
       (overload-ugen-op to-ns ugen-name ugen-fn)
       (intern to-ns ugen-name ugen-fn))))
 
+; TODO: Why does this require its own implementation again???
 (defn- mul-add [in mul add]
   (with-meta {:id (next-id :ugen)
               :name "MulAdd" 
@@ -466,6 +473,9 @@
               :args [in mul add]}
              {:type ::ugen}))
   
+; Load the operators implemented using contrib.generic multimethods
+(load "ops")
+
 (defn refer-ugens 
   "Iterate over all UGen meta-data, generate the corresponding functions and intern them
   in the current or otherwise specified namespace."
@@ -478,10 +488,15 @@
     (doseq [[op-name special] UNARY-OPS]
       (def-unary-op to-ns op-name special))
     (doseq [[op-name special] BINARY-OPS]
-      (def-binary-op to-ns op-name special))
+        (def-binary-op to-ns op-name special))
+    (doseq [op generics]
+      (ns-unmap to-ns (symbol op))
+      (intern to-ns (symbol op) (make-expanding (symbol (str "ga/" op)) [true true])))
     (intern to-ns 'mul-add (make-expanding mul-add [true true true]))))
 
 ;; We refer all the ugen functions here so they can be access by other parts
 ;; of the Overtone system using a fixed namespace.  For example, to automatically
 ;; stick an Out ugen on synths that don't explicitly use one.
 (refer-ugens (create-ns 'overtone.ugens))
+
+
