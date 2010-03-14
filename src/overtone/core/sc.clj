@@ -51,6 +51,10 @@
 (defonce MAX-CONTROL-BUS 4096)
 (defonce MAX-OSC-SAMPLES 8192)
 
+; We use bit sets to store the allocation state of resources on the audio server.
+; These typically get allocated on usage by the client, and then freed either by
+; client request or automatically by receiving notifications from the server.  
+; (e.g. When an envelope trigger fires to free a synth.)
 (defonce allocator-bits 
   {:node (BitSet. MAX-NODES)
    :audio-buffer (BitSet. MAX-BUFFERS)
@@ -124,7 +128,9 @@
   [time-ms & body]
   `(in-osc-bundle @server* ~time-ms ~@body))
 
-(defn debug [& [on-off]]
+(defn debug 
+  "Control debug output from both the Overtone and the audio server."
+  [& [on-off]]
   (if (or on-off (nil? on-off))
     (do
       (log/level :debug)
@@ -134,6 +140,8 @@
       (snd "/dumpOSC" 0))))
 
 (defn recv
+  "Block with a timeout to receive a message on a given osc path from
+  the server."
   [path & [timeout]]
   (osc-recv @server* path timeout))
 
@@ -170,33 +178,62 @@
 ;   int - trigger ID
 ;   float - trigger value
 
-(defn notify [notify?]
+(defn notify 
+  "Turn on notification messages from the audio server.  This lets us free
+  synth IDs when they are automatically freed with envelope triggers.  It also lets
+  us receive custom messages from various trigger ugens."
+  [notify?]
   (snd "/notify" (if (false? notify?) 0 1)))
 
-(defn- node-destroyed [id]
+(defn- node-destroyed 
+  "Frees up a synth node to keep in sync with the server."
+  [id]
   (log/debug (format "node-destroyed: %d" id))
   (free-id :node id))
 
-(defn- node-created [id]
+(defn- node-created 
+  "Called when a node is created on the synth."
+  [id]
   (log/debug (format "node-created: %d" id)))
 
 (defn- register-notification-handlers 
+  "Setup the feedback handlers with the audio server."
   []
   (osc-handle @server* "/n_end" #(node-destroyed (first (:args %))))
   (osc-handle @server* "/n_go" #(node-created (first (:args %)))))
 
-(defn connect
-  ([] (connect SERVER-HOST SERVER-PORT))
-  ([host port]
+(def N-RETRIES 50)
+
+(defn- connect-thread 
+  [host port]
    (log/debug "Connecting to SuperCollider server: " host ":" port)
-   (dosync (ref-set server* (osc-client host port)))
-   (register-notification-handlers)))
+   (dosync (ref-set server* (with-meta
+                              (osc-client host port)
+                              {:type ::external})))
+   (loop [cnt 0]
+    (when (and (< cnt N-RETRIES)
+               (= @status* :booting))
+      (snd "/status")
+      (when (recv "status.reply" REPLY-TIMEOUT)
+        (dosync (ref-set status* :booted))
+        (notify true) ; turn on notifications now that we can communicate
+        (run-boot-handlers))
+      (recur (inc cnt))))
+   (register-notification-handlers))
+
+; TODO: setup an error-handler in the case that we can't connect to the server
+(defn connect
+  "Connect to an external SC audio server on the specified host and port."
+  ([] (connect SERVER-HOST SERVER-PORT))
+  ([host port] (.run (Thread. #(connect-thread host port)))))
 
 (defonce running?* (atom false))
 
 (def server-log* (ref []))
 
-(defn server-log []
+(defn server-log 
+  "Print the server log."
+  []
   (doseq [msg @server-log*]
     (print msg)))
 
@@ -211,7 +248,9 @@
 ;	float - peak percent CPU usage for signal processing
 ;	double - nominal sample rate
 ;	double - actual sample rate
-(defn status []
+(defn status 
+  "Check the status of the audio server."
+  []
   (if (= @status* :booted)
     (do 
       (snd "/status")
@@ -228,34 +267,14 @@
            :actual-sample-rate actual})))
     @status*))
 
-; Wait until SuperCollider has completed all asynchronous commands currently in execution.
-(defn wait-sync [& [timeout]]
+(defn wait-sync
+  "Wait until the audio server has completed all asynchronous commands currently in execution."
+  [& [timeout]]
   (let [sync-id (rand-int 999999)
         _ (snd "/sync" sync-id)
         reply (recv "/synced" (if timeout timeout REPLY-TIMEOUT))
         reply-id (first (:args reply))]
     (= sync-id reply-id)))
-
-(defn sc-log [stream read-buf]
-  (while (pos? (.available stream))
-    (let [n (min (count read-buf) (.available stream))
-          _ (.read stream read-buf 0 n)
-          msg (String. read-buf 0 n)]
-      (dosync (alter server-log* conj msg))
-      (log/info (String. read-buf 0 n)))))
-
-(defn- boot-thread [cmd]
-  (reset! running?* true)
-  (log/debug "boot-thread: ")
-  (let [proc (.exec (Runtime/getRuntime) cmd)
-        in-stream (BufferedInputStream. (.getInputStream proc))
-        err-stream (BufferedInputStream. (.getErrorStream proc))
-        read-buf (make-array Byte/TYPE 256)]
-    (while @running?*
-      (sc-log in-stream read-buf)
-      (sc-log err-stream read-buf)
-      (Thread/sleep 250))
-    (.destroy proc)))
 
 (defn connect-jack-ports
   "Maybe this isn't necessary, since we can use the SC_JACK_DEFAULT_OUTPUTS
@@ -294,50 +313,62 @@
 (if (= :linux (@config* :os))
   (add-boot-handler connect-jack-ports))
 
-; TODO: setup an error-handler in the case that we can't connect to the server
-(defn- wait-for-boot 
-  ([cnt]
-    (when (and (< cnt 100)
-               (= @status* :booting))
-      (snd "/status")
-      (when (recv "status.reply" REPLY-TIMEOUT)
-        (dosync (ref-set status* :booted))
-        (notify true) ; turn on notifications now that we can communicate
-        (run-boot-handlers))
-      (recur (inc cnt))))
-  ([host port] 
-    (dosync (ref-set status* :booting))
-    (Thread/sleep 1000)
-    (connect host port)
-    (wait-for-boot 0)))
+(defn internal-booter [port]
+  (reset! running?* true)
+  (log/debug "booting internal audio server...")
+  (let [opts (sc-jna-startoptions-byref)]
+    (set! (. opts udp-port-num) port)
+    (set! (. opts tcp-port-num) -1)
+    (set! (. opts verbosity) 1)
+    (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
+    (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
 
-(defn booti
-  ([] (booti nil))
+    (dosync (ref-set world* (ScJnaStart opts)))
+
+    (World_WaitForQuit @world*)
+    (ScJnaCleanup)))
+
+(defn boot-internal
+  ([] (boot-internal (+ (rand-int 50000) 2000)))
   ([port]
      (if (not @running?*)
-       (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-             boot-thread (fn []
-                           (let [opts (sc-jna-startoptions-byref)]
-                             (set! (. opts udp-port-num) port)
-                             (set! (. opts tcp-port-num) -1)
-                             (set! (. opts verbosity) 1)
-                             (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
-                             (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
-                             
-                             (dosync (ref-set world* (ScJnaStart opts)))
-                             
-                             (World_WaitForQuit @world*)
-                             (ScJnaCleanup)))
-             sc-thread (Thread. boot-thread)]
+       (let [sc-thread (Thread. #(internal-booter port))]
          (.setDaemon sc-thread true)
          (log/debug "Booting SuperCollider internal server (scsynth)...")
          (.start sc-thread)
          (dosync (ref-set server-thread* sc-thread))
-         (.run (Thread. #(wait-for-boot "127.0.0.1" port)))
+         (connect-internal)
          :booting))))
 
-(defn boot
-  ([] (boot SERVER-HOST SERVER-PORT))
+(defn- sc-log 
+  "Pull audio server log data from a pipe and store for later printing."
+  [stream read-buf]
+  (while (pos? (.available stream))
+    (let [n (min (count read-buf) (.available stream))
+          _ (.read stream read-buf 0 n)
+          msg (String. read-buf 0 n)]
+      (dosync (alter server-log* conj msg))
+      (log/info (String. read-buf 0 n)))))
+
+(defn- external-booter 
+  "Boot thread to start the external audio server process and hook up to 
+  STDOUT for log messages."
+  [cmd]
+  (reset! running?* true)
+  (log/debug "booting external audio server...")
+  (let [proc (.exec (Runtime/getRuntime) cmd)
+        in-stream (BufferedInputStream. (.getInputStream proc))
+        err-stream (BufferedInputStream. (.getErrorStream proc))
+        read-buf (make-array Byte/TYPE 256)]
+    (while @running?*
+      (sc-log in-stream read-buf)
+      (sc-log err-stream read-buf)
+      (Thread/sleep 250))
+    (.destroy proc)))
+
+(defn boot-external 
+  "Boot the audio server in an external process and tell it to listen on a 
+  specific port."
   ([host port]
   (if (not @running?*)
     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
@@ -349,6 +380,14 @@
       (dosync (ref-set server-thread* sc-thread))
       (.run (Thread. #(wait-for-boot host port)))
       :booting))))
+
+(defn boot
+  "Boot either the internal or external audio server."
+  ([] (boot (get @config :server :internal) SERVER-HOST SERVER-PORT))
+  ([which & [host port]]
+     (cond 
+       (= :internal which) (boot-internal)
+       (= :external which) (boot-external host port))))
 
 (defn quit
   "Quit the SuperCollider synth process."
@@ -372,7 +411,9 @@
    :replace-node 4})
 
 ;; Sending a synth-id of -1 lets the server choose an ID
-(defn node [synth-name & args]
+(defn node 
+  "Instantiate a synth node on the audio server."
+  [synth-name & args]
   (let [id (alloc-id :node)
         argmap (apply hash-map args)
         position ((get argmap :position :tail) POSITION)
@@ -383,18 +424,18 @@
     id))
 
 (defn node-free
-  "Instantly remove a node from the graph."
+  "Remove a synth node"
   [& node-ids]
   (doseq [id node-ids] (free-id :node id))
   (apply snd "/n_free" node-ids))
 
 (defn node-run
-  "Start a stopped node."
+  "Start a stopped synth node."
   [node-id]
   (snd "/n_run" node-id 1))
 
 (defn node-stop
-  "Stop a running node."
+  "Stop a running synth node."
   [node-id]
   (snd "/n_run" node-id 0))
 
@@ -473,7 +514,8 @@
 
 (def *data* nil)
 
-(defn- parse-synth-tree [ctls?]
+(defn- parse-synth-tree 
+  [ctls?]
   (let [sname (first *data*)]
     (if ctls?
       (let [n-ctls (second *data*)
@@ -515,12 +557,12 @@
       (parse-node-tree tree))))
 
 (defn prepend-node
-  "Add a node to the end of a group list."
+  "Add a synth node to the end of a group list."
   [g n]
   (snd "/g_head" g n))
 
 (defn append-node
-  "Add a node to the end of a group list."
+  "Add a synth node to the end of a group list."
   [g n]
   (snd "/g_tail" g n))
 
@@ -562,7 +604,10 @@
   (free-id :audio-buffer (:id buf))
   (snd "/b_free" (:id buf)))
 
-(defn buffer-read [buf start len]
+; TODO: Test me...
+(defn buffer-read 
+  "Read a section of an audio buffer."
+  [buf start len]
   (assert (buffer? buf))
   (loop [reqd 0]
     (when (< reqd len)
@@ -583,7 +628,10 @@
               (recur (inc idx) (next samps))))
           (recur (+ recvd blen)))))))
 
-(defn buffer-write [buf start len data]
+;; TODO: test me...
+(defn buffer-write 
+  "Write into a section of an audio buffer."
+  [buf start len data]
   (assert (buffer? buf))
   (snd "/b_setn" (:id buf) start len data))
 
@@ -608,12 +656,17 @@
                 :path path}
                {:type ::sample})))
 
-(defn sample? [s]
+(defn sample?
+  [s]
   (= ::sample (type s)))
 
+;; Samples are just audio files loaded into a buffer, so most buffer
+;; functions should work on samples.
 (derive ::sample ::buffer)
 
-(defn buffer-data [buf]
+(defn buffer-data 
+  "Get the floating point data for a buffer on the internal server."
+  [buf]
   (let [buf-id (cond 
                  (buffer? buf) (:id buf)
                  (sample? buf) (:id (:buf buf)))
