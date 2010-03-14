@@ -56,3 +56,14 @@
   result map."
   [m] 
   (apply hash-map (interleave (vals m) (keys m))))
+
+(defn cpu-count
+  "Get the number of CPUs on this machine."
+  []
+  (.availableProcessors (Runtime/getRuntime)))
+
+(defn arg-count [f] 
+  (let [m (first (.getDeclaredMethods (class f))) 
+        p (.getParameterTypes m)] 
+    (alength p)))
+

@@ -118,10 +118,14 @@
   "Creates an OSC message and either sends it to the server immediately
   or if a bundle is currently being formed it adds it to the list of messages."
   [path & args]
-  (if (nil? @server*)
-    (throw (Exception. "Not connected to a SuperCollider server.")))
-      (osc-send-msg @server*
-                   (apply osc-msg path (osc-type-tag args) args)))
+    (cond 
+      (= ::external (type @server*)) (osc-send-msg @server* 
+                                                   (apply osc-msg path (osc-type-tag args) args))
+      (= ::internal (type @server*))
+      (let [buffer (java.nio.ByteBuffer/allocate 8129)]
+        (World_SendPacket @world* (.limit buffer) buffer
+                          (callback reply-cb (fn [addr buf size] (println "reply!"))))
+      (nil? @server*) (throw (Exception. "Not connected to a SuperCollider server.")))
 
 (defmacro at
   "Schedule the messages sent in body at a single time."
