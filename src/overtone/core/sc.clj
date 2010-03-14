@@ -10,12 +10,14 @@
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream)
      (java.util BitSet))
-  (:require [overtone.core.log :as log])
-  (:use
-     clojure.contrib.shell-out
-     clojure.contrib.seq-utils
-     (overtone.core config setup util time-utils synthdef)
-     osc))
+ (:use clj-scsynth.core)
+ (:require [overtone.core.log :as log])
+ (:use [clojure.contrib.java-utils :only [file]])
+ (:use
+  clojure.contrib.shell-out
+  clojure.contrib.seq-utils
+  (overtone.core config setup util time-utils synthdef)
+  osc))
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
@@ -31,6 +33,8 @@
 (defonce server*        (ref nil))
 (defonce status*        (ref :no-audio))
 (defonce synths*        (ref nil))
+
+(defonce world* (ref nil))
 
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
@@ -293,7 +297,7 @@
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn- wait-for-boot 
   ([cnt]
-    (when (and (< cnt 10)
+    (when (and (< cnt 100)
                (= @status* :booting))
       (snd "/status")
       (when (recv "status.reply" REPLY-TIMEOUT)
@@ -306,6 +310,31 @@
     (Thread/sleep 1000)
     (connect host port)
     (wait-for-boot 0)))
+
+(defn booti
+  ([] (booti nil))
+  ([port]
+     (if (not @running?*)
+       (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
+             boot-thread (fn []
+                           (let [opts (sc-jna-startoptions-byref)]
+                             (set! (. opts udp-port-num) port)
+                             (set! (. opts tcp-port-num) -1)
+                             (set! (. opts verbosity) 1)
+                             (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
+                             (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
+                             
+                             (dosync (ref-set world* (ScJnaStart opts)))
+                             
+                             (World_WaitForQuit @world*)
+                             (ScJnaCleanup)))
+             sc-thread (Thread. boot-thread)]
+         (.setDaemon sc-thread true)
+         (log/debug "Booting SuperCollider internal server (scsynth)...")
+         (.start sc-thread)
+         (dosync (ref-set server-thread* sc-thread))
+         (.run (Thread. #(wait-for-boot "127.0.0.1" port)))
+         :booting))))
 
 (defn boot
   ([] (boot SERVER-HOST SERVER-PORT))
@@ -518,12 +547,13 @@
   [size]
   (let [id (alloc-id :audio-buffer)]
     (snd "/b_alloc" id size)
-    {:type :buffer
+    (with-meta {
      :id id
-     :size size}))
+     :size size}
+    {:type ::buffer})))
 
 (defn buffer? [buf]
-  (and (map? buf) (= (:type buf) :buffer)))
+  (= (type buf) ::buffer))
 
 (defn buffer-free 
   "Free an audio buffer and the memory it was consuming."
@@ -576,10 +606,31 @@
     (with-meta {:buf {:type :buffer
                       :id id}
                 :path path}
-               {:type :sample})))
+               {:type ::sample})))
 
 (defn sample? [s]
-  (= :sample (type s)))
+  (= ::sample (type s)))
+
+(derive ::sample ::buffer)
+
+(defn buffer-data [buf]
+  (let [buf-id (cond 
+                 (buffer? buf) (:id buf)
+                 (sample? buf) (:id (:buf buf)))
+        snd-buf (ScJnaCopySndBuf @world* buf-id)
+        n-frames (.frames snd-buf)]
+    (.getFloatArray (.data snd-buf) 0 n-frames)))
+
+(defn buffer-info [buf]
+  (snd "/b_query" (:id buf))
+  (let [msg (recv "/b_info" REPLY-TIMEOUT)
+        [buf-id n-frames n-channels rate] (:args msg)]
+    {:n-frames n-frames
+     :n-channels n-channels
+     :rate rate}))
+
+(defn sample-info [s]
+  (buffer-info (:buf s)))
 
 (defn load-synthdef
   "Load a Clojure synth definition onto the audio server."
@@ -624,7 +675,7 @@
 (defmethod hit-at clojure.lang.Keyword [time-ms synth & args]
   (at time-ms (apply node (name synth) args)))
 
-(defmethod hit-at :sample [time-ms synth & args]
+(defmethod hit-at ::sample [time-ms synth & args]
   (apply hit-at time-ms "granular" :buf (get-in synth [:buf :id]) args))
 
 (defmethod hit-at :default [& args]

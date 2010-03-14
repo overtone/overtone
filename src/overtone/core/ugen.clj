@@ -491,7 +491,8 @@
         (def-binary-op to-ns op-name special))
     (doseq [op generics]
       (ns-unmap to-ns (symbol op))
-      (intern to-ns (symbol op) (make-expanding (symbol (str "ga/" op)) [true true])))
+      (intern to-ns (symbol op) (symbol (str "ga/" op))))
+      ;(intern to-ns (symbol op) (make-expanding (symbol (str "ga/" op)) [true true])))
     (intern to-ns 'mul-add (make-expanding mul-add [true true true]))))
 
 ;; We refer all the ugen functions here so they can be access by other parts

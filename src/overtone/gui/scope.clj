@@ -1,96 +1,110 @@
 (ns overtone.gui.scope
   (:import 
-     (java.awt Toolkit EventQueue Color Font FontMetrics Dimension BorderLayout)
-     (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane 
-                  JSplitPane JMenuBar JMenu JMenuItem SwingUtilities)
-     (org.jfree.chart ChartFactory ChartPanel)
-     (org.jfree.chart.plot PlotOrientation)
-     (org.jfree.data.xy DefaultXYDataset))
+    (java.awt Color BasicStroke)
+    (java.awt.geom Rectangle2D$Float)
+    (com.sun.scenario.scenegraph SGText SGShape SGGroup SGTransform 
+                                 SGAbstractShape$Mode)
+     (com.sun.scenario.scenegraph.event SGMouseAdapter)
+     (com.sun.scenario.scenegraph.fx FXShape))
   (:use 
-     (overtone.core sc synth util ugen))
+     [overtone.core sc synth util ugen time-utils])
   (:require [overtone.core.log :as log]))
-
-(refer-ugens *ns*)
 
 (def SCOPE-BUF-SIZE 10000)
 
-(def scope-buf* (ref nil))
+(def scope-buf* (ref false))
 (def scope-bus* (ref 0))
 
-(defsynth overtone-scope [in 0 buf 1]
-  (record-buf (in:ar in) buf)))
-
-(defsynth scope-test [out 10 freq 220] 
-  (out.ar out (sin-osc:ar freq)))
-
-(defn load-scope [bus]
-  (load-synth overtone-scope)
-  (load-synth scope-test)
-
-  (if (nil? @scope-buf*)
-    (dosync (ref-set scope-buf* (buffer SCOPE-BUF-SIZE))))
-  (hit overtone-scope :in bus :buf (:id @scope-buf*)))
+;(defn scope-bus [bus]
+;  (if (nil? @scope-buf*)
+;    (dosync (ref-set scope-buf* (buffer SCOPE-BUF-SIZE))))
+;  (overtone-scope bus (:id @scope-buf*)))
 
 ; TODO: remove all the scope ugens
 ;  * need to save synth objects or names stored in a lookup or something...
+;  * stop animation
+;  * close window
 (defn kill-scope []
   )
 
-(defn scope-dataset []
-  (let [ds (DefaultXYDataset.)
-        ary (make-array Double/TYPE 2 10000)]
-    (loop [idx (range 10000)
-           y (cycle (range 0 (* Math/PI 2) (/ (* Math/PI 2) 147)))]
-      (when idx
-        (let [i (first idx)]
-          (aset-double ary 0 i (double i))
-          (aset-double ary 1 i (Math/sin (first y)))
-          (recur (next idx) (next y)))))
-    (println "first: " (aget ary 0 0) (aget ary 1 0))
-    (println "last: " (aget ary 0 1499) (aget ary 1 1499))
-    (.addSeries ds "fake" ary)
-    ds))
+(def fps* (ref 30))
+(def wave-stroke-color* (ref (Color. 0 130 226)))
+(def scope-bg-color* (ref (Color. 50 50 50)))
+(def scope-width* (ref 600))
+(def scope-height* (ref 400))
+(def PADDING 10)
 
-(defn update-dataset [ds samples]
-  (let [len (count samples)
-        ary (make-array Double/TYPE 2 len)]
-    (doseq [i (range len)]
-      (aset-double ary 0 i (double i))
-      (aset-double ary 1 i (* 100.0 (aget samples i))))
-    (.addSeries ds "samples" ary)
-    ds))
+(def wave-shape (FXShape.))
+(def wave-scale (SGTransform/createScale 0.01 180 wave-shape))
+(def wave-shift (SGTransform/createTranslation 0 (/ @scope-height* 2) wave-scale))
+(def wave-path (java.awt.geom.Path2D$Float.))
 
-(defn get-samples []
-  (buffer-read @scope-buf* 0 SCOPE-BUF-SIZE))
+(defn update-wave []
+  (when @scope-buf*
+    (let [frames (buffer-data @scope-buf*)
+          n-frames (count frames)]
+      (.reset wave-path)
+      (.moveTo wave-path (float 0) (aget frames 0))
+      (doseq [i (range 1 n-frames)]
+        (.lineTo wave-path (float i) (aget frames i))))))
+
+(def SCOPE-WIDTH 22500)
+(def SCOPE-BUS 10)
+(declare test-buf)
+
+(defn setup-scope []
+  (def test-buf (buffer SCOPE-WIDTH))
+  (defsynth simple [freq 200] (overtone.ugens/out SCOPE-BUS (overtone.ugens/sin-osc freq)))
+  (defsynth scope-record [in-bus 22500
+                          out-buf 0] 
+    (overtone.ugens/record-buf in-bus out-buf))
+  (def test-synth (simple 220))
+  (scope-record SCOPE-BUS (:id test-buf))
+  )
+
+(defn scope-buf [buf]
+  (dosync (ref-set scope-buf* buf))
+  (.setScaleX wave-scale (float (/ @scope-width* (count (buffer-data buf)))))
+  (.setScaleY wave-scale (float (/ @scope-height* 4)))
+  (.setTranslateX wave-shift PADDING)
+  (.setTranslateY wave-shift (+ (/ @scope-height* 2) PADDING))
+  (update-wave))
 
 (defn scope []
-  (let [frame (JFrame. "Scope")
-        content (.getContentPane frame)
-        dataset (DefaultXYDataset.)
-        chart (ChartFactory/createXYLineChart "" "" ""
-                                              dataset PlotOrientation/VERTICAL
-                                              false false false)
-        chart-panel (ChartPanel. chart)]
-    (doto chart
-      (.setBorderVisible false))
+  (let [scope-group (SGGroup.)
+        background (SGShape.)]
+    (doto background
+      (.setShape (Rectangle2D$Float. 0 0 
+                                     (+ @scope-width* (* 2 PADDING)) 
+                                     (+ @scope-height* (* 2 PADDING))))
+      (.setMode SGAbstractShape$Mode/STROKE_FILL)
+      (.setFillPaint @scope-bg-color*))
 
-    (doto content
-      (.setLayout (BorderLayout.))
-      (.add chart-panel BorderLayout/CENTER))
+    (doto wave-shape
+      (.setShape wave-path)
+      (.setMode SGAbstractShape$Mode/STROKE)
+;      (.setAntialiasingHint RenderingHints/VALUE_ANTIALIAS_ON)
+      (.setDrawPaint @wave-stroke-color*)
+      (.setDrawStroke (BasicStroke. 1.15)))
 
-    (doto frame
-      (.pack)
-      (.setVisible true))
-    dataset))
+    (doto scope-group
+      (.add background)
+      (.add wave-shift))
 
-(def audio (load-sample "samples/strings/STRNGD5.WAV"))
-(def abuf (:buf audio))
+    (setup-scope)
+    (scope-buf test-buf)
+    
+;    (periodic #(update-wave) (/ 1000 @fps))
+    (SGTransform/createTranslation 300 300 scope-group)))
+ 
+;(def audio (load-sample "samples/strings/STRNGD5.WAV"))
+;(def abuf (:buf audio))
 
-(defn test-scope []
-  (try 
+;(defn test-scope []
+ ; (try 
     ;(load-scope)
     ;(scope (scope-dataset))
-    (scope (sample-dataset (buffer-read abuf 0 8000)))))
+    ;(scope (sample-dataset (buffer-read abuf 0 8000)))))
 
 ; Envelope arrays are structured like this:
   ; * initial level
@@ -103,7 +117,7 @@
   ;   - segment shape
   ;   - segment curve
   ; ] * n-segments
-(defn show-curve 
+(comment defn show-curve 
   "Display a SuperCollider envelope curve in a graphical window."
   [c]
   (let [[start-y n-segs rel-node loop-node & segments] c
@@ -125,3 +139,8 @@
           (recur segs x (inc idx)))))
     (.addSeries ds "envelope" ary)
     (scope ds)))
+
+
+; This is the line that does it!
+;(update-dataset ds (.getFloatArray (.data (buffer-copy 0)) 0 (:n-frames (sample-info boom)))))
+

@@ -41,15 +41,23 @@ Now get Overtone:
     $ git clone git://github.com/mozinator/overtone.git
 
     $ cd overtone
-
-    ; In Linux you will need to create a .jackdrc file that holds the command 
-    ; that will be used to automatically start the jack server.  On my 
-    ; laptop it looks like this:
-    ;
-    ;  /usr/bin/jackd -R -dalsa -dhw:0 -r44100 -p1024 -n3
-
     $ lein deps      
+    $ lein native-deps
+
+    ; In Linux you can create a .jackdrc file with this command 
+    ; to automatically start the jack server on boot, or you will need
+    ; to run it manually to start the Jack audio server.
+    $ jackd -r -d alsa -r 44100 ; or use qjackctl for a gui
+
     $ lein repl
+
+    user=> (use 'overtone.live)
+    user=> (refer-ugens)
+
+    user=> (boot) ;; for external supercollider
+    user=> (booti) ;; or for internal supercollider and scope support
+
+    user=> (server-log) ; check for errors
 
     user=> (use 'overtone.live)
     user=> (refer-ugens)

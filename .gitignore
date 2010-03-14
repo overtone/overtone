@@ -3,8 +3,8 @@
 *.class
 *.scsyndef
 session
-samples
 autodoc/**
 lib
 ext
 web
+native
