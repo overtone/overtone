@@ -10,7 +10,8 @@
      (com.sun.scenario.scenegraph.event SGMouseAdapter)
      (com.sun.scenario.scenegraph.fx FXShape))
   (:use (overtone.app editor)
-     (overtone.core sc)))
+        (overtone.core sc)
+        (overtone.gui scope)))
 
 (def APP-NAME "Overtone")
 
@@ -80,7 +81,8 @@
   (let [root (SGGroup.)]
     (doto root
       (.add (header))
-      (.add (editor)))))
+;      (.add (editor))
+      (.add (scope)))))
 
 (defn screen-dim []
   (.getScreenSize (Toolkit/getDefaultToolkit)))
@@ -98,6 +100,8 @@
   (let [app-frame (JFrame.  "Project Overtone")
         main-panel (JSGPanel.)]
     (.add (.getContentPane app-frame) main-panel)
+
+    (booti)
 
     (doto main-panel
       (.setBackground Color/BLACK)

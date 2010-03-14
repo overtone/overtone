@@ -297,7 +297,7 @@
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn- wait-for-boot 
   ([cnt]
-    (when (and (< cnt 10)
+    (when (and (< cnt 100)
                (= @status* :booting))
       (snd "/status")
       (when (recv "status.reply" REPLY-TIMEOUT)
@@ -547,12 +547,13 @@
   [size]
   (let [id (alloc-id :audio-buffer)]
     (snd "/b_alloc" id size)
-    {:type :buffer
+    (with-meta {
      :id id
-     :size size}))
+     :size size}
+    {:type ::buffer})))
 
 (defn buffer? [buf]
-  (and (map? buf) (= (:type buf) :buffer)))
+  (= (type buf) ::buffer))
 
 (defn buffer-free 
   "Free an audio buffer and the memory it was consuming."
@@ -592,21 +593,6 @@
   (assert (buffer? buf))
   (snd "/b_write" (:id buf) path "wav" "float"))
 
-(defn buffer-copy [id]
-  (ScJnaCopySndBuf @world* id))
-
-(defn buffer-info [buf]
-  (snd "/b_query" (:id buf))
-  (let [msg (recv "/b_info" REPLY-TIMEOUT)
-        [buf-id n-frames n-channels rate] (:args msg)]
-    {:n-frames n-frames
-     :n-channels n-channels
-     :rate rate}))
-
-(defn sample-info [s]
-  (buffer-info (:buf s)))
-
-
 (defn load-sample
   "Load a wav file into memory so it can be played as a sample."
   [path & args]
@@ -620,10 +606,31 @@
     (with-meta {:buf {:type :buffer
                       :id id}
                 :path path}
-               {:type :sample})))
+               {:type ::sample})))
 
 (defn sample? [s]
-  (= :sample (type s)))
+  (= ::sample (type s)))
+
+(derive ::sample ::buffer)
+
+(defn buffer-data [buf]
+  (let [buf-id (cond 
+                 (buffer? buf) (:id buf)
+                 (sample? buf) (:id (:buf buf)))
+        snd-buf (ScJnaCopySndBuf @world* buf-id)
+        n-frames (.frames snd-buf)]
+    (.getFloatArray (.data snd-buf) 0 n-frames)))
+
+(defn buffer-info [buf]
+  (snd "/b_query" (:id buf))
+  (let [msg (recv "/b_info" REPLY-TIMEOUT)
+        [buf-id n-frames n-channels rate] (:args msg)]
+    {:n-frames n-frames
+     :n-channels n-channels
+     :rate rate}))
+
+(defn sample-info [s]
+  (buffer-info (:buf s)))
 
 (defn load-synthdef
   "Load a Clojure synth definition onto the audio server."
@@ -668,7 +675,7 @@
 (defmethod hit-at clojure.lang.Keyword [time-ms synth & args]
   (at time-ms (apply node (name synth) args)))
 
-(defmethod hit-at :sample [time-ms synth & args]
+(defmethod hit-at ::sample [time-ms synth & args]
   (apply hit-at time-ms "granular" :buf (get-in synth [:buf :id]) args))
 
 (defmethod hit-at :default [& args]

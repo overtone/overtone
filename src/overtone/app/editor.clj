@@ -4,12 +4,9 @@
                GridBagLayout GridBagConstraints Insets)
      (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane 
                   JSplitPane JMenuBar JMenu JMenuItem SwingUtilities) 
-     (com.raelity.jvi ViManager ColonCommands)
-     (com.raelity.jvi.swing DefaultViFactory StatusDisplay TextView)
      (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                   SGAbstractShape$Mode SGComponent SGTransform)
-;     (jsyntaxpane DefaultSyntaxKit)
-     ))
+     (jsyntaxpane DefaultSyntaxKit)))
 
 (def DEFAULT-FONT "Sans")
 (def DEFAULT-FONT-SIZE 12)
@@ -17,19 +14,17 @@
 (def TAB-STOP 4)
 (def CARET-COLOR Color/BLACK)
 
-(defonce factory (ViManager/setViFactory (DefaultViFactory.)))
-
 (defn- status-panel [editor]
   (let [status-pane (JPanel.)
         general-status (JLabel. "general status")
         stroke-status (JLabel. "stroke status")
-        mode-status (JLabel. "mode-status")
-        status-display (-> (ViManager/getViTextView editor) (.getStatusDisplay))]
+        mode-status (JLabel. "mode-status")]
+;        status-display (-> (ViManager/getViTextView editor) (.getStatusDisplay))]
     
     ; Hookup the status bar labels to the Vi machinery
-    (set! (.generalStatus status-display) general-status)
-    (set! (.strokeStatus status-display) stroke-status)
-    (set! (.modeStatus status-display) mode-status)
+ ;   (set! (.generalStatus status-display) general-status)
+ ;   (set! (.strokeStatus status-display) stroke-status)
+ ;   (set! (.modeStatus status-display) mode-status)
 
     (doto status-pane
       (.setLayout (GridBagLayout.))
@@ -56,12 +51,7 @@
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))]
-    ;(DefaultSyntaxKit/initKit)
-
-    (ViManager/activateAppEditor editor nil "Overtone Editor")
-    (ViManager/installKeymap editor)
-    ;(ViManager/requestSwitch editor)
-    (ViManager/activateAppEditor editor :overtone "foo")
+;    (DefaultSyntaxKit/initKit)
 
     (doto editor
       (.setContentType "text/clojure")
