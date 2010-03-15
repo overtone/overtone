@@ -125,7 +125,7 @@
       (let [buffer (java.nio.ByteBuffer/allocate 8129)]
         (World_SendPacket @world* (.limit buffer) buffer
                           (callback reply-cb (fn [addr buf size] (println "reply!"))))
-      (nil? @server*) (throw (Exception. "Not connected to a SuperCollider server.")))
+      (nil? @server*) (throw (Exception. "Not connected to a SuperCollider server.")))))
 
 (defmacro at
   "Schedule the messages sent in body at a single time."
@@ -221,7 +221,8 @@
       (when (recv "status.reply" REPLY-TIMEOUT)
         (dosync (ref-set status* :booted))
         (notify true) ; turn on notifications now that we can communicate
-        (run-boot-handlers))
+        ;(run-boot-handlers)
+        )
       (recur (inc cnt))))
    (register-notification-handlers))
 
@@ -320,7 +321,7 @@
 (defn internal-booter [port]
   (reset! running?* true)
   (log/debug "booting internal audio server...")
-  (let [opts (sc-jna-startoptions-byref)]
+  (let [opts nil] ;; (sc-jna-startoptions-byref)
     (set! (. opts udp-port-num) port)
     (set! (. opts tcp-port-num) -1)
     (set! (. opts verbosity) 1)
@@ -341,7 +342,7 @@
          (log/debug "Booting SuperCollider internal server (scsynth)...")
          (.start sc-thread)
          (dosync (ref-set server-thread* sc-thread))
-         (connect-internal)
+         (connect)
          :booting))))
 
 (defn- sc-log 
@@ -377,17 +378,17 @@
   (if (not @running?*)
     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
           cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
-          sc-thread (Thread. #(boot-thread cmd))]
+          sc-thread (Thread. #(external-booter cmd))]
       (.setDaemon sc-thread true)
       (log/debug "Booting SuperCollider server (scsynth)...")
       (.start sc-thread)
       (dosync (ref-set server-thread* sc-thread))
-      (.run (Thread. #(wait-for-boot host port)))
+      (.run (Thread. #(connect-thread host port)))
       :booting))))
 
 (defn boot
   "Boot either the internal or external audio server."
-  ([] (boot (get @config :server :internal) SERVER-HOST SERVER-PORT))
+  ([] (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [host port]]
      (cond 
        (= :internal which) (boot-internal)
