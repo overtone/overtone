@@ -62,7 +62,9 @@
   []
   (.availableProcessors (Runtime/getRuntime)))
 
-(defn arg-count [f] 
+(defn arg-count 
+  "Get the arity of a function."
+  [f] 
   (let [m (first (.getDeclaredMethods (class f))) 
         p (.getParameterTypes m)] 
     (alength p)))

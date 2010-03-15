@@ -19,7 +19,15 @@
       (alter event-handlers* assoc event-type (conj handlers handler)))))
 
 (defn remove-handler 
-  "Remove an event handler previously registered to handle events of event-type."
+  "Remove an event handler previously registered to handle events of event-type.
+
+  (defn my-foo-handler [event] (do-stuff (:val event)))
+  
+  (on ::foo my-foo-handler)
+  (event ::foo :val 200) ; my-foo-handler gets called with {:event-type ::foo :val 200}
+  (remove-handler ::foo my-foo-handler)
+  (event ::foo :val 200) ; my-foo-handler no longer called
+  "
   [event-type handler]
   (dosync
     (let [handlers (get @event-handlers* event-type [])]
