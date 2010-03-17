@@ -62,9 +62,9 @@
 ;   By passing a function using #'foo syntax instead of just foo, when later 
 ; called by the scheduler it will lookup based on the symbol rather than using 
 ; the instance of the function defined earlier.
-; (callback (+ dur (now)) #'my-melody arg1 arg2)
+; (call-at (+ dur (now)) #'my-melody arg1 arg2)
 
-(defn callback [ms-time func & args]
+(defn call-at [ms-time func & args]
   (let [delay-time (- ms-time (now))]
     (if (< delay-time 0)
       (apply func args)

@@ -4,20 +4,25 @@
           scsynth DSP engine."
      :author "Jeff Rose"}
   overtone.core.sc
- (:import
-     (java.net InetSocketAddress)
-     (java.util.regex Pattern)
-     (java.util.concurrent TimeUnit TimeoutException)
-     (java.io BufferedInputStream)
-     (java.util BitSet))
- (:use clj-scsynth.core)
- (:require [overtone.core.log :as log])
- (:use [clojure.contrib.java-utils :only [file]])
- (:use
-  clojure.contrib.shell-out
-  clojure.contrib.seq-utils
-  (overtone.core config setup util time-utils synthdef)
-  osc))
+  (:import
+    (java.net InetSocketAddress)
+    (java.util.regex Pattern)
+    (java.util.concurrent TimeUnit TimeoutException)
+    (java.io BufferedInputStream)
+    (java.util BitSet))
+  (:use clj-scsynth.core)
+  (:require [overtone.core.log :as log])
+  (:use [clojure.contrib.java-utils :only [file]])
+  (:use
+    clojure.contrib.shell-out
+    clojure.contrib.seq-utils
+    (overtone.core event config setup util time-utils synthdef)
+    osc
+    clj-scsynth.core
+    [clj-native.direct :only [defclib loadlib typeof]]
+    [clj-native.structs :only [byref byval]]
+    [clj-native.callbacks :only [callback]]
+    [clojure.contrib.fcase :only [case]]))
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
@@ -87,8 +92,8 @@
   [k id]
   (let [bits (get allocator-bits k)
         limit (get allocator-limits k)]
-  (locking bits
-    (.clear bits id))))
+    (locking bits
+      (.clear bits id))))
 
 (defn all-ids 
   "Get all of the currently allocated ids for key."
@@ -114,18 +119,51 @@
 
 (declare boot)
 
-(defn snd
-  "Creates an OSC message and either sends it to the server immediately
-  or if a bundle is currently being formed it adds it to the list of messages."
+(defonce recv-queue* (ref []))
+
+(on ::recv-osc-message (fn [event]
+                         (dosync (alter recv-queue* conj (:msg event)))
+                         (println (str (:msg event)))))
+
+(defn internal-osc-callback
+  [addr buf size]
+  (println "internal-osc-callback...")
+  (event ::recv-osc-message
+         :msg (osc-decode-packet (.getByteBuffer buf 0 size))))
+
+(on ::send-osc-message (fn [event]
+                         (let [buffer (java.nio.ByteBuffer/allocate 8129)]
+                           (println "send-osc-message callback: " event)
+                           (osc-encode-msg buffer (:msg event))
+                           (.flip buffer)
+                           (World_SendPacket @world* (.limit buffer) buffer
+                                             (callback reply-cb internal-osc-callback)))))
+
+(on ::send-osc-message-noreply (fn [msg]
+                                 (let [buffer (java.nio.ByteBuffer/allocate 8129)]
+                                   (osc-encode-msg buffer msg)
+                                   (.flip buffer)
+                                   (World_SendPacket @world* (.limit buffer) buffer nil))))
+
+(defn snd-nr
+  "Creates an OSC message and dont expect a reply back."
   [path & args]
     (cond 
       (= ::external (type @server*)) (osc-send-msg @server* 
                                                    (apply osc-msg path (osc-type-tag args) args))
-      (= ::internal (type @server*))
-      (let [buffer (java.nio.ByteBuffer/allocate 8129)]
-        (World_SendPacket @world* (.limit buffer) buffer
-                          (callback reply-cb (fn [addr buf size] (println "reply!"))))
-      (nil? @server*) (throw (Exception. "Not connected to a SuperCollider server.")))
+      (= ::internal (type @server*)) (event ::send-osc-message (apply osc-msg path (osc-type-tag args) args))))
+
+
+
+(defn snd
+  "Creates an OSC message and either sends it to the server immediately
+  or if a bundle is currently being formed it adds it to the list of messages."
+  [path & args]
+  (cond 
+    (= ::external (type @server*)) (osc-send-msg @server* 
+                                                 (apply osc-msg path (osc-type-tag args) args))
+    (= ::internal (type @server*)) (event ::send-osc-message
+                                          :msg (apply osc-msg path (osc-type-tag args) args))))
 
 (defmacro at
   "Schedule the messages sent in body at a single time."
@@ -143,11 +181,14 @@
       (log/level :error)
       (snd "/dumpOSC" 0))))
 
+; TODO: fix external recv to use callbacks
 (defn recv
   "Block with a timeout to receive a message on a given osc path from
   the server."
-  [path & [timeout]]
-  (osc-recv @server* path timeout))
+  [path callback]
+  (case (type @server*)
+    ::external (osc-recv @server* path)
+    ::internal  (on ::recv-osc-message callback)))
 
 ; Notifications from Server
 ; These messages are sent as notification of some event to all clients who have registered via the /notify command .
@@ -208,28 +249,44 @@
 
 (def N-RETRIES 50)
 
-(defn- connect-thread 
+(defn- connect-internal
+  []
+  (log/debug "Connecting to internal SuperCollider server")
+  (let [dummy-obj []]
+    (dosync (ref-set server* (with-meta
+                               dummy-obj
+                               {:type ::internal}))))
+  ;(snd "/status")
+  (dosync (ref-set status* :booted))
+  ;;(register-notification-handlers)
+  )
+
+(defn- connect-thread-external 
   [host port]
-   (log/debug "Connecting to SuperCollider server: " host ":" port)
-   (dosync (ref-set server* (with-meta
-                              (osc-client host port)
-                              {:type ::external})))
-   (loop [cnt 0]
+  (log/debug "Connecting to external SuperCollider server: " host ":" port)
+  (dosync (ref-set server* (with-meta
+                             (osc-client host port)
+                             {:type ::external})))
+  (loop [cnt 0]
     (when (and (< cnt N-RETRIES)
                (= @status* :booting))
       (snd "/status")
       (when (recv "status.reply" REPLY-TIMEOUT)
         (dosync (ref-set status* :booted))
         (notify true) ; turn on notifications now that we can communicate
-        (run-boot-handlers))
+        (event :booted))
       (recur (inc cnt))))
-   (register-notification-handlers))
+  (register-notification-handlers))
 
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
   "Connect to an external SC audio server on the specified host and port."
-  ([] (connect SERVER-HOST SERVER-PORT))
-  ([host port] (.run (Thread. #(connect-thread host port)))))
+  ([] 
+   (connect :internal))
+  ([which & [host port]] 
+   (cond 
+     (= :internal which) (connect-internal)
+     (= :external which) (.run (Thread. #(connect-thread-external host port))))))
 
 (defonce running?* (atom false))
 
@@ -287,10 +344,10 @@
   (let [n-channels (or n-channels 2)
         port-list (sh "jack_lsp")
         sc-outputs (re-find #"SuperCollider.*:out_" port-list)]
-  (doseq [i (range n-channels)]
-    (sh "jack_connect"
-        (str sc-outputs (+ i 1))
-        (str "system:playback_" (+ i 1))))))
+    (doseq [i (range n-channels)]
+      (sh "jack_connect"
+          (str sc-outputs (+ i 1))
+          (str "system:playback_" (+ i 1))))))
 
 (def SC-PATHS {:linux "scsynth"
                :windows "C:/Program Files/SuperCollider/scsynth.exe"
@@ -300,27 +357,13 @@
                :windows []
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
-(def boot-handlers* (ref {}))
-
-(defn add-boot-handler [fun & [id]]
-  (let [id (or id (next-id :boot-handler))]
-    (dosync (alter boot-handlers* assoc id fun))
-    id))
-
-(defn remove-boot-handler [id]
-  (dosync (alter boot-handlers* dissoc id)))
-
-(defn run-boot-handlers []
-  (doseq [[id handler] @boot-handlers*]
-    (handler)))
-
 (if (= :linux (@config* :os))
-  (add-boot-handler connect-jack-ports))
+  (on :booted connect-jack-ports))
 
 (defn internal-booter [port]
   (reset! running?* true)
   (log/debug "booting internal audio server...")
-  (let [opts (sc-jna-startoptions-byref)]
+  (let [opts (byref sc-jna-startoptions)]
     (set! (. opts udp-port-num) port)
     (set! (. opts tcp-port-num) -1)
     (set! (. opts verbosity) 1)
@@ -335,14 +378,14 @@
 (defn boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
   ([port]
-     (if (not @running?*)
-       (let [sc-thread (Thread. #(internal-booter port))]
-         (.setDaemon sc-thread true)
-         (log/debug "Booting SuperCollider internal server (scsynth)...")
-         (.start sc-thread)
-         (dosync (ref-set server-thread* sc-thread))
-         (connect-internal)
-         :booting))))
+   (if (not @running?*)
+     (let [sc-thread (Thread. #(internal-booter port))]
+       (.setDaemon sc-thread true)
+       (log/debug "Booting SuperCollider internal server (scsynth)...")
+       (.start sc-thread)
+       (dosync (ref-set server-thread* sc-thread))
+       (connect :internal)
+       :booting))))
 
 (defn- sc-log 
   "Pull audio server log data from a pipe and store for later printing."
@@ -374,24 +417,24 @@
   "Boot the audio server in an external process and tell it to listen on a 
   specific port."
   ([host port]
-  (if (not @running?*)
-    (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-          cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
-          sc-thread (Thread. #(boot-thread cmd))]
-      (.setDaemon sc-thread true)
-      (log/debug "Booting SuperCollider server (scsynth)...")
-      (.start sc-thread)
-      (dosync (ref-set server-thread* sc-thread))
-      (.run (Thread. #(wait-for-boot host port)))
-      :booting))))
+   (if (not @running?*)
+     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
+           cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
+           sc-thread (Thread. #(external-booter cmd))]
+       (.setDaemon sc-thread true)
+       (log/debug "Booting SuperCollider server (scsynth)...")
+       (.start sc-thread)
+       (dosync (ref-set server-thread* sc-thread))
+       (connect :external host port)
+       :booting))))
 
 (defn boot
   "Boot either the internal or external audio server."
-  ([] (boot (get @config :server :internal) SERVER-HOST SERVER-PORT))
+  ([] (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [host port]]
-     (cond 
-       (= :internal which) (boot-internal)
-       (= :external which) (boot-external host port))))
+   (cond 
+     (= :internal which) (boot-internal)
+     (= :external which) (boot-external host port))))
 
 (defn quit
   "Quit the SuperCollider synth process."
@@ -594,9 +637,9 @@
   (let [id (alloc-id :audio-buffer)]
     (snd "/b_alloc" id size)
     (with-meta {
-     :id id
-     :size size}
-    {:type ::buffer})))
+                :id id
+                :size size}
+               {:type ::buffer})))
 
 (defn buffer? [buf]
   (= (type buf) ::buffer))
@@ -712,7 +755,7 @@
   (clear-ids :node)
   (alloc-id :node) ; ID zero is the root group
   (dosync (ref-set synths* (zipmap (keys @synths*) 
-                                          (repeat (count @synths*) (group :tail 0))))))
+                                   (repeat (count @synths*) (group :tail 0))))))
 
 ;  Maybe it's better to keep the server log around???
 ;  (dosync (ref-set server-log* [])))
@@ -743,13 +786,13 @@
 (defn hit
   "Fire off a synth or sample at a specified time.
   These are the same:
-      (hit :kick)
-      (hit \"kick\")
-      (hit (now) \"kick\")
+  (hit :kick)
+  (hit \"kick\")
+  (hit (now) \"kick\")
 
   Or you can get fancier like this:
-      (hit (now) :sin :pitch 60)
-      (doseq [i (range 10)] (hit (+ (now) (* i 250)) :sin :pitch 60 :dur 0.1))
+  (hit (now) :sin :pitch 60)
+  (doseq [i (range 10)] (hit (+ (now) (* i 250)) :sin :pitch 60 :dur 0.1))
 
   "
   ([] (hit-at (now) "sin" :pitch (+ 30 (rand-int 40))))
@@ -777,8 +820,8 @@
   "
   [& args]
   (let [[time-ms synth-id ctls] (if (odd? (count args))
-                                    [(now) (first args) (next args)]
-                                    [(first args) (second args) (drop 2 args)])]
+                                  [(now) (first args) (next args)]
+                                  [(first args) (second args) (drop 2 args)])]
     ;(println time-ms synth-id ": " ctls)
     (at time-ms
         (apply node-control synth-id (stringify ctls)))))
@@ -787,22 +830,22 @@
   "Free one or more synth nodes.
   Functions that create instance of synth definitions, such as hit, return
   a handle for the synth node that was created.
-      (let [handle (hit :sin)] ; returns => synth-handle
-        (kill (+ 1000 (now)) handle))
+  (let [handle (hit :sin)] ; returns => synth-handle
+  (kill (+ 1000 (now)) handle))
 
-      ; a single handle without a time kills immediately
-      (kill handle)
+  ; a single handle without a time kills immediately
+  (kill handle)
 
-      ; or a seq of synth handles can be removed at once
-      (kill (+ (now) 1000) [(hit) (hit) (hit)])
+  ; or a seq of synth handles can be removed at once
+  (kill (+ (now) 1000) [(hit) (hit) (hit)])
   "
   [& args]
   (let [[time-ms ids] (if (= 1 (count args))
                         [(now) (flatten args)]
                         [(first args) (flatten (next args))])]
-        (at time-ms
-            (apply node-free ids))
-  :killed))
+    (at time-ms
+        (apply node-free ids))
+    :killed))
 
 (defn load-instruments []
   (doseq [synth (filter #(synthdef? %1) 
@@ -817,7 +860,7 @@
 ;  (let [[names vals] (synth-args (apply hash-map args))
 ;        synth        (if (voice? voice) (:synth voice) voice)]
 ;    (.set synth names vals)))
-               
+
 ;(defmethod play-note :synth [voice note-num dur & args]
 ;  (let [args (assoc (apply hash-map args) :note note-num)
 ;        synth (trigger (:synth voice) args)]
@@ -836,14 +879,14 @@
 
 (defn synth-player [sname arg-names]
   (fn [& args] 
-      (let [sgroup (get @synths* sname)
-            controller (partial node-control sgroup)
-            player (partial node sname :target sgroup)
-            [tgt-fn args] (if (= :ctl (first args))
-                            [controller (rest args)]
-                            [player args])
-            named-args (if (keyword? (first args))
-                         args
-                         (name-synth-args args arg-names))]
-        (apply tgt-fn named-args))))
+    (let [sgroup (get @synths* sname)
+          controller (partial node-control sgroup)
+          player (partial node sname :target sgroup)
+          [tgt-fn args] (if (= :ctl (first args))
+                          [controller (rest args)]
+                          [player args])
+          named-args (if (keyword? (first args))
+                       args
+                       (name-synth-args args arg-names))]
+      (apply tgt-fn named-args))))
 

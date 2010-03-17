@@ -58,4 +58,3 @@
 (def server (osc-server 5708))
 (osc-handle server "/play" #(ping (+ 100 (* 100 (first (:args %))))))
 
-
