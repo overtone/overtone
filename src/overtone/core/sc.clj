@@ -10,9 +10,15 @@
      (java.util.concurrent TimeUnit TimeoutException)
      (java.io BufferedInputStream)
      (java.util BitSet))
- (:use clj-scsynth.core)
+
  (:require [overtone.core.log :as log])
  (:use [clojure.contrib.java-utils :only [file]])
+
+ (:use clj-scsynth.core)
+ (:use [clj-native.structs :only [byref byval]])
+
+ (:use [overtone.core.event :only [on event]])
+ 
  (:use
   clojure.contrib.shell-out
   clojure.contrib.seq-utils
@@ -35,6 +41,8 @@
 (defonce synths*        (ref nil))
 
 (defonce world* (ref nil))
+
+(defonce recv-queue* (ref []))
 
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
@@ -114,6 +122,34 @@
 
 (declare boot)
 
+(on ::recv-osc-message (fn [msg]
+                         (dosync (ref-set recv-queue* (assoc @recv-queue* msg)))
+                         (println (str msg))))
+
+(on ::send-osc-message (fn [msg]
+                         (let [buffer (java.nio.ByteBuffer/allocate 8129)]
+                           (osc-encode-msg buffer msg)
+                           (.flip buffer)
+                           (World_SendPacket @world* (.limit buffer) buffer
+                                             (callback reply-cb
+                                                       (fn [addr buf size]
+                                                         (event ::recv-osc-message
+                                                                (osc-decode-packet (.getByteBuffer buf 0 size)))))))))
+
+(on ::send-osc-message-noreply (fn [msg]
+                                 (let [buffer (java.nio.ByteBuffer/allocate 8129)]
+                                   (osc-encode-msg buffer msg)
+                                   (.flip buffer)
+                                   (World_SendPacket @world* (.limit buffer) buffer nil))))
+
+(defn snd-nr
+  "Creates an OSC message and dont expect a reply back."
+  [path & args]
+    (cond 
+      (= ::external (type @server*)) (osc-send-msg @server* 
+                                                   (apply osc-msg path (osc-type-tag args) args))
+      (= ::internal (type @server*)) (event ::send-osc-message (apply osc-msg path (osc-type-tag args) args))))
+
 (defn snd
   "Creates an OSC message and either sends it to the server immediately
   or if a bundle is currently being formed it adds it to the list of messages."
@@ -121,11 +157,7 @@
     (cond 
       (= ::external (type @server*)) (osc-send-msg @server* 
                                                    (apply osc-msg path (osc-type-tag args) args))
-      (= ::internal (type @server*))
-      (let [buffer (java.nio.ByteBuffer/allocate 8129)]
-        (World_SendPacket @world* (.limit buffer) buffer
-                          (callback reply-cb (fn [addr buf size] (println "reply!"))))
-      (nil? @server*) (throw (Exception. "Not connected to a SuperCollider server.")))))
+      (= ::internal (type @server*)) (event ::send-osc-message (apply osc-msg path (osc-type-tag args) args))))
 
 (defmacro at
   "Schedule the messages sent in body at a single time."
@@ -147,7 +179,11 @@
   "Block with a timeout to receive a message on a given osc path from
   the server."
   [path & [timeout]]
-  (osc-recv @server* path timeout))
+  (cond 
+      (= ::external (type @server*)) (osc-recv @server* path timeout)
+      (= ::internal (type @server*)) (let [first-msg (first @recv-queue*)]
+                                       (dosync (ref-set recv-queue* (rest @recv-queue*)))
+                                       first-msg)))
 
 ; Notifications from Server
 ; These messages are sent as notification of some event to all clients who have registered via the /notify command .
@@ -208,9 +244,9 @@
 
 (def N-RETRIES 50)
 
-(defn- connect-thread 
+(defn- connect-thread-external
   [host port]
-   (log/debug "Connecting to SuperCollider server: " host ":" port)
+   (log/debug "Connecting to external SuperCollider server: " host ":" port)
    (dosync (ref-set server* (with-meta
                               (osc-client host port)
                               {:type ::external})))
@@ -226,11 +262,31 @@
       (recur (inc cnt))))
    (register-notification-handlers))
 
+(defn- connect-thread-internal
+  []
+   (log/debug "Connecting to internal SuperCollider server")
+   (dosync (ref-set server* (with-meta                              
+                              {:type ::internal})))
+   (loop [cnt 0]
+    (when (and (< cnt N-RETRIES)
+               (= @status* :booting))
+      (snd "/status")
+      (when (recv "status.reply" REPLY-TIMEOUT)
+        (dosync (ref-set status* :booted))
+        (notify true) ; turn on notifications now that we can communicate
+        ;(run-boot-handlers)
+        )
+      (recur (inc cnt))))
+   (register-notification-handlers))
+
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
   "Connect to an external SC audio server on the specified host and port."
-  ([] (connect SERVER-HOST SERVER-PORT))
-  ([host port] (.run (Thread. #(connect-thread host port)))))
+  ([] (connect :external SERVER-HOST SERVER-PORT))
+  ([which & host port]
+     (cond 
+      (= :internal which) (.run (Thread. #(connect-thread-internal)))
+      (= :external which) (.run (Thread. #(connect-thread-external host port))) ))))
 
 (defonce running?* (atom false))
 
@@ -342,7 +398,7 @@
          (log/debug "Booting SuperCollider internal server (scsynth)...")
          (.start sc-thread)
          (dosync (ref-set server-thread* sc-thread))
-         (connect)
+         (connect :internal)
          :booting))))
 
 (defn- sc-log 
@@ -383,7 +439,7 @@
       (log/debug "Booting SuperCollider server (scsynth)...")
       (.start sc-thread)
       (dosync (ref-set server-thread* sc-thread))
-      (.run (Thread. #(connect-thread host port)))
+      (connect)
       :booting))))
 
 (defn boot
