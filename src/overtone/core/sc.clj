@@ -439,7 +439,7 @@
       (log/debug "Booting SuperCollider server (scsynth)...")
       (.start sc-thread)
       (dosync (ref-set server-thread* sc-thread))
-      (connect)
+      (connect :external host port)
       :booting))))
 
 (defn boot
