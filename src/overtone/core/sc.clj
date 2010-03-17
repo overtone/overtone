@@ -157,7 +157,10 @@
     (cond 
       (= ::external (type @server*)) (osc-send-msg @server* 
                                                    (apply osc-msg path (osc-type-tag args) args))
-      (= ::internal (type @server*)) (event ::send-osc-message (apply osc-msg path (osc-type-tag args) args))))
+      (= ::internal (type @server*)) (event ::send-osc-message
+                                            (if (= nil args)
+                                              (osc-msg path)
+                                              (apply osc-msg path (osc-type-tag args) args))) ))
 
 (defmacro at
   "Schedule the messages sent in body at a single time."
@@ -262,31 +265,26 @@
       (recur (inc cnt))))
    (register-notification-handlers))
 
-(defn- connect-thread-internal
+(defn- connect-internal
   []
    (log/debug "Connecting to internal SuperCollider server")
-   (dosync (ref-set server* (with-meta                              
-                              {:type ::internal})))
-   (loop [cnt 0]
-    (when (and (< cnt N-RETRIES)
-               (= @status* :booting))
-      (snd "/status")
-      (when (recv "status.reply" REPLY-TIMEOUT)
-        (dosync (ref-set status* :booted))
-        (notify true) ; turn on notifications now that we can communicate
-        ;(run-boot-handlers)
-        )
-      (recur (inc cnt))))
-   (register-notification-handlers))
+   (let [dummy-obj []]
+     (dosync (ref-set server* (with-meta
+                                dummy-obj
+                                {:type ::internal}))))
+   (snd "/status")
+   (dosync (ref-set status* :booted))
+   ;;(register-notification-handlers)
+   )
 
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
   "Connect to an external SC audio server on the specified host and port."
   ([] (connect :external SERVER-HOST SERVER-PORT))
-  ([which & host port]
-     (cond 
-      (= :internal which) (.run (Thread. #(connect-thread-internal)))
-      (= :external which) (.run (Thread. #(connect-thread-external host port))) ))))
+  ([which host port]
+     (cond
+      (= :internal which) (connect-internal)
+      (= :external which) (.run (Thread. #(connect-thread-external host port))) )))
 
 (defonce running?* (atom false))
 
@@ -377,7 +375,7 @@
 (defn internal-booter [port]
   (reset! running?* true)
   (log/debug "booting internal audio server...")
-  (let [opts nil] ;; (sc-jna-startoptions-byref)
+  (let [opts (byref sc-jna-startoptions)] 
     (set! (. opts udp-port-num) port)
     (set! (. opts tcp-port-num) -1)
     (set! (. opts verbosity) 1)
@@ -398,7 +396,7 @@
          (log/debug "Booting SuperCollider internal server (scsynth)...")
          (.start sc-thread)
          (dosync (ref-set server-thread* sc-thread))
-         (connect :internal)
+         (connect :internal nil nil)
          :booting))))
 
 (defn- sc-log 
