@@ -41,6 +41,8 @@
 
 (defonce world* (ref nil))
 
+(defonce recv-queue* (ref []))
+
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
 (def MAX-GROUPS 256)
@@ -150,6 +152,7 @@
       (log/level :error)
       (snd "/dumpOSC" 0))))
 
+
 ; Notifications from Server
 ; These messages are sent as notification of some event to all clients who have registered via the /notify command .
 ; All of these have the same arguments:
@@ -252,6 +255,18 @@
         (Thread/sleep 100)
         (recur (inc cnt))))))
 
+(defn- connect-internal
+  []
+   (log/debug "Connecting to internal SuperCollider server")
+   (let [dummy-obj []]
+     (dosync (ref-set server* (with-meta
+                                dummy-obj
+                                {:type ::internal}))))
+   (snd "/status")
+   (dosync (ref-set status* :booted))
+   ;;(register-notification-handlers)
+   )
+
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
   "Connect to an external SC audio server on the specified host and port."
@@ -261,6 +276,7 @@
    (cond
      (= :internal which) (connect-internal)
      (= :external which) (.run (Thread. #(connect-thread-external host port))))))
+
 
 (defonce running?* (atom false))
 

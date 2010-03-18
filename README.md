@@ -59,10 +59,6 @@ Now get Overtone:
 
     user=> (server-log) ; check for errors
 
-    user=> (use 'overtone.live)
-    user=> (refer-ugens)
-    user=> (boot)
-    user=> (server-log) ; check for errors
     user=> (synth (sin-osc 440)) ; define an anonymous synth
     user=> (*1) ; play it...  returns a node-id
     user=> (kill <node-id>) ; put the number returned from above
