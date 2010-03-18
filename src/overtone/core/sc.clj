@@ -11,7 +11,6 @@
     (java.io BufferedInputStream)
     (java.nio ByteOrder)
     (java.util BitSet))
-  (:use clj-scsynth.core)
   (:require [overtone.core.log :as log])
   (:use [clojure.contrib.java-utils :only [file]])
   (:use
