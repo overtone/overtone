@@ -100,12 +100,6 @@
 ;(def audio (load-sample "samples/strings/STRNGD5.WAV"))
 ;(def abuf (:buf audio))
 
-;(defn test-scope []
- ; (try 
-    ;(load-scope)
-    ;(scope (scope-dataset))
-    ;(scope (sample-dataset (buffer-read abuf 0 8000)))))
-
 ; Envelope arrays are structured like this:
   ; * initial level
   ; * n-segments
@@ -143,4 +137,3 @@
 
 ; This is the line that does it!
 ;(update-dataset ds (.getFloatArray (.data (buffer-copy 0)) 0 (:n-frames (sample-info boom)))))
-
