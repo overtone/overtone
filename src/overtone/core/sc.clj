@@ -41,8 +41,6 @@
 
 (defonce world* (ref nil))
 
-(defonce recv-queue* (ref []))
-
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
 (def MAX-GROUPS 256)
