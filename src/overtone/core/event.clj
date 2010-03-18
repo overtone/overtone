@@ -1,7 +1,7 @@
 (ns overtone.core.event
   (:import (java.util.concurrent Executors LinkedBlockingQueue))
   (:use (overtone.core util)
-        [clojure.set :only [intersection]]))
+        [clojure.set :only [intersection difference]]))
 
 (def NUM-THREADS (cpu-count))
 (defonce thread-pool (Executors/newFixedThreadPool NUM-THREADS))
@@ -17,8 +17,9 @@
   
   Handlers can return :done to be removed from the handler list after execution."
   [event-type handler]
+  ;(println "adding-handler for " event-type)
   (dosync 
-    (let [handlers (get @event-handlers* event-type [])]
+    (let [handlers (get @event-handlers* event-type #{})]
       (alter event-handlers* assoc event-type (conj handlers handler))
       true)))
 
@@ -34,8 +35,8 @@
   "
   [event-type handler]
   (dosync
-    (let [handlers (get @event-handlers* event-type [])]
-      (alter event-handlers* assoc event-type (filter #(not (= handler %)) handlers)))))
+    (let [handlers (get @event-handlers* event-type #{})]
+      (alter event-handlers* assoc event-type (difference handlers #{handler})))))
 
 (defn clear-handlers 
   "Remove all handlers for events of type event-type."
@@ -51,11 +52,14 @@
   "Runs the event handlers for the given event, and removes any handler that returns :done."
   [event]
   (let [event-type (:event-type event)
-        handlers (get @event-handlers* event-type [])
-        keepers  (doall (filter #(not (= :done (run-handler % event))) handlers))]
+        handlers (get @event-handlers* event-type #{})
+        ;_ (println (format "handle-event[%d]: %s" (count handlers) event-type) (keys event))
+        keepers  (set (doall (filter #(not (= :done (run-handler % event))) handlers)))]
+    ;(println "handled with " (count keepers) "keepers")
     (dosync (alter event-handlers* assoc event-type 
-                   (intersection (set keepers)
-                                 (set (get @event-handlers* event-type [])))))))
+                   (intersection keepers (get @event-handlers* event-type #{}))))
+    ;(println "finished handling " event-type "with" (count (get @event-handlers* event-type #{})))
+    ))
 
 (defn event 
   "Fire an event of type event-type with any number of additional properties.

@@ -11,13 +11,12 @@
     (java.io BufferedInputStream)
     (java.nio ByteOrder)
     (java.util BitSet))
-  (:use clj-scsynth.core)
   (:require [overtone.core.log :as log])
-  (:use [clojure.contrib.java-utils :only [file]])
   (:use
+    (overtone.core event config setup util time-utils synthdef)
+    [clojure.contrib.java-utils :only [file]]
     clojure.contrib.shell-out
     clojure.contrib.seq-utils
-    (overtone.core event config setup util time-utils synthdef)
     osc
     clj-scsynth.core
     [clj-native.direct :only [defclib loadlib typeof]]
@@ -120,41 +119,10 @@
 
 (declare boot)
 
-(defonce recv-queue* (ref []))
-
-(on ::recv-osc-message (fn [event]
-                         (dosync (alter recv-queue* conj (:msg event)))
-                         (println (str (:msg event)))))
-
-(defn internal-osc-callback
-  [addr buf size]
-  (println "internal-osc-callback...")
-  (event ::recv-osc-message
-         :msg (osc-decode-packet (.order (.getByteBuffer buf 0 size) ByteOrder/BIG_ENDIAN))))
-
-(on ::send-osc-message (fn [event]
-                         (let [buffer (java.nio.ByteBuffer/allocate 8129)]
-                           (println "send-osc-message callback: " event)
-                           (osc-encode-msg buffer (:msg event))
-                           (.flip buffer)
-                           (World_SendPacket @world* (.limit buffer) buffer
-                                             (callback reply-cb internal-osc-callback)))))
-
-(on ::send-osc-message-noreply (fn [msg]
-                                 (let [buffer (java.nio.ByteBuffer/allocate 8129)]
-                                   (osc-encode-msg buffer msg)
-                                   (.flip buffer)
-                                   (World_SendPacket @world* (.limit buffer) buffer nil))))
-
-(defn snd-nr
-  "Creates an OSC message and dont expect a reply back."
-  [path & args]
-    (cond 
-      (= ::external (type @server*)) (osc-send-msg @server* 
-                                                   (apply osc-msg path (osc-type-tag args) args))
-      (= ::internal (type @server*)) (event ::send-osc-message (apply osc-msg path (osc-type-tag args) args))))
-
-
+; The base handler for receiving osc messages just forwards the message on
+; as an event using the osc path as the event key.
+(on ::osc-msg-received (fn [{{path :path args :args} :msg}]
+                         (event path :path path :args args)))
 
 (defn snd
   "Creates an OSC message and either sends it to the server immediately
@@ -163,7 +131,7 @@
   (cond 
     (= ::external (type @server*)) (osc-send-msg @server* 
                                                  (apply osc-msg path (osc-type-tag args) args))
-    (= ::internal (type @server*)) (event ::send-osc-message
+    (= ::internal (type @server*)) (event ::send-osc-msg
                                           :msg (apply osc-msg path (osc-type-tag args) args))))
 
 (defmacro at
@@ -181,15 +149,6 @@
     (do
       (log/level :error)
       (snd "/dumpOSC" 0))))
-
-; TODO: fix external recv to use callbacks
-(defn recv
-  "Block with a timeout to receive a message on a given osc path from
-  the server."
-  [path callback]
-  (case (type @server*)
-    ::external (osc-recv @server* path)
-    ::internal  (on ::recv-osc-message callback)))
 
 ; Notifications from Server
 ; These messages are sent as notification of some event to all clients who have registered via the /notify command .
@@ -245,8 +204,13 @@
 (defn- register-notification-handlers 
   "Setup the feedback handlers with the audio server."
   []
-  (osc-handle @server* "/n_end" #(node-destroyed (first (:args %))))
-  (osc-handle @server* "/n_go" #(node-created (first (:args %)))))
+  (case (type @server*)
+        :external (do 
+                    (osc-handle @server* "/n_end" #(node-destroyed (first (:args %))))
+                    (osc-handle @server* "/n_go" #(node-created (first (:args %)))))
+        :internal (do
+                    (on "/n_end" #(node-destroyed (first (:args %))))
+                    (on "/n_go" #(node-created (first (:args %)))))))
 
 (def N-RETRIES 50)
 
@@ -257,27 +221,36 @@
     (dosync (ref-set server* (with-meta
                                dummy-obj
                                {:type ::internal}))))
-  ;(snd "/status")
+  (register-notification-handlers)
+  (snd "/status")
   (dosync (ref-set status* :booted))
-  ;;(register-notification-handlers)
-  )
+  (notify true) ; turn on notifications now that we can communicate
+  (event ::booted))
 
 (defn- connect-thread-external 
   [host port]
   (log/debug "Connecting to external SuperCollider server: " host ":" port)
-  (dosync (ref-set server* (with-meta
-                             (osc-client host port)
-                             {:type ::external})))
-  (loop [cnt 0]
-    (when (and (< cnt N-RETRIES)
-               (= @status* :booting))
-      (snd "/status")
-      (when (recv "status.reply" REPLY-TIMEOUT)
-        (dosync (ref-set status* :booted))
-        (notify true) ; turn on notifications now that we can communicate
-        (event :booted))
-      (recur (inc cnt))))
-  (register-notification-handlers))
+  (let [sc-server (with-meta (osc-client host port) {:type ::external})]
+    (osc-listen sc-server #(event ::osc-msg-received :msg %))
+    (dosync 
+      (ref-set server* sc-server))
+    
+    ; Runs once when we receive the first status.reply message
+    (on "/status.reply" 
+        #(do 
+           (dosync (ref-set status* :booted))
+           (register-notification-handlers)
+           (notify true) ; turn on notifications now that we can communicate
+           (event ::booted)
+           :done))
+
+    ; Send /status in a loop until we get a reply
+    (loop [cnt 0]
+      (when (and (< cnt N-RETRIES)
+                 (= @status* :booting))
+        (snd "/status")
+        (Thread/sleep 100)
+        (recur (inc cnt))))))
 
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
@@ -310,24 +283,42 @@
 ;	float - peak percent CPU usage for signal processing
 ;	double - nominal sample rate
 ;	double - actual sample rate
+
+(defn recv [path & [timeout]]
+  (let [p (promise)]
+    (on path #(do (deliver p %) :done))
+    (if timeout 
+      (try 
+        (.get (future @p) timeout TimeUnit/MILLISECONDS)
+        (catch TimeoutException t 
+          :timeout))
+      @p)))
+
+(defn- parse-status [args]
+  (let [[_ ugens synths groups loaded avg peak nominal actual] args]
+    {:n-ugens ugens
+     :n-synths synths
+     :n-groups groups
+     :n-loaded-synths loaded
+     :avg-cpu avg
+     :peak-cpu peak
+     :nominal-sample-rate nominal
+     :actual-sample-rate actual}))
+
+(def STATUS-TIMEOUT 200)
+
 (defn status 
   "Check the status of the audio server."
   []
-  (if (= @status* :booted)
-    (do 
-      (snd "/status")
-      (let [sts (recv "status.reply" REPLY-TIMEOUT)]
-        (log/debug "got status: " (:args sts))
-        (if-let [[_ ugens synths groups loaded avg peak nominal actual] (:args sts)]
-          {:n-ugens ugens
-           :n-synths synths
-           :n-groups groups
-           :n-loaded-synths loaded
-           :avg-cpu avg
-           :peak-cpu peak
-           :nominal-sample-rate nominal
-           :actual-sample-rate actual})))
-    @status*))
+  (let [p (promise)]
+    (on "/status.reply" #(do 
+                           (deliver p (parse-status (:args %)))
+                           :done))
+    (snd "/status")
+    (try 
+      (.get (future @p) STATUS-TIMEOUT TimeUnit/MILLISECONDS)
+      (catch TimeoutException t 
+        :timeout))))
 
 (defn wait-sync
   "Wait until the audio server has completed all asynchronous commands currently in execution."
@@ -359,7 +350,12 @@
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
 (if (= :linux (@config* :os))
-  (on :booted connect-jack-ports))
+  (on ::booted #(connect-jack-ports)))
+
+(defn internal-osc-callback
+  [addr buf size]
+  (event ::osc-msg-received
+         :msg (osc-decode-packet (.order (.getByteBuffer buf 0 size) ByteOrder/BIG_ENDIAN))))
 
 (defn internal-booter [port]
   (reset! running?* true)
@@ -372,6 +368,14 @@
     (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
 
     (dosync (ref-set world* (ScJnaStart opts)))
+
+    (on ::send-osc-msg (fn [event]
+                         (let [buffer (java.nio.ByteBuffer/allocate 8129)]
+                           ;(println "sending osc msg: " event)
+                           (osc-encode-msg buffer (:msg event))
+                           (.flip buffer)
+                           (World_SendPacket @world* (.limit buffer) buffer
+                                             (callback reply-cb internal-osc-callback)))))
 
     (World_WaitForQuit @world*)
     (ScJnaCleanup)))

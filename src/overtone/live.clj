@@ -24,6 +24,7 @@
   'midi
   'overtone.core.time-utils
   'overtone.core.util
+  'overtone.core.event
   'overtone.core.sc
   'overtone.core.ugen
   'overtone.core.envelope

@@ -14,6 +14,7 @@
                  [byte-spec "0.1"]
                  [midi-clj "0.1"]
 
+                 [clj-native "0.8.0-SNAPSHOT"]
                  [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
                  [overtone/clj-jack    "0.0.1-SNAPSHOT"]
                  [overtone/clj-repl    "0.0.1-SNAPSHOT"]
