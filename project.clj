@@ -5,10 +5,9 @@
                  [org.clojure/clojure-contrib "1.1.0"]
 
                  [jline "0.9.94"]
-                 [net.java.dev.scenegraph/scenegraph "git"]
                  [vijual "0.1.0-SNAPSHOT"]
                  [org.clojars.rosejn/jsyntaxpane "0.9.5-b27"]
-                 ;[penumbra "0.5.0"]
+                 [penumbra "0.5.0"]
 
                  [osc-clj "0.1.1-SNAPSHOT"]
                  [byte-spec "0.1"]
