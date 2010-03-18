@@ -9,6 +9,7 @@
     (java.util.regex Pattern)
     (java.util.concurrent TimeUnit TimeoutException)
     (java.io BufferedInputStream)
+    (java.nio ByteOrder)
     (java.util BitSet))
   (:use clj-scsynth.core)
   (:require [overtone.core.log :as log])
@@ -129,7 +130,7 @@
   [addr buf size]
   (println "internal-osc-callback...")
   (event ::recv-osc-message
-         :msg (osc-decode-packet (.getByteBuffer buf 0 size))))
+         :msg (osc-decode-packet (.order (.getByteBuffer buf 0 size) ByteOrder/BIG_ENDIAN))))
 
 (on ::send-osc-message (fn [event]
                          (let [buffer (java.nio.ByteBuffer/allocate 8129)]
