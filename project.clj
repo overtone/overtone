@@ -10,7 +10,7 @@
                  [org.clojars.rosejn/jsyntaxpane "0.9.5-b27"]
                  ;[penumbra "0.5.0"]
 
-                 [osc-clj "0.1.1"]
+                 [osc-clj "0.1.1-SNAPSHOT"]
                  [byte-spec "0.1"]
                  [midi-clj "0.1"]
                  
@@ -24,7 +24,7 @@
   :dev-dependencies [[native-deps "1.0.0"]
                      [lein-clojars "0.5.0-SNAPSHOT"]
                      [autodoc "0.7.0"]
-                     [org.clojars.ato/nailgun "0.7.1"]
+                     ;[org.clojars.ato/nailgun "0.7.1"]
                      [lein-nailgun "0.1.0"]
                      [swank-clojure "1.1.0-SNAPSHOT"]
                      [leiningen/lein-swank "1.1.0"]]
