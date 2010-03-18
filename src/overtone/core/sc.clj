@@ -1,6 +1,6 @@
-(ns 
+(ns
   #^{:doc "An interface to the SuperCollider synthesis server.
-          This is at heart an OSC client library for the SuperCollider 
+          This is at heart an OSC client library for the SuperCollider
           scsynth DSP engine."
      :author "Jeff Rose"}
   overtone.core.sc
@@ -41,6 +41,8 @@
 
 (defonce world* (ref nil))
 
+(defonce recv-queue* (ref []))
+
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
 (def MAX-GROUPS 256)
@@ -58,9 +60,9 @@
 
 ; We use bit sets to store the allocation state of resources on the audio server.
 ; These typically get allocated on usage by the client, and then freed either by
-; client request or automatically by receiving notifications from the server.  
+; client request or automatically by receiving notifications from the server.
 ; (e.g. When an envelope trigger fires to free a synth.)
-(defonce allocator-bits 
+(defonce allocator-bits
   {:node (BitSet. MAX-NODES)
    :audio-buffer (BitSet. MAX-BUFFERS)
    :audio-bus (BitSet. MAX-NODES)
@@ -72,7 +74,7 @@
    :audio-bus MAX-AUDIO-BUS
    :control-bus MAX-CONTROL-BUS})
 
-(defn alloc-id 
+(defn alloc-id
   "Allocate a new ID for the type corresponding to key."
   [k]
   (let [bits (get allocator-bits k)
@@ -87,7 +89,7 @@
 
 (alloc-id :node) ; ID zero is the root group
 
-(defn free-id 
+(defn free-id
   "Free the id of type key."
   [k id]
   (let [bits (get allocator-bits k)
@@ -95,7 +97,7 @@
     (locking bits
       (.clear bits id))))
 
-(defn all-ids 
+(defn all-ids
   "Get all of the currently allocated ids for key."
   [k]
   (let [bits (get allocator-bits k)
@@ -128,8 +130,8 @@
   "Creates an OSC message and either sends it to the server immediately
   or if a bundle is currently being formed it adds it to the list of messages."
   [path & args]
-  (cond 
-    (= ::external (type @server*)) (osc-send-msg @server* 
+  (cond
+    (= ::external (type @server*)) (osc-send-msg @server*
                                                  (apply osc-msg path (osc-type-tag args) args))
     (= ::internal (type @server*)) (event ::send-osc-msg
                                           :msg (apply osc-msg path (osc-type-tag args) args))))
@@ -139,7 +141,7 @@
   [time-ms & body]
   `(in-osc-bundle @server* ~time-ms ~@body))
 
-(defn debug 
+(defn debug
   "Control debug output from both the Overtone and the audio server."
   [& [on-off]]
   (if (or on-off (nil? on-off))
@@ -150,6 +152,7 @@
       (log/level :error)
       (snd "/dumpOSC" 0))))
 
+
 ; Notifications from Server
 ; These messages are sent as notification of some event to all clients who have registered via the /notify command .
 ; All of these have the same arguments:
@@ -158,18 +161,18 @@
 ;   int - previous node ID, -1 if no previous node.
 ;   int - next node ID, -1 if no next node.
 ;   int - 1 if the node is a group, 0 if it is a synth
-; 
+;
 ; The following two arguments are only sent if the node is a group:
 ;   int - the ID of the head node, -1 if there is no head node.
 ;   int - the ID of the tail node, -1 if there is no tail node.
-; 
+;
 ;   /n_go   - a node was created
 ;   /n_end  - a node was destroyed
 ;   /n_on   - a node was turned on
 ;   /n_off  - a node was turned off
 ;   /n_move - a node was moved
 ;   /n_info - in reply to /n_query
-; 
+;
 ; Trigger Notifications
 ;
 ; This command is the mechanism that synths can use to trigger events in
@@ -183,25 +186,25 @@
 ;   int - trigger ID
 ;   float - trigger value
 
-(defn notify 
+(defn notify
   "Turn on notification messages from the audio server.  This lets us free
   synth IDs when they are automatically freed with envelope triggers.  It also lets
   us receive custom messages from various trigger ugens."
   [notify?]
   (snd "/notify" (if (false? notify?) 0 1)))
 
-(defn- node-destroyed 
+(defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
   [id]
   (log/debug (format "node-destroyed: %d" id))
   (free-id :node id))
 
-(defn- node-created 
+(defn- node-created
   "Called when a node is created on the synth."
   [id]
   (log/debug (format "node-created: %d" id)))
 
-(defn- register-notification-handlers 
+(defn- register-notification-handlers
   "Setup the feedback handlers with the audio server."
   []
   (case (type @server*)
@@ -227,7 +230,7 @@
   (notify true) ; turn on notifications now that we can communicate
   (event ::booted))
 
-(defn- connect-thread-external 
+(defn- connect-thread-external
   [host port]
   (log/debug "Connecting to external SuperCollider server: " host ":" port)
   (let [sc-server (with-meta (osc-client host port) {:type ::external})]
@@ -252,21 +255,34 @@
         (Thread/sleep 100)
         (recur (inc cnt))))))
 
+(defn- connect-internal
+  []
+   (log/debug "Connecting to internal SuperCollider server")
+   (let [dummy-obj []]
+     (dosync (ref-set server* (with-meta
+                                dummy-obj
+                                {:type ::internal}))))
+   (snd "/status")
+   (dosync (ref-set status* :booted))
+   ;;(register-notification-handlers)
+   )
+
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
   "Connect to an external SC audio server on the specified host and port."
-  ([] 
+  ([]
    (connect :internal))
-  ([which & [host port]] 
-   (cond 
+  ([which & [host port]]
+   (cond
      (= :internal which) (connect-internal)
      (= :external which) (.run (Thread. #(connect-thread-external host port))))))
+
 
 (defonce running?* (atom false))
 
 (def server-log* (ref []))
 
-(defn server-log 
+(defn server-log
   "Print the server log."
   []
   (doseq [msg @server-log*]
@@ -390,7 +406,7 @@
        (connect :internal)
        :booting))))
 
-(defn- sc-log 
+(defn- sc-log
   "Pull audio server log data from a pipe and store for later printing."
   [stream read-buf]
   (while (pos? (.available stream))
@@ -400,8 +416,8 @@
       (dosync (alter server-log* conj msg))
       (log/info (String. read-buf 0 n)))))
 
-(defn- external-booter 
-  "Boot thread to start the external audio server process and hook up to 
+(defn- external-booter
+  "Boot thread to start the external audio server process and hook up to
   STDOUT for log messages."
   [cmd]
   (reset! running?* true)
@@ -416,8 +432,8 @@
       (Thread/sleep 250))
     (.destroy proc)))
 
-(defn boot-external 
-  "Boot the audio server in an external process and tell it to listen on a 
+(defn boot-external
+  "Boot the audio server in an external process and tell it to listen on a
   specific port."
   ([host port]
    (if (not @running?*)
@@ -435,7 +451,7 @@
   "Boot either the internal or external audio server."
   ([] (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [host port]]
-   (cond 
+   (cond
      (= :internal which) (boot-internal)
      (= :external which) (boot-external host port))))
 
@@ -461,7 +477,7 @@
    :replace-node 4})
 
 ;; Sending a synth-id of -1 lets the server choose an ID
-(defn node 
+(defn node
   "Instantiate a synth node on the audio server."
   [synth-name & args]
   (let [id (alloc-id :node)
@@ -564,7 +580,7 @@
 
 (def *data* nil)
 
-(defn- parse-synth-tree 
+(defn- parse-synth-tree
   [ctls?]
   (let [sname (first *data*)]
     (if ctls?
@@ -647,7 +663,7 @@
 (defn buffer? [buf]
   (= (type buf) ::buffer))
 
-(defn buffer-free 
+(defn buffer-free
   "Free an audio buffer and the memory it was consuming."
   [buf]
   (assert (buffer? buf))
@@ -655,7 +671,7 @@
   (snd "/b_free" (:id buf)))
 
 ; TODO: Test me...
-(defn buffer-read 
+(defn buffer-read
   "Read a section of an audio buffer."
   [buf start len]
   (assert (buffer? buf))
@@ -679,7 +695,7 @@
           (recur (+ recvd blen)))))))
 
 ;; TODO: test me...
-(defn buffer-write 
+(defn buffer-write
   "Write into a section of an audio buffer."
   [buf start len data]
   (assert (buffer? buf))
@@ -714,10 +730,10 @@
 ;; functions should work on samples.
 (derive ::sample ::buffer)
 
-(defn buffer-data 
+(defn buffer-data
   "Get the floating point data for a buffer on the internal server."
   [buf]
-  (let [buf-id (cond 
+  (let [buf-id (cond
                  (buffer? buf) (:id buf)
                  (sample? buf) (:id (:buf buf)))
         snd-buf (ScJnaCopySndBuf @world* buf-id)
@@ -757,7 +773,7 @@
   (apply node-free (all-ids :node))
   (clear-ids :node)
   (alloc-id :node) ; ID zero is the root group
-  (dosync (ref-set synths* (zipmap (keys @synths*) 
+  (dosync (ref-set synths* (zipmap (keys @synths*)
                                    (repeat (count @synths*) (group :tail 0))))))
 
 ;  Maybe it's better to keep the server log around???
@@ -851,8 +867,8 @@
     :killed))
 
 (defn load-instruments []
-  (doseq [synth (filter #(synthdef? %1) 
-                        (map #(var-get %1) 
+  (doseq [synth (filter #(synthdef? %1)
+                        (map #(var-get %1)
                              (vals (ns-publics 'overtone.instrument))))]
     ;(println "loading synth: " (:name synth))
     (load-synthdef synth)))
@@ -881,7 +897,7 @@
       named)))
 
 (defn synth-player [sname arg-names]
-  (fn [& args] 
+  (fn [& args]
     (let [sgroup (get @synths* sname)
           controller (partial node-control sgroup)
           player (partial node sname :target sgroup)
