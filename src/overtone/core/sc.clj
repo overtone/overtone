@@ -373,6 +373,8 @@
   (event ::osc-msg-received
          :msg (osc-decode-packet (.order (.getByteBuffer buf 0 size) ByteOrder/BIG_ENDIAN))))
 
+(defonce internal-callback (callback reply-cb internal-osc-callback))
+
 (defn internal-booter [port]
   (reset! running?* true)
   (log/debug "booting internal audio server...")
@@ -382,17 +384,13 @@
     (set! (. opts verbosity) 1)
     (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
     (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
-
     (dosync (ref-set world* (ScJnaStart opts)))
-
     (on ::send-osc-msg (fn [event]
                          (let [buffer (java.nio.ByteBuffer/allocate 8129)]
                            ;(println "sending osc msg: " event)
                            (osc-encode-msg buffer (:msg event))
                            (.flip buffer)
-                           (World_SendPacket @world* (.limit buffer) buffer
-                                             (callback reply-cb internal-osc-callback)))))
-
+                           (World_SendPacket @world* (.limit buffer) buffer internal-callback))))
     (World_WaitForQuit @world*)
     (ScJnaCleanup)))
 
