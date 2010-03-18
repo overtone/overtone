@@ -13,9 +13,8 @@
                  [osc-clj "0.1"]
                  [byte-spec "0.1"]
                  [midi-clj "0.1"]
-
+		
                  [overtone/clj-scsynth "0.0.3-SNAPSHOT"]
-                 [overtone/clj-jack    "0.0.1-SNAPSHOT"]
                  [overtone/clj-repl    "0.0.1-SNAPSHOT"]
                  [overtone/clj-scenegraph "0.0.1-SNAPSHOT"]]
   :native-dependencies [[overtone/scsynth "3.3.1"]
