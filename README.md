@@ -54,8 +54,8 @@ Now get Overtone:
     user=> (use 'overtone.live)
     user=> (refer-ugens)
 
-    user=> (boot) ;; for external supercollider
-    user=> (booti) ;; or for internal supercollider and scope support
+    user=> (boot :external) ;; for external supercollider
+    user=> (boot :internal) ;; or for internal supercollider and scope support
 
     user=> (server-log) ; check for errors
 
