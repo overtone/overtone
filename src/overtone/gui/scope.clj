@@ -2,7 +2,8 @@
   (:import 
     (java.awt Color BasicStroke)
     (java.awt.geom Rectangle2D$Float)
-    (com.sun.scenario.scenegraph SGText SGShape SGGroup SGTransform 
+     (javax.swing JFrame JPanel) 
+    (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGTransform 
                                  SGAbstractShape$Mode)
      (com.sun.scenario.scenegraph.event SGMouseAdapter)
      (com.sun.scenario.scenegraph.fx FXShape))
@@ -53,7 +54,6 @@
 (declare test-buf)
 
 (defn setup-scope []
-  (def test-buf (buffer SCOPE-WIDTH))
   (defsynth simple [freq 200] (overtone.ugens/out SCOPE-BUS (overtone.ugens/sin-osc freq)))
   (defsynth scope-record [in-bus 22500
                           out-buf 0] 
@@ -70,7 +70,7 @@
   (.setTranslateY wave-shift (+ (/ @scope-height* 2) PADDING))
   (update-wave))
 
-(defn scope []
+(defn scope [buf]
   (let [scope-group (SGGroup.)
         background (SGShape.)]
     (doto background
@@ -91,12 +91,22 @@
       (.add background)
       (.add wave-shift))
 
-    (setup-scope)
-    (scope-buf test-buf)
+    ;(setup-scope)
+    (scope-buf buf)
     
 ;    (periodic #(update-wave) (/ 1000 @fps))
-    (SGTransform/createTranslation 300 300 scope-group)))
+    (SGTransform/createTranslation 300 300 scope-group)
+    scope-group))
  
+(defn test-scope []
+  (let [frame (JFrame. "scope")
+        panel (JSGPanel.)
+        _ (boot :internal)
+        _ (Thread/sleep 500)
+        sample (load-sample "/home/rosejn/studio/samples/kit/boom.wav")]
+    (.add (.getContentPane frame) panel)
+    (scope-buf sample)))
+
 ;(def audio (load-sample "samples/strings/STRNGD5.WAV"))
 ;(def abuf (:buf audio))
 

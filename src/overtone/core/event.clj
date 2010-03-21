@@ -53,7 +53,7 @@
   [event]
   (let [event-type (:event-type event)
         handlers (get @event-handlers* event-type #{})
-        ;_ (println (format "handle-event[%d]: %s" (count handlers) event-type) (keys event))
+        _ (println (format "handle-event[%d]: %s" (count handlers) event-type) (keys event))
         keepers  (set (doall (filter #(not (= :done (run-handler % event))) handlers)))]
     ;(println "handled with " (count keepers) "keepers")
     (dosync (alter event-handlers* assoc event-type 

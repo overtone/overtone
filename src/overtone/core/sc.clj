@@ -128,13 +128,10 @@
 
 (defn snd
   "Creates an OSC message and either sends it to the server immediately
-  or if a bundle is currently being formed it adds it to the list of messages."
+  or if a bundle is currently being formed it adds it to the list of messages.
+  NOTE: We'd prefer send, but since you send to an agent we use snd..."
   [path & args]
-  (cond
-    (= ::external (type @server*)) (osc-send-msg @server*
-                                                 (apply osc-msg path (osc-type-tag args) args))
-    (= ::internal (type @server*)) (event ::send-osc-msg
-                                          :msg (apply osc-msg path (osc-type-tag args) args))))
+    (event ::send-osc-msg :msg (apply osc-msg path (osc-type-tag args) args)))
 
 (defmacro at
   "Schedule the messages sent in body at a single time."
@@ -326,15 +323,17 @@
 (defn status 
   "Check the status of the audio server."
   []
-  (let [p (promise)]
-    (on "/status.reply" #(do 
-                           (deliver p (parse-status (:args %)))
-                           :done))
-    (snd "/status")
-    (try 
-      (.get (future @p) STATUS-TIMEOUT TimeUnit/MILLISECONDS)
-      (catch TimeoutException t 
-        :timeout))))
+  (if (= :booted @status*)
+    (let [p (promise)]
+      (on "/status.reply" #(do 
+                             (deliver p (parse-status (:args %)))
+                             :done))
+      (snd "/status")
+      (try 
+        (.get (future @p) STATUS-TIMEOUT TimeUnit/MILLISECONDS)
+        (catch TimeoutException t 
+          :timeout)))
+    @status*))
 
 (defn wait-sync
   "Wait until the audio server has completed all asynchronous commands currently in execution."
@@ -390,7 +389,10 @@
                            ;(println "sending osc msg: " event)
                            (osc-encode-msg buffer (:msg event))
                            (.flip buffer)
-                           (World_SendPacket @world* (.limit buffer) buffer internal-callback))))
+                           (World_SendPacket @world* 
+                                             (.limit buffer) 
+                                             buffer 
+                                             internal-callback))))
     (World_WaitForQuit @world*)
     (ScJnaCleanup)))
 
@@ -426,6 +428,9 @@
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
         read-buf (make-array Byte/TYPE 256)]
+    (on ::send-osc-msg (fn [event]
+                         (let [msg (:msg event)]
+                         (osc-send-msg @server* msg))))
     (while @running?*
       (sc-log in-stream read-buf)
       (sc-log err-stream read-buf)
@@ -458,6 +463,7 @@
 (defn quit
   "Quit the SuperCollider synth process."
   []
+  {:pre [(connected?)]}
   (log/debug "quiting supercollider")
   (when (connected?)
     (snd "/quit")
@@ -480,6 +486,7 @@
 (defn node
   "Instantiate a synth node on the audio server."
   [synth-name & args]
+  {:pre [(connected?)]}
   (let [id (alloc-id :node)
         argmap (apply hash-map args)
         position ((get argmap :position :tail) POSITION)
@@ -492,22 +499,26 @@
 (defn node-free
   "Remove a synth node"
   [& node-ids]
+  {:pre [(connected?)]}
   (doseq [id node-ids] (free-id :node id))
   (apply snd "/n_free" node-ids))
 
 (defn node-run
   "Start a stopped synth node."
   [node-id]
+  {:pre [(connected?)]}
   (snd "/n_run" node-id 1))
 
 (defn node-stop
   "Stop a running synth node."
+  {:pre [(connected?)]}
   [node-id]
   (snd "/n_run" node-id 0))
 
 (defn node-place
   "Place a node :before or :after another node."
   [node-id position target-id]
+  {:pre [(connected?)]}
   (cond
     (= :before position) (snd "/n_before" node-id target-id)
     (= :after  position) (snd "/n_after" node-id target-id)))
@@ -515,6 +526,7 @@
 (defn node-control
   "Set control values for a node."
   [node-id & name-values]
+  {:pre [(connected?)]}
   (apply snd "/n_set" node-id (stringify name-values))
   node-id)
 
@@ -523,16 +535,19 @@
   "Set a range of controls all at once, or if node-id is a group control
   all nodes in the group."
   [node-id ctl-start & ctl-vals]
+  {:pre [(connected?)]}
   (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
 
 (defn node-map-controls
   "Connect a node's controls to a control bus."
   [node-id & names-busses]
+  {:pre [(connected?)]}
   (apply snd "/n_map" node-id names-busses))
 
 (defn group
   "Create a new group as a child of the target group."
   [position target-id]
+  {:pre [(connected?)]}
   (let [id (alloc-id :node)]
     (snd "/g_new" id (get POSITION position) target-id)
     id))
@@ -540,6 +555,7 @@
 (defn group-free
   "Free the specified group."
   [& group-ids]
+  {:pre [(connected?)]}
   (apply node-free group-ids))
 
 
@@ -548,6 +564,7 @@
   synths contained within it, optionally including the current control values
   for synths."
   [id & [with-args?]]
+  {:pre [(connected?)]}
   (snd "/g_dumpTree" id with-args?))
 
 ;/g_queryTree				get a representation of this group's node subtree.

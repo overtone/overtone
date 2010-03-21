@@ -4,11 +4,11 @@
   overtone.core.ugen
   (:refer-clojure :exclude (deftype))
   (:use (overtone.core util)
-     (overtone.core.ugen special-ops common categories)
-     [clojure.contrib.types :only (deftype)]
-     [clojure.contrib.generic :only (root-type)]
-     clojure.contrib.seq-utils
-     clojure.contrib.pprint)
+        (overtone.core.ugen special-ops common categories)
+        [clojure.contrib.types :only (deftype)]
+        [clojure.contrib.generic :only (root-type)]
+        clojure.contrib.seq-utils
+        clojure.contrib.pprint)
   (:require 
      [clojure.contrib.generic.arithmetic :as ga]
      [clojure.contrib.generic.comparison :as gc]
@@ -53,10 +53,10 @@
         n (.toLowerCase n)]
   n))
 
-(defn derived? [spec]
+(defn- derived? [spec]
   (contains? spec :extends))
 
-(defn derive-ugen-specs
+(defn- derive-ugen-specs
   "Merge the ugen spec maps to give children their parent's attributes.
   
   Recursively reduces the specs to support arbitrary levels of derivation."
@@ -80,13 +80,13 @@
        (vals adults)
        (recur children adults (inc depth))))))
 
-(defn with-categories
+(defn- with-categories
   "Adds a :categories attribute to a ugen-spec for later use in documentation,
   GUI and REPL interaction."
   [spec]
   (assoc spec :categories (get UGEN-CATEGORY-MAP (:name spec) [])))
 
-(defn with-expands 
+(defn- with-expands 
   "Sets the :expands? attribute for ugen-spec arguments, which will inform the
   automatic channel expansion system when to expand argument."
   [spec]
@@ -96,7 +96,7 @@
                        (get UGEN-SPEC-EXPANSION-MODES (get arg :mode :standard))))
               (:args spec))))
 
-(defn with-fn-names
+(defn- with-fn-names
   "Generates all the function names for this ugen and adds a :fn-names map 
   that maps function names to rates, representing the output rate.
 
@@ -126,12 +126,12 @@
     (assoc spec
            :fn-names (assoc name-rates base-name base-rate))))
 
-(defn args-with-specs
+(defn- args-with-specs
   "Creates a list of (arg-value, arg-spec-item) pairs."
   [args spec prop]
   (partition 2 (interleave args (map #(get % prop) (:args spec)))))
 
-(defn map-ugen-args 
+(defn- map-ugen-args 
   "Perform any argument mappings that needs to be done."
   [spec args]
   (let [args-specs (args-with-specs args spec :map)]
@@ -140,7 +140,7 @@
                                arg))
          args-specs)))
 
-(defn append-seq-args
+(defn- append-seq-args
   "Apply whatever mode specific functions need to be performed on the argument
   list."
   [spec args]
@@ -153,7 +153,7 @@
                                  args-specs)]
     (concat args to-append)))
 
-(defn add-default-args [spec args]
+(defn- add-default-args [spec args]
   (let [defaults (map #(:default %) (:args spec))
         defaults (drop (count args) defaults)]
     (when (some #(nil? %) defaults)
@@ -162,7 +162,7 @@
              (doall (drop (count args) (map #(:name %) (:args spec))))))))
     (concat args defaults)))
 
-(defn with-num-outs-mode [spec ugen]
+(defn- with-num-outs-mode [spec ugen]
   (let [args-specs (args-with-specs (:args ugen) spec :mode)
         [args n-outs] (reduce (fn [[args n-outs] [arg mode]]
                                    (if (= :num-outs mode)
@@ -195,7 +195,7 @@
 ;      in here instead? 
 ; TODO: Refactor these init functions so everything just takes a ugen and a spec
    ; and outputs an updated ugen...  Should have done it like this initially...
-(defn with-init-fn 
+(defn- with-init-fn 
   "Creates the final argument initialization function which is applied to arguments
   at runtime to do things like re-ordering and automatic filling in of arguments.  
   Typically appending input arrays as the last argument and filling in the number of 
@@ -216,7 +216,7 @@
                    ugen (with-num-outs-mode spec ugen)]
                (assoc ugen :args (append-fn (:args ugen))))))))
 
-(defn enrich-ugen-spec 
+(defn- enrich-ugen-spec 
   "Interpret a ugen-spec and add in additional, computed meta-data."
   [spec]
   (-> spec
@@ -225,14 +225,14 @@
     (with-init-fn)
     (with-fn-names)))
 
-(defn specs-from-namespaces [namespaces]
+(defn- specs-from-namespaces [namespaces]
   (mapcat (fn [ns]
             (let [full-ns (symbol (str "overtone.core.ugen." ns))]
               (require [full-ns :only 'specs])
               (var-get (ns-resolve full-ns 'specs))))
           namespaces))
 
-(defn load-ugen-specs [namespaces]
+(defn- load-ugen-specs [namespaces]
   "Perform the derivations and setup defaults for rates, names, 
   argument initialization functions, and channel expansion flags."
   (let [specs (specs-from-namespaces namespaces)
@@ -368,15 +368,13 @@
   ; Deconstructor should produce the arguments neceessary to construct
   (fn [u] (vals u)))
 
-(derive ::ugen root-type)
-
 (defn- ugen-base-fn [spec rate special]
   (fn [& args]
     (ugen spec rate special args)))
 
 (defn ugen? [obj] (= ::ugen (type obj)))
 
-(defn make-ugen-fn
+(defn- make-ugen-fn
   "Returns a function representing the given ugen that will fill in default arguments, rates, etc."
   [spec rate special]
   (let [expand-flags (map #(:expands? %) (:args spec))]
@@ -407,12 +405,12 @@
 ;; of ugen functions for that spec.  Each of these functions will automatically
 ;; set the rate for the ugen.
 
-(defn ugen-docs
+(defn- ugen-docs
   "Create a string representing the documentation for the given ugen-spec."
   [ugen-spec]
   (with-out-str (print-ugen ugen-spec)))
 
-(defn overload-ugen-op [ns ugen-name ugen-fn]
+(defn- overload-ugen-op [ns ugen-name ugen-fn]
   (let [original-fn (ns-resolve ns ugen-name)]
     (ns-unmap ns ugen-name)
     (intern ns ugen-name (fn [& args]
@@ -420,7 +418,7 @@
                              (apply ugen-fn args)
                              (apply original-fn args))))))
 
-(defn def-ugen
+(defn- def-ugen
   "Create and intern a set of functions for a given ugen-spec.
     * base name function using default rate and no suffix (e.g. env-gen )
     * base-name plus rate suffix functions for each rate (e.g. env-gen:ar, env-gen:kr) 
@@ -435,12 +433,12 @@
     (doseq [[ugen-name ugen-fn] ugen-fns]
       (intern to-ns ugen-name ugen-fn))))
 
-(defn op-rate [arg]
+(defn- op-rate [arg]
   (if (ugen? arg)
     (:rate arg)
     (get RATES :ir)))
 
-(defn def-unary-op
+(defn- def-unary-op
   [to-ns op-name special]
   (let [spec (get UGEN-SPEC-MAP "unaryopugen")
         ugen-name (symbol (overtone-ugen-name op-name))
@@ -452,7 +450,7 @@
       (overload-ugen-op to-ns ugen-name ugen-fn)
       (intern to-ns ugen-name ugen-fn))))
 
-(defn def-binary-op
+(defn- def-binary-op
   [to-ns op-name special]
   (let [spec (get UGEN-SPEC-MAP "binaryopugen")
         ugen-name (symbol (overtone-ugen-name op-name))
@@ -465,15 +463,14 @@
       (intern to-ns ugen-name ugen-fn))))
 
 ; TODO: Why does this require its own implementation again???
-(defn- mul-add [in mul add]
+(comment defn mul-add [in mul add]
   (with-meta {:id (next-id :ugen)
               :name "MulAdd" 
               :rate (or (:rate in) 2)
               :special 0
               :args [in mul add]}
              {:type ::ugen}))
-  
-; Load the operators implemented using contrib.generic multimethods
+
 (load "ops")
 
 (defn refer-ugens 
@@ -482,22 +479,21 @@
   [& [to-ns]]
   (let [to-ns (or to-ns *ns*)]
     (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %)) 
-                             (= "BinaryOpUGen" (:name %)))) 
+                                   (= "BinaryOpUGen" (:name %)))) 
                          UGEN-SPECS)]
               (def-ugen to-ns ugen 0))
     (doseq [[op-name special] UNARY-OPS]
       (def-unary-op to-ns op-name special))
     (doseq [[op-name special] BINARY-OPS]
-        (def-binary-op to-ns op-name special))
+      (def-binary-op to-ns op-name special))
     (doseq [op generics]
+      (let [func (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" op)))]
       (ns-unmap to-ns (symbol op))
-      (intern to-ns (symbol op) (symbol (str "ga/" op))))
-      ;(intern to-ns (symbol op) (make-expanding (symbol (str "ga/" op)) [true true])))
-    (intern to-ns 'mul-add (make-expanding mul-add [true true true]))))
+      (intern to-ns (symbol op) (make-expanding func [true true]))))
+    ;(intern to-ns 'mul-add (make-expanding mul-add [true true true]))
+    ))
 
 ;; We refer all the ugen functions here so they can be access by other parts
 ;; of the Overtone system using a fixed namespace.  For example, to automatically
 ;; stick an Out ugen on synths that don't explicitly use one.
 (refer-ugens (create-ns 'overtone.ugens))
-
-
