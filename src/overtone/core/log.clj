@@ -17,7 +17,7 @@
              :warn  Level/WARNING
              :error Level/SEVERE})
 
-(def DEFAULT-LEVEL :info)
+(def DEFAULT-LEVEL :debug)
 
 (defn level [& [lvl]]
   (if (nil? lvl)

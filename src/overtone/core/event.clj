@@ -1,6 +1,8 @@
 (ns overtone.core.event
   (:import (java.util.concurrent Executors LinkedBlockingQueue))
+  (:require [overtone.core.log :as log])
   (:use (overtone.core util)
+        clojure.stacktrace
         [clojure.set :only [intersection difference]]))
 
 (def NUM-THREADS (cpu-count))
@@ -17,7 +19,7 @@
   
   Handlers can return :done to be removed from the handler list after execution."
   [event-type handler]
-  ;(println "adding-handler for " event-type)
+  (log/debug "adding-handler for " event-type)
   (dosync 
     (let [handlers (get @event-handlers* event-type #{})]
       (alter event-handlers* assoc event-type (conj handlers handler))
@@ -44,21 +46,25 @@
   (dosync (alter event-handlers* dissoc event-type)))
 
 (defn- run-handler [handler event]
-  (if (zero? (arg-count handler))
-    (handler)
-    (handler event)))
+  (try
+    (if (zero? (arg-count handler))
+      (handler)
+      (handler event))
+    (catch Exception e
+      (log/debug "Event Handler Exception: " event "\n" (with-out-str 
+                   (print-cause-trace e))))))
 
 (defn- handle-event 
   "Runs the event handlers for the given event, and removes any handler that returns :done."
   [event]
   (let [event-type (:event-type event)
         handlers (get @event-handlers* event-type #{})
-        _ (println (format "handle-event[%d]: %s" (count handlers) event-type) (keys event))
+        _ (log/debug (format "handle-event[%d]: %s " (count handlers) event-type) (keys event))
         keepers  (set (doall (filter #(not (= :done (run-handler % event))) handlers)))]
-    ;(println "handled with " (count keepers) "keepers")
+    (log/debug "handled with " (count keepers) " keepers")
     (dosync (alter event-handlers* assoc event-type 
                    (intersection keepers (get @event-handlers* event-type #{}))))
-    ;(println "finished handling " event-type "with" (count (get @event-handlers* event-type #{})))
+    (log/debug "finished handling " event-type "with" (count (get @event-handlers* event-type #{})))
     ))
 
 (defn event 
@@ -70,4 +76,5 @@
   (event ::filter-sweep-done :instrument :phat-bass)"
   [event-type & args]
   {:pre [(even? (count args))]}
+  (log/debug "firing event: " event-type args)
   (.execute thread-pool #(handle-event (apply hash-map :event-type event-type args))))

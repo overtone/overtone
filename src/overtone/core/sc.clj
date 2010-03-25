@@ -117,7 +117,7 @@
     (free-id k id)))
 
 (defn connected? []
-  (= :booted @status*))
+  (= :connected @status*))
 
 (declare boot)
 
@@ -212,7 +212,7 @@
                     (on "/n_end" #(node-destroyed (first (:args %))))
                     (on "/n_go" #(node-created (first (:args %)))))))
 
-(def N-RETRIES 50)
+(def N-RETRIES 5)
 
 (defn- connect-internal
   []
@@ -223,31 +223,40 @@
                                {:type ::internal}))))
   (register-notification-handlers)
   (snd "/status")
-  (dosync (ref-set status* :booted))
+  (dosync (ref-set status* :connected))
   (notify true) ; turn on notifications now that we can communicate
-  (event ::booted))
+  (event ::connected))
 
-(defn- connect-thread-external
+(defn- connect-external
   [host port]
   (log/debug "Connecting to external SuperCollider server: " host ":" port)
   (let [sc-server (with-meta (osc-client host port) {:type ::external})]
-    (osc-listen sc-server #(event ::osc-msg-received :msg %))
+    (osc-listen sc-server #(do (log/debug "OSC-LISTENER!!!!!!!") 
+                             (event ::osc-msg-received :msg %)))
     (dosync 
-      (ref-set server* sc-server))
-    
+      (ref-set server* sc-server)
+      (ref-set status* :connecting))
+
+    (on ::send-osc-msg (fn [event]
+                         (let [msg (:msg event)]
+                           (log/debug "sending osc msg: " msg)
+                           (osc-send-msg @server* msg))))
+
     ; Runs once when we receive the first status.reply message
-    (on "/status.reply" 
+    (on "status.reply" 
         #(do 
-           (dosync (ref-set status* :booted))
+           (dosync (ref-set status* :connected))
            (register-notification-handlers)
            (notify true) ; turn on notifications now that we can communicate
-           (event ::booted)
+           (event ::connected)
            :done))
 
     ; Send /status in a loop until we get a reply
     (loop [cnt 0]
+      (log/debug "connect loop...")
       (when (and (< cnt N-RETRIES)
-                 (= @status* :booting))
+                 (= @status* :connecting))
+        (log/debug "sending status...")
         (snd "/status")
         (Thread/sleep 100)
         (recur (inc cnt))))))
@@ -260,7 +269,7 @@
                                 dummy-obj
                                 {:type ::internal}))))
    (snd "/status")
-   (dosync (ref-set status* :booted))
+   (dosync (ref-set status* :connected))
    ;;(register-notification-handlers)
    )
 
@@ -268,12 +277,12 @@
 (defn connect
   "Connect to an external SC audio server on the specified host and port."
   ([]
-   (connect :internal))
-  ([which & [host port]]
-   (cond
-     (= :internal which) (connect-internal)
-     (= :external which) (.run (Thread. #(connect-thread-external host port))))))
-
+   (connect))
+  ([& [host port]]
+   (clear-handlers ::send-osc-msg)
+   (if (and host port)
+     (.run (Thread. #(connect-external host port)))
+     (connect-internal))))
 
 (defonce running?* (atom false))
 
@@ -323,7 +332,7 @@
 (defn status 
   "Check the status of the audio server."
   []
-  (if (= :booted @status*)
+  (if (= :connected @status*)
     (let [p (promise)]
       (on "/status.reply" #(do 
                              (deliver p (parse-status (:args %)))
@@ -365,7 +374,7 @@
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
 (if (= :linux (@config* :os))
-  (on ::booted #(connect-jack-ports)))
+  (on ::connected #(connect-jack-ports)))
 
 (defn internal-osc-callback
   [addr buf size]
@@ -386,7 +395,7 @@
     (dosync (ref-set world* (ScJnaStart opts)))
     (on ::send-osc-msg (fn [event]
                          (let [buffer (java.nio.ByteBuffer/allocate 8129)]
-                           ;(println "sending osc msg: " event)
+                           (log/debug "sending osc msg: " event)
                            (osc-encode-msg buffer (:msg event))
                            (.flip buffer)
                            (World_SendPacket @world* 
@@ -405,7 +414,7 @@
        (log/debug "Booting SuperCollider internal server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (connect :internal)
+       (connect)
        :booting))))
 
 (defn- sc-log
@@ -428,9 +437,6 @@
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
         read-buf (make-array Byte/TYPE 256)]
-    (on ::send-osc-msg (fn [event]
-                         (let [msg (:msg event)]
-                         (osc-send-msg @server* msg))))
     (while @running?*
       (sc-log in-stream read-buf)
       (sc-log err-stream read-buf)
@@ -449,7 +455,7 @@
        (log/debug "Booting SuperCollider server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (connect :external host port)
+       (connect host port)
        :booting))))
 
 (defn boot
