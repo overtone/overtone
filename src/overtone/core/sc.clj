@@ -253,18 +253,6 @@
         (Thread/sleep 100)
         (recur (inc cnt))))))
 
-(defn- connect-internal
-  []
-   (log/debug "Connecting to internal SuperCollider server")
-   (let [dummy-obj []]
-     (dosync (ref-set server* (with-meta
-                                dummy-obj
-                                {:type ::internal}))))
-   (snd "/status")
-   (dosync (ref-set status* :booted))
-   ;;(register-notification-handlers)
-   )
-
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
   "Connect to an external SC audio server on the specified host and port."
