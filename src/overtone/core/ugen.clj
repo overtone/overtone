@@ -365,7 +365,7 @@
           ug (if (contains? spec :init) ((:init spec) ug) ug)
           ug (assoc ug :n-outputs (or (:num-outs spec) 1))]
       ug))
-  ; Deconstructor should produce the arguments neceessary to construct
+  ; Deconstructor should produce the arguments neceessary to construct the same type
   (fn [u] (vals u)))
 
 (defn- ugen-base-fn [spec rate special]
@@ -472,6 +472,15 @@
              {:type ::ugen}))
 
 (load "ops")
+
+(deftype ::control-proxy control-proxy
+  (fn [name] 
+    {:name (str name)})
+  (fn [u] (:name u)))
+
+(derive ::control-proxy ::ugen)
+
+(defn control-proxy? [obj] (= ::control-proxy (type obj)))
 
 (defn refer-ugens 
   "Iterate over all UGen meta-data, generate the corresponding functions and intern them

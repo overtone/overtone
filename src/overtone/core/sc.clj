@@ -334,7 +334,7 @@
   []
   (if (= :connected @status*)
     (let [p (promise)]
-      (on "/status.reply" #(do 
+      (on "status.reply" #(do 
                              (deliver p (parse-status (:args %)))
                              :done))
       (snd "/status")
@@ -460,11 +460,13 @@
 
 (defn boot
   "Boot either the internal or external audio server."
-  ([] (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
-  ([which & [host port]]
-   (cond
-     (= :internal which) (boot-internal)
-     (= :external which) (boot-external host port))))
+  ([] (if (= :internal (get @config* :server :internal))
+        (boot)
+        (boot SERVER-HOST SERVER-PORT)))
+  ([& [host port]]
+   (if (and host port)
+     (boot-external host port)
+     (boot-internal))))
 
 (defn quit
   "Quit the SuperCollider synth process."

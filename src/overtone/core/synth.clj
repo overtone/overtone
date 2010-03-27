@@ -15,12 +15,6 @@
 (def *constants* nil)
 (def *params* nil)
 
-(defn control-proxy [name]
-  (with-meta {:name (str name)}
-             {:type ::control-proxy}))
-
-(defn control-proxy? [obj] (= ::control-proxy (type obj)))
-
 (defn- index-of [col item]
   (first (first (filter (fn [[i v]] 
                           (= v item)) 
@@ -73,7 +67,7 @@
                           {:src -1 :index (index-of constants arg)}
 
                           ; control
-                          (= ::control-proxy (type arg)) 
+                          (= :overtone.core.ugen/control-proxy (type arg)) 
                           (param-input-spec grouped-params arg)
 
                           ; child ugen
