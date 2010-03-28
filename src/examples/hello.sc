@@ -4,4 +4,4 @@
 + ({RHPF.ar(OnePole.ar(BrownNoise.ar, 0.99), LPF.ar(BrownNoise.ar, 20)
 * 800 + 1000, 0.03, 0.005)}!2)
 * 4
-}.play
+}.play;
