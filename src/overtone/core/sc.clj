@@ -366,7 +366,7 @@
   (log/debug "booting internal audio server...")
   (let [opts (byref sc-jna-startoptions)]
     (set! (. opts udp-port-num) port)
-    (set! (. opts tcp-port-num) -1)
+    (set! (. opts tcp-port-num) port)
     (set! (. opts verbosity) 1)
     (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
     (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
@@ -438,7 +438,7 @@
   ([] (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [host port]]
    (cond
-     (= :internal which) (boot-internal)
+     (= :internal which) (boot-internal port)
      (= :external which) (boot-external host port))))
 
 (defn quit

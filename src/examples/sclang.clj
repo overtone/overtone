@@ -1,31 +1,31 @@
 (ns examples.sclang
   (:use overtone.live)
   (:use clj-sclang.core)
-  (:use [clojure.contrib.duck-streams :only (slurp)]))
+  (:use clojure.contrib.duck-streams))
 
 (refer-ugens)
-(boot :internal 5300)
+(boot :internal "127.0.0.1" 5300)
 (def cb (make-vpost-cb println))        
 (sclang-start cb)
 
-(interpret "\"Hello, World!\".postln")
+;(interpret "\"Hello, World!\".postln")
+
 
 
 (interpret "
-s = Server.new(\\localhost, NetAddr(\"127.0.0.1\", 5300));
+s.queryAllNodes;
 ")
+(interpret (slurp "src/examples/hello.sc"))
 
-(interpret "
-s.remoteControlled = true;
-")
-(interpret "
-s.boot;
-s.notify;
-")
+;(node-free 1003)
 
-(use 'clojure.contrib.duck-streams)
+(interpret (slurp "src/examples/play_buf.sc"))
 
-(interpret (slurp "hello.sc"))
+(load-sample "samples/kick.wav")
 
+(defn kick []
+  (interpret "
+s.sendMsg(\"/s_new\", \"my_PlayBuf\", s.nextNodeID, 1, 1, \"out\", 0, \"bufnum\", 0);
+"))
 
-
+(kick)
