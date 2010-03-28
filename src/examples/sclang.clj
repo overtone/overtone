@@ -5,23 +5,21 @@
 
 (refer-ugens)
 (boot :internal "127.0.0.1" 5300)
+(connect-jack-ports)
 (def cb (make-vpost-cb println))        
 (sclang-start cb)
+;; wait ... until (isCompiledOk)
+(sclang-connect-to-external "127.0.0.1" 5300)
 
-;(interpret "\"Hello, World!\".postln")
+(interpret "s.queryAllNodes;")
 
 
-
-(interpret "
-s.queryAllNodes;
-")
 (interpret (slurp "src/examples/hello.sc"))
+;(node-free 1000)
 
-;(node-free 1003)
-
-(interpret (slurp "src/examples/play_buf.sc"))
 
 (load-sample "samples/kick.wav")
+(interpret (slurp "src/examples/play_buf.sc"))
 
 (defn kick []
   (interpret "
