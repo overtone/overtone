@@ -101,7 +101,7 @@
         main-panel (JSGPanel.)]
     (.add (.getContentPane app-frame) main-panel)
 
-    (boot :internal)
+    (boot)
 
     (doto main-panel
       (.setBackground Color/BLACK)

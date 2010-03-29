@@ -8,13 +8,15 @@
      (com.sun.scenario.scenegraph.event SGMouseAdapter)
      (com.sun.scenario.scenegraph.fx FXShape))
   (:use 
-     [overtone.core sc synth util ugen time-utils])
+     [overtone.core sc synth util ugen time-utils]
+    clojure.stacktrace)
   (:require [overtone.core.log :as log]))
 
 (def SCOPE-BUF-SIZE 10000)
+(def SCOPE-BUS 10)
 
-(def scope-buf* (ref false))
-(def scope-bus* (ref 0))
+(defonce scope-buf* (ref false))
+(defonce scope-bus* (ref 0))
 
 ;(defn scope-bus [bus]
 ;  (if (nil? @scope-buf*)
@@ -28,34 +30,35 @@
 (defn kill-scope []
   )
 
-(def fps* (ref 30))
-(def wave-stroke-color* (ref (Color. 0 130 226)))
-(def scope-bg-color* (ref (Color. 50 50 50)))
-(def scope-width* (ref 600))
-(def scope-height* (ref 400))
+(defonce fps* (ref 30))
+(defonce wave-stroke-color* (ref (Color. 0 130 226)))
+(defonce scope-bg-color* (ref (Color. 50 50 50)))
+(defonce scope-width* (ref 600))
+(defonce scope-height* (ref 400))
 (def PADDING 10)
 
-(def wave-shape (FXShape.))
-(def wave-scale (SGTransform/createScale 0.01 180 wave-shape))
-(def wave-shift (SGTransform/createTranslation 0 (/ @scope-height* 2) wave-scale))
-(def wave-path (java.awt.geom.Path2D$Float.))
+(defonce wave-shape (FXShape.))
+(defonce wave-scale (SGTransform/createScale 0.01 180 wave-shape))
+(defonce wave-shift (SGTransform/createTranslation 0 (/ @scope-height* 2) wave-scale))
+(defonce wave-path (java.awt.geom.Path2D$Float.))
 
 (defn update-wave []
   (when @scope-buf*
+    (println "Updating wave: " @scope-buf* (buffer-info @scope-buf*))
     (let [frames (buffer-data @scope-buf*)
           n-frames (count frames)]
       (.reset wave-path)
       (.moveTo wave-path (float 0) (aget frames 0))
-      (doseq [i (range 1 n-frames)]
+ ;     (doseq [i (range 0 n-frames)]
+ ;       (.lineTo wave-path (float i) (aget frames i))))))
+      (doseq [i (range 0 n-frames (int (/ n-frames @scope-width*)))]
         (.lineTo wave-path (float i) (aget frames i))))))
 
-(def SCOPE-WIDTH 22500)
-(def SCOPE-BUS 10)
 (declare test-buf)
 
 (defn setup-scope []
   (defsynth simple [freq 200] (overtone.ugens/out SCOPE-BUS (overtone.ugens/sin-osc freq)))
-  (defsynth scope-record [in-bus 22500
+  (defsynth scope-record [in-bus SCOPE-BUS
                           out-buf 0] 
     (overtone.ugens/record-buf in-bus out-buf))
   (def test-synth (simple 220))
@@ -70,7 +73,7 @@
   (.setTranslateY wave-shift (+ (/ @scope-height* 2) PADDING))
   (update-wave))
 
-(defn scope [buf]
+(defn scope [& [buf]]
   (let [scope-group (SGGroup.)
         background (SGShape.)]
     (doto background
@@ -91,21 +94,26 @@
       (.add background)
       (.add wave-shift))
 
-    ;(setup-scope)
-    (scope-buf buf)
+    (if buf
+      (scope-buf buf))
     
 ;    (periodic #(update-wave) (/ 1000 @fps))
-    (SGTransform/createTranslation 300 300 scope-group)
-    scope-group))
+    (SGTransform/createTranslation 300 300 scope-group)))
  
+(def frame (JFrame. "scope"))
+(def panel (JSGPanel.))
+(.add (.getContentPane frame) panel)
+(.setScene panel (scope))
+
 (defn test-scope []
-  (let [frame (JFrame. "scope")
-        panel (JSGPanel.)
-        _ (boot :internal)
-        _ (Thread/sleep 500)
-        sample (load-sample "/home/rosejn/studio/samples/kit/boom.wav")]
-    (.add (.getContentPane frame) panel)
-    (scope-buf sample)))
+  (if (not (connected?))
+    (do 
+      (boot)
+      (Thread/sleep 500)
+      (let [sample (load-sample "/home/rosejn/studio/samples/kit/boom.wav")]
+        (Thread/sleep 500)
+        (scope-buf sample))))
+  (.show frame))
 
 ;(def audio (load-sample "samples/strings/STRNGD5.WAV"))
 ;(def abuf (:buf audio))
@@ -121,29 +129,6 @@
   ;   - segment shape
   ;   - segment curve
   ; ] * n-segments
-(comment defn show-curve 
-  "Display a SuperCollider envelope curve in a graphical window."
-  [c]
-  (let [[start-y n-segs rel-node loop-node & segments] c
-        ds (DefaultXYDataset.)
-        ary (make-array Double/TYPE 2 (inc n-segs))]
-    (aset-double ary 0 0 0.0)
-    (aset-double ary 1 0 (double start-y))
-    (println "0.0" start-y)
-    (loop [segs segments
-           cur-x 0.0
-           idx 1]
-      (when segs
-        (let [[y dur shape curve & segs] segs
-              x (double (+ cur-x (* 1000 dur)))
-              y (double y)]
-          (aset-double ary 0 idx x)
-          (aset-double ary 1 idx y)
-          (println x y)
-          (recur segs x (inc idx)))))
-    (.addSeries ds "envelope" ary)
-    (scope ds)))
-
-
-; This is the line that does it!
-;(update-dataset ds (.getFloatArray (.data (buffer-copy 0)) 0 (:n-frames (sample-info boom)))))
+(defn show-curve 
+  "Display an envelope curve in the wave window."
+  [c])

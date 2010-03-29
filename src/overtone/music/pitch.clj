@@ -197,11 +197,6 @@
 
 (defn octaves [scale])
 
-(defn choose 
-  "Choose a random note from notes."
-  [notes]
-  (get notes (rand-int (count notes))))
-
 (defn chosen-from [notes]
   (let [num-notes (count notes)]
     (repeatedly #(get notes (rand-int num-notes)))))
