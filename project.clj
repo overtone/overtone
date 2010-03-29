@@ -10,7 +10,7 @@
                            [org.clojars.rosejn/jsyntaxpane "0.9.5-b27"]
                            ;[penumbra "0.5.0"]
 
-                           [osc-clj "0.1.1-SNAPSHOT"]
+                           [osc-clj "0.1.2-SNAPSHOT"]
                            [byte-spec "0.1"]
                            [midi-clj "0.1"]
 
