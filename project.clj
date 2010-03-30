@@ -1,8 +1,8 @@
-(defproject overtone "0.1"
-  :description "An audio/musical experiment."
-  :dependencies [
-                 [org.clojure/clojure "1.1.0"]
-                 [org.clojure/clojure-contrib "1.1.0"]
+(defproject overtone "0.1.1"
+            :description "An audio/musical experiment."
+            :dependencies [
+                           [org.clojure/clojure "1.1.0"]
+                           [org.clojure/clojure-contrib "1.1.0"]
 
                  [jline "0.9.94"]
                  [vijual "0.1.0-SNAPSHOT"]
@@ -14,6 +14,7 @@
                  [midi-clj "0.1"]
                  
 		 [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
+		 [overtone/clj-repl "0.0.1-SNAPSHOT"]
 		 [overtone/clj-sclang  "0.0.2-SNAPSHOT"]
                  [overtone/clj-scenegraph "0.0.1-SNAPSHOT"]]
   :native-dependencies [[overtone/scsynth "3.3.1-SNAPSHOT"]

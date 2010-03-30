@@ -1,16 +1,13 @@
 == 0.2 Release
 
-- use clojure.contrib.generics or else write a function that turns an arbitrary
-  application of + or * into a series if binary-op-ugens.
-
 - when mapping ugen args don't map if a non keyword value is there...
-
-- don't auto-attach out and pan ugens unless it's a synth with a single root
-  that is output at audio rate
 
 - make things work where there are multiple "roots" in a synthdef graph
 
 == General:
+
+* add a description property to the ugen specs using the info in docs/ugens, and 
+add some machinery to add this to the :doc metadata.
 
 * Add a runtime shutdown hook that calls shutdown callbacks to close the server
 and do anything else necessary.

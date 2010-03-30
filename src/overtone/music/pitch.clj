@@ -163,7 +163,11 @@
   :g => g major          :dm => d minor
   :eb7 => eb major 7     :cm7 => c minor 7
   :ba => b augmented     :f#i => f# diminished"
-  (let [[note intervals] (parse-scale s)]))
+  (let [[note intervals] (parse-scale s)]
+    (reduce (fn [[mem last-note] interval]
+              (let [new-note (+ last-note interval)]
+                [(conj mem new-note) new-note]))
+            (take (* 8 12) (cycle intervals)))))
     
 ;        full-intervals (apply concat (take 12 (repeat (scales intervals))))
 ;        [result _] (reduce 
@@ -193,11 +197,6 @@
 
 (defn octaves [scale])
 
-(defn choose 
-  "Choose a random note from notes."
-  [notes]
-  (get notes (rand-int (count notes))))
-
 (defn chosen-from [notes]
   (let [num-notes (count notes)]
     (repeatedly #(get notes (rand-int num-notes)))))
@@ -216,4 +215,3 @@
 ;; - drum and bass sounds
 ;;
 ;;* create a library of sequence modifiers and harmonizers
-
