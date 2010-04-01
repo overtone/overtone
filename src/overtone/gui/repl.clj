@@ -1,4 +1,4 @@
-(ns overtone.app.repl
+(ns overtone.gui.repl
   (:gen-class)
 
   (:import                  
