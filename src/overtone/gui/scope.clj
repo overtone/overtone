@@ -8,16 +8,19 @@
      (com.sun.scenario.scenegraph.event SGMouseAdapter)
      (com.sun.scenario.scenegraph.fx FXShape))
   (:use 
-     [overtone.core sc synth util ugen time-utils]
+     [overtone.core sc synth util time-utils]
     clojure.stacktrace)
   (:require [overtone.core.log :as log]))
 
 (def SCOPE-BUF-SIZE 10000)
 (def SCOPE-BUS 10)
 
-(defonce scope-buf* (ref false))
-(defonce scope-buf-size* (ref 0))
-(defonce scope-bus* (ref 0))
+(defonce scope* (ref {:buf false
+                      :buf-size 0
+                      :bus 0
+                      :fps 15
+                      :status :off
+                      :runner nil}))
 
 ;(defn scope-bus [bus]
 ;  (if (nil? @scope-buf*)
@@ -31,23 +34,21 @@
 (defn kill-scope []
   )
 
-(defonce fps* (ref 30))
+(def X-PADDING 5)
+(def Y-PADDING 10)
+
 (defonce wave-stroke-color* (ref (Color. 0 130 226)))
 (defonce scope-bg-color* (ref (Color. 50 50 50)))
 (defonce scope-width* (ref 600))
 (defonce scope-height* (ref 400))
-
-(def X-PADDING 5)
-(def Y-PADDING 10)
-
 (defonce wave-shape (FXShape.))
 (defonce wave-path (Path2D$Float.))
 
 (defn update-wave []
-  (when @scope-buf*
-    (let [buf @scope-buf*
+  (when (:buf @scope*)
+    (let [buf (:buf @scope*)
           frames (buffer-data buf)
-          n-frames @scope-buf-size*
+          n-frames (:buf-size @scope*)
           y-scale (/ (- @scope-height* (* 2 Y-PADDING)) 2)]
       (.reset #^Path2D$Float wave-path)
       (.moveTo #^Path2D$Float wave-path (float 0) (aget #^floats frames 0))
@@ -67,9 +68,10 @@
   )
 
 (defn scope-buf [buf]
-  (dosync (ref-set scope-buf* buf)
-    (ref-set scope-buf-size* (count (buffer-data buf))))
-  (.setScaleX wave-shape (/ @scope-width* (float @scope-buf-size*)))
+  (dosync (alter scope* assoc 
+                 :buf buf
+                 :buf-size (count (buffer-data buf))))
+  (.setScaleX wave-shape (/ @scope-width* (float (:buf-size @scope*))))
   (.setTranslateX wave-shape X-PADDING)
   (.setTranslateY wave-shape (+ (/ @scope-height* 2) Y-PADDING))
   (update-wave))
@@ -98,27 +100,39 @@
     (if buf
       (scope-buf buf))
     
-;    (periodic #(update-wave) (/ 1000 @fps))
     ;(SGTransform/createTranslation 30 30 scope-group)
     scope-group))
+
+(defn scope-on []
+  (dosync (alter scope* assoc 
+                 :status :on 
+                 :runner (periodic #(update-wave) (/ 1000 (:fps @scope*))))))
+
+(defn scope-off []
+  (.cancel (:runner @scope*))
+  (dosync (alter scope* assoc
+                 :status :off
+                 :runner nil)))
  
 (defonce frame (JFrame. "scope"))
 (defonce panel (JSGPanel.))
-(defonce _ (do 
+(defonce _test-scope (do 
              (.setPreferredSize panel (Dimension. 600 400))
              (.add (.getContentPane frame) panel)
              (.setScene panel (scope))
              (.pack frame)
              (.show frame)))
 
-(defn test-scope []
+(defonce test-sample* (ref nil))
+
+(defn test-scope [path]
   (if (not (connected?))
     (do 
       (boot)
-      (Thread/sleep 500)
-      (def sample (load-sample "/home/rosejn/studio/samples/kit/boom.wav"))
-      (Thread/sleep 500)
-      (scope-buf sample)))
+      (Thread/sleep 1000)
+      (dosync (ref-set test-sample* (load-sample path)))
+      (Thread/sleep 200)
+      (scope-buf @test-sample*)))
   (.show frame))
 
 ;(def audio (load-sample "samples/strings/STRNGD5.WAV"))

@@ -1,6 +1,6 @@
-== Data Model ==
+## Data Model
 
-=== User:
+### User:
  - name, UUID, profile, email, url
 * friends
 * projects
@@ -9,12 +9,12 @@
 * players
 * modifiers
 
-=== Friend:
+### Friend:
 A bookmarked user with increased privileges, possible caching, etc.
  - user info
  - link to a peer proxy node
 
-=== Project:
+### Project:
 A configuration of instruments, effects, players, and modifiers.  It represents
 a musical piece.
 * instruments
@@ -24,7 +24,7 @@ a musical piece.
 * configuration data for all of the above
 * project history, contributors, timestamps
 
-=== Instrument:
+### Instrument:
 Represents a playable object that accepts note on/off triggers and 
 control value updates.
 
@@ -33,11 +33,11 @@ control value updates.
  - audio file
 * midi output configuration
 
-=== Effect:
+### Effect:
 An realtime audio processor.
 * synth definition
 
-=== Player:
+### Player:
 A source of musical note on/off triggers and control value updates.
 
 * sequencers
@@ -45,7 +45,7 @@ A source of musical note on/off triggers and control value updates.
  - random notes, markov models, sample & hold, etc...
 * midi input configuration
 
-=== Modifier:
+### Modifier:
 A musical note and/or control value modifier, which takes a stream of
 notes as its input, and outputs a new stream of notes.
 
@@ -57,19 +57,19 @@ notes as its input, and outputs a new stream of notes.
 
 Capabilities:
 
-=== Social:
+### Social:
 
 * add/remove friends
 * list friends (online, offline, both)
 
-=== Networking:
+### Networking:
 
 * start with a centralized, well-known peer that acts as a jump off point for finding
 friends, open sessions, browsing for instruments and effects, etc.
 
 * use either a BubbleStorm or one of the more recent DHT designs such as FuzzyNet
 
-== Relevant Queries ==
+#### Relevant Queries 
 
 online friends:
 

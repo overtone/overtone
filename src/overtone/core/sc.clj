@@ -204,16 +204,9 @@
   [id]
   (log/debug (format "node-created: %d" id)))
 
-(defn- register-notification-handlers
-  "Setup the feedback handlers with the audio server."
-  []
-  (case (type @server*)
-        :external (do 
-                    (osc-handle @server* "/n_end" #(node-destroyed (first (:args %))))
-                    (osc-handle @server* "/n_go" #(node-created (first (:args %)))))
-        :internal (do
-                    (on "/n_end" #(node-destroyed (first (:args %))))
-                    (on "/n_go" #(node-created (first (:args %)))))))
+; Setup the feedback handlers with the audio server.
+(on "/n_end" #(node-destroyed (first (:args %))))
+(on "/n_go" #(node-created (first (:args %))))
 
 (def N-RETRIES 5)
 
@@ -234,11 +227,10 @@
                                       internal-osc-callback)))
         peer (assoc (osc-peer) :send-fn send-fn)]
     (dosync (ref-set server* peer))
-    (register-notification-handlers)
     (snd "/status")
     (dosync (ref-set status* :connected))
     (notify true) ; turn on notifications now that we can communicate
-    (event ::connected)))
+    (event :connected)))
 
 (defn- connect-external
   [host port]
@@ -253,9 +245,8 @@
     (on "status.reply" 
         #(do 
            (dosync (ref-set status* :connected))
-           (register-notification-handlers)
            (notify true) ; turn on notifications now that we can communicate
-           (event ::connected)
+           (event :connected)
            :done))
 
     ; Send /status in a loop until we get a reply
@@ -366,7 +357,7 @@
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
 (if (= :linux (@config* :os))
-  (on ::connected #(connect-jack-ports)))
+  (on :connected #(connect-jack-ports)))
 
 (defn internal-booter [port]
   (reset! running?* true)
@@ -378,7 +369,7 @@
     (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
     (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
     (dosync (ref-set world* (ScJnaStart opts)))
-    (event ::booted)
+    (event :booted)
     (World_WaitForQuit @world*)
     (ScJnaCleanup)))
 
@@ -391,7 +382,7 @@
        (log/debug "Booting SuperCollider internal server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (on ::booted connect)
+       (on :booted connect)
        :booting))))
 
 (defn- sc-log
@@ -445,8 +436,8 @@
 (defn quit
   "Quit the SuperCollider synth process."
   []
-  {:pre [(connected?)]}
-  (log/debug "quiting supercollider")
+  (log/info "quiting supercollider")
+  (event :quit)
   (when (connected?)
     (snd "/quit")
     (log/debug "SERVER: " @server*)
@@ -454,6 +445,10 @@
   (reset! running?* false)
   (dosync (ref-set server* nil)
     (ref-set status* :no-audio)))
+
+; TODO: Come up with a better way to delay shutdown until all of the :quit event handlers 
+; have executed.  For now we just use 500ms.
+(defonce _shutdown-hook (.addShutdownHook (Runtime/getRuntime) (Thread. #(do (quit) (Thread/sleep 500)))))
 
 ; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists
 ; and group zero is the root of the graph.  Nodes can be added to a group in

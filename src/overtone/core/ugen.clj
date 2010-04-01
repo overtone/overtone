@@ -467,7 +467,7 @@
       (intern to-ns ugen-name ugen-fn))))
 
 ; TODO: Why does this require its own implementation again???
-(comment defn mul-add [in mul add]
+(defn mul-add [in mul add]
   (with-meta {:id (next-id :ugen)
               :name "MulAdd" 
               :rate (or (:rate in) 2)
@@ -503,7 +503,7 @@
       (let [func (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" op)))]
       (ns-unmap to-ns (symbol op))
       (intern to-ns (symbol op) (make-expanding func [true true]))))
-    ;(intern to-ns 'mul-add (make-expanding mul-add [true true true]))
+    (intern to-ns 'mul-add (make-expanding mul-add [true true true]))
     ))
 
 ;; We refer all the ugen functions here so they can be access by other parts
