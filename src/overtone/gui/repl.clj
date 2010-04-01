@@ -38,8 +38,6 @@
   (capture-out-write #(dosync (ref-set temp (str "from callback: " %))) (println "hiiii"))
   (println @temp))
 
-
-
 (defn start-repl-thread [] (future (try
                                  (capture-out-write #(event ::repl-print :text %)
                                                     (let [read-q (LinkedBlockingQueue.)
@@ -83,5 +81,5 @@
 
   (event ::repl-write :text "(println \"hello world\")"))
 
-;(defn repl []
-;  )
+(defn repl []
+  )
