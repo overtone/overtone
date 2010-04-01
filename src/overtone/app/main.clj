@@ -1,14 +1,15 @@
 (ns overtone.app.main
   (:gen-class)
   (:import 
-     (java.awt Toolkit EventQueue Dimension Point)
-     (java.awt Dimension Color Font RenderingHints Point BasicStroke)
-     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
-     (javax.swing JFrame JPanel) 
-     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGAbstractShape$Mode SGComponent
-                                  SGTransform)
-     (com.sun.scenario.scenegraph.event SGMouseAdapter)
-     (com.sun.scenario.scenegraph.fx FXShape))
+    (java.awt Toolkit EventQueue Dimension Point)
+    (java.awt Dimension Color Font RenderingHints Point BasicStroke)
+    (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
+    (javax.swing JFrame JPanel) 
+    (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGAbstractShape$Mode SGComponent
+                                 SGTransform)
+    (com.sun.scenario.scenegraph.event SGMouseAdapter)
+    (com.sun.scenario.scenegraph.fx FXShape)
+    (scenariogui.synth ISynth ISynthParam SynthControl))
   (:use (overtone.app editor)
         (overtone.core sc)
         (overtone.gui scope)))
@@ -77,12 +78,23 @@
       (.add (booter))
       (.add (header-status)))))
 
+(defn make-synth [s-fn]
+  (proxy [ISynth] []
+    ISynthParam[] getParams();
+ 
+    (getName [] (:name (meta s-fn))) 
+    (play [vals] (apply s-fn vals))
+    (kill [] ())
+    (control [param value] (s-fn :ctl param value))))
+
 (defn overtone-scene [args]
-  (let [root (SGGroup.)]
+  (let [root (SGGroup.)
+        synth (make-synth)]
     (doto root
       (.add (header))
 ;      (.add (editor))
-      (.add (scope)))))
+      (.add (scope)
+      (.add (SynthControl. synth))))))
 
 (defn screen-dim []
   (.getScreenSize (Toolkit/getDefaultToolkit)))
