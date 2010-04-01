@@ -1,31 +1,24 @@
-=== Project:
-* pull bytes out into a separate project
-
+### Project:
 * put together a one-shot ubuntu install script that sets you up with
 scsynth, the necessary jar-files, etc...
 
 * create a series of livecode session movies going through how things work
 
-=== Features:
+### Features:
+
+#### Application 
+
 * Audio samples: loading, playing, and manipulating
  - support a variety of file formats, not just wav
 
-* Tempo and time management 
- 
-* Dynamic re-evaluation of generator functions
- - It should be as easy as possible to keep evaluating new versions of a 
-musical process so the "score" can be updated on the fly.
+#### Audio
 
 * audio in and out
  - select line-in/out, mic...
  - show a scope along side the chooser and with a single click connect up
    so it's easy to see what you are hooking up with quickly
 
-* write an OSC driver for the jackminimixer so we can easily control global volume 
-
 * SynthDefs 
- - specify control args, ranges, defaults
-  * auto-generate controls, maybe auto-hookup to specially named busses
  - sound exploration mode:
   * bring up the scope and an FFT window with some helpful controls for exploring sound spaces
   * either bring up a window or make it easy to do in code:
@@ -45,7 +38,10 @@ area so users can easily browse available instruments and fx.
  * we can do this either at the form processing phase, connected to (replace-arithmetic ...)
    or in the ugen connection phase in (detail-ugens ...)
 
+#### Musical
 
+* Tempo and time management 
+ 
 * Arpeggiator(s)
 * Chord progressors
  - create a library of things like 12-bar-blues, etc., and make it easy
@@ -72,29 +68,29 @@ to connect them up to instruments.
 * Re-write the tune-up script in clojure using the shell-out (sh ...) function from clojure.contrib
  - will need to figure out how to correctly manage classpath bullshit...
 
-=== Visualization and Dynamic Interface Generation
+### Visualization and Dynamic Interface Generation
 
 It would be very cool if voices, fx and generators could register various named knobs, triggers and observable sequences that could be used to interact and visualize live-coded musical systems.
 
 * penumbra GL/shaders for clojure http://github.com/ztellman/penumbra/tree/master
 * Game engine http://www.jmonkeyengine.com/
 
-=== Distributed, real-time jamming
+### Distributed, real-time jamming
 Use: Plasma, graph based networking
 
-=== Cloud storage and collaboration 
+### Cloud storage and collaboration 
 Use: google app-engine/wave cloud server
 
-=== VST Plugin capabliity
+### VST Plugin capabliity
 Use: jVSTWrapper (http://jvstwrapper.sourceforge.net/
 
-=== Computer vision (multi-touch detection and object tracking)
+### Computer vision (multi-touch detection and object tracking)
 
-==== Touch APIs:
+#### Touch APIs:
 * Multitouch lib from TU-Berlin http://code.google.com/p/multitouch/
 * Sparsh UI http://code.google.com/p/sparsh-ui/
 
-==== Custom image processing:
+#### Custom image processing:
 * http://javavis.sourceforge.net/
 * Java OpenCV http://ubaa.net/shared/processing/opencv/
 * Or implement processing pipeline in C++ with OpenCV and use 

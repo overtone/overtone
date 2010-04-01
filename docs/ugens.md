@@ -1,6 +1,6 @@
-== SuperCollider 2.0 Unit Generators: 
+## SuperCollider 2.0 Unit Generators: 
   
-=== Unary Operators 
+### Unary Operators 
   
 neg .. inversion 
 reciprocal .. reciprocal 
@@ -39,7 +39,7 @@ isPositive .. 1 when a >= 0, else 0
 isNegative .. 1 when a < 0, else 0 
 isStrictlyPositive .. 1 when a > 0, else 0 
   
-=== Binary Operators 
+### Binary Operators 
   
 + .. addition 
 - .. subtraction 
@@ -74,7 +74,7 @@ scaleneg .. nonlinear amplification { a when a >= 0, a*b when a < 0 }
 clip2 .. bilateral clipping { b when a > b, -b when a < -b, else a } 
 excess .. residual of clipping a - clip2(a,b) 
   
-=== Oscillators 
+### Oscillators 
   
 Osc .. wavetable oscillator 
 Osc.ar(table, freq, phase, mul, add) 
@@ -133,7 +133,7 @@ Impulse.ar(freq, mul, add)
 SyncSaw .. hard sync sawtooth wave oscillator 
 SyncSaw.ar(syncFreq, sawFreq, mul, add) 
   
-=== Noise 
+### Noise 
   
 WhiteNoise .. white noise 
 WhiteNoise.ar(mul, add) 
@@ -177,7 +177,7 @@ Rossler.ar(chaosParam, dt, mul, add)
 Latoocarfian .. Clifford Pickover's chaotic function 
 Latoocarfian.ar(a, b, c, d, mul, add) 
   
-=== Filters 
+### Filters 
   
 FOS .. general first order section 
 FOS.ar(in, a0, a1, b1, mul, add) 
@@ -260,7 +260,7 @@ BRZ2.ar(in, mul, add)
 Median .. three point median filter 
 Median.ar(in, mul, add) 
   
-=== Controls 
+### Controls 
   
 ControlIn .. read an external control source 
 ControlIn.kr(source, lagTime) 
@@ -319,7 +319,7 @@ ImpulseSequencer.ar(levelArrayRef, clock, mul, add)
 ZeroCrossing .. zero crossing frequency follower 
 ZeroCrossing.ar(in) 
   
-=== Amplitude Operators 
+### Amplitude Operators 
   
 Compander .. compresser, expander, limiter, gate, ducker 
 Compander.ar(input, control, threshold, slopeBelow, slopeAbove, clampTime, relaxTime, mul, add) 
@@ -354,7 +354,7 @@ LinXFade2.ar(l, r, pan)
 LinXFade4 .. linear quad cross fade 
 LinXFade4.ar(lf, rf, lb, rb, xpan, ypan) 
   
-=== Delays 
+### Delays 
   
 Delay1 .. one sample delay 
 Delay1.ar(in, mul, add) 
@@ -416,7 +416,7 @@ PingPongN.ar(leftIn, rightIn, maxdtime, delaytime, feedback, mul, add)
 PingPongL .. ping pong delay, linear interpolation 
 PingPongL.ar(leftIn, rightIn, maxdtime, delaytime, feedback, mul, add) 
   
-=== Frequency Domain 
+### Frequency Domain 
   
 FFT .. fast fourier transform 
 FFT.ar(size, offset, cosTable, inputWindow, outputWindow, realInput, imaginaryInput) 
@@ -424,7 +424,7 @@ FFT.ar(size, offset, cosTable, inputWindow, outputWindow, realInput, imaginaryIn
 IFFT .. inverse fast fourier transform 
 IFFT.ar(size, offset, cosTable, inputWindow, outputWindow, realInput, imaginaryInput) 
   
-=== Samples and I/O 
+### Samples and I/O 
   
 PlayBuf .. sample playback from a Signal buffer 
 PlayBuf.ar(signal, sigSampleRate, playbackRate, offset, loopstart, loopend, mul, add) 
@@ -441,7 +441,7 @@ DiskIn.ar(soundFile, loopFlag, startFrame, numFrames)
 DiskOut .. stream audio out to disk file 
 DiskOut.ar(soundFile, numFrames, channelArray) 
   
-=== Event Spawning 
+### Event Spawning 
   
 Pause .. turn a process on and off 
 Pause.ar(eventFunc, level) 
@@ -473,7 +473,7 @@ SelectEvent.ar(array, selectFunc, numChannels, nextTime, maxRepeats, mul, add)
 OrcScore .. play an event list with an orchestra 
 OrcScore.ar(orchestra, score, numChannels, nextTime, maxRepeats, mul, add) 
   
-=== Misc 
+### Misc 
   
 Scope .. write audio to a SignalView 
 Scope.ar(signalView, in) 

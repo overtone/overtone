@@ -1,4 +1,3 @@
-
 # how ugen functions are defined
 
 ## intializing the base specs.
@@ -11,7 +10,7 @@ then comes mode initialization. all args are assigned a mode.
 if the arg does not have an explicitly statetd mode, then
 the arg-name-mode-map is searched. if there is no mode in
 the name map, then the default mode is :standard. at this
-time a boolean :expanded property is also added to each
+time a boolean :expands? property is also added to each
 arg entry, depending on the mode of the arg.
 
 then an expansion spec is derived from the :expanded properties.

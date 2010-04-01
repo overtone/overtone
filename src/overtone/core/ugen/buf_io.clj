@@ -24,7 +24,7 @@
               {:name "trigger", :default 1.0}
               {:name "startPos", :default 0.0}
               {:name "loop", :default 0.0}
-              {:name "doneAction", :default :none}]}
+              {:name "doneAction", :default :none :map DONE-ACTIONS}]}
       
       ;; TGrains : MultiOutUGen {
       ;; 	*ar { arg numChannels, trigger=0, bufnum=0, rate=1, centerPos=0, 
@@ -134,7 +134,7 @@
               {:name "run", :default 1.0}
               {:name "loop", :default 1.0}
               {:name "trigger", :default 1.0}
-              {:name "doneAction", :default 0}]}
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]}
       
       ;; ScopeOut : UGen {
       ;; 	*ar { arg inputArray , bufnum=0;

@@ -286,6 +286,7 @@
       ;; }
 
       {:name "MulAdd",
+       :desc "equivalent to (+ add (* mul in))"
        :args [{:name "in"}
               {:name "mul", :default 1.0}
               {:name "add", :default 0.0}]}])

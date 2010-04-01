@@ -4,14 +4,14 @@
 ; Here is a basic kick drum.  An envelope generator is multiplied by a low frequency 
 ; sin wave, which is like turning the volume knob up and down really quick while playing 
 ; a low tone.
-(defsynth round-kick [amp 0.5 decay 0.6 freq 65]
+(defsynth kick [amp 0.5 decay 0.6 freq 65]
   (let [env (env-gen (perc 0 decay) 1 1 0 1 :free)
         snd (sin-osc freq (* Math/PI 0.5) amp)]
     (out 0 (pan2 (* snd env) 0))))
 
 ; A shorter variation leaving out the out and pan ugens, which get added by default 
 ; to synths that are rooted by an audio rate ugen that isn't out.  
-(defsynth round-kick [amp 0.5 decay 0.6 freq 65]
+(defsynth kick [amp 0.5 decay 0.6 freq 65]
   (* (sin-osc freq (* Math/PI 0.5) amp)
      (env-gen (perc 0 decay) 1 1 0 1 :free))) 
 
@@ -19,7 +19,7 @@
 ; binary format sent to the SuperCollider server.  These could also be created in other
 ; ways, for example if you have in idea for a synthesizer DSL...
 {
- :name "round-kick", 
+ :name "kick", 
  :n-params 3,             ; The number of controllable parameters
  :params [0.5 0.6 65.0],  ; default parameter values
  

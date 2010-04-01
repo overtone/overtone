@@ -1,5 +1,10 @@
-  Overtone
-==============
+          ____                  __
+         / __( )_  _____  _____/ /_____  ____  ___
+        / / / / | / / _ \/ ___/ __/ __ \/ __ \/ _ \
+       / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
+       \____/ |___/\___/_/   \__/\____/_/ /_/\___/
+
+---------------------------------------------------------
 
 #### Live-coding and musical exploration
 
@@ -52,7 +57,7 @@ Now get Overtone:
     $ lein repl
 
     user=> (use 'overtone.live)
-    user=> (refer-ugens)
+    user=> (refer-ugens)    ;; Add the ugen functions to the namespace
 
     user=> (boot :external) ;; for external supercollider
     user=> (boot :internal) ;; or for internal supercollider and scope support

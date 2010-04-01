@@ -20,6 +20,6 @@ if [[ "$OSTYPE" == 'cygwin' ]]; then
   CLASSPATH=`cygpath -wp "$CLASSPATH"`
 fi
 
-DEFINES=-Djava.library.path=native/linux/x86
+DEFINES=-Djava.library.path=native/linux/x86,sun.java2d.opengl=True
 
 echo "-cp $CLASSPATH $DEFINES"
