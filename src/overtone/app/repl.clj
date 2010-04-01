@@ -78,7 +78,7 @@
 
   (on ::repl-exited #(println "repl exited"))
 
-  (event ::repl-ready #(println "repl ready"))
+  (on ::repl-ready #(println "repl ready"))
   (event ::repl-exit)
 
   (event ::repl-write :text "(println \"hello world\")"))
