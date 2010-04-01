@@ -8,7 +8,7 @@
      (com.sun.scenario.scenegraph.event SGMouseAdapter)
      (com.sun.scenario.scenegraph.fx FXShape))
   (:use 
-     [overtone.core sc synth util time-utils]
+     [overtone.core event sc synth util time-utils]
     clojure.stacktrace)
   (:require [overtone.core.log :as log]))
 
@@ -109,11 +109,13 @@
                  :runner (periodic #(update-wave) (/ 1000 (:fps @scope*))))))
 
 (defn scope-off []
-  (.cancel (:runner @scope*))
+  (.cancel (:runner @scope*) true)
   (dosync (alter scope* assoc
                  :status :off
                  :runner nil)))
  
+(require 'examples.basic)
+
 (defonce frame (JFrame. "scope"))
 (defonce panel (JSGPanel.))
 (defonce _test-scope (do 
@@ -123,16 +125,21 @@
              (.pack frame)
              (.show frame)))
 
-(defonce test-sample* (ref nil))
+(defn- go-go-scope []
+  (let [b (buffer 2048)]
+    (Thread/sleep 100)
+    (scope-buf b)
+    (scope-on)
+    (examples.basic/sizzle :bus 20)
+    (examples.basic/bus->buf 20 (:id b))
+    (examples.basic/bus->bus 20 0)))
 
-(defn test-scope [path]
+(defn test-scope []
   (if (not (connected?))
     (do 
       (boot)
-      (Thread/sleep 1000)
-      (dosync (ref-set test-sample* (load-sample path)))
-      (Thread/sleep 200)
-      (scope-buf @test-sample*)))
+      (on :examples-ready go-go-scope))
+    (go-go-scope))
   (.show frame))
 
 ;(def audio (load-sample "samples/strings/STRNGD5.WAV"))
