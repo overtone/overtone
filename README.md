@@ -91,6 +91,45 @@ possible to use emacs and slime, or netbeans and enclojure, or eclipse, or
 whatever else as long as you can evaluate clojure expressions inside the
 editor.
 
+### Project Map
+
+* TODO => The list of stuff that's going to get done
+* docs
+  * roadmap => future directions
+  * metadata => details about how UGen functions are generated
+  * kick.clj => documented synthesizer definition in Overtone format
+  * ugens => some basic ugen documentation (eventually to become meta-data)
+  * events => info about the event system and events published by Overtone
+  * data-model => modeling the app for use with a graph database
+* lib => where lein deps puts jar file dependencies
+* native => where lein native-deps puts the native library code
+* test => the meager tests that will eventually grow
+* script => random helper scripts, most of which are becoming obsolete
+* src
+  * devices => to become device "drivers" (e.g. for specific MIDI controllers)
+  * examples => how to use Overtone (contributions welcome, basic to advanced)
+  * lib => various libraries used by the project if you have the submodules
+  checked out
+  * overtone
+    * app => the stand-alone Overtone application code
+    * core => the guts of the audio system and core functionality
+    * gui => general purpose GUI components (mostly implemented as SGNode
+    objects using the scenario 2D scenegraph library created for JavaFX)
+    * music => musically oriented code related to notes, chords, rhythm, etc.
+    * studio => higher level audio components built on the core
+
+### Development
+
+To setup with all the dependent libraries developed as a part of Overtone you
+should grab the submodules too:
+
+  git submodule init 
+  git submodule update
+
+Note, the deps from clojars will be used when you run the code, so you don't
+need these unless you want to develop on one of the sub-libraries.  (osc,
+supercollider interfacing, event, etc...)
+
 ### Contributors
 
 * Jeff Rose

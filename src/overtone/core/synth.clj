@@ -283,10 +283,13 @@
          (load-synthdef sdef#)
          (dosync (alter synths* assoc sname# sgroup#))
          (synth-player sname# (quote ~param-names))))))
-;         (with-meta 
-;           (synth-player sname# (quote ~param-names))
-;           {:synthdef sdef#
-;            :group    sgroup#})))))
+         
+; TODO: Figure out a better way... functions can't have meta-data!?!?
+ ;        (with-meta 
+ ;          (synth-player sname# (quote ~param-names))
+ ;          {:synthdef sdef#
+ ;           :group    sgroup#
+ ;           :name sname#})))))
 
 (defmacro defsynth 
   "Define a synthesizer and name its trigger function.  

@@ -466,8 +466,10 @@
       (overload-ugen-op to-ns ugen-name ugen-fn)
       (intern to-ns ugen-name ugen-fn))))
 
-; TODO: Why does this require its own implementation again???
-(defn mul-add [in mul add]
+; We define this uniquely because it has to be smart about its rate.
+; TODO: I think this should probably be handled by one of the ugen modes
+; that is currently not yet implemented...
+(defn- mul-add [in mul add]
   (with-meta {:id (next-id :ugen)
               :name "MulAdd" 
               :rate (or (:rate in) 2)

@@ -1,17 +1,22 @@
 (ns overtone.app.main
   (:gen-class)
   (:import 
-     (java.awt Toolkit EventQueue Dimension Point)
-     (java.awt Dimension Color Font RenderingHints Point BasicStroke)
-     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
-     (javax.swing JFrame JPanel) 
-     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGAbstractShape$Mode SGComponent
-                                  SGTransform)
-     (com.sun.scenario.scenegraph.event SGMouseAdapter)
-     (com.sun.scenario.scenegraph.fx FXShape))
+    (java.awt Toolkit EventQueue Dimension Point)
+    (java.awt Dimension Color Font RenderingHints Point BasicStroke)
+    (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
+    (javax.swing JFrame JPanel) 
+    (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGAbstractShape$Mode SGComponent
+                                 SGTransform)
+    (com.sun.scenario.scenegraph.event SGMouseAdapter)
+    (com.sun.scenario.scenegraph.fx FXShape)
+    (scenariogui.synth ISynth ISynthParam SynthControl))
   (:use (overtone.app editor)
-        (overtone.core sc)
-        (overtone.gui scope)))
+        (overtone.core sc ugen synth envelope event)
+        (overtone.gui scope)
+        clojure.stacktrace)
+  (:require [overtone.core.log :as log]))
+
+(alias 'ug 'overtone.ugens)
 
 (def APP-NAME "Overtone")
 
@@ -77,12 +82,35 @@
       (.add (booter))
       (.add (header-status)))))
 
+(defn make-synth-param [[name start end step]]
+  (proxy [ISynthParam] []
+    (getName [] name)
+    (getStart [] start)
+    (getEnd [] end)
+    (getStep [] step)))
+
+(defn make-synth []
+  (let [s-fn (synth [freq 400 dur 0.2] (ug/* (ug/env-gen (perc 0.1 dur)) (ug/sin-osc freq)))]
+    (proxy [ISynth] []
+      (getParams [] (into-array (map make-synth-param [["freq" 0.0 1200.0 1.0] ["dur" 0.01 10.0 0.1]])))
+      (getName [] (:name (meta s-fn))) 
+      (play [vals] (do (println "playing vals: " vals) (apply s-fn vals)))
+      (kill [] ())
+      (control [param value] (s-fn :ctl param value)))))
+
+(def scene-root* (ref nil))
+
+(defn synth-control []
+  (.add @scene-root* (SynthControl. (make-synth))))
+
 (defn overtone-scene [args]
   (let [root (SGGroup.)]
     (doto root
-      (.add (header))
-;      (.add (editor))
-      (.add (scope)))))
+      (.add (header)))
+      ;(.add (editor))
+      ;(.add (scope)))
+      (dosync (ref-set scene-root* root))
+    root))
 
 (defn screen-dim []
   (.getScreenSize (Toolkit/getDefaultToolkit)))
@@ -101,7 +129,9 @@
         main-panel (JSGPanel.)]
     (.add (.getContentPane app-frame) main-panel)
 
-    (boot)
+    (when (not (connected?))
+      (boot)
+      (Thread/sleep 1000))
 
     (doto main-panel
       (.setBackground Color/BLACK)

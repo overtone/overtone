@@ -1,9 +1,7 @@
 (ns examples.sc2-examples
-  (:use overtone.live))
+  (:use overtone.core.ugen))
 
 (refer-ugens)
-
-;(boot)
 
 ; analog bubbles
 (defsynth analog-bubbles []
@@ -13,12 +11,13 @@
                                 3 80)))]
     (comb-n (* (sin-osc freqs 0) 0.04) 0.2 0.2 4)))
 
-(defsynth resonant-pulses []
-  (comb-l 
-    (rlpf (* 0.05 (lf-pulse (mul-add (f-sin-osc:kr 0.05 0) 80 160) 0 0.4))
-          (mul-add (f-sin-osc:kr [0.6 0.7] 0) 3600 4000) 
-          0.2)
-    0.3 [0.2 0.25] 2))
+(defsynth resonant-pulses [busnum 0]
+  (out busnum 
+       (comb-l 
+         (rlpf (* 0.05 (lf-pulse (mul-add (f-sin-osc:kr 0.05 0) 80 160) 0 0.4))
+               (mul-add (f-sin-osc:kr [0.6 0.7] 0) 3600 4000) 
+               0.2)
+         0.3 [0.2 0.25] 2)))
 
 (defsynth moto-rev []
   (clip2 (rlpf (lf-pulse (mul-add (sin-osc:kr 0.2 0) 10 21) 0.1) 100 0.1) 0.4))

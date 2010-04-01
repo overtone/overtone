@@ -863,16 +863,15 @@
   ; a single handle without a time kills immediately
   (kill handle)
 
+  ; or a bunch of synth handles can be removed at once
+  (kill (hit) (hit) (hit))
+  
   ; or a seq of synth handles can be removed at once
-  (kill (+ (now) 1000) [(hit) (hit) (hit)])
+  (kill [(hit) (hit) (hit)])
   "
-  [& args]
-  (let [[time-ms ids] (if (= 1 (count args))
-                        [(now) (flatten args)]
-                        [(first args) (flatten (next args))])]
-    (at time-ms
-        (apply node-free ids))
-    :killed))
+  [& ids]
+  (apply node-free (flatten ids))
+  :killed)
 
 (defn load-instruments []
   (doseq [synth (filter #(synthdef? %1)
@@ -915,5 +914,7 @@
           named-args (if (keyword? (first args))
                        args
                        (name-synth-args args arg-names))]
-      (apply tgt-fn named-args))))
+      (cond
+        (= :name (first args)) sname
+        :default (apply tgt-fn named-args)))))
 
