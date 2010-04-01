@@ -217,22 +217,21 @@
 
 (def N-RETRIES 5)
 
-(defn internal-osc-callback
+(defonce internal-osc-callback (callback reply-cb (fn
   [addr buf size]
   (event ::osc-msg-received
-         :msg (osc-decode-packet (.order (.getByteBuffer buf 0 size) ByteOrder/BIG_ENDIAN))))
-
-(def internal-callback (callback reply-cb internal-osc-callback))
+         :msg (osc-decode-packet (.order (.getByteBuffer buf 0 size) ByteOrder/BIG_ENDIAN))))))
 
 (defn- connect-internal
   []
   (log/debug "Connecting to internal SuperCollider server")
   (let [send-fn (fn [peer-obj]
-                  (let [buffer (:send-buf peer-obj)]
+                  (let [
+                        buffer (:send-buf peer-obj)]
                     (World_SendPacket @world* 
                                       (.limit buffer) 
                                       buffer 
-                                      internal-callback)))
+                                      internal-osc-callback)))
         peer (assoc (osc-peer) :send-fn send-fn)]
     (dosync (ref-set server* peer))
     (register-notification-handlers)
@@ -709,19 +708,28 @@
   (snd "/b_write" (:id buf) path "wav" "float"))
 
 (defn load-sample
-  "Load a wav file into memory so it can be played as a sample."
+  "Load a wav file into a memory buffer.  Returns the buffer.
+
+    ; load a sample a
+    (load-sample \"/home/rosejn/studio/samples/kit/boom.wav\")
+
+  "
   [path & args]
   (let [id (alloc-id :audio-buffer)
         args (apply hash-map args)
         start (get args :start 0)
         n-frames (get args :n-frames 0)
-        block (get args :block false)]
-    (snd "/b_allocRead" id path start n-frames)
-    (if block (recv "/done"))
-    (with-meta {:buf {:type :buffer
+        sample (with-meta {:buf {:type :buffer
                       :id id}
-                :path path}
-               {:type ::sample})))
+                :path path
+                :status (ref :loading)}
+               {:type ::sample})]
+    (on "/done" #(if (= "/b_allocRead" (first (:args %)))
+                   (do
+                     (dosync (ref-set (:status sample) :ready))
+                     :done)))
+    (snd "/b_allocRead" id path start n-frames)
+    sample))
 
 (defn sample?
   [s]

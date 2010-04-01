@@ -247,6 +247,7 @@
 (defn set-synth-prefix [prefix-fn]
   (dosync (ref-set synth-prefix* prefix-fn)))
 
+(def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
 (defmacro synth 
   "Define a SuperCollider synthesizer using the library of ugen functions provided by overtone.core.ugen.  This will return an anonymous function which can be used to trigger the synthesizer.  If the synth has an audio rate ugen that is not an 'Out' ugen, then a prefix will be appended.  By default: (out (pan2 synth)).  You can change it by passing a function to (set-synth-prefix my-prefix-fn), which will then be called with a synth ugen tree as it's single argument.
   
@@ -273,7 +274,7 @@
                       (str "anon-" (next-id :anonymous-synth))
                       ~sname)
              ugens# (if (and (ugen? ugen-root#)
-                             (or (= "Out" (:name ugen-root#))
+                             (or (OUTPUT-UGENS (:name ugen-root#))
                                  (= :kr (get REVERSE-RATES (:rate ugen-root#)))))
                       ugen-root#
                       (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))

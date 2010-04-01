@@ -1,7 +1,7 @@
 (ns overtone.gui.scope
   (:import 
-    (java.awt Color BasicStroke)
-    (java.awt.geom Rectangle2D$Float)
+    (java.awt Dimension Color BasicStroke)
+    (java.awt.geom Rectangle2D$Float Path2D$Float)
      (javax.swing JFrame JPanel) 
     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGTransform 
                                  SGAbstractShape$Mode)
@@ -16,6 +16,7 @@
 (def SCOPE-BUS 10)
 
 (defonce scope-buf* (ref false))
+(defonce scope-buf-size* (ref 0))
 (defonce scope-bus* (ref 0))
 
 ;(defn scope-bus [bus]
@@ -35,24 +36,24 @@
 (defonce scope-bg-color* (ref (Color. 50 50 50)))
 (defonce scope-width* (ref 600))
 (defonce scope-height* (ref 400))
-(def PADDING 10)
+
+(def X-PADDING 5)
+(def Y-PADDING 10)
 
 (defonce wave-shape (FXShape.))
-(defonce wave-scale (SGTransform/createScale 0.01 180 wave-shape))
-(defonce wave-shift (SGTransform/createTranslation 0 (/ @scope-height* 2) wave-scale))
-(defonce wave-path (java.awt.geom.Path2D$Float.))
+(defonce wave-path (Path2D$Float.))
 
 (defn update-wave []
   (when @scope-buf*
-    (println "Updating wave: " @scope-buf* (buffer-info @scope-buf*))
-    (let [frames (buffer-data @scope-buf*)
-          n-frames (count frames)]
-      (.reset wave-path)
-      (.moveTo wave-path (float 0) (aget frames 0))
- ;     (doseq [i (range 0 n-frames)]
- ;       (.lineTo wave-path (float i) (aget frames i))))))
-      (doseq [i (range 0 n-frames (int (/ n-frames @scope-width*)))]
-        (.lineTo wave-path (float i) (aget frames i))))))
+    (let [buf @scope-buf*
+          frames (buffer-data buf)
+          n-frames @scope-buf-size*
+          y-scale (/ (- @scope-height* (* 2 Y-PADDING)) 2)]
+      (.reset #^Path2D$Float wave-path)
+      (.moveTo #^Path2D$Float wave-path (float 0) (aget #^floats frames 0))
+      (doseq [i (range 1 n-frames (int (/ n-frames @scope-width*)))]
+        (.lineTo #^Path2D$Float wave-path (float i) (* y-scale (aget #^floats frames i)))))
+    (.setShape #^FXShape wave-shape #^Path2D$Float wave-path)))
 
 (declare test-buf)
 
@@ -66,11 +67,11 @@
   )
 
 (defn scope-buf [buf]
-  (dosync (ref-set scope-buf* buf))
-  (.setScaleX wave-scale (float (/ @scope-width* (count (buffer-data buf)))))
-  (.setScaleY wave-scale (float (/ @scope-height* 4)))
-  (.setTranslateX wave-shift PADDING)
-  (.setTranslateY wave-shift (+ (/ @scope-height* 2) PADDING))
+  (dosync (ref-set scope-buf* buf)
+    (ref-set scope-buf-size* (count (buffer-data buf))))
+  (.setScaleX wave-shape (/ @scope-width* (float @scope-buf-size*)))
+  (.setTranslateX wave-shape X-PADDING)
+  (.setTranslateY wave-shape (+ (/ @scope-height* 2) Y-PADDING))
   (update-wave))
 
 (defn scope [& [buf]]
@@ -78,10 +79,10 @@
         background (SGShape.)]
     (doto background
       (.setShape (Rectangle2D$Float. 0 0 
-                                     (+ @scope-width* (* 2 PADDING)) 
-                                     (+ @scope-height* (* 2 PADDING))))
-      (.setMode SGAbstractShape$Mode/STROKE_FILL)
-      (.setFillPaint @scope-bg-color*))
+                                     (+ @scope-width* (* 2 X-PADDING)) 
+                                     (+ @scope-height* (* 2 Y-PADDING))))
+      (.setMode SGAbstractShape$Mode/STROKE)
+      (.setDrawPaint @scope-bg-color*))
 
     (doto wave-shape
       (.setShape wave-path)
@@ -92,27 +93,32 @@
 
     (doto scope-group
       (.add background)
-      (.add wave-shift))
+      (.add wave-shape))
 
     (if buf
       (scope-buf buf))
     
 ;    (periodic #(update-wave) (/ 1000 @fps))
-    (SGTransform/createTranslation 300 300 scope-group)))
+    ;(SGTransform/createTranslation 30 30 scope-group)
+    scope-group))
  
-(def frame (JFrame. "scope"))
-(def panel (JSGPanel.))
-(.add (.getContentPane frame) panel)
-(.setScene panel (scope))
+(defonce frame (JFrame. "scope"))
+(defonce panel (JSGPanel.))
+(defonce _ (do 
+             (.setPreferredSize panel (Dimension. 600 400))
+             (.add (.getContentPane frame) panel)
+             (.setScene panel (scope))
+             (.pack frame)
+             (.show frame)))
 
 (defn test-scope []
   (if (not (connected?))
     (do 
       (boot)
       (Thread/sleep 500)
-      (let [sample (load-sample "/home/rosejn/studio/samples/kit/boom.wav")]
-        (Thread/sleep 500)
-        (scope-buf sample))))
+      (def sample (load-sample "/home/rosejn/studio/samples/kit/boom.wav"))
+      (Thread/sleep 500)
+      (scope-buf sample)))
   (.show frame))
 
 ;(def audio (load-sample "samples/strings/STRNGD5.WAV"))

@@ -30,6 +30,10 @@ works when running from a jar file.
 
 == Synths and Audio:
 
+* implement the rest of the argument modes for ugens, as described in
+  docs/dev/core/ugen_definition.mdml.
+ (currently there is just :append-seq)
+
 * Test and expand the Scope synth to support really nice audio and fft data
 visualization.
  - also create level meter, pan, and EQ synths

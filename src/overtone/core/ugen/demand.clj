@@ -47,7 +47,7 @@
        :args [{:name "dur", :default 1.0}
               {:name "reset", :default 0.0}
               {:name "level", :default 1.0}
-              {:name "doneAction", :default :none}]
+              {:name "doneAction", :default :none :map DONE-ACTIONS}]
        :check (fn [rate num-outs [dur reset & _] spec]
                 (if (and (dr? dur)
                          (not (or (dr? reset)
@@ -68,7 +68,7 @@
        :args [{:name "dur", :default 1.0}
               {:name "reset", :default 0.0}
               {:name "level", :default 1.0}
-              {:name "doneAction", :default 0}
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}
               {:name "gapFirst", :default 0}]}
 
 
@@ -100,7 +100,7 @@
               {:name "levelScale", :default 1.0}
               {:name "levelBias", :default 0.0}
               {:name "timeScale", :default 1.0}
-              {:name "doneAction", :default :none}]
+              {:name "doneAction", :default :none :map DONE-ACTIONS}]
        :init (fn [rate [l d s c gate reset ls lb ts da] spec]
                (if (or (ar? gate) (ar? reset))
                  [l d s c (as-ar gate) (as-ar reset) ls lb ts da]))}

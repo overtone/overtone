@@ -5,7 +5,10 @@
                            [org.clojure/clojure-contrib "1.1.0"]
 
                            [jline "0.9.94"]
-                           [net.java.dev.scenegraph/scenegraph "git"]
+                           [scenegraph/decora-hw  "0.0.1-SNAPSHOT"]
+                           [scenegraph/decora-jogl "0.0.1-SNAPSHOT"]
+                           [scenegraph/decora-runtime "0.0.1-SNAPSHOT"]
+                           [scenegraph "0.0.1-SNAPSHOT"]
                            [vijual "0.1.0-SNAPSHOT"]
                            [org.clojars.rosejn/jsyntaxpane "0.9.5-b27"]
                            ;[penumbra "0.5.0"]

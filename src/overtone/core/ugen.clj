@@ -8,7 +8,8 @@
         [clojure.contrib.types :only (deftype)]
         [clojure.contrib.generic :only (root-type)]
         clojure.contrib.seq-utils
-        clojure.contrib.pprint)
+        clojure.contrib.pprint
+        [clojure.contrib.fcase :only (case)])
   (:require 
      [clojure.contrib.generic.arithmetic :as ga]
      [clojure.contrib.generic.comparison :as gc]
@@ -146,8 +147,10 @@
   [spec args]
   (let [args-specs (args-with-specs args spec :mode)
         [args to-append] (reduce (fn [[args to-append] [arg mode]]
-                                   (if (and (= :append-sequence mode) (coll? arg) (not (map? arg)))
-                                     [args (concat to-append arg)]
+                                   (case mode
+                                         :append-sequence (if (and (coll? arg) (not (map? arg)))
+                                                            [args (concat to-append arg)]
+                                                            [args (conj to-append arg)])
                                      [(conj args arg) to-append]))
                                  [[] []]
                                  args-specs)]
@@ -213,8 +216,9 @@
     (assoc spec :init 
            (fn [ugen] 
              (let [ugen (assoc ugen :args (arg-init-fn (:args ugen)))
-                   ugen (with-num-outs-mode spec ugen)]
-               (assoc ugen :args (append-fn (:args ugen))))))))
+                   ugen (with-num-outs-mode spec ugen)
+                   mod-args (assoc ugen :args (append-fn (:args ugen)))]
+               mod-args)))))
 
 (defn- enrich-ugen-spec 
   "Interpret a ugen-spec and add in additional, computed meta-data."
