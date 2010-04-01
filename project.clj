@@ -18,8 +18,7 @@
                            [midi-clj "0.1"]
 
                            [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
-                           [overtone/clj-repl    "0.0.1-SNAPSHOT"]
-                           [overtone/clj-scenegraph "0.0.1-SNAPSHOT"]]
+                           [overtone/clj-scenegraph "0.0.3-SNAPSHOT"]]
             :native-dependencies [[overtone/scsynth "3.3.1-SNAPSHOT"]
                                   [overtone/scsynth-jna "3.3.1-SNAPSHOT"]
                                   [lwjgl "2.2.2"]
