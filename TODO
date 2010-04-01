@@ -14,20 +14,6 @@ and do anything else necessary.
 
 * create a function that prints out the currently running synths
 
-* Look into using clojure-jna (http://github.com/Chouser/clojure-jna) to link
-directly with supercollider and start the internal server so we don't have to
-send network messages for transmitting audio data.  (Much better oscilloscope
-and visualization performance...)
-
-* Go through everything and make everything that should be a private definition
-to cleanup the namespace that gets immigrated.
-
-* make the path to SuperCollider use the config file and add more defaults
-for fucking windows
-
-* write the log file to somewhere outside of the Overtone directory so it still 
-works when running from a jar file.
-
 == Synths and Audio:
 
 * implement the rest of the argument modes for ugens, as described in
@@ -38,17 +24,8 @@ works when running from a jar file.
 visualization.
  - also create level meter, pan, and EQ synths
 
-* Figure out how to handle multi-channel expansion in the synth definitions...
-
-* IDEA: can the general concept of a ugen function be abstracted so that custom ugen functions like a mixer or
-some other thing can easily be defined in Clojure?
-
 * Create a fully native Clojure implementation of the SuperCollider interface on top of Java sound
 so we can run inside of the browser, on phones, etc...
-
-* use the clojure JNA library to control jack directly without needing external
-utils in linux
- - try using byte-spec to generate struct memory layouts...
 
 == Midi and Devices:
 
@@ -62,16 +39,11 @@ optionally label things or something...
 
 == OSC: 
 
-* convert the listen-loop to using the non-blocking, selectable channel interface
-so we can timeout on receive to periodically check whether the server thread should end or not.
-
 * complete implementation of osc bundle reception, and beef up the unit tests
  - bundles need to be recursively decoded
  - should return a collection of packets, and each bundle and message should have the src-host and src-port attached so we can reply to anything.
 
 == GUI
-
-* Flush out the Scope viewer, upgrade color scheme, and visualize FFT data also
 
 * Create a node based synthdef viewer, and then editor
 
