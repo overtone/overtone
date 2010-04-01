@@ -84,7 +84,10 @@
                  :runner nil)))
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Testing
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(comment
 (require 'examples.basic)
 
 (defonce test-frame (JFrame. "scope"))
@@ -111,4 +114,4 @@
       (boot)
       (on :examples-ready go-go-scope))
     (go-go-scope))
-  (.show test-frame))
+  (.show test-frame)))

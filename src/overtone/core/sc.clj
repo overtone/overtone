@@ -915,5 +915,7 @@
           named-args (if (keyword? (first args))
                        args
                        (name-synth-args args arg-names))]
-      (apply tgt-fn named-args))))
+      (cond
+        (= :name (first args)) sname
+        :default (apply tgt-fn named-args)))))
 
