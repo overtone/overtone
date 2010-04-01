@@ -11,8 +11,10 @@
     (com.sun.scenario.scenegraph.fx FXShape)
     (scenariogui.synth ISynth ISynthParam SynthControl))
   (:use (overtone.app editor)
-        (overtone.core sc)
+        (overtone.core sc ugen)
         (overtone.gui scope)))
+
+(refer-ugens)
 
 (def APP-NAME "Overtone")
 
@@ -78,9 +80,16 @@
       (.add (booter))
       (.add (header-status)))))
 
+(defn make-synth-param [[name start end step]]
+  (proxy [ISynthParam] []
+    (getName [] name)
+    (getStart [] start)
+    (getEnd [] end)
+    (getStep [] step)))
+
 (defn make-synth [s-fn]
   (proxy [ISynth] []
-    ISynthParam[] getParams();
+    (getParams [] (into-array (map make-synth-param (:params (meta s-fn)))))
  
     (getName [] (:name (meta s-fn))) 
     (play [vals] (apply s-fn vals))
@@ -89,12 +98,12 @@
 
 (defn overtone-scene [args]
   (let [root (SGGroup.)
-        synth (make-synth)]
     (doto root
       (.add (header))
 ;      (.add (editor))
-      (.add (scope)
-      (.add (SynthControl. synth))))))
+      (.add (scope)))
+
+      (on :connected #(.add (SynthControl. (make-synth))))))
 
 (defn screen-dim []
   (.getScreenSize (Toolkit/getDefaultToolkit)))
