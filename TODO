@@ -14,6 +14,8 @@ and do anything else necessary.
 
 * create a function that prints out the currently running synths
 
+* Implement overtone.gui.curve to view and modify envelopes
+
 == Synths and Audio:
 
 * implement the rest of the argument modes for ugens, as described in

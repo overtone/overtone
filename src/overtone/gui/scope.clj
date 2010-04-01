@@ -1,112 +1,81 @@
 (ns overtone.gui.scope
   (:import 
-    (java.awt Dimension Color BasicStroke)
+    (java.awt Graphics Dimension Color BasicStroke)
     (java.awt.geom Rectangle2D$Float Path2D$Float)
      (javax.swing JFrame JPanel) 
-    (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGTransform 
+    (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGTransform SGComponent
                                  SGAbstractShape$Mode)
-     (com.sun.scenario.scenegraph.event SGMouseAdapter)
-     (com.sun.scenario.scenegraph.fx FXShape))
+     (com.sun.scenario.scenegraph.event SGMouseAdapter))
   (:use 
      [overtone.core event sc synth util time-utils]
     clojure.stacktrace)
   (:require [overtone.core.log :as log]))
-
-(def SCOPE-BUF-SIZE 10000)
-(def SCOPE-BUS 10)
 
 (defonce scope* (ref {:buf false
                       :buf-size 0
                       :bus 0
                       :fps 15
                       :status :off
-                      :runner nil}))
+                      :runner nil
+                      :panel nil
+                      :color (Color. 0 130 226)
+                      :background (Color. 50 50 50)
+                      :width 600
+                      :height 400}))
 
-;(defn scope-bus [bus]
-;  (if (nil? @scope-buf*)
-;    (dosync (ref-set scope-buf* (buffer SCOPE-BUF-SIZE))))
-;  (overtone-scope bus (:id @scope-buf*)))
-
-; TODO: remove all the scope ugens
-;  * need to save synth objects or names stored in a lookup or something...
-;  * stop animation
-;  * close window
-(defn kill-scope []
-  )
+(defonce x-array (int-array (:width @scope*)))
+(defonce _x-init (dotimes [i (:width @scope*)] (aset x-array i i)))
+(defonce y-array (int-array (:width @scope*)))
 
 (def X-PADDING 5)
 (def Y-PADDING 10)
 
-(defonce wave-stroke-color* (ref (Color. 0 130 226)))
-(defonce scope-bg-color* (ref (Color. 50 50 50)))
-(defonce scope-width* (ref 600))
-(defonce scope-height* (ref 400))
-(defonce wave-shape (FXShape.))
-(defonce wave-path (Path2D$Float.))
-
-(defn update-wave []
-  (when (:buf @scope*)
-    (let [buf (:buf @scope*)
-          frames (buffer-data buf)
-          n-frames (:buf-size @scope*)
-          y-scale (/ (- @scope-height* (* 2 Y-PADDING)) 2)]
-      (.reset #^Path2D$Float wave-path)
-      (.moveTo #^Path2D$Float wave-path (float 0) (aget #^floats frames 0))
-      (doseq [i (range 1 n-frames (int (/ n-frames @scope-width*)))]
-        (.lineTo #^Path2D$Float wave-path (float i) (* y-scale (aget #^floats frames i)))))
-    (.setShape #^FXShape wave-shape #^Path2D$Float wave-path)))
-
-(declare test-buf)
-
-(defn setup-scope []
-  (defsynth simple [freq 200] (overtone.ugens/out SCOPE-BUS (overtone.ugens/sin-osc freq)))
-  (defsynth scope-record [in-bus SCOPE-BUS
-                          out-buf 0] 
-    (overtone.ugens/record-buf in-bus out-buf))
-  (def test-synth (simple 220))
-  (scope-record SCOPE-BUS (:id test-buf))
-  )
+(defn update-scope []
+  (let [frames (buffer-data (:buf @scope*))
+        step (int (/ (:buf-size @scope*) (:width @scope*)))
+        y-scale (/ (- (:height @scope*) (* 2 Y-PADDING)) 2)
+        y-shift (+ (/ (:height @scope*) 2) Y-PADDING)]
+    (doseq [x x-array]
+      (aset #^ints y-array x 
+            (int (+ y-shift (* y-scale (aget #^floats frames (* x step))))))))
+  (.repaint (:panel @scope*)))
 
 (defn scope-buf [buf]
   (dosync (alter scope* assoc 
                  :buf buf
                  :buf-size (count (buffer-data buf))))
-  (.setScaleX wave-shape (/ @scope-width* (float (:buf-size @scope*))))
-  (.setTranslateX wave-shape X-PADDING)
-  (.setTranslateY wave-shape (+ (/ @scope-height* 2) Y-PADDING))
-  (update-wave))
+  (update-scope))
 
-(defn scope [& [buf]]
-  (let [scope-group (SGGroup.)
-        background (SGShape.)]
-    (doto background
-      (.setShape (Rectangle2D$Float. 0 0 
-                                     (+ @scope-width* (* 2 X-PADDING)) 
-                                     (+ @scope-height* (* 2 Y-PADDING))))
-      (.setMode SGAbstractShape$Mode/STROKE)
-      (.setDrawPaint @scope-bg-color*))
+(defn paint-scope [g]
+  (.setColor #^Graphics g #^Color (:background @scope*))
+  (.fillRect #^Graphics g 0 0 (:width @scope*) (:height @scope*))
 
-    (doto wave-shape
-      (.setShape wave-path)
-      (.setMode SGAbstractShape$Mode/STROKE)
-;      (.setAntialiasingHint RenderingHints/VALUE_ANTIALIAS_ON)
-      (.setDrawPaint @wave-stroke-color*)
-      (.setDrawStroke (BasicStroke. 1.15)))
+  (.setColor #^Graphics g #^Color (:color @scope*))
+  (.drawPolyline #^Graphics g #^ints x-array #^ints y-array (int (:width @scope*))))
 
-    (doto scope-group
-      (.add background)
-      (.add wave-shape))
+(defn scope-panel []
+  (proxy [JPanel] []
+    (paint [g] (paint-scope g))))(dotimes [i (:width @scope*)] (aset x-array i i))
 
-    (if buf
-      (scope-buf buf))
-    
-    ;(SGTransform/createTranslation 30 30 scope-group)
-    scope-group))
+(defn scope []
+  (let [scope-node (SGComponent.)
+        panel (scope-panel)]
+
+    (dosync (alter scope* assoc :panel panel))
+
+    (doto panel
+      (.setDoubleBuffered true)
+      (.setFocusTraversalKeysEnabled false))
+
+    (doto scope-node
+      (.setSize 600 400)
+      (.setComponent panel))
+    scope-node))
 
 (defn scope-on []
   (dosync (alter scope* assoc 
                  :status :on 
-                 :runner (periodic #(update-wave) (/ 1000 (:fps @scope*))))))
+                 :runner (periodic update-scope (/ 1000 (:fps @scope*))))))
 
 (defn scope-off []
   (.cancel (:runner @scope*) true)
@@ -114,16 +83,18 @@
                  :status :off
                  :runner nil)))
  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (require 'examples.basic)
 
-(defonce frame (JFrame. "scope"))
-(defonce panel (JSGPanel.))
+(defonce test-frame (JFrame. "scope"))
+(defonce test-panel (JSGPanel.))
 (defonce _test-scope (do 
-             (.setPreferredSize panel (Dimension. 600 400))
-             (.add (.getContentPane frame) panel)
-             (.setScene panel (scope))
-             (.pack frame)
-             (.show frame)))
+             (.setPreferredSize test-panel (Dimension. 600 400))
+             (.add (.getContentPane test-frame) test-panel)
+             (.setScene test-panel (scope))
+             (.pack test-frame)
+             (.show test-frame)))
 
 (defn- go-go-scope []
   (let [b (buffer 2048)]
@@ -140,22 +111,4 @@
       (boot)
       (on :examples-ready go-go-scope))
     (go-go-scope))
-  (.show frame))
-
-;(def audio (load-sample "samples/strings/STRNGD5.WAV"))
-;(def abuf (:buf audio))
-
-; Envelope arrays are structured like this:
-  ; * initial level
-  ; * n-segments
-  ; * release node (int or -99, tells envelope where to optionally stop until released)
-  ; * loop node (int or -99, tells envelope which node to loop back to until released)
-  ; [
-  ;   - segment 1 endpoint level
-  ;   - segment 1 duration
-  ;   - segment shape
-  ;   - segment curve
-  ; ] * n-segments
-(defn show-curve 
-  "Display an envelope curve in the wave window."
-  [c])
+  (.show test-frame))
