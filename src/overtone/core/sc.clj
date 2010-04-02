@@ -359,7 +359,7 @@
 
 (defn internal-booter [port]
   (reset! running?* true)
-  (log/debug "booting internal audio server...")
+  (log/info "booting internal audio server listening on port: " port)
   (let [opts (byref sc-jna-startoptions)]
     (set! (. opts udp-port-num) port)
     (set! (. opts tcp-port-num) port)
@@ -374,6 +374,7 @@
 (defn boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
   ([port]
+   (log/info "boot-internal: " port)
    (if (not @running?*)
      (let [sc-thread (Thread. #(internal-booter port))]
        (.setDaemon sc-thread true)
@@ -414,8 +415,7 @@
   specific port."
   ([port]
    (if (not @running?*)
-     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-           cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
+     (let [cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
            sc-thread (Thread. #(external-booter cmd))]
        (.setDaemon sc-thread true)
        (log/debug "Booting SuperCollider server (scsynth)...")
@@ -428,9 +428,10 @@
   "Boot either the internal or external audio server."
   ([] (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [host port]]
-   (cond
-     (= :internal which) (boot-internal port)
-     (= :external which) (boot-external host port))))
+   (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
+     (cond
+       (= :internal which) (boot-internal port)
+       (= :external which) (boot-external host port)))))
 
 (defn quit
   "Quit the SuperCollider synth process."
