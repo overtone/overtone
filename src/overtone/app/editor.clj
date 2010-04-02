@@ -41,7 +41,7 @@
 
 (defn editor-panel []
   (let [editor-pane (JPanel.)
-        editor (JTextPane.)
+        editor (JEditorPane.)
         scroller (JScrollPane. editor)
         font (Font. DEFAULT-FONT 
                     Font/PLAIN
@@ -51,7 +51,7 @@
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))]
-;    (DefaultSyntaxKit/initKit)
+    (DefaultSyntaxKit/initKit)
 
     (doto editor
       (.setContentType "text/clojure")
@@ -63,10 +63,3 @@
       (.setLayout (BorderLayout.))
       (.add scroller BorderLayout/CENTER)
       (.add (status-panel editor) BorderLayout/SOUTH))))
-
-(defn editor []
-  (let [edit-node (SGComponent.)]
-    (doto edit-node
-      (.setSize 500 500)
-      (.setComponent (editor-panel)))
-    (SGTransform/createTranslation 100 100 edit-node)))

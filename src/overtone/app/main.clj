@@ -1,94 +1,123 @@
 (ns overtone.app.main
   (:gen-class)
   (:import 
-    (java.awt Toolkit EventQueue Dimension Point)
-    (java.awt Dimension Color Font RenderingHints Point BasicStroke)
+    (java.awt Toolkit EventQueue Dimension Point Dimension Color Font 
+              RenderingHints Point BasicStroke BorderLayout)
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
-    (javax.swing JFrame JPanel) 
-    (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGAbstractShape$Mode SGComponent
-                                 SGTransform)
+    (javax.swing JFrame JPanel JSplitPane JLabel JButton SwingUtilities BorderFactory
+                 JSpinner SpinnerNumberModel) 
+    (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
+                                 SGAbstractShape$Mode SGComponent SGTransform)
     (com.sun.scenario.scenegraph.event SGMouseAdapter)
-    (com.sun.scenario.scenegraph.fx FXShape))
-  (:use (overtone.app editor)
-        (overtone.core sc ugen synth envelope event)
-        (overtone.gui scope)
+    (com.sun.scenario.scenegraph.fx FXShape)
+     (scenariogui.synth ISynth ISynthParameter SynthControl))
+  (:use (overtone.app editor browser)
+        (overtone.core sc ugen synth envelope event time-utils)
+        (overtone.gui scope curve)
         clojure.stacktrace)
   (:require [overtone.core.log :as log]))
 
 (alias 'ug 'overtone.ugens)
 
-(def APP-NAME "Overtone")
+(defmacro in-swing [& body]
+  `(SwingUtilities/invokeLater (fn [] ~@body)))
 
-(def HEADER-HEIGHT 20)
-(def WINDOW-FILL   (Color. 50 50 50))
-(def WINDOW-STROKE (Color. 50 50 50))
-(def LOGO-SIZE 20)
-(def HEADER-FONT (Font. "SansSerif" Font/BOLD 16))
-
-(defn header-status []
-  (let [status-txt (SGText.)]
-    (add-watch status* :header 
-               (fn [skey sref old-status new-status]
-                 (.setText status-txt (name new-status))))
-    (doto status-txt
-      (.setText (str "DSP: " (name @status*)))
-      (.setFont HEADER-FONT)
-      (.setAntialiasingHint RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
-      (.setFillPaint Color/WHITE)
-      (.setLocation (Point. 550 17)))))
-
-(defn booter []
-  (let [boot-txt (SGText.)]
-    (doto boot-txt
-      (.setText "boot")
-      (.setFont HEADER-FONT)
-      (.setAntialiasingHint RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
-      (.setFillPaint Color/WHITE)
-      (.setLocation (Point. 500 17))
-      (.addMouseListener
-        (proxy [SGMouseAdapter] []
-          (mouseClicked [event node] 
-            (if (connected?)
-              (do (quit)
-                (.setText boot-txt "boot"))
-              (do (boot)
-                (.setText boot-txt "quit")))))))))
-
-(defn logo []
-  (doto (SGText.)
-      (.setText APP-NAME)
-      (.setFont (Font. "SansSerif" Font/BOLD LOGO-SIZE))
-      (.setAntialiasingHint RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
-      (.setFillPaint Color/WHITE)
-      (.setLocation (Point. 10 18))))
+(def app* (ref {:name "Overtone"
+                :header-bg (Color. 50 50 50)
+                :header-fg (Color. 255 255 255)
+                :header-font (Font. "helvetica" Font/BOLD 16)
+                :header-height 20
+                :status-update-period 1000
+                }))
 
 (defn header []
-  (let [browse-root (SGGroup.)
-        base-box (FXShape.)
-        width 1000]
+  (let [panel (JPanel.)
+        bpm-lbl (JLabel. "BPM: ")
+        bpm-model (SpinnerNumberModel. 120 1 400 1)
+        bpm-spin (JSpinner. bpm-model)
+        beat-panel (JPanel.)
+        border (BorderFactory/createEmptyBorder 2 5 2 5)
+        ugen-lbl (JLabel. "ugens: 0")
+        synth-lbl (JLabel. "synths: 0")
+        group-lbl (JLabel. "groups: 0")
+        cpu-lbl (JLabel. "avg-cpu: 0")
+        lbl-panel (JPanel.)
+        updater (fn [] (let [sts (status)]
+                           (in-swing
+                             (.setText ugen-lbl  (format "ugens: %4d" (:n-ugens sts)))
+                             (.setText synth-lbl (format "synths: %4d" (:n-synths sts)))
+                             (.setText group-lbl (format "groups: %4d" (:n-groups sts)))
+                             (.setText cpu-lbl   (format "avg-cpu: $4.2f" (:avg-cpu sts))))))
+        help-btn (JButton. "Help")
+        quit-btn (JButton. "Quit")
+        btn-panel (JPanel.)]
 
-    (doto base-box
-      (.setShape (RoundRectangle2D$Float. 0 0 width HEADER-HEIGHT 4 4))
-      (.setMode SGAbstractShape$Mode/STROKE_FILL)
-      (.setAntialiasingHint RenderingHints/VALUE_ANTIALIAS_ON)
-      (.setFillPaint WINDOW-FILL)
-      (.setDrawPaint WINDOW-STROKE)
-      (.setDrawStroke (BasicStroke. 1.15)))
+    (.setForeground bpm-lbl (:header-fg @app*))
 
-    (doto browse-root
-      (.add base-box)
-      (.add (logo))
-      (.add (booter))
-      (.add (header-status)))))
+    (doto beat-panel
+      (.setBackground (:header-bg @app*))
+      (.add bpm-lbl)
+      (.add bpm-spin))
+
+    (doto lbl-panel
+      (.setBackground (:header-bg @app*))
+      (.add ugen-lbl )
+      (.add synth-lbl)
+      (.add group-lbl)
+      (.add cpu-lbl))
+
+    (doseq [lbl [ugen-lbl synth-lbl group-lbl cpu-lbl]]
+      (.setBorder lbl border)
+      (.setForeground lbl (:header-fg @app*)))
+
+    (on :connected #(periodic updater (:status-update-period @app*)))
+
+    (doto btn-panel
+      (.setBackground (:header-bg @app*))
+      (.add help-btn)
+      (.add quit-btn))
+
+    (doto panel
+      (.setLayout (BorderLayout.))
+      (.setBackground (:header-bg @app*))
+      (.add beat-panel BorderLayout/WEST)
+      (.add lbl-panel BorderLayout/CENTER)
+      (.add btn-panel BorderLayout/EAST))
+
+    (dosync (alter app* assoc :header panel))
+    
+    panel))
+
+(defn make-synth-param [[name start end step]]
+  (proxy [ISynthParameter] []
+    (getName [] name)
+    (getStart [] start)
+    (getEnd [] end)
+    (getStep [] step)))
+
+(on :connected #(defsynth foo-bass [freq 400 dur 0.2] 
+                  (ug/* (ug/env-gen (perc 0.1 dur) 1 1 0 1 :free) (ug/lpf (ug/saw freq) freq))))
+
+(defn make-synth []
+  (let [s-fn foo-bass]
+    (proxy [ISynth] []
+      (getParams [] (into-array (map make-synth-param [["freq" 0.0 1200.0 1.0] ["dur" 0.01 10.0 0.1]])))
+      (getName [] (str (:name (meta s-fn))))
+      (play [vals] (apply s-fn (seq vals)))
+      (kill [] ())
+      (control [param value] (s-fn :ctl (keyword param) value)))))
 
 (def scene-root* (ref nil))
+
+(defn synth-control []
+  (.add @scene-root* (SynthControl. (make-synth))))
 
 (defn overtone-scene [args]
   (let [root (SGGroup.)]
     (doto root
-      (.add (header)))
-      ;(.add (editor))
-      ;(.add (scope)))
+      (.add (scope))
+      (.add (SGTransform/createTranslation 0.0 450.0 (curve-editor))))
+      ;(.add (header))
       (dosync (ref-set scene-root* root))
     root))
 
@@ -106,19 +135,30 @@
 
 (defn -main [& args]
   (let [app-frame (JFrame.  "Project Overtone")
-        main-panel (JSGPanel.)]
-    (.add (.getContentPane app-frame) main-panel)
+        app-pane (.getContentPane app-frame)
+        browse-panel (browser)
+        header-panel (header)
+        scene-panel (JSGPanel.)
+        edit-panel (editor-panel)
+        left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel edit-panel)]
 
     (when (not (connected?))
       (boot)
       (Thread/sleep 1000))
 
-    (doto main-panel
+    (doto scene-panel
       (.setBackground Color/BLACK)
       (.setScene (overtone-scene args))
-      (.setPreferredSize (Dimension. 1000 1000)))
+      (.setPreferredSize (Dimension. 600 900)))
+
+    (doto app-pane
+      (.setLayout (BorderLayout.))
+      (.add header-panel BorderLayout/NORTH)
+      (.add left-split BorderLayout/CENTER)
+      (.add scene-panel BorderLayout/EAST))
+
+    (.setDividerLocation left-split 0.4)
 
     (doto app-frame
-      (.add main-panel)
       (.pack)
       (.setVisible true))))
