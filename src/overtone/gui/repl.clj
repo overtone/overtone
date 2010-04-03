@@ -185,3 +185,6 @@
       (start-repl-thread))
       
     group))
+
+(defn repl-panel []
+  (let [panel (sg-panel)]))

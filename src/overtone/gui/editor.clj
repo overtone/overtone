@@ -34,7 +34,6 @@
 (defn editor []
   (let [group (sg-group)
         editor (javax.swing.JEditorPane.)]
-
     
     (doto group
       (add! (translate 0 30 (sg-component editor 400 600))))
