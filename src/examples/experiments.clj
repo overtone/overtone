@@ -1,11 +1,16 @@
-(ns synth-test
-  (:use test-utils
-     (overtone synth)))
+(ns examples.experiments
+  (:use overtone.live))
+
+(refer-ugens)
 
 (defsynth saw-sin [freq-a 443
                    freq-b 440]
   (out 0 (+ (* 0.3 (saw freq-a))
                (* 0.3 (sin-osc freq-b 0)))))
+
+(defsynth whoah []
+  (let [sound (resonz (saw (map #(+ % (* (sin-osc 100) 1000)) [440 443 437])) (x-line 10000 10 10) (line 1 0.05 10))]
+  (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 10) sound)))
 
 (comment 
 (load-synth saw-sin)

@@ -18,7 +18,7 @@
                       :height 400
                       :padding-x 5
                       :padding-y 10
-                      :seconds 3.0
+                      :seconds 1.0
                       :p-radius 10.0}))
 
 ; TODO: Write me!

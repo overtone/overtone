@@ -15,7 +15,8 @@
        :args [{:name "in", :default 0.0}
               {:name "attackTime", :default 0.01}
               {:name "releaseTime", :default 0.01}]
-       :muladd true}
+       :muladd true
+       :doc "amplitude follower"}
 
       ;; Compander : UGen {
       ;;   *ar { arg in = 0.0, control = 0.0, thresh = 0.5, slopeBelow = 1.0, slopeAbove = 1.0,
@@ -34,7 +35,8 @@
               {:name "clampTime", :default 0.01}
               {:name "relaxTime", :default 0.1}],
        :rates #{:ar}
-       :muladd true}
+       :muladd true
+       :doc "compresser, expander, limiter, gate, ducker"}
 
       ;; Normalizer : UGen {
       ;;   var buffer;
@@ -47,8 +49,11 @@
        :args [{:name "in"}
               {:name "level", :default 1.0}
               {:name "dur", :default 0.01}],
-       :rates #{:ar}}
+       :rates #{:ar}
+       :doc "flattens dynamics"}
 
       ;; Limiter : Normalizer {}
 
-      {:name "Limiter", :extends "Normalizer"}])
+      {:name "Limiter", :extends "Normalizer"
+       :doc "peak limiter"}
+      ])

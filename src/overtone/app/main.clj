@@ -9,8 +9,7 @@
     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                  SGAbstractShape$Mode SGComponent SGTransform)
     (com.sun.scenario.scenegraph.event SGMouseAdapter)
-    (com.sun.scenario.scenegraph.fx FXShape)
-     (scenariogui.synth ISynth ISynthParameter SynthControl))
+    (com.sun.scenario.scenegraph.fx FXShape))
   (:use (overtone.app editor browser)
         (overtone.core sc ugen synth envelope event time-utils)
         (overtone.gui scope curve)
@@ -88,29 +87,7 @@
     
     panel))
 
-(defn make-synth-param [[name start end step]]
-  (proxy [ISynthParameter] []
-    (getName [] name)
-    (getStart [] start)
-    (getEnd [] end)
-    (getStep [] step)))
-
-(on :connected #(defsynth foo-bass [freq 400 dur 0.2] 
-                  (ug/* (ug/env-gen (perc 0.1 dur) 1 1 0 1 :free) (ug/lpf (ug/saw freq) freq))))
-
-(defn make-synth []
-  (let [s-fn foo-bass]
-    (proxy [ISynth] []
-      (getParams [] (into-array (map make-synth-param [["freq" 0.0 1200.0 1.0] ["dur" 0.01 10.0 0.1]])))
-      (getName [] (str (:name (meta s-fn))))
-      (play [vals] (apply s-fn (seq vals)))
-      (kill [] ())
-      (control [param value] (s-fn :ctl (keyword param) value)))))
-
 (def scene-root* (ref nil))
-
-(defn synth-control []
-  (.add @scene-root* (SynthControl. (make-synth))))
 
 (defn overtone-scene [args]
   (let [root (SGGroup.)]

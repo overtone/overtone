@@ -19,7 +19,8 @@
        :args [{:name "bufnum"}
               {:name "freq", :default 440.0}
               {:name "phase", :default 0.0}],
-       :muladd true}
+       :muladd true
+       :doc "wavetable oscillator"}
 
       ;; SinOsc : UGen {	
       ;; 	*ar { 
@@ -35,7 +36,8 @@
       {:name "SinOsc",
        :args [{:name "freq", :default 440.0}
               {:name "phase", :default 0.0}],
-       :muladd true}
+       :muladd true
+       :doc "sine table lookup oscillator"}
 
       ;; SinOscFB : UGen {	
       ;; 	*ar { 
@@ -51,7 +53,8 @@
       {:name "SinOscFB",
        :args [{:name "freq", :default 440.0}
               {:name "feedback", :default 0.0}],
-       :muladd true}
+       :muladd true
+       :doc "very fast sine oscillator"}
       
       ;; OscN : UGen {	
       ;; 	*ar { 
@@ -68,7 +71,8 @@
        :args [{:name "bufnum"}
               {:name "freq", :default 440.0}
               {:name "phase", :default 0.0}],
-       :muladd true}
+       :muladd true
+       :doc "noninterpolating wavetable oscillator"}
       
       ;; VOsc : UGen {	
       ;; 	*ar { 
@@ -120,7 +124,8 @@
        :args [{:name "bufnum"}
               {:name "freq", :default 440.0}
               {:name "beats", :default 0.5}],
-       :muladd true}
+       :muladd true
+       :doc "chorusing oscillator"}
       
       ;; Formant : UGen {
       ;; 	*ar {
@@ -134,7 +139,8 @@
               {:name "formfreq", :default 1760.0}
               {:name "bwfreq", :default 880.0}],
        :rates #{:ar},
-       :muladd true}
+       :muladd true
+       :doc "formant oscillator"}
       
       ;; LFSaw : UGen {
       ;; 	*ar {
@@ -150,7 +156,8 @@
       {:name "LFSaw",
        :args [{:name "freq", :default 440.0}
               {:name "iphase", :default 0.0}]
-       :muladd true}
+       :muladd true
+       :doc "low freq (i.e. not band limited) sawtooth oscillator"}
       
       ;; LFPar : LFSaw {}
 
@@ -206,7 +213,8 @@
               {:name "iphase", :default 0.0}
               {:name "width", :default 0.5}]
        :muladd true
-       :signal-range :unipolar}
+       :signal-range :unipolar
+       :doc "low freq (i.e. not band limited) pulse wave oscillator"}
       
       ;; VarSaw : UGen {
       ;; 	*ar {
@@ -241,7 +249,8 @@
        :args [{:name "freq", :default 440.0}
               {:name "phase", :default 0.0}]
        :muladd true
-       :signal-range :unipolar}
+       :signal-range :unipolar
+       :doc "non band limited impulse oscillator"}
       
       ;; SyncSaw : UGen {
       ;; 	*ar {
@@ -257,7 +266,8 @@
       {:name "SyncSaw",
        :args [{:name "syncFreq", :default 440.0}
               {:name "sawFreq", :default 440.0}]
-       :muladd true}
+       :muladd true
+       :doc "hard sync sawtooth wave oscillator"}
 
       ;; Index : UGen {
       ;; 	*ar {

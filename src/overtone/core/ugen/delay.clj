@@ -34,11 +34,13 @@
        {:name "DelayN",
         :args [{:name "in", :default 0.0, :mode :as-ar}
                {:name "maxdelaytime", :default 0.2}
-               {:name "delaytime", :default 0.2}]}
+               {:name "delaytime", :default 0.2}]
+        :doc "simple delay line, no interpolation."}
 
        ;; DelayL : DelayN {}
 
-       {:name "DelayL" :extends "DelayN"}
+       {:name "DelayL" :extends "DelayN"
+        :doc "simple delay line, linear interpolation."}
        
        ;; DelayC : DelayN {}
 
