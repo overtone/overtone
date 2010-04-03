@@ -31,4 +31,4 @@
                                [swank-clojure "1.1.0-SNAPSHOT"]
                                [leiningen/lein-swank "1.1.0"]]
 
-            :main overtone.app.repl)
+            :main overtone.app.main)

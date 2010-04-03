@@ -359,7 +359,7 @@
 
 (defn internal-booter [port]
   (reset! running?* true)
-  (log/debug "booting internal audio server...")
+  (log/info "booting internal audio server listening on port: " port)
   (let [opts (byref sc-jna-startoptions)]
     (set! (. opts udp-port-num) port)
     (set! (. opts tcp-port-num) port)
@@ -374,6 +374,7 @@
 (defn boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
   ([port]
+   (log/info "boot-internal: " port)
    (if (not @running?*)
      (let [sc-thread (Thread. #(internal-booter port))]
        (.setDaemon sc-thread true)
@@ -414,8 +415,7 @@
   specific port."
   ([port]
    (if (not @running?*)
-     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)
-           cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
+     (let [cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
            sc-thread (Thread. #(external-booter cmd))]
        (.setDaemon sc-thread true)
        (log/debug "Booting SuperCollider server (scsynth)...")
@@ -428,9 +428,10 @@
   "Boot either the internal or external audio server."
   ([] (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [host port]]
-   (cond
-     (= :internal which) (boot-internal port)
-     (= :external which) (boot-external host port))))
+   (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
+     (cond
+       (= :internal which) (boot-internal port)
+       (= :external which) (boot-external host port)))))
 
 (defn quit
   "Quit the SuperCollider synth process."
@@ -863,16 +864,15 @@
   ; a single handle without a time kills immediately
   (kill handle)
 
+  ; or a bunch of synth handles can be removed at once
+  (kill (hit) (hit) (hit))
+  
   ; or a seq of synth handles can be removed at once
-  (kill (+ (now) 1000) [(hit) (hit) (hit)])
+  (kill [(hit) (hit) (hit)])
   "
-  [& args]
-  (let [[time-ms ids] (if (= 1 (count args))
-                        [(now) (flatten args)]
-                        [(first args) (flatten (next args))])]
-    (at time-ms
-        (apply node-free ids))
-    :killed))
+  [& ids]
+  (apply node-free (flatten ids))
+  :killed)
 
 (defn load-instruments []
   (doseq [synth (filter #(synthdef? %1)
@@ -915,5 +915,7 @@
           named-args (if (keyword? (first args))
                        args
                        (name-synth-args args arg-names))]
-      (apply tgt-fn named-args))))
+      (cond
+        (= :name (first args)) sname
+        :default (apply tgt-fn named-args)))))
 

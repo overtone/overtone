@@ -1,19 +1,26 @@
 (ns overtone.gui.repl
   (:gen-class)
 
-  (:import                  
+  (:import
+   (java.util.concurrent TimeUnit TimeoutException)
    (java.io StringReader PushbackReader OutputStreamWriter PrintWriter)
    (java.util.concurrent LinkedBlockingQueue)
    (clojure.lang IDeref))
- 
+
+  (:import
+   (javax.swing JEditorPane JScrollPane  SwingUtilities))
+  
   (:require [clojure.main :as r])
     
   (:use clojure.contrib.seq-utils)
   (:use [clojure.stacktrace :only (e)])
     
-  (:use overtone.core.event)
+  (:use (overtone.core time-utils sc ugen synth synthdef envelope event)
+        (overtone.music rhythm pitch tuning))
 
   (:use clj-scenegraph.core))
+
+;; Non-graphical part
 
 (defn outputstream-with-cb [cb]
   (let [buffer (StringBuffer.)]
@@ -51,6 +58,8 @@
               (on ::repl-exit #((dosync (ref-set exit true))
                                 (Thread/sleep 300)
                                 (event ::repl-write :text "(println \"exit hack\")")))
+
+              (on ::repl-ping #((if (= @exit false) (event ::repl-pong))))
               
               (clojure.main/repl
                :init (fn [] (event ::repl-ready))
@@ -70,6 +79,20 @@
            (catch Exception e
              (event ::repl-exception :text (pr-str e))))))
 
+
+(defn repl-thread-running? []
+     (let [p (promise)]
+       (on ::repl-pong #(deliver p true))
+       (event ::repl-ping)
+       (try 
+        (.get (future @p) 1000 TimeUnit/MILLISECONDS)
+        (catch TimeoutException t 
+          false))))
+
+(comment
+  (repl-thread-running?)
+  (start-repl-thread))
+
 (comment
 
   (start-repl-thread)
@@ -84,6 +107,8 @@
   (event ::repl-exit)
 
   (event ::repl-write :text "(println \"hello world\")"))
+
+;; GUI part
 
 (import '(com.sun.scenario.scenegraph SGComponent))
 
@@ -101,7 +126,13 @@
              (\[ \])
              (\" \")
              (\{ \})))
- 
+
+(defmacro EDT
+  "runs body on the Event-Dispatch-Thread (Swing)"
+  [& body]
+  `(SwingUtilities/invokeLater (fn [] ~@body)))
+
+
 (defn balanced?
   "are all the pairs balanced in this string?"
   [string]
@@ -110,19 +141,27 @@
    (map
     (fn [pair] (-> pair set (filter string) count (mod 2) zero?))
     pairs)))
- 
 
 (defn repl []
   (let [group (sg-group)
         history (javax.swing.JEditorPane.)
-        input (javax.swing.JEditorPane.)]
+        input (javax.swing.JEditorPane.)
+        scroll (JScrollPane. history)
 
-    (doto history
-      (.setEditable false))
+        println-history #(EDT (let [ doc (.getDocument history)
+                                    length (.getLength doc)]
+                                (.insertString doc length % nil)))]
+
+    (EDT (.setEditable input false))
+    
+    (EDT (.setEditable history false))
+
+    (EDT (.setVerticalScrollBarPolicy scroll (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS)))
+    (EDT (.setHorizontalScrollBarPolicy scroll (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)))
     
     (doto group
-      (add! (sg-component history 400 100))
-      (add! (translate 0 105 (sg-component input 400 25))))
+      (add! (sg-component scroll 500 300))
+      (add! (translate 0 305 (sg-component input 500 25))))
 
     (doto (.getKeymap input)
       (.addActionForKeyStroke
@@ -131,17 +170,22 @@
                                                                         (if (and (not (empty? text))
                                                                                  (balanced? text))
                                                                           (do (event ::repl-write :text text)
-                                                                              (.setText input "")
-                                                                              (.requestFocus input))))))))
+                                                                              (EDT
+                                                                               (.setText input "")
+                                                                               (.requestFocus input)))))))))
 
-    (on ::repl-print #( (let [ doc (.getDocument history)
-                              length (.getLength doc)]
-                          (.insertString doc length (:text %) nil))))
+    (on ::repl-print #(println-history (:text %) ))
     
-    group))
+    (on ::repl-ready #((println-history "repl ready\r\n")
+                       (event ::repl-write :text "(in-ns 'user)\r\n(use 'overtone.live)")
+                       (EDT (.setEditable input true))))
 
-(comment
-  (start-repl-thread)
-  (def panel (sg-panel 640 480))
-  (sg-window panel)
-  (set-scene! panel (translate 30 30 (repl))))
+    (on ::repl-exited #((println-history "repl exited\r\n")
+                        (EDT (.setEditable input false))))
+    
+    (if (repl-thread-running?)
+      (do (EDT (.setEditable input true))
+          (println-history "repl thread allready running\r\n"))
+      (start-repl-thread))
+      
+    group))
