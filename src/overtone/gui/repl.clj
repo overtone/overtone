@@ -48,17 +48,16 @@
   (println @temp))
 
 (defn start-repl-thread []
+  (on ::repl-exit #((event ::repl-write :text "(println \"exit hack\")")))
   (future (try
            (capture-out-write
             #(event ::repl-print :text %)
             (let [read-q (LinkedBlockingQueue.)
-                  exit (ref false)]
+                  exit (atom false)]
               
               (on ::repl-write #(.put read-q (PushbackReader. (StringReader. (:text %)))))
-              (on ::repl-exit #((dosync (ref-set exit true))
-                                (Thread/sleep 300)
-                                (event ::repl-write :text "(println \"exit hack\")")))
-
+              (on ::repl-exit #((compare-and-set! exit false true)))
+              
               (on ::repl-ping #((if (= @exit false) (event ::repl-pong))))
               
               (clojure.main/repl
@@ -94,7 +93,6 @@
   (start-repl-thread))
 
 (comment
-
   (start-repl-thread)
 
   (on ::repl-exception #(println (str "exception: " (:text %))))
@@ -106,7 +104,7 @@
   (on ::repl-ready #(println "repl ready"))
   (event ::repl-exit)
 
-  (event ::repl-write :text "(println \"hello world\")"))
+  (event ::repl-write :text "(println \"hello world\")")) 
 
 ;; GUI part
 
@@ -152,12 +150,10 @@
                                     length (.getLength doc)]
                                 (.insertString doc length % nil)))]
 
-    (EDT (.setEditable input false))
-    
-    (EDT (.setEditable history false))
-
-    (EDT (.setVerticalScrollBarPolicy scroll (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS)))
-    (EDT (.setHorizontalScrollBarPolicy scroll (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)))
+    (EDT (.setEditable input false)   
+         (.setEditable history false)
+         (.setVerticalScrollBarPolicy scroll (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS))
+         (.setHorizontalScrollBarPolicy scroll (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)))
     
     (doto group
       (add! (sg-component scroll 500 300))
