@@ -22,7 +22,8 @@
                :map {:welch 0, :hann 1, :rect -1}}
               {:name "active", :default 1}
               {:name "winsize", :default 0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "fast fourier transform"}
       
       ;; IFFT : UGen 
       ;; {
@@ -42,7 +43,8 @@
               {:name "wintype", 
                :default :welch, 
                :map {:welch 0, :hann 1, :rect -1}}
-              {:name "winsize", :default 0}]}
+              {:name "winsize", :default 0}]
+       :doc "inverse fast fourier transform"}
       
       ;; PV_MagAbove : PV_ChainUGen
       ;; {
@@ -54,19 +56,23 @@
       {:name "PV_MagAbove",
        :args [{:name "buffer"}
               {:name "threshold", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "passes only bins whose magnitude is above a threshold"}
       
       ;; PV_MagBelow : PV_MagAbove {}
 
-      {:name "PV_MagBelow" :extends "PV_MagAbove"}
+      {:name "PV_MagBelow" :extends "PV_MagAbove"
+       :doc "passes only bins whose magnitude is below a threshold"}
       
       ;; PV_MagClip : PV_MagAbove {}
 
-      {:name "PV_MagClip" :extends "PV_MagAbove"}
+      {:name "PV_MagClip" :extends "PV_MagAbove"
+       :doc "clips bin magnitudes to a maximum threshold"}
       
       ;; PV_LocalMax : PV_MagAbove {}
 
-      {:name "PV_LocalMaxw" :extends "PV_MagAbove"}
+      {:name "PV_LocalMaxw" :extends "PV_MagAbove"
+       :doc "passes only bins whose magnitude is above a threshold and above their nearest neighbors"}
       
       ;; PV_MagSmear : PV_ChainUGen
       ;; {
@@ -78,7 +84,8 @@
       {:name "PV_MagSmear",
        :args [{:name "buffer"}
               {:name "bins", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "average a bin's magnitude with its neighbors"}
 
       ;; PV_BinShift : PV_ChainUGen 
       ;; {
@@ -91,11 +98,13 @@
        :args [{:name "buffer"}
               {:name "stretch", :default 1.0}
               {:name "shift", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "shift and scale the positions of the bins"}
       
       ;; PV_MagShift : PV_BinShift {}
 
-      {:name "PV_MagShift" :extends "PV_BinShift"}
+      {:name "PV_MagShift" :extends "PV_BinShift"
+       :doc "shift and stretch the positions of only the magnitude of the bins"}
       
       ;; PV_MagSquared : PV_ChainUGen 
       ;; {
@@ -106,23 +115,28 @@
 
       {:name "PV_MagSquared",
        :args [{:name "buffer"}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "squares the magnitudes and renormalizes to previous peak"}
 
       ;; PV_MagNoise : PV_MagSquared {}
 
-      {:name "PV_MagNoise" :extends "PV_MagSquared"}
+      {:name "PV_MagNoise" :extends "PV_MagSquared"
+       :doc "magnitudes are multiplied with noise"}
       
       ;; PV_PhaseShift90 : PV_MagSquared {}
 
-      {:name "PV_PhaseShift90" :extends "PV_MagSquared"}
+      {:name "PV_PhaseShift90" :extends "PV_MagSquared"
+       :doc "shift phase of all bins by 90 degrees"}
       
       ;; PV_PhaseShift270 : PV_MagSquared {}
 
-      {:name "PV_PhaseShift270" :extends "PV_MagSquared"}
+      {:name "PV_PhaseShift270" :extends "PV_MagSquared"
+       :doc "shift phase of all bins by 270 degrees"}
       
       ;; PV_Conj : PV_MagSquared {}
 
-      {:name "PV_Conj" :extends "PV_MagSquared"}
+      {:name "PV_Conj" :extends "PV_MagSquared"
+       :doc "converts the FFT frames to their complex conjugate"}
       
       ;; PV_PhaseShift : PV_ChainUGen 
       ;; {
@@ -134,7 +148,8 @@
       {:name "PV_PhaseShift",
        :args [{:name "buffer"}
               {:name "shift"}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "shift phase of all bins"}
       
       ;; PV_BrickWall : PV_ChainUGen
       ;; {
@@ -146,7 +161,8 @@
       {:name "PV_BrickWall",
        :args [{:name "buffer"}
               {:name "wipe", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "clears bins above or below a cutoff point"}
 
       ;; PV_BinWipe : PV_ChainUGen 
       ;; {
@@ -159,7 +175,8 @@
        :args [{:name "bufferA"}
               {:name "bufferB"}
               {:name "wipe", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "copies low bins from one input and the high bins of the other"}
       
       ;; PV_MagMul : PV_ChainUGen
       ;; {
@@ -171,35 +188,43 @@
       {:name "PV_MagMul",
        :args [{:name "bufferA"}
               {:name "bufferB"}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "multiplies magnitudes of two inputs and keeps the phases of the first input"}
       
       ;; PV_CopyPhase : PV_MagMul {}
 
-      {:name "PV_CopyPhase" :extends "PV_MagMul"}
+      {:name "PV_CopyPhase" :extends "PV_MagMul"
+       :doc "combines magnitudes of first input and phases of the second input"}
       
       ;; PV_Copy : PV_MagMul {}
 
-      {:name "PV_Copy" :extends "PV_MagMul"}
+      {:name "PV_Copy" :extends "PV_MagMul"
+       :doc "copies the spectral frame in bufferA to bufferB at that point in the chain of PV UGens"}
       
       ;; PV_Max : PV_MagMul {}
 
-      {:name "PV_Max" :extends "PV_MagMul"}
+      {:name "PV_Max" :extends "PV_MagMul"
+       :doc "output copies bins with the maximum magnitude of the two inputs"}
       
       ;; PV_Min : PV_MagMul {}
 
-      {:name "PV_Min" :extends "PV_MagMul"}
+      {:name "PV_Min" :extends "PV_MagMul"
+       :doc "output copies bins with the minimum magnitude of the two inputs"}
       
       ;; PV_Mul : PV_MagMul {}
 
-      {:name "PV_Mul" :extends "PV_MagMul"}
+      {:name "PV_Mul" :extends "PV_MagMul"
+       :doc "complex multiplication: (RealA * RealB) - (ImagA * ImagB), (ImagA * RealB) + (RealA * ImagB)"}
       
       ;; PV_Div : PV_MagMul {}
 
-      {:name "PV_Div" :extends "PV_MagMul"}
+      {:name "PV_Div" :extends "PV_MagMul"
+       :doc "complex division"}
       
       ;; PV_Add : PV_MagMul {}
 
-      {:name "PV_Add" :extends "PV_MagMul"}
+      {:name "PV_Add" :extends "PV_MagMul"
+       :doc "complex addition: RealA + RealB, ImagA + ImagB"}
 
       ;; PV_MagDiv : PV_ChainUGen
       ;; {
@@ -212,7 +237,8 @@
        :args [{:name "bufferA"}
               {:name "bufferB"}
               {:name "zeroed", :default 0.0001}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "divides magnitudes of two inputs and keeps the phases of the first input"}
       
       ;; PV_RandComb : PV_ChainUGen 
       ;; {
@@ -225,7 +251,8 @@
        :args [{:name "buffer"}
               {:name "wipe", :default 0.0}
               {:name "trig", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "randomly clear bins"}
       
       ;; PV_RectComb : PV_ChainUGen 
       ;; {
@@ -239,7 +266,8 @@
               {:name "numTeeth", :default 0.0}
               {:name "phase", :default 0.0}
               {:name "width", :default 0.5}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "makes a series of gaps in a spectrum"}
 
       ;; PV_RectComb2 : PV_ChainUGen 
       ;; {
@@ -254,7 +282,8 @@
               {:name "numTeeth", :default 0.0}
               {:name "phase", :default 0.0}
               {:name "width", :default 0.5}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "alternates blocks of bins between the two inputs"}
       
       ;; PV_RandWipe : PV_ChainUGen 
       ;; {
@@ -268,7 +297,8 @@
               {:name "bufferB"}
               {:name "wipe", :default 0.0}
               {:name "trig", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "cross fades between two sounds by copying bins in a random order"}
       
       ;; PV_Diffuser : PV_ChainUGen
       ;; {
@@ -280,7 +310,8 @@
       {:name "PV_Diffuser",
        :args [{:name "buffer"}
               {:name "trig", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "adds a different constant random phase shift to each bin"}
       
       ;; PV_MagFreeze : PV_ChainUGen
       ;; {
@@ -292,7 +323,8 @@
       {:name "PV_MagFreeze",
        :args [{:name "buffer"}
               {:name "freeze", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "freezes magnitudes at current levels when freeze > 0"}
       
       ;; PV_BinScramble : PV_ChainUGen
       ;; {
@@ -306,7 +338,8 @@
               {:name "wipe", :default 0.0}
               {:name "width", :default 0.2}
               {:name "trig", :default 0.0}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "randomizes the order of the bins"}
       
       ;; FFTTrigger : PV_ChainUGen 
       ;; {
@@ -319,8 +352,9 @@
        :args [{:name "buffer"}
               {:name "hop", :default 0.5}
               {:name "polar", :default 0.0}],
-       :rates #{:kr}}])
-
+       :rates #{:kr}
+       :doc "Outputs the necessary signal for FFT chains, without doing an FFT on a signal"}
+      ])
 ;; ////////////////////////////////////////////////////
 ;; /*
 ;; PV_OscBank : PV_ChainUGen 

@@ -1,56 +1,61 @@
-
 (ns overtone.core.ugen.info)
 
-;; InfoUGenBase : UGen {
-;; 	*ir {
-;; 		^this.multiNew('scalar')
-;; 	}
-;; }
+(def specs
+  [
+   {:name "SampleRate" name :rates #{:ir}
+    :doc "returns the current sample rate"}
 
-;; SampleRate : InfoUGenBase {}
-;; SampleDur : InfoUGenBase {}
-;; RadiansPerSample : InfoUGenBase {}
-;; ControlRate : InfoUGenBase {}
-;; ControlDur : InfoUGenBase {}
-;; SubsampleOffset : InfoUGenBase {}
+   {:name "SampleDur" :rates #{:ir}
+    :doc "returns the current sample duration of the server in seconds"}
 
-;; NumOutputBuses : InfoUGenBase {}
-;; NumInputBuses : InfoUGenBase {}
-;; NumAudioBuses : InfoUGenBase {}
-;; NumControlBuses : InfoUGenBase {}
-;; NumBuffers : InfoUGenBase {}
-;; NumRunningSynths : InfoUGenBase { *kr { ^this.multiNew('control') }}
+   {:name "RadiansPerSample" :rates #{:ir}
+    :doc ""}
 
-;; BufInfoUGenBase : UGen {
-;; 	*kr { arg bufnum;
-;; 		^this.multiNew('control', bufnum)
-;; 	}	
-;; 	// the .ir method is not the safest choice.
-;;      //    Since a buffer can be reallocated at any time,
-;; 	// using .ir will not track the changes.
-;; 	*ir { arg bufnum;
-;; 		^this.multiNew('scalar',bufnum)
-;; 	}
-;; }
+   {:name "ControlRate" :rates #{:ir}
+    :doc "returns the current control rate of the server"}
 
-;; BufSampleRate : BufInfoUGenBase {}
-;; BufRateScale : BufInfoUGenBase {}
-;; BufFrames : BufInfoUGenBase {}
-;; BufSamples : BufInfoUGenBase {}
-;; BufDur : BufInfoUGenBase {}
-;; BufChannels : BufInfoUGenBase {}
+   {:name "ControlDur" :rates #{:ir}
+    :doc "returns the current block duration of the server in seconds"}
 
-(let [info-names ["SampleRate" "SampleDur" "RadiansPerSample" "ControlRate" "ControlDur"
-                  "SubsampleOffset" "NumOutputBuses" "NumInputBuses" "NumAudioBuses"
-                  "NumControlBuses" "NumBuffers"]
-      info-specs (conj (for [name info-names]
-                         {:name name :rates #{:ir}})
-                       {:name "NumRunningSynths" :rates #{:ir :kr}})
-      buf-info-names ["BufSampleRate" "BufRateScale" "BufFrames"
-                      "BufSamples" "BufDur" "BufChannels"]
-      buf-info-specs (for [name buf-info-names]
-                       {:name name
-                        :args [{:name "bufnum"}]
-                        :rates #{:kr :ir}})]
-  (def specs (concat info-specs buf-info-specs)))
+   {:name "SubsampleOffset" :rates #{:ir}
+    :doc "offset from synth start within one sample"}
 
+   {:name "NumOutputBuses" :rates #{:ir}
+    :doc "returns the number of output buses allocated on the server"}
+
+   {:name "NumInputBuses" :rates #{:ir}
+    :doc "returns the number of output buses allocated on the server"}
+
+   {:name "NumAudioBuses" :rates #{:ir}
+    :doc "returns the number of audio buses allocated on the server"}
+
+   {:name "NumControlBuses" :rates #{:ir}
+    :doc "returns the number of control buses allocated on the server"}
+
+   {:name "NumBuffers" :rates #{:ir}
+    :doc "returns the number of buffers allocated on the server"}
+
+   {:name "NumRunningSynths" :rates #{:ir :kr}
+    :doc "returns the number of currently running synths"}
+
+   {:name "BufSampleRate" :rates #{:ir}
+    :doc "returns the buffers current sample rate"}
+
+   {:name "BufRateScale" :rates #{:ir}
+    :doc "returns a ratio by which the playback of a soundfile is to be scaled"}
+
+   {:name "BufFrames" :rates #{:ir}
+    :doc "returns the current number of allocated frames"}
+
+   {:name "BufSamples" :rates #{:ir}
+    :doc "current number of samples allocated in the buffer"}
+
+   {:name "BufDur" :rates #{:ir}
+    :doc "returns the current duration of soundfile"}
+
+   {:name "BufChannels" :rates #{:ir}
+    :doc "current number of channels of soundfile in buffer"}
+
+   {:name "CheckBadValues" :rates #{:ir}
+    :doc "test for infinity, not-a-number, and denormals"}
+])
