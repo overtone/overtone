@@ -10,7 +10,7 @@
                                  SGAbstractShape$Mode SGComponent SGTransform)
     (com.sun.scenario.scenegraph.event SGMouseAdapter)
     (com.sun.scenario.scenegraph.fx FXShape))
-  (:use (overtone.app editor browser)
+  (:use (overtone.app editor)
         (overtone.core sc ugen synth envelope event time-utils)
         (overtone.gui scope curve)
         clojure.stacktrace)
@@ -113,11 +113,11 @@
 (defn -main [& args]
   (let [app-frame (JFrame.  "Project Overtone")
         app-pane (.getContentPane app-frame)
-        browse-panel (browser)
+        ;browse-panel (browser)
         header-panel (header)
         scene-panel (JSGPanel.)
-        edit-panel (editor-panel)
-        left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel edit-panel)]
+        edit-panel (editor-panel)]
+        ;left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel edit-panel)]
 
     (when (not (connected?))
       (boot)
@@ -128,13 +128,16 @@
       (.setScene (overtone-scene args))
       (.setPreferredSize (Dimension. 600 900)))
 
+    (doto edit-panel
+      (.setPreferredSize (Dimension. 600 900)))
+
     (doto app-pane
       (.setLayout (BorderLayout.))
       (.add header-panel BorderLayout/NORTH)
-      (.add left-split BorderLayout/CENTER)
+      (.add edit-panel BorderLayout/WEST)
       (.add scene-panel BorderLayout/EAST))
 
-    (.setDividerLocation left-split 0.4)
+    ;(.setDividerLocation left-split 0.4)
 
     (doto app-frame
       (.pack)
