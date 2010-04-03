@@ -5,6 +5,7 @@
 
   (:use clj-scenegraph.core))
 
+(comment
 (import '(com.sun.scenario.scenegraph SGComponent))
 
 (defn sg-component
@@ -43,3 +44,4 @@
 (def panel (sg-panel 640 480))
 (sg-window panel)
 (set-scene! panel (translate 30 30 (editor)))
+)

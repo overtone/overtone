@@ -186,5 +186,6 @@
       
     group))
 
-(defn repl-panel []
-  (let [panel (sg-panel)]))
+
+;(defn repl-panel []
+;  (let [panel (sg-panel)]))
