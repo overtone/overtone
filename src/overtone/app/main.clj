@@ -93,7 +93,7 @@
   (let [root (SGGroup.)]
     (doto root
       (.add (scope))
-      (.add (SGTransform/createTranslation 0.0 450.0 (curve-editor))))
+      (.add (SGTransform/createTranslation 0.0 400.0 (curve-editor))))
       ;(.add (header))
       (dosync (ref-set scene-root* root))
     root))
@@ -126,10 +126,10 @@
     (doto scene-panel
       (.setBackground Color/BLACK)
       (.setScene (overtone-scene args))
-      (.setPreferredSize (Dimension. 600 900)))
+      (.setPreferredSize (Dimension. 610 900)))
 
     (doto edit-panel
-      (.setPreferredSize (Dimension. 600 900)))
+      (.setPreferredSize (Dimension. 550 900)))
 
     (doto app-pane
       (.setLayout (BorderLayout.))
