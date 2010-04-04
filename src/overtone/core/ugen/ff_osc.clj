@@ -1,24 +1,11 @@
-
 (ns overtone.core.ugen.ff-osc)
-
-;; ugens in this file are fromm FSinOsc.sc except PSinGrain
 
 (def specs
      [
-
-      ;; FSinOsc : UGen { 
-      ;;  *ar { arg freq=440.0, iphase = 0.0, mul = 1.0, add = 0.0;
-      ;;    ^this.multiNew('audio', freq, iphase).madd(mul, add)
-      ;;  }
-      ;;  *kr { arg freq=440.0, iphase = 0.0, mul = 1.0, add = 0.0;
-      ;;    ^this.multiNew('control', freq, iphase).madd(mul, add)
-      ;;  }
-      ;; }
-
       {:name "FSinOsc",
        :args [{:name "freq", :default 440.0}
               {:name "iphase", :default 0.0}]
-       :muladd true}
+       :doc "very fast sine wave generator"}
       
       ;; Klang : UGen {
       ;;  *ar { arg specificationsArrayRef, freqscale = 1.0, freqoffset = 0.0;
@@ -52,7 +39,8 @@
                      phases (or phases (repeat 0.0))
                      faps (map vector freqs amps phases)]
                  (apply concat args faps)))
-       :doc "(klang:ar [[440 880][1 0.9]] 1.1)"}
+       :doc "a bank of fixed frequency sine oscillators 
+            (more efficient than multiple sin-osc)"}
       
       ;; Klank : UGen { 
       ;;  *ar { arg specificationsArrayRef, input, freqscale = 1.0, freqoffset = 0.0, decayscale = 1.0;
@@ -87,42 +75,25 @@
                      amps (or amps (repeat 1.0))
                      times (or times (repeat 1.0))
                      fats (map vector freqs amps times)]
-                 (apply concat args fats)))}
-
-      ;; Blip : UGen {  
-      ;;  *ar { arg freq=440.0, numharm = 200.0, mul = 1.0, add = 0.0;
-      ;;    ^this.multiNew('audio', freq, numharm).madd(mul, add)
-      ;;  }
-      ;; }
+                 (apply concat args fats)))
+       :doc ""}
 
       {:name "Blip",
        :args [{:name "freq", :default 440.0}
               {:name "numharm", :default 200.0}],
        :rates #{:ar}
-       :muladd true}
+       :doc "band Limited ImPulse generator"}
       
-      ;; Saw : UGen { 
-      ;;  *ar { arg freq=440.0, mul = 1.0, add = 0.0;
-      ;;    ^this.multiNew('audio', freq).madd(mul, add)
-      ;;  }
-      ;; }
-
       {:name "Saw",
        :args [{:name "freq", :default 440.0}],
        :rates #{:ar}
-       :muladd true}
+       :doc "band limited sawtooth wave generator"}
       
-      ;; Pulse : UGen { 
-      ;;  *ar { arg freq=440.0, width = 0.5, mul = 1.0, add = 0.0;
-      ;;    ^this.multiNew('audio', freq, width).madd(mul, add)
-      ;;  }
-      ;; }
-
       {:name "Pulse",
        :args [{:name "freq", :default 440.0}
               {:name "width", :default 0.5}],
        :rates #{:ar}
-       :muladd true}
+       :doc "band limited pulse wave generator with pulse width modulation"}
 
       ;; from PSinGrain.sc
       ;; 	fixed frequency sine oscillator

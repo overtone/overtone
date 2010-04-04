@@ -39,7 +39,7 @@
 (defonce status*        (ref :no-audio))
 (defonce synths*        (ref nil))
 
-(defonce world* (ref nil))
+(defonce sc-world* (ref nil))
 
 ;TODO: Figure out the real limits...  These are total guesses, but
 ; it should be plenty.
@@ -219,7 +219,7 @@
   (let [send-fn (fn [peer-obj]
                   (let [
                         buffer (:send-buf peer-obj)]
-                    (World_SendPacket @world* 
+                    (World_SendPacket @sc-world* 
                                       (.limit buffer) 
                                       buffer 
                                       internal-osc-callback)))
@@ -366,9 +366,9 @@
     (set! (. opts verbosity) 1)
     (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
     (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
-    (dosync (ref-set world* (ScJnaStart opts)))
+    (dosync (ref-set sc-world* (ScJnaStart opts)))
     (event :booted)
-    (World_WaitForQuit @world*)
+    (World_WaitForQuit @sc-world*)
     (ScJnaCleanup)))
 
 (defn boot-internal
@@ -744,7 +744,7 @@
   "Get the floating point data for a buffer on the internal server."
   [buf]
   (let [buf-id (buffer-id buf)
-        snd-buf (ScJnaCopySndBuf @world* buf-id)
+        snd-buf (ScJnaCopySndBuf @sc-world* buf-id)
         n-frames (.frames snd-buf)
         data (.data snd-buf)]
     (if data

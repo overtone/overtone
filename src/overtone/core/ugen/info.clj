@@ -2,7 +2,7 @@
 
 (def specs
   [
-   {:name "SampleRate" name :rates #{:ir}
+   {:name "SampleRate" :rates #{:ir}
     :doc "returns the current sample rate"}
 
    {:name "SampleDur" :rates #{:ir}

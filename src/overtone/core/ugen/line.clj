@@ -16,8 +16,7 @@
        :args [{:name "start", :default 0.0}
               {:name "end", :default 1.0}
               {:name "dur", :default 1.0}
-              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
-       :muladd true} ;; TODO MAYBE? mul add offset
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]}
       
       ;; XLine : UGen { 
       ;;  *ar { arg start=1.0, end = 2.0, dur = 1.0, mul = 1.0, add = 0.0, doneAction = 0;
@@ -32,8 +31,7 @@
        :args [{:name "start", :default 1.0}
               {:name "end", :default 2.0}
               {:name "dur", :default 1.0}
-              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
-       :muladd true}  ;; TODO MAYBE? mul add offset
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]}
       
       ;; LinExp : UGen {
       ;;  *ar { arg in=0.0, srclo = 0.0, srchi = 1.0, dstlo = 1.0, dsthi = 2.0;
@@ -143,7 +141,7 @@
       ;;  }
       ;; }
 
-      {:name "T2A", ; no need to derive
+      {:name "T2A",
        :args [{:name "in", :default 0.0}
               {:name "offset", :default 0}],
        :rates #{:ar}}
