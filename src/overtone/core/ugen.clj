@@ -513,6 +513,7 @@
       (ns-unmap to-ns (symbol op))
       (intern to-ns (symbol op) (make-expanding func [true true]))))
     (intern to-ns 'mul-add (make-expanding mul-add [true true true]))
+    ;(refer 'overtone.core.ugen.extra)
     ))
 
 ;; We refer all the ugen functions here so they can be access by other parts

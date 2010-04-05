@@ -279,7 +279,7 @@
                       ugen-root#
                       (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))
              sdef# (synthdef sname# ~param-map ugens#)
-             sgroup# (or (get @synths* sname#) (group :tail 0))]
+             sgroup# (or (get @synths* sname#) (group :head 0))]
          (load-synthdef sdef#)
          (dosync (alter synths* assoc sname# sgroup#))
          (synth-player sname# (quote ~param-names))))))

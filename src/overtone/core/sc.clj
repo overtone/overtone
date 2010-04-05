@@ -906,7 +906,9 @@
 
 (defn synth-player [sname arg-names]
   (fn [& args]
-    (let [sgroup (get @synths* sname)
+    (let [[args sgroup] (if (= :target (first args))
+                          [(drop 2 args) (second args)]
+                          [args (get @synths* sname)])
           controller (partial node-control sgroup)
           player (partial node sname :target sgroup)
           [tgt-fn args] (if (= :ctl (first args))

@@ -24,8 +24,12 @@
                       :height 400}))
 
 (defonce x-array (int-array (:width @scope*)))
-(defonce _x-init (dotimes [i (:width @scope*)] (aset x-array i i)))
+(defonce _x-init (dotimes [i (:width @scope*)] 
+                   (aset x-array i i)))
+
 (defonce y-array (int-array (:width @scope*)))
+(defonce _y-init (dotimes [i (:width @scope*)] 
+                   (aset y-array i (/ (:height @scope*) 2))))
 
 (def X-PADDING 5)
 (def Y-PADDING 10)

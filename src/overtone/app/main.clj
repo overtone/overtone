@@ -10,9 +10,10 @@
                                  SGAbstractShape$Mode SGComponent SGTransform)
     (com.sun.scenario.scenegraph.event SGMouseAdapter)
     (com.sun.scenario.scenegraph.fx FXShape))
-  (:use (overtone.app editor)
+  (:use (overtone.app editor tools)
         (overtone.core sc ugen synth envelope event time-utils)
         (overtone.gui scope curve)
+        clj-scenegraph.core 
         clojure.stacktrace)
   (:require [overtone.core.log :as log]))
 
@@ -22,11 +23,15 @@
   `(SwingUtilities/invokeLater (fn [] ~@body)))
 
 (def app* (ref {:name "Overtone"
-                :header-bg (Color. 50 50 50)
+                :padding 5.0
+                :background (Color. 50 50 50)
                 :header-fg (Color. 255 255 255)
                 :header-font (Font. "helvetica" Font/BOLD 16)
                 :header-height 20
                 :status-update-period 1000
+                :edit-panel-dim (Dimension. 550 900)
+                :scene-panel-dim (Dimension. 615 900)
+                :tools-panel-dim (Dimension. 300 900)
                 }))
 
 (defn header []
@@ -39,14 +44,14 @@
         ugen-lbl (JLabel. "ugens: 0")
         synth-lbl (JLabel. "synths: 0")
         group-lbl (JLabel. "groups: 0")
-        cpu-lbl (JLabel. "avg-cpu: 0")
+        cpu-lbl (JLabel. "avg-cpu: 0.00")
         lbl-panel (JPanel.)
         updater (fn [] (let [sts (status)]
                            (in-swing
                              (.setText ugen-lbl  (format "ugens: %4d" (:n-ugens sts)))
                              (.setText synth-lbl (format "synths: %4d" (:n-synths sts)))
                              (.setText group-lbl (format "groups: %4d" (:n-groups sts)))
-                             (.setText cpu-lbl   (format "avg-cpu: $4.2f" (:avg-cpu sts))))))
+                             (.setText cpu-lbl   (format "avg-cpu: %4.2f" (:avg-cpu sts))))))
         help-btn (JButton. "Help")
         quit-btn (JButton. "Quit")
         btn-panel (JPanel.)]
@@ -54,12 +59,12 @@
     (.setForeground bpm-lbl (:header-fg @app*))
 
     (doto beat-panel
-      (.setBackground (:header-bg @app*))
+      (.setBackground (:background @app*))
       (.add bpm-lbl)
       (.add bpm-spin))
 
     (doto lbl-panel
-      (.setBackground (:header-bg @app*))
+      (.setBackground (:background @app*))
       (.add ugen-lbl )
       (.add synth-lbl)
       (.add group-lbl)
@@ -72,30 +77,26 @@
     (on :connected #(periodic updater (:status-update-period @app*)))
 
     (doto btn-panel
-      (.setBackground (:header-bg @app*))
+      (.setBackground (:background @app*))
       (.add help-btn)
       (.add quit-btn))
 
     (doto panel
       (.setLayout (BorderLayout.))
-      (.setBackground (:header-bg @app*))
+      (.setBackground (:background @app*))
       (.add beat-panel BorderLayout/WEST)
       (.add lbl-panel BorderLayout/CENTER)
       (.add btn-panel BorderLayout/EAST))
 
     (dosync (alter app* assoc :header panel))
-    
     panel))
 
-(def scene-root* (ref nil))
-
 (defn overtone-scene [args]
-  (let [root (SGGroup.)]
+  (let [root (sg-group)]
     (doto root
-      (.add (scope))
-      (.add (SGTransform/createTranslation 0.0 400.0 (curve-editor))))
-      ;(.add (header))
-      (dosync (ref-set scene-root* root))
+      (add! (translate (:padding @app*) 0.0 (scope)))
+      (add! (translate (:padding @app*) (+ 400.0 (:padding @app*)) (curve-editor))))
+    (dosync (alter app* assoc :scene-group root))
     root))
 
 (defn screen-dim []
@@ -112,30 +113,35 @@
 
 (defn -main [& args]
   (let [app-frame (JFrame.  "Project Overtone")
-        app-pane (.getContentPane app-frame)
+        app-panel (.getContentPane app-frame)
         ;browse-panel (browser)
         header-panel (header)
+        edit-panel (editor-panel)
         scene-panel (JSGPanel.)
-        edit-panel (editor-panel)]
+        tools-panel (tool-panel @app*)]
         ;left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel edit-panel)]
 
     (when (not (connected?))
       (boot)
       (Thread/sleep 1000))
 
+    (doto edit-panel
+      (.setPreferredSize (:edit-panel-dim @curve*)))
+
     (doto scene-panel
       (.setBackground Color/BLACK)
       (.setScene (overtone-scene args))
-      (.setPreferredSize (Dimension. 610 900)))
+      (.setPreferredSize (:scene-panel-dim @curve*)))
 
-    (doto edit-panel
-      (.setPreferredSize (Dimension. 550 900)))
+    (doto tools-panel
+      (.setPreferredSize (:tools-panel-dim @curve*)))
 
-    (doto app-pane
+    (doto app-panel
       (.setLayout (BorderLayout.))
       (.add header-panel BorderLayout/NORTH)
       (.add edit-panel BorderLayout/WEST)
-      (.add scene-panel BorderLayout/EAST))
+      (.add scene-panel BorderLayout/CENTER)
+      (.add tools-panel BorderLayout/EAST))
 
     ;(.setDividerLocation left-split 0.4)
 
