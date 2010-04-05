@@ -53,6 +53,8 @@
 (defn paint-scope [g]
   (.setColor #^Graphics g #^Color (:background @scope*))
   (.fillRect #^Graphics g 0 0 (:width @scope*) (:height @scope*))
+  (.setColor #^Graphics g #^Color (Color. 100 100 100))
+  (.drawRect #^Graphics g 0 0 (:width @scope*) (:height @scope*))
 
   (.setColor #^Graphics g #^Color (:color @scope*))
   (.drawPolyline #^Graphics g #^ints x-array #^ints y-array (int (:width @scope*))))

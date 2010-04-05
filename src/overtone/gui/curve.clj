@@ -143,9 +143,9 @@
 
     ; grid
     (set-mode! grid :stroke)
-    (set-draw-paint! grid 100 100 100)
+    (set-draw-paint! grid 80 80 80)
 
-    (let [[start-x start-y] (curve-to-canvas 0.0 0.0)]
+    (let [[start-x start-y] (curve-to-canvas 0.0 0.0 0 0)]
       (.moveTo grid-path start-x start-y))
 
     (doseq [x (range 0.0 (:seconds @curve*) 0.1)] ; vertical lines

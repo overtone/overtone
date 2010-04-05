@@ -22,6 +22,7 @@
 (def app* (ref {:name "Overtone"
                 :padding 5.0
                 :background (Color. 50 50 50)
+                :foreground (Color. 255 255 255)
                 :header-fg (Color. 255 255 255)
                 :header-font (Font. "helvetica" Font/BOLD 16)
                 :header-height 20
@@ -32,35 +33,30 @@
                 :tools-panel-dim (Dimension. 300 900)
                 }))
 
-(defn header []
-  (let [panel (JPanel.)
-        bpm-lbl (JLabel. "BPM: ")
+(defn metro-panel []
+  (let [bpm-lbl (JLabel. "BPM: ")
         bpm-model (SpinnerNumberModel. 120 1 400 1)
         bpm-spin (JSpinner. bpm-model)
-        beat-panel (JPanel.)
-        border (BorderFactory/createEmptyBorder 2 5 2 5)
-        ugen-lbl (JLabel. "ugens: 0")
+        beat-panel (JPanel.)]
+    (.setForeground bpm-lbl (:header-fg @app*))
+    (doto beat-panel
+      (.setBackground (:background @app*))
+      (.add bpm-lbl)
+      (.add bpm-spin))))
+
+(defn status-panel []
+  (let [ugen-lbl (JLabel. "ugens: 0")
         synth-lbl (JLabel. "synths: 0")
         group-lbl (JLabel. "groups: 0")
         cpu-lbl (JLabel. "avg-cpu: 0.00")
+        border (BorderFactory/createEmptyBorder 2 5 2 5)
         lbl-panel (JPanel.)
         updater (fn [] (let [sts (status)]
                            (in-swing
                              (.setText ugen-lbl  (format "ugens: %4d" (:n-ugens sts)))
                              (.setText synth-lbl (format "synths: %4d" (:n-synths sts)))
                              (.setText group-lbl (format "groups: %4d" (:n-groups sts)))
-                             (.setText cpu-lbl   (format "avg-cpu: %4.2f" (:avg-cpu sts))))))
-        help-btn (JButton. "Help")
-        quit-btn (JButton. "Quit")
-        btn-panel (JPanel.)]
-
-    (.setForeground bpm-lbl (:header-fg @app*))
-
-    (doto beat-panel
-      (.setBackground (:background @app*))
-      (.add bpm-lbl)
-      (.add bpm-spin))
-
+                             (.setText cpu-lbl   (format "avg-cpu: %4.2f" (:avg-cpu sts))))))]
     (doto lbl-panel
       (.setBackground (:background @app*))
       (.add ugen-lbl )
@@ -73,6 +69,15 @@
       (.setForeground lbl (:header-fg @app*)))
 
     (on :connected #(periodic updater (:status-update-period @app*)))
+    lbl-panel))
+
+(defn header []
+  (let [panel (JPanel.)
+        metro (metro-panel)
+        status (status-panel)
+        help-btn (JButton. "Help")
+        quit-btn (JButton. "Quit")
+        btn-panel (JPanel.)]
 
     (doto btn-panel
       (.setBackground (:background @app*))
@@ -82,14 +87,14 @@
     (doto panel
       (.setLayout (BorderLayout.))
       (.setBackground (:background @app*))
-      (.add beat-panel BorderLayout/WEST)
-      (.add lbl-panel BorderLayout/CENTER)
+      (.add metro BorderLayout/WEST)
+      (.add status BorderLayout/CENTER)
       (.add btn-panel BorderLayout/EAST))
 
     (dosync (alter app* assoc :header panel))
     panel))
 
-(defn overtone-scene [args]
+(defn overtone-scene []
   (let [root (sg-group)]
     (doto root
       (add! (translate (:padding @app*) 0.0 (scope)))
@@ -97,7 +102,7 @@
     (dosync (alter app* assoc :scene-group root))
     root))
 
-(defn -main [& args]
+(defn overtone-frame []
   (let [app-frame (JFrame.  "Project Overtone")
         app-panel (.getContentPane app-frame)
         ;browse-panel (browser)
@@ -116,7 +121,7 @@
 
     (doto scene-panel
       (.setBackground Color/BLACK)
-      (.setScene (overtone-scene args))
+      (.setScene (overtone-scene))
       (.setPreferredSize (:scene-panel-dim @curve*)))
 
     (doto tools-panel
@@ -134,3 +139,6 @@
     (doto app-frame
       (.pack)
       (.setVisible true))))
+
+(defn -main [& args]
+  (in-swing (overtone-frame)))

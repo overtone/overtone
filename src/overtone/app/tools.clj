@@ -4,7 +4,7 @@
               RenderingHints Point BasicStroke BorderLayout)
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
     (javax.swing JPanel JLabel JButton SwingUtilities BorderFactory
-                 JSpinner SpinnerNumberModel JColorChooser)
+                 JSpinner SpinnerNumberModel JColorChooser BorderFactory)
     (javax.swing.event ChangeListener))
   (:use (overtone.core event))) 
 
@@ -21,14 +21,28 @@
   (dosync (ref-set color-handler* handler))
   (on :color-changed #(handler (:color %))))
 
-(defn tool-panel [app]
-  (let [panel (JPanel.)
-        color-chooser (JColorChooser. (:current-color @tools*))]
+(def chooser* (ref nil))
+
+(defn color-selector [app]
+  (let [color-chooser (JColorChooser. (:current-color @tools*))
+        border (BorderFactory/createTitledBorder "Color")]
+    (dosync (ref-set chooser* color-chooser))
+
+    (.setTitleColor border (:foreground app))
 
     (doto color-chooser
+      (.setBorder border) 
       (.setBackground (:background app))
+      (.setForeground (:foreground app))
       (.setChooserPanels (into-array [(second (.getChooserPanels color-chooser))]))
       (.setPreviewPanel (JPanel.)))
+
+    (doseq [cp (.getChooserPanels color-chooser)]
+      (doto cp
+        (.setBackground (:background app))
+        (.setForeground (:foreground app)))
+      (doseq [comp (seq (.getComponents cp))] 
+        (.setBackground comp (Color. 50 50 50))))
 
     (-> color-chooser
       (.getSelectionModel)
@@ -36,6 +50,21 @@
         (proxy [ChangeListener] []
           (stateChanged [_] (event :color-changed 
                                    :color (.getColor color-chooser))))))
+    color-chooser))
 
-    (.add panel color-chooser BorderLayout/CENTER)
+(defn tool-panel [app]
+  (let [panel (JPanel.)
+        color-chooser (color-selector app)
+        filler (JPanel.)]
+
+    (doto panel
+      (.setBackground (:background app))
+      (.setForeground (:foreground app))
+      
+      (.add color-chooser)
+      (.add filler)
+      (.setMinimumSize (Dimension. 400 300))
+      (.setMaximumSize (Dimension. 400 300))
+      (.setPreferredSize (Dimension. 400 300)))
+
     panel))
