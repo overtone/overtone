@@ -1,18 +1,20 @@
 (ns overtone.app.editor
   (:import 
-     (java.awt Toolkit EventQueue Color Font FontMetrics Dimension BorderLayout 
+     (java.awt EventQueue Color Font FontMetrics Dimension BorderLayout 
                GridBagLayout GridBagConstraints Insets)
      (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane 
-                  JSplitPane JMenuBar JMenu JMenuItem SwingUtilities) 
+                  JSplitPane JButton JFileChooser) 
      (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                   SGAbstractShape$Mode SGComponent SGTransform)
-     (jsyntaxpane DefaultSyntaxKit)))
-
-(def DEFAULT-FONT "Sans")
-(def DEFAULT-FONT-SIZE 12)
+     (jsyntaxpane DefaultSyntaxKit))
+  (:use (overtone.gui utils)
+        [clojure.contrib.fcase :only (case)]
+        (clojure.contrib swing-utils)))
 
 (def TAB-STOP 4)
 (def CARET-COLOR Color/BLACK)
+
+(def editor* (ref {}))
 
 (defn- status-panel [editor]
   (let [status-pane (JPanel.)
@@ -39,27 +41,66 @@
                                              GridBagConstraints/VERTICAL 
                                              (Insets. 0 2 0 0) 0 0)))))
 
-(defn editor-panel []
+(defn file-open-dialog [parent & [path]]
+  (let [chooser (if path
+                  (JFileChooser. path)
+                  (JFileChooser.))
+        ret (.showOpenDialog chooser parent)]
+    (case ret
+      JFileChooser/APPROVE_OPTION (-> chooser (.getSelectedFile) (.getName))
+      JFileChooser/CANCEL_OPTION nil
+      JFileChooser/ERROR_OPTION  nil)))
+
+(defn file-save-dialog [parent & [path]]
+  (let [chooser (if path
+                  (JFileChooser. path)
+                  (JFileChooser.))
+        ret (.showSaveDialog chooser parent)]
+    (case ret
+      JFileChooser/APPROVE_OPTION (-> chooser (.getSelectedFile) (.getName))
+      JFileChooser/CANCEL_OPTION nil
+      JFileChooser/ERROR_OPTION  nil)))
+
+(defn button-bar [editor]
+  (let [panel (JPanel.)
+        open (JButton. (icon "org/freedesktop/tango/16x16/actions/document-open.png"))
+        save (JButton. (icon "org/freedesktop/tango/16x16/actions/document-save.png"))]
+
+    (add-action-listener open (fn [_]
+                                (.setText editor 
+                                          (slurp (file-open-dialog editor)))))
+    (add-action-listener save (fn [_]
+                                (file-save-dialog editor (.getText editor))))
+
+    (doto panel
+      (.add open)
+      (.add save))
+
+    panel))
+
+(defn editor-panel [app]
   (let [editor-pane (JPanel.)
         editor (JEditorPane.)
+        button-pane (button-bar editor)
         scroller (JScrollPane. editor)
-        font (Font. DEFAULT-FONT 
-                    Font/PLAIN
-                    DEFAULT-FONT-SIZE)
-        _ (.setFont editor font)
         font (.getFont editor)
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))]
     (DefaultSyntaxKit/initKit)
 
+    (doto button-pane
+      (.setBackground (:background app)))
+
     (doto editor
+      (.setFont (:edit-font app))
       (.setContentType "text/clojure")
-      (.setText "(defn foo [a b] (dosync (ref-set asdf* (+ a b))))")
+      (.setText (slurp "src/examples/basic.clj"))
       (.setCaretColor CARET-COLOR)
       (.requestFocusInWindow))
 
     (doto editor-pane
       (.setLayout (BorderLayout.))
+      (.add button-pane BorderLayout/NORTH)
       (.add scroller BorderLayout/CENTER)
       (.add (status-panel editor) BorderLayout/SOUTH))))

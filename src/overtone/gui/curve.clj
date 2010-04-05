@@ -45,15 +45,10 @@
 
 
 ; Converting from envelope space to pixel coords
-; 
-; env (0.0, 0.0)
-; pix (0.0, height)
-;
-; env (0.5 0.5)
-; pix (0.5 * pixels-per-second, (1 - 0.5) * height)
-;
-; env (1.0 1.0)
-; pix (1.0 * pixels-per-second, (1 - 1.0) * height)
+;   envelope  :  pixel
+; (0.0, 0.0)  :  (0.0, height)
+; (0.5 0.5)   :  (0.5 * pixels-per-second, (1 - 0.5) * height)
+; (1.0 1.0)   :  (1.0 * pixels-per-second, (1 - 1.0) * height)
 
 (defn curve-to-canvas [x y & [pad-x pad-y]]
   (let [pad-x (or pad-x (:padding-x @curve*))

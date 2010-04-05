@@ -4,7 +4,7 @@
     (java.awt Toolkit EventQueue Dimension Point Dimension Color Font 
               RenderingHints Point BasicStroke BorderLayout)
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
-    (javax.swing JFrame JPanel JSplitPane JLabel JButton SwingUtilities BorderFactory
+    (javax.swing JFrame JPanel JSplitPane JLabel JButton BorderFactory
                  JSpinner SpinnerNumberModel) 
     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                  SGAbstractShape$Mode SGComponent SGTransform)
@@ -12,15 +12,12 @@
     (com.sun.scenario.scenegraph.fx FXShape))
   (:use (overtone.app editor tools)
         (overtone.core sc ugen synth envelope event time-utils)
-        (overtone.gui scope curve)
+        (overtone.gui scope curve utils)
         clj-scenegraph.core 
         clojure.stacktrace)
   (:require [overtone.core.log :as log]))
 
 (alias 'ug 'overtone.ugens)
-
-(defmacro in-swing [& body]
-  `(SwingUtilities/invokeLater (fn [] ~@body)))
 
 (def app* (ref {:name "Overtone"
                 :padding 5.0
@@ -29,6 +26,7 @@
                 :header-font (Font. "helvetica" Font/BOLD 16)
                 :header-height 20
                 :status-update-period 1000
+                :edit-font (Font. "helvetica" Font/PLAIN 12)
                 :edit-panel-dim (Dimension. 550 900)
                 :scene-panel-dim (Dimension. 615 900)
                 :tools-panel-dim (Dimension. 300 900)
@@ -99,24 +97,12 @@
     (dosync (alter app* assoc :scene-group root))
     root))
 
-(defn screen-dim []
-  (.getScreenSize (Toolkit/getDefaultToolkit)))
-
-(defn screen-size []
-  (let [dim (screen-dim)]
-    [(.width dim) (.height dim)]))
-
-;TODO: It undecorates, but it doesn't seem to change the size of the frame...
-(defn fullscreen-frame [f]
-    (.setExtendedState f JFrame/MAXIMIZED_BOTH)
-    (.setUndecorated f true))
-
 (defn -main [& args]
   (let [app-frame (JFrame.  "Project Overtone")
         app-panel (.getContentPane app-frame)
         ;browse-panel (browser)
         header-panel (header)
-        edit-panel (editor-panel)
+        edit-panel (editor-panel @app*)
         scene-panel (JSGPanel.)
         tools-panel (tool-panel @app*)]
         ;left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel edit-panel)]
