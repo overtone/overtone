@@ -10,6 +10,3 @@
 [submodule "src/lib/clj-scsynth"]
 	path = src/lib/clj-scsynth
   url = git://github.com/mozinator/clj-scsynth.git
-[submodule "src/lib/clj-scenegraph"]
-	path = src/lib/clj-scenegraph
-	url = git://github.com/mozinator/clj-scenegraph.git
