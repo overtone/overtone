@@ -9,7 +9,7 @@
     (com.sun.scenario.scenegraph.event SGMouseAdapter))
   (:use 
     (overtone.core event envelope)
-    clj-scenegraph.core 
+    (overtone.gui swing sg)
     clojure.stacktrace
     clojure.contrib.seq-utils)
   (:require [overtone.core.log :as log]))

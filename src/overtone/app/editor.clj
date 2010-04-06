@@ -7,7 +7,7 @@
      (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                   SGAbstractShape$Mode SGComponent SGTransform)
      (jsyntaxpane DefaultSyntaxKit))
-  (:use (overtone.gui utils)
+  (:use (overtone.gui swing)
         [clojure.contrib.fcase :only (case)]
         (clojure.contrib swing-utils duck-streams)))
 

@@ -30,7 +30,18 @@ project, start by joining the
 
 ### Ubuntu Quick Setup:
 
-    sudo apt-get install supercollider-server jack-tools ant sun-java6-jdk
+    sudo apt-get install jack-tools ant sun-java6-jdk fftw3 qjackctl
+
+You'll need to get the jack audio daemon running, and we recommend qjackctl to
+figure out what command will be best to use.  Then once you have it dialed in you can
+switch to using the terminal.  For best performance you need to install a
+realtime enabled kernel, which allows the audio system to get high scheduled
+immediately when there is data to process.  With purely generative music this
+isn't such a big deal, but if you want to jam with other instruments or process
+external sound in realtime then you'll want to invest the effort in setting up
+an rt-kernel.  Ubuntu studio makes it pretty easy, especially if you aren't
+experienced in compiling the kernel.  In the meantime, just turn-off the
+realtime support in the qjacktl options, and the audio server should boot.
 
 Download jdk zip file and put in correct location...
 
@@ -90,6 +101,11 @@ environment setup.  I use the vimclojure plugin for vim, but it should be
 possible to use emacs and slime, or netbeans and enclojure, or eclipse, or
 whatever else as long as you can evaluate clojure expressions inside the
 editor.
+
+Cross platform installation of software, even pure Java, is a pain.  If you get
+Overtone running on your favorite platform and it requires steps not outlined
+here, please drop us an email describing what you had to do so we can
+include it in this README.
 
 ### Project Map
 

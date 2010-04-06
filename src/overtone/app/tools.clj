@@ -25,7 +25,9 @@
 
 (defn color-selector [app]
   (let [color-chooser (JColorChooser. (:current-color @tools*))
-        border (BorderFactory/createTitledBorder "Color")]
+        border (BorderFactory/createTitledBorder "Color")
+        choosers (.getChooserPanels color-chooser)]
+    (println "chooser: " (count choosers))
     (dosync (ref-set chooser* color-chooser))
 
     (.setTitleColor border (:foreground app))
@@ -34,7 +36,7 @@
       (.setBorder border) 
       (.setBackground (:background app))
       (.setForeground (:foreground app))
-      (.setChooserPanels (into-array [(second (.getChooserPanels color-chooser))]))
+      (.setChooserPanels (into-array [(first choosers)]))
       (.setPreviewPanel (JPanel.)))
 
     (doseq [cp (.getChooserPanels color-chooser)]

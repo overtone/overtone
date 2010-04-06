@@ -5,15 +5,14 @@
               RenderingHints Point BasicStroke BorderLayout)
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
     (javax.swing JFrame JPanel JSplitPane JLabel JButton BorderFactory
-                 JSpinner SpinnerNumberModel) 
+                 JSpinner SpinnerNumberModel UIManager) 
     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                  SGAbstractShape$Mode SGComponent SGTransform)
     (com.sun.scenario.scenegraph.event SGMouseAdapter)
     (com.sun.scenario.scenegraph.fx FXShape))
   (:use (overtone.app editor tools)
         (overtone.core sc ugen synth envelope event time-utils)
-        (overtone.gui scope curve utils)
-        clj-scenegraph.core 
+        (overtone.gui swing sg scope curve)
         clojure.stacktrace)
   (:require [overtone.core.log :as log]))
 
@@ -45,10 +44,10 @@
       (.add bpm-spin))))
 
 (defn status-panel []
-  (let [ugen-lbl (JLabel. "ugens: 0")
-        synth-lbl (JLabel. "synths: 0")
-        group-lbl (JLabel. "groups: 0")
-        cpu-lbl (JLabel. "avg-cpu: 0.00")
+  (let [ugen-lbl  (JLabel. "UGens: 0")
+        synth-lbl (JLabel. "Synths: 0")
+        group-lbl (JLabel. "Groups: 0")
+        cpu-lbl   (JLabel. "CPU: 0.00")
         border (BorderFactory/createEmptyBorder 2 5 2 5)
         lbl-panel (JPanel.)
         updater (fn [] (let [sts (status)]
@@ -141,4 +140,10 @@
       (.setVisible true))))
 
 (defn -main [& args]
-  (in-swing (overtone-frame)))
+  (let [system-lf (UIManager/getSystemLookAndFeelClassName)]
+    ; Maybe we need Java7 for this API?
+    ;(if-let [screen (GraphicsEnvironment/getDefaultScreenDevice)]
+    ;  (if (.isFullScreenSupported screen) 
+    ;    (.setFullScreenWindow screen window))
+    (UIManager/setLookAndFeel system-lf)
+    (in-swing (overtone-frame))))

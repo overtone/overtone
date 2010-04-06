@@ -1,19 +1,14 @@
 (ns overtone.gui.repl
   (:gen-class)
-
   (:import                  
    (java.io StringReader PushbackReader OutputStreamWriter PrintWriter)
    (java.util.concurrent LinkedBlockingQueue)
    (clojure.lang IDeref))
- 
   (:require [clojure.main :as r])
-    
-  (:use clojure.contrib.seq-utils)
-  (:use [clojure.stacktrace :only (e)])
-    
-  (:use overtone.core.event)
-
-  (:use clj-scenegraph.core))
+  (:use clojure.contrib.seq-utils
+        [clojure.stacktrace :only (e)]
+        overtone.core.event
+        (overgone.gui swing sg)))
 
 (defn outputstream-with-cb [cb]
   (let [buffer (StringBuffer.)]

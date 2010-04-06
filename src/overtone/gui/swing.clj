@@ -1,6 +1,6 @@
-(ns overtone.gui.utils
+(ns overtone.gui.swing
   (:import (clojure.lang RT)
-           (java.awt Toolkit)
+           (java.awt Toolkit GraphicsEnvironment)
            (javax.swing JFrame JPanel JSplitPane JLabel 
                         JButton SwingUtilities BorderFactory
                         ImageIcon)))
@@ -27,3 +27,5 @@
     (.setExtendedState f JFrame/MAXIMIZED_BOTH)
     (.setUndecorated f true))
 
+; API not supported yet
+;(Desktop/browse my-uri)

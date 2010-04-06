@@ -61,7 +61,9 @@
 
 (defn scope-panel []
   (proxy [JPanel] []
-    (paint [g] (paint-scope g))))(dotimes [i (:width @scope*)] (aset x-array i i))
+    (paint [g] (paint-scope g))))
+
+(dotimes [i (:width @scope*)] (aset x-array i i))
 
 (defn scope []
   (let [scope-node (SGComponent.)
