@@ -11,10 +11,12 @@
    (jline ConsoleReader Terminal)
    (com.Ostermiller.util CircularByteBuffer)
    (java.io ByteArrayInputStream BufferedReader InputStreamReader DataOutputStream)
-   (java.nio.charset Charset))
+   (java.nio.charset Charset)
+   )
   
   (:import
-   (javax.swing JEditorPane JScrollPane  SwingUtilities))
+   (javax.swing JEditorPane JScrollPane  SwingUtilities)
+   )
   
   (:require [clojure.main :as r])
     
@@ -22,6 +24,7 @@
   (:use [clojure.stacktrace :only (e)])
     
   (:use (overtone.core time-utils sc ugen synth synthdef envelope event)
+        (overtone.gui utils)
         (overtone.music rhythm pitch tuning))
 
   (:use clj-scenegraph.core))
@@ -47,11 +50,6 @@
 (defmacro capture-out-write [cb & body]
   `(binding [`~*out* (PrintWriter. (OutputStreamWriter. (outputstream-with-cb ~cb)))]
      ~@body))
-
-(comment
-  (def temp (ref ""))                   
-  (capture-out-write #(dosync (ref-set temp (str "from callback: " %))) (println "capture me please"))
-  (println @temp))
 
 (defn start-repl-thread []
   (on ::repl-exit #((event ::repl-write :text "(println \"exit hack\")")))
@@ -94,23 +92,6 @@
         (catch TimeoutException t 
           false))))
 
-(comment
-  (repl-thread-running?)
-  (start-repl-thread))
-
-(comment
-  (start-repl-thread)
-
-  (on ::repl-exception #(println (str "exception: " (:text %))))
-  (on ::repl-prompt #(println (str "prompt: " (:text %))))
-  (on ::repl-print #(println (str "print: " (:text %))))
-
-  (on ::repl-exited #(println "repl exited"))
-
-  (on ::repl-ready #(println "repl ready"))
-  (event ::repl-exit)
-
-  (event ::repl-write :text "(println \"hello world\")")) 
 
 ;; JLine part
 
@@ -279,130 +260,8 @@
         (catch TimeoutException t 
           false))))
 
-(defmacro EDT
-  "runs body on the Event-Dispatch-Thread (Swing)"
-  [& body]
-         
-  `(SwingUtilities/invokeLater (fn [] ~@body)))
-
-(def keystroke-modifiers-map {:none  0 
-                              :shift java.awt.event.InputEvent/SHIFT_MASK 
-                              :ctrl java.awt.event.InputEvent/CTRL_MASK
-                              :meta java.awt.event.InputEvent/META_MASK
-                              :alt java.awt.event.InputEvent/ALT_MASK}) 
-
-(defn add-keystroke! [editorpane stroke mods performed-fn]
-  (let [stroke-key (eval `(. java.awt.event.KeyEvent ~stroke))]
-    (doto (.getKeymap editorpane)
-      (.addActionForKeyStroke
-       (javax.swing.KeyStroke/getKeyStroke stroke-key (if (vector? mods)
-                                                        (apply + (map #(keystroke-modifiers-map %) mods))
-                                                        (keystroke-modifiers-map mods)))
-       (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt] (performed-fn)))))))
-
-
-(defn set-default-keymap-action! [editorpane performed-fn]
-  (.setDefaultAction (.getKeymap editorpane) (proxy [javax.swing.Action] []
-                                               (isEnabled [] true)
-                                               (getValue [k])
-                                               (actionPerformed [e]
-                                                                (performed-fn e)))))
-
-(comment
-(EDT
- (def fr (javax.swing.JFrame.))
-
- (def edit (javax.swing.JEditorPane.))
- (.setEditable edit false)
- (.add fr edit)
- (.pack fr)
- 
- (.show fr))
-
-(defn dcls [] (let [doc (.getDocument edit)
-                    len (.getLength doc)]
-                (EDT (.remove doc 0 len))))
-
-(defn dprint [text] (let [doc (.getDocument edit)
-                          len (.getLength doc)]
-
-                      
-                     (EDT (.insertString doc len text nil))))
-
-(on ::jline-read-loop-init #(println "inited"))
-(on ::jline-read-loop-exit #(println "exited"))
-(clear-handlers ::jline-print)
-
-(clear-handlers ::jline-update-pos)
-
-(on ::jline-update-pos #(do
-                          (println (str "carret: " (:pos %)))
-                          (EDT
-                           (let [doc (.getDocument edit)
-                                 len (.getLength doc)
-                                 pos (:pos %)]
-                             (if (< pos len)
-                               (.setCaretPosition edit pos))))))
-
-(clear-handlers ::jline-update-text)
-
-(on ::jline-print #(EDT
-                    (let [doc (.getDocument edit)
-                          len (.getLength doc)
-                          i (int (.charAt (:c %) 0))
-                          pos (.getCaretPosition edit)]
-
-                      (if (= 127 i)
-                        (.remove doc (- pos 1) 1)
-                        (.insertString doc (.getCaretPosition edit) (str (:c %)) nil)))))
-
-(do
-  (event ::jline-exit)
-  (Thread/sleep 1000)
-  (jline-init)
-  (dcls))
-
-
-(do
-  (dcls)
-  (event ::jline-command :id :newline)
-  (.removeBindings (.getKeymap edit))
-  
-  (set-default-keymap-action! edit (fn [e] (let [content (str (.getActionCommand e))
-                                                 c (.charAt content 0)
-                                                 i (int c)]
-
-                                             (cond (= 8 i)     (event ::jline-command :id :backspace)
-                                                   (= 127 i)   (event ::jline-command :id :delete-prev-char))
-                                             
-                                             (if (>= i 0x20)
-                                               (if (not (= i 127))
-                                                 (event ::jline-write :text (str c)))))))
-  
-  (add-keystroke! edit 'VK_DELETE :none #(event ::jline-command :id :delete-next-char))
-  (add-keystroke! edit 'VK_LEFT :none #(event ::jline-command :id :prev-char))
-  (add-keystroke! edit 'VK_HOME :none #(event ::jline-command :id :move-to-beg))
-  (add-keystroke! edit 'VK_END :none #(event ::jline-command :id :move-to-end))
-  (add-keystroke! edit 'VK_ENTER :none #(event ::jline-command :id :newline))
-  nil)
-
-)
-
-
-(comment
 
 ;; GUI part
-
-(import '(com.sun.scenario.scenegraph SGComponent))
-
-(defn sg-component
-  ([] (SGComponent.))
-  ([comp]
-     (doto (sg-component)
-       (.setComponent comp)))
-  ([comp w h]
-     (doto (sg-component comp)
-       (.setSize w h))))
 
 (def #^{:doc "balanced pairs"}
      pairs '((\( \))
@@ -415,7 +274,6 @@
   [& body]
   `(SwingUtilities/invokeLater (fn [] ~@body)))
 
-
 (defn balanced?
   "are all the pairs balanced in this string?"
   [string]
@@ -425,74 +283,65 @@
     (fn [pair] (-> pair set (filter string) count (mod 2) zero?))
     pairs)))
 
-(do
- (defn repl []
-   (let [group (sg-group)
-         history (javax.swing.JEditorPane.)
-         input (javax.swing.JEditorPane.)
-         scroll (JScrollPane. history)
+(comment
+  (defn repl []
+    (let [group (sg-group)
+          history (javax.swing.JEditorPane.)
+          input (javax.swing.JEditorPane.)
+          scroll (JScrollPane. history)
 
-         println-history #(EDT (let [ doc (.getDocument history)
-                                     length (.getLength doc)]
-                                 (.insertString doc length % nil)))
+          println-history #(EDT (let [ doc (.getDocument history)
+                                      length (.getLength doc)]
+                                  (.insertString doc length % nil)))
 
-         bb (CircularByteBuffer.)
-         ps (java.io.PrintStream. (.getOutputStream bb) true)
-         cr (ConsoleReader. (.getInputStream bb) (PrintWriter. (System/out)))
-         ]
+          bb (CircularByteBuffer.)
+          ps (java.io.PrintStream. (.getOutputStream bb) true)
+          cr (ConsoleReader. (.getInputStream bb) (PrintWriter. (System/out)))
+          ]
 
-     (EDT (.setEditable input false)   
-          (.setEditable history false)
-          (.setVerticalScrollBarPolicy scroll (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS))
-          (.setHorizontalScrollBarPolicy scroll (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)))
+      (EDT (.setEditable input false)   
+           (.setEditable history false)
+           (.setVerticalScrollBarPolicy scroll (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS))
+           (.setHorizontalScrollBarPolicy scroll (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)))
     
-     (doto group
-       (add! (sg-component scroll 500 300))
-       (add! (translate 0 305 (sg-component input 500 25))))
+      (doto group
+        (add! (sg-component scroll 500 300))
+        (add! (translate 0 305 (sg-component input 500 25))))
 
-     (doto (.getKeymap input)
-       (.addActionForKeyStroke
-        (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_ENTER) 0)
-        (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt]  (let [text (.getText input)]
-                                                                         (if (and (not (empty? text))
-                                                                                  (balanced? text))
-                                                                           (do (event ::repl-write :text text)
-                                                                               (EDT
-                                                                                (.setText input "")
-                                                                                (.requestFocus input)))))))))
+      (doto (.getKeymap input)
+        (.addActionForKeyStroke
+         (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_ENTER) 0)
+         (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt]  (let [text (.getText input)]
+                                                                          (if (and (not (empty? text))
+                                                                                   (balanced? text))
+                                                                            (do (event ::repl-write :text text)
+                                                                                (EDT
+                                                                                 (.setText input "")
+                                                                                 (.requestFocus input)))))))))
 
      
      
-     (on ::repl-print #(println-history (:text %) ))
+      (on ::repl-print #(println-history (:text %) ))
     
-     (on ::repl-ready #((println-history "repl ready\r\n")
-                        (event ::repl-write :text "(in-ns 'user)\r\n(use 'overtone.live)")
-                        (EDT (.setEditable input true))))
+      (on ::repl-ready #((println-history "repl ready\r\n")
+                         (event ::repl-write :text "(in-ns 'user)\r\n(use 'overtone.live)")
+                         (EDT (.setEditable input true))))
 
-     (on ::repl-exited #((println-history "repl exited\r\n")
-                         (EDT (.setEditable input false))))
+      (on ::repl-exited #((println-history "repl exited\r\n")
+                          (EDT (.setEditable input false))))
     
-     (if (repl-thread-running?)
-       (do (EDT (.setEditable input true))
-           (println-history "repl thread allready running\r\n"))
-       (start-repl-thread))
+      (if (repl-thread-running?)
+        (do (EDT (.setEditable input true))
+            (println-history "repl thread allready running\r\n"))
+        (start-repl-thread))
       
-     group))
+      group)))
 
 
- (defn repl-panel []
-   (let [panel (sg-panel)]
+(defn repl-panel []
+  (let [panel (JPanel.)]
 
-     (set-scene! panel (repl))
 
-     panel))
 
- (sg-window (repl-panel))
-
- )
-
-)
- (comment
-
-   )
-
+    panel))
+ 

@@ -5,10 +5,6 @@
                            [org.clojure/clojure-contrib "1.1.0"]
 
                            [jline "0.9.94"]
-                           [scenegraph/decora-hw  "0.0.1-SNAPSHOT"]
-                           [scenegraph/decora-jogl "0.0.1-SNAPSHOT"]
-                           [scenegraph/decora-runtime "0.0.1-SNAPSHOT"]
-                           [scenegraph "0.0.1-SNAPSHOT"]
                            [vijual "0.1.0-SNAPSHOT"]
                            [org.clojars.rosejn/jsyntaxpane "0.9.5-b27"]
                            ;[penumbra "0.5.0"]
@@ -20,7 +16,7 @@
                            [midi-clj "0.1"]
 
                            [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
-                           [overtone/clj-scenegraph "0.0.3-SNAPSHOT"]]
+                           [overtone/clj-scenegraph "0.0.4-SNAPSHOT"]]
             :native-dependencies [[overtone/scsynth "3.3.1-SNAPSHOT"]
                                   [overtone/scsynth-jna "3.3.1-SNAPSHOT"]
                                   [lwjgl "2.2.2"]
