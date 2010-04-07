@@ -17,7 +17,7 @@
                            [overtone/byte-spec "0.1"]
                            [overtone/midi-clj "0.1"]
                            [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
-                           [overtone/clj-scenegraph "0.0.3-SNAPSHOT"]]
+                           [leiningen-run "0.3"]]
             :native-dependencies [[overtone/scsynth "3.3.1-SNAPSHOT"]
                                   [overtone/scsynth-jna "3.3.1-SNAPSHOT"]
                                   ;[lwjgl "2.2.2"]
@@ -30,4 +30,4 @@
                                [org.clojars.brandonw/lein-nailgun "1.0.0"]
                                [swank-clojure "1.1.0-SNAPSHOT"]
                                [leiningen/lein-swank "1.1.0"]]
-            :main overtone.app.repl)
+            :main overtone.app.main)
