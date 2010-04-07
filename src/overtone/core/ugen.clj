@@ -81,6 +81,11 @@
        (vals adults)
        (recur children adults (inc depth))))))
 
+(defn- with-rates
+  "Add the default ugen rates to any ugen that doesn't explicitly set it."
+  [spec]
+  (assoc spec :rates (get spec :rates UGEN-DEFAULT-RATES)))
+
 (defn- with-categories
   "Adds a :categories attribute to a ugen-spec for later use in documentation,
   GUI and REPL interaction."
@@ -115,7 +120,7 @@
 
   or a :default-rate attribute can override the default precedence order."
   [spec]
-  (let [rates (get spec :rates UGEN-DEFAULT-RATES)
+  (let [rates (:rates spec)
         rate-vec (vec rates)
         base-name (overtone-ugen-name (:name spec))
         base-rate (cond
@@ -224,6 +229,7 @@
   "Interpret a ugen-spec and add in additional, computed meta-data."
   [spec]
   (-> spec
+    (with-rates)
     (with-categories)
     (with-expands)
     (with-init-fn)
@@ -267,7 +273,7 @@
 (defn- print-ugen-args [args]
   (let [name-vals (map #(str (:name %) " " (:default %)) args)
         line (apply str (interpose ", " name-vals))]
-    (println line)))
+    (println "[" line "]")))
 
 (defn- print-ugen-categories [cats]
   (doseq [cat cats]
@@ -278,16 +284,17 @@
 
 (defn- print-ugen-rates [rates]
   (let [rates (sort-by UGEN-RATE-SORT-FN rates)]
-    (println (str (apply str (interpose ", " rates))))))
+    (println (str "[ " (apply str (interpose ", " rates)) " ]"))))
 
 (defn print-ugen [& ugens]
   (doseq [ugen ugens]
-    (println (str "\"" (:name ugen) "\""))
-    (print "\tcategories: \n\t\t")
-    (print-ugen-categories (:categories ugen))
-    (print "\tdefault args:\n\t\t")
     (print-ugen-args (:args ugen))
-    (print "\trates: ") 
+    ;(println (str "\"" (:name ugen) "\""))
+    (println " " (:doc ugen))
+    (print "  Categories: ")
+    (print-ugen-categories (:categories ugen))
+    ;(print "  default args:\n    ")
+    (print "  Rates: ") 
     (print-ugen-rates (:rates ugen))))
 
 (defn inf!
@@ -466,8 +473,10 @@
       (overload-ugen-op to-ns ugen-name ugen-fn)
       (intern to-ns ugen-name ugen-fn))))
 
-; TODO: Why does this require its own implementation again???
-(defn mul-add [in mul add]
+; We define this uniquely because it has to be smart about its rate.
+; TODO: I think this should probably be handled by one of the ugen modes
+; that is currently not yet implemented...
+(defn- mul-add [in mul add]
   (with-meta {:id (next-id :ugen)
               :name "MulAdd" 
               :rate (or (:rate in) 2)
@@ -504,6 +513,7 @@
       (ns-unmap to-ns (symbol op))
       (intern to-ns (symbol op) (make-expanding func [true true]))))
     (intern to-ns 'mul-add (make-expanding mul-add [true true true]))
+    ;(refer 'overtone.core.ugen.extra)
     ))
 
 ;; We refer all the ugen functions here so they can be access by other parts

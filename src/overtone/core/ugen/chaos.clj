@@ -37,15 +37,18 @@
                {:name "a", :default 1.0}
                {:name "b", :default -1.0}
                {:name "c", :default -0.75}
-               {:name "xi", :default 0.0}]}
+               {:name "xi", :default 0.0}]
+        :doc "a non-interpolating sound generator based on the difference equation: xn+1 = axn2 + bxn + c "}
        
        ;; QuadL : QuadN {}
        
-       {:name "QuadL" :extends "QuadN"}
+       {:name "QuadL" :extends "QuadN"
+        :doc "a linear-interpolating sound generator based on the difference equation: xn+1 = axn2 + bxn + c"}
        
        ;; QuadC : QuadN {}
        
-       {:name "QuadC", :extends "QuadN"}
+       {:name "QuadC", :extends "QuadN"
+        :doc "a cubic-interpolating sound generator based on the difference equation: xn+1 = axn2 + bxn + c"}
        
        ;; // Cusp Map
        ;; CuspN : ChaosGen {
@@ -59,11 +62,13 @@
         :args [{:name "freq", :default 22050.0}
                {:name "a", :default 1.0}
                {:name "b", :default 1.9}
-               {:name "xi", :default 0.0}]}
+               {:name "xi", :default 0.0}]
+        :doc "a non-interpolating sound generator based on the difference equation: xn+1 = a - b*sqrt(|xn|)"}
        
        ;; CuspL : CuspN {}
        
-       {:name "CuspL" :extends "CuspN"}
+       {:name "CuspL" :extends "CuspN"
+        :doc "a linear-interpolating sound generator based on the difference equation: xn+1 = a - b*sqrt(|xn|)"}
        
        ;; // Gingerbreadman Map
        ;; GbmanN : ChaosGen {
@@ -76,11 +81,17 @@
        {:name "GbmanN",
         :args [{:name "freq", :default 22050.0}
                {:name "xi", :default 1.2}
-               {:name "yi", :default 2.1}]}
+               {:name "yi", :default 2.1}]
+        :doc "A non-interpolating sound generator based on the difference equations:
+xn+1 = 1 - yn + |xn|
+yn+1 = xn"}
        
        ;; GbmanL : GbmanN {}
 
-       {:name "GbmanL" :extends "GbmanN"}
+       {:name "GbmanL" :extends "GbmanN"
+        :doc "A linear-interpolating sound generator based on the difference equations:
+xn+1 = 1 - yn + |xn|
+yn+1 = xn"}
        
        ;; // Henon Map
        ;; HenonN : ChaosGen {
@@ -95,15 +106,21 @@
                {:name "a", :default 1.4}
                {:name "b", :default 0.3}
                {:name "x0", :default 0.0}
-               {:name "x1", :default 0.0}]}
+               {:name "x1", :default 0.0}]
+        :doc "a non-interpolating sound generator based on the difference equation:
+x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
        
        ;; HenonL : HenonN {}
 
-       {:name "HenonL" :extends "HenonN"}
+       {:name "HenonL" :extends "HenonN"
+        :doc "a linear-interpolating sound generator based on the difference equation:
+x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
        
        ;; HenonC : HenonN {}
 
-       {:name "HenonC" :extends "HenonN"}
+       {:name "HenonC" :extends "HenonN"
+        :doc "a cubic-interpolating sound generator based on the difference equation:
+x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
        
        ;; // Latoocarfian
        ;; LatoocarfianN : ChaosGen {
@@ -120,15 +137,18 @@
                {:name "c", :default 0.5}
                {:name "d", :default 0.5}
                {:name "xi", :default 0.5}
-               {:name "yi", :default 0.5}]}
+               {:name "yi", :default 0.5}]
+        :doc "a non-interpolating latoocarfian chaotic sound generator"}
        
        ;; LatoocarfianL : LatoocarfianN {}
 
-       {:name "LatoocarfianL" :extends "LatoocarfianN"}
+       {:name "LatoocarfianL" :extends "LatoocarfianN"
+        :doc "a linear-interpolating latoocarfian chaotic sound generator"}
        
        ;; LatoocarfianC : LatoocarfianN {}
 
-       {:name "LatoocarfianC" :extends "LatoocarfianN"}
+       {:name "LatoocarfianC" :extends "LatoocarfianN"
+        :doc "a cubic-interpolating latoocarfian chaotic sound generator"}
        
        ;; // Linear Congruential
        ;; LinCongN : ChaosGen {
@@ -143,15 +163,18 @@
                {:name "a", :default 1.1}
                {:name "c", :default 0.13}
                {:name "m", :default 1.0}
-               {:name "xi", :default 0.0}]}
+               {:name "xi", :default 0.0}]
+        :doc "a non-interpolating linear congruential chaotic sound generator"}
        
        ;; LinCongL : LinCongN {}
 
-       {:name "LinCongL" :extends "LinCongN"}
+       {:name "LinCongL" :extends "LinCongN"
+        :doc "a linear-interpolating linear congruential chaotic sound generator"}
        
        ;; LinCongC : LinCongN {}
 
-       {:name "LinCongC" :extends "LinCongN"}
+       {:name "LinCongC" :extends "LinCongN"
+        :doc "a cubic-interpolating linear congruential chaotic sound generator"}
        
        ;; // Standard Map
        ;; StandardN : ChaosGen {
@@ -165,11 +188,13 @@
         :args [{:name "freq", :default 22050.0}
                {:name "k", :default 1.0}
                {:name "xi", :default 0.5}
-               {:name "yi", :default 0.0}]}
+               {:name "yi", :default 0.0}]
+        :doc "standard map chaotic generator"}
        
        ;; StandardL : StandardN {}
 
-       {:name "StandardL" :extends "StandardN"}
+       {:name "StandardL" :extends "StandardN"
+        :doc "linear-interpolating standard map chaotic generator"}
        
        ;; // Feedback Sine with Linear Congruential Phase Indexing
        ;; FBSineN : ChaosGen {
@@ -186,14 +211,17 @@
                {:name "a", :default 1.1}
                {:name "c", :default 0.5}
                {:name "xi", :default 0.1}
-               {:name "yi", :default 0.1}]}
+               {:name "yi", :default 0.1}]
+        :doc "a non-interpolating feedback sine with chaotic phase indexing sound generator"}
        
        ;; FBSineL : FBSineN {}
 
-       {:name "FBSineL" :extends "FBSineN"}
+       {:name "FBSineL" :extends "FBSineN"
+        :doc "a linear-interpolating feedback sine with chaotic phase indexing sound generator"}
        
        ;; FBSineC : FBSineN {}
-       {:name "FBSineC" :extends "FBSineN"}
+       {:name "FBSineC" :extends "FBSineN"
+        :doc "a cubic-interpolating feedback sine with chaotic phase indexing sound generator"}
        
        ;; // ODEs
        ;; // 'h' is integration time-step
@@ -214,4 +242,5 @@
                {:name "h", :default 0.05}
                {:name "xi", :default 0.1}
                {:name "yi", :default 0.0}
-               {:name "zi", :default 0.0}]}]))
+               {:name "zi", :default 0.0}]
+        :doc "lorenz chaotic generator"}]))

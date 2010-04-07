@@ -2,9 +2,9 @@
 
 ## intializing the base specs.
 
-first all specs are loaded,
-and any spec with a :derived property is merged with it's
-parent, the child properties overwriting the parent's.
+first all specs are loaded, and any spec that derives from another using the
+:extends property is merged with it's parent, the child properties overwriting
+the parent's.
 
 then comes mode initialization. all args are assigned a mode.
 if the arg does not have an explicitly statetd mode, then

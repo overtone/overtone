@@ -1,11 +1,34 @@
-(ns synth-test
-  (:use test-utils
-     (overtone synth)))
+(ns examples.experiments
+  (:use overtone.live))
+
+(refer-ugens)
 
 (defsynth saw-sin [freq-a 443
                    freq-b 440]
   (out 0 (+ (* 0.3 (saw freq-a))
                (* 0.3 (sin-osc freq-b 0)))))
+
+(defsynth whoah []
+  (let [sound (resonz (saw (map #(+ % (* (sin-osc 100) 1000)) [440 443 437])) (x-line 10000 10 10) (line 1 0.05 10))]
+  (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 10) sound)))
+
+(defn square [freq]
+  (pulse freq 0.5))
+
+(defn mix [& args]
+  (reduce + args))
+
+(defsynth vintage-bass [note 60 velocity 100 detune 7 rq 0.4]
+  (let [saw1 (* 0.75 (saw (midicps note)))
+        saw2 (* 0.32 (saw (+ detune (midicps note))))
+        sqr  (* 0.32 (square (midicps (- note 12))))
+        amp  (/ 128.0 velocity)
+        mx   (* amp (mix saw1 saw2 sqr))
+        env-amp (+ 0.25 (* 0.55 amp))
+        env (* env-amp (env-gen (adsr) velocity 1 0 1 :free))
+        filt (rlpf mx (* env (midicps note)) rq)]
+    (out 0 filt)))
+
 
 (comment 
 (load-synth saw-sin)

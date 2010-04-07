@@ -24,7 +24,8 @@
               {:name "trigger", :default 1.0}
               {:name "startPos", :default 0.0}
               {:name "loop", :default 0.0}
-              {:name "doneAction", :default :none :map DONE-ACTIONS}]}
+              {:name "doneAction", :default :none :map DONE-ACTIONS}]
+       :doc "sample playback from a Signal buffer"}
       
       ;; TGrains : MultiOutUGen {
       ;; 	*ar { arg numChannels, trigger=0, bufnum=0, rate=1, centerPos=0, 
@@ -54,7 +55,8 @@
               {:name "amp", :default 0.1}
               {:name "interp", :default 4}],
        :rates #{:ar}
-       :check (num-outs-greater-than 1)}
+       :check (num-outs-greater-than 1)
+       :doc "sample playback from a buffer with fine control for doing granular synthesis"}
 
       ;; BufRd : MultiOutUGen {	
       ;; 	*ar { arg numChannels, bufnum=0, phase=0.0, loop=1.0, interpolation=2;
@@ -82,7 +84,8 @@
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}
               {:name "interpolation", :default 2}]
-       :check (when-ar (nth-input-ar 1))}   ; check phase. NB numChannels has already been popped.
+       :check (when-ar (nth-input-ar 1))   ; check phase. NB numChannels has already been popped.
+       :doc "reads the contents of a buffer at a given index"}
       
       ;; BufWr : UGen {	
       ;; 	*ar { arg inputArray, bufnum=0, phase=0.0, loop=1.0;
@@ -106,7 +109,8 @@
               {:name "bufnum", :default 0}
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}]
-       :check (when-ar (nth-input-ar 1))}
+       :check (when-ar (nth-input-ar 1))
+       :doc "writes to a buffer at a given index"}
 
       ;; RecordBuf : UGen {	
       ;; 	*ar { arg inputArray, bufnum=0, offset=0.0, recLevel=1.0, preLevel=0.0, 
@@ -134,7 +138,8 @@
               {:name "run", :default 1.0}
               {:name "loop", :default 1.0}
               {:name "trigger", :default 1.0}
-              {:name "doneAction", :default 0 :map DONE-ACTIONS}]}
+              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
+       :doc "record a stream of values into a buffer"}
       
       ;; ScopeOut : UGen {
       ;; 	*ar { arg inputArray , bufnum=0;

@@ -1,31 +1,27 @@
 (ns overtone.app.editor
   (:import 
-     (java.awt Toolkit EventQueue Color Font FontMetrics Dimension BorderLayout 
-               GridBagLayout GridBagConstraints Insets)
+     (java.awt EventQueue Color Font FontMetrics Dimension BorderLayout 
+               GridBagLayout GridBagConstraints Insets FlowLayout)
      (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane 
-                  JSplitPane JMenuBar JMenu JMenuItem SwingUtilities) 
+                  JSplitPane JButton JFileChooser) 
      (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                   SGAbstractShape$Mode SGComponent SGTransform)
-     (jsyntaxpane DefaultSyntaxKit)))
-
-(def DEFAULT-FONT "Sans")
-(def DEFAULT-FONT-SIZE 12)
+     (jsyntaxpane DefaultSyntaxKit))
+  (:use (overtone.gui swing)
+        [clojure.contrib.fcase :only (case)]
+        (clojure.contrib swing-utils duck-streams)))
 
 (def TAB-STOP 4)
 (def CARET-COLOR Color/BLACK)
+
+(def editor* (ref {}))
 
 (defn- status-panel [editor]
   (let [status-pane (JPanel.)
         general-status (JLabel. "general status")
         stroke-status (JLabel. "stroke status")
         mode-status (JLabel. "mode-status")]
-;        status-display (-> (ViManager/getViTextView editor) (.getStatusDisplay))]
     
-    ; Hookup the status bar labels to the Vi machinery
- ;   (set! (.generalStatus status-display) general-status)
- ;   (set! (.strokeStatus status-display) stroke-status)
- ;   (set! (.modeStatus status-display) mode-status)
-
     (doto status-pane
       (.setLayout (GridBagLayout.))
       (.add general-status (GridBagConstraints. 0 0 1 1 1.0 0.0 GridBagConstraints/WEST 
@@ -39,34 +35,70 @@
                                              GridBagConstraints/VERTICAL 
                                              (Insets. 0 2 0 0) 0 0)))))
 
-(defn editor-panel []
+(defn file-open-dialog [parent & [path]]
+  (let [chooser (if path
+                  (JFileChooser. path)
+                  (JFileChooser.))
+        ret (.showOpenDialog chooser parent)]
+    (case ret
+      JFileChooser/APPROVE_OPTION (-> chooser (.getSelectedFile) (.getAbsolutePath))
+      JFileChooser/CANCEL_OPTION nil
+      JFileChooser/ERROR_OPTION  nil)))
+
+(defn file-save-dialog [parent & [path]]
+  (let [chooser (if path
+                  (JFileChooser. path)
+                  (JFileChooser.))
+        ret (.showSaveDialog chooser parent)]
+    (case ret
+      JFileChooser/APPROVE_OPTION (-> chooser (.getSelectedFile) (.getAbsolutePath))
+      JFileChooser/CANCEL_OPTION nil
+      JFileChooser/ERROR_OPTION  nil)))
+
+(defn button-bar [editor]
+  (let [panel (JPanel. (FlowLayout. FlowLayout/LEFT))
+        open (JButton. (icon "org/freedesktop/tango/16x16/actions/document-open.png"))
+        save (JButton. (icon "org/freedesktop/tango/16x16/actions/document-save.png"))]
+
+    (.setToolTipText open "Open a file")
+    (.setToolTipText save "Save the current file")
+
+    (add-action-listener open (fn [_]
+                                (if-let [path (file-open-dialog editor)]
+                                  (.setText editor (slurp path)))))
+    (add-action-listener save (fn [_]
+                                (if-let [path (file-save-dialog editor)]
+                                  (spit path (.getText editor)))))
+
+    (doto panel
+      (.add open)
+      (.add save))
+
+    panel))
+
+(defn editor-panel [app]
   (let [editor-pane (JPanel.)
-        editor (JTextPane.)
+        editor (JEditorPane.)
+        button-pane (button-bar editor)
         scroller (JScrollPane. editor)
-        font (Font. DEFAULT-FONT 
-                    Font/PLAIN
-                    DEFAULT-FONT-SIZE)
-        _ (.setFont editor font)
         font (.getFont editor)
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))]
-;    (DefaultSyntaxKit/initKit)
+    (DefaultSyntaxKit/initKit)
+
+    (doto button-pane
+      (.setBackground (:background app)))
 
     (doto editor
+      (.setFont (:edit-font app))
       (.setContentType "text/clojure")
-      (.setText "(defn foo [a b] (dosync (ref-set asdf* (+ a b))))")
+      (.setText (slurp "src/examples/basic.clj"))
       (.setCaretColor CARET-COLOR)
       (.requestFocusInWindow))
 
     (doto editor-pane
       (.setLayout (BorderLayout.))
+      (.add button-pane BorderLayout/NORTH)
       (.add scroller BorderLayout/CENTER)
       (.add (status-panel editor) BorderLayout/SOUTH))))
-
-(defn editor []
-  (let [edit-node (SGComponent.)]
-    (doto edit-node
-      (.setSize 500 500)
-      (.setComponent (editor-panel)))
-    (SGTransform/createTranslation 100 100 edit-node)))

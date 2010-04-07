@@ -279,14 +279,17 @@
                       ugen-root#
                       (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))
              sdef# (synthdef sname# ~param-map ugens#)
-             sgroup# (or (get @synths* sname#) (group :tail 0))]
+             sgroup# (or (get @synths* sname#) (group :head 0))]
          (load-synthdef sdef#)
          (dosync (alter synths* assoc sname# sgroup#))
          (synth-player sname# (quote ~param-names))))))
-;         (with-meta 
-;           (synth-player sname# (quote ~param-names))
-;           {:synthdef sdef#
-;            :group    sgroup#})))))
+         
+; TODO: Figure out a better way... functions can't have meta-data!?!?
+ ;        (with-meta 
+ ;          (synth-player sname# (quote ~param-names))
+ ;          {:synthdef sdef#
+ ;           :group    sgroup#
+ ;           :name sname#})))))
 
 (defmacro defsynth 
   "Define a synthesizer and name its trigger function.  

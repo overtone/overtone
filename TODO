@@ -6,13 +6,61 @@
 
 == General:
 
-* add a description property to the ugen specs using the info in docs/ugens, and 
-add some machinery to add this to the :doc metadata.
-
-* Add a runtime shutdown hook that calls shutdown callbacks to close the server
-and do anything else necessary.
-
 * create a function that prints out the currently running synths
+
+* write a number adjustment label to replace the lame looking JSpinner 
+ - use a regular JLabel, and take min, max, step args
+ - on drag adjust the value and call handlers
+
+* create some kind of standardized tool-box for things like the color chooser
+and other random side-bar tools.
+
+* figure out how to organize stuff in scene window
+ - tabs, collapsing, resizing, etc...
+
+* either find icons that work better or just use some styled text that feel like
+hyperlinks for the editor buttons
+
+
+== Editor 
+
+* make text editor have two modes, sort of VI style
+ - non-editing mode makes functions clickable and puts docs into a help panel
+ - support vi commands for motions, search and replace, and selection
+
+* add some key-commands for evaluation
+ - whole file (or current-selection)
+ - current enclosing top-level form
+ - current immediate form
+
+* add some par-edit style form modification commands
+
+== Curve Editor
+
+* add support for different curve types for the line segments
+
+* support add and removing control points
+
+* support setting loop and release control points ala SuperCollider's envelopes
+
+* adjust max size in seconds
+
+* scale in and out
+
+* add animated, path-following nodes showing the current location of the synth
+being driven by the envelope
+
+== Oscilloscope
+
+* zooming
+
+* paint and erase waveform data
+
+=== Spectrogram
+
+* do FFT and view frequency data
+
+* apply various PV filters directly to active buffer and view output
 
 == Synths and Audio:
 

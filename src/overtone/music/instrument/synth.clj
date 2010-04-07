@@ -1,7 +1,7 @@
 (ns overtone.instrument.synth
   (:use overtone.live))
 
-(refer-ugens *ns*)
+(refer-ugens)
 
 (defsynth alien-computer [trig 0.3] 
   (out 0 (pan2 (ifft 

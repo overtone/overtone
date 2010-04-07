@@ -54,11 +54,13 @@
         :args [{:name "in"}
                {:name "pos", :default 0.0}
                {:name "level", :default 1.0}]
-        :num-outs 2}
+        :num-outs 2
+        :doc "stereo pan"}
        
        ;; LinPan2 : Pan2 {}
 
-       {:name "LinPan2" :extends "Pan2"}
+       {:name "LinPan2" :extends "Pan2"
+        :doc "linear stereo pan"}
        
        ;; Pan4 : Panner {
        
@@ -81,7 +83,8 @@
                {:name "xpos", :default 0.0}
                {:name "ypos", :default 0.0}
                {:name "level", :default 1.0}]
-        :num-outs 4}
+        :num-outs 4
+        :doc "quad pan"}
        
        ;; Balance2 : Panner {
        ;;  *ar { arg left, right, pos = 0.0, level = 1.0;
@@ -105,7 +108,8 @@
                {:name "right"}
                {:name "pos", :default 0.0}
                {:name "level", :default 1.0}]
-        :num-outs 2}
+        :num-outs 2
+        }
        
        ;; Rotate2 : Panner {
        ;;  *ar { arg x, y, pos = 0.0;
@@ -128,7 +132,8 @@
         :args [{:name "x"}
                {:name "y"}
                {:name "pos", :default 0.0}]
-        :num-outs 2}
+        :num-outs 2
+        :doc "rotate a sound field"}
 
        ;; PanB : Panner {
        ;;  *ar { arg in, azimuth=0, elevation=0, gain=1;

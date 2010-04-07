@@ -14,11 +14,13 @@
        ;; }
 
        {:name "Delay1",
-        :args [{:name "in", :default 0.0}]}
+        :args [{:name "in", :default 0.0}]
+        :doc "delay input signal by one frame of samples"}
        
        ;; Delay2 : Delay1 { }
 
-       {:name "Delay2" :extends "Delay1"}
+       {:name "Delay2" :extends "Delay1"
+        :doc "delay input signal by two frames of samples"}
 
        ;; these delays use real time allocated memory.
 
@@ -34,15 +36,18 @@
        {:name "DelayN",
         :args [{:name "in", :default 0.0, :mode :as-ar}
                {:name "maxdelaytime", :default 0.2}
-               {:name "delaytime", :default 0.2}]}
+               {:name "delaytime", :default 0.2}]
+        :doc "simple delay line, no interpolation."}
 
        ;; DelayL : DelayN {}
 
-       {:name "DelayL" :extends "DelayN"}
+       {:name "DelayL" :extends "DelayN"
+        :doc "simple delay line, linear interpolation."}
        
        ;; DelayC : DelayN {}
 
-       {:name "DelayC" :extends "DelayN"}
+       {:name "DelayC" :extends "DelayN"
+        :doc "simple delay line, cubic interpolation."}
        
        ;; CombN : UGen {
        ;;   *ar { arg in = 0.0, maxdelaytime = 0.2, delaytime = 0.2, decaytime = 1.0, mul = 1.0, add = 0.0;
@@ -57,14 +62,23 @@
         :args [{:name "in", :default 0.0, :mode :as-ar}
                {:name "maxdelaytime", :default 0.2}
                {:name "delaytime", :default 0.2}
-               {:name "decaytime", :default 1.0}]}
-       
-       {:name "CombL" :extends "CombN"}
-       {:name "CombC" :extends "CombN"}
+               {:name "decaytime", :default 1.0}]
+        :doc "comb delay line, no interpolation"}
 
-       {:name "AllpassN" :extends "CombN"}
-       {:name "AllpassL" :extends "CombN"}
-       {:name "AllpassC" :extends "CombN"}       
+       {:name "CombL" :extends "CombN"
+        :doc "comb delay line, linear interpolation"}
+
+       {:name "CombC" :extends "CombN"
+        :doc "comb delay line, cubic interpolation"}
+
+       {:name "AllpassN" :extends "CombN"
+       :doc "all pass delay line, no interpolation"}
+
+       {:name "AllpassL" :extends "CombN"
+       :doc "all pass delay line, linear interpolation"}
+
+       {:name "AllpassC" :extends "CombN"
+       :doc "all pass delay line, cubic interpolation"}
 
        ;; these delays use shared buffers.
 
@@ -80,15 +94,18 @@
        {:name "BufDelayN",
         :args [{:name "buf", :default 0.0}
                {:name "in", :default 0.0 :mode :as-ar}
-               {:name "delaytime", :default 0.2}]}
+               {:name "delaytime", :default 0.2}]
+        :doc "buffer based simple delay line with no interpolation"}
        
        ;; BufDelayL : BufDelayN {}
 
-       {:name "BufDelayL" :extends "BufDelayN"}
+       {:name "BufDelayL" :extends "BufDelayN"
+        :doc "buffer based simple delay line with linear interpolation"}
        
        ;; BufDelayC : BufDelayN {}
 
-       {:name "BufDelayC" :extends "BufDelayN"}
+       {:name "BufDelayC" :extends "BufDelayN"
+        :doc "buffer based simple delay line with cubic interpolation"}
 
        ;; BufCombN : UGen {
        ;; 	*ar { arg buf = 0, in = 0.0, delaytime = 0.2, decaytime = 1.0, mul = 1.0, add = 0.0;
@@ -101,24 +118,31 @@
                {:name "in", :default 0.0, :mode :as-ar}
                {:name "delaytime", :default 0.2}
                {:name "decaytime", :default 1.0}],
-        :rates #{:ar}}
+        :rates #{:ar}
+        :doc "buffer based comb delay line with no interpolation"}
        
        ;; BufCombL : BufCombN {}
 
-       {:name "BufCombL" :extends "BufCombN"}
+       {:name "BufCombL" :extends "BufCombN"
+        :doc "buffer based comb delay line with linear interpolation"}
        
        ;; BufCombC : BufCombN {}
 
-       {:name "BufCombC" :extends "BufCombN"}       
+       {:name "BufCombC" :extends "BufCombN"
+        :doc "buffer based comb delay line with cubic interpolation"}
 
        ;; BufAllpassN : BufCombN {}
 
-       {:name "BufAllpassN" :extends "BufCombN"}
+       {:name "BufAllpassN" :extends "BufCombN"
+        :doc "buffer based all pass delay line with no interpolation"}
        
        ;; BufAllpassL : BufCombN {}
 
-       {:name "BufAllpassL" :extends "BufCombN"}
+       {:name "BufAllpassL" :extends "BufCombN"
+        :doc "buffer based all pass delay line with linear interpolation"}
        
        ;; BufAllpassC : BufCombN {}
 
-       {:name "BufAllpassC" :extends "BufCombN"}]))
+       {:name "BufAllpassC" :extends "BufCombN"
+        :doc "buffer based all pass delay line with cubic interpolation"}
+       ]))

@@ -53,7 +53,8 @@
 
       {:name "UnaryOpUGen",
        :args [{:name "a"}],
-       :rates #{:dr :ir :ar :kr}}
+       :rates #{:dr :ir :ar :kr}
+       :doc "Multi-function ugen representing many operations (e.g. neg, abs, floor, sqrt, midicps, etc...)"}
 
       ;; BinaryOpUGen : BasicOpUGen {		
       ;; 	*new { arg selector, a, b;
@@ -245,7 +246,8 @@
       {:name "BinaryOpUGen",
        :args [{:name "a"}
               {:name "b"}],
-       :rates #{:dr :ir :ar :kr}}
+       :rates #{:dr :ir :ar :kr}
+       :doc "Multi-function ugen representing many operations (e.g. +, *, <, min, max, etc...)"}
 
       ;; MulAdd : UGen {
       ;; 	*new { arg in, mul = 1.0, add = 0.0;
@@ -286,10 +288,12 @@
       ;; }
 
       {:name "MulAdd",
-       :desc "equivalent to (+ add (* mul in))"
        :args [{:name "in"}
               {:name "mul", :default 1.0}
-              {:name "add", :default 0.0}]}])
+              {:name "add", :default 0.0}]
+       :doc "Multiply and add, equivalent to (+ add (* mul in))"}
+      
+      ])
 
 ;;    {:name "!=", :args [{:name "a"} {:name "b"}], :rates #{:dr :ir :ar :kr}}
 

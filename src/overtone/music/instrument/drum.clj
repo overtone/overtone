@@ -1,7 +1,7 @@
 (ns overtone.instrument.drum
   (:use overtone.live))
 
-(refer-ugens *ns*)
+(refer-ugens)
 
 (defsynth kick [out 0 freq 50 mod-freq 5 mod-index 5 
                 sustain 0.4 amp 0.8 noise 0.025]

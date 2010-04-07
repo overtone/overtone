@@ -28,7 +28,8 @@
               {:name "channelsArray" :mode :append-sequence}],
        :rates #{:ar},
        :num-outs 0
-       :check (all-but-first-input-ar "channelsArray must all be audio rate")}
+       :check (all-but-first-input-ar "channelsArray must all be audio rate")
+       :doc "stream audio out to disk file"}
       
       ;; from DiskIO.sc
       ;; DiskIn : MultiOutUGen {
@@ -45,7 +46,8 @@
        :args [{:name "numChannels" :mode :num-outs}
               {:name "bufnum"}
               {:name "loop", :default 0}],
-       :rates #{:ar}}
+       :rates #{:ar}
+       :doc "stream audio in from disk file"}
       
       ;; from DiskIO.sc
       ;; VDiskIn : MultiOutUGen {
@@ -87,7 +89,8 @@
 
       {:name "In",
        :args [{:name "bus", :default 0}
-              {:name "numChannels", :mode :num-outs :default 1}]}
+              {:name "numChannels", :mode :num-outs :default 1}]
+       :doc "read from a bus"}
       
       ;; from InOut.sc
       ;; LocalIn : AbstractIn {	
@@ -136,7 +139,8 @@
       {:name "InFeedback",
        :args [{:name "bus", :default 0}
               {:name "numChannels", :mode :num-outs :default 1}],
-       :rates #{:ar}}      
+       :rates #{:ar}
+       :doc "read signal from a bus with a current or one cycle old timestamp"}      
       
       ;; from InOut.sc
       ;; InTrig : AbstractIn {	
@@ -152,7 +156,8 @@
       {:name "InTrig",
        :args [{:name "bus", :default 0}
               {:name "numChannels", :mode :num-outs :default 1}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "generates a trigger any time the bus is set"}
 
       ;; from InOut.sc
       ;; SharedIn : AbstractIn {	
@@ -168,7 +173,8 @@
       {:name "SharedIn",
        :args [{:name "bus", :default 0}
               {:name "numChannels", :mode :num-outs :default 1}],
-       :rates #{:kr}}
+       :rates #{:kr}
+       :doc "read from a shared control bus (internal dsp only)"}
 
       ;; from InOut.sc
       ;; AbstractOut : UGen {
@@ -214,12 +220,14 @@
               {:name "channelsArray" :mode :append-sequence}],
        :num-outs 0
        :check (when-ar
-               (all-but-first-input-ar "channelsArray must all be audio rate"))}
+               (all-but-first-input-ar "channelsArray must all be audio rate"))
+       :doc "write a signal to a bus, adding to any existing contents"}
       
       ;; from InOut.sc
       ;; ReplaceOut : Out {}
 
-      {:name "ReplaceOut", :extends "Out"}
+      {:name "ReplaceOut", :extends "Out"
+       :doc "write signal to a bus, replacing the contents rather than adding to it."}
       
       ;; OffsetOut : Out {
       ;; 	*kr { ^this.shouldNotImplement(thisMethod) }
@@ -227,7 +235,8 @@
 
       {:name "OffsetOut" :extends "Out"
        :rates #{:ar}
-       :check (all-but-first-input-ar "channelsArray must all be audio rate")}
+       :check (all-but-first-input-ar "channelsArray must all be audio rate")
+       :doc "write signal to a bus with sample accurate timing"}
 
       ;; from InOut.sc
       ;; LocalOut : AbstractOut {
@@ -280,7 +289,8 @@
               {:name "xfade"}
               {:name "channelsArray" :mode :append-sequence}],
        :num-outs 0
-       :check (when-ar (after-n-inputs-rest-ar 2 "all channels must be audio rate"))}
+       :check (when-ar (after-n-inputs-rest-ar 2 "all channels must be audio rate"))
+       :doc "write signal to a bus, crossfading with the existing content (adding with fader adjustment)"}
       
       ;; from InOut.sc
       ;; SharedOut : AbstractOut {
