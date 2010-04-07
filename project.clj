@@ -17,7 +17,7 @@
                            [org.ostermiller/utils "1.07.00"]
                            
                            [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
-                           [overtone/clj-scenegraph "0.0.4-SNAPSHOT"]]   
+                           [overtone/clj-scenegraph "0.0.4-SNAPSHOT"]
 
                            [overtone/jsyntaxpane "0.9.5-b27"]
                            [overtone/osc-clj "0.1.2-SNAPSHOT"]
