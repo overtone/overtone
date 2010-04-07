@@ -15,8 +15,9 @@
    )
   
   (:import
-   (java.awt.BorderLayout)
-   (javax.swing JEditorPane JScrollPane JPanel SwingUtilities)
+   (java.awt Color BorderLayout Dimension)
+   (javax.swing JEditorPane JFrame JScrollPane JPanel SwingUtilities AbstractAction)
+   (javax.swing.border LineBorder)
    )
   
   (:require [clojure.main :as r])
@@ -25,7 +26,7 @@
   (:use [clojure.stacktrace :only (e)])
     
   (:use (overtone.core time-utils sc ugen synth synthdef envelope event)
-        (overtone.gui utils)
+        (overtone.gui swing)
         (overtone.music rhythm pitch tuning))
 
   (:use clj-scenegraph.core))
@@ -284,75 +285,73 @@
     (fn [pair] (-> pair set (filter string) count (mod 2) zero?))
     pairs)))
 
-(comment
-  (defn repl []
-    (let [group (sg-group)
-          history (javax.swing.JEditorPane.)
-          input (javax.swing.JEditorPane.)
-          scroll (JScrollPane. history)
-
-          println-history #(EDT (let [ doc (.getDocument history)
-                                      length (.getLength doc)]
-                                  (.insertString doc length % nil)))
-
-          bb (CircularByteBuffer.)
-          ps (java.io.PrintStream. (.getOutputStream bb) true)
-          cr (ConsoleReader. (.getInputStream bb) (PrintWriter. (System/out)))
-          ]
-
-      (EDT (.setEditable input false)   
-           (.setEditable history false)
-           (.setVerticalScrollBarPolicy scroll (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS))
-           (.setHorizontalScrollBarPolicy scroll (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)))
-    
-      (doto group
-        (add! (sg-component scroll 500 300))
-        (add! (translate 0 305 (sg-component input 500 25))))
-
-      (doto (.getKeymap input)
-        (.addActionForKeyStroke
-         (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_ENTER) 0)
-         (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt]  (let [text (.getText input)]
-                                                                          (if (and (not (empty? text))
-                                                                                   (balanced? text))
-                                                                            (do (event ::repl-write :text text)
-                                                                                (EDT
-                                                                                 (.setText input "")
-                                                                                 (.requestFocus input)))))))))
-
-     
-     
-      (on ::repl-print #(println-history (:text %) ))
-    
-      (on ::repl-ready #((println-history "repl ready\r\n")
-                         (event ::repl-write :text "(in-ns 'user)\r\n(use 'overtone.live)")
-                         (EDT (.setEditable input true))))
-
-      (on ::repl-exited #((println-history "repl exited\r\n")
-                          (EDT (.setEditable input false))))
-    
-      (if (repl-thread-running?)
-        (do (EDT (.setEditable input true))
-            (println-history "repl thread allready running\r\n"))
-        (start-repl-thread))
+(defn repl []
+  (let [group (sg-group)
+        ]
       
-      group)))
-
+    group))
 
 (defn repl-panel []
   (let [panel (javax.swing.JPanel.)
 
-        history (javax.swing.JEditorPane.)
-        input (javax.swing.JEditorPane.)
-        scroll (javax.swing.JScrollPane. history)
+        history (JEditorPane.)
+        input (JEditorPane.)
+        scroll (JScrollPane. history)
 
         println-history #(in-swing (let [ doc (.getDocument history)
                                          length (.getLength doc)]
                                      (.insertString doc length % nil)))
-        
+        layout (BorderLayout.)
         ]
 
+    (in-swing (.setEditable input false)   
+              (.setEditable history false)
+              (.setVerticalScrollBarPolicy scroll (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS))
+              (.setHorizontalScrollBarPolicy scroll (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER))
 
+              (.setLayout panel layout)
+              (.add panel scroll BorderLayout/CENTER)
+              (.add panel input BorderLayout/SOUTH)
+              (.setBorder history (LineBorder. Color/BLACK))
+              (.setBorder input (LineBorder. java.awt.Color/BLACK))
+              (.setMinimumSize input (Dimension. 100 30))
+              (.setMinimumSize history (Dimension. 100 100))
 
+              (.doLayout layout))
+              
+    
+    (doto (.getKeymap input)
+      (.addActionForKeyStroke
+       (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_ENTER) 0)
+       (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt]  (let [text (.getText input)]
+                                                                        (if (and (not (empty? text))
+                                                                                 (balanced? text))
+                                                                          (do (event ::repl-write :text text)
+                                                                              (in-swing
+                                                                               (.setText input "")
+                                                                               (.requestFocus input)))))))))
+    
+    (on ::repl-print #(println-history (:text %) ))
+    
+    (on ::repl-ready #((println-history "repl ready\r\n")
+                       (event ::repl-write :text "(in-ns 'user)\r\n(use 'overtone.live)")
+                       (in-swing (.setEditable input true))))
+    
+    (on ::repl-exited #((println-history "repl exited\r\n")
+                        (in-swing (.setEditable input false))))
+    
+    (if (repl-thread-running?)
+      (do (in-swing (.setEditable input true))
+          (println-history "repl thread allready running\r\n"))
+      (start-repl-thread))
+
+    (in-swing (.requestFocus input))
+      
     panel))
- 
+
+
+(def frame (JFrame.))
+(.add frame (repl-panel))
+(.setVisible frame true)
+(.pack frame)
+
