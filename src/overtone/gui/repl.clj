@@ -15,7 +15,8 @@
    )
   
   (:import
-   (javax.swing JEditorPane JScrollPane  SwingUtilities)
+   (java.awt.BorderLayout)
+   (javax.swing JEditorPane JScrollPane JPanel SwingUtilities)
    )
   
   (:require [clojure.main :as r])
@@ -339,7 +340,17 @@
 
 
 (defn repl-panel []
-  (let [panel (JPanel.)]
+  (let [panel (javax.swing.JPanel.)
+
+        history (javax.swing.JEditorPane.)
+        input (javax.swing.JEditorPane.)
+        scroll (javax.swing.JScrollPane. history)
+
+        println-history #(in-swing (let [ doc (.getDocument history)
+                                         length (.getLength doc)]
+                                     (.insertString doc length % nil)))
+        
+        ]
 
 
 
