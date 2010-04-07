@@ -54,9 +54,13 @@
                                    :color (.getColor color-chooser))))))
     color-chooser))
 
+(defn log-viewer [app]
+  (let [panel (JPanel.)]))
+
 (defn tool-panel [app]
   (let [panel (JPanel.)
         color-chooser (color-selector app)
+        log-view (log-viewer app)
         filler (JPanel.)]
 
     (doto panel
@@ -64,9 +68,7 @@
       (.setForeground (:foreground app))
       
       (.add color-chooser)
-      (.add filler)
-      (.setMinimumSize (Dimension. 400 300))
-      (.setMaximumSize (Dimension. 400 300))
-      (.setPreferredSize (Dimension. 400 300)))
+      (.add log-view)
+      (.add filler))
 
     panel))
