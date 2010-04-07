@@ -32,7 +32,7 @@
       
       {:name "SendReply",
        :args [{:name "trig", :default 0.0}
-              {:name "cmd-name", :default '/reply'}
+              {:name "cmd-name", :default "/reply"}
               {:name "values", :default 0.0 :mode :append-sequence}
               {:name "reply-id", :default -1}]
        :doc "send an array of values from the server to all notified clients"}

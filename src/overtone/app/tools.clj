@@ -4,7 +4,8 @@
               RenderingHints Point BasicStroke BorderLayout)
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
     (javax.swing JPanel JLabel JButton SwingUtilities BorderFactory
-                 JSpinner SpinnerNumberModel JColorChooser BorderFactory)
+                 JSpinner SpinnerNumberModel JColorChooser BorderFactory
+                 BoxLayout)
     (javax.swing.event ChangeListener))
   (:use (overtone.core event))) 
 
@@ -55,10 +56,13 @@
     color-chooser))
 
 (defn log-viewer [app]
-  (let [panel (JPanel.)]))
+  (let [panel (JPanel.)]
+
+    panel))
 
 (defn tool-panel [app]
   (let [panel (JPanel.)
+        layout (BoxLayout. panel BoxLayout/Y_AXIS)
         color-chooser (color-selector app)
         log-view (log-viewer app)
         filler (JPanel.)]
