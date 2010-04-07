@@ -64,3 +64,6 @@ Some of the built-in events that might be of general interest are:
 
 :color-changed => the :color event property holds a java.awt.Color for the
                   current setting of the color chooser
+
+:iconified => when the main app window has been iconified 
+:deiconified => when the main app window has be deiconified 

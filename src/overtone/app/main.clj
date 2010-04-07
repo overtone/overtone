@@ -3,16 +3,17 @@
   (:import 
     (java.awt Toolkit EventQueue Dimension Point Dimension Color Font 
               RenderingHints Point BasicStroke BorderLayout)
+    (java.awt.event WindowAdapter)
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
     (javax.swing JFrame JPanel JSplitPane JLabel JButton BorderFactory
-                 JSpinner SpinnerNumberModel UIManager) 
+                 JSpinner SpinnerNumberModel UIManager BoxLayout) 
     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                  SGAbstractShape$Mode SGComponent SGTransform)
     (com.sun.scenario.scenegraph.event SGMouseAdapter)
     (com.sun.scenario.scenegraph.fx FXShape))
   (:use (overtone.app editor tools)
         (overtone.core sc ugen synth envelope event time-utils)
-        (overtone.gui swing sg scope curve)
+        (overtone.gui swing sg scope curve repl)
         clojure.stacktrace)
   (:require [overtone.core.log :as log]))
 
@@ -74,12 +75,18 @@
   (let [panel (JPanel.)
         metro (metro-panel)
         status (status-panel)
+        boot-btn (JButton. "Boot")
         help-btn (JButton. "Help")
         quit-btn (JButton. "Quit")
         btn-panel (JPanel.)]
 
+    (on-action boot-btn #(boot))
+    (on-action help-btn #(println "help is on the way!"))
+    (on-action quit-btn #(do (quit) (System/exit 0)))
+
     (doto btn-panel
       (.setBackground (:background @app*))
+      (.add boot-btn)
       (.add help-btn)
       (.add quit-btn))
 
@@ -101,19 +108,28 @@
     (dosync (alter app* assoc :scene-group root))
     root))
 
+(defn window-listener []
+  (proxy [WindowAdapter] []
+    (windowClosed [win-event] (try (quit) (finally (System/exit 0))))
+    (windowIconified [win-event] (event :iconified))
+    (windowDeiconified [win-event] (event :deiconified))
+    ))
+
 (defn overtone-frame []
   (let [app-frame (JFrame.  "Project Overtone")
         app-panel (.getContentPane app-frame)
         ;browse-panel (browser)
         header-panel (header)
         edit-panel (editor-panel @app*)
+        repl-panel (repl-panel)
+        hack-panel (JPanel.)
         scene-panel (JSGPanel.)
-        tools-panel (tool-panel @app*)]
+        tool-panel (tools-panel @app*)]
         ;left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel edit-panel)]
 
-    (when (not (connected?))
-      (boot)
-      (Thread/sleep 1000))
+    ;(when (not (connected?))
+    ;  (boot)
+    ;  (Thread/sleep 1000))
 
     (doto edit-panel
       (.setPreferredSize (:edit-panel-dim @curve*)))
@@ -123,19 +139,28 @@
       (.setScene (overtone-scene))
       (.setPreferredSize (:scene-panel-dim @curve*)))
 
-    (doto tools-panel
+    (doto tool-panel
       (.setPreferredSize (:tools-panel-dim @curve*)))
+
+    (doto repl-panel
+      (.setMinimumSize (Dimension. 400 400)))
+
+    (doto hack-panel
+      (.setLayout (BorderLayout.));(BoxLayout. hack-panel BoxLayout/Y_AXIS))
+      (.add edit-panel BorderLayout/CENTER)
+      (.add repl-panel BorderLayout/SOUTH))
 
     (doto app-panel
       (.setLayout (BorderLayout.))
       (.add header-panel BorderLayout/NORTH)
-      (.add edit-panel BorderLayout/WEST)
+      (.add hack-panel BorderLayout/WEST)
       (.add scene-panel BorderLayout/CENTER)
-      (.add tools-panel BorderLayout/EAST))
+      (.add tool-panel BorderLayout/EAST))
 
     ;(.setDividerLocation left-split 0.4)
 
     (doto app-frame
+      (.addWindowListener (window-listener))
       (.pack)
       (.setVisible true))))
 

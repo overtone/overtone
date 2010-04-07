@@ -1,37 +1,23 @@
 (ns overtone.gui.repl
   (:gen-class)
-
   (:import
    (java.util.concurrent TimeUnit TimeoutException)
    (java.io StringReader PushbackReader OutputStreamWriter PrintWriter)
    (java.util.concurrent LinkedBlockingQueue)
-   (clojure.lang IDeref))
-
-  (:import
+   (clojure.lang IDeref)
    (jline ConsoleReader Terminal)
    (com.Ostermiller.util CircularByteBuffer)
    (java.io ByteArrayInputStream BufferedReader InputStreamReader DataOutputStream)
    (java.nio.charset Charset)
-   )
-  
-  (:import
    (java.awt Color BorderLayout Dimension)
-   (javax.swing JEditorPane JFrame JScrollPane JPanel SwingUtilities AbstractAction)
-   (javax.swing.border LineBorder)
-   )
-  
+   (javax.swing JEditorPane JFrame JScrollPane JPanel SwingUtilities AbstractAction JLabel)
+   (javax.swing.border LineBorder))
   (:require [clojure.main :as r])
-    
-  (:use clojure.contrib.seq-utils)
-  (:use [clojure.stacktrace :only (e)])
-    
-  (:use (overtone.core time-utils sc ugen synth synthdef envelope event)
-        (overtone.gui swing)
-        (overtone.music rhythm pitch tuning))
-
-  (:use clj-scenegraph.core))
-
-;; Non-graphical part
+  (:use clojure.contrib.seq-utils
+        [clojure.stacktrace :only (e)]
+        (overtone.core time-utils sc ugen synth synthdef envelope event)
+        (overtone.gui swing sg)
+        (overtone.music rhythm pitch tuning)))
 
 (defn outputstream-with-cb [cb]
   (let [buffer (StringBuffer.)]
@@ -285,40 +271,33 @@
     (fn [pair] (-> pair set (filter string) count (mod 2) zero?))
     pairs)))
 
-(defn repl []
-  (let [group (sg-group)
-        ]
-      
-    group))
-
 (defn repl-panel []
-  (let [panel (javax.swing.JPanel.)
-
+  (let [panel (JPanel.)
         history (JEditorPane.)
         input (JEditorPane.)
         scroll (JScrollPane. history)
-
         println-history #(in-swing (let [ doc (.getDocument history)
                                          length (.getLength doc)]
                                      (.insertString doc length % nil)))
-        layout (BorderLayout.)
-        ]
+        layout (BorderLayout.)]
+    (doto scroll
+      (.setVerticalScrollBarPolicy (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS))
+      (.setHorizontalScrollBarPolicy (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)))
 
-    (in-swing (.setEditable input false)   
-              (.setEditable history false)
-              (.setVerticalScrollBarPolicy scroll (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS))
-              (.setHorizontalScrollBarPolicy scroll (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER))
+    (doto input 
+      (.setEditable false)   
+      (.setBorder (LineBorder. java.awt.Color/BLACK))
+      (.setMinimumSize (Dimension. 100 30)))
 
-              (.setLayout panel layout)
-              (.add panel scroll BorderLayout/CENTER)
-              (.add panel input BorderLayout/SOUTH)
-              (.setBorder history (LineBorder. Color/BLACK))
-              (.setBorder input (LineBorder. java.awt.Color/BLACK))
-              (.setMinimumSize input (Dimension. 100 30))
-              (.setMinimumSize history (Dimension. 100 100))
+    (doto history
+      (.setEditable false)
+      (.setBorder (LineBorder. Color/BLACK))
+      (.setMinimumSize (Dimension. 100 100)))
 
-              (.doLayout layout))
-              
+    (doto panel
+      (.setLayout layout)
+      (.add scroll BorderLayout/CENTER)
+      (.add input BorderLayout/SOUTH))
     
     (doto (.getKeymap input)
       (.addActionForKeyStroke
@@ -330,13 +309,10 @@
                                                                               (in-swing
                                                                                (.setText input "")
                                                                                (.requestFocus input)))))))))
-    
     (on ::repl-print #(println-history (:text %) ))
-    
     (on ::repl-ready #((println-history "repl ready\r\n")
                        (event ::repl-write :text "(in-ns 'user)\r\n(use 'overtone.live)")
                        (in-swing (.setEditable input true))))
-    
     (on ::repl-exited #((println-history "repl exited\r\n")
                         (in-swing (.setEditable input false))))
     
@@ -344,14 +320,5 @@
       (do (in-swing (.setEditable input true))
           (println-history "repl thread allready running\r\n"))
       (start-repl-thread))
-
     (in-swing (.requestFocus input))
-      
     panel))
-
-
-(def frame (JFrame.))
-(.add frame (repl-panel))
-(.setVisible frame true)
-(.pack frame)
-

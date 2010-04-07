@@ -5,11 +5,20 @@
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
     (javax.swing JPanel JLabel JButton SwingUtilities BorderFactory
                  JSpinner SpinnerNumberModel JColorChooser BorderFactory
-                 BoxLayout)
+                 BoxLayout JTextArea JScrollPane)
     (javax.swing.event ChangeListener))
   (:use (overtone.core event))) 
 
 (def tools* (ref {:current-color (Color. 0 130 226)}))
+
+(defn- tool-panel [app name]
+  (let [p (JPanel.)
+        border (BorderFactory/createTitledBorder name)]
+    (.setTitleColor border (:foreground app))
+    (doto p
+      (.setBorder border)
+      (.setBackground (:background app))
+      (.setForeground (:foreground app)))))
 
 (def color-handler* (ref nil))
 
@@ -56,18 +65,20 @@
     color-chooser))
 
 (defn log-viewer [app]
-  (let [panel (JPanel.)]
+  (let [panel (tool-panel app "Log")
+        text-area (JTextArea. "Overtone Log:\n")
+        scroller (JScrollPane. text-area)]
+    (doto panel
+      (.add scroller))))
 
-    panel))
-
-(defn tool-panel [app]
+(defn tools-panel [app]
   (let [panel (JPanel.)
-        layout (BoxLayout. panel BoxLayout/Y_AXIS)
         color-chooser (color-selector app)
         log-view (log-viewer app)
         filler (JPanel.)]
 
     (doto panel
+      (.setLayout (BoxLayout. panel BoxLayout/Y_AXIS))
       (.setBackground (:background app))
       (.setForeground (:foreground app))
       
