@@ -4,13 +4,20 @@
                            [org.clojure/clojure-contrib "1.1.0"]
 
                            [jline "0.9.94"]
-                           [scenegraph/decora-hw  "0.0.1-SNAPSHOT"]
-                           [scenegraph/decora-jogl "0.0.1-SNAPSHOT"]
-                           [scenegraph/decora-runtime "0.0.1-SNAPSHOT"]
-                           [scenegraph "0.0.1-SNAPSHOT"]
+
+;                           [scenegraph/decora-hw  "0.0.1-SNAPSHOT"]     ;; decora-hw and decora-jogl are not yet fully tested
+;                           [scenegraph/decora-jogl "0.0.1-SNAPSHOT"]    ;; 
+;                           [scenegraph/decora-runtime "0.0.1-SNAPSHOT"] ;; scenegraph pulls in decora-runtime
+                           [scenegraph "0.0.1-SNAPSHOT"]                     
                            ;[vijual "0.1.0-SNAPSHOT"]
+
                            ;[penumbra "0.5.0"]
                            [org.freedesktop.tango/tango-icon-theme "0.8.90"]
+
+                           [org.ostermiller/utils "1.07.00"]
+                           
+                           [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
+                           [overtone/clj-scenegraph "0.0.4-SNAPSHOT"]
 
                            [overtone/jsyntaxpane "0.9.5-b27"]
                            [overtone/osc-clj "0.1.2-SNAPSHOT"]
@@ -30,4 +37,5 @@
                                [org.clojars.brandonw/lein-nailgun "1.0.0"]
                                [swank-clojure "1.1.0-SNAPSHOT"]
                                [leiningen/lein-swank "1.1.0"]]
+
             :main overtone.app.main)
