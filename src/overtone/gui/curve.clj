@@ -28,28 +28,11 @@
                       :label-font (Font. "helvetica" Font/BOLD 18)
                       }))
 
-; Use Scenegraph constructs to create a widget that can display and modify envelope 
-; curve arrays.
-
-; Envelope arrays are structured like this:
-  ; * initial level
-  ; * n-segments
-  ; * release node (int or -99, tells envelope where to optionally stop until released)
-  ; * loop node (int or -99, tells envelope which node to loop back to until released)
-  ; [
-  ;   - segment 1 endpoint level
-  ;   - segment 1 duration
-  ;   - segment shape
-  ;   - segment curve
-  ; ] * n-segments
-
-
 ; Converting from envelope space to pixel coords
 ;   envelope  :  pixel
 ; (0.0, 0.0)  :  (0.0, height)
 ; (0.5 0.5)   :  (0.5 * pixels-per-second, (1 - 0.5) * height)
 ; (1.0 1.0)   :  (1.0 * pixels-per-second, (1 - 1.0) * height)
-
 (defn curve-to-canvas [x y & [pad-x pad-y]]
   (let [pad-x (or pad-x (:padding-x @curve*))
         pad-y (or pad-y (:padding-y @curve*))]
@@ -68,15 +51,26 @@
                       (:seconds @curve*)))
    (- 1.0 (/ (- y pad-y) (- (:height @curve*) (* 2 pad-y))))]))
 
-(defn points []
-  (let [curve (:curve @curve*)
-        height (:height @curve*)
-        width (:width @curve*)
-        start (first curve)
-        n-segments (second curve)
-        releaser (nth curve 2)
-        looper (nth curve 3)
-        segments (partition 4 (drop 4 curve))
+; Envelope arrays are structured like this:
+  ; * initial level
+  ; * n-segments
+  ; * release node (int or -99, tells envelope where to optionally stop until released)
+  ; * loop node (int or -99, tells envelope which node to loop back to until released)
+  ; [
+  ;   - segment 1 endpoint level
+  ;   - segment 1 duration
+  ;   - segment shape
+  ;   - segment curve
+  ; ] * n-segments
+(defn- segs-to-points [curve]
+  (let [sc-curve (:curve curve)
+        height (:height curve)
+        width (:width curve)
+        start (first sc-curve)
+        n-segments (second sc-curve)
+        releaser (nth sc-curve 2)
+        looper (nth sc-curve 3)
+        segments (partition 4 (drop 4 sc-curve))
         start-point (curve-to-canvas 0.0 0.0)
         [points t] (reduce (fn [[points t] [end dur shape curve]] 
                              (let [t (+ t dur)]
@@ -84,6 +78,20 @@
                            [[start-point] 0.0]
                            segments)]
     points))
+
+(defn curve []
+  (let [points (map #(apply canvas-to-curve %) (:points @curve*))
+ ;       _ (println "points: " points)
+        init-lvl (ffirst points)
+        n-segs (dec (count points))
+ ;       _ (println "init: " init-lvl " n-segs: " n-segs)
+        [segs _] (reduce (fn [[segs last-x] [x y]] 
+ ;                      (println "segs: " segs "\nlast-x: " last-x "\nx,y: " x y)
+                       (let [dur (- x last-x)]
+                         [(concat segs [y dur 5 -4]) x]))
+                     [[] 0.0] (rest points))]
+    (concat [init-lvl n-segs -99 -99] (flatten segs))))
+
 
 (defn curve-color 
   "Set the primary envelope color.
@@ -120,18 +128,96 @@
       (.lineTo path x y))
     path))
 
+(defn- constrain [v v-min v-max]
+  (min (max v v-min) v-max))
+
+(defn- control-point [line idx x y radius]
+  (let [group (sg-group)
+        shape (sg-shape)
+        label (FXText.)
+        trans (translate x y group)
+        r2 (/ radius 2)
+        circle (Arc2D$Float. (- 0 r2) (- 0 r2) radius radius 0 360 Arc2D/CHORD)
+        [cx cy] (canvas-to-curve x y)
+        [min-x max-y] (curve-to-canvas 0.0 0.0)
+        [max-x min-y] (curve-to-canvas (:seconds @curve*) 1.0)]
+    (doto group
+      (.add shape)
+      (.add label))
+
+    (doto shape ; circle
+      (set-mode! :stroke-fill)
+      (set-shape! circle)
+      (set-draw-paint! :white)
+      (set-fill-paint! 255 255 255 50)
+      (set-antialias! :on))
+
+    (doto label ; coordinate label
+      (.setText (format "(%2.3f, %2.3f)" cx cy))
+      (.setFont (:label-font @curve*))
+      (.setFillPaint (Color. 255 255 255))
+      (.setTranslateX radius)
+      (.setTranslateY (* 2 radius))
+      (.setVisible false))
+
+    (on-mouse-pressed shape #(do
+                               (dosync (ref-set current-pos* (.getPoint %)))
+                               (.setVisible label true)))
+
+    (on-mouse-dragged shape #(let [cur-x (.getTranslateX trans)
+                                   cur-y (.getTranslateY trans)
+                                   dx    (- (.getX %) (.getX @current-pos*))
+                                   dy    (- (.getY %) (.getY @current-pos*))
+                                   new-x (constrain (+ cur-x dx) min-x max-x)
+                                   new-y (constrain (+ cur-y dy) min-y max-y)
+                                   [new-cx new-cy] (canvas-to-curve new-x new-y)
+                                   new-points (update-point (:points @curve*) idx new-x new-y)]
+                               (.setTranslation trans (double new-x) (double new-y))
+                               (.setText label (format "(%2.3f, %2.3f)" new-cx new-cy))
+                               (.setShape line (points-to-path (Path2D$Float.) new-points))
+                               (dosync 
+                                 (ref-set current-pos* (.getPoint %))
+                                 (alter curve* assoc :points new-points))))
+
+    (on-mouse-released shape #(do
+                                (dosync (ref-set current-pos* nil))
+                                (.setVisible label false)))
+    trans))
+
+(defn path-and-points
+  "Create the path and control points representing this curve."
+  [curve]
+  (let [points (segs-to-points curve)
+        line-path (Path2D$Float.)
+        line (sg-shape)
+        radius (:p-radius curve)]
+
+    ; envelope curve
+    (points-to-path line-path points)
+
+    (doto line
+      (.setShape line-path)
+      (set-antialias! :on)
+      (set-mode! :stroke-fill)
+      (set-draw-paint! 0 130 226)
+      (set-fill-paint! 0 130 226 120))
+
+    (dosync (alter curve* assoc :points points))
+    (dosync (alter curve* assoc :line line))
+
+    [line 
+     (reduce (fn [points [idx [x y]]] 
+               (conj points (control-point line idx x y radius)))
+             [] (indexed points))]))
+
 (defn curve-editor
   "Display an envelope curve in the wave window."
   []
   (let [curve-group (sg-group)
         background (sg-shape)
-        points (points)
-        line-path (Path2D$Float.)
-        line (sg-shape)
-        radius (:p-radius @curve*)
-        r2 (/ radius 2.0)
         grid-path (Path2D$Float.)
-        grid (sg-shape)]
+        grid (sg-shape)
+        [path points] (path-and-points @curve*)]
 
     ; background box
     (doto background
@@ -160,68 +246,13 @@
         (.moveTo grid-path nxt-x nxt-y)))
     (.setShape grid grid-path)
     (set-antialias! grid :on)
+
     (.add curve-group grid)
+    (.add curve-group path)
+    ;(doto curve-group
+    ;  (.add grid)
+    ;  (.add path))
 
-    ; envelope curve
-    (dosync (alter curve* assoc :line line))
-
-    (points-to-path line-path points)
-    (set-mode! line :stroke-fill)
-    (set-draw-paint! line 0 130 226)
-    (set-fill-paint! line 0 130 226 120)
-    (.setShape line line-path)
-    (set-antialias! line :on)
-    (.add curve-group line)
-
-    ; control points
-    (dosync (alter curve* assoc :points points))
-
-    (doseq [[idx [x y]] (indexed points)]
-      (let [group (sg-group)
-            shape (sg-shape)
-            label (FXText.)
-            trans (translate x y group)
-            circle (Arc2D$Float. (- 0 r2) (- 0 r2) radius radius 0 360 Arc2D/CHORD)
-            [cx cy] (canvas-to-curve x y)]
-        (.add curve-group trans)
-        (doto group
-          (.add shape)
-          (.add label))
-
-        (doto shape ; circle
-          (set-mode! :stroke-fill)
-          (set-shape! circle)
-          (set-draw-paint! :white)
-          (set-fill-paint! 255 255 255 50)
-          (set-antialias! :on))
-
-        (doto label ; coordinate label
-          (.setText (format "(%2.3f, %2.3f)" cx cy))
-          (.setFont (:label-font @curve*))
-          (.setFillPaint (Color. 255 255 255))
-          (.setTranslateX radius)
-          (.setTranslateY (* 2 radius))
-          (.setVisible false))
-
-        (on-mouse-pressed shape #(do
-                                   (dosync (ref-set current-pos* (.getPoint %)))
-                                   (.setVisible label true)))
-
-        (on-mouse-dragged shape #(let [dx (- (.getX %) (.getX @current-pos*))
-                                       dy (- (.getY %) (.getY @current-pos*))]
-                                   (.translateBy trans (double dx) (double dy))
-                                   (let [new-x (.getTranslateX trans)
-                                         new-y (.getTranslateY trans)
-                                         [new-cx new-cy] (canvas-to-curve new-x new-y)
-                                         new-points (update-point (:points @curve*) idx new-x new-y)]
-                                     (.setText label (format "(%2.3f, %2.3f)" new-cx new-cy))
-                                     (.setShape line (points-to-path (Path2D$Float.) new-points))
-                                     (dosync 
-                                       (ref-set current-pos* (.getPoint %))
-                                       (alter curve* assoc :points new-points)))))
-        
-
-        (on-mouse-released shape #(do
-                                    (dosync (ref-set current-pos* nil))
-                                    (.setVisible label false)))))
+    (doseq [p points]
+      (.add curve-group p))
     curve-group))

@@ -257,11 +257,6 @@
              (\" \")
              (\{ \})))
 
-(defmacro EDT
-  "runs body on the Event-Dispatch-Thread (Swing)"
-  [& body]
-  `(SwingUtilities/invokeLater (fn [] ~@body)))
-
 (defn balanced?
   "are all the pairs balanced in this string?"
   [string]

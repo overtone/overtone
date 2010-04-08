@@ -6,8 +6,9 @@
     (javax.swing JPanel JLabel JButton SwingUtilities BorderFactory
                  JSpinner SpinnerNumberModel JColorChooser BorderFactory
                  BoxLayout JTextArea JScrollPane)
-    (javax.swing.event ChangeListener))
-  (:use (overtone.core event))) 
+    (javax.swing.event ChangeListener)
+    (java.util.logging StreamHandler SimpleFormatter))
+  (:use (overtone.core event)))
 
 (def tools* (ref {:current-color (Color. 0 130 226)}))
 
@@ -64,9 +65,14 @@
                                    :color (.getColor color-chooser))))))
     color-chooser))
 
+(defn- log-view-handler [text-area]
+  (let [formatter (SimpleFormatter.)]
+    (proxy [StreamHandler] []
+      (publish [msg] (.append text-area (.format formatter msg))))))
+
 (defn log-viewer [app]
   (let [panel (tool-panel app "Log")
-        text-area (JTextArea. "Overtone Log:\n")
+        text-area (JTextArea. "Overtone Log:\n" 10 40)
         scroller (JScrollPane. text-area)]
     (doto panel
       (.add scroller))))

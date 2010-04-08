@@ -108,9 +108,9 @@
     (dosync (alter app* assoc :scene-group root))
     root))
 
-(defn window-listener []
+(defn window-listener [frame]
   (proxy [WindowAdapter] []
-    (windowClosed [win-event] (try (quit) (finally (System/exit 0))))
+    (windowClosed [win-event] (try (.setVisible frame false) (quit) (finally (System/exit 0))))
     (windowIconified [win-event] (event :iconified))
     (windowDeiconified [win-event] (event :deiconified))
     ))
@@ -122,10 +122,10 @@
         header-panel (header)
         edit-panel (editor-panel @app*)
         repl-panel (repl-panel)
-        hack-panel (JPanel.)
+        hack-panel (JSplitPane. JSplitPane/VERTICAL_SPLIT edit-panel repl-panel)
         scene-panel (JSGPanel.)
         tool-panel (tools-panel @app*)]
-        ;left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel edit-panel)]
+        ;left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel hack-panel)]
 
     ;(when (not (connected?))
     ;  (boot)
@@ -145,11 +145,6 @@
     (doto repl-panel
       (.setMinimumSize (Dimension. 400 400)))
 
-    (doto hack-panel
-      (.setLayout (BorderLayout.));(BoxLayout. hack-panel BoxLayout/Y_AXIS))
-      (.add edit-panel BorderLayout/CENTER)
-      (.add repl-panel BorderLayout/SOUTH))
-
     (doto app-panel
       (.setLayout (BorderLayout.))
       (.add header-panel BorderLayout/NORTH)
@@ -160,7 +155,7 @@
     ;(.setDividerLocation left-split 0.4)
 
     (doto app-frame
-      (.addWindowListener (window-listener))
+      (.addWindowListener (window-listener app-frame))
       (.pack)
       (.setVisible true))))
 
