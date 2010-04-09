@@ -48,3 +48,45 @@
                    (actionPerformed [event] (run-handler handler event)))]
     (.addActionListener component listener)
     listener))
+
+(def KEY-MODIFIERS {:none  0 
+                    :shift java.awt.event.InputEvent/SHIFT_MASK 
+                    :ctrl java.awt.event.InputEvent/CTRL_MASK
+                    :meta java.awt.event.InputEvent/META_MASK
+                    :alt java.awt.event.InputEvent/ALT_MASK}) 
+
+(defn add-keystroke! [editorpane stroke mods performed-fn]
+  (let [stroke-key (eval `(. java.awt.event.KeyEvent ~stroke))]
+    (doto (.getKeymap editorpane)
+      (.addActionForKeyStroke
+       (javax.swing.KeyStroke/getKeyStroke stroke-key (if (vector? mods)
+                                                        (apply + (map #(KEY-MODIFIERS %) mods))
+                                                        (KEY-MODIFIERS mods)))
+       (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt] (performed-fn)))))))
+
+(defn set-default-keymap-action! [editorpane performed-fn]
+  (.setDefaultAction (.getKeymap editorpane) (proxy [javax.swing.Action] []
+                                               (isEnabled [] true)
+                                               (getValue [k])
+                                               (actionPerformed [e]
+                                                                (performed-fn e)))))
+
+
+(comment do
+  (.removeBindings (.getKeymap edit))
+  (set-default-keymap-action! edit (fn [e] (let [content (str (.getActionCommand e))
+                                                 c (.charAt content 0)
+                                                 i (int c)]
+
+                                             (cond (= 8 i)     (event ::jline-command :id :backspace)
+                                                   (= 127 i)   (event ::jline-command :id :delete-prev-char))
+                                             
+                                             (if (>= i 0x20)
+                                               (if (not (= i 127))
+                                                 (event ::jline-write :text (str c)))))))
+  (add-keystroke! edit 'VK_DELETE :none #(event ::jline-command :id :delete-next-char))
+  (add-keystroke! edit 'VK_LEFT :none #(event ::jline-command :id :prev-char))
+  (add-keystroke! edit 'VK_HOME :none #(event ::jline-command :id :move-to-beg))
+  (add-keystroke! edit 'VK_END :none #(event ::jline-command :id :move-to-end))
+  (add-keystroke! edit 'VK_ENTER :none #(event ::jline-command :id :newline))
+)

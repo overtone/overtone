@@ -9,7 +9,8 @@
         [clojure.contrib.generic :only (root-type)]
         clojure.contrib.seq-utils
         clojure.contrib.pprint
-        [clojure.contrib.fcase :only (case)])
+        [clojure.contrib.fcase :only (case)]
+        clojure.set)
   (:require 
      [clojure.contrib.generic.arithmetic :as ga]
      [clojure.contrib.generic.comparison :as gc]
@@ -495,7 +496,7 @@
 
 (defn control-proxy? [obj] (= ::control-proxy (type obj)))
 
-(defn refer-ugens 
+(defn intern-ugens 
   "Iterate over all UGen meta-data, generate the corresponding functions and intern them
   in the current or otherwise specified namespace."
   [& [to-ns]]
@@ -519,4 +520,16 @@
 ;; We refer all the ugen functions here so they can be access by other parts
 ;; of the Overtone system using a fixed namespace.  For example, to automatically
 ;; stick an Out ugen on synths that don't explicitly use one.
-(refer-ugens (create-ns 'overtone.ugens))
+(intern-ugens (create-ns 'overtone.ugens))
+
+(defn refer-ugens 
+  "This is how you (use 'overtone.ugens)."
+  []
+  (let [local-map (ns-map *ns*)
+        ugen-map (ns-map 'overtone.ugens)
+        collisions (intersection (set (keys local-map)) 
+                                 (set (keys ugen-map)))]
+    (doseq [v collisions]
+      (ns-unmap *ns* v))
+    (refer 'overtone.ugens)))
+

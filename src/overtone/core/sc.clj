@@ -648,12 +648,20 @@
 (defn buffer
   "Allocate a new buffer for storing audio data."
   [size]
-  (let [id (alloc-id :audio-buffer)]
+  (let [id (alloc-id :audio-buffer)
+        ready? (atom false)]
+    (on "/done" #(if (= "/b_alloc" (first (:args %)))
+                   (do
+                     (reset! ready? true)
+                     :done)))
     (snd "/b_alloc" id size)
-    (with-meta {
-                :id id
-                :size size}
+    (with-meta {:id id
+                :size size
+                :ready? ready?}
                {:type ::buffer})))
+
+(defn buffer-ready? [buf]
+  @(:ready? buf))
 
 (defn buffer? [buf]
   (= (type buf) ::buffer))
@@ -737,6 +745,7 @@
 (defn buffer-id
   [buf]
   (cond
+    (number? buf) buf
     (buffer? buf) (:id buf)
     (sample? buf) (:id (:buf buf))))
 

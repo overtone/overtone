@@ -17,9 +17,7 @@
        :args [{:name "buffer"}
               {:name "in", :default 0.0}
               {:name "hop", :default 0.5}
-              {:name "wintype", 
-               :default :welch, 
-               :map {:welch 0, :hann 1, :rect -1}}
+              {:name "wintype", :default :welch, :map {:welch 0, :hann 1, :rect -1}}
               {:name "active", :default 1}
               {:name "winsize", :default 0}],
        :rates #{:kr}

@@ -1,7 +1,7 @@
 (ns overtone.core.log
   (:import (java.util.logging Logger Level ConsoleHandler FileHandler
                               StreamHandler SimpleFormatter))
-  (:use (overtone.core setup event)))
+  (:use (overtone.core setup)))
 
 ; Sets up some basic logging infrastructure and helpers for the project.
 

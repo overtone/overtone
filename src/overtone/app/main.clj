@@ -14,7 +14,9 @@
   (:use (overtone.app editor tools)
         (overtone.core sc ugen synth envelope event time-utils)
         (overtone.gui swing sg scope curve repl)
-        clojure.stacktrace)
+        clojure.stacktrace
+        (clojure.contrib
+          [miglayout :only (miglayout components)]))
   (:require [overtone.core.log :as log]))
 
 (alias 'ug 'overtone.ugens)
@@ -100,11 +102,10 @@
     (dosync (alter app* assoc :header panel))
     panel))
 
-(defn overtone-scene []
+(defn controls-scene []
   (let [root (sg-group)]
     (doto root
-      (add! (translate (:padding @app*) 0.0 (scope)))
-      (add! (translate (:padding @app*) (+ 400.0 (:padding @app*)) (curve-editor))))
+      (add! (translate (:padding @app*) 0.0 (curve-editor))))
     (dosync (alter app* assoc :scene-group root))
     root))
 
@@ -124,6 +125,8 @@
         repl-panel (repl-panel)
         hack-panel (JSplitPane. JSplitPane/VERTICAL_SPLIT edit-panel repl-panel)
         scene-panel (JSGPanel.)
+        scope-panel (scope-panel)
+        g-panel (JPanel.)
         tool-panel (tools-panel @app*)]
         ;left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel hack-panel)]
 
@@ -136,8 +139,9 @@
 
     (doto scene-panel
       (.setBackground Color/BLACK)
-      (.setScene (overtone-scene))
-      (.setPreferredSize (:scene-panel-dim @curve*)))
+      (.setScene (controls-scene))
+      (.setMinimumSize (Dimension. 600 400)))
+;      (.setPreferredSize (:scene-panel-dim @curve*)))
 
     (doto tool-panel
       (.setPreferredSize (:tools-panel-dim @curve*)))
@@ -145,12 +149,17 @@
     (doto repl-panel
       (.setMinimumSize (Dimension. 400 400)))
 
-    (doto app-panel
+    (doto g-panel
       (.setLayout (BorderLayout.))
-      (.add header-panel BorderLayout/NORTH)
-      (.add hack-panel BorderLayout/WEST)
-      (.add scene-panel BorderLayout/CENTER)
-      (.add tool-panel BorderLayout/EAST))
+      (.add scope-panel BorderLayout/NORTH)
+      (.add scene-panel BorderLayout/SOUTH))
+
+    (miglayout app-panel
+      header-panel "dock north"
+      hack-panel "cell 0 1 1 2"
+      scene-panel "cell 1 1"
+      scope-panel "cell 1 2"
+      tool-panel "dock east")
 
     ;(.setDividerLocation left-split 0.4)
 

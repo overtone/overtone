@@ -42,7 +42,7 @@
     :doc "returns the buffers current sample rate"}
 
    {:name "BufRateScale" :rates #{:ir}
-    :doc "returns a ratio by which the playback of a soundfile is to be scaled"}
+    :doc "returns a ratio by which the playback of a buffer is to be scaled"}
 
    {:name "BufFrames" :rates #{:ir}
     :doc "returns the current number of allocated frames"}
@@ -51,7 +51,7 @@
     :doc "current number of samples allocated in the buffer"}
 
    {:name "BufDur" :rates #{:ir}
-    :doc "returns the current duration of soundfile"}
+    :doc "returns the current duration of a buffer"}
 
    {:name "BufChannels" :rates #{:ir}
     :doc "current number of channels of soundfile in buffer"}

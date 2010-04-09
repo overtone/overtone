@@ -42,13 +42,16 @@
   [c]
   (repeat (if (number? c) c 0)))
 
-;; Envelope spec for use with EnvGen
-;;   We provide a description of the envelope curve to EnvGen.  
-;;   It uses an array with values organized like this:
+;; Envelope specs describe a series of segments of a line, which can be used to automate
+;; control values in synths.
 ;;
-;;  [ <initialLevel>, <numberOfSegments>, <releaseNode>, <loopNode>, 
+;;  [ <initialLevel>, 
+;;    <numberOfSegments>, 
+;;    <releaseNode>, 
+;;    <loopNode>, 
 ;;    <segment1TargetLevel>, <segment1Duration>, <segment1Shape>, <segment1Curve>, 
-;;    <segment2...> ]
+;;    ...
+;;    <segment-N...> ]
 
 (defn envelope 
   "Create an envelope curve description array suitable for the EnvGen ugen."
@@ -125,5 +128,5 @@
         sustain (or sustain 1)
         release (or release 1)
         curve   (or curve -4)]
-    (envelope [0 sustain 0] [attack release] curve)))
+    (envelope [0 sustain 0] [attack release] curve 1)))
 

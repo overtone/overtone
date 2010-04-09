@@ -15,11 +15,11 @@
                  [org.freedesktop.tango/tango-icon-theme "0.8.90"]
 
                  [org.ostermiller/utils "1.07.00"]
-
+                 [org.clojars.nakkaya/miglayout "3.7"]
                  [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
 
                  [overtone/jsyntaxpane "0.9.5-b27"]
-                 [overtone/osc-clj "0.1.2-SNAPSHOT"]
+                 [overtone/osc-clj "0.1.3-SNAPSHOT"]
                  [overtone/byte-spec "0.1"]
                  [overtone/midi-clj "0.1"]
                  [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
