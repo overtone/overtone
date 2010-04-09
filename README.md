@@ -54,7 +54,7 @@ Download and install leiningen wherever you local executables go:
 
 Now get Overtone:
 
-    $ git clone git://github.com/mozinator/overtone.git
+    $ git clone git://github.com/rosejn/overtone.git
 
     $ cd overtone
     $ lein deps      

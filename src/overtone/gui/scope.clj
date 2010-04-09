@@ -40,7 +40,7 @@
          (let [n-samples (* 0.5 (- (buf-samples fft-buf) 2))
                signal (in in-bus)
                chain (pv-mag-smear (fft fft-buf signal 0.5 :hann) 1)
-               phas  (lf-saw:ar (/ rate (buf-dur fft-buf)) phase n-samples (+ 2 n-samples))
+               phas  (lf-saw (/ rate (buf-dur fft-buf)) phase n-samples (+ 2 n-samples))
                phas (round phas 2)]
            (scope-out (buf-rd 1 fft-buf phas 1 1) scope-buf)))
        ))
@@ -132,6 +132,7 @@
 (defn scope-frame []
   (let [f (JFrame. "scope")]
     (doto f
+      (.setMinimumSize (Dimension. 600 400))
       (.add (scope-panel))
       (.pack)
       (.show))))
