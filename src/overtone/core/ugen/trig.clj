@@ -3,7 +3,7 @@
 
 ;TODO: 
 ;* figure out what the signal-range is about
-;* implement same-rate-as-first-input checker
+;* implement [same-rate-as-first-input] checker
 (def specs
      [
       {:name "Trig1",
@@ -19,7 +19,7 @@
        :args [{:name "in", :default 0.0}
               {:name "dur", :default 0.1}]
        :signal-range :unipolar
-       :check (same-rate-as-first-input)
+       :check [same-rate-as-first-input]
        :doc "delays an input trigger by dur, ignoring other triggers in the meantime"}
 
       {:name "SendTrig",
@@ -27,7 +27,7 @@
               {:name "id", :default 0}
               {:name "value", :default 0.0}],
        :num-outs 0
-       :check (same-rate-as-first-input)
+       :check [same-rate-as-first-input]
        :doc "on receiving a trigger sends a :trigger event with id and value"}
       
       {:name "SendReply",
@@ -48,7 +48,7 @@
       {:name "PulseCount",
        :args [{:name "trig", :default 0.0}
               {:name "reset", :default 0.0}]
-       :check (same-rate-as-first-input)
+       :check [same-rate-as-first-input]
        :doc "each input trigger increments a counter value that is output."}
 
       {:name "SetResetFF", :extends "PulseCount"}
@@ -69,7 +69,7 @@
               {:name "max", :default 7}
               {:name "step", :default 1}
               {:name "resetval" :default 1}] ; TODO MAYBE? allow :default :min
-       :check (same-rate-as-first-input)
+       :check [same-rate-as-first-input]
        :doc "triggers increment a counter that loops around from max to min"}
       
       {:name "PulseDivider",
@@ -84,12 +84,12 @@
 
       {:name "ZeroCrossing",
        :args [{:name "in", :default 0.0}]
-       :check (same-rate-as-first-input)
+       :check [same-rate-as-first-input]
        :doc ""}
       
       {:name "Timer",
        :args [{:name "trig", :default 0.0}]
-       :check (same-rate-as-first-input)
+       :check [same-rate-as-first-input]
        :doc "outputs time since last trigger"}
       
       {:name "Sweep",

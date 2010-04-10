@@ -183,25 +183,6 @@
       (assoc ugen :n-outputs n-outs)
       ugen)))
 
-;  - build a new :init function which will later be called
-;    by the ugen function (after MCE), over-writing :init if it exists.
-;    note that, if an :init was given, but there are no args with :map
-;    properties AND all modes are :standard, then no new function need be
-;    defined. also if all modes are :standard, there are no args with :map,
-;    and no :init function was given, then :init can just be left
-;    undefined and the ugen function will check that and not try to call one.
-;    the function should take the same args as :init does
-;    and do the following:
-;    - for any arg with a :map property, resolves the mapping
-;      the map property can be any arbitrary function, including a map.
-;      the function or map should just return the argument, if there is no
-;      defined mapping.
-;    - calls the original :init on the args, if any was given
-;    - rearanges the args according to the modes, and returns them (jeff, i
-;      can't remember which order we decided on for this and the previous item.
-;      i'm tired)
-;    - instead of calling :check from the ugen function, it could be done from
-;      in here instead? 
 ; TODO: Refactor these init functions so everything just takes a ugen and a spec
    ; and outputs an updated ugen...  Should have done it like this initially...
 (defn- with-init-fn 
@@ -362,20 +343,26 @@
         (first expanded)
         expanded))))
 
+; TODO: Finish me!  
+; Need to execute the check predicates to do things like verify argument rates, etc...
+(defn check-ugen-args [spec rate special args]
+  (if (vector? (:check spec))
+    (doseq [check (:check spec)]
+      (check rate special args))))
+
 (defstruct ugen-struct :id :name :rate :special :args :n-outputs)
 
 (deftype ::ugen ugen
   (fn [spec rate special args]
+    ;(check-ugen-args spec rate special args)
     (let [ug (struct ugen-struct 
-                       (next-id :ugen) 
-                       (:name spec)
-                       (if (keyword? rate)
-                         (get RATES rate)
-                          rate)
-                       special
-                       args)
-          ug (if (contains? spec :init) ((:init spec) ug) ug)
-          ug (assoc ug :n-outputs (or (:num-outs spec) 1))]
+                     (next-id :ugen) 
+                     (:name spec)
+                     (if (keyword? rate) (get RATES rate) rate)
+                     special
+                     args
+                     (or (:num-outs spec) 1))
+          ug (if (contains? spec :init) ((:init spec) ug) ug)]
       ug))
   ; Deconstructor should produce the arguments neceessary to construct the same type
   (fn [u] (vals u)))

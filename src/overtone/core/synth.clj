@@ -273,8 +273,10 @@
              sname# (if (= :no-name ~sname)
                       (str "anon-" (next-id :anonymous-synth))
                       ~sname)
+             _# (println "ugen-root: ( " (:name ugen-root#) " ) " ugen-root#)
              ugens# (if (and (ugen? ugen-root#)
-                             (or (OUTPUT-UGENS (:name ugen-root#))
+                             (or (= 0 (:n-outputs ugen-root#))
+                                 (OUTPUT-UGENS (:name ugen-root#))
                                  (= :kr (get REVERSE-RATES (:rate ugen-root#)))))
                       ugen-root#
                       (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))

@@ -26,24 +26,29 @@
                       :width 600
                       :height 400}))
 
-; Some utility synths for routing signal data
-(on :connected 
-    #(do
-       (defsynth bus->buf [bus 20 buf 0]
-         (record-buf (in bus) buf))
+; Some utility synths for signal routing and scoping
+(defn define-synths []
+  (defsynth bus->buf [bus 20 buf 0]
+    (record-buf (in bus) buf))
 
-       (defsynth bus->bus [in-bus 20 out-bus 0]
-         (out out-bus (in in-bus)))
-       
-       (defsynth freq-scope-zero [in-bus 0 fft-buf 0 scope-buf 1 
-                                  rate 4 phase 1 db-factor 0.02]
-         (let [n-samples (* 0.5 (- (buf-samples fft-buf) 2))
-               signal (in in-bus)
-               chain (pv-mag-smear (fft fft-buf signal 0.5 :hann) 1)
-               phas  (lf-saw (/ rate (buf-dur fft-buf)) phase n-samples (+ 2 n-samples))
-               phas (round phas 2)]
-           (scope-out (buf-rd 1 fft-buf phas 1 1) scope-buf)))
-       ))
+  (defsynth bus->bus [in-bus 20 out-bus 0]
+    (out out-bus (in in-bus)))
+
+  (defsynth scoper-outer [buf 0]
+    (scope-out (sin-osc 200) buf))
+
+  (defsynth freq-scope-zero [in-bus 0 fft-buf 0 scope-buf 1 
+                             rate 4 phase 1 db-factor 0.02]
+    (let [n-samples (* 0.5 (- (buf-samples fft-buf) 2))
+          signal (in in-bus)
+          chain (pv-mag-smear (fft fft-buf signal 0.5 :hann) 1)
+          phas  (lf-saw (/ rate (buf-dur fft-buf)) phase n-samples (+ 2 n-samples))
+          phas (round phas 2)]
+      (scope-out (buf-rd 1 fft-buf phas 1 1) scope-buf))))
+
+(if (connected?)
+  (define-synths)
+  (on :connected define-synths))
 
 (defonce x-array (int-array (:width @scope*)))
 (defonce _x-init (dotimes [i (:width @scope*)] 
