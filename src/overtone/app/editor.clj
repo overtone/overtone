@@ -4,12 +4,12 @@
               GridBagLayout GridBagConstraints Insets FlowLayout)
     (java.awt.event InputEvent)
     (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane 
-                 JSplitPane JButton JFileChooser KeyStroke) 
-    (javax.swing.text TextAction)
+                 JSplitPane JButton JFileChooser KeyStroke)
+    (javax.swing.text TextAction JTextComponent)
     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                  SGAbstractShape$Mode SGComponent SGTransform)
     (jsyntaxpane DefaultSyntaxKit))
-  (:use (overtone.core event)
+  (:use (overtone.core event util)
         (overtone.gui swing)
         [clojure.contrib.fcase :only (case)]
         (clojure.contrib swing-utils duck-streams)))
@@ -81,10 +81,17 @@
 
 (defn eval-action []
   (proxy [TextAction] ["EVAL"]
-    (actionPerformed [e] (event :overtone.gui.repl/write 
-                                :text (.getSelectedText (:editor @editor*))))))
+    (actionPerformed [e] )))
+
+(defn text-action [handler]
+  (proxy [TextAction] ["EVAL"]
+    (actionPerformed [e] (run-handler handler e))))
+
+(defn key-stroke [k]
+  (KeyStroke/getKeyStroke k))
 
 (defn editor-panel [app]
+    (DefaultSyntaxKit/initKit)
   (let [editor-pane (JPanel.)
         editor (JEditorPane.)
         button-pane (button-bar editor)
@@ -93,25 +100,28 @@
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))
-        eval-ks (KeyStroke/getKeyStroke \e InputEvent/CTRL_DOWN_MASK)]
-    (DefaultSyntaxKit/initKit)
+        key-map (.getKeymap editor)
+        ;key-map (JTextComponent/addKeymap "insert-mode" parent-km)
+        ]
 
     (dosync (alter editor* assoc :editor editor))
 
     (doto button-pane
       (.setBackground (:background app)))
 
+    (doto key-map
+      (.addActionForKeyStroke (key-stroke "control E")
+                              (text-action #(event :overtone.gui.repl/repl-write 
+                                                   :text (.trim (.getSelectedText (:editor @editor*)))))))
+
     (doto editor
+      (.setKeymap key-map)
       (.setFont (:edit-font app))
       (.setContentType "text/clojure")
       (.setText (slurp "src/examples/basic.clj"))
       (.setCaretColor CARET-COLOR)
+      (.setBackground (Color. (float 1.0) (float 1.0) (float 1.0)))
       (.requestFocusInWindow))
-
-    ; Add an eval key stroke action for CTRL-e
-    (doto (.getKeymap editor)
-      (.removeKeyStrokeBinding eval-ks)
-      (.addActionForKeyStroke eval-ks (eval-action)))
 
     (doto editor-pane
       (.setLayout (BorderLayout.))

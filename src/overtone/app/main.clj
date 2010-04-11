@@ -10,8 +10,12 @@
     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
                                  SGAbstractShape$Mode SGComponent SGTransform)
     (com.sun.scenario.scenegraph.event SGMouseAdapter)
-    (com.sun.scenario.scenegraph.fx FXShape))
-  (:use (overtone.app editor tools)
+    (com.sun.scenario.scenegraph.fx FXShape)
+    (com.javadocking.dockable DefaultDockable DockingMode)
+    (com.javadocking.dock TabDock Position SplitDock)
+    (com.javadocking.model FloatDockModel)
+    (com.javadocking DockingManager))
+  (:use (overtone.app editor tools browser)
         (overtone.core sc ugen synth envelope event time-utils)
         (overtone.gui swing sg scope curve repl)
         clojure.stacktrace
@@ -116,52 +120,97 @@
     (windowDeiconified [win-event] (event :deiconified))
     ))
 
+(defn- dock-panel [app child name]
+  (let [dock (DefaultDockable. name child name nil DockingMode/ALL)]
+    (doto child
+      (.setBackground (:background app))
+      (.setForeground (:foreground app)))
+    dock))
+
 (defn overtone-frame []
   (let [app-frame (JFrame.  "Project Overtone")
         app-panel (.getContentPane app-frame)
-        ;browse-panel (browser)
+
+        browse-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT)
+        right-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT)
+        main-split (JSplitPane. JSplitPane/VERTICAL_SPLIT)
+        tools-split (JSplitPane. JSplitPane/VERTICAL_SPLIT)
+
         header-panel (header)
-        edit-panel (editor-panel @app*)
-        repl-panel (repl-panel)
-        hack-panel (JSplitPane. JSplitPane/VERTICAL_SPLIT edit-panel repl-panel)
+        browse-panel (dock-panel @app* (browser-panel) "Browser")
+        edit-panel (dock-panel @app* (editor-panel @app*) "Editor")
+        repl-panel (dock-panel @app* (repl-panel) "REPL")
         scene-panel (JSGPanel.)
-        scope-panel (scope-panel)
-        g-panel (JPanel.)
-        tool-panel (tools-panel @app*)]
-        ;left-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT browse-panel hack-panel)]
+        scene-dock (dock-panel @app* scene-panel "Envelope")
+        scope-panel (dock-panel @app* (scope-panel) "Scope")
+        color-panel (dock-panel @app* (color-panel @app*) "Color")
+        log-panel (dock-panel @app* (log-view-panel @app*) "Log")
 
-    ;(when (not (connected?))
-    ;  (boot)
-    ;  (Thread/sleep 1000))
+        top-tab-dock (TabDock.)
+        bottom-tab-dock (TabDock.)
+        top-tools-tab-dock (TabDock.)
+        bottom-tools-tab-dock (TabDock.)
+        left-tab-dock (TabDock.)
 
-    (doto edit-panel
-      (.setPreferredSize (:edit-panel-dim @curve*)))
+        top-split-dock (SplitDock.)
+        bottom-split-dock (SplitDock.)
+        top-tools-split-dock (SplitDock.)
+        bottom-tools-split-dock (SplitDock.)
+        left-split-dock (SplitDock.)
+
+        dock-model (FloatDockModel.)]
+
+    (.addDockable top-tab-dock edit-panel (Position. 0))
+    (.addDockable bottom-tab-dock repl-panel (Position. 0))
+    (.addDockable left-tab-dock browse-panel (Position. 0))
+    (.addDockable top-tools-tab-dock scope-panel (Position. 0))
+    (.addDockable top-tools-tab-dock scene-dock (Position. 1))
+    (.addDockable bottom-tools-tab-dock color-panel (Position. 0))
+    (.addDockable bottom-tools-tab-dock log-panel (Position. 1))
+
+    (.addChildDock top-split-dock top-tab-dock (Position. Position/CENTER))
+    (.addChildDock bottom-split-dock bottom-tab-dock (Position. Position/CENTER))
+    (.addChildDock left-split-dock left-tab-dock (Position. Position/CENTER))
+    (.addChildDock top-tools-split-dock top-tools-tab-dock (Position. Position/CENTER))
+    (.addChildDock bottom-tools-split-dock bottom-tools-tab-dock (Position. Position/CENTER))
+
+    (doto dock-model
+      (.addOwner "app-frame" app-frame)
+      (DockingManager/setDockModel)
+      (.addRootDock "top-split" top-split-dock app-frame)
+      (.addRootDock "bottom-split" bottom-split-dock app-frame)
+      (.addRootDock "left-split" left-split-dock app-frame)
+      (.addRootDock "top-tools-split" top-tools-split-dock app-frame)
+      (.addRootDock "bottom-tools-split" bottom-tools-split-dock app-frame))
+
+    (doto browse-split 
+      (.setLeftComponent left-split-dock)
+      (.setRightComponent right-split)
+      (.setDividerLocation 0.4))
+
+    (doto right-split 
+      (.setLeftComponent main-split)
+      (.setRightComponent tools-split)
+      (.setDividerLocation 0.9))
+
+    (doto main-split 
+      (.setTopComponent top-split-dock)
+      (.setBottomComponent bottom-split-dock)
+      (.setDividerLocation 0.8))
+
+    (doto tools-split
+      (.setTopComponent top-tools-split-dock)
+      (.setBottomComponent bottom-tools-split-dock)
+      (.setDividerLocation 0.5))
 
     (doto scene-panel
       (.setBackground Color/BLACK)
       (.setScene (controls-scene))
       (.setMinimumSize (Dimension. 600 400)))
-;      (.setPreferredSize (:scene-panel-dim @curve*)))
-
-    (doto tool-panel
-      (.setPreferredSize (:tools-panel-dim @curve*)))
-
-    (doto repl-panel
-      (.setMinimumSize (Dimension. 400 400)))
-
-    (doto g-panel
-      (.setLayout (BorderLayout.))
-      (.add scope-panel BorderLayout/NORTH)
-      (.add scene-panel BorderLayout/SOUTH))
 
     (miglayout app-panel
       header-panel "dock north"
-      hack-panel "cell 0 1 1 2"
-      scene-panel "cell 1 1"
-      scope-panel "cell 1 2"
-      tool-panel "dock east")
-
-    ;(.setDividerLocation left-split 0.4)
+      browse-split "dock west")
 
     (doto app-frame
       (.addWindowListener (window-listener app-frame))
@@ -169,10 +218,13 @@
       (.setVisible true))))
 
 (defn -main [& args]
+  (JFrame/setDefaultLookAndFeelDecorated true)
   (let [system-lf (UIManager/getSystemLookAndFeelClassName)]
     ; Maybe we need Java7 for this API?
     ;(if-let [screen (GraphicsEnvironment/getDefaultScreenDevice)]
     ;  (if (.isFullScreenSupported screen) 
     ;    (.setFullScreenWindow screen window))
-    (UIManager/setLookAndFeel system-lf)
-    (in-swing (overtone-frame))))
+;    (UIManager/setLookAndFeel system-lf)
+    (in-swing 
+      (UIManager/setLookAndFeel "org.pushingpixels.substance.api.skin.SubstanceGraphiteAquaLookAndFeel")
+      (overtone-frame))))

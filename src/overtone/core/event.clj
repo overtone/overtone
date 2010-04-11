@@ -45,27 +45,14 @@
   [event-type]
   (dosync (alter event-handlers* dissoc event-type)))
 
-(defn- run-handler [handler event]
-  (try
-    (if (zero? (arg-count handler))
-      (handler)
-      (handler event))
-    (catch Exception e
-      (log/debug "Event Handler Exception: " event "\n" (with-out-str 
-                   (print-cause-trace e))))))
-
 (defn- handle-event 
   "Runs the event handlers for the given event, and removes any handler that returns :done."
   [event]
   (let [event-type (:event-type event)
         handlers (get @event-handlers* event-type #{})
-        _ (log/debug (format "handle-event[%d]: %s " (count handlers) event-type) (keys event))
         keepers  (set (doall (filter #(not (= :done (run-handler % event))) handlers)))]
-    (log/debug "handled with " (count keepers) " keepers")
     (dosync (alter event-handlers* assoc event-type 
-                   (intersection keepers (get @event-handlers* event-type #{}))))
-    (log/debug "finished handling " event-type "with" (count (get @event-handlers* event-type #{})))
-    ))
+                   (intersection keepers (get @event-handlers* event-type #{}))))))
 
 (defn event 
   "Fire an event of type event-type with any number of additional properties.

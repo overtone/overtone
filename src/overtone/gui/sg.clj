@@ -34,18 +34,6 @@
    (javax.swing.border.EmptyBorder)
    (javax.swing.event ChangeEvent ChangeListener)))
 
-;; Utils
-
-(defn- run-handler [handler event node]
-  (try
-    (case (arg-count handler)
-      0 (handler)
-      1 (handler event)
-      2 (handler event node))
-    (catch Exception e
-      (comment println "scenegraph: event handler exception: " event "\n" 
-                 (with-out-str (print-cause-trace e))))))
-
 (defn sg-panel
   ([] (doto (JSGPanel.)
         (.setBackground java.awt.Color/GRAY)))

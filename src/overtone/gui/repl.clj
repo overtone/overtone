@@ -11,7 +11,8 @@
    (java.nio.charset Charset)
    (java.awt Color BorderLayout Dimension)
    (javax.swing JEditorPane JFrame JScrollPane JPanel SwingUtilities AbstractAction JLabel)
-   (javax.swing.border LineBorder))
+   (javax.swing.border LineBorder)
+   (javax.swing.text TextAction JTextComponent)) 
   (:require [clojure.main :as r])
   (:use clojure.contrib.seq-utils
         [clojure.stacktrace :only (e)]
@@ -274,12 +275,24 @@
         println-history #(in-swing (let [ doc (.getDocument history)
                                          length (.getLength doc)]
                                      (.insertString doc length % nil)))
-        layout (BorderLayout.)]
+        layout (BorderLayout.)
+        key-map (JTextComponent/addKeymap "repl" (.getKeymap input))]
     (doto scroll
       (.setVerticalScrollBarPolicy (JScrollPane/VERTICAL_SCROLLBAR_ALWAYS))
       (.setHorizontalScrollBarPolicy (JScrollPane/HORIZONTAL_SCROLLBAR_NEVER)))
 
+    (doto key-map
+      (.addActionForKeyStroke
+       (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_ENTER) 0)
+       (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt]  (let [text (.getText input)]
+                                                                        (if (and (not (empty? text))
+                                                                                 (balanced? text))
+                                                                          (do (event ::repl-write :text text)
+                                                                              (in-swing
+                                                                               (.setText input "")
+                                                                               (.requestFocus input)))))))))
     (doto input 
+      (.setKeymap key-map)
       (.setEditable false)   
       (.setBorder (LineBorder. java.awt.Color/BLACK))
       (.setMinimumSize (Dimension. 100 30)))
@@ -294,16 +307,6 @@
       (.add scroll BorderLayout/CENTER)
       (.add input BorderLayout/SOUTH))
     
-    (doto (.getKeymap input)
-      (.addActionForKeyStroke
-       (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_ENTER) 0)
-       (proxy [javax.swing.AbstractAction] [] (actionPerformed [evt]  (let [text (.getText input)]
-                                                                        (if (and (not (empty? text))
-                                                                                 (balanced? text))
-                                                                          (do (event ::repl-write :text text)
-                                                                              (in-swing
-                                                                               (.setText input "")
-                                                                               (.requestFocus input)))))))))
     (on ::repl-print #(println-history (:text %) ))
     (on ::repl-ready #((println-history "repl ready\r\n")
                        (event ::repl-write :text "(in-ns 'user)\r\n(use 'overtone.live)")

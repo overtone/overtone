@@ -2,7 +2,9 @@
   #^{:doc "Random utility functions for Overtone."
      :author "Jeff Rose"}
   overtone.core.util
-  (:use clojure.contrib.def))
+  (:require [overtone.core.log :as log])
+  (:use clojure.contrib.def
+        clojure.stacktrace))
 
 ; Some generic counters 
 (def id-counters* (ref {}))
@@ -73,4 +75,11 @@
   (let [m (first (.getDeclaredMethods (class f))) 
         p (.getParameterTypes m)] 
     (alength p)))
+
+(defn run-handler [handler & args]
+  (try
+    (apply handler (take (arg-count handler) args))
+    (catch Exception e
+      (log/debug "Handler Exception - got args:" args"\n" (with-out-str 
+                   (print-cause-trace e))))))
 

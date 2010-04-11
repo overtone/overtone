@@ -67,7 +67,7 @@
       (first (filter (fn [[idx v]] (= child v)) 
                      (indexed (second parent)))))))
 
-(defn browser []
+(defn browser-panel []
   (let [tree (JTree. (tree-model test-synths*))
         scroller (JScrollPane. tree)]
     (doto tree

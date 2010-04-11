@@ -33,14 +33,6 @@
 ; API not supported yet
 ;(Desktop/browse my-uri)
 
-(defn- run-handler [handler event]
-  (try
-    (condp = (arg-count handler)
-      0 (handler)
-      1 (handler event))
-    (catch Exception e
-      (println "event handler exception: " event "\n" 
-                 (with-out-str (print-cause-trace e))))))
 (defn on-action
   "Adds a handler to a component."
   [component handler]

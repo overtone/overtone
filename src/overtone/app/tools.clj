@@ -3,23 +3,14 @@
     (java.awt Toolkit EventQueue Dimension Point Dimension Color Font 
               RenderingHints Point BasicStroke BorderLayout)
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
-    (javax.swing JPanel JLabel JButton SwingUtilities BorderFactory
-                 JSpinner SpinnerNumberModel JColorChooser BorderFactory
+    (javax.swing JPanel JLabel JButton SwingUtilities 
+                 JSpinner SpinnerNumberModel JColorChooser 
                  BoxLayout JTextArea JScrollPane)
     (javax.swing.event ChangeListener)
     (java.util.logging StreamHandler SimpleFormatter))
   (:use (overtone.core event)))
 
 (def tools* (ref {:current-color (Color. 0 130 226)}))
-
-(defn- tool-panel [app name]
-  (let [p (JPanel.)
-        border (BorderFactory/createTitledBorder name)]
-    (.setTitleColor border (:foreground app))
-    (doto p
-      (.setBorder border)
-      (.setBackground (:background app))
-      (.setForeground (:foreground app)))))
 
 (def color-handler* (ref nil))
 
@@ -34,17 +25,13 @@
 
 (def chooser* (ref nil))
 
-(defn color-selector [app]
+(defn color-panel [app]
   (let [color-chooser (JColorChooser. (:current-color @tools*))
-        border (BorderFactory/createTitledBorder "Color")
         choosers (.getChooserPanels color-chooser)]
     (println "chooser: " (count choosers))
     (dosync (ref-set chooser* color-chooser))
 
-    (.setTitleColor border (:foreground app))
-
     (doto color-chooser
-      (.setBorder border) 
       (.setBackground (:background app))
       (.setForeground (:foreground app))
       (.setChooserPanels (into-array [(first choosers)]))
@@ -70,26 +57,7 @@
     (proxy [StreamHandler] []
       (publish [msg] (.append text-area (.format formatter msg))))))
 
-(defn log-viewer [app]
-  (let [panel (tool-panel app "Log")
-        text-area (JTextArea. "Overtone Log:\n" 10 40)
+(defn log-view-panel [app]
+  (let [text-area (JTextArea. "Overtone Log:\n" 10 40)
         scroller (JScrollPane. text-area)]
-    (doto panel
-      (.add scroller))))
-
-(defn tools-panel [app]
-  (let [panel (JPanel.)
-        color-chooser (color-selector app)
-        log-view (log-viewer app)
-        filler (JPanel.)]
-
-    (doto panel
-      (.setLayout (BoxLayout. panel BoxLayout/Y_AXIS))
-      (.setBackground (:background app))
-      (.setForeground (:foreground app))
-      
-      (.add color-chooser)
-      (.add log-view)
-      (.add filler))
-
-    panel))
+    scroller))
