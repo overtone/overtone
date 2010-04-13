@@ -7,7 +7,7 @@
   overtone.core.synth
   (:require [overtone.core.log :as log])
   (:use
-     (overtone.core util ugen sc synthdef)
+     (overtone.core util ugen sc synthdef event)
      (clojure walk inspector)
      clojure.contrib.seq-utils))
 
@@ -248,8 +248,15 @@
   (dosync (ref-set synth-prefix* prefix-fn)))
 
 (def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
+
 (defmacro synth 
-  "Define a SuperCollider synthesizer using the library of ugen functions provided by overtone.core.ugen.  This will return an anonymous function which can be used to trigger the synthesizer.  If the synth has an audio rate ugen that is not an 'Out' ugen, then a prefix will be appended.  By default: (out (pan2 synth)).  You can change it by passing a function to (set-synth-prefix my-prefix-fn), which will then be called with a synth ugen tree as it's single argument.
+  "Define a SuperCollider synthesizer using the library of ugen functions
+  provided by overtone.core.ugen.  This will return an anonymous function which
+  can be used to trigger the synthesizer.  If the synth has an audio rate ugen
+  that is not an 'Out' ugen, then a prefix will be appended.  By default: (out
+  (pan2 synth)).  You can change it by passing a function to 
+  (set-synth-prefix my-prefix-fn), which will then be called with a synth ugen 
+  tree as it's single argument.
   
   (synth (sin-osc (+ 300 (* 10 (sin-osc:kr 10)))))
   "
@@ -257,7 +264,6 @@
   (let [[sname args] (cond
                        (or (string? (first args))
                            (symbol? (first args))) [(str (first args)) (rest args)]
-                       (keyword? (first args))     [(name (first args)) (rest args)]
                        :default                    [:no-name args])
         [params ugen-form] (if (vector? (first args))
                              [(first args) (rest args)]
@@ -265,15 +271,12 @@
         param-names (map #(keyword (first %)) (partition 2 params))
         param-proxies (parse-synth-params params)
         param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
-    ;(println "param-proxies: \n" param-proxies)
-    ;(println "param-map: \n" param-map)
     `(do
        (let [~@param-proxies
              ugen-root# ~@ugen-form
              sname# (if (= :no-name ~sname)
                       (str "anon-" (next-id :anonymous-synth))
                       ~sname)
-             _# (println "ugen-root: ( " (:name ugen-root#) " ) " ugen-root#)
              ugens# (if (and (ugen? ugen-root#)
                              (or (= 0 (:n-outputs ugen-root#))
                                  (OUTPUT-UGENS (:name ugen-root#))
@@ -281,31 +284,36 @@
                       ugen-root#
                       (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))
              sdef# (synthdef sname# ~param-map ugens#)
-             sgroup# (or (get @synths* sname#) (group :head 0))]
+             sgroup# (or (get @synths* sname#) (group :head 0))
+             player# (synth-player sname# (quote ~param-names))]
          (load-synthdef sdef#)
          (dosync (alter synths* assoc sname# sgroup#))
-         (synth-player sname# (quote ~param-names))))))
+         (event :new-synth :sdef sdef# :player player# :name sname# :group sgroup#)
+         player#))))
          
-; TODO: Figure out a better way... functions can't have meta-data!?!?
- ;        (with-meta 
- ;          (synth-player sname# (quote ~param-names))
- ;          {:synthdef sdef#
- ;           :group    sgroup#
- ;           :name sname#})))))
-
 (defmacro defsynth 
-  "Define a synthesizer and name its trigger function.  
+  "Define a synthesizer and return a player function.  The synth definition
+  will be loaded immediately, and a :new-synth event will be emitted.
 
-  (defsynth foo [freq 440] (sin-osc freq))
+  (defsynth foo [freq 440] 
+    (sin-osc freq))
 
   is equivalent to:
 
-  (def foo (synth [freq 440] (sin-osc freq)))
+  (def foo 
+    (synth [freq 440] (sin-osc freq)))
+
+  A doc string can also be included:
+  (defsynth bar
+    \"The phatest space pad ever!\"
+    [] (...))
   "
-  [name params & ugen-form]
-  `(def ~name (synth ~name
-                     ~params
-                     ~@ugen-form)))
+  [name & sdecl]
+  (let [md (if (string? (first sdecl)) {:doc (first sdecl)} {})
+        params    (first (take 1 (filter vector? sdecl)))
+        ugen-form (first (take 1 (filter list? sdecl)))]
+    (list 'def (with-meta name md)
+          (list 'synth name params ugen-form))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Synthdef de-compilation

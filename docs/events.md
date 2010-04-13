@@ -59,11 +59,25 @@ like this:
 
 Some of the built-in events that might be of general interest are:
 
-:booted    => the audio server process has been booted
-:connected => we have successfully connected with an audio server
+the audio server process has been booted
+:booted => {}
 
-:color-changed => the :color event property holds a java.awt.Color for the
-                  current setting of the color chooser
+we have successfully connected with an audio server
+:connected => {}
 
-:iconified => when the main app window has been iconified 
-:deiconified => when the main app window has be deiconified 
+a synth has been defined and loaded, event properties: 
+:new-synth => { :name, :player, :sdef, :group }
+
+current setting of the color chooser:
+:color-changed => {:color <java.awt.Color>} 
+
+when the main app window has been iconified 
+:iconified => {}
+
+when the main app window has be deiconified 
+:deiconified => {}
+
+
+
+
+

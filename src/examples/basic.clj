@@ -9,8 +9,10 @@
 
 ; When a multiplication is done involving UGen objects, then
 ; multiply UGens will be produced with the operands as their
-; inputs.
-(defsynth pedestrian-crossing []
+; inputs.  (Note that synthdefs can have doc strings too.)
+(defsynth pedestrian-crossing 
+  "Street crossing in Britain."
+  []
   (* 0.2 (sin-osc 2500) (lf-pulse 5)))
 
 ; You can mix signals by adding them together.  The soundcard can take audio
