@@ -247,6 +247,28 @@
 (defn set-synth-prefix [prefix-fn]
   (dosync (ref-set synth-prefix* prefix-fn)))
 
+(defn- smap-entry [k v]
+  (proxy [clojure.lang.IMapEntry] []
+    (key [] k) 
+    (getKey [] k)
+    (val [] v)
+    (getValue [] v)))
+
+(defn synth-map [s]
+    (proxy [clojure.lang.Associative clojure.lang.IFn] []
+      (count [] (count s))
+      (seq   [] (seq s))
+      (cons  [[k v]] (synth-map (assoc s k v)))
+      (empty [] {})
+      (equiv [o] (= o s))
+      (containsKey [k] (contains? s k))
+      (entryAt     [k] (smap-entry k (get s k)))
+      (assoc       [k v] (synth-map (assoc s k v)))
+      (valAt      
+        ([k] (get s k))
+        ([k d] (get s k d)))
+      (invoke [& args] (apply (:player s) args))))
+
 (def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
 
 (defmacro synth 
@@ -285,11 +307,17 @@
                       (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))
              sdef# (synthdef sname# ~param-map ugens#)
              sgroup# (or (get @synths* sname#) (group :head 0))
-             player# (synth-player sname# (quote ~param-names))]
+             player# (synth-player sname# (quote ~param-names))
+             smap# (synth-map {:name sname# 
+                               :ugens ugens# 
+                               :sdef sdef# 
+                               :doc nil 
+                               :group sgroup# 
+                               :player player#})]
          (load-synthdef sdef#)
          (dosync (alter synths* assoc sname# sgroup#))
          (event :new-synth :sdef sdef# :player player# :name sname# :group sgroup#)
-         player#))))
+         smap#))))
          
 (defmacro defsynth 
   "Define a synthesizer and return a player function.  The synth definition

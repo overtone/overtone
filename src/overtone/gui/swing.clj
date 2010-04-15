@@ -2,9 +2,10 @@
   (:import (clojure.lang RT)
            (java.awt Toolkit GraphicsEnvironment)
            (java.awt.event ActionListener)
+           (javax.swing.text TextAction JTextComponent)
            (javax.swing JFrame JPanel JSplitPane JLabel 
                         JButton SwingUtilities BorderFactory
-                        ImageIcon))
+                        ImageIcon KeyStroke))
   (:use clojure.stacktrace
         (overtone.core util)))
 
@@ -46,6 +47,15 @@
                     :ctrl java.awt.event.InputEvent/CTRL_MASK
                     :meta java.awt.event.InputEvent/META_MASK
                     :alt java.awt.event.InputEvent/ALT_MASK}) 
+
+(defn text-action [handler]
+  (proxy [TextAction] ["EVAL"]
+    (actionPerformed [e] (run-handler handler e))))
+
+(defn key-stroke [k & mods]
+  (if (empty? mods)
+    (KeyStroke/getKeyStroke k)
+    (KeyStroke/getKeyStroke k (apply + (map KEY-MODIFIERS mods)))))
 
 (defn add-keystroke! [editorpane stroke mods performed-fn]
   (let [stroke-key (eval `(. java.awt.event.KeyEvent ~stroke))]

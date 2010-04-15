@@ -11,6 +11,7 @@
     (jsyntaxpane DefaultSyntaxKit))
   (:use (overtone.core event util)
         (overtone.gui swing)
+        (overtone.app.editor keymap actions)
         [clojure.contrib.fcase :only (case)]
         (clojure.contrib swing-utils duck-streams)))
 
@@ -79,17 +80,6 @@
 
     panel))
 
-(defn eval-action []
-  (proxy [TextAction] ["EVAL"]
-    (actionPerformed [e] )))
-
-(defn text-action [handler]
-  (proxy [TextAction] ["EVAL"]
-    (actionPerformed [e] (run-handler handler e))))
-
-(defn key-stroke [k]
-  (KeyStroke/getKeyStroke k))
-
 (defn editor-panel [app]
     (DefaultSyntaxKit/initKit)
   (let [editor-pane (JPanel.)
@@ -100,22 +90,23 @@
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))
-        key-map (.getKeymap editor)
-        ;key-map (JTextComponent/addKeymap "insert-mode" parent-km)
+        insert-mode-map (keymap-for editor)
         ]
 
-    (dosync (alter editor* assoc :editor editor))
+    (dosync (alter editor* assoc :editor editor 
+                   :keymaps {:insert insert-mode-map}
+                   :current-keymap :insert))
 
     (doto button-pane
       (.setBackground (:background app)))
 
-    (doto key-map
-      (.addActionForKeyStroke (key-stroke "control E")
-                              (text-action #(event :overtone.gui.repl/repl-write 
-                                                   :text (.trim (.getSelectedText (:editor @editor*)))))))
+    (doto insert-mode-map
+      (assoc (key-stroke "control E")
+             (text-action #(event :overtone.gui.repl/repl-write 
+                                  :text (.trim (.getSelectedText (:editor @editor*)))))))
 
     (doto editor
-      (.setKeymap key-map)
+      (.setKeymap (:keymap insert-mode-map))
       (.setFont (:edit-font app))
       (.setContentType "text/clojure")
       (.setText (slurp "src/examples/basic.clj"))
@@ -128,3 +119,133 @@
       (.add button-pane BorderLayout/NORTH)
       (.add scroller BorderLayout/CENTER)
       (.add (status-panel editor) BorderLayout/SOUTH))))
+
+(defn editor-keymap [k]
+  (.setKeymap (:editor @editor*) (:keymap k)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Text Selection
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn selected-text
+  "Returns the currently selected text."
+  []
+  (.getSelectedText (:editor @editor*)))
+
+(defn select-all 
+  "Selects all of the text."
+  []
+  (.selectAll (:editor @editor*)))
+
+(defn select-start
+  "Get the starting point of the current selection."
+  []
+  (.getSelectionStart (:editor @editor*)))
+
+(defn set-select-start
+  "Set the starting point of the current selection."
+  [start]
+  (.setSelectionStart (:editor @editor*) start))
+
+(defn select-end
+  "Get the end point of the current selection."
+  []
+  (.getSelectionEnd (:editor @editor*)))
+
+(defn set-select-end
+  "Set the end point of the current selection."
+  [end]
+  (.setSelectionEnd (:editor @editor*) end))
+
+(defn select-range 
+  "Set the current selection range."
+  ([start end]
+   (.select (:editor @editor*) start end)))
+
+(defn selected-text-color
+  "Get the selection color, a java.awt.Color."
+  []
+  (.getSelectedTextColor (:editor @editor*)))
+
+(defn set-selected-text-color
+  "Set the selection color with a java.awt.Color."
+  [c]
+  (.setSelectedTextColor (:editor @editor*) c))
+
+(defn highlight-color
+  "Get the selection color, a java.awt.Color."
+  []
+  (.getSelectionColor (:editor @editor*)))
+
+(defn set-highlight-color
+  "Set the selection color with a java.awt.Color."
+  [c]
+  (.setSelectionTextColor (:editor @editor*) c))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Selection operations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn text-cut
+  "cut"
+  []
+  (.cut (:editor @editor*)))
+
+(defn text-copy
+  "copy"
+  []
+  (.copy (:editor @editor*)))
+
+(defn text-paste
+  "paste"
+  []
+  (.paste (:editor @editor*)))
+
+(defn text-replace
+  "Replace the current selection text."
+  [s]
+  (.replaceSelection (:editor @editor*) s))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; The caret
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn caret-color 
+  "Get the caret's java.awt.Color."
+  []
+  (.getCaretColor (:editor @editor*)))
+
+(defn set-caret-color 
+  "Set the caret's java.awt.Color."
+  [c]
+  (.setCaretColor (:editor @editor*) c))
+
+(defn caret-position
+  "Get the caret's position."
+  []
+  (.getCaretPosition (:editor @editor*)))
+
+(defn set-caret-position
+  "Set the caret's position."
+  [index]
+  (.setCaretPosition (:editor @editor*) index))
+
+(defn move-caret
+  "Shift the caret's position."
+  [amount]
+  (.moveCaretPosition (:editor @editor*) amount))
+
+(defn current-line
+  "The line of text containing the caret."
+  []
+  (.getLineAt (.getDocument (:editor @editor*)) (caret-position)))
+
+(defn remove-current-line
+  "Delete the current line of text."
+  []
+  (.removeLineAt (.getDocument (:editor @editor*)) (caret-position)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Search
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+

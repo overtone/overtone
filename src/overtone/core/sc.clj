@@ -219,9 +219,9 @@
   (let [send-fn (fn [peer-obj]
                   (let [
                         buffer (:send-buf peer-obj)]
-                    (World_SendPacket @sc-world* 
-                                      (.limit buffer) 
-                                      buffer 
+                    (World_SendPacket @sc-world*
+                                      (.limit buffer)
+                                      buffer
                                       internal-osc-callback)))
         peer (assoc (osc-peer) :send-fn send-fn)]
     (dosync (ref-set server* peer))
@@ -235,13 +235,13 @@
   (log/debug "Connecting to external SuperCollider server: " host ":" port)
   (let [sc-server (osc-client host port)]
     (osc-listen sc-server #(event ::osc-msg-received :msg %))
-    (dosync 
+    (dosync
       (ref-set server* sc-server)
       (ref-set status* :connecting))
 
     ; Runs once when we receive the first status.reply message
-    (on "status.reply" 
-        #(do 
+    (on "status.reply"
+        #(do
            (dosync (ref-set status* :connected))
            (notify true) ; turn on notifications now that we can communicate
            (event :connected)
@@ -290,10 +290,10 @@
 (defn recv [path & [timeout]]
   (let [p (promise)]
     (on path #(do (deliver p %) :done))
-    (if timeout 
-      (try 
+    (if timeout
+      (try
         (.get (future @p) timeout TimeUnit/MILLISECONDS)
-        (catch TimeoutException t 
+        (catch TimeoutException t
           :timeout))
       @p)))
 
@@ -310,18 +310,18 @@
 
 (def STATUS-TIMEOUT 200)
 
-(defn status 
+(defn status
   "Check the status of the audio server."
   []
   (if (= :connected @status*)
     (let [p (promise)]
-      (on "/status.reply" #(do 
+      (on "/status.reply" #(do
                              (deliver p (parse-status (:args %)))
                              :done))
       (snd "/status")
-      (try 
+      (try
         (.get (future @p) STATUS-TIMEOUT TimeUnit/MILLISECONDS)
-        (catch TimeoutException t 
+        (catch TimeoutException t
           :timeout)))
     @status*))
 
@@ -446,7 +446,7 @@
   (dosync (ref-set server* nil)
     (ref-set status* :no-audio)))
 
-; TODO: Come up with a better way to delay shutdown until all of the :quit event handlers 
+; TODO: Come up with a better way to delay shutdown until all of the :quit event handlers
 ; have executed.  For now we just use 500ms.
 (defonce _shutdown-hook (.addShutdownHook (Runtime/getRuntime) (Thread. #(do (quit) (Thread/sleep 500)))))
 
@@ -785,7 +785,8 @@
 
 ; TODO: need to clear all the buffers and busses
 (defn reset
-  "Clear all synthesizers, groups and pending messages from the audio server, and then recreates the active synth groups."
+  "Clear all synthesizers, groups and pending messages from the audio server,
+  and then recreates the active synth groups."
   []
   (clear-msg-queue)
   (try
@@ -875,7 +876,7 @@
 
   ; or a bunch of synth handles can be removed at once
   (kill (hit) (hit) (hit))
-  
+
   ; or a seq of synth handles can be removed at once
   (kill [(hit) (hit) (hit)])
   "

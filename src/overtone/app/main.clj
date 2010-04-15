@@ -145,6 +145,7 @@
         scope-panel (dock-panel @app* (scope-panel) "Scope")
         color-panel (dock-panel @app* (color-panel @app*) "Color")
         log-panel (dock-panel @app* (log-view-panel @app*) "Log")
+        key-panel (dock-panel @app* (keymap-panel @app*) "Keymap")
 
         top-tab-dock (TabDock.)
         bottom-tab-dock (TabDock.)
@@ -167,6 +168,7 @@
     (.addDockable top-tools-tab-dock scene-dock (Position. 1))
     (.addDockable bottom-tools-tab-dock color-panel (Position. 0))
     (.addDockable bottom-tools-tab-dock log-panel (Position. 1))
+    (.addDockable bottom-tools-tab-dock key-panel (Position. 2))
 
     (.addChildDock top-split-dock top-tab-dock (Position. Position/CENTER))
     (.addChildDock bottom-split-dock bottom-tab-dock (Position. Position/CENTER))

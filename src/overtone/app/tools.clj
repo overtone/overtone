@@ -5,10 +5,12 @@
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
     (javax.swing JPanel JLabel JButton SwingUtilities 
                  JSpinner SpinnerNumberModel JColorChooser 
-                 BoxLayout JTextArea JScrollPane)
+                 BoxLayout JTextArea JScrollPane JTable)
     (javax.swing.event ChangeListener)
+    (javax.swing.table AbstractTableModel)
     (java.util.logging StreamHandler SimpleFormatter))
-  (:use (overtone.core event)))
+  (:use (overtone.core event)
+        (overtone.app editor)))
 
 (def tools* (ref {:current-color (Color. 0 130 226)}))
 
@@ -23,14 +25,9 @@
   (dosync (ref-set color-handler* handler))
   (on :color-changed #(handler (:color %))))
 
-(def chooser* (ref nil))
-
 (defn color-panel [app]
   (let [color-chooser (JColorChooser. (:current-color @tools*))
         choosers (.getChooserPanels color-chooser)]
-    (println "chooser: " (count choosers))
-    (dosync (ref-set chooser* color-chooser))
-
     (doto color-chooser
       (.setBackground (:background app))
       (.setForeground (:foreground app))
@@ -60,4 +57,24 @@
 (defn log-view-panel [app]
   (let [text-area (JTextArea. "Overtone Log:\n" 10 40)
         scroller (JScrollPane. text-area)]
+    scroller))
+
+(defn keymap-table-model []
+  (let [keymap #(get @editor* (:current-keymap @editor*))]
+    (proxy [AbstractTableModel] []
+      (getColumnName [c] (get ["Actions", "Key Strokes"] c))
+      (getRowCount [] (count (keymap)))
+      (getColumnCount [] 2)
+      (getValueAt [row col] (get (first 
+                                   (drop row (seq (keymap)))) 
+                                 col))
+      (getColumnClass [c] (class (get (first (seq (keymap))) c)))
+      (isCellEditable [row col] (= 1 col))
+      (setValueAt [val row col]
+                  (println "setting binding: " row ":" col "-> " val)))))
+
+(defn keymap-panel [app]
+  (let [km (get @editor* (:current-keymap @editor*))
+        table (JTable. (keymap-table-model))
+        scroller (JScrollPane. table)]
     scroller))
