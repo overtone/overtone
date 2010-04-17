@@ -2,9 +2,7 @@
   :description "An audio/musical experiment."
   :dependencies [[org.clojure/clojure "1.1.0"]
                  [org.clojure/clojure-contrib "1.1.0"]
-                 [jline "0.9.94"]
                  [org.freedesktop.tango/tango-icon-theme "0.8.90"]
-                 [org.ostermiller/utils "1.07.00"]
                  [org.clojars.nakkaya/miglayout "3.7"]
                  [scenegraph "0.0.1-SNAPSHOT"]
 
@@ -16,7 +14,7 @@
                  [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
                  [overtone/substance "6.0"]
                  [overtone/javadocking "1.4.0"]
-                 
+
                  ;[scenegraph/decora-hw "0.0.1-SNAPSHOT"] ;; decora-hw and decora-jogl are not yet fully tested
                  ;[scenegraph/decora-jogl "0.0.1-SNAPSHOT"] ;;
                  ;[vijual "0.1.0-SNAPSHOT"]

@@ -1,13 +1,13 @@
 (ns overtone.app.main
   (:gen-class)
-  (:import 
-    (java.awt Toolkit EventQueue Dimension Point Dimension Color Font 
+  (:import
+    (java.awt Toolkit EventQueue Dimension Point Dimension Color Font
               RenderingHints Point BasicStroke BorderLayout)
     (java.awt.event WindowAdapter)
     (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
     (javax.swing JFrame JPanel JSplitPane JLabel JButton BorderFactory
-                 JSpinner SpinnerNumberModel UIManager BoxLayout) 
-    (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup 
+                 JSpinner SpinnerNumberModel UIManager BoxLayout)
+    (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup
                                  SGAbstractShape$Mode SGComponent SGTransform)
     (com.sun.scenario.scenegraph.event SGMouseAdapter)
     (com.sun.scenario.scenegraph.fx FXShape)
@@ -128,7 +128,7 @@
     dock))
 
 (defn overtone-frame []
-  (let [app-frame (JFrame.  "Project Overtone")
+  (let [app-frame (JFrame.  "Overtone")
         app-panel (.getContentPane app-frame)
 
         browse-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT)
@@ -185,17 +185,17 @@
       (.addRootDock "top-tools-split" top-tools-split-dock app-frame)
       (.addRootDock "bottom-tools-split" bottom-tools-split-dock app-frame))
 
-    (doto browse-split 
+    (doto browse-split
       (.setLeftComponent left-split-dock)
       (.setRightComponent right-split)
       (.setDividerLocation 0.4))
 
-    (doto right-split 
+    (doto right-split
       (.setLeftComponent main-split)
       (.setRightComponent tools-split)
       (.setDividerLocation 0.9))
 
-    (doto main-split 
+    (doto main-split
       (.setTopComponent top-split-dock)
       (.setBottomComponent bottom-split-dock)
       (.setDividerLocation 0.8))
@@ -224,9 +224,9 @@
   (let [system-lf (UIManager/getSystemLookAndFeelClassName)]
     ; Maybe we need Java7 for this API?
     ;(if-let [screen (GraphicsEnvironment/getDefaultScreenDevice)]
-    ;  (if (.isFullScreenSupported screen) 
+    ;  (if (.isFullScreenSupported screen)
     ;    (.setFullScreenWindow screen window))
 ;    (UIManager/setLookAndFeel system-lf)
-    (in-swing 
+    (in-swing
       (UIManager/setLookAndFeel "org.pushingpixels.substance.api.skin.SubstanceGraphiteAquaLookAndFeel")
       (overtone-frame))))
