@@ -216,13 +216,11 @@
 (defn- connect-internal
   []
   (log/debug "Connecting to internal SuperCollider server")
-  (let [send-fn (fn [peer-obj]
-                  (let [
-                        buffer (:send-buf peer-obj)]
+  (let [send-fn (fn [peer-obj buffer]
                     (World_SendPacket @sc-world*
                                       (.limit buffer)
                                       buffer
-                                      internal-osc-callback)))
+                                      internal-osc-callback))
         peer (assoc (osc-peer) :send-fn send-fn)]
     (dosync (ref-set server* peer))
     (snd "/status")
@@ -611,11 +609,12 @@
 (defn node-tree
   "Returns a data structure representing the current arrangement of groups and synthesizer
   instances residing on the audio server."
-  [id & [ctls?]]
-  (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
+  ([] (node-tree 0))
+  ([id & [ctls?]]
+   (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
     (snd "/g_queryTree" id ctls?)
     (let [tree (:args (recv "/g_queryTree.reply" REPLY-TIMEOUT))]
-      (parse-node-tree tree))))
+      (parse-node-tree tree)))))
 
 (defn prepend-node
   "Add a synth node to the end of a group list."

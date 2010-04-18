@@ -92,29 +92,30 @@
     pairs)))
 
 (def history* (ref (list)))
-(def history-index* (ref 0))
+(def history-index* (ref -1))
 
 (defn history-up-action [input]
   (on ::repl-write #(dosync 
                       (alter history* conj (:text %))
-                      (ref-set history-index* 0)))
+                      (ref-set history-index* -1)))
   (proxy [javax.swing.AbstractAction] [] 
     (actionPerformed [evt]
-;                     (event ::repl-print :text (str "up: " @history*))
-                     (in-swing
-                       (let [idx (min (dec (count @history*)) (inc @history-index*))]
-                         (.setText input (nth @history* @history-index*))
-                         (dosync (ref-set history-index* idx)))))))
+      (let [txt (nth @history* 
+                       (dosync (ref-set history-index* 
+                         (min (dec (count @history*)) (inc @history-index*)))))]
+      (in-swing 
+        (.setText input txt))))))
 
 (defn history-down-action [input]
   (proxy [javax.swing.AbstractAction] [] 
     (actionPerformed [evt]
                      (in-swing
-                       (if (neg? @history-index*)
-                         (.setText input "")
-                         (let [idx (dec @history-index*)]
-                           (.setText input (nth @history* @history-index*))
-                           (dosync (ref-set history-index* idx))))))))
+                       (.setText input 
+                                 (if (< @history-index* 1)
+                                   (do
+                                     (dosync (ref-set history-index* -1))
+                                     "")
+                                   (nth @history* (dosync (alter history-index* dec)))))))))
 
 (defn repl-enter-action [input]
   (proxy [javax.swing.AbstractAction] [] 
