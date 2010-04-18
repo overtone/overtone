@@ -8,7 +8,7 @@
 
                  [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
                  [overtone/jsyntaxpane "0.9.5-b27"]
-                 [overtone/osc-clj "0.1.3-SNAPSHOT"]
+                 [overtone/osc-clj "0.1.4-SNAPSHOT"]
                  [overtone/byte-spec "0.1"]
                  [overtone/midi-clj "0.1"]
                  [overtone/clj-scsynth "0.0.2-SNAPSHOT"]

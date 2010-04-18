@@ -38,9 +38,20 @@
 
 (def kit [stick clap conga-1 conga-2 cymbal-1 cymbal-2 cy1 cy2 bass snare tamb hi-hat hhos hho2 tthi tthi2 ttlo])     
 
+(def synths (map load-sample 
+                 (map 
+                   #(str "/home/rosejn/studio/samples/synths/SYNC" % ".WAV") 
+                   (range 1 8))))
+
 (defn drummer [cmd x y]
   (when (= cmd :down)
-    (hit (nth kit x))))
+    (let [[synth info] (nth synths x)
+          id (hit synth :dur (/ (:n-frames info) (:rate info)))]
+      (mono/led-on m x y)
+      (on "/n_end" (fn [msg]
+                     (if (= id (first (:args msg))) 
+                       (mono/led-off m x y))
+                     :done)))))
 
 (def loops
  [[1 0 0 0 1 0 0 0]
@@ -65,7 +76,7 @@
 
 (defn metro-bpm [metro bpm])
 
-(def clock (make-metro 60))
+(def clock (make-metro 110))
 
 (defn loop-player [inst index beat pattern]
   (when (get @current-loops* index)
@@ -77,9 +88,13 @@
 (defn looper [cmd x y]
   (condp = cmd
     :down (do 
+            (mono/led-on m x y)
             (dosync (alter current-loops* assoc y true)) 
             (loop-player (nth kit x) y (inc (clock)) (cycle (nth loops y))))
-    :up   (dosync (alter current-loops* assoc y false))))
+    :up   (do 
+            (mono/led-off m x y)
+            (dosync (alter current-loops* assoc y false)))))
+            
 
 (defn foo [beat] 
   (hit-at (clock beat) :plop :freq 440)
