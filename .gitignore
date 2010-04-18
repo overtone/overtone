@@ -10,3 +10,10 @@ web
 native
 SCClassLibrary
 hs*
+src/external
+\#*#
+\.\#*
+*.log
+*.tmproj
+.DS_Store
+
