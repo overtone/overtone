@@ -157,8 +157,8 @@
 ; (defsynth foo [freq [440 :ar]] ...)
 ; Should probably do this with a recursive function that can pull
 ; out argument pairs or triples, and get rid of the vector
-(defn- parse-params [params]
-  (for [[p-name p-val] params]
+(defn- parse-params [param-map]
+  (for [[p-name p-val] param-map]
     (let [[p-val p-rate] (if (vector? p-val)
                            p-val
                            [p-val DEFAULT-RATE])]
