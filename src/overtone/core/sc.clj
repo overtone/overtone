@@ -930,3 +930,18 @@
         (= :name (first args)) sname
         :default (apply tgt-fn named-args)))))
 
+(defn sample
+  "Loads a wave file into a memory buffer. Returns a function capable
+   of playing that sample.
+
+   ; e.g.
+   (sample \"/Users/sam/music/samples/flibble.wav\")
+
+  "
+  [path]
+  (let [s (load-sample path)
+        id (get-in s [:buf :id])
+        player       #(node "granular" :buf id :dur 30)]
+    (overtone.core.synth/synth-map {:player player
+                :sample s})))
+
