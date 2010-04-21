@@ -11,13 +11,13 @@
         clojure.contrib.pprint
         [clojure.contrib.fcase :only (case)]
         clojure.set)
-  (:require 
+  (:require
      [clojure.contrib.generic.arithmetic :as ga]
      [clojure.contrib.generic.comparison :as gc]
      [clojure.contrib.generic.math-functions :as gm]))
 
 ;; Outputs have a specified calculation rate
-;;   0 = scalar rate - one sample is computed at initialization time only. 
+;;   0 = scalar rate - one sample is computed at initialization time only.
 ;;   1 = control rate - one sample is computed each control period.
 ;;   2 = audio rate - one sample is computed for each sample of audio output.
 (def RATES {:ir 0
@@ -40,18 +40,18 @@
    :standard true
    })
 
-(defn normalize-ugen-name 
+(defn normalize-ugen-name
   "Normalizes SuperCollider and overtone-style names to squeezed lower-case."
   [n]
   (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
 
-(defn overtone-ugen-name 
-  "A basic camelCase to with-dash name converter tuned to convert SuperCollider names to Overtone names.  
+(defn overtone-ugen-name
+  "A basic camelCase to with-dash name converter tuned to convert SuperCollider names to Overtone names.
   Most likely needs improvement."
   [n]
-  (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2") 
-        n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2") 
-        n (.replaceAll n "_" "-") 
+  (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2")
+        n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2")
+        n (.replaceAll n "_" "-")
         n (.toLowerCase n)]
   n))
 
@@ -60,19 +60,19 @@
 
 (defn- derive-ugen-specs
   "Merge the ugen spec maps to give children their parent's attributes.
-  
+
   Recursively reduces the specs to support arbitrary levels of derivation."
   ([specs] (derive-ugen-specs specs {} 0))
   ([children adults depth]
-   ; Make sure a bogus UGen doesn't spin us off into infinity... ;-) 
+   ; Make sure a bogus UGen doesn't spin us off into infinity... ;-)
    {:pre [(< depth 8)]}
 
-   (let [[adults children] 
+   (let [[adults children]
          (reduce (fn [[full-specs new-children] spec]
-                   (if (derived? spec) 
+                   (if (derived? spec)
                      (if (contains? full-specs (:extends spec))
-                       [(assoc full-specs (:name spec) 
-                               (merge (get full-specs (:extends spec)) spec)) 
+                       [(assoc full-specs (:name spec)
+                               (merge (get full-specs (:extends spec)) spec))
                         new-children]
                        [full-specs (conj new-children spec)])
                      [(assoc full-specs (:name spec) spec) new-children]))
@@ -93,18 +93,18 @@
   [spec]
   (assoc spec :categories (get UGEN-CATEGORY-MAP (:name spec) [])))
 
-(defn- with-expands 
+(defn- with-expands
   "Sets the :expands? attribute for ugen-spec arguments, which will inform the
   automatic channel expansion system when to expand argument."
   [spec]
-  (assoc spec :args 
-         (map (fn [arg] 
-                (assoc arg :expands? 
+  (assoc spec :args
+         (map (fn [arg]
+                (assoc arg :expands?
                        (get UGEN-SPEC-EXPANSION-MODES (get arg :mode :standard))))
               (:args spec))))
 
 (defn- with-fn-names
-  "Generates all the function names for this ugen and adds a :fn-names map 
+  "Generates all the function names for this ugen and adds a :fn-names map
   that maps function names to rates, representing the output rate.
 
   All available rates get an explicit function name of the form <fn-name>:<rate>
@@ -115,7 +115,7 @@
   UGens will also have a base-name without a rate suffix that uses the default rate
   for that ugen:
     * (env-gen ...)   ;; Uses :kr, control rate for EnvGen
-  
+
   The default rate is determined by the rate precedence:
     [:ir :dr :ar :kr]
 
@@ -138,7 +138,7 @@
   [args spec prop]
   (partition 2 (interleave args (map #(get % prop) (:args spec)))))
 
-(defn- map-ugen-args 
+(defn- map-ugen-args
   "Perform any argument mappings that needs to be done."
   [spec args]
   (let [args-specs (args-with-specs args spec :map)]
@@ -166,8 +166,8 @@
   (let [defaults (map #(:default %) (:args spec))
         defaults (drop (count args) defaults)]
     (when (some #(nil? %) defaults)
-      (throw (IllegalArgumentException. 
-        (str "\n- - -\nMissing arguments for: " (:name spec) " UGen => "  
+      (throw (IllegalArgumentException.
+        (str "\n- - -\nMissing arguments for: " (:name spec) " UGen => "
              (doall (drop (count args) (map #(:name %) (:args spec))))))))
     (concat args defaults)))
 
@@ -185,14 +185,14 @@
 
 ; TODO: Refactor these init functions so everything just takes a ugen and a spec
    ; and outputs an updated ugen...  Should have done it like this initially...
-(defn- with-init-fn 
+(defn- with-init-fn
   "Creates the final argument initialization function which is applied to arguments
-  at runtime to do things like re-ordering and automatic filling in of arguments.  
-  Typically appending input arrays as the last argument and filling in the number of 
+  at runtime to do things like re-ordering and automatic filling in of arguments.
+  Typically appending input arrays as the last argument and filling in the number of
   in or out channels for those ugens that need it.
-  
+
   If an init function is already present it will get called after doing the mapping and
-  mode transformations." 
+  mode transformations."
   [spec]
   (let [map-fn (partial map-ugen-args spec)
         append-fn (partial append-seq-args spec)
@@ -200,14 +200,14 @@
         arg-init-fn (if (contains? spec :init)
                   (comp (:init spec) map-fn default-fn)
                   (comp map-fn default-fn))]
-    (assoc spec :init 
-           (fn [ugen] 
+    (assoc spec :init
+           (fn [ugen]
              (let [ugen (assoc ugen :args (arg-init-fn (:args ugen)))
                    ugen (with-num-outs-mode spec ugen)
                    mod-args (assoc ugen :args (append-fn (:args ugen)))]
                mod-args)))))
 
-(defn- enrich-ugen-spec 
+(defn- enrich-ugen-spec
   "Interpret a ugen-spec and add in additional, computed meta-data."
   [spec]
   (-> spec
@@ -225,30 +225,30 @@
           namespaces))
 
 (defn- load-ugen-specs [namespaces]
-  "Perform the derivations and setup defaults for rates, names, 
+  "Perform the derivations and setup defaults for rates, names,
   argument initialization functions, and channel expansion flags."
   (let [specs (specs-from-namespaces namespaces)
         derived (derive-ugen-specs specs)]
     (map enrich-ugen-spec derived)))
-  
-; TODO: currently not including pseudo because it causes problems and I 
+
+; TODO: currently not including pseudo because it causes problems and I
 ; don't know what they are...
-(def UGEN-NAMESPACES 
+(def UGEN-NAMESPACES
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
     ff-osc fft info noise pan trig line input filter])
 
 (def UGEN-SPECS (load-ugen-specs UGEN-NAMESPACES))
-(def UGEN-SPEC-MAP (zipmap 
+(def UGEN-SPEC-MAP (zipmap
                      (map #(normalize-ugen-name (:name %)) UGEN-SPECS)
-                     UGEN-SPECS)) 
+                     UGEN-SPECS))
 
 (defn get-ugen [word]
   (get UGEN-SPEC-MAP (normalize-ugen-name word)))
 
 (defn find-ugen [regexp]
   (map #(second %)
-       (filter (fn [[k v]] (re-find (re-pattern (normalize-ugen-name regexp)) 
+       (filter (fn [[k v]] (re-find (re-pattern (normalize-ugen-name regexp))
                                     (str k)))
                UGEN-SPEC-MAP)))
 
@@ -261,7 +261,7 @@
   (doseq [cat cats]
     (println (apply str (interpose " -> " cat)))))
 
-(def UGEN-RATE-SORT-FN 
+(def UGEN-RATE-SORT-FN
   (apply hash-map (flatten (map reverse (indexed UGEN-RATE-PRECEDENCE)))))
 
 (defn- print-ugen-rates [rates]
@@ -276,13 +276,13 @@
     (print "  Categories: ")
     (print-ugen-categories (:categories ugen))
     ;(print "  default args:\n    ")
-    (print "  Rates: ") 
+    (print "  Rates: ")
     (print-ugen-rates (:rates ugen))))
 
 (defn inf!
   "users use this to tag infinite sequences for use as
    expanded arguments. needed or else multichannel
-   expansion will blow up" 
+   expansion will blow up"
   [sq]
   (with-meta sq
     (merge (meta sq) {:infinite-sequence true})))
@@ -315,21 +315,21 @@
   (if (zero? (count args))
     [[]]
     (let [gc-seqs (fn [[gcount seqs] arg]
-                    (cond 
+                    (cond
                       ; Infinite seqs can be used to generate values for expansion
-                      (inf? arg) [gcount 
-                                  (conj seqs arg) 
+                      (inf? arg) [gcount
+                                  (conj seqs arg)
                                   (next expand-flags)]
 
                       ; Regular, non-infinite and non-map collections get expanded
-                      (and (expandable? arg) 
-                           (first expand-flags)) [(max gcount (count arg)) 
+                      (and (expandable? arg)
+                           (first expand-flags)) [(max gcount (count arg))
                                                   (conj seqs (cycle-vals arg))
                                                   (next expand-flags)]
 
                       :else ; Basic values get used for all expansions
-                      [gcount 
-                       (conj seqs (repeat arg)) 
+                      [gcount
+                       (conj seqs (repeat arg))
                        (next expand-flags)]))
           [greatest-count seqs] (reduce gc-seqs [1 [] expand-flags] args)]
       (take greatest-count (apply parallel-seqs seqs)))))
@@ -343,7 +343,7 @@
         (first expanded)
         expanded))))
 
-; TODO: Finish me!  
+; TODO: Finish me!
 ; Need to execute the check predicates to do things like verify argument rates, etc...
 (defn check-ugen-args [spec rate special args]
   (if (vector? (:check spec))
@@ -355,8 +355,8 @@
 (deftype ::ugen ugen
   (fn [spec rate special args]
     ;(check-ugen-args spec rate special args)
-    (let [ug (struct ugen-struct 
-                     (next-id :ugen) 
+    (let [ug (struct ugen-struct
+                     (next-id :ugen)
                      (:name spec)
                      (if (keyword? rate) (get RATES rate) rate)
                      special
@@ -373,11 +373,18 @@
 
 (defn ugen? [obj] (= ::ugen (type obj)))
 
+(defn- make-buffer-id 
+  "Returns a function that converts any buffer arguments to their :id property value."
+  [fun]
+  (fn [& args]
+    (apply fun (map #(if (overtone.core.sc/buffer? %) (:id %) %) args))))
+
 (defn- make-ugen-fn
   "Returns a function representing the given ugen that will fill in default arguments, rates, etc."
   [spec rate special]
   (let [expand-flags (map #(:expands? %) (:args spec))]
-    (make-expanding (ugen-base-fn spec rate special) expand-flags)))
+    (make-buffer-id
+      (make-expanding (ugen-base-fn spec rate special) expand-flags))))
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
@@ -398,7 +405,7 @@
 
 (defn control? [obj]
   (isa? (type obj) ::control))
-            
+
 ;; TODO:
 ;; * Need to write a function that takes a ugen-spec, and generates a set
 ;; of ugen functions for that spec.  Each of these functions will automatically
@@ -420,7 +427,7 @@
 (defn- def-ugen
   "Create and intern a set of functions for a given ugen-spec.
     * base name function using default rate and no suffix (e.g. env-gen )
-    * base-name plus rate suffix functions for each rate (e.g. env-gen:ar, env-gen:kr) 
+    * base-name plus rate suffix functions for each rate (e.g. env-gen:ar, env-gen:kr)
   "
   [to-ns spec special]
   (let [metadata {:doc (ugen-docs spec)
@@ -466,7 +473,7 @@
 ; that is currently not yet implemented...
 (defn- mul-add [in mul add]
   (with-meta {:id (next-id :ugen)
-              :name "MulAdd" 
+              :name "MulAdd"
               :rate (or (:rate in) 2)
               :special 0
               :args [in mul add]}
@@ -475,7 +482,7 @@
 (load "ops")
 
 (deftype ::control-proxy control-proxy
-  (fn [name] 
+  (fn [name]
     {:name (str name)})
   (fn [u] (:name u)))
 
@@ -483,13 +490,13 @@
 
 (defn control-proxy? [obj] (= ::control-proxy (type obj)))
 
-(defn intern-ugens 
+(defn intern-ugens
   "Iterate over all UGen meta-data, generate the corresponding functions and intern them
   in the current or otherwise specified namespace."
   [& [to-ns]]
   (let [to-ns (or to-ns *ns*)]
-    (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %)) 
-                                   (= "BinaryOpUGen" (:name %)))) 
+    (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %))
+                                   (= "BinaryOpUGen" (:name %))))
                          UGEN-SPECS)]
               (def-ugen to-ns ugen 0))
     (doseq [[op-name special] UNARY-OPS]
@@ -509,12 +516,12 @@
 ;; stick an Out ugen on synths that don't explicitly use one.
 (intern-ugens (create-ns 'overtone.ugens))
 
-(defn refer-ugens 
+(defn refer-ugens
   "This is how you (use 'overtone.ugens)."
   []
   (let [local-map (ns-map *ns*)
         ugen-map (ns-map 'overtone.ugens)
-        collisions (intersection (set (keys local-map)) 
+        collisions (intersection (set (keys local-map))
                                  (set (keys ugen-map)))]
     (doseq [v collisions]
       (ns-unmap *ns* v))
