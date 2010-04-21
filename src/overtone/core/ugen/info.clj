@@ -42,6 +42,8 @@
     :doc "returns the buffers current sample rate"}
 
    {:name "BufRateScale" :rates #{:ir}
+    :args [{:name "buf"}]
+    :rates #{:kr :ir}
     :doc "returns a ratio by which the playback of a buffer is to be scaled"}
 
    {:name "BufFrames" :rates #{:ir}
