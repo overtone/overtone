@@ -38,15 +38,7 @@
 (defonce server*        (ref nil))
 (defonce status*        (ref :no-audio))
 (defonce synths*        (ref nil))
-
-(defonce sc-world* (ref nil))
-
-;TODO: Figure out the real limits...  These are total guesses, but
-; it should be plenty.
-(def MAX-GROUPS 256)
-
-(def GROUP-BITS (BitSet. MAX-GROUPS))
-(.set GROUP-BITS 0) ; Group 0 is the persistent root group
+(defonce sc-world*      (ref nil))
 
 ; Server limits
 (defonce MAX-NODES 1024)
@@ -61,21 +53,21 @@
 ; client request or automatically by receiving notifications from the server.
 ; (e.g. When an envelope trigger fires to free a synth.)
 (defonce allocator-bits
-  {:node (BitSet. MAX-NODES)
+  {:node         (BitSet. MAX-NODES)
    :audio-buffer (BitSet. MAX-BUFFERS)
-   :audio-bus (BitSet. MAX-NODES)
-   :control-bus (BitSet. MAX-NODES)})
+   :audio-bus    (BitSet. MAX-NODES)
+   :control-bus  (BitSet. MAX-NODES)})
 
 (defonce allocator-limits
-  {:node MAX-NODES
-   :sdefs MAX-SDEFS
-   :audio-bus MAX-AUDIO-BUS
+  {:node        MAX-NODES
+   :sdefs       MAX-SDEFS
+   :audio-bus   MAX-AUDIO-BUS
    :control-bus MAX-CONTROL-BUS})
 
 (defn alloc-id
   "Allocate a new ID for the type corresponding to key."
   [k]
-  (let [bits (get allocator-bits k)
+  (let [bits  (get allocator-bits k)
         limit (get allocator-limits k)]
     (locking bits
       (let [id (.nextClearBit bits 0)]
@@ -460,7 +452,16 @@
 
 ;; Sending a synth-id of -1 lets the server choose an ID
 (defn node
-  "Instantiate a synth node on the audio server."
+  "Instantiate a synth node on the audio server.  Takes the synth name and a set of 
+  argument name/value pairs.  Optionally use :target <node/group-id> and :position <pos>
+  to specify where the node should be located.  The position can be one of :head, :tail,
+  :before-node, :after-node, or :replace-node.
+
+  (node \"foo\")
+  (node \"foo\" :pitch 60)
+  (node \"foo\" :pitch 60 :target 0)
+  (node \"foo\" :pitch 60 :target 2 :position :tail)
+  "
   [synth-name & args]
   {:pre [(connected?)]}
   (let [id (alloc-id :node)
@@ -666,10 +667,15 @@
 (defn buffer? [buf]
   (= (type buf) ::buffer))
 
+(defn- buf-or-id [b]
+  (cond
+    (buffer? b) (:id b)
+    (number? b) b
+    :default (throw (Exception. "Not a valid buffer: " b))))
+
 (defn buffer-free
   "Free an audio buffer and the memory it was consuming."
   [buf]
-  (assert (buffer? buf))
   (free-id :audio-buffer (:id buf))
   (snd "/b_free" (:id buf)))
 
@@ -792,7 +798,7 @@
   (try
     (group-clear 0)
     (catch Exception e nil))
-  (apply node-free (all-ids :node))
+  ;(apply node-free (all-ids :node))
   (clear-ids :node)
   (alloc-id :node) ; ID zero is the root group
   (dosync (ref-set synths* (zipmap (keys @synths*)
@@ -914,13 +920,35 @@
              (concat named [(first names) (first args)]))
       named)))
 
-(defn synth-player [sname arg-names]
+(defn synth-player 
+  "Returns a player function for a named synth.  Used by (synth ...) internally, but can be
+  used to generate a player for a pre-compiled synth.  The function generated will accept two
+  optional arguments that must come first, the :target and :position (see the node function docs).
+
+  (foo)
+  (foo :target 0 :position :tail)
+
+  or if foo has two arguments:
+  (foo 440 0.3)
+  (foo :target 0 :position :tail 440 0.3)
+  at the head of group 2:
+  (foo :target 2 :position :head 440 0.3)
+
+  These can also be abbreviated:
+  (foo :tgt 2 :pos :head)
+  "
+  [sname arg-names]
   (fn [& args]
-    (let [[args sgroup] (if (= :target (first args))
+    (let [[args sgroup] (if (or (= :target (first args))
+                                (= :tgt    (first args)))
                           [(drop 2 args) (second args)]
                           [args (get @synths* sname)])
-          controller (partial node-control sgroup)
-          player (partial node sname :target sgroup)
+          [args pos]    (if (or (= :position (first args))
+                                (= :pos      (first args)))
+                          [(drop 2 args) (second args)]
+                          [args :tail])
+          controller    (partial node-control sgroup)
+          player        (partial node sname :target sgroup :position pos)
           [tgt-fn args] (if (= :ctl (first args))
                           [controller (rest args)]
                           [player args])
