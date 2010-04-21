@@ -18,11 +18,11 @@
        ;; 		w0 = pi * 2 * freq * SampleDur.ir;
        ;; 		cos_w0 = w0.cos; i = 1 - cos_w0;
        ;; 		alpha = w0.sin * 0.5 * rq;
-       ;; 		b0rz = (1 + alpha).reciprocal;	
+       ;; 		b0rz = (1 + alpha).reciprocal;
        ;; 		a0 = i * 0.5 * b0rz;
        ;; 		a1 = i * b0rz;
        ;; 		b1 = cos_w0 * 2 * b0rz;
-       ;; 		b2 = (1 - alpha) * b0rz.neg;	
+       ;; 		b2 = (1 - alpha) * b0rz.neg;
        ;; 		^[a0, a1, a0, b1, b2];
        ;; 	}
        ;; }
@@ -31,7 +31,8 @@
         :args [{:name "in"}
                {:name "freq", :default 1200.0}
                {:name "rq", :default 1.0}],
-        :rates #{:ar}}
+        :rates #{:ar}
+        :doc ""}
 
        ;; BHiPass : BEQSuite {
        ;; 	*ar { arg in, freq = 1200.0, rq = 1.0, mul = 1.0, add = 0.0;
@@ -44,11 +45,11 @@
        ;; 		w0 =  pi * 2 * freq * SampleDur.ir;
        ;; 		cos_w0 = w0.cos; i = 1 + cos_w0;
        ;; 		alpha = w0.sin * 0.5 * rq;
-       ;; 		b0rz = (1 + alpha).reciprocal;		
+       ;; 		b0rz = (1 + alpha).reciprocal;
        ;; 		a0 = i * 0.5 * b0rz;
        ;; 		a1 = i.neg * b0rz;
        ;; 		b1 = cos_w0 * 2 * b0rz;
-       ;; 		b2 = (1 - alpha) * b0rz.neg;	
+       ;; 		b2 = (1 - alpha) * b0rz.neg;
        ;; 		^[a0, a1, a0, b1, b2];
        ;; 	}
        ;;                     }
@@ -57,7 +58,8 @@
         :args [{:name "in"}
                {:name "freq", :default 1200.0}
                {:name "rq", :default 1.0}],
-        :rates #{:ar}}
+        :rates #{:ar}
+        :doc ""}
 
        ;; BAllPass : BEQSuite {
        ;; 	*ar { arg in, freq = 1200.0, rq = 1.0, mul = 1.0, add = 0.0;
@@ -97,7 +99,7 @@
        ;; 		b0rz = (1 + alpha).reciprocal;
        ;; 		a0 = alpha * b0rz;
        ;; 		b1 = w0.cos * 2 * b0rz;
-       ;; 		b2 = (1 - alpha) * b0rz.neg;	
+       ;; 		b2 = (1 - alpha) * b0rz.neg;
        ;; 		^[a0, 0.0, a0.neg, b1, b2];
        ;; 	}
        ;; }
@@ -107,7 +109,7 @@
                {:name "freq", :default 1200.0}
                {:name "bw", :default 1.0}],
         :rates #{:ar}}
-      
+
        ;; BBandStop : BEQSuite {
        ;; 	*ar {arg in, freq = 1200.0, bw = 1.0, mul = 1.0, add = 0.0;
        ;; 		^this.multiNew('audio', in, freq, bw).madd(mul, add);
@@ -122,7 +124,7 @@
        ;; 		alpha = sin_w0 * sinh(0.34657359027997 * bw * w0 / sin_w0);
        ;; 		b0rz = (1 + alpha).reciprocal;
        ;; 		b1 = 2.0 * w0.cos * b0rz;
-       ;; 		b2 = (1 - alpha) * b0rz.neg;	
+       ;; 		b2 = (1 - alpha) * b0rz.neg;
        ;; 		^[b0rz, b1.neg, b0rz, b1, b2];
        ;; 	}
        ;; }
@@ -132,7 +134,7 @@
                {:name "freq", :default 1200.0}
                {:name "bw", :default 1.0}],
         :rates #{:ar}}
-      
+
        ;; BPeakEQ : BEQSuite {
        ;; 	*ar {arg in, freq = 1200.0, rq = 1.0, db = 0.0, mul = 1.0, add = 0.0;
        ;; 		^this.multiNew('audio', in, freq, rq, db).madd(mul, add);
@@ -203,10 +205,10 @@
        ;; 		sr  = SampleRate.ir;
        ;; 		a = pow(10, db/40);
        ;; 		w0 = pi * 2 * freq * SampleDur.ir;
-       ;; 		cos_w0 = w0.cos; 
+       ;; 		cos_w0 = w0.cos;
        ;; 		sin_w0 = w0.sin;
        ;; 		alpha = sin_w0 * 0.5 * sqrt((a + a.reciprocal) * (rs - 1) + 2.0);
-       ;; 		i = (a+1) * cos_w0; 
+       ;; 		i = (a+1) * cos_w0;
        ;; 		j = (a-1) * cos_w0;
        ;; 		k = 2 * sqrt(a) * alpha;
        ;; 		b0rz = ((a+1) - j + k).reciprocal;
