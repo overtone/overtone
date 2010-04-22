@@ -179,7 +179,7 @@
                                      [(conj args arg) n-outs]))
                                  [[] (:n-outputs ugen)]
                                  args-specs)]
-    (assoc ugen 
+    (assoc ugen
            :n-outputs n-outs
            :args args)))
 
@@ -204,6 +204,7 @@
            (fn [ugen]
              (let [ugen (assoc ugen :args (arg-init-fn (:args ugen)))
                    ugen (with-num-outs-mode spec ugen)
+                   ugen (assoc ugen :args (floatify (:args ugen)))
                    mod-args (assoc ugen :args (append-fn (:args ugen)))]
                mod-args)))))
 

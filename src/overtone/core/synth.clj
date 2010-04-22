@@ -113,8 +113,8 @@
 
     ; Each constant value should appear only once in the set of constants
     (doseq [const constants]
-      (if (not ((set *constants*) (float const)))
-        (set! *constants* (conj *constants* (float const)))))
+      (if (not ((set *constants*) const))
+        (set! *constants* (conj *constants* const))))
 
     ; Add the current ugen to the list
     (set! *ugens* (conj *ugens* ugen))))
