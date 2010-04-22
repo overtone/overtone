@@ -55,7 +55,8 @@
                              rate 4 phase 1 db-factor 0.02]
     (let [n-samples (* 0.5 (- (buf-samples fft-buf) 2))
           signal (in in-bus)
-          chain  (pv-mag-smear (fft fft-buf signal 0.75 :hann) 1)
+          freqs (fft fft-buf signal 0.75 :hann)
+          chain  (pv-mag-smear fft-buf 1)
           phasor (+ (+ n-samples 2)
                     (* n-samples
                        (lf-saw (/ rate (buf-dur fft-buf)) phase)))

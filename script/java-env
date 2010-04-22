@@ -6,10 +6,12 @@ SUBMODULES=src/lib
 SCRIPT_DIR=`dirname $0`
 CLASSPATH="./src:./src/lib:./test"
 
+# Uncomment here to use code from the sub-modules
+# rather than what is downloaded with lein deps
 # Add sub-modules
-for f in "$SUBMODULES"/**/src; do
-    CLASSPATH=$CLASSPATH:$f
-done
+#for f in "$SUBMODULES"/**/src; do
+#    CLASSPATH=$CLASSPATH:$f
+#done
 
 # Add jar files
 for f in "$DEPS"/*.jar; do
@@ -21,5 +23,10 @@ if [[ "$OSTYPE" == 'cygwin' ]]; then
 fi
 
 DEFINES=-Djava.library.path=native/linux/x86,sun.java2d.opengl=True
+
+# TODO: Tryout these args to use the parallel GC
+#-XX:+UnlockExperimentalVMOptions -XX:+UseG1GC
+#-XX:MaxGCPauseMillis =50 (for a pause time target of 50ms)
+#-XX:+G1ParallelRSetUpdatingEnabled -XX:+G1ParallelRSetScanningEnabled
 
 echo "-cp $CLASSPATH $DEFINES"

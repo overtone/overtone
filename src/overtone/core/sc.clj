@@ -15,8 +15,7 @@
   (:use
     (overtone.core event config setup util time-utils synthdef)
     [clojure.contrib.java-utils :only [file]]
-    clojure.contrib.shell-out
-    clojure.contrib.seq-utils
+    (clojure.contrib shell-out seq-utils pprint)
     osc
     clj-scsynth.core
     [clj-native.direct :only [defclib loadlib typeof]]
@@ -575,7 +574,7 @@
 (def *data* nil)
 
 (defn- parse-synth-tree
-  [ctls?]
+  [id ctls?]
   (let [sname (first *data*)]
     (if ctls?
       (let [n-ctls (second *data*)
@@ -583,16 +582,18 @@
             ctls (apply hash-map ctl-data)]
         (set! *data* new-data)
         {:synth sname
+         :id id
          :controls ctls})
       (do
         (set! *data* (next *data*))
-        {:synth sname}))))
+        {:synth sname
+         :id id}))))
 
 (defn- parse-node-tree-helper [ctls?]
   (let [[id n-children & new-data] *data*]
     (set! *data* new-data)
     (cond
-      (neg? n-children) (parse-synth-tree ctls?) ; synth
+      (neg? n-children) (parse-synth-tree id ctls?) ; synth
       (= 0 n-children) {:group id :children nil}
       (pos? n-children)
       {:group id
@@ -616,6 +617,11 @@
     (snd "/g_queryTree" id ctls?)
     (let [tree (:args (recv "/g_queryTree.reply" REPLY-TIMEOUT))]
       (parse-node-tree tree)))))
+
+(defn print-node-tree
+  "Pretty print the tree of live synthesizer instances.  Takes the same args as (node-tree)."
+  [& args]
+  (pprint (apply node-tree args)))
 
 (defn prepend-node
   "Add a synth node to the end of a group list."
@@ -642,6 +648,21 @@
   []
   (recv "/synced"))
 
+; The /done message just has a single argument:
+; "/done" "s" <completed-command>
+;
+; where the command would be /b_alloc and others.
+(defn on-done
+  "Runs a one shot handler that takes no arguments when an OSC /done 
+  message from scsynth arrives with a matching path.  Look at load-sample
+  for an example of usage.
+  "
+  [path handler]
+  (on "/done" #(if (= path (first (:args %)))
+                 (do
+                   (handler)
+                   :done))))
+
 ; TODO: Look into multi-channel buffers.  Probably requires adding multi-id allocation
 ; support to the bit allocator too...
 ; size is in samples
@@ -651,21 +672,20 @@
   (let [channels (or channels 1)
         id (alloc-id :audio-buffer)
         ready? (atom false)]
-    (on "/done" #(if (= "/b_alloc" (first (:args %)))
-                   (do
-                     (reset! ready? true)
-                     :done)))
+    (on-done "/b_alloc" #(reset! ready? true))
     (snd "/b_alloc" id size channels)
     (with-meta {:id id
                 :size size
                 :ready? ready?}
                {:type ::buffer})))
 
-(defn buffer-ready? [buf]
+(defn ready? 
+  "Check whether a sample or a buffer has completed allocating and/or loading data."
+  [buf]
   @(:ready? buf))
 
 (defn buffer? [buf]
-  (= (type buf) ::buffer))
+  (isa? (type buf) ::buffer))
 
 (defn- buf-or-id [b]
   (cond
@@ -676,8 +696,9 @@
 (defn buffer-free
   "Free an audio buffer and the memory it was consuming."
   [buf]
+  (snd "/b_free" (:id buf))
   (free-id :audio-buffer (:id buf))
-  (snd "/b_free" (:id buf)))
+  :done)
 
 ; TODO: Test me...
 (defn buffer-read
@@ -714,7 +735,8 @@
   "Save the float audio data in an audio buffer to a wav file."
   [buf path]
   (assert (buffer? buf))
-  (snd "/b_write" (:id buf) path "wav" "float"))
+  (snd "/b_write" (:id buf) path "wav" "float")
+  :done)
 
 (defn load-sample
   "Load a wav file into a memory buffer.  Returns the buffer.
@@ -728,21 +750,19 @@
         args (apply hash-map args)
         start (get args :start 0)
         n-frames (get args :n-frames 0)
-        sample (with-meta {:buf {:type :buffer
-                      :id id}
-                :path path
-                :status (ref :loading)}
-               {:type ::sample})]
-    (on "/done" #(if (= "/b_allocRead" (first (:args %)))
-                   (do
-                     (dosync (ref-set (:status sample) :ready))
-                     :done)))
+        ready (atom :loading)
+        sample (with-meta {:id id
+                           :size n-frames
+                           :path path
+                           :ready? ready}
+                          {:type ::sample})]
+    (on-done "/b_allocRead" #(reset! ready true))
     (snd "/b_allocRead" id path start n-frames)
     sample))
 
 (defn sample?
   [s]
-  (= ::sample (type s)))
+  (isa? (type s) ::sample))
 
 ;; Samples are just audio files loaded into a buffer, so most buffer
 ;; functions should work on samples.
@@ -952,12 +972,12 @@
           [tgt-fn args] (if (= :ctl (first args))
                           [controller (rest args)]
                           [player args])
+          args (map #(if (buffer? %) (:id %) %) args)
           named-args (if (keyword? (first args))
                        args
                        (name-synth-args args arg-names))]
-      (cond
-        (= :name (first args)) sname
-        :default (apply tgt-fn named-args)))))
+      (println "synth: " named-args)
+        (apply tgt-fn named-args))))
 
 (defn sample
   "Loads a wave file into a memory buffer. Returns a function capable

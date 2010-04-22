@@ -2,57 +2,57 @@
 
 (def specs
   [
-   {:name "SampleRate" 
+   {:name "SampleRate"
     :rates #{:ir}
     :doc "returns the current sample rate"}
 
-   {:name "SampleDur" 
+   {:name "SampleDur"
     :rates #{:ir}
     :doc "returns the current sample duration of the server in seconds"}
 
-   {:name "RadiansPerSample" 
+   {:name "RadiansPerSample"
     :rates #{:ir}
     :doc ""}
 
-   {:name "ControlRate" 
+   {:name "ControlRate"
     :rates #{:ir}
     :doc "returns the current control rate of the server"}
 
-   {:name "ControlDur" 
+   {:name "ControlDur"
     :rates #{:ir}
     :doc "returns the current block duration of the server in seconds"}
 
-   {:name "SubsampleOffset" 
+   {:name "SubsampleOffset"
     :rates #{:ir}
     :doc "offset from synth start within one sample"}
 
-   {:name "NumOutputBuses" 
+   {:name "NumOutputBuses"
     :rates #{:ir}
     :doc "returns the number of output buses allocated on the server"}
 
-   {:name "NumInputBuses" 
+   {:name "NumInputBuses"
     :rates #{:ir}
     :doc "returns the number of output buses allocated on the server"}
 
-   {:name "NumAudioBuses" 
+   {:name "NumAudioBuses"
     :rates #{:ir}
     :doc "returns the number of audio buses allocated on the server"}
 
-   {:name "NumControlBuses" 
+   {:name "NumControlBuses"
     :rates #{:ir}
     :doc "returns the number of control buses allocated on the server"}
 
-   {:name "NumBuffers" 
+   {:name "NumBuffers"
     :rates #{:ir}
     :doc "returns the number of buffers allocated on the server"}
 
-   {:name "NumRunningSynths" 
+   {:name "NumRunningSynths"
     :rates #{:ir :kr}
     :doc "returns the number of currently running synths"}
 
-   {:name "BufSampleRate" 
+   {:name "BufSampleRate"
     :args [{:name "buf"}]
-    :rates #{:ir}
+    :rates #{:kr :ir}
     :doc "returns the buffers current sample rate"}
 
    {:name "BufRateScale"
@@ -65,23 +65,23 @@
     :rates #{:kr :ir}
     :doc "returns the current number of allocated frames"}
 
-   {:name "BufSamples" 
+   {:name "BufSamples"
     :args [{:name "buf"}]
-    :rates #{:ir}
+    :rates #{:kr :ir}
     :doc "current number of samples allocated in the buffer"}
 
-   {:name "BufDur" 
+   {:name "BufDur"
     :args [{:name "buf"}]
-    :rates #{:ir}
+    :rates #{:kr :ir}
     :doc "returns the current duration of a buffer"}
 
-   {:name "BufChannels" 
+   {:name "BufChannels"
     :args [{:name "buf"}]
-    :rates #{:ir}
+    :rates #{:kr :ir}
     :doc "current number of channels of soundfile in buffer"}
 
-   {:name "CheckBadValues" 
+   {:name "CheckBadValues"
     :args [{:name "val"}]
-    :rates #{:ir}
+    :rates #{:kr :ir}
     :doc "test for infinity, not-a-number, and denormals"}
 ])
