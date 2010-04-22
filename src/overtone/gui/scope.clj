@@ -1,12 +1,12 @@
 (ns overtone.gui.scope
-  (:import 
+  (:import
     (java.awt Graphics Dimension Color BasicStroke)
     (java.awt.geom Rectangle2D$Float Path2D$Float)
-     (javax.swing JFrame JPanel) 
+     (javax.swing JFrame JPanel)
     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGTransform SGComponent
                                  SGAbstractShape$Mode)
      (com.sun.scenario.scenegraph.event SGMouseAdapter))
-  (:use 
+  (:use
      [overtone.core event sc synth ugen util time-utils]
     clojure.set
     clojure.stacktrace)
@@ -17,7 +17,7 @@
 (defonce scope* (ref {:buf false
                       :buf-size 0
                       :bus 0
-                      :fps 15
+                      :fps 10
                       :status :off
                       :runner nil
                       :panel nil
@@ -37,48 +37,91 @@
   (defsynth scoper-outer [buf 0]
     (scope-out (sin-osc 200) buf))
 
-  (defsynth freq-scope-zero [in-bus 0 fft-buf 0 scope-buf 1 
+;		// linear
+;	SynthDef("freqScope0", { arg in=0, fftbufnum=0, scopebufnum=1, rate=4, phase=1, dbFactor = 0.02;
+;		var signal, chain, result, phasor, numSamples, mul, add;
+;		mul = 0.00285;
+;		numSamples = (BufSamples.kr(fftbufnum) - 2) * 0.5; // 1023 (bufsize=2048)
+;		signal = In.ar(in);
+;		chain = FFT(fftbufnum, signal, hop: 0.75, wintype:1);
+;		chain = PV_MagSmear(chain, 1);
+;		// -1023 to 1023, 0 to 2046, 2 to 2048 (skip first 2 elements DC and Nyquist)
+;		phasor = LFSaw.ar(rate/BufDur.kr(fftbufnum), phase, numSamples, numSamples + 2);
+;		phasor = phasor.round(2); // the evens are magnitude
+;		ScopeOut.ar( ((BufRd.ar(1, fftbufnum, phasor, 1, 1) * mul).ampdb * dbFactor) + 1, scopebufnum);
+;	}).send(server);
+
+  (defsynth freq-scope-zero [in-bus 0 fft-buf 0 scope-buf 1
                              rate 4 phase 1 db-factor 0.02]
     (let [n-samples (* 0.5 (- (buf-samples fft-buf) 2))
           signal (in in-bus)
-          chain (pv-mag-smear (fft fft-buf signal 0.5 :hann) 1)
-          phas  (lf-saw (/ rate (buf-dur fft-buf)) phase n-samples (+ 2 n-samples))
-          phas (round phas 2)]
-      (scope-out (buf-rd 1 fft-buf phas 1 1) scope-buf))))
+          chain  (pv-mag-smear (fft fft-buf signal 0.75 :hann) 1)
+          phasor (+ (+ n-samples 2)
+                    (* n-samples
+                       (lf-saw (/ rate (buf-dur fft-buf)) phase)))
+          phasor (round phasor 2)]
+      (scope-out (* db-factor (ampdb (* 0.00285 (buf-rd 1 fft-buf phasor 1 1))))
+                 scope-buf))))
+
+;	// logarithmic
+;	SynthDef("freqScope1", { arg in=0, fftbufnum=0, scopebufnum=1, rate=4, phase=1, dbFactor = 0.02;
+;		var signal, chain, result, phasor, halfSamples, mul, add;
+;		mul = 0.00285;
+;		halfSamples = BufSamples.kr(fftbufnum) * 0.5;
+;		signal = In.ar(in);
+;		chain = FFT(fftbufnum, signal, hop: 0.75, wintype:1);
+;		chain = PV_MagSmear(chain, 1);
+;		phasor = halfSamples.pow(LFSaw.ar(rate/BufDur.kr(fftbufnum), phase, 0.5, 0.5)) * 2; // 2 to bufsize
+;		phasor = phasor.round(2); // the evens are magnitude
+;		ScopeOut.ar( ((BufRd.ar(1, fftbufnum, phasor, 1, 1) * mul).ampdb * dbFactor) + 1, scopebufnum);
+;	}).send(server);
+;
+;(def scope-buf (buffer 2048))
+
+;(defsynth mellow [out-bus 20 freq 440 len 20]
+;  (out out-bus
+;  (* (x-line:kr 0.8 0.01 len :free) 0.1
+;    (+ (sin-osc (/ freq 2))
+;       (rlpf (saw (+ freq (* (sin-osc 6) 6))) 440 0.2)))))
+;
 
 (if (connected?)
   (define-synths)
   (on :connected define-synths))
 
 (defonce x-array (int-array (:width @scope*)))
-(defonce _x-init (dotimes [i (:width @scope*)] 
+(defonce _x-init (dotimes [i (:width @scope*)]
                    (aset x-array i i)))
 
 (defonce y-array (int-array (:width @scope*)))
-(defonce _y-init (dotimes [i (:width @scope*)] 
+(defonce _y-init (dotimes [i (:width @scope*)]
                    (aset y-array i (/ (:height @scope*) 2))))
 
 (def X-PADDING 5)
 (def Y-PADDING 10)
 
 (defn- update-scope []
-  (let [frames (buffer-data (:buf @scope*))
-        step (int (/ (:buf-size @scope*) (:width @scope*)))
-        y-scale (/ (- (:height @scope*) (* 2 Y-PADDING)) 2)
-        y-shift (+ (/ (:height @scope*) 2) Y-PADDING)]
-    (doseq [x x-array]
-      (aset #^ints y-array x 
-            (int (+ y-shift (* y-scale (aget #^floats frames (* x step))))))))
+  (let [{:keys [buf buf-size width height panel]} @scope*
+        frames (buffer-data (:buf @scope*))
+        step (int (/ buf-size width))
+        y-scale (/ (- height (* 2 Y-PADDING)) 2)
+        y-shift (+ (/ height 2) Y-PADDING)]
+    (dotimes [x width]
+      (aset #^ints y-array x
+            (int (+ y-shift 
+                    (* y-scale 
+                       (aget #^floats frames (unchecked-multiply x step))))))))
   (.repaint (:panel @scope*)))
 
 (defn- paint-scope [g]
-  (.setColor #^Graphics g #^Color (:background @scope*))
-  (.fillRect #^Graphics g 0 0 (:width @scope*) (:height @scope*))
-  (.setColor #^Graphics g #^Color (Color. 100 100 100))
-  (.drawRect #^Graphics g 0 0 (:width @scope*) (:height @scope*))
+  (let [{:keys [background width height color]} @scope*]
+    (.setColor #^Graphics g #^Color background)
+    (.fillRect #^Graphics g 0 0 width height)
+    (.setColor #^Graphics g #^Color (Color. 100 100 100))
+    (.drawRect #^Graphics g 0 0 width height)
 
-  (.setColor #^Graphics g #^Color (:color @scope*))
-  (.drawPolyline #^Graphics g #^ints x-array #^ints y-array (int (:width @scope*))))
+    (.setColor #^Graphics g #^Color color)
+    (.drawPolyline #^Graphics g #^ints x-array #^ints y-array width)))
 
 (defn- clean-scope []
   (dosync
@@ -86,34 +129,45 @@
       (buffer-free (:buf @scope*)))
     (if-let [s (:bus-synth @scope*)]
       (kill s))
-    (alter scope* assoc :buf nil :buf-size 0 :tmp-buf false 
-           :bus nil :bus-synth nil)))
+    (alter scope* assoc :buf nil :buf-size 0 :tmp-buf false
+           :bus nil :bus-synth nil))
+  (dotimes [i (:width @scope*)]
+    (aset y-array i (/ (:height @scope*) 2)))
+  (.repaint (:panel @scope*)))
 
-(defn scope-buf 
+(defn scope-buf
   "Set a buffer to view in the scope."
   [buf]
   (clean-scope)
-  (dosync (alter scope* assoc 
+  (dosync (alter scope* assoc
                  :buf buf
                  :buf-size (count (buffer-data buf))))
   (update-scope))
 
 (defn- wait-for-buffer [b]
   (loop [i 0]
-    (cond 
+    (cond
       (= 20 i) nil
-      (not (buffer-ready? b)) (do 
+      (not (buffer-ready? b)) (do
                                 (java.lang.Thread/sleep 50)
                                 (recur (inc i))))))
+
+(def scope-bus-buf* (ref nil))
 
 (defn scope-bus
   "Set a bus to view in the scope."
   [bus]
   (clean-scope)
-  (let [buf (buffer 2048)
+  (let [buf (or @scope-bus-buf* (buffer 2048))
+        _ (println "buf: " buf)
         _ (wait-for-buffer buf)
-        bus-synth (bus->buf bus (:id buf))]; :target 0 :position :tail)]
-    (dosync (alter scope* assoc 
+        bus-synth (bus->buf :target 0 :position :tail bus buf)]
+    (println "bus-synth: " bus-synth)
+    (if (not @scope-bus-buf*)
+      (dosync (ref-set scope-bus-buf* buf)))
+    (println "scope-bus-buf: " @scope-bus-buf*)
+    (dosync
+      (alter scope* assoc
                    :buf buf
                    :buf-size 2048
                    :bus bus
@@ -126,10 +180,12 @@
   )
 
 (defn scope-panel []
-  (let [p (proxy [JPanel] []
+  (let [p (proxy [JPanel] [true]
             (paint [g] (paint-scope g)))]
     (dosync (alter scope* assoc :panel p))
-    (.setMinimumSize p (Dimension. 600 400))
+    (doto p
+      ;(.setIgnoreRepaint true)
+      (.setMinimumSize (Dimension. 600 400)))
     p))
 
 (dotimes [i (:width @scope*)] (aset x-array i i))
@@ -143,8 +199,8 @@
       (.show))))
 
 (defn scope-on []
-  (dosync (alter scope* assoc 
-                 :status :on 
+  (dosync (alter scope* assoc
+                 :status :on
                  :runner (periodic update-scope (/ 1000 (:fps @scope*))))))
 
 (defn scope-off []
@@ -152,7 +208,7 @@
   (dosync (alter scope* assoc
                  :status :off
                  :runner nil)))
- 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Testing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -162,7 +218,7 @@
 
 (defonce test-frame (JFrame. "scope"))
 (defonce test-panel (JSGPanel.))
-(defonce _test-scope (do 
+(defonce _test-scope (do
              (.setPreferredSize test-panel (Dimension. 600 400))
              (.add (.getContentPane test-frame) test-panel)
              (.setScene test-panel (scope))
@@ -180,7 +236,7 @@
 
 (defn test-scope []
   (if (not (connected?))
-    (do 
+    (do
       (boot)
       (on :examples-ready go-go-scope))
     (go-go-scope))
