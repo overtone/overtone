@@ -113,8 +113,8 @@
 
     ; Each constant value should appear only once in the set of constants
     (doseq [const constants]
-      (if (not ((set *constants*) const))
-        (set! *constants* (conj *constants* const))))
+      (if (not ((set *constants*) (float const)))
+        (set! *constants* (conj *constants* (float const)))))
 
     ; Add the current ugen to the list
     (set! *ugens* (conj *ugens* ugen))))
@@ -247,29 +247,6 @@
 (defn set-synth-prefix [prefix-fn]
   (dosync (ref-set synth-prefix* prefix-fn)))
 
-(defn- smap-entry [k v]
-  (proxy [clojure.lang.IMapEntry] []
-    (key [] k)
-    (getKey [] k)
-    (val [] v)
-    (getValue [] v)))
-
-(defn synth-map [s]
-    (proxy [clojure.lang.Associative clojure.lang.IFn] []
-      (count [] (count s))
-      (seq   [] (seq s))
-      (cons  [[k v]] (synth-map (assoc s k v)))
-      (empty [] {})
-      (equiv [o] (= o s))
-      (containsKey [k] (contains? s k))
-      (entryAt     [k] (smap-entry k (get s k)))
-      (assoc       [k v] (synth-map (assoc s k v)))
-      (valAt
-        ([k] (get s k))
-        ([k d] (get s k d)))
-      (invoke [& args] (apply (:player s) args))
-      (toString [] (str "Synth: " (:name s)))))
-
 (def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
 
 (defmacro synth
@@ -309,12 +286,13 @@
              sdef# (synthdef sname# ~param-map ugens#)
              sgroup# (or (get @synths* sname#) (group :head 0))
              player# (synth-player sname# (quote ~param-names))
-             smap# (synth-map {:name sname#
-                               :ugens ugens#
-                               :sdef sdef#
-                               :doc nil
-                               :group sgroup#
-                               :player player#})]
+             smap# (callable-map {:name sname#
+                                  :ugens ugens#
+                                  :sdef sdef#
+                                  :doc nil
+                                  :group sgroup#
+                                  :player player#}
+                                 player#)]
          (load-synthdef sdef#)
          (dosync (alter synths* assoc sname# sgroup#))
          (event :new-synth :sdef sdef# :player player# :name sname# :group sgroup#)

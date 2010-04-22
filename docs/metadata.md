@@ -1,75 +1,80 @@
-# how ugen functions are defined
+# UGen Metadata
 
-## intializing the base specs.
+SuperCollider comes with a large collection of UGens, or unit generator
+functions.  These are the building blocks of synthesizers, samplers, logical
+systems and everything else you can do with SC.  In Overtone rather than having
+to define a function for each UGen, we have a large set of meta-data about all
+the UGens, and then we generate functions to create them.  This file describes
+various aspects of the UGen meta-data system.  If you want to add support for
+more UGens then you can probably just copy a similar type of UGen to get a sense
+for how the meta-data works, and then look here for details. Let us know if you
+run into any problems.
 
-first all specs are loaded, and any spec that derives from another using the
+## Intializing the base specs.
+
+First all specs are loaded, and any spec that derives from another using the
 :extends property is merged with it's parent, the child properties overwriting
 the parent's.
 
-then comes mode initialization. all args are assigned a mode.
-if the arg does not have an explicitly statetd mode, then
-the arg-name-mode-map is searched. if there is no mode in
-the name map, then the default mode is :standard. at this
-time a boolean :expands? property is also added to each
-arg entry, depending on the mode of the arg.
+Then comes mode initialization. All args are assigned a mode.  If the arg does
+not have an explicitly statetd mode, then the arg-name-mode-map is searched. If
+there is no mode in the name map, then the default mode is :standard. At this
+time a boolean :expands? property is also added to each arg entry, depending on
+the mode of the arg.
 
-then an expansion spec is derived from the :expanded properties.
-it is just a vector of booleans and is assigned to the :expansion-spec
-property. this is later used during MCE
+Then an expansion spec is derived from the :expanded properties.  It is just a
+vector of booleans and is assigned to the :expansion-spec property. This is
+later used during MCE
 
 ## function generation
 
 for each rate of each initilized ugen spec, a ugen function is defined.
 
-### ugen function naming and rates
+### Ugen function naming and rates
 
-if there is only one rate defined in the spec then the function name
-is not rate qualified (i.e. having :xr postpended), if there are
-more than one and the rate is :ar or :kr then it is qualified by
-default. in all cases, if the rate is :ir or :dr then it is not
-qualified. the base name for the function is given by
+if there is only one rate defined in the spec then the function name is not rate
+qualified (i.E. Having :xr postpended), if there are more than one and the rate
+is :ar or :kr then it is qualified by default. In all cases, if the rate is :ir
+or :dr then it is not qualified. The base name for the function is given by
 (normalize-name (spec :name)). 
 
-## synth def time
+## Synth def time
 
 ### multi-channel expansion (MCE)
 
-when a ugen function is called. the args and the
-expansion-spec are passed to the expand function.
-which then calls the ugen function potentially multiple 
+when a ugen function is called. The args and the expansion-spec are passed to
+the expand function.  Which then calls the ugen function potentially multiple
 times. 
 
-### init
+### Init
 
-if the spec has an init fuction, which should have args
-[rate args spec], then this function is called. 
-if the function returns a vector, then those are used
-for the args, if it returns a map, then two keys should be
-defined. :args and :num-outs.
+if the spec has an init fuction, which should have args [rate args spec], then
+this function is called.  If the function returns a vector, then those are used
+for the args, if it returns a map, then two keys should be defined. :Args and
+:num-outs.
 
-### post init
+### Post init
 
-after the init function returns, given there is any, then the
-args are massaged. the args with a mode which require them to
-be popped, are popped. the args which need to be transformed are
-transformed, etc. then possibly scalar values are wrapped in
-some datastructure (TODO not sure about that).
+after the init function returns, given there is any, then the args are massaged.
+The args with a mode which require them to be popped, are popped. The args which
+need to be transformed are transformed, etc. Then possibly scalar values are
+wrapped in some datastructure (TODO not sure about that).
 
-### check
+### Check
 
-if a :check function with args [rate num-outs inputs spec]
-is defined, then it is called last before the ugen is added
-to the synth graph. if the check function returns a string
-then it is considered an error and an exception is thrown.
+if a :check function with args [rate num-outs inputs spec] is defined, then it
+is called last before the ugen is added to the synth graph. If the check
+function returns a string then it is considered an error and an exception is
+thrown.
 
 ---------------------------------------------------------------
 
-## the anatomy of a spec map
+## The anatomy of a spec map
 
 :name     mandatory string; containing the sc lang UGen name
 :derived  optional string; containing the name of a spec to merge
-          with. note that properties marked mandatory can also be
-          specified through derive. properties in the spec
+          with. Note that properties marked mandatory can also be
+          specified through derive. Properties in the spec
           containing the derived statement take precedence over
           properties in the "parent"
 :args     mandatory vector; containing the argument spec maps each of
@@ -87,28 +92,28 @@ then it is considered an error and an exception is thrown.
                     :append-sequence the arg will not be expanded
                             and will be removed from it's position
                             in the inputs and concatenated to their
-                            tail end. if there are several args in
+                            tail end. If there are several args in
                             this mode then they will be appended
                             in argument order.
-                    :append-sequence-set-num-outs
+                    :Append-sequence-set-num-outs
                             same as above, but also sets num-outs
                              via (count arg)
                     :num-outs will not be expanded & will be
                               removed from the input sequence,
                               and will determine the number
-                              of output channels. arguments with
-                              the name "numChannels" are implicitly
-                              in this mode
+                              of output channels. SC arguments with
+                              the name "numChannels" typically
+                              use this mode
                     :done-action will not be expanded and will be
                               mapped to the integer code for the
-                              action. args named "doneAction" are
+                              action. Args named "doneAction" are
                               implicitly in this mode
                     :as-ar  the argument is converted to audio rate
                            using the k2a ugen, if it is not already
-                           audio rate. this is only done if the rate
+                           audio rate. This is only done if the rate
                            of the ugen is :ar
 :num-outs optional, the number of fixed outputs, defaults to 1 if
-          unspecified. it is unneeded if there is a :mode :num-outs
+          unspecified. It is unneeded if there is a :mode :num-outs
           or if a :num-outs is defined in a map returned from :init
 :init     optional, a function which must take the args [rate args spec] 
           it should return a sequence of the new modified args or a

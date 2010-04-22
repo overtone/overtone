@@ -452,7 +452,7 @@
 
 ;; Sending a synth-id of -1 lets the server choose an ID
 (defn node
-  "Instantiate a synth node on the audio server.  Takes the synth name and a set of 
+  "Instantiate a synth node on the audio server.  Takes the synth name and a set of
   argument name/value pairs.  Optionally use :target <node/group-id> and :position <pos>
   to specify where the node should be located.  The position can be one of :head, :tail,
   :before-node, :after-node, or :replace-node.
@@ -920,7 +920,7 @@
              (concat named [(first names) (first args)]))
       named)))
 
-(defn synth-player 
+(defn synth-player
   "Returns a player function for a named synth.  Used by (synth ...) internally, but can be
   used to generate a player for a pre-compiled synth.  The function generated will accept two
   optional arguments that must come first, the :target and :position (see the node function docs).
@@ -971,6 +971,7 @@
   (let [s (load-sample path)
         id (get-in s [:buf :id])
         player       #(node "granular" :buf id :dur 30)]
-    (overtone.core.synth/synth-map {:player player
-                :sample s})))
+    (callable-map {:player player
+                   :sample s}
+                  player)))
 

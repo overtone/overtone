@@ -177,11 +177,11 @@
                                    (if (= :num-outs mode)
                                      [args arg]
                                      [(conj args arg) n-outs]))
-                                 [[] 0]
+                                 [[] (:n-outputs ugen)]
                                  args-specs)]
-    (if (pos? n-outs)
-      (assoc ugen :n-outputs n-outs)
-      ugen)))
+    (assoc ugen 
+           :n-outputs n-outs
+           :args args)))
 
 ; TODO: Refactor these init functions so everything just takes a ugen and a spec
    ; and outputs an updated ugen...  Should have done it like this initially...
@@ -373,7 +373,7 @@
 
 (defn ugen? [obj] (= ::ugen (type obj)))
 
-(defn- make-buffer-id 
+(defn- make-buffer-id
   "Returns a function that converts any buffer arguments to their :id property value."
   [fun]
   (fn [& args]

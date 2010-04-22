@@ -10,7 +10,7 @@
 ; When a multiplication is done involving UGen objects, then
 ; multiply UGens will be produced with the operands as their
 ; inputs.  (Note that synthdefs can have doc strings too.)
-(defsynth pedestrian-crossing 
+(defsynth pedestrian-crossing
   "Street crossing in Britain."
   []
   (* 0.2 (sin-osc 2500) (lf-pulse 5)))
@@ -53,7 +53,7 @@
 (defsynth ticker [freq 2]
   (* (sin-osc 440) (env-gen (perc 0.1 0.2) (sin-osc:kr freq))))
 
-(defsynth sizzle [bus 0 amp 0.4 depth 10 freq 220 lfo 8] 
+(defsynth sizzle [bus 0 amp 0.4 depth 10 freq 220 lfo 8]
   (out bus (* amp (saw (+ freq (wah-wah lfo depth))))))
 
 ; It's typical to use a pulse as a sort of on off switch like this.
@@ -98,6 +98,12 @@
 ; Try this:
 ;  (dial-number [2 5 9 3 3 7 7])
 
+; The done ugen can act as a flag for the completion of envelopes and other ugens that
+; have a done action.  Listen to the noise come on after the 2 second sine wave.
+(defsynth done-trigger []
+  (let [line (line:kr 1 0 2)]
+    (* 0.1 (+ (* line (sin-osc 440)) (* (done line) (white-noise))))))
+
 ;(defsynth two-tone-alarm []
 ;  (let [t1 (sin-osc 600)
 ;        t2 (sin-osc 800)
@@ -108,7 +114,7 @@
 ;           Pan2.ar(out * 0.1)
 
 ;(defsynth alarm []
-;  (let [freq (duty:kr 0.05 0 
+;  (let [freq (duty:kr 0.05 0
 ;                freq = Duty.kr(0.05, 0, Dseq([723, 932, 1012], inf));
 ;                freq = LPF.kr(freq, 70);
 ;                out = SinOsc.ar(freq);

@@ -1,11 +1,22 @@
+* add another argument mode to ugens so that buffers and samples can be passed
+to ugens as arguments and their :id property will be used 
+  - get rid of UGen wrapper function currently doing this for all ugens
+
 * basic record functionality for root group
+
 * make sure scope always works for root group
+
 * try limit scope CPU usage
+
 * implementing some basic midi mapping
+
 * view a table or tree of running synths with the ability to kill and maybe
 modify control params
+
 * fill out metronome functionality
+
 * hook up the sequencer
+
 * get some basic keymaps setup with basic, vim and emacs inspired bindings
 * implement motion commands
 * allow for re-arranging nodes and groups using a tree/table view
