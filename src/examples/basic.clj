@@ -53,7 +53,14 @@
 (on "/tr" #(println "trigger: " %))
 
 (defsynth trigger-finger []
-  (send-trig:kr (impulse:kr 0.2) 200 (sin-osc:kr 1)))
+  (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))
+
+; You can read audio data in from your sound card using the regular (in <bus-num>) ugen,
+; but you need to know where your input buses start.  The output buses start at number 0, 
+; and then the input buses begin, so you need to know how many outputs you have to know
+; the right bus to read from.
+(defsynth external-input [out-bus 0]
+  (out out-bus (in (num-output-buses:ir))))
 
 (defn wah-wah [freq depth]
   (* depth (sin-osc:kr freq)))

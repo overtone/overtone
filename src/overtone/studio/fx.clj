@@ -1,30 +1,54 @@
 (ns overtone.studio.fx
-  (:use (overtone.core synth)))
+  (:use overtone.live))
 
-;; The goal is to eventually build up a nice library of effects processors.
+(defonce _ (refer-ugens))
 
-; An example echo effect in SClang:
-;
-;z = SynthDef(\src, {|mix = 0.25, room = 0.15, damp = 0.5|
-;Out.ar(0,
-;FreeVerb.ar(
-;Decay.ar(Impulse.ar(1), 0.25, LFCub.ar(1200,0,0.1)), // mono src
-;mix, // mix 0-1
-;room, // room 0-1
-;damp // damp 0-1 duh
-;) ! 2 //fan out...
-;);
-;}).play
-;)
-;z.set(\room, 0.7)
-;z.set(\mix, 0.4)
-;z.set(\damp, 0.2)
+(on :connected
 
-(def ECHO-DELAY 0.2)
-(def ECHO-DECAY 4)
+(defsynth noise-gate [in-bus 10 out-bus 0 threshold 0.4 
+                      slope-below 1 slope-above 0.1 
+                      clamp-time 0.01 relax-time 0.1]
+  (let [source (in in-bus)]
+    (out out-bus
+         (compander source source threshold 
+                    slope-below slope-above 
+                    clamp-time relax-time))))
 
-;(defsynth echo [out 0 in 3]
-;  (let [in (in :in)
-;        echo (comb-n :in 0.5 ECHO-DELAY ECHO-DECAY)]
-;    (out :out (pan2 (+ echo :in) 0))))
+(defsynth compressor [in-bus 10 out-bus 0 threshold 0.2 
+                      slope-below 1 slope-above 0.5 
+                      clamp-time 0.01 relax-time 0.01]
+  (let [source (in in-bus)]
+    (out out-bus
+         (compander source source threshold 
+                    slope-below slope-above 
+                    clamp-time relax-time))))
+
+(defsynth limiter [in-bus 10 out-bus 0 threshold 0.2 
+                      slope-below 1 slope-above 0.1 
+                      clamp-time 0.01 relax-time 0.01]
+  (let [source (in in-bus)]
+    (out out-bus
+         (compander source source threshold 
+                    slope-below slope-above 
+                    clamp-time relax-time))))
+
+(defsynth sustainer [in-bus 10 out-bus 0 threshold 0.2 
+                      slope-below 1 slope-above 0.5 
+                      clamp-time 0.01 relax-time 0.01]
+  (let [source (in in-bus)]
+    (out out-bus
+         (compander source source threshold 
+                    slope-below slope-above 
+                    clamp-time relax-time))))
+
+(defsynth reverb [in-bus 10 out-bus 0
+                  wet-dry 0.5 room-size 0.5 dampening 0.5]
+  (out out-bus
+       (free-verb (in in-bus) wet-dry room-size dampening)))
+
+(defsynth echo [in-bus 10 out-bus 0
+                max-delay 0.5 delay-time 0.2 decay-time 2.0]
+  (let [source (in in-bus)
+        echo (comb-n source max-delay delay-time decay-time)]
+    (out out-bus (pan2 (+ echo source) 0))))
 

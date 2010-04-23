@@ -6,8 +6,6 @@ to ugens as arguments and their :id property will be used
 
 * make sure scope always works for root group
 
-* try limit scope CPU usage
-
 * implementing some basic midi mapping
 
 * view a table or tree of running synths with the ability to kill and maybe

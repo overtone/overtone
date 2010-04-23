@@ -36,6 +36,7 @@
   'overtone.music.tuning
   'overtone.gui.curve
   'overtone.gui.scope
+  'overtone.studio.fx
   'clojure.stacktrace
   )
 
