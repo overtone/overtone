@@ -51,32 +51,32 @@
     :doc "returns the number of currently running synths"}
 
    {:name "BufSampleRate"
-    :args [{:name "buf"}]
+    :args [{:name "buf" :default 0}]
     :rates #{:kr :ir}
     :doc "returns the buffers current sample rate"}
 
    {:name "BufRateScale"
-    :args [{:name "buf"}]
+    :args [{:name "buf" :default 0}]
     :rates #{:kr :ir}
     :doc "returns a ratio by which the playback of a buffer is to be scaled"}
 
    {:name "BufFrames"
-    :args [{:name "buf"}]
+    :args [{:name "buf" :default 0}]
     :rates #{:kr :ir}
     :doc "returns the current number of allocated frames"}
 
    {:name "BufSamples"
-    :args [{:name "buf"}]
+    :args [{:name "buf" :default 0}]
     :rates #{:kr :ir}
     :doc "current number of samples allocated in the buffer"}
 
    {:name "BufDur"
-    :args [{:name "buf"}]
+    :args [{:name "buf" :default 0}]
     :rates #{:kr :ir}
     :doc "returns the current duration of a buffer"}
 
    {:name "BufChannels"
-    :args [{:name "buf"}]
+    :args [{:name "buf" :default 0}]
     :rates #{:kr :ir}
     :doc "current number of channels of soundfile in buffer"}
 

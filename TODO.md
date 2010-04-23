@@ -60,6 +60,14 @@ hyperlinks for the editor buttons
 
 == Editor 
 
+* Remember the current file path, and have both save and save-as buttons.
+
+* Start at the last used directory when opening and closing files.
+
+* Add Undo/Redo to the editor
+
+* add eval top level form to editor
+
 * make text editor have two modes, sort of VI style
  - non-editing mode makes functions clickable and puts docs into a help panel
  - support vi commands for motions, search and replace, and selection

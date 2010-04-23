@@ -22,6 +22,14 @@
   (* 0.2
      (+ (sin-osc 200) (saw 200) (saw 203) (sin-osc 400))))
 
+(trancy-waves)
+(reset)
+
+(defsynth foo [gate 1]
+  (let [env (env-gen:kr (adsr 0.2 0.8 0.2) gate 1 0 1 :free)
+        mod (* 500 (sin-osc:kr 1))]
+    (out 0 (lpf (white-noise env) (+ 500 mod)))))
+
 ; The functions representing UGens support what's called multi-channel
 ; expansion.  What this means is that if pass a collection of N arguments
 ; where a single value is expected, then N instances of the UGen will
