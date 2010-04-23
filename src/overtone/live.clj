@@ -4,7 +4,7 @@
             (overtone.core config time-utils log sc ugen synth synthdef envelope)
             (overtone.music rhythm pitch tuning)))
 
-; TODO: make this work with namespace prefixes too... 
+; TODO: make this work with namespace prefixes too...
 ;   (immigrate 'overtone.instruments)
 (defn immigrate
  "Create a public var in this namespace for each public var in the
@@ -34,6 +34,8 @@
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning
+  'overtone.gui.curve
+  'overtone.gui.scope
   'clojure.stacktrace
   )
 

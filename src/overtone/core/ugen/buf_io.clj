@@ -3,20 +3,6 @@
 
 (def specs
      [
-      ;; PlayBuf : MultiOutUGen {
-      ;; 	*ar { arg numChannels, bufnum=0, rate=1.0, trigger=1.0, startPos=0.0, loop = 0.0, doneAction=0;
-      ;; 		^this.multiNew('audio', numChannels, bufnum, rate, trigger, startPos, loop, doneAction)
-      ;; 	}
-      ;; 	*kr { arg numChannels, bufnum=0, rate=1.0, trigger=1.0, startPos=0.0, loop = 0.0, doneAction=0;
-      ;; 		^this.multiNew('control', numChannels, bufnum, rate, trigger, startPos, loop, doneAction)
-      ;; 	}
-      ;; 	init { arg argNumChannels ... theInputs;
-      ;; 		inputs = theInputs;
-      ;; 		^this.initOutputs(argNumChannels, rate);
-      ;; 	}
-      ;; 	argNamesInputsOffset { ^2 }
-      ;; }
-
       {:name "PlayBuf",
        :args [{:name "numChannels" :mode :num-outs}
               {:name "bufnum", :default 0}
@@ -58,26 +44,6 @@
        :check (num-outs-greater-than 1)
        :doc "sample playback from a buffer with fine control for doing granular synthesis"}
 
-      ;; BufRd : MultiOutUGen {
-      ;; 	*ar { arg numChannels, bufnum=0, phase=0.0, loop=1.0, interpolation=2;
-      ;; 		^this.multiNew('audio', numChannels, bufnum, phase, loop, interpolation)
-      ;; 	}
-      ;; 	*kr { arg numChannels, bufnum=0, phase=0.0, loop=1.0, interpolation=2;
-      ;; 		^this.multiNew('control', numChannels, bufnum, phase, loop, interpolation)
-      ;; 	}
-      ;; 	init { arg argNumChannels ... theInputs;
-      ;; 		inputs = theInputs;
-      ;; 		^this.initOutputs(argNumChannels, rate);
-      ;; 	}
-      ;; 	argNamesInputsOffset { ^2 }
-      ;; 	checkInputs {
-      ;;  		if (rate == 'audio' and: {inputs.at(1).rate != 'audio'}, {
-      ;;  			^("phase input is not audio rate: " + inputs.at(1) + inputs.at(1).rate);
-      ;;  		});
-      ;;  		^this.checkValidInputs
-      ;;  	}
-      ;; }
-
       {:name "BufRd",
        :args [{:name "numChannels"    :default 1, :mode :num-outs}
               {:name "bufnum",        :default 0}
@@ -87,23 +53,6 @@
        :check (when-ar (nth-input-ar 1))   ; check phase. NB numChannels has already been popped.
        :doc "reads the contents of a buffer at a given index"}
 
-      ;; BufWr : UGen {
-      ;; 	*ar { arg inputArray, bufnum=0, phase=0.0, loop=1.0;
-      ;; 		^this.multiNewList(['audio', bufnum, phase,
-      ;; 			loop] ++ inputArray.asArray)
-      ;; 	}
-      ;; 	*kr { arg inputArray, bufnum=0, phase=0.0, loop=1.0;
-      ;; 		^this.multiNewList(['control', bufnum, phase,
-      ;; 			loop] ++ inputArray.asArray)
-      ;; 	}
-      ;; 	checkInputs {
-      ;;  		if (rate == 'audio' and: {inputs.at(1).rate != 'audio'}, {
-      ;;  			^("phase input is not audio rate: " + inputs.at(1) + inputs.at(1).rate);
-      ;;  		});
-      ;;  		^this.checkValidInputs
-      ;;  	}
-      ;; }
-
       {:name "BufWr",
        :args [{:name "inputArray", :mode :append-sequence}
               {:name "bufnum", :default 0}
@@ -111,23 +60,6 @@
               {:name "loop", :default 1.0}]
        :check (when-ar (nth-input-ar 1))
        :doc "writes to a buffer at a given index"}
-
-      ;; RecordBuf : UGen {
-      ;; 	*ar { arg inputArray, bufnum=0, offset=0.0, recLevel=1.0, preLevel=0.0,
-      ;; 			run=1.0, loop=1.0, trigger=1.0, doneAction=0;
-      ;; 		^this.multiNewList(
-      ;; 			['audio', bufnum, offset, recLevel, preLevel, run, loop, trigger, doneAction ]
-      ;; 			++ inputArray.asArray
-      ;; 		)
-      ;; 	}
-      ;; 	*kr { arg inputArray, bufnum=0, offset=0.0, recLevel=1.0, preLevel=0.0,
-      ;; 			run=1.0, loop=1.0, trigger=1.0, doneAction=0;
-      ;; 		^this.multiNewList(
-      ;; 			['control', bufnum, offset, recLevel, preLevel, run, loop, trigger, doneAction ]
-      ;; 			++ inputArray.asArray
-      ;; 		)
-      ;; 	}
-      ;; }
 
       {:name "RecordBuf",
        :args [{:name "inputArray", :mode :append-sequence}
@@ -140,17 +72,6 @@
               {:name "trigger", :default 1.0}
               {:name "doneAction", :default 0 :map DONE-ACTIONS}]
        :doc "record a stream of values into a buffer"}
-
-      ;; ScopeOut : UGen {
-      ;; 	*ar { arg inputArray , bufnum=0;
-      ;; 		this.multiNewList(['audio', bufnum] ++ inputArray.asArray);
-      ;; 		^0.0
-      ;; 	}
-      ;; 	*kr { arg inputArray , bufnum=0;
-      ;; 		this.multiNewList(['control', bufnum] ++ inputArray.asArray);
-      ;; 		^0.0
-      ;; 	}
-      ;; }
 
       {:name "ScopeOut",
        :args [{:name "inputArray", :mode :append-sequence}

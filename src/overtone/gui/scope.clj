@@ -149,7 +149,7 @@
   (loop [i 0]
     (cond
       (= 20 i) nil
-      (not (buffer-ready? b)) (do
+      (not (ready? b)) (do
                                 (java.lang.Thread/sleep 50)
                                 (recur (inc i))))))
 
