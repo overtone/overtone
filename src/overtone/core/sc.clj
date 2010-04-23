@@ -653,7 +653,7 @@
 ;
 ; where the command would be /b_alloc and others.
 (defn on-done
-  "Runs a one shot handler that takes no arguments when an OSC /done 
+  "Runs a one shot handler that takes no arguments when an OSC /done
   message from scsynth arrives with a matching path.  Look at load-sample
   for an example of usage.
   "
@@ -679,7 +679,7 @@
                 :ready? ready?}
                {:type ::buffer})))
 
-(defn ready? 
+(defn ready?
   "Check whether a sample or a buffer has completed allocating and/or loading data."
   [buf]
   @(:ready? buf))
@@ -940,6 +940,8 @@
              (concat named [(first names) (first args)]))
       named)))
 
+
+
 (defn synth-player
   "Returns a player function for a named synth.  Used by (synth ...) internally, but can be
   used to generate a player for a pre-compiled synth.  The function generated will accept two
@@ -979,19 +981,22 @@
       (println "synth: " named-args)
         (apply tgt-fn named-args))))
 
-(defn sample
-  "Loads a wave file into a memory buffer. Returns a function capable
-   of playing that sample.
-
-   ; e.g.
-   (sample \"/Users/sam/music/samples/flibble.wav\")
-
-  "
-  [path]
-  (let [s (load-sample path)
-        id (get-in s [:buf :id])
-        player       #(node "granular" :buf id :dur 30)]
-    (callable-map {:player player
-                   :sample s}
-                  player)))
-
+;(on :connected #(
+;  (defsynth buf-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
+;    (play-buf (buf-channels:kr (:id buf)) (:id buf) rate 1 start-pos 0.0 (if loop? 1 0) :free))))
+;
+;(defn sample
+;  "Loads a wave file into a memory buffer. Returns a function capable
+;   of playing that sample.
+;
+;   ; e.g.
+;   (sample \"/Users/sam/music/samples/flibble.wav\")
+;
+;  "
+;  [path]
+;  (let [s  (load-sample path)
+;        id (:id s)]
+;    (callable-map {:player buf-player
+;                   :sample s}
+;                  player)))
+;

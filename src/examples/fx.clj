@@ -58,3 +58,10 @@
   (let [source (in in-bus)
         echo (comb-n source 0.5 (mouse-x:kr 0 1) (mouse-y:kr 0 1))]
     (+ echo (in in-bus) 0)))
+
+; If you have a microphone or some other source of external input, you can read it in
+; and then run it through fx like this.
+(defsynth ext-source [out-bus 10]
+  (out out-bus (in (num-output-buses:ir))))
+
+
