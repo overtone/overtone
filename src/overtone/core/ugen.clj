@@ -88,7 +88,7 @@
   (assoc spec :rates (get spec :rates UGEN-DEFAULT-RATES)))
 
 (defn- with-categories
-  "Adds a :categories attribute to a ugen-spec for later use in documentation,
+  "Adds a :categories attribute to a ugen-spec for later use in documentation
   GUI and REPL interaction."
   [spec]
   (assoc spec :categories (get UGEN-CATEGORY-MAP (:name spec) [])))
@@ -226,7 +226,7 @@
           namespaces))
 
 (defn- load-ugen-specs [namespaces]
-  "Perform the derivations and setup defaults for rates, names,
+  "Perform the derivations and setup defaults for rates, names
   argument initialization functions, and channel expansion flags."
   (let [specs (specs-from-namespaces namespaces)
         derived (derive-ugen-specs specs)]
@@ -237,7 +237,7 @@
 (def UGEN-NAMESPACES
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
-    ff-osc fft info noise pan trig line input filter])
+    ff-osc fft info noise pan trig line input filter random])
 
 (def UGEN-SPECS (load-ugen-specs UGEN-NAMESPACES))
 (def UGEN-SPEC-MAP (zipmap

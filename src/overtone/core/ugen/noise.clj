@@ -1,393 +1,205 @@
 (ns overtone.core.ugen.noise)
 
-;; 	Noise Generators
-
-;; 	WhiteNoise.ar(mul, add)
-;; 	BrownNoise.ar(mul, add)
-;; 	PinkNoise.ar(mul, add)
-;; 	Crackle.ar(chaosParam, mul, add)
-;; 	LFNoise0.ar(freq, mul, add)
-;; 	LFNoise1.ar(freq, mul, add)
-;; 	LFNoise2.ar(freq, mul, add)
-;; 	Dust.ar(density, mul, add)
-;; 	Dust2.ar(density, mul, add)
-
-;; 	White, Brown, Pink generators have no modulatable parameters
-;; 	other than multiply and add inputs.
-
-;; 	The chaos param for ChaosNoise should be from 1.0 to 2.0
-
 (def specs
      [
-      ;; RandSeed : UGen {
-      ;; 	*kr { arg trig = 0.0, seed=56789;
-      ;; 		this.multiNew('control', trig, seed)
-      ;; 		^0.0		// RandSeed has no output
-      ;; 	}
-      ;; 	*ir { arg trig = 0.0, seed=56789;
-      ;; 		this.multiNew('scalar', trig, seed)
-      ;; 		^0.0		// RandSeed has no output
-      ;; 	}
-      ;; }
 
-      {:name "RandSeed",
-       :args [{:name "trig", :default 0.0}
-              {:name "seed", :default 56789}],
-       :rates #{:ir :kr},
-       :fixed-outs 0}
-      
-      ;; RandID : UGen {
-      ;; 	// choose which random number generator to use for this synth .
-      ;; 	*kr { arg id=0;
-      ;; 		this.multiNew('control', id)
-      ;; 		^0.0		// RandID has no output
-      ;; 	}
-      ;; 	*ir { arg id=0;
-      ;; 		this.multiNew('scalar', id)
-      ;; 		^0.0		// RandID has no output
-      ;; 	}
-      ;; }
 
-      {:name "RandID",
-       :args [{:name "id", :default 0}],
-       :rates #{:ir :kr},
-       :fixed-outs 0}
-
-      ;; Rand : UGen {
-      ;; 	// uniform distribution
-      ;; 	*new { arg lo = 0.0, hi = 1.0;
-      ;; 		^this.multiNew('scalar', lo, hi)
-      ;; 	}
-      ;; }
-
-      ;{:name "Rand",
-      ; :args [{:name "lo", :default 0.0}
-      ;        {:name "hi", :default 1.0}],
-      ; :rates #{:ir}}
-
-      ;; IRand : UGen {
-      ;; 	// uniform distribution of integers
-      ;; 	*new { arg lo = 0, hi = 127;
-      ;; 		^this.multiNew('scalar', lo, hi)
-      ;; 	}
-      ;; }
-
-      {:name "IRand",
-       :args [{:name "lo", :default 0.0}
-              {:name "hi", :default 127.0}],
-       :rates #{:ir}}
-
-      ;; TRand : UGen {
-      ;; 	// uniform distribution
-      ;; 	*ar { arg lo = 0.0, hi = 1.0, trig = 0.0;
-      ;; 		^this.multiNew('audio', lo, hi, trig)
-      ;; 	}
-      ;; 	*kr { arg lo = 0.0, hi = 1.0, trig = 0.0;
-      ;; 		^this.multiNew('control', lo, hi, trig)
-      ;; 	}
-      ;; }
-
-      {:name "TRand",
-       :args [{:name "lo", :default 0.0}
-              {:name "hi", :default 1.0}
-              {:name "trig", :default 0.0}]}
-      
-      ;; TIRand : UGen {
-      ;; 	// uniform distribution of integers
-      ;; 	*kr { arg lo = 0, hi = 127, trig = 0.0;
-      ;; 		^this.multiNew('control', lo, hi, trig)
-      ;; 	}
-      ;;        *ar { arg lo = 0, hi = 127, trig = 0.0;
-      ;;            ^this.multiNew('audio', lo, hi, trig)	}
-      ;; }
-
-      {:name "TIRand",
-       :args [{:name "lo", :default 0}
-              {:name "hi", :default 127}
-              {:name "trig", :default 0.0}]}
-
-      ;; LinRand : UGen {
-      ;; 	// linear distribution
-      ;; 	// if minmax <= 0 then skewed towards lo.
-      ;; 	// else skewed towards hi.
-      ;; 	*new { arg lo = 0.0, hi = 1.0, minmax = 0;
-      ;; 		^this.multiNew('scalar', lo, hi, minmax)
-      ;; 	}
-      ;; }
-
-      {:name "LinRand",
-       :args [{:name "lo", :default 0.0}
-              {:name "hi", :default 1.0}
-              {:name "minmax", :default 0}],
-       :rates #{:ir}}
-
-      ;; NRand : UGen {
-      ;; 	// sum of N uniform distributions.
-      ;; 	// n = 1 : uniform distribution - same as Rand
-      ;; 	// n = 2 : triangular distribution
-      ;; 	// n = 3 : smooth hump
-      ;; 	// as n increases, distribution converges towards gaussian
-      ;; 	*new { arg lo = 0.0, hi = 1.0, n = 0;
-      ;; 		^this.multiNew('scalar', lo, hi, n)
-      ;; 	}
-      ;; }
-
-      {:name "NRand",
-       :args [{:name "lo", :default 0.0}
-              {:name "hi", :default 1.0}
-              {:name "n", :default 0}],
-       :rates #{:ir}}
-      
-      ;; ExpRand : UGen {
-      ;; 	// exponential distribution
-      ;; 	*new { arg lo = 0.01, hi = 1.0;
-      ;; 		^this.multiNew('scalar', lo, hi)
-      ;; 	}
-      ;; }
-
-      {:name "ExpRand",
-       :args [{:name "lo", :default 0.01}
-              {:name "hi", :default 1.0}],
-       :rates #{:ir}}
-
-      ;; TExpRand : UGen {
-      ;; 	// uniform distribution
-      ;; 	*ar { arg lo = 0.01, hi = 1.0, trig = 0.0;
-      ;; 		^this.multiNew('audio', lo, hi, trig)
-      ;; 	}
-      ;; 	*kr { arg lo = 0.01, hi = 1.0, trig = 0.0;
-      ;; 		^this.multiNew('control', lo, hi, trig)
-      ;; 	}
-      ;; }
-
-      {:name "TExpRand",
-       :args [{:name "lo", :default 0.01}
-              {:name "hi", :default 1.0}
-              {:name "trig", :default 0.0}]}
-      
-      ;; CoinGate : UGen {
-      ;; 	*ar { arg prob, in;
-      ;; 		^this.multiNew('audio', prob, in)
-      ;; 	}
-      ;; 	*kr { arg prob, in;
-      ;; 		^this.multiNew('control', prob, in)
-      ;; 	}
-      ;; }
-
-      {:name "CoinGate",
-       :args [{:name "prob"}
-              {:name "in"}]}
-      
-      ;; TWindex : UGen {
-      ;; 	*ar {
-      ;; 		arg in, array, normalize=0;
-      ;; 		^this.multiNewList(['audio', in, normalize] ++ array)
-      ;; 	}
-      ;; 	*kr {
-      ;; 		arg in, array, normalize=0;
-      ;; 		^this.multiNewList(['control', in, normalize] ++ array)
-      ;; 	}
-      ;; }
-
-      {:name "TWindex",
-       :args [{:name "in"}
-              {:name "array", :array true}
-              {:name "normalize", :default 0}]}
-      
-      ;; WhiteNoise : UGen {
-      
-      ;; 	*ar { arg mul = 1.0, add = 0.0;
-      ;; 		// support this idiom from SC2.
-      ;; 		if (mul.isArray, {
-      ;; 			^{ this.multiNew('audio') }.dup(mul.size).madd(mul, add)
-      ;; 		},{
-      ;; 			^this.multiNew('audio').madd(mul, add)
-      ;; 		});
-      ;; 	}
-      ;; 	*kr { arg mul = 1.0, add = 0.0;
-      ;; 		if (mul.isArray, {
-      ;; 			^{ this.multiNew('control') }.dup(mul.size).madd(mul, add)
-      ;; 		},{
-      ;; 			^this.multiNew('control').madd(mul, add)
-      ;; 		});
-      ;; 	}
-      
-      ;; }
-
-      {:name "WhiteNoise",
+      {:name "WhiteNoise"
        :args []
-       :muladd true}
-      
-      ;; BrownNoise : WhiteNoise {}
+       :muladd true
+       :rates #{:ar :kr}
+       :doc "Generates noise whose spectrum has equal power at all frequencies."}
 
-      {:name "BrownNoise",
+
+      {:name "BrownNoise"
        :args []
-       :muladd true}
+       :muladd true
+       :rates #{:ar :kr}
+       :doc "Generates noise whose spectrum falls off in power by 6 dB per octave."}
 
-      ;; PinkNoise : WhiteNoise {}
 
-      {:name "PinkNoise",
+      {:name "PinkNoise"
        :args []
-       :muladd true}
+       :muladd true
+       :rates #{:ar :kr}
+       :doc "Generates noise whose spectrum falls off in power by 3 dB per octave. This gives equal power over the span of each octave. This version gives 8 octaves of pink noise."}
 
-      ;; ClipNoise : WhiteNoise {}
 
-      {:name "ClipNoise",
+      {:name "ClipNoise"
        :args []
-       :muladd true}
+       :muladd true
+       :rates #{:ar}
+       :doc "Generates noise whose values are either -1 or 1. This produces the maximum energy for the least peak to peak amplitude."}
 
-      ;; GrayNoise : WhiteNoise {}
 
-      {:name "GrayNoise",
+      {:name "GrayNoise"
        :args []
-       :muladd true}
+       :muladd true
+       :rates #{:ar}
+       :doc "Generates random impulses from -1 to +1 given a density (average number of impulses per second)"}
 
 
-      ;; //NoahNoise : WhiteNoise {}
-      ;; TODO is this ugen still supported?
-
-      {:name "NoahNoise",
-       :args []
-       :muladd true}
-
-      ;; Crackle : UGen {
-      
-      ;; 	*ar { arg chaosParam=1.5, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('audio', chaosParam).madd(mul, add)
-      ;; 	}
-      ;; 	*kr { arg chaosParam=1.5, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('control', chaosParam).madd(mul, add)
-      ;; 	}
-      ;; }
-
-      {:name "Crackle",
+      {:name "Crackle"
        :args [{:name "chaosParam", :default 1.5}]
-       :muladd true}
-      
-      ;; Logistic : UGen {
-      
-      ;; 	*ar { arg chaosParam=3.0, freq = 1000.0, init= 0.5, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('audio', chaosParam, freq, init).madd(mul, add)
-      ;; 	}
-      ;; 	*kr { arg chaosParam=3.0, freq = 1000.0, init=0.5, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('control', chaosParam, freq, init).madd(mul, add)
-      ;; 	}
-      ;; }
+       :muladd true
+       :rates #{:ar :kr}
+       :doc "A noise generator based on a chaotic function. The argument represents a parameter of the chaotic function with useful values from just below 1.0 to just above 2.0. Towards 2.0 the sound crackles."}
 
-      {:name "Logistic",
-       :args [{:name "chaosParam", :default 3.0}
+
+      {:name "Logistic"
+       :args [{:name "chaos-param", :default 3.0}
               {:name "freq", :default 1000.0}
               {:name "init", :default 0.5}]
-       :muladd true}
+       :muladd true
+       :rates #{:ar}
+       :doc "A noise generator based on the logistic map:
 
-      ;; LFNoise0 : UGen {
-      
-      ;; 	*ar { arg freq=500.0, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('audio', freq).madd(mul, add)
-      ;; 	}
-      ;; 	*kr { arg freq=500.0, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('control', freq).madd(mul, add)
-      ;; 	}
-      ;; }
+  y = chaos-param * y * (1.0 - y)
 
-      {:name "LFNoise0",
+  chaos-param - a parameter of the chaotic function with useful values from 0.0 to 4.0.
+  Chaos occurs from 3.57 up. Don't use values outside this range if you don't want the UGen to blow up.
+  freq - Frequency of calculation; if over the sampling rate, this is clamped to the sampling rate
+  init - Initial value of y in the equation above
+
+  y will stay in the range of 0.0 to 1.0 for normal values of the chaos-param. This leads to a DC offset
+  and may cause a pop when you stop the Synth. For output you might want to combine this UGen with a LeakDC
+  or rescale around 0.0 via mul and add: see example below. "}
+
+
+      {:name "LFNoise0"
        :args [{:name "freq", :default 500.0}]
-       :muladd true}
-      
-      ;; LFNoise1 : LFNoise0 {}
+       :muladd true
+       :rates #{:ar :kr}
+       :doc "Generates random values at a rate (the rate is not guaranteed but approximate)"}
 
-      {:name "LFNoise1",
+
+      {:name "LFNoise1"
        :args [{:name "freq", :default 500.0}]
-       :muladd true}
+       :muladd true]
+       :rates #{:ar :kr}
+       :doc "Generates linearly interpolated random values at the supplied rate (the rate is not guaranteed but approximate). "}
 
-      ;; LFNoise2 : LFNoise0 {}
 
-      {:name "LFNoise2",
+      {:name "LFNoise2"
        :args [{:name "freq", :default 500.0}]
-       :muladd true}
+       :muladd true
+       :rates #{:ar :kr}
+       :doc "Generates quadratically interpolated random values at the suplied rate (the rate is not guaranteed but approximate).
 
-      ;; LFClipNoise : LFNoise0 {}
+  Note: quadratic interpolation means that the noise values can occasionally extend beyond the normal range
+  of +-1, if the freq varies in certain ways. If this is undesirable then you might like to clip2 the values
+  or use a linearly-interpolating unit instead."}
 
-      {:name "LFClipNoise",
+
+      {:name "LFClipNoise"
        :args [{:name "freq", :default 500.0}]
-       :muladd true}
+       :muladd true
+       :rates #{:ar}
+       :doc "Randomly generates the values -1 or +1 at a rate given by the nearest integer division of the sample rate by the freq argument. It is probably pretty hard on your speakers!"}
 
-      ;; LFDNoise0 : LFNoise0 {}
 
-      {:name "LFDNoise0",
+      {:name "LFDNoise0"
        :args [{:name "freq", :default 500.0}]
-       :muladd true}
+       :muladd true
+       :rates #{:ar :kr}
+       :doc "Like LFNoise0, it generates random values at a rate given
+  by the freq argument,  with two differences:
 
-      ;; LFDNoise1 : LFNoise0 {}
+  -no time quantization
+  -fast recovery from low freq values.
 
-      {:name "LFDNoise1",
+  (LFNoise0,1,2 quantize to the nearest integer division of the samplerate
+  and they poll the freq argument only when scheduled, and thus seem
+  to hang when freqs get very low).
+
+  If you don't need very high or very low freqs, or use fixed freqs
+  LFNoise0 is more efficient."}
+
+
+      {:name "LFDNoise1"
        :args [{:name "freq", :default 500.0}]
-       :muladd true}
+       :muladd true
+       :rates #{:ar :kr}
+       :doc "Like LFNoise1, it generates linearly interpolated random values
+  at a rate given by the freq argument, with two differences:
 
-      ;; LFDNoise3 : LFNoise0 {}
+  -no time quantization
+  -fast recovery from low freq values.
 
-      {:name "LFDNoise3",
+  (LFNoise0,1,2 quantize to the nearest integer division of the samplerate
+  and they poll the freq argument only when scheduled, and thus seem
+  to hang when freqs get very low).
+
+  If you don't need very high or very low freqs, or use fixed freqs
+  LFNoise1 is more efficient."}
+
+
+      {:name "LFDNoise3"
        :args [{:name "freq", :default 500.0}]
-       :muladd true}
+       :muladd true
+       :rates #{:ar :kr}
+       :doc "Similar to LFNoise2, it generates polynomially interpolated random values
+  at a rate given by the freq argument, with 3 differences:
 
-      ;; LFDClipNoise : LFNoise0 {}
+  -no time quantization
+  -fast recovery from low freq values
+  -cubic instead of quadratic interpolation
 
-      {:name "LFDClipNoise",
+  (LFNoise0,1,2 quantize to the nearest integer division of the samplerate
+  and they poll the freq argument only when scheduled, and thus seem
+  to hang when freqs get very low).
+  If you don't need very high or very low freqs, or use fixed freqs
+  LFNoise2 is more efficient."}
+
+
+      {:name "LFDClipNoise"
        :args [{:name "freq", :default 500.0}]
-       :muladd true}
+       :muladd true
+       :rates #{:ar}
+       :doc "Like LFClipNoise, it generates the values -1 or +1 at a rate given
+  by the freq argument,  with two differences:
 
-      ;; Hasher : UGen {
-      ;; 	*ar { arg in = 0.0, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('audio', in).madd(mul, add)
-      ;; 	}
-      ;; 	*kr { arg in = 0.0, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('control', in).madd(mul, add)
-      ;; 	}
-      ;; }
+  -no time quantization
+  -fast recovery from low freq values.
 
-      {:name "Hasher",
+  (LFClipNoise, as well as LFNoise0,1,2 quantize to the nearest integer division
+  of the samplerate, and they poll the freq argument only when scheduled;
+  thus they often seem to hang when freqs get very low).
+
+  If you don't need very high or very low freqs, or use fixed freqs
+  LFNoise0 is more efficient."}
+
+
+      {:name "Hasher"
        :args [{:name "in", :default 0.0}]
-       :muladd true}
-      
-      ;; MantissaMask : UGen {
-      ;; 	*ar { arg in = 0.0, bits=3, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('audio', in, bits).madd(mul, add)
-      ;; 	}
-      ;; 	*kr { arg in = 0.0, bits=3, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('control', in, bits).madd(mul, add)
-      ;; 	}
-      ;; }
+       :muladd true
+       :rates #{:ar}
+       :doc "Returns a unique output value from zero to one for each input value according to a hash function. The same input value will always produce the same output value. The input need not be from zero to one.
+in - input signal"}
 
-      {:name "MantissaMask",
+
+      {:name "MantissaMask"
        :args [{:name "in", :default 0.0}
               {:name "bits", :default 3}]
-       :muladd true}
+       :muladd true
+       :rates #{:ar}
+       :doc "Masks off bits in the mantissa of the floating point sample value. This introduces a quantization noise, but is less severe than linearly quantizing the signal.
 
-      ;; Dust : UGen {
-      
-      ;; 	*ar { arg density = 0.0, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('audio', density).madd(mul, add)
-      ;; 	}
-      ;; 	*kr { arg density = 0.0, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('control', density).madd(mul, add)
-      ;; 	}
-      ;; 	signalRange { ^\unipolar }
-      ;; }
+  in - input signal
+  bits - the number of mantissa bits to preserve. a number from 0 to 23."}
 
-      {:name "Dust",
+
+      {:name "Dust"
        :args [{:name "density", :default 0.0}]
-       :muladd true}
+       :muladd true
+       :rates #{:ar}
+       :doc "Generates random impulses from 0 to +1.
+  density - average number of impulses per second."}
 
-      ;; Dust2 : UGen {
-      ;; 	*ar { arg density = 0.0, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('audio', density).madd(mul, add)
-      ;; 	}
-      ;; 	*kr { arg density = 0.0, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('control', density).madd(mul, add)
-      ;; 	}
-      ;; }
 
-      {:name "Dust2",
+      {:name "Dust2"
        :args [{:name "density", :default 0.0}]
-       :muladd true}])
-
+       :muladd true
+       :rates #{:ar}
+       :doc "Generates random impulses from -1 to +1.
+  density - average number of impulses per second"}])

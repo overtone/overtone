@@ -453,7 +453,7 @@
 (defn node
   "Instantiate a synth node on the audio server.  Takes the synth name and a set of
   argument name/value pairs.  Optionally use :target <node/group-id> and :position <pos>
-  to specify where the node should be located.  The position can be one of :head, :tail,
+  to specify where the node should be located.  The position can be one of :head, :tail
   :before-node, :after-node, or :replace-node.
 
   (node \"foo\")
@@ -811,7 +811,7 @@
 
 ; TODO: need to clear all the buffers and busses
 (defn reset
-  "Clear all synthesizers, groups and pending messages from the audio server,
+  "Clear all synthesizers, groups and pending messages from the audio server
   and then recreates the active synth groups."
   []
   (clear-msg-queue)
@@ -981,22 +981,26 @@
       (println "synth: " named-args)
         (apply tgt-fn named-args))))
 
+
 ;(on :connected #(
 ;  (defsynth buf-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
 ;    (play-buf (buf-channels:kr (:id buf)) (:id buf) rate 1 start-pos 0.0 (if loop? 1 0) :free))))
 ;
-;(defn sample
-;  "Loads a wave file into a memory buffer. Returns a function capable
-;   of playing that sample.
 ;
-;   ; e.g.
-;   (sample \"/Users/sam/music/samples/flibble.wav\")
-;
-;  "
-;  [path]
-;  (let [s  (load-sample path)
-;        id (:id s)]
-;    (callable-map {:player buf-player
-;                   :sample s}
-;                  player)))
-;
+
+(defn sample
+  "Loads a wave file into a memory buffer. Returns a function capable
+   of playing that sample.
+
+   ; e.g.
+   (sample \"/Users/sam/music/samples/flibble.wav\")
+
+  "
+  [path]
+  (let [s (load-sample path)
+        id (s :id)
+        player       #(node "granular" :buf id :dur 30)]
+    (callable-map {:player player
+                   :sample s}
+                  player)))
+
