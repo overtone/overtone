@@ -75,7 +75,7 @@
 
       {:name "LFNoise1"
        :args [{:name "freq", :default 500.0}]
-       :muladd true]
+       :muladd true
        :rates #{:ar :kr}
        :doc "Generates linearly interpolated random values at the supplied rate (the rate is not guaranteed but approximate). "}
 
