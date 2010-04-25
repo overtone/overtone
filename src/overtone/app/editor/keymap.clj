@@ -1,12 +1,11 @@
-(ns overtone.app.editor.keymap 
-  (:use (overtone.core event)
-        (overtone.app.editor actions)))
+(ns overtone.app.editor.keymap
+  (:use (overtone.core event)))
 
 ; NOTE: property keys that start with ':' are turned into keywords...
 (defn- wrap-entry [k v]
   (let [k (if (.startsWith k ":") (keyword (.substring k 1)) k)]
     (proxy [clojure.lang.IMapEntry] []
-      (key [] k) 
+      (key [] k)
       (getKey [] k)
       (val [] v)
       (getValue [] v))))
@@ -23,8 +22,8 @@
       (containsKey [k] (not (nil? (.getAction km k))))
       (entryAt     [k] (wrap-entry k (.getAction km k)))
       (assoc       [k v] (.addActionForKeyStroke km k v))
-      (valAt      
-        ([k] (if (= k :keymap) 
+      (valAt
+        ([k] (if (= k :keymap)
                km
                (.getAction km k)))
         ([k d] (if-let [a (.getAction km k)]
@@ -33,6 +32,6 @@
                    (.addActionForKeyStroke km k d)
                    d)))))))
 ;      (invoke ([key] (manager/do #(get-property obj key)))
-;              ([key default] (manager/do #(if (has-property? obj key) 
+;              ([key default] (manager/do #(if (has-property? obj key)
 ;                                            (get-property obj key)
 ;                                            default)))))))

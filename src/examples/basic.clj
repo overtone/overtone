@@ -15,6 +15,8 @@
   []
   (* 0.2 (sin-osc 2500) (lf-pulse 5)))
 
+(pedestrian-crossing)
+
 ; You can mix signals by adding them together.  The soundcard can take audio
 ; data between -1 and 1, so if you add up signals remember to multiply
 ; by a fractional number or else you will have clipping distortion.
