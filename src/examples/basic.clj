@@ -7,6 +7,41 @@
 
 (refer-ugens)
 
+(defsynth overpad [note 60 amp 0.4 rel 0.3]
+  (let [freq (midicps note)]
+    (* amp (env-gen (perc 0.01 rel) 1 1 0 1 :free)
+       (+ (sin-osc (/ freq 2)) (lpf (saw [freq (* freq 1.01)]) freq)))))
+
+(def BEAT 125) ; ms per beat
+(def TICK (- BEAT 100))
+
+(defn play-notes [t notes]
+  (when notes
+    (at t (overpad (first notes) 0.5 0.8))
+    (call-at (+ t TICK) #'play-notes (+ t BEAT) (next notes))))
+
+(play-notes (now) [40 42 44 45 47 49 51 52])
+(play-notes (now) (take 50 (cycle [40 42 44 45 47 49 51 52])))
+
+; Inspired by "How do I play a chord" from Impromptu website
+(defn chord-notes []
+ [(choose [58 60 60 62])
+  (choose [62 63 63 65])
+  (choose [65 67 68 70])])
+
+(defn play-chords [t]
+  (let [tick (choose [2000 1000 500 250 250 500 250 500 250])]
+    (at t (doseq [note (chord-notes)] (overpad note 0.3 (/ tick 1020))))
+    (call-at (+ t (- tick 100)) #'play-chords (+ t tick))))
+
+(play-chords (now))
+
+(defn looper [t dur notes]
+  (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
+  (call-at (* 0.5 dur) #'looper (+ t dur) dur (next notes))) 
+
+(looper (now) 500 (cycle [60 67 65 72 75 70]))
+
 ; When a multiplication is done involving UGen objects, then
 ; multiply UGens will be produced with the operands as their
 ; inputs.  (Note that synthdefs can have doc strings too.)
