@@ -119,7 +119,7 @@
       (.setBackground (Color. (float 1.0) (float 1.0) (float 1.0)))
       (.requestFocusInWindow))
 
-    (file-open "src/examples/basic.clj")
+;    (file-open "src/examples/basic.clj")
 
     (doto editor-pane
       (.setLayout (BorderLayout.))
