@@ -10,6 +10,7 @@
     (java.util.concurrent TimeUnit TimeoutException)
     (java.io BufferedInputStream)
     (java.nio ByteOrder)
+    (supercollider ScSynth ScSynthStartedListener MessageReceivedListener)
     (java.util BitSet))
   (:require [overtone.core.log :as log])
   (:use
@@ -17,10 +18,6 @@
     [clojure.contrib.java-utils :only [file]]
     (clojure.contrib shell-out seq-utils pprint)
     osc
-    clj-scsynth.core
-    [clj-native.direct :only [defclib loadlib typeof]]
-    [clj-native.structs :only [byref byval]]
-    [clj-native.callbacks :only [callback]]
     [clojure.contrib.fcase :only [case]]))
 
 ; TODO: Make this work correctly
@@ -199,20 +196,18 @@
 
 (def N-RETRIES 5)
 
-(defonce internal-osc-callback (callback reply-cb (fn
-  [addr buf size]
-  (event ::osc-msg-received
-         :msg (osc-decode-packet (.order (.getByteBuffer buf 0 size) ByteOrder/BIG_ENDIAN))))))
 
 (defn- connect-internal
   []
   (log/debug "Connecting to internal SuperCollider server")
   (let [send-fn (fn [peer-obj buffer]
-                    (World_SendPacket @sc-world*
-                                      (.limit buffer)
-                                      buffer
-                                      internal-osc-callback))
+                  (.send @sc-world* buffer))
         peer (assoc (osc-peer) :send-fn send-fn)]
+    (.addMessageReceivedListener @sc-world*
+                                 (proxy [MessageReceivedListener] []
+                                   (messageReceived [buf size]
+                                                    (event ::osc-msg-received
+                                                           :msg (osc-decode-packet buf)))))
     (dosync (ref-set server* peer))
     (snd "/status")
     (dosync (ref-set status* :connected))
@@ -346,19 +341,16 @@
 (if (= :linux (@config* :os))
   (on :connected #(connect-jack-ports)))
 
+(defonce scsynth-server*        (ref nil))
+
 (defn internal-booter [port]
   (reset! running?* true)
   (log/info "booting internal audio server listening on port: " port)
-  (let [opts (byref sc-jna-startoptions)]
-    (set! (. opts udp-port-num) port)
-    (set! (. opts tcp-port-num) port)
-    (set! (. opts verbosity) 1)
-    (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
-    (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
-    (dosync (ref-set sc-world* (ScJnaStart opts)))
-    (event :booted)
-    (World_WaitForQuit @sc-world*)
-    (ScJnaCleanup)))
+  (let [server (ScSynth.)]
+    (.addScSynthStartedListener server (proxy [ScSynthStartedListener] []
+                                         (scSynthStarted [] (event :booted))))
+    (dosync (ref-set sc-world* server))
+    (.run server)))
 
 (defn boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
@@ -779,7 +771,7 @@
   "Get the floating point data for a buffer on the internal server."
   [buf]
   (let [buf-id (buffer-id buf)
-        snd-buf (ScJnaCopySndBuf @sc-world* buf-id)
+        snd-buf (.getSndBuf @sc-world* buf-id)
         n-frames (.frames snd-buf)
         data (.data snd-buf)]
     (if data
