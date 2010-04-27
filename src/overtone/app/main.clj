@@ -187,23 +187,21 @@
 
     (doto browse-split
       (.setLeftComponent left-split-dock)
-      (.setRightComponent right-split)
-      (.setDividerLocation 0.4))
+      (.setRightComponent right-split))
 
     (doto right-split
       (.setLeftComponent main-split)
-      (.setRightComponent tools-split)
-      (.setDividerLocation 0.9))
+      (.setRightComponent tools-split))
+
+    (dosync (alter app* assoc :right-div right-split))
 
     (doto main-split
       (.setTopComponent top-split-dock)
-      (.setBottomComponent bottom-split-dock)
-      (.setDividerLocation 0.8))
+      (.setBottomComponent bottom-split-dock))
 
     (doto tools-split
       (.setTopComponent top-tools-split-dock)
-      (.setBottomComponent bottom-tools-split-dock)
-      (.setDividerLocation 0.5))
+      (.setBottomComponent bottom-tools-split-dock))
 
     (doto scene-panel
       (.setBackground Color/BLACK)
@@ -213,6 +211,17 @@
     (miglayout app-panel
       header-panel "dock north"
       browse-split "dock west")
+
+    (call-at (+ (now) 100) #(in-swing (do
+                                        (.setDividerLocation browse-split 0.1)
+                                        (.setDividerLocation right-split 0.7)
+                                        (.setDividerLocation main-split 0.8)
+                                        (.setDividerLocation tools-split 0.5))))
+    (call-at (+ (now) 2000) #(in-swing (do
+                                        (.setDividerLocation browse-split 0.1)
+                                        (.setDividerLocation right-split 0.7)
+                                        (.setDividerLocation main-split 0.8)
+                                        (.setDividerLocation tools-split 0.5))))
 
     (doto app-frame
       (.addWindowListener (window-listener app-frame))

@@ -14,7 +14,7 @@
   (let [f (File. path)
         dir (.getParent (java.io.File. path))]
   (.setText (:editor @editor*) (slurp path))
-  (dosync (alter editor* assoc 
+  (dosync (alter editor* assoc
                  :current-path path
                  :current-dir  dir))))
 
@@ -25,13 +25,15 @@
   (let [f (File. path)
         dir (.getParent (java.io.File. "/home/rosejn/studio/samples/kit/boom.wav"))]
     (if (or (not (.exists f))
-            (and (.exists f) (verify-msg (.getCanonicalPath f))))
+            (and (.exists f) (confirm "File Save As"
+                                      (str "Are you sure you want to replace this file? " 
+                                           (.getCanonicalPath f)))))
       (do
         (spit path (.getText (:editor @editor*)))
-        (dosync (alter editor* assoc 
+        (dosync (alter editor* assoc
                        :current-path path
                        :current-dir  dir))))))
-  
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Text Selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

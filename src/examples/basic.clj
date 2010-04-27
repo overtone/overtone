@@ -7,21 +7,27 @@
 
 (refer-ugens)
 
-(defsynth overpad [note 60 amp 0.4 rel 0.3]
-  (let [freq (midicps note)]
-    (* amp (env-gen (perc 0.01 rel) 1 1 0 1 :free)
-       (+ (sin-osc (/ freq 2)) (lpf (saw [freq (* freq 1.01)]) freq)))))
+(defsynth overpad [out-bus 0 note 60 amp 0.4 rel 0.3]
+  (let [freq (midicps note)
+        env (env-gen (perc 0.01 rel) 1 1 0 1 :free)
+        sig (apply + (sin-osc (/ freq 2)) (lpf (saw [freq (* freq 1.01)]) freq))
+        audio (* amp env sig)]
+    (out out-bus audio)))
 
 (def BEAT 125) ; ms per beat
 (def TICK (- BEAT 100))
 
-(defn play-notes [t notes]
+(defn play-notes [t notes durs]
   (when notes
-    (at t (overpad (first notes) 0.5 0.8))
-    (call-at (+ t TICK) #'play-notes (+ t BEAT) (next notes))))
+    (at t (overpad 0 (first notes) 0.5 (first durs)))
+    (call-at (+ t TICK) #'play-notes (+ t BEAT) (next notes) (next durs))))
 
-(play-notes (now) [40 42 44 45 47 49 51 52])
+(play-notes (now) [40 42 44 45 47 49 51 52] (repeat 0.4))
+(play-notes (now) (scale :c :major) (repeat 0.05))
+
 (play-notes (now) (take 50 (cycle [40 42 44 45 47 49 51 52])))
+
+(play-notes (now) (take 24 (drop 36 (scale :a :minor))))
 
 ; Inspired by "How do I play a chord" from Impromptu website
 (defn chord-notes []
@@ -30,15 +36,19 @@
   (choose [65 67 68 70])])
 
 (defn play-chords [t]
-  (let [tick (choose [2000 1000 500 250 250 500 250 500 250])]
+  (let [tick (* 2 (choose [125 500 250 250 500 250 500 250]))]
     (at t (doseq [note (chord-notes)] (overpad note 0.3 (/ tick 1020))))
     (call-at (+ t (- tick 100)) #'play-chords (+ t tick))))
 
 (play-chords (now))
 
+(def kick (sample "/home/rosejn/studio/samples/kit/boom.wav"))
+(kick :dur 1)
+
 (defn looper [t dur notes]
+  (at t (kick))
   (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
-  (call-at (* 0.5 dur) #'looper (+ t dur) dur (next notes))) 
+  (call-at (+ t (* 0.5 dur)) #'looper (+ t dur) dur (next notes)))
 
 (looper (now) 500 (cycle [60 67 65 72 75 70]))
 
@@ -93,7 +103,7 @@
   (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))
 
 ; You can read audio data in from your sound card using the regular (in <bus-num>) ugen,
-; but you need to know where your input buses start.  The output buses start at number 0, 
+; but you need to know where your input buses start.  The output buses start at number 0,
 ; and then the input buses begin, so you need to know how many outputs you have to know
 ; the right bus to read from.
 (defsynth external-input [out-bus 0]

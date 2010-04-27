@@ -3,9 +3,9 @@
            (java.awt Toolkit GraphicsEnvironment)
            (java.awt.event ActionListener)
            (javax.swing.text TextAction JTextComponent)
-           (javax.swing JFrame JPanel JSplitPane JLabel 
+           (javax.swing JFrame JPanel JSplitPane JLabel
                         JButton SwingUtilities BorderFactory
-                        ImageIcon KeyStroke))
+                        ImageIcon KeyStroke JOptionPane))
   (:use clojure.stacktrace
         (overtone.core util)))
 
@@ -42,11 +42,11 @@
     (.addActionListener component listener)
     listener))
 
-(def KEY-MODIFIERS {:none  0 
-                    :shift java.awt.event.InputEvent/SHIFT_MASK 
+(def KEY-MODIFIERS {:none  0
+                    :shift java.awt.event.InputEvent/SHIFT_MASK
                     :ctrl java.awt.event.InputEvent/CTRL_MASK
                     :meta java.awt.event.InputEvent/META_MASK
-                    :alt java.awt.event.InputEvent/ALT_MASK}) 
+                    :alt java.awt.event.InputEvent/ALT_MASK})
 
 (defn text-action [handler]
   (proxy [TextAction] ["EVAL"]
@@ -73,6 +73,12 @@
                                                (actionPerformed [e]
                                                                 (performed-fn e)))))
 
+(defn confirm [title msg]
+  (= JOptionPane/OK_OPTION
+     (JOptionPane/showConfirmDialog (JFrame.)
+                                    msg
+                                    title
+                                    JOptionPane/OK_CANCEL_OPTION)))
 
 (comment do
   (.removeBindings (.getKeymap edit))
@@ -82,7 +88,7 @@
 
                                              (cond (= 8 i)     (event ::jline-command :id :backspace)
                                                    (= 127 i)   (event ::jline-command :id :delete-prev-char))
-                                             
+
                                              (if (>= i 0x20)
                                                (if (not (= i 127))
                                                  (event ::jline-write :text (str c)))))))
@@ -92,3 +98,4 @@
   (add-keystroke! edit 'VK_END :none #(event ::jline-command :id :move-to-end))
   (add-keystroke! edit 'VK_ENTER :none #(event ::jline-command :id :newline))
 )
+

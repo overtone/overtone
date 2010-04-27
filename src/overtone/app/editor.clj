@@ -8,7 +8,8 @@
     (javax.swing.text TextAction JTextComponent)
     (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup
                                  SGAbstractShape$Mode SGComponent SGTransform)
-    (jsyntaxpane DefaultSyntaxKit))
+    (jsyntaxpane DefaultSyntaxKit)
+    (java.io File))
   (:use (overtone.core event util)
         (overtone.gui swing)
         (overtone.app.editor keymap)
@@ -21,6 +22,35 @@
 (defonce editor* (ref {}))
 
 (load "editor/actions")
+
+(def OPEN-CHARS #{ \( \[ \{ })
+(def CLOSE-CHARS #{ \) \] \} })
+(def MATCHES { \{ \}
+               \} \{
+               \[ \]
+               \] \[
+               \( \)
+               \) \( })
+
+; Iterate threw the string putting any OPEN-CHARS onto a stack.  If we hit a CLOSE-CHAR
+; and it matches the top of the stack we pop, and if the stack is empty after a match we
+; found the end point.  If the top of the stack ever doesn't match then there isn't a
+; correct pair.  Reverse everything for going backwards.
+(defn match-next
+  ([txt start] (match-next txt start 0 (list)))
+  ([txt start cnt stack]
+    (if (OPEN-CHARS (first txt))
+     (recur (next txt) start (inc cnt) (conj stack (first txt)))
+     (if (CLOSE-CHARS (first txt))
+       (if (= nil (first txt)) ; Finish me!!!
+       (recur (next txt) start (inc cnt) (conj stack )))))))
+
+(defn matching-pos [txt pos]
+  (let [cur (nth txt pos)]
+    (cond
+      OPEN-CHARS (match-next txt pos CLOSE-CHARS)
+      CLOSE-CHARS (match-next (reverse txt) (- (count txt) pos) OPEN-CHARS))))
+
 
 (defn- status-panel [editor]
   (let [status-pane (JPanel.)
@@ -72,7 +102,7 @@
     (.setToolTipText save-as "Save as")
 
     (add-action-listener open (fn [_]
-                                (if-let [path (file-open-dialog 
+                                (if-let [path (file-open-dialog
                                                 editor
                                                 (:current-dir @editor*))]
                                   (file-open path))))
@@ -96,8 +126,7 @@
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))
-        insert-mode-map (keymap-for editor)
-        ]
+        insert-mode-map (keymap-for editor)]
 
     (dosync (alter editor* assoc :editor editor
                    :keymaps {:insert insert-mode-map}

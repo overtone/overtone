@@ -978,7 +978,7 @@
           named-args (if (keyword? (first args))
                        args
                        (name-synth-args args arg-names))]
-      (println "synth: " named-args)
+      ;(println "synth: " named-args)
         (apply tgt-fn named-args))))
 
 
