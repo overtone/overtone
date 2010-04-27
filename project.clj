@@ -6,22 +6,21 @@
                  [org.clojars.nakkaya/miglayout "3.7"]
                  [scenegraph "0.0.1-SNAPSHOT"]
 
-                 [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
                  [overtone/jsyntaxpane "0.9.5-b27"]
                  [overtone/osc-clj "0.1.4-SNAPSHOT"]
                  [overtone/byte-spec "0.1"]
                  [overtone/midi-clj "0.1"]
-                 [overtone/clj-scsynth "0.0.2-SNAPSHOT"]
                  [overtone/substance "6.0"]
                  [overtone/javadocking "1.4.0"]
+                 
+		 [overtone/scsynth-jna "3-SNAPSHOT"]
 
                  ;[scenegraph/decora-hw "0.0.1-SNAPSHOT"] ;; decora-hw and decora-jogl are not yet fully tested
                  ;[scenegraph/decora-jogl "0.0.1-SNAPSHOT"] ;;
                  ;[vijual "0.1.0-SNAPSHOT"]
                  ;[penumbra "0.5.0"]
                  ]
-  :native-dependencies [[overtone/scsynth "3.3.1-SNAPSHOT"]
-                        [overtone/scsynth-jna "3.3.1-SNAPSHOT"]
+  :native-dependencies [
                         ;[lwjgl "2.2.2"]
                         ]
   :dev-dependencies [[native-deps "1.0.0"]
