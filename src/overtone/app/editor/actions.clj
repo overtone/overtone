@@ -11,7 +11,7 @@
 
 
 (defn file-open [path]
-  (let [f (File. path)
+  (let [f (java.io.File. path)
         dir (.getParent (java.io.File. path))]
   (.setText (:editor @editor*) (slurp path))
   (dosync (alter editor* assoc 
@@ -21,8 +21,10 @@
 (defn file-save []
   (spit (:current-path @editor*) (.getText (:editor @editor*))))
 
+(defn verify-msg [arg] arg)
+
 (defn file-save-as [path]
-  (let [f (File. path)
+  (let [f (java.io.File. path)
         dir (.getParent (java.io.File. "/home/rosejn/studio/samples/kit/boom.wav"))]
     (if (or (not (.exists f))
             (and (.exists f) (verify-msg (.getCanonicalPath f))))
