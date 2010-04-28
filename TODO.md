@@ -58,10 +58,6 @@ hyperlinks for the editor buttons
 
 == Editor 
 
-* Remember the current file path, and have both save and save-as buttons.
-
-* Start at the last used directory when opening and closing files.
-
 * Add Undo/Redo to the editor
 
 * add eval top level form to editor
@@ -83,7 +79,7 @@ hyperlinks for the editor buttons
 
 * support add and removing control points
 
-* support setting loop and release control points ala SuperCollider's envelopes
+* support setting loop and release control points ala SuperColliders envelopes
 
 * adjust max size in seconds
 

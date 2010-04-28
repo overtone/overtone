@@ -14,7 +14,7 @@
         (overtone.gui swing)
         (overtone.app.editor keymap)
         [clojure.contrib.fcase :only (case)]
-        (clojure.contrib swing-utils duck-streams)))
+        (clojure.contrib duck-streams)))
 
 (def TAB-STOP 4)
 (def CARET-COLOR Color/BLACK)
@@ -91,25 +91,19 @@
       JFileChooser/CANCEL_OPTION nil
       JFileChooser/ERROR_OPTION  nil)))
 
-(defn button-bar [editor]
+(defn editor-buttons [editor]
   (let [panel (JPanel. (FlowLayout. FlowLayout/LEFT))
-        open (JButton. (icon "org/freedesktop/tango/16x16/actions/document-open.png"))
-        save (JButton. (icon "org/freedesktop/tango/16x16/actions/document-save.png"))
-        save-as (JButton. (icon "org/freedesktop/tango/16x16/actions/document-save-as.png"))]
-
-    (.setToolTipText open "Open")
-    (.setToolTipText save "Save")
-    (.setToolTipText save-as "Save as")
-
-    (add-action-listener open (fn [_]
-                                (if-let [path (file-open-dialog
-                                                editor
-                                                (:current-dir @editor*))]
-                                  (file-open path))))
-    (add-action-listener save (fn [_] (file-save)))
-    (add-action-listener save-as (fn [_]
-                                (if-let [path (file-save-dialog editor)]
-                                  (file-save-as path))))
+        open (button "Open"
+                     "org/freedesktop/tango/16x16/actions/document-open.png"
+                     #(if-let [path (file-open-dialog editor (:current-dir @editor*))]
+                        (file-open path)))
+        save (button "Save"
+                     "org/freedesktop/tango/16x16/actions/document-save.png"
+                     #(file-save))
+        save-as (button "Save As"
+                        "org/freedesktop/tango/16x16/actions/document-save-as.png"
+                        #(if-let [path (file-save-dialog editor)]
+                           (file-save-as path)))]
     (doto panel
       (.add open)
       (.add save)
@@ -120,7 +114,7 @@
     (DefaultSyntaxKit/initKit)
   (let [editor-pane (JPanel.)
         editor (JEditorPane.)
-        button-pane (button-bar editor)
+        button-pane (editor-buttons editor)
         scroller (JScrollPane. editor)
         font (.getFont editor)
         fm (.getFontMetrics editor font)
