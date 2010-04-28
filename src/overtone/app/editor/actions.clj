@@ -10,13 +10,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defn file-open [path]
-  (let [f (File. path)
-        dir (.getParent (java.io.File. path))]
-  (.setText (:editor @editor*) (slurp path))
-  (dosync (alter editor* assoc
-                 :current-path path
-                 :current-dir  dir))))
+(defn file-open 
+  ([] (if-let [path (file-open-dialog (:editor @editor*) (:current-dir @editor*))]
+        (file-open path)))
+  ([path]
+   (let [f (File. path)
+         dir (.getParent (java.io.File. path))]
+     (.setText (:editor @editor*) (slurp path))
+     (dosync (alter editor* assoc
+                    :current-path path
+                    :current-dir  dir)))))
 
 (defn file-save []
   (spit (:current-path @editor*) (.getText (:editor @editor*))))
@@ -26,7 +29,7 @@
         dir (.getParent (java.io.File. "/home/rosejn/studio/samples/kit/boom.wav"))]
     (if (or (not (.exists f))
             (and (.exists f) (confirm "File Save As"
-                                      (str "Are you sure you want to replace this file? " 
+                                      (str "Are you sure you want to replace this file? "
                                            (.getCanonicalPath f)))))
       (do
         (spit path (.getText (:editor @editor*)))

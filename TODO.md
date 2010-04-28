@@ -4,8 +4,6 @@ to ugens as arguments and their :id property will be used
 
 * basic record functionality for root group
 
-* make sure scope always works for root group
-
 * implementing some basic midi mapping
 
 * view a table or tree of running synths with the ability to kill and maybe
@@ -16,21 +14,29 @@ modify control params
 * hook up the sequencer
 
 * get some basic keymaps setup with basic, vim and emacs inspired bindings
+
 * implement motion commands
+
 * allow for re-arranging nodes and groups using a tree/table view
+
 * create a basic volume and pan control node that can be used for the master
 volume and per synth-track control
+
 * create a basic EQ that can be used on any track
+
 * do some sanity checking regarding the default group, make sure we reset
 correctly, add synths and nodes correctly, etc...
+
 * implement a wave drawing window so data can be directly inserted into a buffer
+
 * complete the jline support in the repl so we can get history and tab
 completion working
+
 * either improve the jsyntax clojure parser so we can have nice highlighting of
 ugen names and Overtone functions, or else replace it with our own.  (Maybe
 from paredit.clj...)
-* add docs to Unary and Binary op ugens 
 
+* add docs to Unary and Binary op ugens 
 
 == 0.2 Release
 
@@ -44,17 +50,7 @@ from paredit.clj...)
  - use a regular JLabel, and take min, max, step args
  - on drag adjust the value and call handlers
 
-* create some kind of standardized tool-box for things like the color chooser
-and other random side-bar tools.
-
-* figure out how to organize stuff in scene window
- - tabs, collapsing, resizing, etc...
-
-* either find icons that work better or just use some styled text that feel like
-hyperlinks for the editor buttons
-
 * figure out how best to attach meta-data to the [unary,binary]-op-ugen
-* functions
 
 == Editor 
 

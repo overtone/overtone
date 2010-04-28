@@ -1,5 +1,7 @@
-(ns overtone.app.editor.keymap
-  (:use (overtone.core event)))
+(defn key-map [mode stroke handler]
+  (let [km (get (:keymaps @editor*) mode)]
+    (assoc km (key-stroke stroke)
+           (text-action handler))))
 
 ; NOTE: property keys that start with ':' are turned into keywords...
 (defn- wrap-entry [k v]
@@ -35,3 +37,20 @@
 ;              ([key default] (manager/do #(if (has-property? obj key)
 ;                                            (get-property obj key)
 ;                                            default)))))))
+
+(defn insert-mode-map [comp]
+  (let [insert-mode (keymap-for comp)
+        on (fn [stroke handler] (assoc insert-mode
+                                       (key-stroke stroke)
+                                       (text-action handler)))]
+    (on "control O" file-open)
+    (on "control S" file-save)
+    (on "control A" select-all)
+    (on "control C" text-copy)
+    (on "control V" text-paste)
+    (on "control X" text-cut)
+
+    (on "control E"
+          #(event :overtone.gui.repl/repl-write
+                  :text (.trim (.getSelectedText (:editor @editor*)))))))
+

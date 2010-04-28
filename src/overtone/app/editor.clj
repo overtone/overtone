@@ -12,7 +12,6 @@
     (java.io File))
   (:use (overtone.core event util)
         (overtone.gui swing)
-        (overtone.app.editor keymap)
         [clojure.contrib.fcase :only (case)]
         (clojure.contrib duck-streams)))
 
@@ -20,8 +19,6 @@
 (def CARET-COLOR Color/BLACK)
 
 (defonce editor* (ref {}))
-
-(load "editor/actions")
 
 (def OPEN-CHARS #{ \( \[ \{ })
 (def CLOSE-CHARS #{ \) \] \} })
@@ -91,15 +88,17 @@
       JFileChooser/CANCEL_OPTION nil
       JFileChooser/ERROR_OPTION  nil)))
 
+(load "editor/actions")
+(load "editor/keymap")
+
 (defn editor-buttons [editor]
   (let [panel (JPanel. (FlowLayout. FlowLayout/LEFT))
         open (button "Open"
                      "org/freedesktop/tango/16x16/actions/document-open.png"
-                     #(if-let [path (file-open-dialog editor (:current-dir @editor*))]
-                        (file-open path)))
+                     file-open)
         save (button "Save"
                      "org/freedesktop/tango/16x16/actions/document-save.png"
-                     #(file-save))
+                     file-save)
         save-as (button "Save As"
                         "org/freedesktop/tango/16x16/actions/document-save-as.png"
                         #(if-let [path (file-save-dialog editor)]
@@ -120,22 +119,17 @@
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))
-        insert-mode-map (keymap-for editor)]
+        insert-mode (insert-mode-map editor)]
 
     (dosync (alter editor* assoc :editor editor
-                   :keymaps {:insert insert-mode-map}
+                   :keymaps {:insert insert-mode}
                    :current-keymap :insert))
 
     (doto button-pane
       (.setBackground (:background app)))
 
-    (doto insert-mode-map
-      (assoc (key-stroke "control E")
-             (text-action #(event :overtone.gui.repl/repl-write
-                                  :text (.trim (.getSelectedText (:editor @editor*)))))))
-
     (doto editor
-      (.setKeymap (:keymap insert-mode-map))
+      (.setKeymap (:keymap insert-mode))
       (.setFont (:edit-font app))
       (.setContentType "text/clojure")
       (.setCaretColor CARET-COLOR)
