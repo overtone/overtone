@@ -733,10 +733,19 @@
 
 (defn save-buffer
   "Save the float audio data in an audio buffer to a wav file."
-  [buf path]
+  [buf path & args]
   (assert (buffer? buf))
-  (snd "/b_write" (:id buf) path "wav" "float")
-  :done)
+  (let [arg-map (merge (apply hash-map args)
+                       {:header "wav"
+                        :samples "float"
+                        :n-frames -1
+                        :start-frame 0
+                        :leave-open 0})
+        {:keys [header samples n-frames start-frame leave-open]} arg-map]
+    (snd "/b_write" (:id buf) path header samples 
+         n-frames start-frame 
+         leave-open)
+    :done))
 
 (defn load-sample
   "Load a wav file into a memory buffer.  Returns the buffer.
