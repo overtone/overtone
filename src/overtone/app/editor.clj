@@ -48,7 +48,6 @@
       OPEN-CHARS (match-next txt pos CLOSE-CHARS)
       CLOSE-CHARS (match-next (reverse txt) (- (count txt) pos) OPEN-CHARS))))
 
-
 (defn- status-panel [editor]
   (let [status-pane (JPanel.)
         general-status (JLabel. "general status")
@@ -67,26 +66,6 @@
                                              GridBagConstraints/WEST
                                              GridBagConstraints/VERTICAL
                                              (Insets. 0 2 0 0) 0 0)))))
-
-(defn file-open-dialog [parent & [path]]
-  (let [chooser (if path
-                  (JFileChooser. path)
-                  (JFileChooser.))
-        ret (.showOpenDialog chooser parent)]
-    (case ret
-      JFileChooser/APPROVE_OPTION (-> chooser (.getSelectedFile) (.getAbsolutePath))
-      JFileChooser/CANCEL_OPTION nil
-      JFileChooser/ERROR_OPTION  nil)))
-
-(defn file-save-dialog [parent & [path]]
-  (let [chooser (if path
-                  (JFileChooser. path)
-                  (JFileChooser.))
-        ret (.showSaveDialog chooser parent)]
-    (case ret
-      JFileChooser/APPROVE_OPTION (-> chooser (.getSelectedFile) (.getAbsolutePath))
-      JFileChooser/CANCEL_OPTION nil
-      JFileChooser/ERROR_OPTION  nil)))
 
 (load "editor/actions")
 (load "editor/keymap")

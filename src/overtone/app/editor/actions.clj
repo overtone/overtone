@@ -8,9 +8,17 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn- file-open-dialog [parent & [path]]
+  (let [chooser (if path
+                  (JFileChooser. path)
+                  (JFileChooser.))
+        ret (.showOpenDialog chooser parent)]
+    (case ret
+      JFileChooser/APPROVE_OPTION (-> chooser (.getSelectedFile) (.getAbsolutePath))
+      JFileChooser/CANCEL_OPTION nil
+      JFileChooser/ERROR_OPTION  nil)))
 
-
-(defn file-open 
+(defn file-open
   ([] (if-let [path (file-open-dialog (:editor @editor*) (:current-dir @editor*))]
         (file-open path)))
   ([path]
@@ -20,6 +28,16 @@
      (dosync (alter editor* assoc
                     :current-path path
                     :current-dir  dir)))))
+
+(defn- file-save-dialog [parent & [path]]
+  (let [chooser (if path
+                  (JFileChooser. path)
+                  (JFileChooser.))
+        ret (.showSaveDialog chooser parent)]
+    (case ret
+      JFileChooser/APPROVE_OPTION (-> chooser (.getSelectedFile) (.getAbsolutePath))
+      JFileChooser/CANCEL_OPTION nil
+      JFileChooser/ERROR_OPTION  nil)))
 
 (defn file-save []
   (spit (:current-path @editor*) (.getText (:editor @editor*))))
