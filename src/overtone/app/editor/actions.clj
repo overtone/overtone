@@ -3,8 +3,6 @@
 ; For find action
 ; (.getMatcher doc pattern start)
 
-(println "actions ns: " *ns*)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -43,7 +41,7 @@
   (spit (:current-path @editor*) (.getText (:editor @editor*))))
 
 (defn file-save-as [path]
-  (let [f (File. path)
+  (let [f (java.io.File. path)
         dir (.getParent (java.io.File. "/home/rosejn/studio/samples/kit/boom.wav"))]
     (if (or (not (.exists f))
             (and (.exists f) (confirm "File Save As"

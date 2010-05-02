@@ -4,7 +4,7 @@
 (refer-ugens)
 
 ;;; Read me, and evaluate line by line as you go.  To evaluate a form highlight it with the mouse
-;;; and type <control-e>, using the "e" for evaluate.  The repl window below will show the output 
+;;; and type <control-e>, using the "e" for evaluate.  The repl window below will show the output
 ;;; of everything you evaluate.  This is helpful for documentation too.  All ugen functions
 ;;; have doc strings.  Try evaluating these:
 
@@ -74,12 +74,12 @@
 
 ; this would be a typical way to play back at normal rates, using a phasor.
 ; phasors just count from a start value to an end value. Using buf-frames
-; we can get the size of the buffer, and buf-rate-scale figures out any 
+; we can get the size of the buffer, and buf-rate-scale figures out any
 ; sampling rate difference.
 
-(defsynth buf-player [buf 0 rate 1]
-  (buf-rd 1 buf (phasor 0 (* rate (buf-rate-scale 0)) 0 (buf-frames:ir 0)) 
-          1 2))
+(defsynth buf-player [buf 0 rate 1 loop? 0]
+  (buf-rd 1 buf (phasor 0 (* rate (buf-rate-scale 0)) 0 (buf-frames:ir 0))
+          loop? 2))
 
 ; evaluate these one on top of another to layer the sample at different pitches
 (buf-player (:id flute-buf) 1)

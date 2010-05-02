@@ -109,8 +109,8 @@
         y-shift (+ (/ height 2) Y-PADDING)]
     (dotimes [x width]
       (aset #^ints y-array x
-            (int (+ y-shift 
-                    (* y-scale 
+            (int (+ y-shift
+                    (* y-scale
                        (aget #^floats frames (unchecked-multiply x step))))))))
   (.repaint (:panel @scope*)))
 
@@ -235,10 +235,17 @@
     (examples.basic/bus->buf 20 (:id b))
     (examples.basic/bus->bus 20 0)))
 
+(defn- spectrogram [in-bus]
+  (let [fft-buf (buffer 2048)
+        buf (buffer 2048)]
+    (Thread/sleep 100)
+    (freq-scope-zero in-bus fft-buf buf)))
+
 (defn test-scope []
   (if (not (connected?))
     (do
       (boot)
       (on :examples-ready go-go-scope))
     (go-go-scope))
-  (.show test-frame)))
+  (.show test-frame))
+)

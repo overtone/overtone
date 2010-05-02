@@ -10,6 +10,7 @@
     (java.util.concurrent TimeUnit TimeoutException)
     (java.io BufferedInputStream)
     (java.nio ByteOrder)
+    (supercollider ScSynth ScSynthStartedListener MessageReceivedListener)
     (java.util BitSet))
   (:require [overtone.core.log :as log])
   (:use
@@ -17,10 +18,6 @@
     [clojure.contrib.java-utils :only [file]]
     (clojure.contrib shell-out seq-utils pprint)
     osc
-    clj-scsynth.core
-    [clj-native.direct :only [defclib loadlib typeof]]
-    [clj-native.structs :only [byref byval]]
-    [clj-native.callbacks :only [callback]]
     [clojure.contrib.fcase :only [case]]))
 
 ; TODO: Make this work correctly
@@ -31,7 +28,8 @@
 ; Max number of milliseconds to wait for a reply from the server
 (defonce REPLY-TIMEOUT 500)
 
-(defonce DEFAULT-GROUP 0)
+(def ROOT-GROUP 1)
+(def SYNTH-GROUP 1)
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
@@ -199,20 +197,18 @@
 
 (def N-RETRIES 5)
 
-(defonce internal-osc-callback (callback reply-cb (fn
-  [addr buf size]
-  (event ::osc-msg-received
-         :msg (osc-decode-packet (.order (.getByteBuffer buf 0 size) ByteOrder/BIG_ENDIAN))))))
 
 (defn- connect-internal
   []
   (log/debug "Connecting to internal SuperCollider server")
   (let [send-fn (fn [peer-obj buffer]
-                    (World_SendPacket @sc-world*
-                                      (.limit buffer)
-                                      buffer
-                                      internal-osc-callback))
+                  (.send @sc-world* buffer))
         peer (assoc (osc-peer) :send-fn send-fn)]
+    (.addMessageReceivedListener @sc-world*
+                                 (proxy [MessageReceivedListener] []
+                                   (messageReceived [buf size]
+                                                    (event ::osc-msg-received
+                                                           :msg (osc-decode-packet buf)))))
     (dosync (ref-set server* peer))
     (snd "/status")
     (dosync (ref-set status* :connected))
@@ -346,19 +342,16 @@
 (if (= :linux (@config* :os))
   (on :connected #(connect-jack-ports)))
 
+(defonce scsynth-server*        (ref nil))
+
 (defn internal-booter [port]
   (reset! running?* true)
   (log/info "booting internal audio server listening on port: " port)
-  (let [opts (byref sc-jna-startoptions)]
-    (set! (. opts udp-port-num) port)
-    (set! (. opts tcp-port-num) port)
-    (set! (. opts verbosity) 1)
-    (set! (. opts lib-scsynth-path) (str (find-scsynth-lib-path)))
-    (set! (. opts plugin-path) (str (find-synthdefs-lib-path)))
-    (dosync (ref-set sc-world* (ScJnaStart opts)))
-    (event :booted)
-    (World_WaitForQuit @sc-world*)
-    (ScJnaCleanup)))
+  (let [server (ScSynth.)]
+    (.addScSynthStartedListener server (proxy [ScSynthStartedListener] []
+                                         (scSynthStarted [] (event :booted))))
+    (dosync (ref-set sc-world* server))
+    (.run server)))
 
 (defn boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
@@ -476,8 +469,8 @@
   "Remove a synth node"
   [& node-ids]
   {:pre [(connected?)]}
-  (doseq [id node-ids] (free-id :node id))
-  (apply snd "/n_free" node-ids))
+  (apply snd "/n_free" node-ids)
+  (doseq [id node-ids] (free-id :node id)))
 
 (defn node-run
   "Start a stopped synth node."
@@ -742,8 +735,8 @@
                         :start-frame 0
                         :leave-open 0})
         {:keys [header samples n-frames start-frame leave-open]} arg-map]
-    (snd "/b_write" (:id buf) path header samples 
-         n-frames start-frame 
+    (snd "/b_write" (:id buf) path header samples
+         n-frames start-frame
          leave-open)
     :done))
 
@@ -788,7 +781,7 @@
   "Get the floating point data for a buffer on the internal server."
   [buf]
   (let [buf-id (buffer-id buf)
-        snd-buf (ScJnaCopySndBuf @sc-world* buf-id)
+        snd-buf (.getSndBuf @sc-world* buf-id)
         n-frames (.frames snd-buf)
         data (.data snd-buf)]
     (if data
@@ -825,13 +818,14 @@
   []
   (clear-msg-queue)
   (try
-    (group-clear 0)
+    (group-clear SYNTH-GROUP)
     (catch Exception e nil))
-  ;(apply node-free (all-ids :node))
   (clear-ids :node)
   (alloc-id :node) ; ID zero is the root group
+  (group :head 0)  ; ID one is the synth group
   (dosync (ref-set synths* (zipmap (keys @synths*)
-                                   (repeat (count @synths*) (group :tail 0))))))
+                                   (repeat (count @synths*)
+                                           (group :tail SYNTH-GROUP))))))
 
 (defn restart
   "Reset everything and restart the SuperCollider process."
@@ -950,6 +944,9 @@
       named)))
 
 
+; TODO: Think about a sane policy for setting up state, especially when we are connected
+; with many peers on one or more servers...
+(on :connected #(reset)) ; put ourselves in a standard place after connect
 
 (defn synth-player
   "Returns a player function for a named synth.  Used by (synth ...) internally, but can be
@@ -990,11 +987,13 @@
       ;(println "synth: " named-args)
         (apply tgt-fn named-args))))
 
-
+; Define a default wav player synth
 ;(on :connected #(
-;  (defsynth buf-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-;    (play-buf (buf-channels:kr (:id buf)) (:id buf) rate 1 start-pos 0.0 (if loop? 1 0) :free))))
-;
+;                 (defsynth buf-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
+;                   (play-buf (buf-channels:kr buf) buf rate
+;                             1 start-pos 0.0
+;                             (if loop? 1 0) :free))
+;                 ))
 ;
 
 (defn sample
