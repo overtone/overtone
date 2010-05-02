@@ -7,6 +7,7 @@
                         JButton SwingUtilities BorderFactory
                         ImageIcon KeyStroke JOptionPane))
   (:use clojure.stacktrace
+        (clojure.contrib swing-utils)
         (overtone.core util)))
 
 (defmacro in-swing [& body]
@@ -17,6 +18,25 @@
 
 (defn icon [path]
   (ImageIcon. (resource-url path)))
+
+(defn button 
+  "Creates a JButton with the associated text and handler or icon, tooltip,
+  and handler.
+
+  (button \"Save\" #(save-file ...))
+  (button \"Save the current file\" 
+          \"path/to/my/icon/save.png\"
+          #(save-file ...))
+  "
+  ([text handler]
+   (doto (JButton. text)
+     (add-action-listener (fn [event]
+                            (run-handler handler event)))))
+  ([tooltip icon-path handler]
+   (doto (JButton. (icon icon-path))
+     (.setToolTipText tooltip)
+     (add-action-listener (fn [event]
+                            (run-handler handler event))))))
 
 (defn screen-dim []
   (.getScreenSize (Toolkit/getDefaultToolkit)))
@@ -79,6 +99,7 @@
                                     msg
                                     title
                                     JOptionPane/OK_CANCEL_OPTION)))
+
 
 (comment do
   (.removeBindings (.getKeymap edit))

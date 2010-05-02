@@ -12,16 +12,13 @@
     (java.io File))
   (:use (overtone.core event util)
         (overtone.gui swing)
-        (overtone.app.editor keymap)
         [clojure.contrib.fcase :only (case)]
-        (clojure.contrib swing-utils duck-streams)))
+        (clojure.contrib duck-streams)))
 
 (def TAB-STOP 4)
 (def CARET-COLOR Color/BLACK)
 
 (defonce editor* (ref {}))
-
-(load "editor/actions")
 
 (def OPEN-CHARS #{ \( \[ \{ })
 (def CLOSE-CHARS #{ \) \] \} })
@@ -91,25 +88,21 @@
       JFileChooser/CANCEL_OPTION nil
       JFileChooser/ERROR_OPTION  nil)))
 
-(defn button-bar [editor]
+(load "editor/actions")
+(load "editor/keymap")
+
+(defn editor-buttons [editor]
   (let [panel (JPanel. (FlowLayout. FlowLayout/LEFT))
-        open (JButton. (icon "org/freedesktop/tango/16x16/actions/document-open.png"))
-        save (JButton. (icon "org/freedesktop/tango/16x16/actions/document-save.png"))
-        save-as (JButton. (icon "org/freedesktop/tango/16x16/actions/document-save-as.png"))]
-
-    (.setToolTipText open "Open")
-    (.setToolTipText save "Save")
-    (.setToolTipText save-as "Save as")
-
-    (add-action-listener open (fn [_]
-                                (if-let [path (file-open-dialog
-                                                editor
-                                                (:current-dir @editor*))]
-                                  (file-open path))))
-    (add-action-listener save (fn [_] (file-save)))
-    (add-action-listener save-as (fn [_]
-                                (if-let [path (file-save-dialog editor)]
-                                  (file-save-as path))))
+        open (button "Open"
+                     "org/freedesktop/tango/16x16/actions/document-open.png"
+                     file-open)
+        save (button "Save"
+                     "org/freedesktop/tango/16x16/actions/document-save.png"
+                     file-save)
+        save-as (button "Save As"
+                        "org/freedesktop/tango/16x16/actions/document-save-as.png"
+                        #(if-let [path (file-save-dialog editor)]
+                           (file-save-as path)))]
     (doto panel
       (.add open)
       (.add save)
@@ -120,28 +113,23 @@
     (DefaultSyntaxKit/initKit)
   (let [editor-pane (JPanel.)
         editor (JEditorPane.)
-        button-pane (button-bar editor)
+        button-pane (editor-buttons editor)
         scroller (JScrollPane. editor)
         font (.getFont editor)
         fm (.getFontMetrics editor font)
         width (* 81 (.charWidth fm \space))
         height (* 10 (.getHeight fm))
-        insert-mode-map (keymap-for editor)]
+        insert-mode (insert-mode-map editor)]
 
     (dosync (alter editor* assoc :editor editor
-                   :keymaps {:insert insert-mode-map}
+                   :keymaps {:insert insert-mode}
                    :current-keymap :insert))
 
     (doto button-pane
       (.setBackground (:background app)))
 
-    (doto insert-mode-map
-      (assoc (key-stroke "control E")
-             (text-action #(event :overtone.gui.repl/repl-write
-                                  :text (.trim (.getSelectedText (:editor @editor*)))))))
-
     (doto editor
-      (.setKeymap (:keymap insert-mode-map))
+      (.setKeymap (:keymap insert-mode))
       (.setFont (:edit-font app))
       (.setContentType "text/clojure")
       (.setCaretColor CARET-COLOR)

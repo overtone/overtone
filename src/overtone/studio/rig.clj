@@ -7,7 +7,7 @@
 ; an fx rack and a set of fx busses, an output bus, etc...
 
 ; TODO
-; 
+;
 ; Audio input
 ; * access samples from the microphone
 
@@ -25,7 +25,7 @@
 ;(synth :master
 ;  (out.ar 0 (in.ar BUS-MASTER)))
 
-(def session* (ref 
+(def session* (ref
   {:tracks []
    :instruments []
    :players []}))
@@ -33,9 +33,11 @@
 ;(def *fx-bus (ref (Bus/audio (server) 2)))
 
 ; A track holds an instrument with a set of effects and patches it into the mixer
-; * track group contains: 
+; * track group contains:
 ;     synth group => effect group => fader synth
 
 (defn track [track-name & [n-channels]]
   {})
 
+(defsynth record-bus [bus-num path]
+  )

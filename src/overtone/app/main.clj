@@ -131,7 +131,7 @@
   (let [app-frame (JFrame.  "Overtone")
         app-panel (.getContentPane app-frame)
 
-        browse-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT)
+        ;browse-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT)
         right-split (JSplitPane. JSplitPane/HORIZONTAL_SPLIT)
         main-split (JSplitPane. JSplitPane/VERTICAL_SPLIT)
         tools-split (JSplitPane. JSplitPane/VERTICAL_SPLIT)
@@ -185,40 +185,45 @@
       (.addRootDock "top-tools-split" top-tools-split-dock app-frame)
       (.addRootDock "bottom-tools-split" bottom-tools-split-dock app-frame))
 
-    (doto browse-split
+    (comment doto browse-split
+      (.setOneTouchExpandable true)
       (.setLeftComponent left-split-dock)
       (.setRightComponent right-split))
 
     (doto right-split
+      (.setOneTouchExpandable true)
       (.setLeftComponent main-split)
       (.setRightComponent tools-split))
 
     (dosync (alter app* assoc :right-div right-split))
 
     (doto main-split
+      (.setOneTouchExpandable true)
       (.setTopComponent top-split-dock)
       (.setBottomComponent bottom-split-dock))
 
     (doto tools-split
+      (.setOneTouchExpandable true)
       (.setTopComponent top-tools-split-dock)
       (.setBottomComponent bottom-tools-split-dock))
 
     (doto scene-panel
       (.setBackground Color/BLACK)
       (.setScene (controls-scene))
-      (.setMinimumSize (Dimension. 600 400)))
+      (.setPreferredSize (Dimension. 600 400)))
 
     (miglayout app-panel
       header-panel "dock north"
-      browse-split "dock west")
+      ;browse-split "dock west")
+      right-split "dock west")
 
     (call-at (+ (now) 100) #(in-swing (do
-                                        (.setDividerLocation browse-split 0.1)
+      ;                                  (.setDividerLocation browse-split 0.1)
                                         (.setDividerLocation right-split 0.7)
                                         (.setDividerLocation main-split 0.8)
                                         (.setDividerLocation tools-split 0.5))))
     (call-at (+ (now) 2000) #(in-swing (do
-                                        (.setDividerLocation browse-split 0.1)
+      ;                                  (.setDividerLocation browse-split 0.1)
                                         (.setDividerLocation right-split 0.7)
                                         (.setDividerLocation main-split 0.8)
                                         (.setDividerLocation tools-split 0.5))))
