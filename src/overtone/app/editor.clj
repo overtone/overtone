@@ -10,7 +10,7 @@
                                  SGAbstractShape$Mode SGComponent SGTransform)
     (jsyntaxpane DefaultSyntaxKit)
     (java.io File))
-  (:use (overtone.core event util)
+  (:use (overtone.core event util config)
         (overtone.gui swing)
         [clojure.contrib.fcase :only (case)]
         (clojure.contrib duck-streams)))
@@ -88,6 +88,16 @@
       (.add save-as))
     panel))
 
+(defn- open-last-file
+  "Open the file that was last opened if it is still a valid file."
+  []
+  (when (contains? @config* :last-open-file)
+    (let [f (File. (:last-open-file @config*))]
+                   (if (and (.exists f)
+                            (.isFile f)
+                            (.canRead f))
+                     (file-open (.getPath f))))))
+
 (defn editor-panel [app]
     (DefaultSyntaxKit/initKit)
   (let [editor-pane (JPanel.)
@@ -119,7 +129,11 @@
       (.setLayout (BorderLayout.))
       (.add button-pane BorderLayout/NORTH)
       (.add scroller BorderLayout/CENTER)
-      (.add (status-panel editor) BorderLayout/SOUTH))))
+      (.add (status-panel editor) BorderLayout/SOUTH))
+
+    (open-last-file)
+
+    editor-pane))
 
 (defn editor-keymap [k]
   (.setKeymap (:editor @editor*) (:keymap k)))

@@ -22,10 +22,15 @@
   ([path]
    (let [f (File. path)
          dir (.getParent (java.io.File. path))]
-     (.setText (:editor @editor*) (slurp path))
-     (dosync (alter editor* assoc
-                    :current-path path
-                    :current-dir  dir)))))
+     (doto (:editor @editor*)
+       (.moveCaretPosition 0)
+       (.setText (slurp path)))
+     (dosync 
+       (alter editor* assoc
+              :current-path path
+              :current-dir  dir)
+       (alter config* assoc
+              :last-open-file path)))))
 
 (defn- file-save-dialog [parent & [path]]
   (let [chooser (if path
