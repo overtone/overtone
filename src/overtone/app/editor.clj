@@ -95,7 +95,7 @@
   (let [panel (JPanel. (FlowLayout. FlowLayout/LEFT))
         open (button "Open"
                      "org/freedesktop/tango/16x16/actions/document-open.png"
-                     file-open)
+                     #(file-open))
         save (button "Save"
                      "org/freedesktop/tango/16x16/actions/document-save.png"
                      file-save)
@@ -135,8 +135,6 @@
       (.setCaretColor CARET-COLOR)
       (.setBackground (Color. (float 1.0) (float 1.0) (float 1.0)))
       (.requestFocusInWindow))
-
-;    (file-open "src/examples/basic.clj")
 
     (doto editor-pane
       (.setLayout (BorderLayout.))

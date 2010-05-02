@@ -28,7 +28,8 @@
 ; Max number of milliseconds to wait for a reply from the server
 (defonce REPLY-TIMEOUT 500)
 
-(defonce DEFAULT-GROUP 0)
+(def ROOT-GROUP 1)
+(def SYNTH-GROUP 1)
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
@@ -468,8 +469,8 @@
   "Remove a synth node"
   [& node-ids]
   {:pre [(connected?)]}
-  (doseq [id node-ids] (free-id :node id))
-  (apply snd "/n_free" node-ids))
+  (apply snd "/n_free" node-ids)
+  (doseq [id node-ids] (free-id :node id)))
 
 (defn node-run
   "Start a stopped synth node."
@@ -734,8 +735,8 @@
                         :start-frame 0
                         :leave-open 0})
         {:keys [header samples n-frames start-frame leave-open]} arg-map]
-    (snd "/b_write" (:id buf) path header samples 
-         n-frames start-frame 
+    (snd "/b_write" (:id buf) path header samples
+         n-frames start-frame
          leave-open)
     :done))
 
@@ -817,13 +818,14 @@
   []
   (clear-msg-queue)
   (try
-    (group-clear 0)
+    (group-clear SYNTH-GROUP)
     (catch Exception e nil))
-  ;(apply node-free (all-ids :node))
   (clear-ids :node)
   (alloc-id :node) ; ID zero is the root group
+  (group :head 0)  ; ID one is the synth group
   (dosync (ref-set synths* (zipmap (keys @synths*)
-                                   (repeat (count @synths*) (group :tail 0))))))
+                                   (repeat (count @synths*)
+                                           (group :tail SYNTH-GROUP))))))
 
 (defn restart
   "Reset everything and restart the SuperCollider process."
@@ -942,6 +944,9 @@
       named)))
 
 
+; TODO: Think about a sane policy for setting up state, especially when we are connected
+; with many peers on one or more servers...
+(on :connected #(reset)) ; put ourselves in a standard place after connect
 
 (defn synth-player
   "Returns a player function for a named synth.  Used by (synth ...) internally, but can be
@@ -982,11 +987,13 @@
       ;(println "synth: " named-args)
         (apply tgt-fn named-args))))
 
-
+; Define a default wav player synth
 ;(on :connected #(
-;  (defsynth buf-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-;    (play-buf (buf-channels:kr (:id buf)) (:id buf) rate 1 start-pos 0.0 (if loop? 1 0) :free))))
-;
+;                 (defsynth buf-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
+;                   (play-buf (buf-channels:kr buf) buf rate
+;                             1 start-pos 0.0
+;                             (if loop? 1 0) :free))
+;                 ))
 ;
 
 (defn sample

@@ -3,8 +3,6 @@
 ; For find action
 ; (.getMatcher doc pattern start)
 
-(println "actions ns: " *ns*)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -23,8 +21,6 @@
 
 (defn file-save []
   (spit (:current-path @editor*) (.getText (:editor @editor*))))
-
-(defn verify-msg [arg] arg)
 
 (defn file-save-as [path]
   (let [f (java.io.File. path)
