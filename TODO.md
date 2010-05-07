@@ -1,3 +1,22 @@
+* creating a group for every synth might be overkill, because it ends up filling
+up our group ID space unneccessarily.  Maybe we need to keep synth a bit lower
+level and start working on a higher level abstraction that automatically does
+some of these things, definst?
+
+* do something different with overtone.live rather than the immigrate stuff so
+we can more easily develop in Overtone libs and then use or require just what
+we are changing (currently their are conflicts because vars overshadow the
+immigrated vars in overtone.live)
+
+* route all synths and samplers to a main mixer bus, providing panning, EQ, and
+volume controls.
+  - figure out how FX should work into this
+
+* have a mechanism to route sound to a preview channel for listening to
+something in headphones to try it out.
+
+* create and open new source file in the editor, file-new
+
 * add another argument mode to ugens so that buffers and samples can be passed
 to ugens as arguments and their :id property will be used 
   - get rid of UGen wrapper function currently doing this for all ugens
@@ -130,11 +149,7 @@ wrong type of device, etc...
 
 == GUI
 
-* Create a node based synthdef viewer, and then editor
-
-== Dynamic Editor
-
-* accesses functions from 
+* Create a node based synthdef viewer, and then editor (FlowControl)
 
 == Networking
 

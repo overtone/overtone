@@ -37,13 +37,13 @@
 
 (defn play-chords [t]
   (let [tick (* 2 (choose [125 500 250 250 500 250 500 250]))]
-    (at t (doseq [note (chord-notes)] (overpad note 0.3 (/ tick 1020))))
+    (at t (doseq [note (chord-notes)] (overpad 0 note 0.3 (/ tick 1020))))
     (call-at (+ t (- tick 100)) #'play-chords (+ t tick))))
 
 (play-chords (now))
 
 (def kick (sample "/home/rosejn/studio/samples/kit/boom.wav"))
-(kick :dur 1)
+(kick)
 
 (defn looper [t dur notes]
   (at t (kick))

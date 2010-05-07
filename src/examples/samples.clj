@@ -30,18 +30,18 @@
 (doc play-buf)
 
 
-(synth (play-buf 1 flute-buf 1 1 0 0 :free)))
+(synth (play-buf 1 flute-buf 1 1 0 0 :free))
 
 ; Try layering these looped versions, eval each line
-(synth (play-buf 1 flute-buf 1 1 0 1)))
+(synth (play-buf 1 flute-buf 1 1 0 1))
 (*1)
-(synth (play-buf 1 flute-buf 0.5 1 0 1)))
+(synth (play-buf 1 flute-buf 0.5 1 0 1))
 (*1)
-(synth (play-buf 1 flute-buf 1.5 1 0 1)))
+(synth (play-buf 1 flute-buf 1.5 1 0 1))
 (*1)
-(synth (play-buf 1 flute-buf 0.25 1 0 1)))
+(synth (play-buf 1 flute-buf 0.25 1 0 1))
 (*1)
-(synth (play-buf 1 flute-buf 2 1 0 1)))
+(synth (play-buf 1 flute-buf 2 1 0 1))
 (*1)
 (reset)
 

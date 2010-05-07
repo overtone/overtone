@@ -25,49 +25,37 @@
         amp  (/ 128.0 velocity)
         mx   (* amp (mix saw1 saw2 sqr))
         env-amp (+ 0.25 (* 0.55 amp))
-        env (* env-amp (env-gen (adsr) velocity 1 0 1 :free))
+        env (* env-amp (env-gen (adsr) (sin-osc 0.5) 1 0 1 :free))
         filt (rlpf mx (* env (midicps note)) rq)]
-    (out 0 filt)))
+    (out 0 (pan2 filt))))
 
+(defsynth round-kick [amp 0.5 decay 0.6 freq 65]
+  (* (env-gen (perc 0.01 decay) 1 1 0 1 :free)
+     (sin-osc freq (* java.lang.Math/PI 0.5)) amp))
 
-(comment 
-(load-synth saw-sin)
-(let [note (hit (now) saw-sin :freq-a 400 :freq-b 402)]
-  (ctl (+ (now) 500) note :freq-a 300 :freq-b 303)
-  (kill (+ (now) 1000) note))
-  )
+; Creating pads
+(defn cents
+  "Returns a frequency computed by adding n-cents to freq.  A cent is a
+  logarithmic measurement of pitch, where 1-octave equals 1200 cents."
+  [freq n-cents]
+  (* freq (pow 2 (/ n-cents 1200))))
 
-;SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
-;        var env, snd;
-;        env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;        snd= SinOsc.ar(freq, pi*0.5, amp);
-;        Out.ar(0, Pan2.ar(snd*env, 0));
-;}).store;
-;(defsynth test-kick {:amp 0.5 :decay 0.6 :freq 65}
-;  (out.ar 0 (pan2.ar (* (sin-osc.ar :freq (* Math/PI 0.5)) 
-;                        :amp)
-;                     (env-gen.ar (perc 0 :decay) :done-free))))
-;
+(defsynth pad [freq 440 split -5]
+  (* 0.3
+     (saw [freq (cents freq split)])))
 
-; Some other day...
-;(deftest decompile-test []
-;  (is (= (synthdef-decompile mini-sin) (:src-code (meta mini-sin)))))
+(defsynth rise-fall-pad [freq 440 split -5 t 4]
+  (let [f-env (env-gen (perc t t) 1 1 0 1 :free)]
+    (rlpf (* 0.3 (saw [freq (cents freq split)]))
+          (+ (* 0.6 freq) (* f-env 2 freq)) 0.2)))
 
-(defsynth overtone-scope {:in 0 :buf 1}
-  (record-buf.ar (in.ar :in) :buf))
+(rise-fall-pad)
+(rise-fall-pad 440 -10)
+(rise-fall-pad 220 5 1)
+(rise-fall-pad 660 -3 2)
 
-;TODO: Use this synthdef for a regression test, it found a few bugs
-; * first we need better OSC feedback from the server
-(defsynth buzz {:pitch 40 :cutoff 300}
-  (let [a (lpf.ar (saw.ar (midicps :pitch)) (+ (lf-noise-1.kr 10) :cutoff))
-        b (sin-osc.ar (midicps (- :pitch 12)))]
-  (out.ar 0 (pan2.ar (+ a b)))))
-
-(comment deftest buf-synths-test []
-  (let [s (synth "scope-synth" {:in 0 :buf 1} 
-                 (record-buf.ar (in.ar :in) :buf))]
-    s))
-
-(defn synthdef-tests []
-  (binding [*test-out* *out*]
-    (run-tests 'synthdef-test)))
+(defsynth resonant-pad [freq 440 split -5 t 4 lfo 0.5 depth 10]
+  (let [f-env (env-gen (perc t t) 1 1 0 1 :free)
+        lfo (* depth (sin-osc:kr lfo))]
+    (rlpf (* 0.3 (+ (square freq) (lf-tri (+ lfo (cents freq split)))))
+          (+ (* 0.8 freq) (* f-env 2 freq)) 3/4)))

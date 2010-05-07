@@ -43,6 +43,7 @@
         on (fn [stroke handler] (assoc insert-mode
                                        (key-stroke stroke)
                                        (text-action handler)))]
+    (on "control N" file-new)
     (on "control O" file-open)
     (on "control S" file-save)
     (on "control A" select-all)

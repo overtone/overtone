@@ -6,6 +6,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; File Operations
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defn file-new
+  []
+  (doto (:editor @editor*)
+    (.moveCaretPosition 0)
+    (.setText ""))
+  (dosync
+    (alter editor* assoc :current-path :new-file)))
+
 (defn- file-open-dialog [parent & [path]]
   (let [chooser (if path
                   (JFileChooser. path)
@@ -25,7 +33,7 @@
      (doto (:editor @editor*)
        (.moveCaretPosition 0)
        (.setText (slurp path)))
-     (dosync 
+     (dosync
        (alter editor* assoc
               :current-path path
               :current-dir  dir)
@@ -42,21 +50,25 @@
       JFileChooser/CANCEL_OPTION nil
       JFileChooser/ERROR_OPTION  nil)))
 
-(defn file-save []
-  (spit (:current-path @editor*) (.getText (:editor @editor*))))
+(defn file-save-as
+  ([] (if-let [path (file-save-dialog editor)]
+        (file-save-as path)))
+  ([path] (let [f (java.io.File. path)
+                dir (.getParent (java.io.File. "/home/rosejn/studio/samples/kit/boom.wav"))]
+            (if (or (not (.exists f))
+                    (and (.exists f) (confirm "File Save As"
+                                              (str "Are you sure you want to replace this file? "
+                                                   (.getCanonicalPath f)))))
+              (do
+                (spit path (.getText (:editor @editor*)))
+                (dosync (alter editor* assoc
+                               :current-path path
+                               :current-dir  dir)))))))
 
-(defn file-save-as [path]
-  (let [f (java.io.File. path)
-        dir (.getParent (java.io.File. "/home/rosejn/studio/samples/kit/boom.wav"))]
-    (if (or (not (.exists f))
-            (and (.exists f) (confirm "File Save As"
-                                      (str "Are you sure you want to replace this file? "
-                                           (.getCanonicalPath f)))))
-      (do
-        (spit path (.getText (:editor @editor*)))
-        (dosync (alter editor* assoc
-                       :current-path path
-                       :current-dir  dir))))))
+(defn file-save []
+  (if (= :new-file (:current-path @editor*))
+    (file-save-as)
+    (file-save-as (:current-path @editor*))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Text Selection

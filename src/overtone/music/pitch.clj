@@ -12,14 +12,25 @@
 (defmacro defratio [rname ratio]
   `(defn ~rname [freq#] (* freq# ~ratio)))
 
+; Perfect consonance
 (defratio unison    1/1)
 (defratio octave    2/1)
 (defratio fifth     3/2)
-(defratio fourth    4/3)
+
+; Imperfect consonance
 (defratio sixth     5/3)
 (defratio third     5/4)
+
+; Dissonance
+(defratio fourth    4/3)
 (defratio min-third 6/5)
 (defratio min-sixth 8/5)
+
+(defn cents
+  "Returns a frequency computed by adding n-cents to freq.  A cent is a
+  logarithmic measurement of pitch, where 1-octave equals 1200 cents."
+  [freq n-cents]
+  (* freq (java.lang.Math/pow 2 (/ n-cents 1200))))
 
 ;; MIDI
 (def midi-range (range 128))
@@ -149,28 +160,28 @@
 (defn midi->hz
   "Convert a midi note number to a frequency in hz."
   [note]
-  (* 440.0 (Math/pow 2.0 (/ (- note 69.0) 12.0))))
+  (* 440.0 (java.lang.Math/pow 2.0 (/ (- note 69.0) 12.0))))
 
 ; cpsmidi
 (defn hz->midi
   "Convert from a frequency to the nearest midi note number."
   [freq]
-  (Math/round (+ 69
+  (java.lang.Math/round (+ 69
                  (* 12
-                    (/ (Math/log (* freq 0.0022727272727))
-                       (Math/log 2))))))
+                    (/ (java.lang.Math/log (* freq 0.0022727272727))
+                       (java.lang.Math/log 2))))))
 
 ; ampdb
 (defn amp->db
   "Convert linear amplitude to decibels."
   [amp]
-  (* 20 (Math/log10 amp)))
+  (* 20 (java.lang.Math/log10 amp)))
 
 ; dbamp
 (defn db->amp
   "Convert decibels to linear amplitude."
   [db]
-  (Math/exp (* (/ db 20) (Math/log 10))))
+  (java.lang.Math/exp (* (/ db 20) (java.lang.Math/log 10))))
 
 ; TODO: finish this...
 (defn chord
