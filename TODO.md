@@ -1,3 +1,31 @@
+== 0.2 Release
+
+- make things work where there are multiple "roots" in a synthdef graph
+
+== Studio
+
+* route all synths and samplers to a main mixer bus, providing panning, EQ, and
+volume controls.
+  - figure out how FX should work into this
+
+* have a mechanism to route sound to a preview channel for listening to
+something in headphones to try it out.
+
+* create a basic EQ that can be used on any track
+
+* basic record functionality for root group
+
+* create a basic volume and pan control node that can be used for the master
+volume and per synth-track control
+
+* implementing some basic midi mapping
+
+* fill out metronome functionality
+
+* hook up the sequencer
+
+== General
+
 * creating a group for every synth might be overkill, because it ends up filling
 up our group ID space unneccessarily.  Maybe we need to keep synth a bit lower
 level and start working on a higher level abstraction that automatically does
@@ -8,62 +36,13 @@ we can more easily develop in Overtone libs and then use or require just what
 we are changing (currently their are conflicts because vars overshadow the
 immigrated vars in overtone.live)
 
-* route all synths and samplers to a main mixer bus, providing panning, EQ, and
-volume controls.
-  - figure out how FX should work into this
-
-* have a mechanism to route sound to a preview channel for listening to
-something in headphones to try it out.
-
-* create and open new source file in the editor, file-new
-
-* add another argument mode to ugens so that buffers and samples can be passed
-to ugens as arguments and their :id property will be used 
-  - get rid of UGen wrapper function currently doing this for all ugens
-
-* basic record functionality for root group
-
-* implementing some basic midi mapping
+* create a function that prints out the currently running synths
+ - maybe use node-tree + info from the synth-groups
 
 * view a table or tree of running synths with the ability to kill and maybe
 modify control params
 
-* fill out metronome functionality
-
-* hook up the sequencer
-
-* get some basic keymaps setup with basic, vim and emacs inspired bindings
-
-* implement motion commands
-
 * allow for re-arranging nodes and groups using a tree/table view
-
-* create a basic volume and pan control node that can be used for the master
-volume and per synth-track control
-
-* create a basic EQ that can be used on any track
-
-* do some sanity checking regarding the default group, make sure we reset
-correctly, add synths and nodes correctly, etc...
-
-* implement a wave drawing window so data can be directly inserted into a buffer
-
-* complete the jline support in the repl so we can get history and tab
-completion working
-
-* either improve the jsyntax clojure parser so we can have nice highlighting of
-ugen names and Overtone functions, or else replace it with our own.  (Maybe
-from paredit.clj...)
-
-* add docs to Unary and Binary op ugens 
-
-== 0.2 Release
-
-- make things work where there are multiple "roots" in a synthdef graph
-
-== General:
-
-* create a function that prints out the currently running synths
 
 * write a number adjustment label to replace the lame looking JSpinner 
  - use a regular JLabel, and take min, max, step args
@@ -73,24 +52,36 @@ from paredit.clj...)
 
 == Editor 
 
-* Add Undo/Redo to the editor
+* create and open new source file in the editor, file-new
 
-* add eval top level form to editor
+* Add Undo/Redo to the editor
 
 * make text editor have two modes, sort of VI style
  - non-editing mode makes functions clickable and puts docs into a help panel
  - support vi commands for motions, search and replace, and selection
 
-* add some key-commands for evaluation
+* add more key-commands for evaluation
+ - current top level form 
  - whole file (or current-selection)
  - current enclosing top-level form
  - current immediate form
 
+* either improve the jsyntax clojure parser so we can have nice highlighting of
+ugen names and Overtone functions, or else replace it with our own.  (Maybe
+from paredit.clj...)
+
 * add some par-edit style form modification commands
+ - look into paredit.clj on github
+
+* get some basic keymaps setup with basic, vim and emacs inspired bindings
+
+* implement motion commands
 
 == Curve Editor
 
 * add support for different curve types for the line segments
+ - the curve functions are implemented in overtone.core.envelope, so we can 
+hopefully do this by just rendering the lines emitted by these functions.
 
 * support add and removing control points
 
@@ -109,6 +100,8 @@ being driven by the envelope
 
 * paint and erase waveform data
 
+* implement a wave drawing window so data can be directly inserted into a buffer
+
 === Spectrogram
 
 * do FFT and view frequency data
@@ -116,6 +109,15 @@ being driven by the envelope
 * apply various PV filters directly to active buffer and view output
 
 == Synths and Audio:
+
+* do some sanity checking regarding the default group, make sure we reset
+correctly, add synths and nodes correctly, etc...
+
+* add docs to Unary and Binary op ugens 
+
+* add another argument mode to ugens so that buffers and samples can be passed
+to ugens as arguments and their :id property will be used 
+  - get rid of UGen wrapper function currently doing this for all ugens
 
 * implement the rest of the argument modes for ugens, as described in
   docs/dev/core/ugen_definition.mdml.
@@ -125,9 +127,8 @@ being driven by the envelope
 visualization.
  - also create level meter, pan, and EQ synths
 
-* Create a fully native Clojure implementation of the SuperCollider interface on
-* top of Java sound
-so we can run inside of the browser, on phones, etc...
+* Create a mini Clojure/Java implementation of the SuperCollider interface on
+top of Java sound so we can run inside of the browser, on phones, etc...
 
 == Midi and Devices:
 

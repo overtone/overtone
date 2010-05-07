@@ -1,24 +1,54 @@
 (ns examples.tutorial
   (:use overtone.live))
 
-; Add all of the synthesis functions to the current namespace.
+; Welcome to Project Overtone!
+
+; For starters lets just make some noise and get the basics of working with
+; Overtone figured out.  Overtone is implemented in Clojure, and it uses the
+; SuperCollider synthesis server for the back-end audio engine.  (So if you are
+; already familiar with SC then much of this will be familiar to you.)  You
+; should either be reading this file inside the Overtone application, or else
+; in an editor that lets you interactively evaluate Clojure code.
+
+; Start by getting all of the synthesis functions into the current namespace.
 ; We do it this way because we also need to override a number
-; of the built-in functions from clojure.core, like +, -, *, etc...
+; of the built-in functions from clojure.core, like +, -, *, etc...  But this
+; could change in the future.
 (refer-ugens)
 
-; In Overtone you define synthesizers that can be executed on the SuperCollider
-; server.  Create an anonymous synth like this.  It returns a function, that 
-; when called will trigger the synth.
-(def foo (synth [] (sin-osc 440)))
-(def id (foo))  ; trigger the synth, saving the instance ID
+; Boot the audio engine by either clicking the boot button to the top right,
+; or else call boot.
+(boot)
+
+; In Overtone you create synthesizers to generate audio.  You can think of a
+; synthesizer definition as the design or blueprint for a signal processor.
+; (In Max/MSP or PureData they call this a patch.) 
+
+; The synth macro takes a synth design, compiles it, loads it into the 
+; audio server, and returns a function that can be used to trigger the synth.
+; Here is a 440 hz sin wave:
+(def foo (synth (sin-osc 440)))
+
+; Trigger the synth by calling it like a regular function.  When called synth
+; functions return an ID number representing an instance ID, which can be used
+; to kill the synth or modify its parameters.
+(def id (foo))  ; trigger the synth, saving its ID
 (kill id)       ; kill the instance
 
-(defsynth phased [freq-a 440 phase-a 0.0 freq-b 440 phase-b 2.0 freq-c 440 phase-c 3.14]
-  (* 0.2 (+ (sin-osc freq-a phase-a)
-            (sin-osc freq-b phase-b)
-            (sin-osc freq-c phase-c))))
-(phased)
-(kill 7)
+; Use defsynth to create synthesizers and assign the player function to a symbol
+; in the current namespace, just like fn and defn in clojure.core.  Note that
+; synthesizer parameters must always have a default value.
+(defsynth my-sin [freq 440]
+  (sin-osc freq))
+
+; play the sin wave at a couple frequences
+(my-sin)     ; uses the default
+(my-sin 220) ; an octave lower
+(my-sin 447) 
+
+; If you lose a synth ID or things are going crazy and you just need to kill
+; all the current synths, call reset to clear all the live synths. 
+(reset)
 
 ; Square wave, created by a pulse generator
 ; Adjust the width to create different harmonics
@@ -63,7 +93,7 @@
 ; A shortcut for doing the same thing, just like def and defn.
 (defsynth foo [] (sin-osc 440))
 
-; Now if we trigger the synth, it will return the ID of the instance of 
+; Now if we trigger the synth, it will return the ID of the instance of
 ; the synth that was created.  Turn your volume down, because this is
 ; going to make some noise.
 (def id (foo))
@@ -86,7 +116,7 @@
 
 ; As you might have noticed, the synths can take parameters too, so that you can
 ; control their input values both when you instantiate a synth, and later while
-; they are running.  It works almost like a regular function definition, except 
+; they are running.  It works almost like a regular function definition, except
 ; you need to include default values.  Here is our sin wave oscillator that now
 ; has a controllable frequency.
 
