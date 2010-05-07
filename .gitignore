@@ -4,7 +4,7 @@
 *.scsyndef
 session
 autodoc/**
-lib
+./lib
 ext
 web
 native

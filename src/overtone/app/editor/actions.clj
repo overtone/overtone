@@ -51,7 +51,7 @@
       JFileChooser/ERROR_OPTION  nil)))
 
 (defn file-save-as
-  ([] (if-let [path (file-save-dialog editor)]
+  ([] (if-let [path (file-save-dialog (:editor @editor*))]
         (file-save-as path)))
   ([path] (let [f (java.io.File. path)
                 dir (.getParent (java.io.File. "/home/rosejn/studio/samples/kit/boom.wav"))]
