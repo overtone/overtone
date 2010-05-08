@@ -125,7 +125,7 @@
   bundle.  This bundling is thread-local, so you don't have to worry about
   accidentally scheduling packets into a bundle started on another thread."
   [time-ms & body]
-  `(in-osc-bundle @server* ~time-ms ~@body))
+  `(in-osc-bundle @server* ~time-ms (do ~@body)))
 
 (defn debug
   "Control debug output from both the Overtone and the audio server."
