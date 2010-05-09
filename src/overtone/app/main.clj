@@ -88,7 +88,7 @@
 
     (on-action boot-btn #(boot))
     (on-action help-btn #(println "help is on the way!"))
-    (on-action quit-btn #(do (quit) (System/exit 0)))
+    (on-action quit-btn #(do (try (quit) (finally (System/exit 0)))))
 
     (doto btn-panel
       (.setBackground (:background @app*))

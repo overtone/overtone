@@ -320,16 +320,25 @@
     (= sync-id reply-id)))
 
 (defn connect-jack-ports
-  "Maybe this isn't necessary, since we can use the SC_JACK_DEFAULT_OUTPUTS
-  environment variable..."
-  [& [n-channels]]
-  (let [n-channels (or n-channels 2)
-        port-list (sh "jack_lsp")
-        sc-outputs (re-find #"SuperCollider.*:out_" port-list)]
-    (doseq [i (range n-channels)]
-      (sh "jack_connect"
-          (str sc-outputs (+ i 1))
-          (str "system:playback_" (+ i 1))))))
+  "Connect the jack input and output ports as best we can.  If jack ports are always different
+  names with different drivers or hardware then we need to find a better strategy to auto-connect."
+  ([] (connect-jack-ports 2))
+  ([n-channels]
+  (let [port-list (sh "jack_lsp")
+        sc-ins         (re-seq #"SuperCollider.*:in_[0-9]*" port-list)
+        sc-outs        (re-seq #"SuperCollider.*:out_[0-9]*" port-list)
+        system-ins     (re-seq #"system:capture_[0-9]*" port-list)
+        system-outs    (re-seq #"system:playback_[0-9]*" port-list)
+        interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
+        interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
+        connections (partition 2 (concat 
+                                   (interleave sc-outs system-outs)
+                                   (interleave sc-outs interface-outs)
+                                   (interleave system-ins sc-ins)
+                                   (interleave interface-ins sc-ins)))]
+    (doseq [[src dest] connections]
+      (sh "jack_connect" src dest)
+      (log/info "jack_connect " src dest)))))
 
 (def SC-PATHS {:linux "scsynth"
                :windows "C:/Program Files/SuperCollider/scsynth.exe"
