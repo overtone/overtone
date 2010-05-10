@@ -92,15 +92,16 @@
 
 (defn callable-map [m fun]
     (proxy [clojure.lang.Associative clojure.lang.IFn] []
-      (count [] (count m))
-      (seq   [] (seq m))
-      (cons  [[k v]] (callable-map (assoc m k v)))
-      (empty [] {})
-      (equiv [o] (= o m))
+      (count       [] (count m))
+      (seq         [] (seq m))
+      (cons        [[k v]] (callable-map (assoc m k v) fun))
+      (empty       [] {})
+      (equiv       [o] (= o m))
       (containsKey [k] (contains? m k))
       (entryAt     [k] (map-entry k (get m k)))
-      (assoc       [k v] (callable-map (assoc m k v)))
+      (assoc       [k v] (callable-map (assoc m k v) fun))
       (valAt
-        ([k] (get m k))
-        ([k d] (get m k d)))
-      (invoke [& args] (apply fun args))))
+                  ([k] (get m k))
+                  ([k d] (get m k d)))
+      (invoke      [& args] (apply fun args))
+      (applyTo    ([args] (apply fun args)))))
