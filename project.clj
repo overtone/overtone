@@ -1,9 +1,11 @@
 (defproject overtone "0.1.1"
   :description "An audio/musical experiment."
+  :url "http://project-overtone.org"
+  :namespaces [overtone.app.main]
   :dependencies [[org.clojure/clojure "1.1.0"]
                  [org.clojure/clojure-contrib "1.1.0"]
                  [org.freedesktop.tango/tango-icon-theme "0.8.90"]
-                 [org.clojars.nakkaya/miglayout "3.7"]
+                 [org.clojars.nakkaya/miglayout "3.7.3.1"]
                  [scenegraph "0.0.1-SNAPSHOT"]
 
                  [overtone/jsyntaxpane "0.9.5-b27"]
