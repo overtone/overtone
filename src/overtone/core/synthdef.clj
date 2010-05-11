@@ -1,4 +1,4 @@
-(ns 
+(ns
   #^{:doc "This is primarily a specification for SuperCollider synthesizer
           definition files.  Additionally there are functions for reading and
           writing to and from byte arrays, files, and URLs.  "
@@ -9,7 +9,6 @@
   (:use byte-spec
      (overtone.core util)
      clojure.contrib.seq-utils))
-
 
 ;; param-name is :
 ;;   pstring - the name of the parameter
@@ -29,7 +28,7 @@
 (defspec input-spec
 				 :src   :int16
 				 :index :int16)
- 
+
 ;; an output-spec is :
 ;;   int8 - calculation rate
 ;; end
@@ -61,26 +60,26 @@
 ;;   pstring - name of the variant
 ;;   [float32] - an array of preset values, one for each synthdef parameter
 (defspec variant-spec
-         :name :string
+         :name   :string
          :params [:float32])
 
 ;; synth-definition (sdef):
 ;;   pstring - the name of the synth definition
-;;   
+;;
 ;;   int16 - number of constants (K)
 ;;   [float32] * K - constant values
-;;   
+;;
 ;;   int16 - number of parameters (P)
 ;;   [float32] * P - initial parameter values
-;;   
+;;
 ;;   int16 - number of parameter names (N)
 ;;   [param-name] * N
-;;   
+;;
 ;;   int16 - number of unit generators (U)
 ;;   [ugen-spec] * U
 ;;
 ;;  * constants are static floating point inputs
-;;  * parameters are named input floats that can be dynamically controlled 
+;;  * parameters are named input floats that can be dynamically controlled
 ;;    - (/s.new, /n.set, /n.setn, /n.fill, /n.map)
 (defspec synth-spec
          :name         :string
@@ -94,7 +93,7 @@
          :ugens        [ugen-spec]
          :n-variants   :int16 0
          :variants     [variant-spec])
- 
+
 ;; a synth-definition-file is :
 ;;   int32 - four byte file type id containing the ASCII characters: "SCgf"
 ;;   int32 - file version, currently zero.
@@ -123,32 +122,32 @@
 
 (defn synthdef? [obj] (= ::synthdef (type obj)))
 
-; TODO: byte array shouldn't really be the default here, but I don't 
+; TODO: byte array shouldn't really be the default here, but I don't
 ; know how to test for one correctly... (byte-array? data) please?
-(defn synthdef-read 
+(defn synthdef-read
   "Reads synthdef data from either a file specified using a string path,
   a URL, or a byte array."
   [data]
-  (first (:synths 
-    (cond 
-      (string? data) 
+  (first (:synths
+    (cond
+      (string? data)
       (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" data)))
       (instance? java.net.URL data)
       (spec-read-url synthdef-file-spec data)
       (byte-array? data) (spec-read-bytes synthdef-file-spec data)
       :default (throw (IllegalArgumentException. (str "synthdef-read expects either a string, a URL, or a byte-array argument.")))))))
 
-(defn synthdef-write 
+(defn synthdef-write
   "Write a synth definition to a new file at the given path, which includes
   the name of the file itself.  (e.g. /home/rosejn/synths/bass.scsyndef)"
   [path sdef]
   (spec-write-file synthdef-file-spec (synthdef-file sdef) path))
 
-(defn synthdef-bytes 
+(defn synthdef-bytes
   "Produces a serialized representation of the synth definition understood
   by SuperCollider, and returns it in a byte array."
   [sdef]
-  (spec-write-bytes synthdef-file-spec 
+  (spec-write-bytes synthdef-file-spec
     (cond
       (synthdef? sdef) (synthdef-file sdef)
       (synthdef-file? sdef) sdef)))
@@ -156,38 +155,38 @@
 (defn- ugen-print [u]
   (println
     "--"
-    "\n    name: " (:name u)
-    "\n    rate: " (:rate u)
-    "\n    n-inputs: " (:n-inputs u)
+    "\n    name: "      (:name u)
+    "\n    rate: "      (:rate u)
+    "\n    n-inputs: "  (:n-inputs u)
     "\n    n-outputs: " (:n-outputs u)
-    "\n    special: " (:special u)
-    "\n    inputs: " (:inputs u)
-    "\n    outputs: " (:outputs u)))
+    "\n    special: "   (:special u)
+    "\n    inputs: "    (:inputs u)
+    "\n    outputs: "   (:outputs u)))
 
 (declare synthdef-print)
 (defn- synthdef-file-print [s]
   (println
-    "id: " (:id s)
-    "\nversion: " (:version s)
+    "id: "         (:id s)
+    "\nversion: "  (:version s)
     "\nn-synths: " (:n-synths s)
     "\nsynths:")
-  (doseq [synth (:synths s)] 
+  (doseq [synth (:synths s)]
     (synthdef-print synth)))
 
 (defn synthdef-print [s]
   (println
-    "  name: " (:name s)
+    "  name: "          (:name s)
     "\n  n-constants: " (:n-constants s)
-    "\n  constants: " (:constants s)
-    "\n  n-params: " (:n-params s) 
-    "\n  params: " (:params s)
-    "\n  n-pnames: " (:n-pnames s) 
-    "\n  pnames: " (:pnames s)
-    "\n  n-ugens: " (:n-ugens s))
+    "\n  constants: "   (:constants s)
+    "\n  n-params: "    (:n-params s)
+    "\n  params: "      (:params s)
+    "\n  n-pnames: "    (:n-pnames s)
+    "\n  pnames: "      (:pnames s)
+    "\n  n-ugens: "     (:n-ugens s))
   (doseq [ugen (:ugens s)]
     (ugen-print ugen)))
 
-(defn synth-controls 
+(defn synth-controls
   "Returns the set of control parameter name/default-value pairs for a synth definition."
   [sdef]
   (let [names (map #(keyword (:name %1)) (:pnames sdef))

@@ -4,7 +4,8 @@
   overtone.core.util
   (:require [overtone.core.log :as log])
   (:use clojure.contrib.def
-        clojure.stacktrace))
+        clojure.stacktrace)
+  (:import (java.util ArrayList Collections)))
 
 ; Some generic counters
 (def id-counters* (ref {}))
@@ -40,6 +41,13 @@
   "Choose a random note from notes."
   [notes]
   (get notes (rand-int (count notes))))
+
+;(defn shuffle
+;  "Shuffle a collection, returns a seq."
+;  [coll]
+;  (let [l (ArrayList. coll)]
+;    (Collections/shuffle l)
+;    (seq l)))
 
 ; Now available in recent Clojure versions as of Nov. 29, 2009...
 ;(defn byte-array [len]

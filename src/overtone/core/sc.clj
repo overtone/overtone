@@ -331,7 +331,7 @@
         system-outs    (re-seq #"system:playback_[0-9]*" port-list)
         interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
         interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
-        connections (partition 2 (concat 
+        connections (partition 2 (concat
                                    (interleave sc-outs system-outs)
                                    (interleave sc-outs interface-outs)
                                    (interleave system-ins sc-ins)
@@ -749,42 +749,9 @@
          leave-open)
     :done))
 
-(defn load-sample
-  "Load a wav file into a memory buffer.  Returns the buffer.
-
-    ; load a sample a
-    (load-sample \"/home/rosejn/studio/samples/kit/boom.wav\")
-
-  "
-  [path & args]
-  (let [id (alloc-id :audio-buffer)
-        args (apply hash-map args)
-        start (get args :start 0)
-        n-frames (get args :n-frames 0)
-        ready (atom :loading)
-        sample (with-meta {:id id
-                           :size n-frames
-                           :path path
-                           :ready? ready}
-                          {:type ::sample})]
-    (on-done "/b_allocRead" #(reset! ready true))
-    (snd "/b_allocRead" id path start n-frames)
-    sample))
-
-(defn sample?
-  [s]
-  (isa? (type s) ::sample))
-
-;; Samples are just audio files loaded into a buffer, so most buffer
-;; functions should work on samples.
-(derive ::sample ::buffer)
-
-(defn buffer-id
-  [buf]
-  (cond
-    (number? buf) buf
-    (buffer? buf) (:id buf)
-    (sample? buf) (:id (:buf buf))))
+(defmulti buffer-id type)
+(defmethod buffer-id java.lang.Integer [id] id)
+(defmethod buffer-id ::buffer [buf] (:id buf))
 
 (defn buffer-data
   "Get the floating point data for a buffer on the internal server."
@@ -797,9 +764,7 @@
       (.getFloatArray data 0 n-frames))))
 
 (defn buffer-info [buf]
-  (snd "/b_query" (cond
-                    (number? buf) buf
-                    (isa? (type buf) :overtone.core.sc/buffer) (buffer-id buf)))
+  (snd "/b_query" (buffer-id buf))
   (let [msg (recv "/b_info" REPLY-TIMEOUT)
         [buf-id n-frames n-channels rate] (:args msg)]
     {:n-frames n-frames
@@ -832,9 +797,9 @@
   (clear-ids :node)
   (alloc-id :node) ; ID zero is the root group
   (group :head 0)  ; ID one is the synth group
-  (dosync (ref-set synths* (zipmap (keys @synths*)
+  (dosync (ref-set synths* (doall (zipmap (keys @synths*)
                                    (repeat (count @synths*)
-                                           (group :tail SYNTH-GROUP))))))
+                                           (group :tail SYNTH-GROUP)))))))
 
 (defn restart
   "Reset everything and restart the SuperCollider process."
@@ -995,29 +960,4 @@
                        (name-synth-args args arg-names))]
       ;(println "synth: " named-args)
         (apply tgt-fn named-args))))
-
-; Define a default wav player synth
-;(on :connected #(
-;                 (defsynth buf-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-;                   (play-buf (buf-channels:kr buf) buf rate
-;                             1 start-pos 0.0
-;                             (if loop? 1 0) :free))
-;                 ))
-;
-
-(defn sample
-  "Loads a wave file into a memory buffer. Returns a function capable
-   of playing that sample.
-
-   ; e.g.
-   (sample \"/Users/sam/music/samples/flibble.wav\")
-
-  "
-  [path]
-  (let [s (load-sample path)
-        id (s :id)
-        player       #(node "granular" :buf id :dur 30)]
-    (callable-map {:player player
-                   :sample s}
-                  player)))
 

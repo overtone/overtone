@@ -1,6 +1,9 @@
 == 0.2 Release
 
-- make things work where there are multiple "roots" in a synthdef graph
+* Get Undo/Redo working again
+
+* Cleanup resizing so everything works correctly and allows for customizing the
+workspace.
 
 == Studio
 
@@ -25,6 +28,12 @@ volume and per synth-track control
 * hook up the sequencer
 
 == General
+
+* make things work where there are multiple "roots" in a synthdef graph
+ - got around it for now, but we want this for spectrograms...
+
+* figure out if the play-buf ugen should be able to have the number of channels
+as an input parameter, in which case we need to modify the num-outs mode.
 
 * creating a group for every synth might be overkill, because it ends up filling
 up our group ID space unneccessarily.  Maybe we need to keep synth a bit lower

@@ -28,9 +28,10 @@
   'overtone.core.event
   'overtone.core.sc
   'overtone.core.ugen
-  'overtone.core.envelope
   'overtone.core.synth
+  'overtone.core.sample
   'overtone.core.synthdef
+  'overtone.core.envelope
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning
