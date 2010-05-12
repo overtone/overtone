@@ -3,8 +3,6 @@
 
 (refer-ugens)
 
-(boot)
-
 ; Originally by Thor Magnusson
 (defsynth thor []
   (let [a (lf-noise0 8)]
@@ -26,7 +24,7 @@
         p (trig (saw x 1))
         y (sin-osc (* p x))
         z (sin-osc p)]
-    (free-verb 
+    (free-verb
          (grain-in 2 y (/ y 2) z (* p z) -1))))
 
 

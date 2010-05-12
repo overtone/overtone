@@ -4,8 +4,6 @@
 
 (refer-ugens)
 
-;(boot)
-
 (defsynth plop [freq 440 len 0.4]
   (* 0.4 (env-gen (perc 0.02 len) 1 1 0 1 :free)
      (sin-osc [(+ (* 3 (sin-osc 20)) freq) (/ freq 2)])))

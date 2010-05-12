@@ -13,7 +13,6 @@
       :default (hit :sin :pitch (+ 30 x) :dur (* y 50)))))
 
 (defn start []
-  (boot)
   (def s (osc-server 1234))
   (def hat (load-sample "/home/rosejn/projects/overtone/instruments/samples/kit/open-hat.wav"))
 

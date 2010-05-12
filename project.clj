@@ -2,8 +2,8 @@
   :description "An audio/musical experiment."
   :url "http://project-overtone.org"
   :namespaces [overtone.app.main]
-  :dependencies [[org.clojure/clojure "1.1.0"]
-                 [org.clojure/clojure-contrib "1.1.0"]
+  :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]
+                 [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]
                  [org.freedesktop.tango/tango-icon-theme "0.8.90"]
                  [org.clojars.nakkaya/miglayout "3.7.3.1"]
                  [scenegraph "0.0.1-SNAPSHOT"]
@@ -28,7 +28,7 @@
   :dev-dependencies [[native-deps "1.0.0"]
                      [leiningen-run "0.3"]
                      [lein-clojars "0.5.0-SNAPSHOT"]
-                     [autodoc "0.7.0"]
+                     [autodoc "0.7.1"]
                      [org.clojars.ato/nailgun "0.7.1"]
                      [org.clojars.rosejn/vimclojure "2.2.0-SNAPSHOT"]
                      [org.clojars.brandonw/lein-nailgun "1.0.0"]

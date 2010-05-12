@@ -117,8 +117,11 @@
   "Sends an OSC message."
   [path & args]
   (let [msg (apply osc-msg path (osc-type-tag args) args)]
-    (log/debug "snd (" @server* "): " msg)
-    (osc-send-msg @server* msg)))
+    (if (connected?)
+      (do
+        (log/debug "(snd " path ") " msg)
+        (osc-send-msg @server* msg))
+        (log/debug "(snd " path ") => :not connected" msg))))
 
 (defmacro at
   "All messages sent within the body will be sent in the same timestamped OSC

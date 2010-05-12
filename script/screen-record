@@ -1,7 +1,19 @@
 #!/bin/bash
 
-# Mostly keeping this as a reminder for how to use this very finnicky but nice utility...
-# TODO: hook up to the jam script so we can have one command to setup the environment,
-# start the editor in a jam session and record that window.
+WIN_ID=$(xwininfo | awk '/Window id:/ {print $4}')
+REC=recordmydesktop --windowid $WIN_ID
 
-recordmydesktop --use-jack=SuperCollider:out_1,SuperCollider:out_2 -x 661 -y 56 --width=764 --height=827
+SC=SuperCollider:out_1 SuperCollider:out_2
+MIC="system:AC0_dev0_MicIn1 left"
+
+TITLE=recorded-`date +%Y-%m-%d`.ogv
+
+echo "Recording to file: $TITLE"
+echo -n "Do you want to record from the Mic? ($MIC) [Y/n] [Enter]"
+read mic
+
+# Without Mic
+#recordmydesktop --use-jack=SuperCollider:out_1,SuperCollider:out_2 -x 661 -y 56 --width=764 --height=827
+
+# With Mic
+$REC --use-jack $SC $MIC -o $TITLE
