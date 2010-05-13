@@ -1,5 +1,8 @@
-(ns overtone.gui.curve
-  (:import 
+(ns 
+  #^{:doc "An envelope curve editor"
+     :author "Jeff Rose"}
+  overtone.gui.curve
+  (:import
     (java.awt Graphics Dimension Color BasicStroke Font)
     (java.awt.font TextAttribute)
     (java.awt.geom Rectangle2D$Float Path2D$Float Arc2D$Float Arc2D)
@@ -7,7 +10,7 @@
                                  SGAbstractShape$Mode)
     (com.sun.scenario.scenegraph.fx FXShape FXText)
     (com.sun.scenario.scenegraph.event SGMouseAdapter))
-  (:use 
+  (:use
     (overtone.core event envelope)
     (overtone.gui swing sg)
     clojure.stacktrace
@@ -36,18 +39,18 @@
 (defn curve-to-canvas [x y & [pad-x pad-y]]
   (let [pad-x (or pad-x (:padding-x @curve*))
         pad-y (or pad-y (:padding-y @curve*))]
-    [(+ pad-x (* x (/ (- (:width @curve*) 
-                         (* 2 pad-x)) 
+    [(+ pad-x (* x (/ (- (:width @curve*)
+                         (* 2 pad-x))
                       (:seconds @curve*))))
-     (+ pad-y 
+     (+ pad-y
         (* (- 1.0 y)
            (- (:height @curve*) (* 2 pad-y))))]))
 
 (defn canvas-to-curve [x y & [pad-x pad-y]]
   (let [pad-x (or pad-x (:padding-x @curve*))
         pad-y (or pad-y (:padding-y @curve*))]
-  [(/ (- x pad-x) (/ (- (:width @curve*) 
-                         (* 2 pad-x)) 
+  [(/ (- x pad-x) (/ (- (:width @curve*)
+                         (* 2 pad-x))
                       (:seconds @curve*)))
    (- 1.0 (/ (- y pad-y) (- (:height @curve*) (* 2 pad-y))))]))
 
@@ -72,7 +75,7 @@
         looper (nth sc-curve 3)
         segments (partition 4 (drop 4 sc-curve))
         start-point (curve-to-canvas 0.0 0.0)
-        [points t] (reduce (fn [[points t] [end dur shape curve]] 
+        [points t] (reduce (fn [[points t] [end dur shape curve]]
                              (let [t (+ t dur)]
                                [(conj points (curve-to-canvas t end)) t]))
                            [[start-point] 0.0]
@@ -85,7 +88,7 @@
         init-lvl (ffirst points)
         n-segs (dec (count points))
  ;       _ (println "init: " init-lvl " n-segs: " n-segs)
-        [segs _] (reduce (fn [[segs last-x] [x y]] 
+        [segs _] (reduce (fn [[segs last-x] [x y]]
  ;                      (println "segs: " segs "\nlast-x: " last-x "\nx,y: " x y)
                        (let [dur (- x last-x)]
                          [(concat segs [y dur 5 -4]) x]))
@@ -93,7 +96,7 @@
     (concat [init-lvl n-segs -99 -99] (flatten segs))))
 
 
-(defn curve-color 
+(defn curve-color
   "Set the primary envelope color.
 
   (curve-color :red)
@@ -104,9 +107,9 @@
   [& args]
   (let [arg (first args)
         args (if (= Color (type arg))
-               [(.getRed arg) 
-                (.getGreen arg) 
-                (.getBlue arg) 
+               [(.getRed arg)
+                (.getGreen arg)
+                (.getBlue arg)
                 (:fill-alpha @curve*)]
                args)
         line (:line @curve*)]
@@ -175,7 +178,7 @@
                                (.setTranslation trans (double new-x) (double new-y))
                                (.setText label (format "(%2.3f, %2.3f)" new-cx new-cy))
                                (.setShape line (points-to-path (Path2D$Float.) new-points))
-                               (dosync 
+                               (dosync
                                  (ref-set current-pos* (.getPoint %))
                                  (alter curve* assoc :points new-points))))
 
@@ -205,8 +208,8 @@
     (dosync (alter curve* assoc :points points))
     (dosync (alter curve* assoc :line line))
 
-    [line 
-     (reduce (fn [points [idx [x y]]] 
+    [line
+     (reduce (fn [points [idx [x y]]]
                (conj points (control-point line idx x y radius)))
              [] (indexed points))]))
 

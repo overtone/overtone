@@ -1,4 +1,7 @@
-(ns overtone.gui.repl
+(ns
+  #^{:doc "The Overtone repl"
+     :author "Fabian Aussems & Jeff Rose"}
+  overtone.gui.repl
   (:gen-class)
   (:import
    (java.util.concurrent TimeUnit TimeoutException)
@@ -95,22 +98,22 @@
 (def history-index* (ref -1))
 
 (defn history-up-action [input]
-  (on ::repl-write #(dosync 
+  (on ::repl-write #(dosync
                       (alter history* conj (:text %))
                       (ref-set history-index* -1)))
-  (proxy [javax.swing.AbstractAction] [] 
+  (proxy [javax.swing.AbstractAction] []
     (actionPerformed [evt]
-      (let [txt (nth @history* 
-                       (dosync (ref-set history-index* 
+      (let [txt (nth @history*
+                       (dosync (ref-set history-index*
                          (min (dec (count @history*)) (inc @history-index*)))))]
-      (in-swing 
+      (in-swing
         (.setText input txt))))))
 
 (defn history-down-action [input]
-  (proxy [javax.swing.AbstractAction] [] 
+  (proxy [javax.swing.AbstractAction] []
     (actionPerformed [evt]
                      (in-swing
-                       (.setText input 
+                       (.setText input
                                  (if (< @history-index* 1)
                                    (do
                                      (dosync (ref-set history-index* -1))
@@ -118,7 +121,7 @@
                                    (nth @history* (dosync (alter history-index* dec)))))))))
 
 (defn repl-enter-action [input]
-  (proxy [javax.swing.AbstractAction] [] 
+  (proxy [javax.swing.AbstractAction] []
     (actionPerformed [evt]  (let [text (.getText input)]
                               (if (and (not (empty? text))
                                        (balanced? text))
@@ -156,19 +159,21 @@
        (javax.swing.KeyStroke/getKeyStroke (java.awt.event.KeyEvent/VK_ENTER) 0)
         (repl-enter-action input)))
 
-    (println "input margin: " (.getMargin input))
     (dosync (ref-set repl-input* input))
     (doto input
       (.setKeymap key-map)
       (.setEditable false)
       (.setBorder (LineBorder. java.awt.Color/BLACK))
       (.setMargin (Insets. 0 20 0 1))
-      (.setMinimumSize (Dimension. 100 30)))
+      (.setPreferredSize (Dimension. 400 20))
+      (.setMinimumSize (Dimension. 100 10)))
 
     (doto history
       (.setEditable false)
       (.setBorder (LineBorder. Color/BLACK))
-      (.setMinimumSize (Dimension. 100 100)))
+      (.setMinimumSize (Dimension. 100 40))
+      (.setPreferredSize (Dimension. 400 400))
+      )
 
     (doto panel
       (.setLayout layout)

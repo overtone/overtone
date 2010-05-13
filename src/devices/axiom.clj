@@ -8,28 +8,29 @@
 ; * midi faders (left to right) :chan 0, :cmd 176, :data1 [71 - x] :data2 (slider value)
 ; * keys :chan 0, :cmd 144, :data1 [36 - 96] :data2 (velocity)
 
-(def axiom (midi-in "axiom"))
+(defn axiom []
+  (midi-in "axiom"))
 
-(defsynth trancy-waves [note 40 amp 0.8 gate 1 
-                        a 0.01 s 0.4 r 0.3]
-  (* amp (env-gen (asr a s r) gate 1 0 1 :free)
-     (rlpf
-        (+ (saw (midicps note))
-        (saw (midicps (+ 9 note)))
-        (sin-osc (midicps (- 12 note))))
-        (midicps note) 0.6)))
-
-(def note-synths* (ref {}))
-
-(defn midi-player [event ts]
-  (if (zero? (:vel event))
-    (do
-      (ctl (get @note-synths* (:note event)) :gate 0)
-      (dosync (alter note-synths* dissoc (:note event))))
-    (dosync (alter note-synths* assoc (:note event)
-                   (trancy-waves (:note event) (/ (:vel event) 128.0))))))
-
-(midi-handle-events axiom #'midi-player)
+;(defsynth trancy-waves [note 40 amp 0.8 gate 1
+;                        a 0.01 s 0.4 r 0.3]
+;  (* amp (env-gen (asr a s r) gate 1 0 1 :free)
+;     (rlpf
+;        (+ (saw (midicps note))
+;        (saw (midicps (+ 9 note)))
+;        (sin-osc (midicps (- 12 note))))
+;        (midicps note) 0.6)))
+;
+;(def note-synths* (ref {}))
+;
+;(defn midi-player [event ts]
+;  (if (zero? (:vel event))
+;    (do
+;      (ctl (get @note-synths* (:note event)) :gate 0)
+;      (dosync (alter note-synths* dissoc (:note event))))
+;    (dosync (alter note-synths* assoc (:note event)
+;                   (trancy-waves (:note event) (/ (:vel event) 128.0))))))
+;
+;(midi-handle-events axiom #'midi-player)
 
 ;(def midi-log* (ref []))
 ;

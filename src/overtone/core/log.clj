@@ -1,4 +1,7 @@
-(ns overtone.core.log
+(ns 
+  #^{:doc "Basic logging functionality."
+     :author "Jeff Rose"}
+  overtone.core.log
   (:import (java.util.logging Logger Level ConsoleHandler FileHandler
                               StreamHandler SimpleFormatter))
   (:use (overtone.core setup)))
@@ -35,9 +38,9 @@
   (.addHandler LOGGER (print-handler)))
 
 (defonce LOG-SETUP?
-  (do 
+  (do
     (level DEFAULT-LEVEL)
-    
+
     ;(.setOutputStream LOG-CONSOLE *out*)
     (.setFormatter LOG-FILE-HANDLER (SimpleFormatter.))
     ;(.addHandler LOGGER LOG-CONSOLE)

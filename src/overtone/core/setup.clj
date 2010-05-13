@@ -1,10 +1,13 @@
-(ns overtone.core.setup
+(ns 
+  #^{:doc "Library initialization and configuration."
+     :author "Jeff Rose"}
+  overtone.core.setup
   (:import (java.io File))
   (:use (overtone.core config)))
 
 (defn- get-os []
   (let [os (System/getProperty "os.name")]
-    (cond 
+    (cond
       (re-find #"[Ww]indows" os) :windows
       (re-find #"[Ll]inux" os)   :linux
       (re-find #"[Mm]ac" os)     :mac)))

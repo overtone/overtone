@@ -1,4 +1,7 @@
-(ns overtone.studio.rig
+(ns 
+  #^{:doc "Higher level instrument and studio abstractions."
+     :author "Jeff Rose"}
+  overtone.studio.rig
   (:use (overtone.core sc synth)
      (overtone.music rhythm pitch))
   (:require overtone.studio.fx))
@@ -39,5 +42,5 @@
 (defn track [track-name & [n-channels]]
   {})
 
-(defsynth record-bus [bus-num path]
-  )
+;(defsynth record-bus [bus-num path]
+;  )

@@ -2,8 +2,8 @@
   (:use clojure.contrib.duck-streams)
   (:import (java.io FileOutputStream FileInputStream)))
 
-;; Provides a simple key/value configuration system with support for automatically 
-;; persisting to a file on disk.  The config file is serialized clojure code which 
+;; Provides a simple key/value configuration system with support for automatically
+;; persisting to a file on disk.  The config file is serialized clojure code which
 ;; is easily editable as a text file.
 
 (defonce config*  (ref {}))
@@ -33,9 +33,9 @@
   (save-config @store-path* @config*))
 
 (defn live-config
-  "Use the configuration database located at the given path, restoring the current config 
+  "Use the configuration database located at the given path, restoring the current config
 values if it already exists, and optionally persisting any config-value changes as they occur.
-  
+
   (live-config \"~/.app-config\")
 
   ; Anytime the config* ref is modified it will be written to the config file.  Beyond that
@@ -56,7 +56,7 @@ values if it already exists, and optionally persisting any config-value changes 
   (:use clojure.contrib.test-is)
   (:require config))
 
-(deftest test-basic [] 
+(deftest test-basic []
          (config/set-all {:a 1 :b 2})
          (is (= 1 (config/value :a)))
 
@@ -78,6 +78,6 @@ values if it already exists, and optionally persisting any config-value changes 
 
          (config/restore "test")
          (is (= 2 (config/value :b)))
-         
+
          (delete-file "test"))
 )

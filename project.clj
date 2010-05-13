@@ -1,7 +1,11 @@
 (defproject overtone "0.1.1"
   :description "An audio/musical experiment."
   :url "http://project-overtone.org"
-  :namespaces [overtone.app.main]
+  :main overtone.app.main
+  :autodoc {:load-except-list [#"/test/" #"/classes/" #"/devices/"]
+            :namespaces-to-document ["overtone.core" "overtone.gui" "overtone.music" "overtone.studio"],
+            :trim-prefix "overtone.",}
+  :namespaces [overtone.app.main] ; ns to compile
   :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]
                  [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]
                  [org.freedesktop.tango/tango-icon-theme "0.8.90"]
@@ -33,5 +37,4 @@
                      [org.clojars.rosejn/vimclojure "2.2.0-SNAPSHOT"]
                      [org.clojars.brandonw/lein-nailgun "1.0.0"]
                      [swank-clojure "1.1.0-SNAPSHOT"]
-                     [leiningen/lein-swank "1.1.0"]]
-  :main overtone.app.main)
+                     [leiningen/lein-swank "1.1.0"]])

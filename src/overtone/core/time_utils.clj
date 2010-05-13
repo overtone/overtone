@@ -1,4 +1,7 @@
-(ns overtone.core.time-utils
+(ns 
+  #^{:doc "Functions to help manage and structure computation in time."
+     :author "Jeff Rose"}
+  overtone.core.time-utils
   (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit
                                  PriorityBlockingQueue)))
 
@@ -18,14 +21,14 @@
 ; directly, and it's available on all Sun JVM supported platforms.
 ;
 ; (def perf (sun.misc.Perf/getPerf))
-; 
+;
 ; resolution in ticks per second
 ; (.highResFrequency perf) => 1000000 (mhz) on my laptop
 ;
 ; current number of ticks since start of this JVM
 ; (.highResCounter perf)
 ;
-; The ScheduledThreadPoolExecutor is supposed to use the best available clock, 
+; The ScheduledThreadPoolExecutor is supposed to use the best available clock,
 ; so that's where we'll start.  Eventually we should try with the real-time JVM if
 ; it seems that timing isn't accurate enough.
 
@@ -35,16 +38,16 @@
 (defn now []
   (System/currentTimeMillis))
 
-(defn schedule 
+(defn schedule
   "Schedules fun to be executed after ms-delay milliseconds."
   [fun ms-delay]
   (.schedule *player-pool* fun (long ms-delay) TimeUnit/MILLISECONDS))
 
-(defn periodic 
+(defn periodic
   "Calls fun every ms-period, and takes an optional initial-delay for the first call."
 
   [fun ms-period & [initial-delay]]
-  (let [initial-delay (if initial-delay 
+  (let [initial-delay (if initial-delay
                         (long initial-delay)
                         (long 0))]
     (.scheduleAtFixedRate *player-pool* fun initial-delay (long ms-period) TimeUnit/MILLISECONDS)))
@@ -58,9 +61,9 @@
 (defn stop-player [player & [now]]
   (.cancel player (or now false)))
 
-; Recursion in Time 
-;   By passing a function using #'foo syntax instead of just foo, when later 
-; called by the scheduler it will lookup based on the symbol rather than using 
+; Recursion in Time
+;   By passing a function using #'foo syntax instead of just foo, when later
+; called by the scheduler it will lookup based on the symbol rather than using
 ; the instance of the function defined earlier.
 ; (call-at (+ dur (now)) #'my-melody arg1 arg2)
 

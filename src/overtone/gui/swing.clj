@@ -1,4 +1,7 @@
-(ns overtone.gui.swing
+(ns 
+  #^{:doc "Swing helper functions"
+     :author "Fabian Aussems & Jeff Rose"}
+  overtone.gui.swing
   (:import (clojure.lang RT)
            (java.awt Toolkit GraphicsEnvironment)
            (java.awt.event ActionListener)
@@ -19,12 +22,12 @@
 (defn icon [path]
   (ImageIcon. (resource-url path)))
 
-(defn button 
+(defn button
   "Creates a JButton with the associated text and handler or icon, tooltip,
   and handler.
 
   (button \"Save\" #(save-file ...))
-  (button \"Save the current file\" 
+  (button \"Save the current file\"
           \"path/to/my/icon/save.png\"
           #(save-file ...))
   "

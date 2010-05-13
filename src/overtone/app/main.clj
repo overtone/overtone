@@ -16,7 +16,7 @@
     (com.javadocking.model FloatDockModel)
     (com.javadocking DockingManager))
   (:use (overtone.app editor tools browser)
-        (overtone.core sc ugen synth envelope event time-utils)
+        (overtone.core sc ugen synth envelope event time-utils config)
         (overtone.gui swing sg scope curve repl)
         clojure.stacktrace
         (clojure.contrib
@@ -233,14 +233,22 @@
       (.pack)
       (.setVisible true))))
 
+(def DEFAULT-THEME "org.pushingpixels.substance.api.skin.SubstanceGraphiteAquaLookAndFeel")
+
+(defn- app-theme []
+  (let [theme (:theme @config* DEFAULT-THEME)
+        system-lf (UIManager/getSystemLookAndFeelClassName)]
+    (if (= :system theme)
+      system-lf 
+      theme)))
+
 (defn -main [& args]
   (JFrame/setDefaultLookAndFeelDecorated true)
-  (let [system-lf (UIManager/getSystemLookAndFeelClassName)]
-    ; Maybe we need Java7 for this API?
-    ;(if-let [screen (GraphicsEnvironment/getDefaultScreenDevice)]
-    ;  (if (.isFullScreenSupported screen)
-    ;    (.setFullScreenWindow screen window))
-;    (UIManager/setLookAndFeel system-lf)
-    (in-swing
-      (UIManager/setLookAndFeel "org.pushingpixels.substance.api.skin.SubstanceGraphiteAquaLookAndFeel")
-      (overtone-frame))))
+  ; Maybe we need Java7 for this API?
+  ;(if-let [screen (GraphicsEnvironment/getDefaultScreenDevice)]
+  ;  (if (.isFullScreenSupported screen)
+  ;    (.setFullScreenWindow screen window))
+  ;    (UIManager/setLookAndFeel system-lf)
+  (in-swing
+    (UIManager/setLookAndFeel (app-theme))
+    (overtone-frame)))

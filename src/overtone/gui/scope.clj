@@ -1,4 +1,7 @@
-(ns overtone.gui.scope
+(ns
+  #^{:doc "An oscilloscope style waveform viewer"
+     :author "Jeff Rose"}
+  overtone.gui.scope
   (:import
     (java.awt Graphics Dimension Color BasicStroke)
     (java.awt.geom Rectangle2D$Float Path2D$Float)
@@ -186,7 +189,7 @@
     (dosync (alter scope* assoc :panel p))
     (doto p
       ;(.setIgnoreRepaint true)
-      (.setMinimumSize (Dimension. 600 400)))
+      (.setPreferredSize (Dimension. 600 400)))
     p))
 
 (dotimes [i (:width @scope*)] (aset x-array i i))
@@ -194,7 +197,7 @@
 (defn scope-frame []
   (let [f (JFrame. "scope")]
     (doto f
-      (.setMinimumSize (Dimension. 600 400))
+      (.setPreferredSize (Dimension. 600 400))
       (.add (scope-panel))
       (.pack)
       (.show))))
