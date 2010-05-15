@@ -113,3 +113,6 @@
                   ([k d] (get m k d)))
       (invoke      [& args] (apply fun args))
       (applyTo    ([args] (apply fun args)))))
+
+(defn file-exists? [path]
+  (.exists (java.io.File. path)))

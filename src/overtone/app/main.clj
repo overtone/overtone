@@ -14,9 +14,10 @@
     (com.javadocking.dockable DefaultDockable DockingMode)
     (com.javadocking.dock TabDock Position SplitDock)
     (com.javadocking.model FloatDockModel)
+    (com.javadocking.model.codec DockModelPropertiesEncoder)
     (com.javadocking DockingManager))
   (:use (overtone.app editor tools browser)
-        (overtone.core sc ugen synth envelope event time-utils config)
+        (overtone.core setup sc ugen synth envelope event time-utils config)
         (overtone.gui swing sg scope curve repl)
         clojure.stacktrace
         (clojure.contrib
@@ -77,6 +78,21 @@
     (on :connected #(periodic updater (:status-update-period @app*)))
     lbl-panel))
 
+(def WORKSPACE-CONFIG (str OVERTONE-DIR "/workspace-model"))
+
+(defn save-workspace []
+  (let [model (:workspace-model @app*)
+        encoder (DockModelPropertiesEncoder.)]
+    (if (.canSave encoder model)
+      (.save encoder model)
+      (.export encoder model WORKSPACE-CONFIG))))
+
+(defn app-quit []
+  (save-workspace)
+  (try 
+    (quit) 
+    (finally (System/exit 0))))
+
 (defn header []
   (let [panel (JPanel.)
         metro (metro-panel)
@@ -86,9 +102,9 @@
         quit-btn (JButton. "Quit")
         btn-panel (JPanel.)]
 
-    (on-action boot-btn #(boot))
+    (on-action boot-btn boot)
     (on-action help-btn #(println "help is on the way!"))
-    (on-action quit-btn #(do (try (quit) (finally (System/exit 0)))))
+    (on-action quit-btn app-quit)
 
     (doto btn-panel
       (.setBackground (:background @app*))
@@ -115,7 +131,7 @@
 
 (defn window-listener [frame]
   (proxy [WindowAdapter] []
-    (windowClosed [win-event] (try (.setVisible frame false) (quit) (finally (System/exit 0))))
+    (windowClosed [win-event] (do (.setVisible frame false) (app-quit)))
     (windowIconified [win-event] (event :iconified))
     (windowDeiconified [win-event] (event :deiconified))
     ))
@@ -159,7 +175,9 @@
         bottom-tools-split-dock (SplitDock.)
         left-split-dock (SplitDock.)
 
-        dock-model (FloatDockModel.)]
+        dock-model (if (file-exists? WORKSPACE-CONFIG)
+                     (FloatDockModel. WORKSPACE-CONFIG)
+                     (FloatDockModel.))]
 
     (.addDockable top-tab-dock edit-panel (Position. 0))
     (.addDockable bottom-tab-dock repl-panel (Position. 0))
@@ -195,7 +213,9 @@
       (.setLeftComponent main-split)
       (.setRightComponent tools-split))
 
-    (dosync (alter app* assoc :right-div right-split))
+    (dosync (alter app* assoc 
+                   :workspace-model dock-model
+                   :right-div right-split))
 
     (doto main-split
       (.setOneTouchExpandable true)

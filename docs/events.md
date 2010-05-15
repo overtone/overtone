@@ -77,7 +77,3 @@ when the main app window has been iconified
 when the main app window has be deiconified 
 :deiconified => {}
 
-
-
-
-
