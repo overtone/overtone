@@ -624,15 +624,15 @@
     (let [tree (:args (recv "/g_queryTree.reply" REPLY-TIMEOUT))]
       (parse-node-tree tree)))))
 
-(defn render-group-node-str-for-vijual
+(defn- render-group-node-str-for-vijual
   [node]
   (str "Group " (node :group)))
 
-(defn render-synth-node-str-for-vijual
+(defn- render-synth-node-str-for-vijual
   [node]
   (str "Synth " (node :id) " " (node :synth)))
 
-(defn render-node-str-for-vijual
+(defn- render-node-str-for-vijual
   [node]
   (cond
    (contains? node :group) (render-group-node-str-for-vijual node)
@@ -640,7 +640,7 @@
    (true) (throw (Exception. "Please implement a vijual node renderer for this node type"))
    ))
 
-(defn prepare-tree-for-vijual
+(defn- prepare-tree-for-vijual
   [tree]
   (let [node     (render-node-str-for-vijual (dissoc tree :children))
         children (tree :children)]
