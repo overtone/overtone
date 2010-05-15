@@ -629,20 +629,36 @@
   [node]
   (str "Synth " (node :id) " " (node :synth)))
 
+(defn render-synth-set-node-str-for-vijual
+  [node]
+  (str (count (node :ids)) " Synths " (node :synth-set) ))
+
 (defn render-node-str-for-vijual
   [node]
   (cond
-   (contains? node :group) (render-group-node-str-for-vijual node)
-   (contains? node :synth) (render-synth-node-str-for-vijual node)
+   (contains? node :group)     (render-group-node-str-for-vijual node)
+   (contains? node :synth)     (render-synth-node-str-for-vijual node)
+   (contains? node :synth-set) (render-synth-set-node-str-for-vijual node)
    (true) (throw (Exception. "Please implement a vijual node renderer for this node type"))
    ))
+
+(defn flatten-synths-for-vijual
+  [node-list]
+  (let [synth-matcher    #(% :synth)
+        synths           (filter synth-matcher node-list)
+        non-synths       (filter (complement synth-matcher) node-list)
+        compact          #(remove nil? %)
+        compacted-synths (reduce (fn [sum node] (update-in sum [(node :synth) :ids] #(-> (conj [(node :id)] %) flatten compact))) {} synths)
+        synth-sets       (into [] (map (fn [[k v]] (if (< 1 (count (v :ids))) {:synth-set k :ids (v :ids)} {:synth k :id (first (v :ids))})) compacted-synths))]
+
+       (into non-synths synth-sets)))
 
 (defn prepare-tree-for-vijual
   [tree]
   (let [node     (render-node-str-for-vijual (dissoc tree :children))
         children (tree :children)]
     (if (pos? (count children))
-      (apply conj [node] (for [i children] (prepare-tree-for-vijual i)))
+      (apply conj [node] (for [i (flatten-synths-for-vijual children) ] (prepare-tree-for-vijual i)))
       [node])))
 
 (defn print-node-tree
