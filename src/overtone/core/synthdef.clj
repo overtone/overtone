@@ -140,7 +140,7 @@
 (defn synthdef-write
   "Write a synth definition to a new file at the given path, which includes
   the name of the file itself.  (e.g. /home/rosejn/synths/bass.scsyndef)"
-  [path sdef]
+  [sdef path]
   (spec-write-file synthdef-file-spec (synthdef-file sdef) path))
 
 (defn synthdef-bytes
