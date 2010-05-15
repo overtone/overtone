@@ -132,8 +132,16 @@
       (.add (status-panel editor) BorderLayout/SOUTH))
 
     (open-last-file)
-
     editor-pane))
 
 (defn editor-keymap [k]
   (.setKeymap (:editor @editor*) (:keymap k)))
+
+(defn editor-frame []
+  (let [f (JFrame. "editor")]
+    (doto f
+      (.setPreferredSize (Dimension. 600 400))
+      (.add (editor-panel {:background (Color. 50 50 50)
+                           :edit-font (Font. "Bitstream Vera Sans Mono" Font/PLAIN 12)}))
+      (.pack)
+      (.show))))

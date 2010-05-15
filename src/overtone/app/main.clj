@@ -33,7 +33,7 @@
                 :header-font (Font. "helvetica" Font/BOLD 16)
                 :header-height 20
                 :status-update-period 1000
-                :edit-font (Font. "helvetica" Font/PLAIN 12)
+                :edit-font (Font. "Bitstream Vera Sans Mono" Font/PLAIN 12)
                 :edit-panel-dim (Dimension. 550 900)
                 :scene-panel-dim (Dimension. 615 900)
                 :tools-panel-dim (Dimension. 300 900)
@@ -239,7 +239,7 @@
   (let [theme (:theme @config* DEFAULT-THEME)
         system-lf (UIManager/getSystemLookAndFeelClassName)]
     (if (= :system theme)
-      system-lf 
+      system-lf
       theme)))
 
 (defn -main [& args]

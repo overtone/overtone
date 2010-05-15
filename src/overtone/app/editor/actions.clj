@@ -71,6 +71,19 @@
     (file-save-as (:current-path @editor*))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Editor view
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- font-mod [mod-fn]
+  (let [editor (:editor @editor*)
+        cur (.getFont editor)
+        f (Font. (.getName cur) (.getStyle cur) (mod-fn (.getSize cur)))]
+    (in-swing (.setFont editor f))))
+
+(defn font-grow [] (font-mod inc))
+(defn font-shrink [] (font-mod dec))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Text Selection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

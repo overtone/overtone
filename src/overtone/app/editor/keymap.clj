@@ -50,6 +50,9 @@
     (on "control C" text-copy)
     (on "control V" text-paste)
     (on "control X" text-cut)
+    (on "control typed +" font-grow)
+    (on "control typed =" font-grow)
+    (on "control typed -" font-shrink)
 
     (on "control E"
           #(event :overtone.gui.repl/repl-write

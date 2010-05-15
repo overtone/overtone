@@ -86,6 +86,8 @@ from paredit.clj...)
 
 * implement motion commands
 
+* contro [+|-] to adjust font size
+
 == Curve Editor
 
 * add support for different curve types for the line segments

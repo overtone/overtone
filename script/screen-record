@@ -1,19 +1,37 @@
 #!/bin/bash
 
-WIN_ID=$(xwininfo | awk '/Window id:/ {print $4}')
-REC=recordmydesktop --windowid $WIN_ID
+echo "Welcome to tonecast studio..."
+echo "Click on the window you would like to record."
 
-SC=SuperCollider:out_1 SuperCollider:out_2
-MIC="system:AC0_dev0_MicIn1 left"
+WIN_ID=$(xwininfo | awk '/Window id:/ {print $4}')
+
+X=$(xwininfo | awk '/Absolute upper-left X:/ {print $4}')
+Y=$(xwininfo | awk '/Absolute upper-left Y:/ {print $4}')
+WIDTH=$(xwininfo | awk '/Width:/ {print $2}')
+HEIGHT=$(xwininfo | awk '/Height:/ {print $2}')
+
+REC="recordmydesktop -x $X -y $Y --width $WIDTH --height $HEIGHT --on-the-fly-encoding"
+#REC="recordmydesktop --windowid $WIN_ID"
+
+SC="SuperCollider:out_1 SuperCollider:out_2"
+MIC="\"system:AC0_dev0_MicIn1 left\""
 
 TITLE=recorded-`date +%Y-%m-%d`.ogv
 
-echo "Recording to file: $TITLE"
-echo -n "Do you want to record from the Mic? ($MIC) [Y/n] [Enter]"
+echo "Mic source: $MIC"
+echo -n "Do you want to record from the Mic? [Y/n] [Enter]"
 read mic
 
-# Without Mic
-#recordmydesktop --use-jack=SuperCollider:out_1,SuperCollider:out_2 -x 661 -y 56 --width=764 --height=827
+echo "Recording to file: $TITLE\n"
 
-# With Mic
-$REC --use-jack $SC $MIC -o $TITLE
+if [[ "$mic" -eq "n" ]] 
+then
+  # Without Mic
+  echo "$REC --use-jack $SC -o $TITLE"
+  $REC --use-jack $SC -o $TITLE
+else 
+  # With Mic
+  echo "$REC --use-jack $SC $MIC -o $TITLE"
+  $REC --use-jack $SC $MIC -o $TITLE
+fi
+
