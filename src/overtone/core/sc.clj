@@ -18,7 +18,8 @@
     [clojure.contrib.java-utils :only [file]]
     (clojure.contrib shell-out seq-utils pprint)
     osc
-    [clojure.contrib.fcase :only [case]]))
+    [clojure.contrib.fcase :only [case]]
+    vijual))
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
@@ -331,7 +332,7 @@
         system-outs    (re-seq #"system:playback_[0-9]*" port-list)
         interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
         interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
-        connections (partition 2 (concat 
+        connections (partition 2 (concat
                                    (interleave sc-outs system-outs)
                                    (interleave sc-outs interface-outs)
                                    (interleave system-ins sc-ins)
@@ -620,10 +621,34 @@
     (let [tree (:args (recv "/g_queryTree.reply" REPLY-TIMEOUT))]
       (parse-node-tree tree)))))
 
+(defn render-group-node-str-for-vijual
+  [node]
+  (str "Group " (node :group)))
+
+(defn render-synth-node-str-for-vijual
+  [node]
+  (str "Synth " (node :id) " " (node :synth)))
+
+(defn render-node-str-for-vijual
+  [node]
+  (cond
+   (contains? node :group) (render-group-node-str-for-vijual node)
+   (contains? node :synth) (render-synth-node-str-for-vijual node)
+   (true) (throw (Exception. "Please implement a vijual node renderer for this node type"))
+   ))
+
+(defn prepare-tree-for-vijual
+  [tree]
+  (let [node     (render-node-str-for-vijual (dissoc tree :children))
+        children (tree :children)]
+    (if (pos? (count children))
+      (apply conj [node] (for [i children] (prepare-tree-for-vijual i)))
+      [node])))
+
 (defn print-node-tree
   "Pretty print the tree of live synthesizer instances.  Takes the same args as (node-tree)."
   [& args]
-  (pprint (apply node-tree args)))
+  (draw-tree [(prepare-tree-for-vijual (apply node-tree args))]))
 
 (defn prepend-node
   "Add a synth node to the end of a group list."
