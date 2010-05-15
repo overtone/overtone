@@ -20,10 +20,10 @@
                  [overtone/javadocking "1.4.0"]
 
                  [overtone/scsynth-jna "3-SNAPSHOT"]
+                 [vijual "0.1.0-SNAPSHOT"]
 
                  ;[scenegraph/decora-hw "0.0.1-SNAPSHOT"] ;; decora-hw and decora-jogl are not yet fully tested
                  ;[scenegraph/decora-jogl "0.0.1-SNAPSHOT"] ;;
-                 ;[vijual "0.1.0-SNAPSHOT"]
                  ;[penumbra "0.5.0"]
                  ]
   :native-dependencies [
