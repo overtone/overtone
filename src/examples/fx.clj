@@ -43,9 +43,9 @@
 
 ; Here is a different sample synth to try out the reverb and echo effects
 (defsynth pling [out-bus 10
-                 rate 20 amp 0.5]
+                 rate 0.3 amp 0.5]
   (out out-bus
-       (* (decay (impulse (* (lf-saw 0.1) rate)) 0.25)
+       (* (decay (impulse rate) 0.25)
           (* amp (lf-cub 1200 0)))))
 
 (def p (pling 0))
