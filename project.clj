@@ -36,5 +36,5 @@
                      [org.clojars.ato/nailgun "0.7.1"]
                      [org.clojars.rosejn/vimclojure "2.2.0-SNAPSHOT"]
                      [org.clojars.brandonw/lein-nailgun "1.0.0"]
-                     [swank-clojure "1.1.0-SNAPSHOT"]
-                     [leiningen/lein-swank "1.1.0"]])
+                     [swank-clojure "1.2.1"]
+                ])
