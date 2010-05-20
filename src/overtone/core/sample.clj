@@ -1,4 +1,4 @@
-(ns 
+(ns
   #^{:doc "Making it easy to load and play audio samples (wav or aif files)."
      :author "Jeff Rose"}
   overtone.core.sample
@@ -63,4 +63,4 @@
                   player)))
 
 
-(defmethod buffer-id ::sample [sample] (:id (:buf sample)))
+(defmethod buffer-id ::sample [sample] (:id sample))
