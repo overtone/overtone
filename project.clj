@@ -19,7 +19,7 @@
                  [overtone/substance "6.0"]
                  [overtone/javadocking "1.4.0"]
 
-                 [overtone/scsynth-jna "0.1.1-SNAPSHOT"]
+                 [overtone/scsynth-jna "0.1.2-SNAPSHOT"]
                  [vijual "0.1.0-SNAPSHOT"]
 
                  ;[scenegraph/decora-hw "0.0.1-SNAPSHOT"] ;; decora-hw and decora-jogl are not yet fully tested
