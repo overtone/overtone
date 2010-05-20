@@ -17,7 +17,7 @@
     (com.javadocking.model.codec DockModelPropertiesEncoder)
     (com.javadocking DockingManager))
   (:use (overtone.app editor tools browser)
-        (overtone.core setup sc ugen synth envelope event time-utils config)
+        (overtone.core setup util sc ugen synth envelope event time-utils config)
         (overtone.gui swing sg scope curve repl)
         clojure.stacktrace
         (clojure.contrib
@@ -89,8 +89,8 @@
 
 (defn app-quit []
   (save-workspace)
-  (try 
-    (quit) 
+  (try
+    (quit)
     (finally (System/exit 0))))
 
 (defn header []
@@ -213,7 +213,7 @@
       (.setLeftComponent main-split)
       (.setRightComponent tools-split))
 
-    (dosync (alter app* assoc 
+    (dosync (alter app* assoc
                    :workspace-model dock-model
                    :right-div right-split))
 
