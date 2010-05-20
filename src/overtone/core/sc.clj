@@ -9,7 +9,6 @@
     (java.util.regex Pattern)
     (java.util.concurrent TimeUnit TimeoutException)
     (java.io BufferedInputStream)
-    (java.nio ByteOrder)
     (supercollider ScSynth ScSynthStartedListener MessageReceivedListener)
     (java.util BitSet))
   (:require [overtone.core.log :as log])
@@ -362,7 +361,7 @@
   (log/info "booting internal audio server listening on port: " port)
   (let [server (ScSynth.)]
     (.addScSynthStartedListener server (proxy [ScSynthStartedListener] []
-                                         (scSynthStarted [] (event :booted))))
+                                         (started [] (event :booted))))
     (dosync (ref-set sc-world* server))
     (.run server)))
 
@@ -797,11 +796,8 @@
   "Get the floating point data for a buffer on the internal server."
   [buf]
   (let [buf-id (buffer-id buf)
-        snd-buf (.getSndBuf @sc-world* buf-id)
-        n-frames (.frames snd-buf)
-        data (.data snd-buf)]
-    (if data
-      (.getFloatArray data 0 n-frames))))
+        snd-buf (.getSndBufAsFloatArray @sc-world* buf-id)]
+    snd-buf))
 
 (defn buffer-info [buf]
   (snd "/b_query" (buffer-id buf))
