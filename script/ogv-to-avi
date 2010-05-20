@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mencoder -idx "$1" -ovc lavc -oac mp3lame -o output.avi 
