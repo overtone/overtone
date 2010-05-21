@@ -7,6 +7,10 @@
 
 ; Rhythm
 
+; * a resting heart rate is 60-80 bpm
+; * around 150 induces an excited state
+
+
 ; A rhythm system should let us refer to time in terms of rhythmic units like beat, bar, measure,
 ; and it should convert these units to real time units (ms) based on the current BPM and signature settings.
 
@@ -22,7 +26,7 @@
 ; A metronome is a linear function that given a beat count returns the time in milliseconds.
 ;
 ; tpb = ticks-per-beat
-(defn metronome 
+(defn metronome
   "A metronome is a beat management function.  Tell it what BPM you want,
   and it will output beat timestamps accordingly.  Call the returned function
   with no arguments to get the next beat number, or pass it a beat number

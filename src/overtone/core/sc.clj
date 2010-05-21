@@ -198,8 +198,7 @@
 (on "/n_end" #(node-destroyed (first (:args %))))
 (on "/n_go" #(node-created (first (:args %))))
 
-(def N-RETRIES 5)
-
+(def N-RETRIES 20)
 
 (defn- connect-internal
   []
