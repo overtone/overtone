@@ -13,7 +13,7 @@
   (:use (overtone.core event util config)
         (overtone.gui swing)
         [clojure.contrib.fcase :only (case)]
-        (clojure.contrib duck-streams)))
+        (clojure.contrib io)))
 
 (def TAB-STOP 4)
 (def CARET-COLOR Color/BLACK)

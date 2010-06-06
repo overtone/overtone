@@ -1,8 +1,10 @@
 (ns overtone.live
   (:require midi osc byte-spec
             clojure.stacktrace
-            (overtone.core config time-utils log sc ugen synth synthdef envelope)
-            (overtone.music rhythm pitch tuning)))
+            (overtone.core config time-utils log sc ugen synth synthdef envelope sample)
+            (overtone.music rhythm pitch tuning)
+            (overtone.gui curve scope)
+            (overtone.studio fx)))
 
 ; TODO: make this work with namespace prefixes too...
 ;   (immigrate 'overtone.instruments)
@@ -13,7 +15,6 @@
  namespace."
  [& ns-names]
  (doseq [ns ns-names]
-   (require ns)
    (doseq [[sym var] (ns-publics ns)]
      (let [sym (with-meta sym (assoc (meta var) :ns *ns*))]
        (if (.isBound var)
@@ -38,8 +39,6 @@
   'overtone.gui.curve
   'overtone.gui.scope
   'overtone.studio.fx
+  'overtone.ugens
   'clojure.stacktrace
   )
-
-;(refer-ugens *ns*)
-

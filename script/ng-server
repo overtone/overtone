@@ -1,39 +1,4 @@
 #! /bin/bash
-#
-# Copyright (c) Stephen C. Gilardi. All rights reserved.  The use and
-# distribution terms for this software are covered by the Eclipse Public
-# License 1.0 (http://opensource.org/licenses/eclipse-1.0.php) which can be
-# found in the file epl-v10.html at the root of this distribution.  By
-# using this software in any fashion, you are agreeing to be bound by the
-# terms of this license.  You must not remove this notice, or any other,
-# from this software.
-#
-# scgilardi (gmail)
-# Created 7 January 2009
-#
-# Modified by Meikel Brandmeyer <mb _ kotka de> to act as launcher for
-# the Nailgun server of VimClojure and be sure to not rely on bash.
-#
-# Frankfurt am Main, 03.03.2009
-#
-# Environment variables:
-#
-# Optional:
-#
-#  CLOJURE_EXT  The path to a directory containing (either directly or as
-#               symbolic links) jar files and/or directories whose paths
-#               should be in Clojure's classpath. The value of the
-#               CLASSPATH environment variable for Clojure will be a list
-#               of these paths followed by the previous value of CLASSPATH
-#               (if any).
-#
-#  CLOJURE_JAVA The command to launch a JVM instance for Clojure
-#               default: java
-#               example: /usr/local/bin/java6
-#
-#  CLOJURE_OPTS Java options for this JVM instance
-#               default:
-#               example:"-Xms32M -Xmx128M -server"
 
 pkill -9 java
 

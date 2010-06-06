@@ -40,7 +40,7 @@
 (defn choose
   "Choose a random note from notes."
   [notes]
-  (get notes (rand-int (count notes))))
+  (nth notes (rand-int (count notes))))
 
 ;(defn shuffle
 ;  "Shuffle a collection, returns a seq."

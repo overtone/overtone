@@ -121,6 +121,10 @@ being driven by the envelope
 
 == Synths and Audio:
 
+* make midi->hz and friends multimethods (or use types and protocols?) so they
+operate immediately on numbers, but generate ugens on input proxy or ugen
+arguments.
+
 * do some sanity checking regarding the default group, make sure we reset
 correctly, add synths and nodes correctly, etc...
 
@@ -167,3 +171,7 @@ wrong type of device, etc...
 
 * search, browse and download remote synth libraries 
 
+
+-----------------------------
+
+* maybe write out metronome time stamp so we can continue on boot after restart?

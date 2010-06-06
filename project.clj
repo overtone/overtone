@@ -37,4 +37,5 @@
                      [org.clojars.rosejn/vimclojure "2.2.0-SNAPSHOT"]
                      [org.clojars.brandonw/lein-nailgun "1.0.0"]
                      [swank-clojure "1.2.1"]
+                     [jline "0.9.94"]
                 ])

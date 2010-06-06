@@ -16,7 +16,7 @@
 
 (defn beat-ms
   "Convert 'b' beats to milliseconds at the given 'bpm'."
-  [b bpm] (* (/ 60000 bpm) b))
+  [b bpm] (* (/ 60000.0 bpm) b))
 
 ;(defn bar-ms
 ;  "Convert b bars to milliseconds at the current bpm."

@@ -1,5 +1,5 @@
 (ns overtone.core.config
-  (:use clojure.contrib.duck-streams)
+  (:use clojure.contrib.io)
   (:import (java.io FileOutputStream FileInputStream)))
 
 ;; Provides a simple key/value configuration system with support for automatically
