@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "An oscilloscope style waveform viewer"
+  ^{:doc "An oscilloscope style waveform viewer"
      :author "Jeff Rose"}
   overtone.gui.scope
   (:import
@@ -111,21 +111,21 @@
         y-scale (/ (- height (* 2 Y-PADDING)) 2)
         y-shift (+ (/ height 2) Y-PADDING)]
     (dotimes [x width]
-      (aset #^ints y-array x
+      (aset ^ints y-array x
             (int (+ y-shift
                     (* y-scale
-                       (aget #^floats frames (unchecked-multiply x step))))))))
+                       (aget ^floats frames (unchecked-multiply x step))))))))
   (.repaint (:panel @scope*)))
 
 (defn- paint-scope [g]
   (let [{:keys [background width height color]} @scope*]
-    (.setColor #^Graphics g #^Color background)
-    (.fillRect #^Graphics g 0 0 width height)
-    (.setColor #^Graphics g #^Color (Color. 100 100 100))
-    (.drawRect #^Graphics g 0 0 width height)
+    (.setColor ^Graphics g ^Color background)
+    (.fillRect ^Graphics g 0 0 width height)
+    (.setColor ^Graphics g ^Color (Color. 100 100 100))
+    (.drawRect ^Graphics g 0 0 width height)
 
-    (.setColor #^Graphics g #^Color color)
-    (.drawPolyline #^Graphics g #^ints x-array #^ints y-array width)))
+    (.setColor ^Graphics g ^Color color)
+    (.drawPolyline ^Graphics g ^ints x-array ^ints y-array width)))
 
 (defn- clean-scope []
   (dosync

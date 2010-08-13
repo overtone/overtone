@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "Basic logging functionality."
+  ^{:doc "Basic logging functionality."
      :author "Jeff Rose"}
   overtone.core.log
   (:import (java.util.logging Logger Level ConsoleHandler FileHandler

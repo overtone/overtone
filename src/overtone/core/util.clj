@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "Random utility functions for Overtone."
+  ^{:doc "Random utility functions for Overtone."
      :author "Jeff Rose"}
   overtone.core.util
   (:require [overtone.core.log :as log])

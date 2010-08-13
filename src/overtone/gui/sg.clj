@@ -1,5 +1,5 @@
 (ns overtone.gui.sg
-  #^{:doc "Scenegraph syntactic sugar"
+  ^{:doc "Scenegraph syntactic sugar"
      :author "Fabian Aussems"}
   (:gen-class)
   (:require (clojure.contrib [str-utils2 :as s2]))

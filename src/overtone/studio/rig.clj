@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "Higher level instrument and studio abstractions."
+  ^{:doc "Higher level instrument and studio abstractions."
      :author "Jeff Rose"}
   overtone.studio.rig
   (:use (overtone.core sc synth)

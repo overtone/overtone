@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "Making it easy to load and play audio samples (wav or aif files)."
+  ^{:doc "Making it easy to load and play audio samples (wav or aif files)."
      :author "Jeff Rose"}
   overtone.core.sample
   (:use (overtone.core synth ugen sc event util)))

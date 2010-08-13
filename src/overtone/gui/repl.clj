@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "The Overtone repl"
+  ^{:doc "The Overtone repl"
      :author "Fabian Aussems & Jeff Rose"}
   overtone.gui.repl
   (:gen-class)
@@ -79,7 +79,7 @@
         (catch TimeoutException t
           false))))
 
-(def #^{:doc "balanced pairs"}
+(def ^{:doc "balanced pairs"}
      pairs '((\( \))
              (\[ \])
              (\" \")

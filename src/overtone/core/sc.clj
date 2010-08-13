@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "An interface to the SuperCollider synthesis server.
+  ^{:doc "An interface to the SuperCollider synthesis server.
           This is at heart an OSC client library for the SuperCollider
           scsynth DSP engine."
      :author "Jeff Rose"}

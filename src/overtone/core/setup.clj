@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "Library initialization and configuration."
+  ^{:doc "Library initialization and configuration."
      :author "Jeff Rose"}
   overtone.core.setup
   (:import (java.io File))

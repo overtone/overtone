@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "This is primarily a specification for SuperCollider synthesizer
+  ^{:doc "This is primarily a specification for SuperCollider synthesizer
           definition files.  Additionally there are functions for reading and
           writing to and from byte arrays, files, and URLs.  "
      :author "Jeff Rose"}

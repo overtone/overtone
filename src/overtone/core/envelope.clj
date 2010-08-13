@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "An envelope defines a waveform that will be used to control another
+  ^{:doc "An envelope defines a waveform that will be used to control another
           component of a synthesizer over time.  It is typical to use envelopes
           to control the amplitude of a source waveform.  For example, an
           envelope will dictate that a sound should start quick and loud, but

@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "Swing helper functions"
+  ^{:doc "Swing helper functions"
      :author "Fabian Aussems & Jeff Rose"}
   overtone.gui.swing
   (:import (clojure.lang RT)

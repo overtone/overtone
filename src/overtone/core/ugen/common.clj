@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "Code that is common to many ugens.  Includes validation and argument manipulation functions."
+  ^{:doc "Code that is common to many ugens.  Includes validation and argument manipulation functions."
      :author "Jeff Rose & Christophe McKeon"}
   overtone.core.ugen.common)
 

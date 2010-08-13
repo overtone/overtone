@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "Audio effects library"
+  ^{:doc "Audio effects library"
      :author "Jeff Rose"}
   overtone.studio.fx
   (:use (overtone.core synth ugen event)))

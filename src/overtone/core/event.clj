@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "A simple event system that processes fired events in a thread pool."
+  ^{:doc "A simple event system that processes fired events in a thread pool."
      :author "Jeff Rose"}
   overtone.core.event
   (:import (java.util.concurrent Executors LinkedBlockingQueue))

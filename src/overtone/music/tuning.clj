@@ -1,5 +1,5 @@
 (ns
-  #^{:doc "Functions that define tuning systems from various musical traditions and theories."
+  ^{:doc "Functions that define tuning systems from various musical traditions and theories."
      :author "Jeff Rose"}
   overtone.music.tuning
   (:use (overtone.music pitch)))
