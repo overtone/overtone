@@ -30,7 +30,7 @@
        :num-outs 0
        :check (all-but-first-input-ar "channelsArray must all be audio rate")
        :doc "stream audio out to disk file"}
-      
+
       ;; from DiskIO.sc
       ;; DiskIn : MultiOutUGen {
       ;; 	*ar { arg numChannels, bufnum, loop = 0;
@@ -48,7 +48,7 @@
               {:name "loop", :default 0}],
        :rates #{:ar}
        :doc "stream audio in from disk file"}
-      
+
       ;; from DiskIO.sc
       ;; VDiskIn : MultiOutUGen {
       ;; 	*ar { arg numChannels, bufnum, rate = 1, loop = 0, sendID = 0;
@@ -67,14 +67,14 @@
               {:name "loop", :default 0}
               {:name "sendID", :default 0}],
        :rates #{:ar}}
-      
+
       ;; from InOut.sc
       ;; AbstractIn : MultiOutUGen {
       ;;  	*isInputUGen { ^true }
       ;; }
 
       ;; from InOut.sc
-      ;; In : AbstractIn {	
+      ;; In : AbstractIn {
       ;; 	*ar { arg bus = 0, numChannels = 1;
       ;; 		^this.multiNew('audio', numChannels, bus)
       ;; 	}
@@ -91,9 +91,9 @@
        :args [{:name "bus", :default 0}
               {:name "numChannels", :mode :num-outs :default 1}]
        :doc "read from a bus"}
-      
+
       ;; from InOut.sc
-      ;; LocalIn : AbstractIn {	
+      ;; LocalIn : AbstractIn {
       ;; 	*ar { arg numChannels = 1;
       ;; 		^this.multiNew('audio', numChannels)
       ;; 	}
@@ -107,9 +107,9 @@
 
       {:name "LocalIn",
        :args [{:name "numChannels", :mode :num-outs :default 1}]}
-      
+
       ;; from InOut.sc
-      ;; LagIn : AbstractIn {	
+      ;; LagIn : AbstractIn {
       ;; 	*kr { arg bus = 0, numChannels = 1, lag = 0.1;
       ;; 		^this.multiNew('control', numChannels, bus, lag)
       ;; 	}
@@ -126,7 +126,7 @@
        :rates #{:kr}}
 
       ;; from InOut.sc
-      ;; InFeedback : AbstractIn {	
+      ;; InFeedback : AbstractIn {
       ;; 	*ar { arg bus = 0, numChannels = 1;
       ;; 		^this.multiNew('audio', numChannels, bus)
       ;; 	}
@@ -140,10 +140,10 @@
        :args [{:name "bus", :default 0}
               {:name "numChannels", :mode :num-outs :default 1}],
        :rates #{:ar}
-       :doc "read signal from a bus with a current or one cycle old timestamp"}      
-      
+       :doc "read signal from a bus with a current or one cycle old timestamp"}
+
       ;; from InOut.sc
-      ;; InTrig : AbstractIn {	
+      ;; InTrig : AbstractIn {
       ;; 	*kr { arg bus = 0, numChannels = 1;
       ;; 		^this.multiNew('control', numChannels, bus)
       ;; 	}
@@ -160,7 +160,7 @@
        :doc "generates a trigger any time the bus is set"}
 
       ;; from InOut.sc
-      ;; SharedIn : AbstractIn {	
+      ;; SharedIn : AbstractIn {
       ;; 	*kr { arg bus = 0, numChannels = 1;
       ;; 		^this.multiNew('control', numChannels, bus)
       ;; 	}
@@ -183,17 +183,17 @@
       ;;  	checkInputs {
       ;;  		if (rate == 'audio', {
       ;;  			for(this.class.numFixedArgs, inputs.size - 1, { arg i;
-      ;;  				if (inputs.at(i).rate != 'audio', { 
-      ;;  					^(" input at index " + i + 
+      ;;  				if (inputs.at(i).rate != 'audio', {
+      ;;  					^(" input at index " + i +
       ;;  						"(" + inputs.at(i) + ") is not audio rate");
       ;;  				});
       ;;  			});
       ;;  		});
       ;;  		^this.checkValidInputs
       ;;  	}
-      
+
       ;;  	*isOutputUGen { ^true }
-      
+
       ;;  	numAudioChannels {
       ;;  		^inputs.size - this.class.numFixedArgs
       ;;  	}
@@ -222,13 +222,13 @@
        :check (when-ar
                (all-but-first-input-ar "channelsArray must all be audio rate"))
        :doc "write a signal to a bus, adding to any existing contents"}
-      
+
       ;; from InOut.sc
       ;; ReplaceOut : Out {}
 
       {:name "ReplaceOut", :extends "Out"
        :doc "write signal to a bus, replacing the contents rather than adding to it."}
-      
+
       ;; OffsetOut : Out {
       ;; 	*kr { ^this.shouldNotImplement(thisMethod) }
       ;; }
@@ -257,7 +257,7 @@
        :args [{:name "channelsArray" :mode :append-sequence}],
        :num-outs 0
        :check (when-ar (all-inputs-ar "all channels must be audio rate"))}
-      
+
       ;; from InOut.sc
       ;; XOut : AbstractOut {
       ;; 	*ar { arg bus, xfade, channelsArray;
@@ -273,8 +273,8 @@
       ;; 	checkInputs {
       ;;  		if (rate == 'audio', {
       ;;  			for(2, inputs.size - 1, { arg i;
-      ;;  				if (inputs.at(i).rate != 'audio', { 
-      ;;  					^(" input at index " + i + 
+      ;;  				if (inputs.at(i).rate != 'audio', {
+      ;;  					^(" input at index " + i +
       ;;  						"(" + inputs.at(i) + ") is not audio rate");
       ;;  				});
       ;;  			});
@@ -291,7 +291,7 @@
        :num-outs 0
        :check (when-ar (after-n-inputs-rest-ar 2 "all channels must be audio rate"))
        :doc "write signal to a bus, crossfading with the existing content (adding with fader adjustment)"}
-      
+
       ;; from InOut.sc
       ;; SharedOut : AbstractOut {
       ;; 	*kr { arg bus, channelsArray;

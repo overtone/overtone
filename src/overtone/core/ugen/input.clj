@@ -1,7 +1,7 @@
 (ns overtone.core.ugen.input)
 
 (def specs
-     [      
+     [
       ;; MouseX : UGen
       ;; {
       ;; 	// warp 0 = linear
@@ -18,7 +18,7 @@
        :args [{:name "min", :default 0.0}
               {:name "max", :default 1.0}
               {:name "warp",
-               :default :linear 
+               :default :linear
                :map {:linear 0 :exponential 1 :lin 0 :exp 1}}
               {:name "lag", :default 0.2}],
        :rates #{:kr}

@@ -5,11 +5,11 @@
      [
 
       ;; from PitchShift.sc
-      ;; PitchShift : UGen {  
+      ;; PitchShift : UGen {
       ;;    checkInputs { ^this.checkSameRateAsFirstInput }
-      ;;  *ar { arg in = 0.0, windowSize = 0.2, pitchRatio = 1.0, 
+      ;;  *ar { arg in = 0.0, windowSize = 0.2, pitchRatio = 1.0,
       ;;      pitchDispersion = 0.0, timeDispersion = 0.0, mul = 1.0, add = 0.0;
-      ;;    ^this.multiNew('audio', in, windowSize, pitchRatio, 
+      ;;    ^this.multiNew('audio', in, windowSize, pitchRatio,
       ;;      pitchDispersion, timeDispersion).madd(mul, add)
       ;;  }
       ;; }
@@ -26,7 +26,7 @@
 
       ;; from Pluck.sc
       ;; Pluck : UGen {
-      ;;  *ar { arg in = 0.0, trig = 1.0, maxdelaytime = 0.2, delaytime = 0.2, decaytime = 1.0, 
+      ;;  *ar { arg in = 0.0, trig = 1.0, maxdelaytime = 0.2, delaytime = 0.2, decaytime = 1.0,
       ;;      coef = 0.5, mul = 1.0, add = 0.0;
       ;;    ^this.multiNew('audio', in, trig, maxdelaytime, delaytime, decaytime, coef).madd(mul, add)}
       ;;  }
@@ -116,17 +116,17 @@
               {:name "phase", :default 0.0}],
        :rates #{:ar}
        :muladd true}
-      
+
 
       ;; from GVerb.sc
       ;;       GVerb : MultiOutUGen {
-      ;;  *ar { arg in, roomsize = 10, revtime = 3, damping = 0.5, inputbw =  0.5, spread = 15, 
-      ;;      drylevel = 1, earlyreflevel = 0.7, taillevel = 0.5, maxroomsize = 300, mul = 1, 
+      ;;  *ar { arg in, roomsize = 10, revtime = 3, damping = 0.5, inputbw =  0.5, spread = 15,
+      ;;      drylevel = 1, earlyreflevel = 0.7, taillevel = 0.5, maxroomsize = 300, mul = 1,
       ;;      add = 0;
-      ;;    ^this.multiNew('audio', in, roomsize, revtime, damping, inputbw, spread, drylevel, 
+      ;;    ^this.multiNew('audio', in, roomsize, revtime, damping, inputbw, spread, drylevel,
       ;;      earlyreflevel, taillevel, maxroomsize).madd(mul, add);
       ;;  }
-      
+
       ;;  init {arg ... theInputs;
       ;;    inputs = theInputs;
       ;;    ^this.initOutputs(2, rate);
@@ -149,7 +149,7 @@
 
       ;; from FreeVerb.sc
       ;; // blackrain's freeverb ugen.
-      
+
       ;; FreeVerb : UGen {
       ;; 	*ar { arg in, mix = 0.33, room = 0.5, damp = 0.5, mul = 1.0, add = 0.0;
       ;; 		^this.multiNew('audio', in, mix, room, damp).madd(mul, add)
@@ -163,16 +163,16 @@
               {:name "damp", :default 0.5}],
        :rates #{:ar}
        :muladd true}
-      
+
       ;; FreeVerb2 : MultiOutUGen {
       ;; 	*ar { arg in, in2, mix = 0.33, room = 0.5, damp = 0.5, mul = 1.0, add = 0.0;
       ;; 		^this.multiNew('audio', in, in2, mix, room, damp).madd(mul, add)
       ;; 	}
       ;; 	init { arg ... theInputs;
-      ;; 		inputs = theInputs;		
-      ;; 		channels = [ 
-      ;; 			OutputProxy(rate, this, 0), 
-      ;; 			OutputProxy(rate, this, 1) 
+      ;; 		inputs = theInputs;
+      ;; 		channels = [
+      ;; 			OutputProxy(rate, this, 0),
+      ;; 			OutputProxy(rate, this, 1)
       ;; 		];
       ;; 		^channels
       ;; 	}
@@ -187,7 +187,7 @@
        :rates #{:ar},
        :num-outs 2
        :muladd true}
-      
+
       ;; from MoogFF.sc
       ;; /**
       ;; "MoogFF" - Moog VCF digital implementation.
@@ -204,7 +204,7 @@
       ;; */
 
       ;; MoogFF : Filter {
-      
+
       ;;  *ar { | in, freq=100, gain=2, reset=0, mul=1, add=0 |
       ;;    ^this.multiNew('audio', in, freq, gain, reset).madd(mul, add)
       ;;  }
@@ -256,19 +256,19 @@
               {:name "g", :default 10.0}
               {:name "damp", :default 0.0}
               {:name "friction", :default 0.01}]}
-      
+
       ;; from CheckBadValues.sc
       ;;  CheckBadValues : UGen {
       ;;  *ar {arg in = 0.0, id = 0, post = 2;
       ;;    ^this.multiNew('audio', in, id, post);
       ;;  }
-      
+
       ;;  *kr {arg in = 0.0, id = 0, post = 2;
       ;;    ^this.multiNew('control', in, id, post);
       ;;  }
-      
+
       ;;  checkInputs {
-      ;;      if ((rate==\audio) and:{ inputs.at(0).rate != \audio}) { 
+      ;;      if ((rate==\audio) and:{ inputs.at(0).rate != \audio}) {
       ;;        ^("audio-rate, yet first input is not audio-rate");
       ;;      };
       ;;      ^this.checkValidInputs
@@ -294,7 +294,7 @@
       ;;   ^this.multiNew('control', ampdist, durdist, adparam, ddparam, minfreq, maxfreq, ampscale, durscale, initCPs, knum ? initCPs).madd( mul, add )
       ;;  }
       ;;}
-      
+
       {:name "Gendy1",
        :args [{:name "ampdist", :default 1.0}
               {:name "durdist", :default 1.0}
@@ -307,7 +307,7 @@
               {:name "initCPs", :default 12}
               {:name "knum" :default 12}]
        :muladd true}
-      
+
       ;; Gendy2 : UGen {
       ;;      *ar { arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, minfreq=440, maxfreq=660, ampscale= 0.5, durscale=0.5, initCPs= 12, knum, a=1.17, c=0.31, mul=1.0,add=0.0;
       ;;               ^this.multiNew('audio', ampdist, durdist, adparam, ddparam, minfreq, maxfreq, ampscale, durscale, initCPs, knum ? initCPs, a, c).madd( mul, add )
@@ -316,7 +316,7 @@
       ;;              ^this.multiNew('control', ampdist, durdist, adparam, ddparam, minfreq, maxfreq, ampscale, durscale, initCPs, knum ? initCPs, a, c).madd( mul, add )
       ;;           }
       ;;         }
-      
+
       {:name "Gendy2",
        :args [{:name "ampdist", :default 1.0}
               {:name "durdist", :default 1.0}
@@ -331,19 +331,19 @@
               {:name "a", :default 1.17}
               {:name "c", :default 0.31}]
        :muladd true}
-      
+
       ;; Gendy3 : UGen {
 
       ;;      *ar { arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, freq=440, ampscale= 0.5, durscale=0.5, initCPs= 12, knum, mul=1.0,add=0.0;
       ;;               ^this.multiNew('audio', ampdist, durdist, adparam, ddparam, freq, ampscale, durscale, initCPs, knum ? initCPs).madd( mul, add )
       ;;           }
-      
+
       ;;      *kr {arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, freq=440, ampscale= 0.5, durscale=0.5, initCPs= 12, knum, mul=1.0,add=0.0;
       ;;              ^this.multiNew('control', ampdist, durdist, adparam, ddparam, freq, ampscale, durscale, initCPs, knum ? initCPs).madd( mul, add )
       ;;           }
-      
+
       ;;         }
-      
+
       {:name "Gendy3",
        :args [{:name "ampdist", :default 1.0}
               {:name "durdist", :default 1.0}

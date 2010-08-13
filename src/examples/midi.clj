@@ -32,7 +32,7 @@
 
 (defn midi-listener [event ts]
   (println "listener: " event)
-  (try 
+  (try
     (dosync (alter midi-log* conj event))
     (condp = (:cmd event)
       :control-change (dosync (alter controls* assoc (:data1 event) (:data2 event)))

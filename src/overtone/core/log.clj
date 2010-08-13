@@ -1,4 +1,4 @@
-(ns 
+(ns
   #^{:doc "Basic logging functionality."
      :author "Jeff Rose"}
   overtone.core.log

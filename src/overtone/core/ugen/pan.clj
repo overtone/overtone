@@ -41,10 +41,10 @@
        ;;    ^this.multiNew('control', in, pos, level )
        ;;  }
        ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;   
-       ;;    channels = [ 
-       ;;      OutputProxy(rate, this, 0), 
-       ;;      OutputProxy(rate, this, 1) 
+       ;;    inputs = theInputs;
+       ;;    channels = [
+       ;;      OutputProxy(rate, this, 0),
+       ;;      OutputProxy(rate, this, 1)
        ;;    ];
        ;;    ^channels
        ;;  }
@@ -56,14 +56,14 @@
                {:name "level", :default 1.0}]
         :num-outs 2
         :doc "stereo pan"}
-       
+
        ;; LinPan2 : Pan2 {}
 
        {:name "LinPan2" :extends "Pan2"
         :doc "linear stereo pan"}
-       
+
        ;; Pan4 : Panner {
-       
+
        ;;  *ar { arg in, xpos = 0.0, ypos = 0.0, level = 1.0;
        ;;    ^this.multiNew('audio', in, xpos, ypos, level )
        ;;  }
@@ -71,7 +71,7 @@
        ;;    ^this.multiNew('control', in, xpos, ypos, level )
        ;;  }
        ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;   
+       ;;    inputs = theInputs;
        ;;    channels = [ OutputProxy(rate,this, 0), OutputProxy(rate,this, 1),
        ;;          OutputProxy(rate,this, 2), OutputProxy(rate,this, 3) ];
        ;;    ^channels
@@ -85,7 +85,7 @@
                {:name "level", :default 1.0}]
         :num-outs 4
         :doc "quad pan"}
-       
+
        ;; Balance2 : Panner {
        ;;  *ar { arg left, right, pos = 0.0, level = 1.0;
        ;;    ^this.multiNew('audio', left, right, pos, level )
@@ -94,10 +94,10 @@
        ;;    ^this.multiNew('control', left, right, pos, level )
        ;;  }
        ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;   
-       ;;    channels = [ 
-       ;;      OutputProxy(rate, this, 0), 
-       ;;      OutputProxy(rate, this, 1) 
+       ;;    inputs = theInputs;
+       ;;    channels = [
+       ;;      OutputProxy(rate, this, 0),
+       ;;      OutputProxy(rate, this, 1)
        ;;    ];
        ;;    ^channels
        ;;  }
@@ -110,7 +110,7 @@
                {:name "level", :default 1.0}]
         :num-outs 2
         }
-       
+
        ;; Rotate2 : Panner {
        ;;  *ar { arg x, y, pos = 0.0;
        ;;    ^this.multiNew('audio', x, y, pos )
@@ -119,10 +119,10 @@
        ;;    ^this.multiNew('control', x, y, pos )
        ;;  }
        ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;   
-       ;;    channels = [ 
-       ;;      OutputProxy(rate, this, 0), 
-       ;;      OutputProxy(rate, this, 1) 
+       ;;    inputs = theInputs;
+       ;;    channels = [
+       ;;      OutputProxy(rate, this, 0),
+       ;;      OutputProxy(rate, this, 1)
        ;;    ];
        ;;    ^channels
        ;;  }
@@ -143,7 +143,7 @@
        ;;    ^this.multiNew('control', in, azimuth, elevation, gain )
        ;;  }
        ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;   
+       ;;    inputs = theInputs;
        ;;    channels = [ OutputProxy(rate,this,0), OutputProxy(rate,this,1),
        ;;          OutputProxy(rate,this,2), OutputProxy(rate,this,3) ];
        ;;    ^channels
@@ -156,7 +156,7 @@
                {:name "elevation", :default 0.0}
                {:name "gain", :default 1.0}]
         :num-outs 4}
-       
+
        ;; PanB2 : Panner {
        ;;  *ar { arg in, azimuth=0, gain=1;
        ;;    ^this.multiNew('audio', in, azimuth, gain )
@@ -165,7 +165,7 @@
        ;;    ^this.multiNew('control', in, azimuth, gain )
        ;;  }
        ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;   
+       ;;    inputs = theInputs;
        ;;    channels = [ OutputProxy(rate,this,0), OutputProxy(rate,this,1),
        ;;          OutputProxy(rate,this,2) ];
        ;;    ^channels
@@ -177,8 +177,8 @@
                {:name "azimuth", :default 0.0}
                {:name "gain", :default 1.0}]
         :num-outs 3}
-       
-       ;; BiPanB2 : Panner {   
+
+       ;; BiPanB2 : Panner {
        ;;  *ar { arg inA, inB, azimuth, gain=1;
        ;;    ^this.multiNew('audio', inA, inB, azimuth, gain )
        ;;  }
@@ -186,7 +186,7 @@
        ;;    ^this.multiNew('control', inA, inB, azimuth, gain )
        ;;  }
        ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;   
+       ;;    inputs = theInputs;
        ;;    channels = [ OutputProxy(rate,this,0), OutputProxy(rate,this,1),
        ;;          OutputProxy(rate,this,2) ];
        ;;    ^channels
@@ -201,7 +201,7 @@
                {:name "gain", :default 1.0}]
         :num-outs 3
         :check (when-ar (first-n-inputs-ar 2))}
-       
+
        ;; DecodeB2 : Panner {
        ;;  *ar { arg numChans, w, x, y, orientation = 0.5;
        ;;    ^this.multiNew('audio', numChans, w, x, y, orientation = 0.5 )
@@ -210,7 +210,7 @@
        ;;    ^this.multiNew('control', numChans, w, x, y, orientation = 0.5 )
        ;;  }
        ;;  init { arg numChans ... theInputs;
-       ;;    inputs = theInputs;   
+       ;;    inputs = theInputs;
        ;;    channels = Array.fill(numChans, { arg i; OutputProxy(rate,this, i) });
        ;;    ^channels
        ;;  }
@@ -224,7 +224,7 @@
                {:name "y"}
                {:name "orientation", :default 0.5}]
         :check (when-ar (first-n-inputs-ar 3))}
-       
+
        ;; PanAz : Panner {
        ;;  *ar { arg numChans, in, pos = 0.0, level = 1.0, width = 2.0, orientation = 0.5;
        ;;    ^this.multiNew('audio', numChans, in, pos, level, width, orientation )
@@ -233,7 +233,7 @@
        ;;    ^this.multiNew('control', numChans, in, pos, level, width, orientation )
        ;;  }
        ;;  init { arg numChans ... theInputs;
-       ;;    inputs = theInputs;   
+       ;;    inputs = theInputs;
        ;;    channels = Array.fill(numChans, { arg i; OutputProxy(rate,this, i) });
        ;;    ^channels
        ;;  }
@@ -245,7 +245,7 @@
                {:name "pos", :default 0.0}
                {:name "level", :default 1.0}
                {:name "width", :default 2.0}
-               {:name "orientation", :default 0.5}]}  
+               {:name "orientation", :default 0.5}]}
 
        ;; XFade2 : XFade {
        ;;  // equal power two channel cross fade
@@ -265,7 +265,7 @@
                {:name "pan", :default 0.0}
                {:name "level", :default 1.0}]
         :check (when-ar (first-n-inputs-ar 2))}
-       
+
        ;; LinXFade2 : XFade {
        ;;  // linear two channel cross fade
        ;;  *ar { arg inA, inB = 0.0, pan = 0.0, level = 1.0;

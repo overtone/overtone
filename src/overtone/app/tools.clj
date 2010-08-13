@@ -53,7 +53,7 @@
 (defn- log-view-handler [text-area debug-switch]
   (let [formatter (SimpleFormatter.)]
     (proxy [StreamHandler] []
-      (publish [msg] 
+      (publish [msg]
                (if @debug-switch
                  (.append text-area (.format formatter msg)))))))
 
@@ -76,7 +76,7 @@
         btn-panel (log-buttons debug-switch)
         text-area (JTextArea. "Overtone Log:\n" 10 40)
         scroller (JScrollPane. text-area)]
-    (on :log (fn [event] 
+    (on :log (fn [event]
                (if @debug-switch
                  (.append text-area (str event)))))
     (.addHandler LOGGER (log-view-handler text-area debug-switch))

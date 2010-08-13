@@ -211,7 +211,7 @@
 ;;         hierarchy.shift # drop the redundant UGens
 ;;         f << "["
 ;;         hierarchy.each do |cat|
-;;           f << '"' << cat << '" ' 
+;;           f << '"' << cat << '" '
 ;;         end
 ;;         f << "]"
 ;;       end

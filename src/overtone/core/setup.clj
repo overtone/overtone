@@ -1,4 +1,4 @@
-(ns 
+(ns
   #^{:doc "Library initialization and configuration."
      :author "Jeff Rose"}
   overtone.core.setup

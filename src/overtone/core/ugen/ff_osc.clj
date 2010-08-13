@@ -6,20 +6,20 @@
        :args [{:name "freq", :default 440.0}
               {:name "iphase", :default 0.0}]
        :doc "very fast sine wave generator"}
-      
+
       ;; Klang : UGen {
       ;;  *ar { arg specificationsArrayRef, freqscale = 1.0, freqoffset = 0.0;
-      ;;      ^this.multiNewList(['audio', freqscale, 
+      ;;      ^this.multiNewList(['audio', freqscale,
       ;;            freqoffset, specificationsArrayRef] )
       ;;  }
       ;;  *new1 { arg rate, freqscale, freqoffset, arrayRef;
       ;;    var specs, freqs, amps, phases;
       ;;    # freqs, amps, phases = arrayRef.dereference;
-      ;;    specs = [freqs, 
-      ;;        amps ?? {Array.fill(freqs.size,1.0)}, 
+      ;;    specs = [freqs,
+      ;;        amps ?? {Array.fill(freqs.size,1.0)},
       ;;        phases ?? {Array.fill(freqs.size,0.0)}
       ;;        ].flop.flat;
-      ;;    ^super.new.rate_(rate).addToSynth.init([freqscale,freqoffset] ++ specs); 
+      ;;    ^super.new.rate_(rate).addToSynth.init([freqscale,freqoffset] ++ specs);
       ;;  }
       ;;    init { arg theInputs;
       ;;      // store the inputs as an array
@@ -39,22 +39,22 @@
                      phases (or phases (repeat 0.0))
                      faps (map vector freqs amps phases)]
                  (apply concat args faps)))
-       :doc "a bank of fixed frequency sine oscillators 
+       :doc "a bank of fixed frequency sine oscillators
             (more efficient than multiple sin-osc)"}
-      
-      ;; Klank : UGen { 
+
+      ;; Klank : UGen {
       ;;  *ar { arg specificationsArrayRef, input, freqscale = 1.0, freqoffset = 0.0, decayscale = 1.0;
-      ;;      ^this.multiNewList(['audio',  input, freqscale, 
+      ;;      ^this.multiNewList(['audio',  input, freqscale,
       ;;            freqoffset, decayscale, specificationsArrayRef] )
       ;;  }
       ;;  *new1 { arg rate, input, freqscale, freqoffset, decayscale, arrayRef;
       ;;    var specs, freqs, amps, times;
       ;;    # freqs, amps, times = arrayRef.dereference;
-      ;;    specs = [freqs, 
-      ;;        amps ?? {Array.fill(freqs.size,1.0)}, 
+      ;;    specs = [freqs,
+      ;;        amps ?? {Array.fill(freqs.size,1.0)},
       ;;        times ?? {Array.fill(freqs.size,1.0)}
       ;;        ].flop.flat;
-      ;;    ^super.new.rate_(rate).addToSynth.init([input,freqscale,freqoffset,decayscale] ++ specs); 
+      ;;    ^super.new.rate_(rate).addToSynth.init([input,freqscale,freqoffset,decayscale] ++ specs);
       ;;  }
       ;;    init { arg theInputs;
       ;;      // store the inputs as an array
@@ -83,12 +83,12 @@
               {:name "numharm", :default 200.0}],
        :rates #{:ar}
        :doc "band Limited ImPulse generator"}
-      
+
       {:name "Saw",
        :args [{:name "freq", :default 440.0}],
        :rates #{:ar}
        :doc "band limited sawtooth wave generator"}
-      
+
       {:name "Pulse",
        :args [{:name "freq", :default 440.0}
               {:name "width", :default 0.5}],
@@ -103,12 +103,12 @@
       ;; 		amp - amplitude of grain
       ;; 	This unit generator uses a very fast algorithm for generating a sine
       ;; 	wave at a fixed frequency.
-      ;; PSinGrain : UGen {	
+      ;; PSinGrain : UGen {
       ;; 	*ar { arg freq = 440.0, dur = 0.2, amp = 1.0;
       ;; 		^this.multiNew('audio', freq, dur, amp)
       ;; 	}
       ;; }
-      
+
       {:name "PSinGrain",
        :args [{:name "freq", :default 440.0}
               {:name "dur", :default 0.2}

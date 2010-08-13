@@ -132,7 +132,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Envelope Curve Shapes
-;; Thanks to ScalaCollider for these shape formulas! 
+;; Thanks to ScalaCollider for these shape formulas!
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn step-shape [pos y1 y2]
@@ -147,14 +147,14 @@
     (* limit (Math/pow (/ y2 limit) pos))))
 
 (defn sine-shape [pos y1 y2]
-  (+ y1 
-     (* (- y2 y1) 
+  (+ y1
+     (* (- y2 y1)
         (+ (* -1 (Math/cos (* Math/PI pos)) 0.5) 0.5))))
 
 (defn welch-shape [pos y1 y2]
   (let [pos (if (< y1 y2) pos (- 1.0 pos))]
-    (+ y1 
-       (* (- y2 y1) 
+    (+ y1
+       (* (- y2 y1)
           (Math/sin (* Math/PI 0.5 pos))))))
 
 (defn curve-shape [pos y1 y2 curvature]

@@ -1,4 +1,4 @@
-(ns 
+(ns
   #^{:doc "Code that is common to many ugens.  Includes validation and argument manipulation functions."
      :author "Jeff Rose & Christophe McKeon"}
   overtone.core.ugen.common)
@@ -19,21 +19,21 @@
 ;; 12	free this synth and if the following node is a group then do g_deepFree on it, else free it
 ;; 13	free this synth and all other nodes in this group (before and after)
 ;; 14	free the enclosing group and all nodes within it (including this synth)
-(def DONE-ACTIONS  
-  {:none                       0	
-   :pause                      1	
-   :free                       2	
-   :free-and-before            3	
+(def DONE-ACTIONS
+  {:none                       0
+   :pause                      1
+   :free                       2
+   :free-and-before            3
    :free-and-after             4
-   :free-and-group-before      5	
+   :free-and-group-before      5
    :free-and-group-after       6
-   :free-upto-this             7	
-   :free-from-this-on          8	
+   :free-upto-this             7
+   :free-from-this-on          8
    :free-pause-before          9
    :free-pause-after           10
    :free-and-group-before-deep 11
-   :free-and-group-after-deep  12	
-   :free-children              13	
+   :free-and-group-after-deep  12
+   :free-children              13
    :free-group                 14})
 
 (defn as-ar [a])

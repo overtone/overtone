@@ -21,21 +21,21 @@
               {:name "feedback", :default 0.0}],
        :muladd true
        :doc "very fast sine oscillator"}
-      
+
       {:name "OscN",
        :args [{:name "bufnum"}
               {:name "freq", :default 440.0}
               {:name "phase", :default 0.0}],
        :muladd true
        :doc "noninterpolating wavetable oscillator"}
-      
+
       {:name "VOsc",
        :args [{:name "bufpos"}
               {:name "freq", :default 440.0}
               {:name "phase", :default 0.0}],
        :muladd true
        :doc "a variable wavetable lookup oscillator which can be swept smoothly across wavetables"}
-      
+
       {:name "VOsc3",
        :args [{:name "bufpos"}
               {:name "freq1", :default 110.0}
@@ -43,14 +43,14 @@
               {:name "freq3", :default 440.0}],
        :muladd true
        :doc "three variable wavetable oscillators"}
-      
+
       {:name "COsc",
        :args [{:name "bufnum"}
               {:name "freq", :default 440.0}
               {:name "beats", :default 0.5}],
        :muladd true
        :doc "a chorusing wavetable lookup oscillator that produces the sum of two signals at (freq +/- (beats / 2))"}
-      
+
       {:name "Formant",
        :args [{:name "fundfreq", :default 440.0}
               {:name "formfreq", :default 1760.0}
@@ -58,28 +58,28 @@
        :rates #{:ar},
        :muladd true
        :doc "generates a set of harmonics around a formant frequency at a given fundamental frequency"}
-      
+
       {:name "LFSaw",
        :args [{:name "freq", :default 440.0}
               {:name "iphase", :default 0.0}]
        :muladd true
        :doc "low freq (i.e. not band limited) sawtooth oscillator"}
-      
+
       {:name "LFPar" :extends "LFSaw"
        :doc "a non band-limited parabolic oscillator outputing a high of 1 and a low of zero."}
-      
+
       {:name "LFCub" :extends "LFSaw"
        :doc "an oscillator outputting a sine like shape made of two cubic pieces"}
-      
+
       {:name "LFTri" :extends "LFSaw"
        :doc "a non-band-limited triangle oscillator"}
-      
+
       ;; LFGauss : UGen {
-      ;; 	*ar { 
+      ;; 	*ar {
       ;; 		arg duration = 1, width = 0.1, iphase = 0.0, loop = 1, doneAction = 0;
       ;; 		^this.multiNew('audio', duration, width, iphase, loop, doneAction)
       ;; 	}
-      ;; 	*kr { 
+      ;; 	*kr {
       ;; 		arg duration = 1, width = 0.1, iphase = 0.0, loop = 1, doneAction = 0;
       ;; 		^this.multiNew('control', duration, width, iphase, loop, doneAction)
       ;; 	}
@@ -119,7 +119,7 @@
        :muladd true
        :signal-range :unipolar
        :doc "low freq (i.e. not band limited) pulse wave oscillator"}
-      
+
       {:name "VarSaw",
        :args [{:name "freq", :default 440.0}
               {:name "iphase", :default 0.0}
@@ -145,7 +145,7 @@
        :muladd true
        :signal-range :unipolar
        :doc "non band limited impulse oscillator"}
-      
+
       ;; SyncSaw : UGen {
       ;; 	*ar {
       ;; 		arg syncFreq = 440.0, sawFreq = 440.0, mul = 1.0, add = 0.0;
@@ -170,7 +170,7 @@
        :doc "the input signal value is truncated to an integer and used as an index into the table"}
 
       {:name "WrapIndex" :extends "Index"
-       :doc "the input signal value is truncated to an integer value and used as an index into the table 
+       :doc "the input signal value is truncated to an integer value and used as an index into the table
             (out of range index values are wrapped)"}
 
       {:name "IndexInBetween" :extends "Index"
@@ -187,9 +187,9 @@
               {:name "in", :default 0.0}
               {:name "octave", :default 12.0}]
        :muladd true
-       :doc "the input signal value is truncated to an integer value and used as an index into an octave repeating table of note values 
+       :doc "the input signal value is truncated to an integer value and used as an index into an octave repeating table of note values
             (indices wrap around the table)"}
-      
+
       ;; Select : UGen {
       ;; 	*ar {
       ;; 		arg which, array;

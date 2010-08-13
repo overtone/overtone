@@ -2,45 +2,45 @@
 
 (def UNARY-OPS
   {"neg" 0          ; inversion
-   "bitNot" 4       ; reciprocal 
-   "abs" 5          ; absolute value 
-   "asFloat" 6      
-   "ceil" 8        ; next higher integer 
+   "bitNot" 4       ; reciprocal
+   "abs" 5          ; absolute value
+   "asFloat" 6
+   "ceil" 8        ; next higher integer
    "floor" 9       ; next lower integer
-   "frac" 10       ; fractional part 
-   "sign" 11       ; -1 when a < 0, +1 when a > 0, 0 when a is 0 
+   "frac" 10       ; fractional part
+   "sign" 11       ; -1 when a < 0, +1 when a > 0, 0 when a is 0
    "squared" 12    ; a*a
-   "cubed" 13      ; a*a*a 
-   "sqrt" 14       ; square root    
-   "exp" 15        ; exponential 
+   "cubed" 13      ; a*a*a
+   "sqrt" 14       ; square root
+   "exp" 15        ; exponential
    "reciprocal" 16 ; reciprocal
-   "midicps" 17    ; MIDI note number to cycles per second 
+   "midicps" 17    ; MIDI note number to cycles per second
    "cpsmidi" 18    ; cycles per second to MIDI note number
    "midiratio" 19  ; convert an interval in MIDI notes into a frequency ratio
    "ratiomidi" 20  ; convert a frequency ratio to an interval in MIDI notes
-   "dbamp" 21      ; decibels to linear amplitude 
-   "ampdb" 22      ; linear amplitude to decibels          
-   "octcps" 23     ; decimal octaves to cycles per second 
+   "dbamp" 21      ; decibels to linear amplitude
+   "ampdb" 22      ; linear amplitude to decibels
+   "octcps" 23     ; decimal octaves to cycles per second
    "cpsoct" 24     ; cycles per second to decimal octaves
-   "log" 25        ; natural logarithm 
-   "log2" 26       ; base 2 logarithm 
-   "log10" 27      ; base 10 logarithm 
-   "sin" 28        ; sine 
-   "cos" 29        ; cosine 
-   "tam" 30        ; tangent 
-   "asin" 31       ; arcsine 
-   "acos" 32       ; arccosine 
-   "atan" 33       ; arctangent 
-   "sinh" 34       ; hyperbolic sine 
-   "cosh" 35       ; hyperbolic cosine 
-   "tanh" 36       ; hyperbolic tangent 
-   "rand" 37       
-   "rand2" 38      
-   "linrand" 39               
-   "bilinrand" 40              
+   "log" 25        ; natural logarithm
+   "log2" 26       ; base 2 logarithm
+   "log10" 27      ; base 10 logarithm
+   "sin" 28        ; sine
+   "cos" 29        ; cosine
+   "tam" 30        ; tangent
+   "asin" 31       ; arcsine
+   "acos" 32       ; arccosine
+   "atan" 33       ; arctangent
+   "sinh" 34       ; hyperbolic sine
+   "cosh" 35       ; hyperbolic cosine
+   "tanh" 36       ; hyperbolic tangent
+   "rand" 37
+   "rand2" 38
+   "linrand" 39
+   "bilinrand" 40
    "sum3rand" 41
-   "distort" 42    ; distortion                              
-   "softclip" 43   ; distortion                        
+   "distort" 42    ; distortion
+   "softclip" 43   ; distortion
    "coin" 44
    "rectWindow" 48
    "hanWindow" 49
@@ -51,7 +51,7 @@
 
 ; Commented out ops are implemented with generics instead of generated
 ; see core/ops.clj
-(def BINARY-OPS 
+(def BINARY-OPS
   (apply hash-map [
    ;"+" 0           ; addition
    ;"-" 1           ; subtraction
@@ -62,7 +62,7 @@
    "<=" 10         ; less than or equal
    ">=" 11
    "minimum" 12
-   "maximum" 13 
+   "maximum" 13
    "lcm" 17
    "gcd" 18
    "round" 19

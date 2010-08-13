@@ -31,7 +31,7 @@
        ;; 		^this.multiNew('audio', freq, a, b, c, xi).madd(mul, add)
        ;; 	}
        ;; }
-       
+
        {:name "QuadN",
         :args [{:name "freq", :default 22050.0}
                {:name "a", :default 1.0}
@@ -39,17 +39,17 @@
                {:name "c", :default -0.75}
                {:name "xi", :default 0.0}]
         :doc "a non-interpolating sound generator based on the difference equation: xn+1 = axn2 + bxn + c "}
-       
+
        ;; QuadL : QuadN {}
-       
+
        {:name "QuadL" :extends "QuadN"
         :doc "a linear-interpolating sound generator based on the difference equation: xn+1 = axn2 + bxn + c"}
-       
+
        ;; QuadC : QuadN {}
-       
+
        {:name "QuadC", :extends "QuadN"
         :doc "a cubic-interpolating sound generator based on the difference equation: xn+1 = axn2 + bxn + c"}
-       
+
        ;; // Cusp Map
        ;; CuspN : ChaosGen {
        ;; 	const <equation="x1 = a - b*sqrt(|x0|)";
@@ -64,12 +64,12 @@
                {:name "b", :default 1.9}
                {:name "xi", :default 0.0}]
         :doc "a non-interpolating sound generator based on the difference equation: xn+1 = a - b*sqrt(|xn|)"}
-       
+
        ;; CuspL : CuspN {}
-       
+
        {:name "CuspL" :extends "CuspN"
         :doc "a linear-interpolating sound generator based on the difference equation: xn+1 = a - b*sqrt(|xn|)"}
-       
+
        ;; // Gingerbreadman Map
        ;; GbmanN : ChaosGen {
        ;; 	const <equation="x1 = 1 - y0 + |x0|\ny1 = x0";
@@ -85,14 +85,14 @@
         :doc "A non-interpolating sound generator based on the difference equations:
 xn+1 = 1 - yn + |xn|
 yn+1 = xn"}
-       
+
        ;; GbmanL : GbmanN {}
 
        {:name "GbmanL" :extends "GbmanN"
         :doc "A linear-interpolating sound generator based on the difference equations:
 xn+1 = 1 - yn + |xn|
 yn+1 = xn"}
-       
+
        ;; // Henon Map
        ;; HenonN : ChaosGen {
        ;; 	const <equation="x2 = 1 - a*(x1^2) + b*x0";
@@ -109,19 +109,19 @@ yn+1 = xn"}
                {:name "x1", :default 0.0}]
         :doc "a non-interpolating sound generator based on the difference equation:
 x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
-       
+
        ;; HenonL : HenonN {}
 
        {:name "HenonL" :extends "HenonN"
         :doc "a linear-interpolating sound generator based on the difference equation:
 x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
-       
+
        ;; HenonC : HenonN {}
 
        {:name "HenonC" :extends "HenonN"
         :doc "a cubic-interpolating sound generator based on the difference equation:
 x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
-       
+
        ;; // Latoocarfian
        ;; LatoocarfianN : ChaosGen {
        ;; 	const <equation="x1 = sin(b*y0) + c*sin(b*x0)\ny1 = sin(a*x0) + d*sin(a*y0)";
@@ -139,17 +139,17 @@ x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
                {:name "xi", :default 0.5}
                {:name "yi", :default 0.5}]
         :doc "a non-interpolating latoocarfian chaotic sound generator"}
-       
+
        ;; LatoocarfianL : LatoocarfianN {}
 
        {:name "LatoocarfianL" :extends "LatoocarfianN"
         :doc "a linear-interpolating latoocarfian chaotic sound generator"}
-       
+
        ;; LatoocarfianC : LatoocarfianN {}
 
        {:name "LatoocarfianC" :extends "LatoocarfianN"
         :doc "a cubic-interpolating latoocarfian chaotic sound generator"}
-       
+
        ;; // Linear Congruential
        ;; LinCongN : ChaosGen {
        ;; 	const <equation="x1 = ((a * x0) + c) % m";
@@ -165,17 +165,17 @@ x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
                {:name "m", :default 1.0}
                {:name "xi", :default 0.0}]
         :doc "a non-interpolating linear congruential chaotic sound generator"}
-       
+
        ;; LinCongL : LinCongN {}
 
        {:name "LinCongL" :extends "LinCongN"
         :doc "a linear-interpolating linear congruential chaotic sound generator"}
-       
+
        ;; LinCongC : LinCongN {}
 
        {:name "LinCongC" :extends "LinCongN"
         :doc "a cubic-interpolating linear congruential chaotic sound generator"}
-       
+
        ;; // Standard Map
        ;; StandardN : ChaosGen {
        ;; 	const <equation="x1 = (x0 + y1) % 2pi\ny1 = (y0 + k*sin(x0)) % 2pi";
@@ -190,12 +190,12 @@ x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
                {:name "xi", :default 0.5}
                {:name "yi", :default 0.0}]
         :doc "standard map chaotic generator"}
-       
+
        ;; StandardL : StandardN {}
 
        {:name "StandardL" :extends "StandardN"
         :doc "linear-interpolating standard map chaotic generator"}
-       
+
        ;; // Feedback Sine with Linear Congruential Phase Indexing
        ;; FBSineN : ChaosGen {
        ;; 	const <equation="x1 = sin(im*y0 + fb*x0)\ny1 = (a*y0 + c) % 2pi";
@@ -213,16 +213,16 @@ x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
                {:name "xi", :default 0.1}
                {:name "yi", :default 0.1}]
         :doc "a non-interpolating feedback sine with chaotic phase indexing sound generator"}
-       
+
        ;; FBSineL : FBSineN {}
 
        {:name "FBSineL" :extends "FBSineN"
         :doc "a linear-interpolating feedback sine with chaotic phase indexing sound generator"}
-       
+
        ;; FBSineC : FBSineN {}
        {:name "FBSineC" :extends "FBSineN"
         :doc "a cubic-interpolating feedback sine with chaotic phase indexing sound generator"}
-       
+
        ;; // ODEs
        ;; // 'h' is integration time-step
 
@@ -231,7 +231,7 @@ x[n+2] = 1 - a*(x[n+1]^)2 + bx[n]"}
        ;; 	const <equation="x' = s*(y-x)\ny' = x*(r-z)-y\nz' = x*y - b*z";
        ;; 	*ar { arg freq=22050, s=10, r=28, b=2.667, h=0.05, xi=0.1, yi=0, zi=0, mul=1.0, add=0.0;
        ;; 		^this.multiNew('audio', freq, s, r, b, h, xi, yi, zi).madd(mul, add)
-       ;; 	}	
+       ;; 	}
        ;; }
 
        {:name "LorenzL",

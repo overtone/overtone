@@ -6,8 +6,8 @@
   (:use (overtone.core util event)
         [clojure.contrib.fcase :only (case)])
   (:import
-   (com.sun.scenario.scenegraph 
-     JSGPanel ProportionalPaint SGAbstractGeometry SGAbstractShape 
+   (com.sun.scenario.scenegraph
+     JSGPanel ProportionalPaint SGAbstractGeometry SGAbstractShape
      SGAbstractShape$Mode SGAlignment SGArc SGCircle SGClip SGComponent
      SGComposite SGCubicCurve SGEffect SGEllipse SGEmbeddedToolkit
      SGFilter SGGroup SGImage SGImageOp SGLeaf SGLine SGNode SGParent
@@ -15,14 +15,14 @@
      SGSourceContent SGText SGTransform SGTransform$Affine
      SGTransform$Rotate SGTransform$Scale SGTransform$Shear
      SGTransform$Translate SGWrapper)
-   (com.sun.scenario.scenegraph.event 
+   (com.sun.scenario.scenegraph.event
      SGFocusListener SGKeyListener SGMouseAdapter SGNodeListener
      SGMouseAdapter SGNodeEvent)
-   (com.sun.scenario.effect  
-     AbstractGaussian Blend Bloom Brightpass ColorAdjust DropShadow 
-     Effect GaussianBlur Identity Merge Offset PhongLighting SepiaTone 
+   (com.sun.scenario.effect
+     AbstractGaussian Blend Bloom Brightpass ColorAdjust DropShadow
+     Effect GaussianBlur Identity Merge Offset PhongLighting SepiaTone
      Shadow Glow Source SourceContent Blend$Mode Effect$AccelType)
-   (com.sun.scenario.effect.light 
+   (com.sun.scenario.effect.light
      DistantLight Light PointLight SpotLight Light$Type )
    (java.awt BasicStroke BorderLayout Color Point Dimension
              Font Insets RenderingHints Shape)
@@ -61,14 +61,14 @@
 (defn on-key-pressed [component handler]
   (. component addKeyListener
       (proxy [SGKeyListener] []
-        (keyPressed [event node] (run-handler handler event node))        
+        (keyPressed [event node] (run-handler handler event node))
         (keyReleased [event node])
         (keyTyped [event node] ))))
 
 (defn on-key-released [component handler]
   (. component addKeyListener
       (proxy [SGKeyListener] []
-        (keyPressed [event node])        
+        (keyPressed [event node])
         (keyReleased [event node] (run-handler handler event node))
         (keyTyped [event node] ))))
 
@@ -152,7 +152,7 @@
 
 (defn set-mode! [node mode] (.setMode node (shape-mode-map mode)))
 
-(def stroke-cap-map  {:butt   BasicStroke/CAP_BUTT 
+(def stroke-cap-map  {:butt   BasicStroke/CAP_BUTT
                       :round  BasicStroke/CAP_ROUND
                       :square BasicStroke/CAP_SQUARE})
 
@@ -164,18 +164,18 @@
   ([node width] (.setDrawStroke node (BasicStroke. width)))
   ([node width cap join] (.setDrawStroke node (BasicStroke. width (stroke-cap-map cap) (stroke-join-map join)))))
 
-(def color-map {:black      Color/BLACK     
-                :blue       Color/BLUE      
-                :cyan       Color/CYAN      
-                :dark-gray  Color/DARK_GRAY  
-                :gray       Color/GRAY      
-                :green      Color/GREEN     
-                :light-gray Color/LIGHT_GRAY 
-                :magenta    Color/MAGENTA   
-                :orange     Color/ORANGE    
-                :pink       Color/PINK      
-                :red        Color/RED       
-                :white      Color/WHITE     
+(def color-map {:black      Color/BLACK
+                :blue       Color/BLUE
+                :cyan       Color/CYAN
+                :dark-gray  Color/DARK_GRAY
+                :gray       Color/GRAY
+                :green      Color/GREEN
+                :light-gray Color/LIGHT_GRAY
+                :magenta    Color/MAGENTA
+                :orange     Color/ORANGE
+                :pink       Color/PINK
+                :red        Color/RED
+                :white      Color/WHITE
                 :yellow     Color/YELLOW})
 
 (defn set-draw-paint!
@@ -237,7 +237,7 @@
                    (set-center-x! cx)
                    (set-center-y! cy)
                    (set-radius-x! rx)
-                   (set-radius-y! ry))))  
+                   (set-radius-y! ry))))
 
 (defn sg-line
   ([] (SGLine.))
@@ -264,19 +264,19 @@
            (set-height! h)))
   ([x y w h] (doto (sg-rectangle)
                (set-x! x)
-               (set-y! y)                 
+               (set-y! y)
                (set-width! w)
                (set-height! h)))
   ([x y w h arcw arch] (doto (sg-rectangle)
                          (set-x! x)
-                         (set-y! y) 
+                         (set-y! y)
                          (set-width! w)
                          (set-height! h)
                          (set-arc-width! arcw)
                          (set-arc-height! arch))))
 
-(def antialias-map {:default RenderingHints/VALUE_ANTIALIAS_DEFAULT 
-                    :off     RenderingHints/VALUE_ANTIALIAS_OFF 
+(def antialias-map {:default RenderingHints/VALUE_ANTIALIAS_DEFAULT
+                    :off     RenderingHints/VALUE_ANTIALIAS_OFF
                     :on      RenderingHints/VALUE_ANTIALIAS_ON})
 
 (defn set-antialias! [node value] (.setAntialiasingHint node (antialias-map value)))
@@ -294,13 +294,13 @@
 
 (defn set-font! [node name style size] (.setFont node (Font. name (font-style-map style) size)))
 
-(def text-antialias-map {:default  RenderingHints/VALUE_TEXT_ANTIALIAS_DEFAULT 
-                         :gasp     RenderingHints/VALUE_TEXT_ANTIALIAS_GASP 
-                         :lcd-hbgr RenderingHints/VALUE_TEXT_ANTIALIAS_LCD_HBGR 
-                         :lcd-hrgb RenderingHints/VALUE_TEXT_ANTIALIAS_LCD_HRGB 
-                         :lcd-vbgr RenderingHints/VALUE_TEXT_ANTIALIAS_LCD_VBGR 
-                         :lcd-vrgb RenderingHints/VALUE_TEXT_ANTIALIAS_LCD_VRGB 
-                         :off      RenderingHints/VALUE_TEXT_ANTIALIAS_OFF 
+(def text-antialias-map {:default  RenderingHints/VALUE_TEXT_ANTIALIAS_DEFAULT
+                         :gasp     RenderingHints/VALUE_TEXT_ANTIALIAS_GASP
+                         :lcd-hbgr RenderingHints/VALUE_TEXT_ANTIALIAS_LCD_HBGR
+                         :lcd-hrgb RenderingHints/VALUE_TEXT_ANTIALIAS_LCD_HRGB
+                         :lcd-vbgr RenderingHints/VALUE_TEXT_ANTIALIAS_LCD_VBGR
+                         :lcd-vrgb RenderingHints/VALUE_TEXT_ANTIALIAS_LCD_VRGB
+                         :off      RenderingHints/VALUE_TEXT_ANTIALIAS_OFF
                          :on       RenderingHints/VALUE_TEXT_ANTIALIAS_ON})
 
 (defn set-text-antialias! [node val] (.setAntialiasingHint node (text-antialias-map val)))
@@ -321,26 +321,26 @@
 (def blend-mode-map {:add           Blend$Mode/ADD
                      :blue          Blend$Mode/BLUE
                      :color-burn    Blend$Mode/COLOR_BURN
-                     :color-dodge   Blend$Mode/COLOR_DODGE    
-                     :darken        Blend$Mode/DARKEN         
-                     :difference    Blend$Mode/DIFFERENCE     
-                     :exclusion     Blend$Mode/EXCLUSION      
-                     :green         Blend$Mode/GREEN          
-                     :hard-light    Blend$Mode/HARD_LIGHT     
-                     :lighten       Blend$Mode/LIGHTEN        
-                     :multiply      Blend$Mode/MULTIPLY       
-                     :overlay       Blend$Mode/OVERLAY        
-                     :red           Blend$Mode/RED            
-                     :screen        Blend$Mode/SCREEN         
-                     :soft-light    Blend$Mode/SOFT_LIGHT     
-                     :src-atop      Blend$Mode/SRC_ATOP       
-                     :src-in        Blend$Mode/SRC_IN         
-                     :src-out       Blend$Mode/SRC_OUT        
+                     :color-dodge   Blend$Mode/COLOR_DODGE
+                     :darken        Blend$Mode/DARKEN
+                     :difference    Blend$Mode/DIFFERENCE
+                     :exclusion     Blend$Mode/EXCLUSION
+                     :green         Blend$Mode/GREEN
+                     :hard-light    Blend$Mode/HARD_LIGHT
+                     :lighten       Blend$Mode/LIGHTEN
+                     :multiply      Blend$Mode/MULTIPLY
+                     :overlay       Blend$Mode/OVERLAY
+                     :red           Blend$Mode/RED
+                     :screen        Blend$Mode/SCREEN
+                     :soft-light    Blend$Mode/SOFT_LIGHT
+                     :src-atop      Blend$Mode/SRC_ATOP
+                     :src-in        Blend$Mode/SRC_IN
+                     :src-out       Blend$Mode/SRC_OUT
                      :src-over      Blend$Mode/SRC_OVER})
 
-(def light-type-map {:distant Light$Type/DISTANT 
-                     :point   Light$Type/POINT 
-                     :spot    Light$Type/SPOT}) 
+(def light-type-map {:distant Light$Type/DISTANT
+                     :point   Light$Type/POINT
+                     :spot    Light$Type/SPOT})
 
 (defmacro set-prop! [component kw val]
   `( ~(symbol (str ".set" (s2/capitalize (name kw)))) ~component ~val))
@@ -357,7 +357,7 @@
   ([fx-name args fx & body]
       `(let [~fx (create-fx ~fx-name ~args)]
          ~@body
-         ~fx))) 
+         ~fx)))
 
 (defn set-fx! [effect fx] (.setEffect effect fx))
 (defn set-child! [effect node] (.setChild effect node) )

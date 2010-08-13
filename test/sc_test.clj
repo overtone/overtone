@@ -1,9 +1,9 @@
 (ns sc-test
-  (:use 
+  (:use
      clojure.test
      clojure.contrib.seq-utils
      overtone)
-  (:require 
+  (:require
       overtone.instrument.synth
      [overtone.log :as log]))
 
@@ -19,7 +19,7 @@
       (recur (next notes) (next durs) (+ t (first durs))))))
 
 (deftest boot-test []
-  (try 
+  (try
     (boot)
     (is (not (nil? @server*)))
     (is (= 1 (:n-groups (status))))
@@ -27,7 +27,7 @@
     (Thread/sleep 1000)
     (play-seqs "sin" ditty-notes ditty-durs)
     (Thread/sleep 3000)
-    (finally 
+    (finally
       (quit))))
 
 (defn groups-test []
@@ -60,7 +60,7 @@
     (groups-test)
     (node-tree-test)
     (reset)
-    (finally 
+    (finally
       (quit))))
 
 (defn sc-tests []

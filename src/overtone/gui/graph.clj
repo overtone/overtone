@@ -1,8 +1,8 @@
 (ns overtone.gui.graph
-  (:import 
+  (:import
      (java.awt Dimension Color Font RenderingHints Point BasicStroke)
      (java.awt.geom Ellipse2D$Float RoundRectangle2D$Float)
-     (javax.swing JFrame JPanel) 
+     (javax.swing JFrame JPanel)
      (com.sun.scenario.scenegraph JSGPanel SGText SGShape SGGroup SGAbstractShape$Mode)
      (com.sun.scenario.scenegraph.event SGMouseAdapter)
      (com.sun.scenario.scenegraph.fx FXShape)
@@ -31,7 +31,7 @@
 (defn ugen-mouse-listener [glow anim]
   (proxy [SGMouseAdapter] []
     (mouseEntered [evt node] (.start anim))
-    (mouseExited  [evt node] 
+    (mouseExited  [evt node]
                  (.stop anim)
                  (.setRadius glow 0))))
 
@@ -47,13 +47,13 @@
         listener (ugen-mouse-listener glow clip)]
     (.setLocation text (Point. (+ x NODE-PADDING) (+ y NODE-PADDING (.height bounds))))
 
-    (doto glow 
+    (doto glow
       (.setRadius 1.0)
       (.setColor (Color. 88 248 246)))
 
     (doto box
-      (.setShape (RoundRectangle2D$Float. x y 
-                                          (+ (* 2 NODE-PADDING) (.width bounds)) 
+      (.setShape (RoundRectangle2D$Float. x y
+                                          (+ (* 2 NODE-PADDING) (.width bounds))
                                           (+ (* 2 NODE-PADDING) (.height bounds))
                                           NODE-ARC NODE-ARC))
       (.setMode SGAbstractShape$Mode/STROKE_FILL)
@@ -85,15 +85,15 @@
 (defn ugen-node [ugen sdef]
   (let [consts (:constants sdef)
         ugens (:ugens sdef)
-        args (map (fn [input] 
-                    (cond 
+        args (map (fn [input]
+                    (cond
                       (= -1 (:src input)) (nth consts (:index input))
                       :default (nth ugens (:index input))))
                   (:inputs ugen))]))
 
-(defn sdef-graph 
+(defn sdef-graph
   "Convert an sdef into some more easily dealt with tree structure so we
-  can" 
+  can"
   [sdef]
   (let [ugens (reverse (:ugens sdef))]))
 
@@ -112,7 +112,7 @@
 ;                                     y)
 ;                             node (ugen-node-view sdef ugen x y)
 ;                             width (-> node (.getBounds) (.width))]
-;                         (recur (+ x width NODE-MARGIN) 
+;                         (recur (+ x width NODE-MARGIN)
 ;                                y
 ;                                (assoc nodes id node)
 ;                                (next ugens)))

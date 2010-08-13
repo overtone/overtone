@@ -22,9 +22,9 @@
 
 ; In Overtone you create synthesizers to generate audio.  You can think of a
 ; synthesizer definition as the design or blueprint for a signal processor.
-; (In Max/MSP or PureData they call this a patch.) 
+; (In Max/MSP or PureData they call this a patch.)
 
-; The synth macro takes a synth design, compiles it, loads it into the 
+; The synth macro takes a synth design, compiles it, loads it into the
 ; audio server, and returns a function that can be used to trigger the synth.
 ; Here is a 440 hz sin wave:
 (def foo (synth (sin-osc 440)))
@@ -44,10 +44,10 @@
 ; play the sin wave at a couple frequences
 (my-sin)     ; uses the default
 (my-sin 220) ; an octave lower
-(my-sin 447) 
+(my-sin 447)
 
 ; If you lose a synth ID or things are going crazy and you just need to kill
-; all the current synths, call reset to clear all the live synths. 
+; all the current synths, call reset to clear all the live synths.
 (reset)
 
 ; Square wave, created by a pulse generator

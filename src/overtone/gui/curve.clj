@@ -1,4 +1,4 @@
-(ns 
+(ns
   #^{:doc "An envelope curve editor"
      :author "Jeff Rose"}
   overtone.gui.curve

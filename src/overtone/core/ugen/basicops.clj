@@ -40,7 +40,7 @@
 
 (def specs
      [
-      ;; UnaryOpUGen : BasicOpUGen {	
+      ;; UnaryOpUGen : BasicOpUGen {
       ;; 	*new { arg selector, a;
       ;; 		^this.multiNew('audio', selector, a)
       ;; 	}
@@ -56,11 +56,11 @@
        :rates #{:dr :ir :ar :kr}
        :doc "Multi-function ugen representing many operations (e.g. neg, abs, floor, sqrt, midicps, etc...)"}
 
-      ;; BinaryOpUGen : BasicOpUGen {		
+      ;; BinaryOpUGen : BasicOpUGen {
       ;; 	*new { arg selector, a, b;
       ;; 		^this.multiNew('audio', selector, a, b)
       ;; 	}
-      
+
       ;; 	determineRate { arg a, b;
       ;; 		if (a.rate == \demand, { ^\demand });
       ;; 		if (b.rate == \demand, { ^\demand });
@@ -71,7 +71,7 @@
       ;; 		^\scalar
       ;; 	}
       ;; 	*new1 { arg rate, selector, a, b;
-      
+
       ;; 		// eliminate degenerate cases
       ;; 		if (selector == '*', {
       ;; 			if (a == 0.0, { ^0.0 });
@@ -94,26 +94,26 @@
       ;; 			if (b == -1.0, { ^a.neg });
       ;; 			if (b.rate == 'scalar', { ^a * b.reciprocal });
       ;; 		})})})});
-      
+
       ;;  		^super.new1(rate, selector, a, b)
       ;; 	}
-      
+
       ;; 	init { arg theOperator, a, b;
       ;; 		this.operator = theOperator;
       ;; 		rate = this.determineRate(a, b);
       ;; 		inputs = [a, b];
       ;; 	}
-      
+
       ;; 	optimizeGraph {
       ;; 		var a, b, muladd;
       ;; 		#a, b = inputs;
-      
+
       ;; 		//this.constantFolding;
-      
+
       ;; 		if (operator == '+', {
       ;; 			// create a MulAdd if possible.
-      ;; 			if (a.isKindOf(BinaryOpUGen) and: { a.operator == '*' 
-      ;; 				and: { a.descendants.size == 1 }}, 
+      ;; 			if (a.isKindOf(BinaryOpUGen) and: { a.operator == '*'
+      ;; 				and: { a.descendants.size == 1 }},
       ;; 			{
       ;; 				if (MulAdd.canBeMulAdd(a.inputs[0], a.inputs[1], b), {
       ;; 					buildSynthDef.removeUGen(a);
@@ -124,8 +124,8 @@
       ;; 					muladd = MulAdd.new(a.inputs[1], a.inputs[0], b)
       ;; 				})});
       ;; 			},{
-      ;; 			if (b.isKindOf(BinaryOpUGen) and: { b.operator == '*' 
-      ;; 				and: { b.descendants.size == 1 }}, 
+      ;; 			if (b.isKindOf(BinaryOpUGen) and: { b.operator == '*'
+      ;; 				and: { b.descendants.size == 1 }},
       ;; 			{
       ;; 				if (MulAdd.canBeMulAdd(b.inputs[0], b.inputs[1], a), {
       ;; 					buildSynthDef.removeUGen(b);
@@ -141,17 +141,17 @@
       ;; 			});
       ;; 		});
       ;; 	}
-      
+
       ;; 	constantFolding {
       ;; 		var a, b, aa, bb, cc, dd, temp, ac_ops, value;
-      
+
       ;; 		// associative & commutative operators
       ;; 		ac_ops = #['+','*','min','max','&&','||'];
-      
+
       ;; 		if (ac_ops.includes(operator).not) { ^this };
-      
+
       ;; 		#a, b = inputs;
-      ;; 		if (a.isKindOf(BinaryOpUGen) and: { operator == a.operator 
+      ;; 		if (a.isKindOf(BinaryOpUGen) and: { operator == a.operator
       ;; 			and: { b.isKindOf(BinaryOpUGen) and: { operator == b.operator } }}) {
       ;; 			#aa, bb = a.inputs;
       ;; 			#cc, dd = b.inputs;
@@ -179,7 +179,7 @@
       ;; 					synthDef.removeUGen(a);
       ;; 				}}
       ;; 			}};
-      
+
       ;; 		};
       ;; 		#a, b = inputs;
       ;; 		if (a.isKindOf(BinaryOpUGen) and: { operator == a.operator }) {
@@ -266,22 +266,22 @@
       ;;  		if (noadd, { ^in * mul });
       ;;   		if (minus, { ^add - in });
       ;; 		if (nomul, { ^in + add });
-      
+
       ;;  		^super.new1(rate, in, mul, add)
       ;; 	}
       ;; 	init { arg in, mul, add;
       ;; 		rate = in.rate;
       ;; 		inputs = [in, mul, add];
       ;; 	}
-      
+
       ;; 	*canBeMulAdd { arg in, mul, add;
       ;; 		// see if these inputs satisfy the constraints of a MulAdd ugen.
       ;; 		if (in.rate == \audio, { ^true });
-      ;; 		if (in.rate == \control 
-      ;; 			and: { mul.rate == \control || { mul.rate == \scalar }} 
-      ;; 			and: { add.rate == \control || { add.rate == \scalar }}, 
-      ;; 		{ 
-      ;; 			^true 
+      ;; 		if (in.rate == \control
+      ;; 			and: { mul.rate == \control || { mul.rate == \scalar }}
+      ;; 			and: { add.rate == \control || { add.rate == \scalar }},
+      ;; 		{
+      ;; 			^true
       ;; 		});
       ;; 		^false
       ;; 	}
@@ -292,7 +292,7 @@
               {:name "mul", :default 1.0}
               {:name "add", :default 0.0}]
        :doc "Multiply and add, equivalent to (+ add (* mul in))"}
-      
+
       ])
 
 ;;    {:name "!=", :args [{:name "a"} {:name "b"}], :rates #{:dr :ir :ar :kr}}

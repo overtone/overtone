@@ -1,16 +1,16 @@
 (ns synthdef-test
-  (:import (java.io FileInputStream FileOutputStream 
+  (:import (java.io FileInputStream FileOutputStream
               DataInputStream DataOutputStream
-              BufferedInputStream BufferedOutputStream 
+              BufferedInputStream BufferedOutputStream
               ByteArrayOutputStream ByteArrayInputStream))
   (:use overtone
      test-utils
      clojure.test)
   (:require [overtone.log :as log]))
 
-(defn sawzall-raw 
+(defn sawzall-raw
   []
-  {:name "sawzall" 
+  {:name "sawzall"
    :n-constants (short 1)
    :constants [(float 0.0)]
    :n-params  (short 1)
@@ -20,13 +20,13 @@
    :n-ugens   (short 4)
    :ugens     [{:outputs [{:rate (byte 1)}], :inputs [], :special (short 0), :n-outputs (short 1), :n-inputs (short 0), :rate (short 1), :name "Control"}
 
-               {:outputs [{:rate (byte 1)}], :inputs [{:index (short 0), :src (short 0)}], :special (short 17), 
+               {:outputs [{:rate (byte 1)}], :inputs [{:index (short 0), :src (short 0)}], :special (short 17),
                 :n-outputs (short 1), :n-inputs (short 1), :rate (byte 1), :name "UnaryOpUGen"}
 
-               {:outputs [{:rate (byte 2)}], :inputs [{:index (short 0), :src (short 1)}], :special (short 0), 
+               {:outputs [{:rate (byte 2)}], :inputs [{:index (short 0), :src (short 1)}], :special (short 0),
                 :n-outputs (short 1), :n-inputs (short 1), :rate (byte 2), :name "Saw"}
 
-               {:outputs [], :inputs [{:index (short 0), :src (short -1)} {:index (short 0), :src (short 2)}], 
+               {:outputs [], :inputs [{:index (short 0), :src (short -1)} {:index (short 0), :src (short 2)}],
                 :special (short 0), :n-outputs (short 0), :n-inputs (short 2), :rate (byte 2), :name "Out"}]
    :n-variants (short 0)
    :variants []})

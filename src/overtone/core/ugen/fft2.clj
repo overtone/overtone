@@ -5,7 +5,7 @@
 (def specs
      [
       ;; //sick lincoln remembers complex analysis courses
-      ;; PV_ConformalMap : PV_ChainUGen 
+      ;; PV_ConformalMap : PV_ChainUGen
       ;; {
       ;;  *new { arg buffer, areal = 0.0, aimag = 0.0;
       ;;    ^this.multiNew('control', buffer, areal, aimag)
@@ -17,7 +17,7 @@
               {:name "areal", :default 0.0}
               {:name "aimag", :default 0.0}],
        :rates #{:kr}}
-      
+
       ;; //in and kernel are both audio rate changing signals
       ;; Convolution : UGen
       ;; {
@@ -33,7 +33,7 @@
        :rates #{:ar}
        :muladd true}
 
-      ;; //fixed kernel convolver with fix by nescivi to update the kernel on receipt of a trigger message 
+      ;; //fixed kernel convolver with fix by nescivi to update the kernel on receipt of a trigger message
       ;; Convolution2 : UGen
       ;; {
       ;;  *ar { arg in, kernel, trigger, framesize=0,mul = 1.0, add = 0.0;
@@ -48,7 +48,7 @@
               {:name "framesize", :default 512.0}],
        :rates #{:ar}
        :muladd true}
-      
+
       ;; //fixed kernel convolver with linear crossfade
       ;; Convolution2L : UGen
       ;; {
@@ -73,10 +73,10 @@
       ;;    ^this.multiNew('audio', in, kernelL, kernelR, trigger, framesize, crossfade).madd(mul, add);
       ;;  }
       ;;  init { arg ... theInputs;
-      ;;    inputs = theInputs;   
-      ;;    channels = [ 
-      ;;      OutputProxy(rate, this, 0), 
-      ;;      OutputProxy(rate, this, 1) 
+      ;;    inputs = theInputs;
+      ;;    channels = [
+      ;;      OutputProxy(rate, this, 0),
+      ;;      OutputProxy(rate, this, 1)
       ;;    ];
       ;;    ^channels
       ;;  }
@@ -154,7 +154,7 @@
       ;;  *kr { arg in, numsamp=40;
       ;;    ^this.multiNew('control', in, numsamp);
       ;;  }
-      
+
       ;;  *rms { arg in, numsamp=40;
       ;;    ^(RunningSum.ar(in.squared,numsamp)*(numsamp.reciprocal)).sqrt;
       ;;  }

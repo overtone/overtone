@@ -22,7 +22,7 @@
 (def msg-log* (atom []))
 
 ;(defn log-input []
-;  (.setReceiver (:transmitter NOV-IN) (midi-handler 
+;  (.setReceiver (:transmitter NOV-IN) (midi-handler
 ;                                        (fn [msg t]
 ;                                          (swap! msg-log* conj msg)))))
 ;

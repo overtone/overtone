@@ -1,4 +1,4 @@
-(ns 
+(ns
   #^{:doc "Functions to help manage and structure computation in time."
      :author "Jeff Rose"}
   overtone.core.time-utils

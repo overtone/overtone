@@ -3,7 +3,7 @@
 
 (refer-ugens)
 
-; Here are a few ways to define the same example from SC2, analog bubbles. 
+; Here are a few ways to define the same example from SC2, analog bubbles.
 ; They all produce an identical synthdef, so it's a matter of style I guess.
 (defsynth analog-bubbles []
   (let [freqs (midicps (mul-add (lf-saw:kr 0.4 0) 24

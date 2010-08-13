@@ -1,9 +1,9 @@
 (ns overtone.gui.controller
-  (:import 
+  (:import
      (java.awt Toolkit EventQueue Color Dimension BorderLayout)
      (javax.swing JFrame JPanel JLabel JSlider JScrollPane SwingUtilities BoxLayout)
      (javax.swing.event ChangeListener))
-  (:use 
+  (:use
      (overtone.core sc synth synthdef util time-utils)
      clojure.contrib.swing-utils))
 
@@ -31,7 +31,7 @@
           slider (JSlider. 0 SLIDER-MAX scaled-default)
           label (JLabel. (str scaled-default))
           pane (JPanel. (BorderLayout.))]
-      (add-change-listener slider 
+      (add-change-listener slider
                            (fn [event]
                              (let [new-val (float (int (/ (.getValue slider) factor)))]
                                (.setText label (str new-val))

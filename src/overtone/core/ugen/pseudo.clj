@@ -19,7 +19,7 @@
 ;       :pseudo-ugen {:ar (fn [bufnum num-channels delaytime]
 ;                           (let [n (* delaytime (- (sample-rate)))]
 ;                             (playbuf:ar num-channels bufnum 1 0 n 1)))}}
-;      
+;
       ;; from Osc.sc
       ;; IndexL {
       ;; 	*ar { arg bufnum, in = 0.0, mul = 1.0, add = 0.0;
@@ -34,7 +34,7 @@
       ;; 		^LinLin.kr(in.frac, 0.0, 1.0, val0, val1);
       ;; 	}
       ;; }
-      
+
       {:name "IndexL"
        :args [{:name "bufnum"}
               {:name "in", :default 0.0}]
@@ -43,16 +43,16 @@
                            (let [vals (index:ar bufnum [in (+ in 1)])]
                              ...))
                      :kr (fn)}}
-      
+
       ;; from Osc.sc
       ;; TChoose {
       ;; 	*ar { arg trig, array;
       ;; 		^Select.ar(TIRand.kr(0, array.lastIndex, trig), array)
-      
+
       ;; 	}
       ;; 	*kr { arg trig, array;
       ;; 		^Select.kr(TIRand.kr(0, array.lastIndex, trig), array)
-      
+
       ;; 	}
       ;; }
 
@@ -84,7 +84,7 @@
                            (select:ar (twindex:ar trig weights normalize) array))
                      :kr (fn [trig array weights normalize]
                            (select:kr (twindex:kr trig weights normalize) array))}}
-      
+
       ;; from BEQSuite.sc
       ;; BLowPass4 {
       ;; 	*ar { arg in, freq = 1200.0, rq = 1.0, mul = 1.0, add = 0.0;
@@ -123,7 +123,7 @@
        :pseudo-ugen {:ar (fn [freq rq mul add]
                            (let [coefs (bhipass:sc ????)]))}}
 
-      
+
       ;; from DelayWR.sc
       ;; PingPong {
       ;; 	//your buffer should be the same numChannels as your inputs
@@ -131,7 +131,7 @@
       ;; 		var trig, delayedSignals;
       ;; 		trig = Impulse.kr(delayTime.reciprocal);
       ;;
-      ;; 		delayedSignals = 
+      ;; 		delayedSignals =
       ;; 			PlayBuf.ar(inputs.numChannels,bufnum,1.0,trig,
       ;; 				0,
       ;; 				0.0).rotate(rotate)
@@ -142,7 +142,7 @@
       ;; 		^delayedSignals
       ;; 	}
       ;; }
-      
+
       {:name "PingPong" ...}
 
       ;; from FFSinOsc.sc (fixed-freq-osc.clj)
@@ -151,12 +151,12 @@
       ;;    var inputs = [specificationsArrayRef, input, freqscale, freqoffset, decayscale].flop;
       ;;    ^inputs.collect { arg item; this.ar1(*item) }.unbubble
       ;;  }
-      
+
       ;;  *ar1 { arg specificationsArrayRef, input, freqscale = 1.0, freqoffset = 0.0, decayscale = 1.0;
       ;;    var spec = specificationsArrayRef.value;
       ;;    ^Ringz.ar(
       ;;        input,
-      ;;        spec[0] ? #[440.0] * freqscale + freqoffset, 
+      ;;        spec[0] ? #[440.0] * freqscale + freqoffset,
       ;;        spec[2] ? #[1.0] * decayscale,
       ;;        spec[1] ? #[1.0]
       ;;    ).sum
@@ -164,7 +164,7 @@
       ;; }
 
       {:name "DynKlank"}
-      
+
       ;; from FFSinOsc.sc
       ;; DynKlang : UGen {
       ;;  *ar { arg specificationsArrayRef, freqscale = 1.0, freqoffset = 0.0;
@@ -174,7 +174,7 @@
       ;;  *ar1 { arg specificationsArrayRef, freqscale = 1.0, freqoffset = 0.0;
       ;;    var spec = specificationsArrayRef.value;
       ;;    ^SinOsc.ar(
-      ;;        spec[0] ? #[440.0] * freqscale + freqoffset, 
+      ;;        spec[0] ? #[440.0] * freqscale + freqoffset,
       ;;        spec[2] ? #[0.0],
       ;;        spec[1] ? #[1.0]
       ;;    ).sum
@@ -211,7 +211,7 @@
       ;; 		});
 
       ;; 		// check to see if channels array is consecutive [n,n+1,n+2...]
-      ;; 		if(bus.every({arg item, i; 
+      ;; 		if(bus.every({arg item, i;
       ;; 				(i==0) or: {item == (bus.at(i-1)+1)}
       ;; 			}),{
       ;; 			^In.ar(chanOffset + bus.first, bus.size).madd(mul,add)
@@ -238,88 +238,88 @@
       ;; }
 
       ;; from Compander.sc
-      ;;// CompanderD passes the signal directly to the control input, 
-      ;;// but adds a delay to the process input so that the lag in the gain 
+      ;;// CompanderD passes the signal directly to the control input,
+      ;;// but adds a delay to the process input so that the lag in the gain
       ;;// clamping will not lag the attacks in the input sound
 
       ;; CompanderD : UGen {
       ;;   *ar { arg in = 0.0, thresh = 0.5, slopeBelow = 1.0, slopeAbove = 1.0,
       ;;     clampTime = 0.01, relaxTime = 0.01, mul = 1.0, add = 0.0;
-      
-      ;;     ^Compander.ar(DelayN.ar(in, clampTime, clampTime), in, thresh, 
+
+      ;;     ^Compander.ar(DelayN.ar(in, clampTime, clampTime), in, thresh,
       ;;         slopeBelow, slopeAbove, clampTime, relaxTime).madd(mul, add)
-      ;;   } 
+      ;;   }
       ;; }
 
       ;; from Splay.sc
-      ;;       Splay { 
+      ;;       Splay {
       ;;                                                                     	*ar { arg inArray, spread=1, level=1, center=0.0, levelComp=true;
       ;; 		var n, n1; n = inArray.size.max(2); n1 = n-1;
-      
+
       ;; 		if (levelComp, { level = level * n.reciprocal.sqrt });
 
       ;; 		^Pan2.ar(
-      ;; 			inArray, 
+      ;; 			inArray,
       ;; 			((0 .. n1) * (2 / n1) - 1) * spread + center
       ;; 		).sum * level;
-      ;; 	} 
-      
+      ;; 	}
+
       ;; 	*arFill { arg n, function, spread=1, level=1, center=0.0, levelComp=true;
       ;; 		^this.ar((function ! n), spread, level, center, levelComp)
       ;; 	}
       ;; }
 
-      ;; SplayZ { 
+      ;; SplayZ {
       ;; 	*ar { arg numChans=4, inArray, spread=1, level = 1, width = 2, center = 0.0,
       ;; 			orientation = 0.5, levelComp=true;
-      
-      ;; 		var n, n1; n = inArray.size.max(2); n1 = n-1;	
+
+      ;; 		var n, n1; n = inArray.size.max(2); n1 = n-1;
       ;; 		if (levelComp, { level = level * n.reciprocal.sqrt });
-      
-      ;; 		"SplayZ is deprecated, because its geometry is wrong. 
-      ;; 		Please convert to SplayAz.".inform; 
-      
+
+      ;; 		"SplayZ is deprecated, because its geometry is wrong.
+      ;; 		Please convert to SplayAz.".inform;
+
       ;; 		^PanAz.ar(
-      ;; 			numChans, 
-      ;; 			inArray, 
-      ;; 			((0 .. n1) * (2 / n1) - 1) * spread + center, 
+      ;; 			numChans,
+      ;; 			inArray,
+      ;; 			((0 .. n1) * (2 / n1) - 1) * spread + center,
       ;; 			1,
-      ;; 			width, 
+      ;; 			width,
       ;; 			orientation
       ;; 		).sum * level;
       ;; 	}
 
-      ;; 	*arFill { arg numChans=4, n, function, spread=1, level=1, width = 2, center=0.0, 
+      ;; 	*arFill { arg numChans=4, n, function, spread=1, level=1, width = 2, center=0.0,
       ;; 		orientation = 0.5, levelComp=true;
-      ;; 		^this.ar(numChans, function ! n, spread, level, width, center, 
+      ;; 		^this.ar(numChans, function ! n, spread, level, width, center,
       ;; 		orientation, levelComp)
       ;; 	}
       ;; }
 
-      
-      ;; SplayAz { 
+
+      ;; SplayAz {
       ;; 	*ar { arg numChans=4, inArray, spread=1, level = 1, width = 2, center = 0.0,
       ;; 			orientation = 0.5, levelComp=true;
-      
-      ;; 		var n = inArray.size.max(1); 
-      ;; 		var moreOuts = numChans > n; 
-      
+
+      ;; 		var n = inArray.size.max(1);
+      ;; 		var moreOuts = numChans > n;
+
       ;; 		if (levelComp, { level = level * n.reciprocal.sqrt });
       ;; 		if (moreOuts, { inArray = inArray * level });
-      
+
       ;; 		^PanAz.ar(
-      ;; 			numChans, 
-      ;; 			inArray, 
-      ;; 			((0 .. n-1) / n * 2).postln * spread + center, 
+      ;; 			numChans,
+      ;; 			inArray,
+      ;; 			((0 .. n-1) / n * 2).postln * spread + center,
       ;; 			1,
-      ;; 			width, 
+      ;; 			width,
       ;; 			orientation
       ;; 		).sum * if (moreOuts, 1, level);
       ;; 	}
 
-      ;; 	*arFill { arg numChans=4, n, function, spread=1, level=1, width = 2, center=0.0, 
+      ;; 	*arFill { arg numChans=4, n, function, spread=1, level=1, width = 2, center=0.0,
       ;; 		orientation = 0.5, levelComp=true;
-      ;; 		^this.ar(numChans, function ! n, spread, level, width, center, 
+      ;; 		^this.ar(numChans, function ! n, spread, level, width, center,
       ;; 		orientation, levelComp)
       ;; 	}
       ;; }

@@ -1,9 +1,9 @@
 (ns run
-  (:use 
+  (:use
      test-utils
      clojure.test))
 
-(def TEST-NAMESPACES 
+(def TEST-NAMESPACES
   [
    'osc-test
    'bytes-test

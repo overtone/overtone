@@ -11,7 +11,7 @@
               {:name "active", :default 1}
               {:name "winsize", :default 0}],
        :rates #{:kr}
-       :doc "fast fourier transform, converts input data from the time to the frequency domain and 
+       :doc "fast fourier transform, converts input data from the time to the frequency domain and
             stores the result in a buffer (audio waveform -> graph equalizer bands)"}
 
       {:name "IFFT",

@@ -1,4 +1,4 @@
-(ns 
+(ns
   #^{:doc "Audio effects library"
      :author "Jeff Rose"}
   overtone.studio.fx

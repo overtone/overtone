@@ -9,7 +9,7 @@
 ;                 :o-hat [_ _ O _ _ _ O _ _ _ O _ _ _ O _]
 ;                 :clap  [_ _ _ _ O _ _ _ _ _ _ _ O _ _ _]})
 ;
-;(make-beat house-beat {:base "kick.wav" 
+;(make-beat house-beat {:base "kick.wav"
 ;                       :o-hat "hat.wav"
 ;                       :clap "clap.wav"})
 ;

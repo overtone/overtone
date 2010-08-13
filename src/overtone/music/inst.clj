@@ -2,9 +2,9 @@
   (:use (overtone.core sc synth envelope)
         (overtone.music pitch)))
 
-; An instrument abstracts the more basic concept of a synthesizer used by 
+; An instrument abstracts the more basic concept of a synthesizer used by
 ; SuperCollider.  Every instance of an instrument will be played within the same
-; group, so if you later call (kill my-inst) it will be able to stop all the 
+; group, so if you later call (kill my-inst) it will be able to stop all the
 ; instances of that group.  (Likewise for controlling them...)
 
 (def instruments* (ref {}))

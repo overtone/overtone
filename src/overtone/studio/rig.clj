@@ -1,4 +1,4 @@
-(ns 
+(ns
   #^{:doc "Higher level instrument and studio abstractions."
      :author "Jeff Rose"}
   overtone.studio.rig
