@@ -11,9 +11,7 @@
     (jsyntaxpane DefaultSyntaxKit)
     (java.io File))
   (:use (overtone.core event util config)
-        (overtone.gui swing)
-        [clojure.contrib.fcase :only (case)]
-        (clojure.contrib io)))
+        (overtone.gui swing)))
 
 (def TAB-STOP 4)
 (def CARET-COLOR Color/BLACK)

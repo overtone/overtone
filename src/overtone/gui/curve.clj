@@ -14,7 +14,7 @@
     (overtone.core event envelope)
     (overtone.gui swing sg)
     clojure.stacktrace
-    clojure.contrib.seq-utils)
+    [clojure.contrib.seq-utils :only (indexed)]) ;;TODO replace this with clojure.core/keep-indexed or map-indexed
   (:require [overtone.core.log :as log]))
 
 (defonce curve* (ref {:curve (adsr)

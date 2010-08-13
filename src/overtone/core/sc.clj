@@ -15,9 +15,8 @@
   (:use
     (overtone.core event config setup util time-utils synthdef)
     [clojure.contrib.java-utils :only [file]]
-    (clojure.contrib shell-out seq-utils pprint)
+    (clojure.contrib shell-out pprint)
     osc
-    [clojure.contrib.fcase :only [case]]
     vijual))
 
 ; TODO: Make this work correctly

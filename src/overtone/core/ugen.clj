@@ -7,10 +7,9 @@
         (overtone.core.ugen special-ops common categories)
         [clojure.contrib.types :only (deftype)]
         [clojure.contrib.generic :only (root-type)]
-        clojure.contrib.seq-utils
         clojure.contrib.pprint
-        [clojure.contrib.fcase :only (case)]
-        clojure.set)
+        clojure.set
+        [clojure.contrib.seq-utils :only (indexed)]) ;;TODO replace this with clojure.core/keep-indexed or map-indexed
   (:require
      [clojure.contrib.generic.arithmetic :as ga]
      [clojure.contrib.generic.comparison :as gc]

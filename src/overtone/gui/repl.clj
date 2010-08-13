@@ -13,8 +13,7 @@
    (javax.swing.border LineBorder)
    (javax.swing.text TextAction JTextComponent))
   (:require [clojure.main :as r])
-  (:use clojure.contrib.seq-utils
-        [clojure.stacktrace :only (e)]
+  (:use [clojure.stacktrace :only (e)]
         (overtone.core time-utils sc ugen synth synthdef envelope event)
         (overtone.gui swing sg)
         (overtone.music rhythm pitch tuning)))

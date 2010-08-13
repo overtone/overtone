@@ -7,8 +7,9 @@
      (javax.swing.event TreeModelEvent)
      (javax.swing JFrame JPanel JLabel JTree JEditorPane JScrollPane JTextPane
                   JSplitPane JMenuBar JMenu JMenuItem SwingUtilities))
-  (:use clojure.contrib.seq-utils
-        (overtone.core event time-utils sc)))
+  (:use (overtone.core event time-utils sc)
+        [clojure.contrib.seq-utils :only (indexed)])) ;;TODO replace this with clojure.core/keep-indexed or map-indexed
+
 
 (def synth-tree* (ref {:group 0
                        :children [{:group 1

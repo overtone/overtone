@@ -3,8 +3,7 @@
      :author "Fabian Aussems"}
   (:gen-class)
   (:require (clojure.contrib [str-utils2 :as s2]))
-  (:use (overtone.core util event)
-        [clojure.contrib.fcase :only (case)])
+  (:use (overtone.core util event))
   (:import
    (com.sun.scenario.scenegraph
      JSGPanel ProportionalPaint SGAbstractGeometry SGAbstractShape

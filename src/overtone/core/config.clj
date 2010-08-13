@@ -1,5 +1,6 @@
 (ns overtone.core.config
-  (:use clojure.contrib.io)
+  (:use [clojure.contrib.io :only (slurp*)])
+
   (:import (java.io FileOutputStream FileInputStream)))
 
 ;; Provides a simple key/value configuration system with support for automatically

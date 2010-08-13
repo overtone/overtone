@@ -9,7 +9,7 @@
   (:use
      (overtone.core util ugen sc synthdef event)
      (clojure walk inspector)
-     clojure.contrib.seq-utils))
+     [clojure.contrib.seq-utils :only (indexed)])) ;;TODO replace this with clojure.core/keep-indexed or map-indexed))
 
 (def *ugens* nil)
 (def *constants* nil)

@@ -7,8 +7,7 @@
   (:import (java.net URL))
   (:require [overtone.core.log :as log])
   (:use byte-spec
-     (overtone.core util)
-     clojure.contrib.seq-utils))
+        (overtone.core util)))
 
 ;; param-name is :
 ;;   pstring - the name of the parameter
@@ -125,7 +124,7 @@
 ; TODO: byte array shouldn't really be the default here, but I don't
 ; know how to test for one correctly... (byte-array? data) please?
 (defn synthdef-read
-  "Reads synthdef data from either a file specified using a string path,
+  "Reads synthdef data from either a file specified using a string path
   a URL, or a byte array."
   [data]
   (first (:synths
