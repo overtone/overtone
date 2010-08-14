@@ -1,4 +1,5 @@
 (ns overtone.live
+  (:refer-clojure :exclude (rand + * - / bit-not >= <= mod))
   (:require midi osc byte-spec
             clojure.stacktrace
             (overtone.core config time-utils log sc ugen synth synthdef envelope sample)
@@ -10,7 +11,7 @@
 ;   (immigrate 'overtone.instruments)
 (defn immigrate
  "Create a public var in this namespace for each public var in the
- namespaces named by ns-names. The created vars have the same name, value,
+ namespaces named by ns-names. The created vars have the same name, value
  and metadata as the original except that their :ns metadata value is this
  namespace."
  [& ns-names]
