@@ -3,11 +3,11 @@
   :url "http://project-overtone.org"
   :main overtone.app.main
   :autodoc {:load-except-list [#"/test/" #"/classes/" #"/devices/"]
-            :namespaces-to-document ["overtone.core" "overtone.gui" "overtone.music" "overtone.studio"],
+            :namespaces-to-document ["overtone.core" "overtone.gui" "overtone.music" "overtone.studio"]
             :trim-prefix "overtone.",}
   :namespaces [overtone.app.main] ; ns to compile
-  :dependencies [[org.clojure/clojure "1.2.0-master-SNAPSHOT"]
-                 [org.clojure/clojure-contrib "1.2.0-SNAPSHOT"]
+  :dependencies [[org.clojure/clojure "1.2.0"]
+                 [org.clojure/clojure-contrib "1.2.0"]
                  [org.freedesktop.tango/tango-icon-theme "0.8.90"]
                  [org.clojars.nakkaya/miglayout "3.7.3.1"]
                  [scenegraph "0.0.1-SNAPSHOT"]
