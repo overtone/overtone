@@ -1,6 +1,5 @@
 (ns test-utils
   (:use
-     (overtone bytes)
      [clojure.contrib.str-utils :only (re-split re-gsub)])
   (:import (java.io File)))
 

@@ -1,12 +1,13 @@
 (ns synthdef-test
   (:import (java.io FileInputStream FileOutputStream
-              DataInputStream DataOutputStream
-              BufferedInputStream BufferedOutputStream
-              ByteArrayOutputStream ByteArrayInputStream))
-  (:use overtone
-     test-utils
-     clojure.test)
-  (:require [overtone.log :as log]))
+                    DataInputStream DataOutputStream
+                    BufferedInputStream BufferedOutputStream
+                    ByteArrayOutputStream ByteArrayInputStream))
+  (:use overtone.live
+        byte-spec
+        test-utils
+        clojure.test)
+  (:require [overtone.core.log :as log]))
 
 (defn sawzall-raw
   []
@@ -36,8 +37,8 @@
         b (bytes-and-back synth-spec a)]
     (is (= a b))))
 
-(def mini-sin (synth mini-sin {:freq 440}
-  (out.ar 0 (sin-osc.ar :freq 0))))
+(def mini-sin (synthdef "mini-sin" {"freq" 440}
+                        (out:ar 0 (sin-osc:ar 0))))
 
 (deftest native-synth-test
   (let [bytes (synthdef-bytes mini-sin)

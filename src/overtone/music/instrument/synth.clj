@@ -3,16 +3,21 @@
 
 (refer-ugens)
 
-(defsynth alien-computer [trig 0.3]
-  (out 0 (pan2 (ifft
-    (pv-rand-comb (fft 0 (white-noise 0.8))
-                  0.95 (impulse :control trig))))))
+(defn overtone-synths []
+  (println "defining instruments!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+  (defsynth sin [note 440 dur 0.1]
+    (* (sin-osc (midicps note)) (env-gen (perc (/ dur 2.0) (/ dur 2.0)) 1 1 0 1 :free)))
 
-(defsynth buzz [pitch 40 cutoff 300 dur 200]
-  (let [a (lpf (saw (midicps pitch)) (* (lf-noise1 :control 10) 400))
-        b (sin-osc (midicps (- pitch 12)))
-        env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
-  (out 0 (pan2 (* env (+ a b))))))
+  (defsynth alien-computer [trig 0.3]
+    (out 0 (pan2 (ifft
+                   (pv-rand-comb (fft 0 (white-noise 0.8))
+                                 0.95 (impulse :control trig))))))
+
+  (defsynth buzz [pitch 40 cutoff 300 dur 200]
+    (let [a (lpf (saw (midicps pitch)) (* (lf-noise1 :control 10) 400))
+          b (sin-osc (midicps (- pitch 12)))
+          env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
+      (out 0 (pan2 (* env (+ a b)))))))
 
 ;(defn buzzer [t tick dur notes]
 ;  (let [note (first notes)]

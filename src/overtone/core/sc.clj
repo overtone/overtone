@@ -115,12 +115,10 @@
 (defn snd
   "Sends an OSC message."
   [path & args]
-  (let [msg (apply osc-msg path (osc-type-tag args) args)]
-    (if (connected?)
-      (do
-        (log/debug "(snd " path ") " msg)
-        (osc-send-msg @server* msg))
-        (log/debug "(snd " path ") => :not connected" msg))))
+  (if (connected?)
+    (apply osc-send @server* path args)
+    (log/debug "### trying to snd while disconnected! ###"))
+  (log/debug "(snd " path args ")"))
 
 (defmacro at
   "All messages sent within the body will be sent in the same timestamped OSC
