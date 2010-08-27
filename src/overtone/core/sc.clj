@@ -868,7 +868,7 @@
   (doseq [i (range 10)] (hit (+ (now) (* i 250)) :sin :pitch 60 :dur 0.1))
 
   "
-  ([] (hit-at (now) "sin" :pitch (choose [60 65 72 77])))
+  ([] (hit-at (now) "ping" :pitch (choose [60 65 72 77])))
   ([& args]
    (apply hit-at (if (isa? (type (first args)) Number)
                    args

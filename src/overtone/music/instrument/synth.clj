@@ -1,11 +1,9 @@
-(ns overtone.instrument.synth
+(ns overtone.music.instrument.synth
   (:use overtone.live))
-
-(refer-ugens)
 
 (defn overtone-synths []
   (println "defining instruments!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-  (defsynth sin [note 440 dur 0.1]
+  (defsynth ping [note 440 dur 0.1]
     (* (sin-osc (midicps note)) (env-gen (perc (/ dur 2.0) (/ dur 2.0)) 1 1 0 1 :free)))
 
   (defsynth alien-computer [trig 0.3]
