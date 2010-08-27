@@ -98,8 +98,8 @@
 ;;  a mix of looking up aspects of the mood, and informed randomness.
 
 ; Use a note (:C scale) or (:Eb scale)
-(def SCALE (let [major [0 2 2 1 2 2 2 1]
-                 minor (flat major [3 6 7])]
+(def SCALE (let [major [2 2 1 2 2 2 1]
+                 minor [2 1 2 2 1 2 2]]
              {:major major
               :minor minor
               :major-pentatonic (only major [1 2 3 5 6])

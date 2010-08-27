@@ -67,8 +67,10 @@
 ; the instance of the function defined earlier.
 ; (call-at (+ dur (now)) #'my-melody arg1 arg2)
 
-(defn call-at [ms-time func & args]
-  (let [delay-time (- ms-time (now))]
+(def *APPLY-AHEAD* 50)
+
+(defn apply-at [func ms-time & args]
+  (let [delay-time (- ms-time *APPLY-AHEAD* (now))]
     (if (< delay-time 0)
       (apply func args)
       (schedule #(apply func args) delay-time))))

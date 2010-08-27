@@ -1,7 +1,7 @@
 (defproject overtone "0.1.2"
   :description "An audio/musical experiment."
   :url "http://project-overtone.org"
-  :main overtone.app.main
+;  :main overtone.app.main
   :autodoc {:load-except-list [#"/test/" #"/classes/" #"/devices/"]
             :namespaces-to-document ["overtone.core" "overtone.gui" "overtone.music" "overtone.studio"]
             :trim-prefix "overtone.",}
@@ -13,7 +13,7 @@
                  [scenegraph "0.0.1-SNAPSHOT"]
 
                  [overtone/jsyntaxpane "0.9.5-b27"]
-                 [overtone/osc-clj "0.2.0-SNAPSHOT"]
+                 [overtone/osc-clj "0.2.1-SNAPSHOT"]
                  [overtone/byte-spec "0.2.0-SNAPSHOT"]
                  [overtone/midi-clj "0.2.0-SNAPSHOT"]
                  [overtone/substance "6.0"]
