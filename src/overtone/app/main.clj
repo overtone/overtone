@@ -237,16 +237,18 @@
       ;browse-split "dock west")
       right-split "dock west")
 
-    (call-at (+ (now) 100) #(in-swing (do
+    (apply-at #(in-swing (do
       ;                                  (.setDividerLocation browse-split 0.1)
                                         (.setDividerLocation right-split 0.7)
                                         (.setDividerLocation main-split 0.8)
-                                        (.setDividerLocation tools-split 0.5))))
-    (call-at (+ (now) 2000) #(in-swing (do
+                                        (.setDividerLocation tools-split 0.5))) 
+              (+ (now) 100))
+    (apply-at #(in-swing (do
       ;                                  (.setDividerLocation browse-split 0.1)
                                         (.setDividerLocation right-split 0.7)
                                         (.setDividerLocation main-split 0.8)
-                                        (.setDividerLocation tools-split 0.5))))
+                                        (.setDividerLocation tools-split 0.5))) 
+              (+ (now) 2000))
 
     (doto app-frame
       (.addWindowListener (window-listener app-frame))

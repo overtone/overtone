@@ -81,7 +81,7 @@
     (let [next-beat (clock (inc beat))]
       (if (= 1 (first pattern))
         (at (clock beat) (hit inst)))
-      (call-at (- next-beat 100) #'loop-player inst index (inc beat) (next pattern)))))
+      (apply-at (next (- next-beat 100) #'loop-player inst index (inc beat) pattern)))))
 
 (defn looper [cmd x y]
   (condp = cmd
@@ -96,11 +96,11 @@
 
 (defn foo [beat]
   (hit-at (clock beat) :plop :freq 440)
-  (call-at (- (clock (inc beat)) 100) #'foo (inc beat)))
+  (apply-at #'foo (inc (- (clock (inc beat)) 100) beat)))
 
 (defn bar [beat]
   (hit-at (clock beat) :plop :freq 220)
-  (call-at (- (clock (+ beat 2)) 100) #'bar (+ 2 beat)))
+  (apply-at #'bar (+ 2 (- (clock (+ beat 2)) 100) beat)))
 
 (mono/add-handler m looper)
 

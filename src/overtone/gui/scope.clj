@@ -177,7 +177,7 @@
                    :bus bus
                    :tmp-buf true
                    :bus-synth bus-synth))
-    (call-at (+ (now) 1000) update-scope)
+    (apply-at update-scope (+ (now) 1000))
     (update-scope)))
 
 (defn freq-scope-buf [buf]

@@ -65,7 +65,7 @@
 ;   By passing a function using #'foo syntax instead of just foo, when later
 ; called by the scheduler it will lookup based on the symbol rather than using
 ; the instance of the function defined earlier.
-; (call-at (+ dur (now)) #'my-melody arg1 arg2)
+; (apply-at #'my-melody (+ dur (now)) arg1 arg2)
 
 (def *APPLY-AHEAD* 50)
 

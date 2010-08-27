@@ -20,7 +20,7 @@
 (defn play-notes [t notes durs]
   (when notes
     (at t (overpad 0 (first notes) 0.5 (first durs)))
-    (call-at (+ t TICK) #'play-notes (+ t BEAT) (next notes) (next durs))))
+    (apply-at (next (+ t TICK) #'play-notes (+ t BEAT) (next notes) durs))))
 
 (play-notes (now) [40 42 44 45 47 49 51 52] (repeat 0.4))
 (play-notes (now) (scale :c :major) (repeat 0.05))
@@ -38,7 +38,7 @@
 (defn play-chords [t]
   (let [tick (* 2 (choose [125 500 250 250 500 250 500 250]))]
     (at t (doseq [note (chord-notes)] (overpad 0 note 0.3 (/ tick 1020))))
-    (call-at (+ t (- tick 100)) #'play-chords (+ t tick))))
+    (apply-at #'play-chords (+ t (+ t (- tick 100)) tick))))
 
 (play-chords (now))
 
@@ -48,7 +48,7 @@
 (defn looper [t dur notes]
   (at t (kick))
   (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
-  (call-at (+ t (* 0.5 dur)) #'looper (+ t dur) dur (next notes)))
+  (apply-at dur (next (+ t (* 0.5 dur)) #'looper (+ t dur) notes)))
 
 (looper (now) 500 (cycle [60 67 65 72 75 70]))
 
