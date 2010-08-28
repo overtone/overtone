@@ -11,9 +11,10 @@
         clojure.set
         [clojure.contrib.seq-utils :only (indexed)]) ;;TODO replace this with clojure.core/keep-indexed or map-indexed
   (:require
-     [clojure.contrib.generic.arithmetic :as ga]
-     [clojure.contrib.generic.comparison :as gc]
-     [clojure.contrib.generic.math-functions :as gm]))
+    overtone.core.sc
+    [clojure.contrib.generic.arithmetic :as ga]
+    [clojure.contrib.generic.comparison :as gc]
+    [clojure.contrib.generic.math-functions :as gm]))
 
 ;; Outputs have a specified calculation rate
 ;;   0 = scalar rate - one sample is computed at initialization time only.
