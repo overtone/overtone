@@ -59,8 +59,8 @@
    "div" 3         ; integer division
    ;"/" 4           ; floating point division
    "mod" 5         ; modulus
-   "<=" 10         ; less than or equal
-   ">=" 11
+;   "<=" 10         ; less than or equal
+;   ">=" 11
    "minimum" 12
    "maximum" 13
    "lcm" 17

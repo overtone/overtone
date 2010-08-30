@@ -1,5 +1,5 @@
 (ns overtone.live
-  (:refer-clojure :exclude (rand + * - / bit-not >= <= mod))
+  (:refer-clojure :exclude (rand + * - / bit-not mod))
   (:require midi osc byte-spec
             clojure.stacktrace
             (overtone.core config time-utils log sc ugen synth synthdef envelope sample)

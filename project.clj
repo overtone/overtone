@@ -1,4 +1,4 @@
-(defproject overtone "0.1.2"
+(defproject overtone "0.1.2-SNAPSHOT"
   :description "An audio/musical experiment."
   :url "http://project-overtone.org"
 ;  :main overtone.app.main

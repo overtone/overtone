@@ -315,9 +315,9 @@
 
 ;;    {:name ">", :args [{:name "a"} {:name "b"}], :rates #{:dr :ir :ar :kr}}
 
-;; {:name ">=", :args [{:name "a"} {:name "b"}], :rates #{:dr :ir :ar :kr}}
+;;    {:name ">=", :args [{:name "a"} {:name "b"}], :rates #{:dr :ir :ar :kr}}
 
-;;   {:name "^", :args [{:name "a"} {:name "b"}], :rates #{:dr :ir :ar :kr}}
+;;    {:name "^", :args [{:name "a"} {:name "b"}], :rates #{:dr :ir :ar :kr}}
 
 ;;    {:name "abs", :args [{:name "a"}], :rates #{:dr :ir :ar :kr}}
 

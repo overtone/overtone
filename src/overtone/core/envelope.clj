@@ -84,7 +84,7 @@
         curve   (or curve -4)]
     (envelope [0 level 0] [attack release] curve)))
 
-(comment defn linen [& [attack sustain release level curve]]
+(defn lin-env [& [attack sustain release level curve]]
   (let [attack  (or attack 0.01)
         sustain (or sustain 1)
         release (or release 1)
