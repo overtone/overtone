@@ -197,6 +197,8 @@
 
 (def N-RETRIES 20)
 
+(declare reset)
+
 (defn- connect-internal
   []
   (log/debug "Connecting to internal SuperCollider server")
@@ -212,6 +214,7 @@
     (snd "/status")
     (dosync (ref-set status* :connected))
     (notify true) ; turn on notifications now that we can communicate
+    (reset)
     (event :connected)))
 
 (defn- connect-external
@@ -228,6 +231,7 @@
         #(do
            (dosync (ref-set status* :connected))
            (notify true) ; turn on notifications now that we can communicate
+           (reset)
            (event :connected)
            :done))
 
@@ -247,7 +251,9 @@
   [& [host port]]
    (if (and host port)
      (.run (Thread. #(connect-external host port)))
-     (connect-internal)))
+     (connect-internal))
+
+  )
 
 (defonce running?* (atom false))
 
@@ -818,6 +824,8 @@
   (snd "/d_recv" (synthdef-bytes (synthdef-read path))))
 
 ; TODO: need to clear all the buffers and busses
+;  * Think about a sane policy for setting up state, especially when we are connected
+; with many peers on one or more servers...
 (defn reset
   "Clear all synthesizers, groups and pending messages from the audio server
   and then recreates the active synth groups."
@@ -949,10 +957,6 @@
              (concat named [(first names) (first args)]))
       named)))
 
-
-; TODO: Think about a sane policy for setting up state, especially when we are connected
-; with many peers on one or more servers...
-(on :connected #(reset)) ; put ourselves in a standard place after connect
 
 (defn synth-player
   "Returns a player function for a named synth.  Used by (synth ...) internally, but can be
