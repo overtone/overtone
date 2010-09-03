@@ -58,7 +58,6 @@ Now get Overtone:
 
     $ cd overtone
     $ lein deps      
-    $ lein native-deps
 
     ; In Linux you can create a .jackdrc file with this command 
     ; to automatically start the jack server on boot, or you will need
