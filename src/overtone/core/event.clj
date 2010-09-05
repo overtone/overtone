@@ -46,11 +46,13 @@
 (defn clear-handlers
   "Remove all handlers for events of type event-type."
   [event-type]
-  (dosync (alter event-handlers* dissoc event-type)))
+  (dosync (alter event-handlers* dissoc event-type))
+  nil)
 
 (defn- handle-event
   "Runs the event handlers for the given event, and removes any handler that returns :done."
   [event]
+  (println "handling event: " event)
   (let [event-type (:event-type event)
         handlers (get @event-handlers* event-type #{})
         keepers  (set (doall (filter #(not (= :done (run-handler % event))) handlers)))]

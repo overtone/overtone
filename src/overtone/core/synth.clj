@@ -249,6 +249,23 @@
 
 (def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
 
+(defmacro pre-synth [& args]
+  (let [[sname args] (cond
+                       (or (string? (first args))
+                           (symbol? (first args))) [(str (first args)) (rest args)]
+                       :default                    [:no-name args])
+        [params ugen-form] (if (vector? (first args))
+                             [(first args) (rest args)]
+                             [[] args])
+        param-proxies (parse-synth-params params)
+        param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
+    `(let [~@param-proxies
+             ugens# ~@ugen-form
+             sname# (if (= :no-name ~sname)
+                      (str "anon-" (next-id :anonymous-synth))
+                      ~sname)]
+         [sname# ~param-map ugens#])))
+
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen functions
   provided by overtone.core.ugen.  This will return an anonymous function which
@@ -261,42 +278,19 @@
   (synth (sin-osc (+ 300 (* 10 (sin-osc:kr 10)))))
   "
   [& args]
-  (let [[sname args] (cond
-                       (or (string? (first args))
-                           (symbol? (first args))) [(str (first args)) (rest args)]
-                       :default                    [:no-name args])
-        [params ugen-form] (if (vector? (first args))
-                             [(first args) (rest args)]
-                             [[] args])
-        param-names (map #(keyword (first %)) (partition 2 params))
-        param-proxies (parse-synth-params params)
-        param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
-    `(do
-       (let [~@param-proxies
-             ugen-root# ~@ugen-form
-             sname# (if (= :no-name ~sname)
-                      (str "anon-" (next-id :anonymous-synth))
-                      ~sname)
-             ugens# (if (and (ugen? ugen-root#)
-                             (or (= 0 (:n-outputs ugen-root#))
-                                 (OUTPUT-UGENS (:name ugen-root#))
-                                 (= :kr (get REVERSE-RATES (:rate ugen-root#)))))
-                      ugen-root#
-                      (overtone.ugens/out 0 (overtone.ugens/pan2 ugen-root#)))
-             sdef# (synthdef sname# ~param-map ugens#)
-             sgroup# (or (get @synths* sname#) (group :tail SYNTH-GROUP))
-             player# (synth-player sname# (quote ~param-names))
-             smap# (callable-map {:name sname#
-                                  :ugens ugens#
-                                  :sdef sdef#
-                                  :doc nil
-                                  :group sgroup#
-                                  :player player#}
-                                 player#)]
-         (load-synthdef sdef#)
-         (dosync (alter synths* assoc sname# sgroup#))
-         (event :new-synth :sdef sdef# :player player# :name sname# :group sgroup#)
-         smap#))))
+  `(let [[sname# param-map# ugens#] (pre-synth ~@args)
+         sdef# (synthdef sname# param-map# ugens#)
+         param-names# (keys param-map#)
+         player# (synth-player sname# param-names#)
+         smap# (callable-map {:name sname#
+                              :ugens ugens#
+                              :sdef sdef#
+                              :doc nil
+                              :player player#}
+                             player#)]
+     (load-synthdef sdef#)
+     (event :new-synth :synth smap#)
+     smap#))
 
 (defmacro defsynth
   "Define a synthesizer and return a player function.  The synth definition

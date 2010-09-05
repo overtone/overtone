@@ -27,13 +27,11 @@
 ; Max number of milliseconds to wait for a reply from the server
 (defonce REPLY-TIMEOUT 500)
 
-(def ROOT-GROUP 1)
-(def SYNTH-GROUP 1)
+(def ROOT-GROUP 0)
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
 (defonce status*        (ref :no-audio))
-(defonce synths*        (ref nil))
 (defonce sc-world*      (ref nil))
 
 ; Server limits
@@ -72,8 +70,6 @@
           (do
             (.set bits id)
             id))))))
-
-(alloc-id :node) ; ID zero is the root group
 
 (defn free-id
   "Free the id of type key."
@@ -539,7 +535,8 @@
   "Free the specified group."
   [& group-ids]
   {:pre [(connected?)]}
-  (apply node-free group-ids))
+  (apply node-free group-ids)
+  )
 
 
 (defn post-tree
@@ -831,15 +828,11 @@
   and then recreates the active synth groups."
   []
   (clear-msg-queue)
-  (try
-    (group-clear SYNTH-GROUP)
-    (catch Exception e nil))
+  (group-clear 0) ; clear the root group
+  (Thread/sleep 200)
   (clear-ids :node)
   (alloc-id :node) ; ID zero is the root group
-  (group :head 0)  ; ID one is the synth group
-  (dosync (ref-set synths* (doall (zipmap (keys @synths*)
-                                   (repeat (count @synths*)
-                                           (group :tail SYNTH-GROUP)))))))
+  (event :reset))
 
 (defn restart
   "Reset everything and restart the SuperCollider process."
@@ -957,7 +950,6 @@
              (concat named [(first names) (first args)]))
       named)))
 
-
 (defn synth-player
   "Returns a player function for a named synth.  Used by (synth ...) internally, but can be
   used to generate a player for a pre-compiled synth.  The function generated will accept two
@@ -980,7 +972,7 @@
     (let [[args sgroup] (if (or (= :target (first args))
                                 (= :tgt    (first args)))
                           [(drop 2 args) (second args)]
-                          [args (get @synths* sname)])
+                          [args ROOT-GROUP])
           [args pos]    (if (or (= :position (first args))
                                 (= :pos      (first args)))
                           [(drop 2 args) (second args)]
