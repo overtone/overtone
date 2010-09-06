@@ -52,7 +52,7 @@
 (defn- handle-event
   "Runs the event handlers for the given event, and removes any handler that returns :done."
   [event]
-  (println "handling event: " event)
+  (log/debug "handling event: " event)
   (let [event-type (:event-type event)
         handlers (get @event-handlers* event-type #{})
         keepers  (set (doall (filter #(not (= :done (run-handler % event))) handlers)))]

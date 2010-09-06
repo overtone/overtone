@@ -294,7 +294,7 @@
      :nominal-sample-rate nominal
      :actual-sample-rate actual}))
 
-(def STATUS-TIMEOUT 200)
+(def STATUS-TIMEOUT 500)
 
 (defn status
   "Check the status of the audio server."

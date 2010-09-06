@@ -1,10 +1,10 @@
 (ns overtone.live
-  (:refer-clojure :exclude (rand + * - / bit-not mod))
   (:require midi osc byte-spec
             clojure.stacktrace
             (overtone.core config time-utils log sc ugen synth synthdef envelope sample)
             (overtone.music rhythm pitch tuning)
             (overtone.gui curve scope)
+            overtone.studio
             (overtone.studio fx)))
 
 ; TODO: make this work with namespace prefixes too...
@@ -23,6 +23,7 @@
          (intern *ns* sym))))))
 
 (immigrate
+  'clojure.stacktrace
   'osc
   'midi
   'overtone.core.time-utils
@@ -39,7 +40,6 @@
   'overtone.music.tuning
   'overtone.gui.curve
   'overtone.gui.scope
+  'overtone.studio
   'overtone.studio.fx
-  'overtone.ugens
-  'clojure.stacktrace
   )

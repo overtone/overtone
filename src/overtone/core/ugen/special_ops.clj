@@ -2,7 +2,6 @@
 
 (def UNARY-OPS
   {"neg" 0          ; inversion
-   "bitNot" 4       ; reciprocal
    "abs" 5          ; absolute value
    "asFloat" 6
    "ceil" 8        ; next higher integer
@@ -34,7 +33,6 @@
    "sinh" 34       ; hyperbolic sine
    "cosh" 35       ; hyperbolic cosine
    "tanh" 36       ; hyperbolic tangent
-   "rand" 37
    "rand2" 38
    "linrand" 39
    "bilinrand" 40
@@ -49,18 +47,16 @@
    "ramp" 52
    "scurve" 53})
 
+; The ops that collide with clojure built-ins.
+(def UNARY-OPS-COLLIDE
+  {"bitNot" 4       ; reciprocal
+   "rand" 37})
+
 ; Commented out ops are implemented with generics instead of generated
 ; see core/ops.clj
 (def BINARY-OPS
   (apply hash-map [
-   ;"+" 0           ; addition
-   ;"-" 1           ; subtraction
-   ;"*" 2           ; multiplication
    "div" 3         ; integer division
-   ;"/" 4           ; floating point division
-   "mod" 5         ; modulus
-;   "<=" 10         ; less than or equal
-;   ">=" 11
    "minimum" 12
    "maximum" 13
    "lcm" 17
@@ -93,6 +89,18 @@
    "wrap2" 45
    "rrand" 47
    "exprand" 48]))
+
+; Binary ops that collide with clojure built-ins."
+(def BINARY-OPS-COLLIDE
+  {
+   "+" 0           ; addition
+   "-" 1           ; subtraction
+   "*" 2           ; multiplication
+   "/" 4           ; floating point division
+   "mod" 5         ; modulus
+   "<=" 10         ; less than or equal
+   ">=" 11
+   })
 
 (defn unary-op-num [name]
   (get UNARY-OPS (str name) false))

@@ -11,11 +11,9 @@
      (com.sun.scenario.scenegraph.event SGMouseAdapter))
   (:use
      [overtone.core event sc synth ugen util time-utils]
-    clojure.set
     clojure.stacktrace)
-  (:require [overtone.core.log :as log]))
-
-(refer-ugens)
+  (:require [overtone.core.log :as log]
+            [clojure.set :as set]))
 
 (defonce scope* (ref {:buf false
                       :buf-size 0

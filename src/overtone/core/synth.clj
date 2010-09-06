@@ -5,7 +5,8 @@
           serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.core.synth
-  (:require [overtone.core.log :as log])
+  (:require [overtone.core.log :as log]
+            [clojure.contrib.generic.arithmetic :as ga])
   (:use
      (overtone.core util ugen sc synthdef event)
      (clojure walk inspector)
@@ -242,13 +243,6 @@
                   [param (control-proxy param)])
                 (apply hash-map params))))
 
-(def synth-prefix* (ref #(overtone.ugens/out 0 (overtone.ugens/pan2 %))))
-
-(defn set-synth-prefix [prefix-fn]
-  (dosync (ref-set synth-prefix* prefix-fn)))
-
-(def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
-
 (defmacro pre-synth [& args]
   (let [[sname args] (cond
                        (or (string? (first args))
@@ -260,6 +254,15 @@
         param-proxies (parse-synth-params params)
         param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
     `(let [~@param-proxies
+           ~'+ ga/+
+           ~'- ga/-
+           ~'* ga/*
+           ~'/ div-meth
+           ~'>= overtone.ugen-collide/>=
+           ~'<= overtone.ugen-collide/<=
+           ~'rand overtone.ugen-collide/rand 
+           ~'mod overtone.ugen-collide/mod
+           ~'bit-not overtone.ugen-collide/bit-not
              ugens# ~@ugen-form
              sname# (if (= :no-name ~sname)
                       (str "anon-" (next-id :anonymous-synth))

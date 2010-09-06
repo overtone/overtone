@@ -11,19 +11,20 @@
 
 ; Re-create the instrument groups after a reset
 (defn- create-inst-groups []
-  (println "resetting groups: " @inst-group*)
-  (println "groups: " (map :group (vals @instruments*)))
-  (println "all-ids: " (all-ids :node))
-  (println "status: " (status))
+  ;(println "resetting groups: " @inst-group*)
+  ;(println "groups: " (map :group (vals @instruments*)))
+  ;(println "all-ids: " (all-ids :node))
+  ;(println "status: " (status))
   (dosync 
     (ref-set inst-group* (group :head ROOT-GROUP))
     (ref-set instruments* (doall 
                             (zipmap (keys @instruments*)
                                     (map #(assoc % :group (group :tail @inst-group*))
                                          (vals @instruments*))))))
-  (println "all-ids: " (all-ids :node))
-  (println "status: " (status))
-  (println "groups: " (map :group (vals @instruments*))))
+  ;(println "all-ids: " (all-ids :node))
+  ;(println "status: " (status))
+  ;(println "groups: " (map :group (vals @instruments*)))
+  )
 
 (defonce _reset_inst (on :reset #'create-inst-groups))
 
@@ -39,18 +40,25 @@
 (defn clear-instruments []
   (dosync (ref-set instruments* {})))
 
+;(def synth-prefix* (ref #(out 0 (pan2 %))))
+;
+;(defn set-synth-prefix [prefix-fn]
+;  (dosync (ref-set synth-prefix* prefix-fn)))
+
 ; When there is a single channel audio output add pan2 and out ugens 
 ; to make all instruments stereo by default.
+(def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
+
 (defn inst-prefix [ugens]
   (if (and (ugen? ugens)
            (or (= 0 (:n-outputs ugens))
                (OUTPUT-UGENS (:name ugens))
                (= :kr (get REVERSE-RATES (:rate ugens)))))
     ugens
-    (overtone.ugens/out 0 (overtone.ugens/pan2 ugens))))
+    (out 0 (pan2 ugens))))
 
 (defmacro inst [sname & args]
-  (println "inst: " sname "\nargs: " args)
+  ;(println "inst: " sname "\nargs: " args)
   `(let [[sname# param-map# ugens#] (pre-synth ~sname ~@args)
          ugens# (inst-prefix ugens#)
          sdef# (synthdef sname# param-map# ugens#)
@@ -79,3 +87,9 @@
 (if (and (nil? @inst-group*) 
          (connected?))
   (dosync (ref-set inst-group* (group :head ROOT-GROUP))))
+
+(defn track [metro inst]
+  {:type :track
+   :metro metro
+   :inst inst})
+

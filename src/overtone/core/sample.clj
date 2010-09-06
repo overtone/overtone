@@ -4,18 +4,16 @@
   overtone.core.sample
   (:use (overtone.core synth ugen sc event util)))
 
-(refer-ugens)
-
 ; Define a default wav player synth
 (on :connected #(
                  (defsynth mono-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-                   (overtone.ugens/play-buf 1 buf rate
-                                            1 start-pos 0.0
-                                            (if loop? 1 0) :free))
+                   (play-buf 1 buf rate
+                             1 start-pos 0.0
+                             (if loop? 1 0) :free))
                  (defsynth stereo-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-                   (overtone.ugens/play-buf 2 buf rate
-                                            1 start-pos 0.0
-                                            (if loop? 1 0) :free))))
+                   (play-buf 2 buf rate
+                             1 start-pos 0.0
+                             (if loop? 1 0) :free))))
 (defn load-sample
   "Load a wav file into a memory buffer.  Returns the buffer.
 

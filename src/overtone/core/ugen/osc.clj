@@ -163,12 +163,6 @@
        :muladd true
        :doc "hard sync sawtooth wave oscillator"}
 
-      {:name "Index",
-       :args [{:name "bufnum"}
-              {:name "in", :default 0.0}]
-       :muladd true
-       :doc "the input signal value is truncated to an integer and used as an index into the table"}
-
       {:name "WrapIndex" :extends "Index"
        :doc "the input signal value is truncated to an integer value and used as an index into the table
             (out of range index values are wrapped)"}
@@ -227,3 +221,12 @@
               {:name "iphase", :default 0.0}]
        :doc ""}
       ])
+
+(def specs-collide
+  [{:name "Index",
+       :args [{:name "bufnum"}
+              {:name "in", :default 0.0}]
+       :muladd true
+       :doc "the input signal value is truncated to an integer and used as an index into the table"}])
+
+

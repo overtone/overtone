@@ -4,8 +4,6 @@
   overtone.studio.fx
   (:use (overtone.core synth ugen event)))
 
-(refer-ugens)
-
 (on :connected (fn []
                  (defsynth fx-noise-gate [in-bus 10 out-bus 0 threshold 0.4
                                        slope-below 1 slope-above 0.1

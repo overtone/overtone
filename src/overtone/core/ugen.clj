@@ -8,10 +8,10 @@
         [clojure.contrib.types :only (deftype)]
         [clojure.contrib.generic :only (root-type)]
         clojure.contrib.pprint
-        clojure.set
         [clojure.contrib.seq-utils :only (indexed)]) ;;TODO replace this with clojure.core/keep-indexed or map-indexed
   (:require
     overtone.core.sc
+    [clojure.set :as set]
     [clojure.contrib.generic.arithmetic :as ga]
     [clojure.contrib.generic.comparison :as gc]
     [clojure.contrib.generic.math-functions :as gm]))
@@ -219,10 +219,19 @@
     (with-fn-names)))
 
 (defn- specs-from-namespaces [namespaces]
-  (mapcat (fn [ns]
-            (let [full-ns (symbol (str "overtone.core.ugen." ns))]
-              (require [full-ns :only 'specs])
-              (var-get (ns-resolve full-ns 'specs))))
+  (reduce (fn [mem ns]
+            (let [full-ns (symbol (str "overtone.core.ugen." ns))
+                  _ (require [full-ns :only '[specs specs-collide]])
+                  specs (var-get (ns-resolve full-ns 'specs))]
+
+              ; TODO: Currently colliders must be loaded before specs in order
+              ; for this to run properly, because some ugens in specs derive
+              ; from the 'index' ugen in colliders.  Maybe the derivation 
+              ; process should get smarter...
+              (if-let [colliders (ns-resolve full-ns 'specs-collide)]
+                (concat mem (var-get colliders) specs)
+                (concat mem specs))))
+          []
           namespaces))
 
 (defn- load-ugen-specs [namespaces]
@@ -504,27 +513,37 @@
       (def-unary-op to-ns op-name special))
     (doseq [[op-name special] BINARY-OPS]
       (def-binary-op to-ns op-name special))
-    (doseq [op generics]
-      (let [func (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" op)))]
-      (ns-unmap to-ns (symbol op))
-      (intern to-ns (symbol op) (make-expanding func [true true]))))
     (intern to-ns 'mul-add (make-expanding mul-add [true true true]))
     ;(refer 'overtone.core.ugen.extra)
     ))
 
+(defn intern-ugens-collide
+  "Intern the ugens that collide with built-in clojure functions."
+  [& [to-ns]]
+  (let [to-ns (or to-ns *ns*)]
+    (doseq [op generics]
+      (let [func (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" op)))]
+      (ns-unmap to-ns (symbol op))
+      (intern to-ns (symbol op) (make-expanding func [true true]))))
+    (doseq [[op-name special] UNARY-OPS-COLLIDE]
+      (def-unary-op to-ns op-name special))
+    (doseq [[op-name special] BINARY-OPS-COLLIDE]
+      (def-binary-op to-ns op-name special))))
+
+
 ;; We refer all the ugen functions here so they can be access by other parts
 ;; of the Overtone system using a fixed namespace.  For example, to automatically
 ;; stick an Out ugen on synths that don't explicitly use one.
-(intern-ugens (create-ns 'overtone.ugens))
+(defonce _ugens (intern-ugens))
+(defonce _colliders (intern-ugens-collide (create-ns 'overtone.ugen-collide)))
 
-(defn refer-ugens
-  "This is how you (use 'overtone.ugens)."
-  []
-  (let [local-map (ns-map *ns*)
-        ugen-map (ns-map 'overtone.ugens)
-        collisions (intersection (set (keys local-map))
-                                 (set (keys ugen-map)))]
-    (doseq [v collisions]
-      (ns-unmap *ns* v))
-    (refer 'overtone.ugens)))
-
+;(defn refer-ugens
+;  []
+;  (let [local-map (ns-map *ns*)
+;        ugen-map (ns-map 'overtone.ugen)
+;        collisions (set/intersection (set (keys local-map))
+;                                 (set (keys ugen-map)))]
+;    (doseq [v collisions]
+;      (ns-unmap *ns* v))
+;    (refer 'overtone.ugen)))
+;
