@@ -93,10 +93,10 @@
 ; Binary ops that collide with clojure built-ins."
 (def BINARY-OPS-COLLIDE
   {
-   "+" 0           ; addition
-   "-" 1           ; subtraction
-   "*" 2           ; multiplication
-   "/" 4           ; floating point division
+;   "+" 0           ; addition
+;   "-" 1           ; subtraction
+;   "*" 2           ; multiplication
+;   "/" 4           ; floating point division
    "mod" 5         ; modulus
    "<=" 10         ; less than or equal
    ">=" 11

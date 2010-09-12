@@ -226,7 +226,7 @@
 
               ; TODO: Currently colliders must be loaded before specs in order
               ; for this to run properly, because some ugens in specs derive
-              ; from the 'index' ugen in colliders.  Maybe the derivation 
+              ; from the 'index' ugen in colliders.  Maybe the derivation
               ; process should get smarter...
               (if-let [colliders (ns-resolve full-ns 'specs-collide)]
                 (concat mem (var-get colliders) specs)
@@ -520,7 +520,8 @@
 (defn intern-ugens-collide
   "Intern the ugens that collide with built-in clojure functions."
   [& [to-ns]]
-  (let [to-ns (or to-ns *ns*)]
+  (let [to-ns (or to-ns *ns*)
+        generics #{"+" "-" "*" "/"}]
     (doseq [op generics]
       (let [func (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" op)))]
       (ns-unmap to-ns (symbol op))

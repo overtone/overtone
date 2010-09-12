@@ -243,6 +243,8 @@
                   [param (control-proxy param)])
                 (apply hash-map params))))
 
+; TODO: Figure out how to generate the let-bindings rather than having them
+; hard coded here.
 (defmacro pre-synth [& args]
   (let [[sname args] (cond
                        (or (string? (first args))
@@ -254,13 +256,13 @@
         param-proxies (parse-synth-params params)
         param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
     `(let [~@param-proxies
-           ~'+ ga/+
-           ~'- ga/-
-           ~'* ga/*
-           ~'/ div-meth
+           ~'+ overtone.ugen-collide/+
+           ~'- overtone.ugen-collide/-
+           ~'* overtone.ugen-collide/*
+           ~'/ (var-get (ns-resolve 'overtone.ugen-collide '/))
            ~'>= overtone.ugen-collide/>=
            ~'<= overtone.ugen-collide/<=
-           ~'rand overtone.ugen-collide/rand 
+           ~'rand overtone.ugen-collide/rand
            ~'mod overtone.ugen-collide/mod
            ~'bit-not overtone.ugen-collide/bit-not
              ugens# ~@ugen-form

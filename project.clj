@@ -21,4 +21,5 @@
 
                  [overtone/scsynth-jna "0.1.2-SNAPSHOT"]
                  [vijual "0.1.0-SNAPSHOT"]
+                 [lein-search "0.3.3"]
                 ])

@@ -5,28 +5,26 @@
   (:use (overtone.core synth ugen sc event util)))
 
 ; Define a default wav player synth
-(on :connected #(
-                 (defsynth mono-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-                   (play-buf 1 buf rate
-                             1 start-pos 0.0
-                             (if loop? 1 0) :free))
-                 (defsynth stereo-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-                   (play-buf 2 buf rate
-                             1 start-pos 0.0
-                             (if loop? 1 0) :free))))
-(defn load-sample
-  "Load a wav file into a memory buffer.  Returns the buffer.
+(defsynth mono-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
+  (out 0 (pan2 
+           (play-buf 1 buf rate
+                     1 start-pos loop? 
+                     :free))))
 
-    ; load a sample a
-    (load-sample \"/home/rosejn/studio/samples/kit/boom.wav\")
+(defsynth stereo-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
+  (out 0 
+       (play-buf 2 buf rate
+                 1 start-pos loop?
+                 :free)))
 
-  "
+(defonce loaded-samples* (ref {}))
+
+(defn- load-sample* 
   [path & args]
-  {:pre [(connected?)]}
   (let [id (alloc-id :audio-buffer)
-        args (apply hash-map args)
-        start (get args :start 0)
-        n-frames (get args :n-frames 0)
+        arg-map (apply hash-map args)
+        start (get arg-map :start 0)
+        n-frames (get arg-map :n-frames 0)
         ready (atom :loading)
         sample (with-meta {:id id
                            :size n-frames
@@ -35,7 +33,27 @@
                           {:type ::sample})]
     (on-done "/b_allocRead" #(reset! ready true))
     (snd "/b_allocRead" id path start n-frames)
+    (dosync (alter loaded-samples* assoc [path args] sample))
     sample))
+
+(defn load-sample
+  "Load a wav file into a memory buffer.  Returns the buffer.
+
+    ; load a sample a
+    (load-sample \"/home/rosejn/studio/samples/kit/boom.wav\")
+
+  "
+  [path & args]
+  (dosync (alter loaded-samples* assoc [path args] nil))
+  (if (connected?)
+    (apply load-sample* path args)))
+
+(defn- load-all-samples []
+  (doseq [[[path args] buf] @loaded-samples*]
+    (println "loading sample: " path args)
+    (apply load-sample* path args)))
+
+(defonce _sample-handler_ (on :connected load-all-samples))
 
 (defn sample?
   [s]
@@ -53,10 +71,11 @@
    (sample \"/Users/sam/music/samples/flibble.wav\")
 
   "
-  [path]
-  {:pre [(connected?)]}
+  [path & args]
   (let [s          (load-sample path)
-        player     (fn [& args] (apply mono-player s args))]
+        player     (fn [& pargs] (node "mono-player"
+                                       (:id (get @loaded-samples* [path args]))
+                                        pargs))]
     (callable-map (merge {:player player} s)
                   player)))
 

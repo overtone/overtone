@@ -33,10 +33,11 @@
   to get the timestamp to play a note at that beat."
   [bpm]
   (let [start (now)
-        tick-ms  (beat-ms 1 bpm)]
+        tick-ms (atom (beat-ms 1 bpm))]
     (fn
-      ([] (inc (long (/ (- (now) start) tick-ms))))
-      ([beat] (+ (* beat tick-ms) start)))))
+      ([] (inc (long (/ (- (now) start) @tick-ms))))
+      ([beat] (+ (* beat @tick-ms) start))
+      ([_ bpm] (reset! tick-ms bpm)))))
 
 ;== Grooves
 ;

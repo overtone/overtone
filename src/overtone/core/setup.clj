@@ -16,7 +16,7 @@
 (def CONFIG-FILE (str OVERTONE-DIR "/config"))
 (def OVERTONE-LOG-FILE (str OVERTONE-DIR "/log"))
 
-(defn check-app-dir[]
+(defn check-app-dir []
   (let [ot-dir (File. OVERTONE-DIR)]
     (when (not (.exists ot-dir))
       (.mkdir ot-dir)

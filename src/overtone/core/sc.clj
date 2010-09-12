@@ -349,8 +349,9 @@
                :windows []
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
-(if (= :linux (@config* :os))
-  (on :connected #(connect-jack-ports)))
+(defonce _jack_connector_
+  (if (= :linux (@config* :os))
+    (on :connected #(connect-jack-ports))))
 
 (defonce scsynth-server*        (ref nil))
 
@@ -465,7 +466,8 @@
   (node \"foo\" :pitch 60 :target 2 :position :tail)
   "
   [synth-name & args]
-  {:pre [(connected?)]}
+  (if (not (connected?))
+    (throw (Exception. "Not connected to synthesis engine.  Please boot or connect.")))
   (let [id (alloc-id :node)
         argmap (apply hash-map args)
         position ((get argmap :position :tail) POSITION)
@@ -809,11 +811,22 @@
 (defn sample-info [s]
   (buffer-info (:buf s)))
 
+(defonce loaded-synthdefs* (ref {}))
+
 (defn load-synthdef
   "Load a Clojure synth definition onto the audio server."
   [sdef]
   (assert (synthdef? sdef))
-  (snd "/d_recv" (synthdef-bytes sdef)))
+  (dosync (alter loaded-synthdefs* assoc (:name sdef) sdef))
+  (if (connected?)
+    (snd "/d_recv" (synthdef-bytes sdef))))
+
+(defn- load-all-synthdefs []
+  (doseq [[sname sdef] @loaded-synthdefs*]
+    (println "loading synthdef: " sname)
+    (snd "/d_recv" (synthdef-bytes sdef))))
+
+(defonce _synthdef-handler_ (on :connected load-all-synthdefs)) 
 
 (defn load-synth-file
   "Load a synth definition file onto the audio server."
@@ -986,6 +999,5 @@
           named-args (if (keyword? (first args))
                        args
                        (name-synth-args args arg-names))]
-      ;(println "synth: " named-args)
         (apply tgt-fn named-args))))
 
