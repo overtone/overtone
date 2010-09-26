@@ -1,3 +1,6 @@
+implement a portamento helper on top of slew
+
+
 == 0.2 Release
 
 * Get Undo/Redo working again

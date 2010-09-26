@@ -48,7 +48,7 @@
               {:name "timeScale", :default 1.0}
               {:name "doneAction", :default :none :map DONE-ACTIONS}]
        :doc "envelope generator, interpolates across a path of control points over time, see the
-            clojure.core.envelope functions to generate the control points array"}
+            overtone.core.envelope functions to generate the control points array"}
                ;(let [envec (TODO turn env object into vector)]
 
       {:name "Linen",

@@ -5,21 +5,23 @@
   (:use (overtone.core synth ugen sc event util)))
 
 ; Define a default wav player synth
-(defsynth mono-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-  (out 0 (pan2 
+(defsynth mono-player 
+  "Plays a single channel audio buffer."
+  [buf 0 rate 1.0 start-pos 0.0 loop? 0]
+  (out 0 (pan2
            (play-buf 1 buf rate
-                     1 start-pos loop? 
+                     1 start-pos loop?
                      :free))))
 
 (defsynth stereo-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-  (out 0 
+  (out 0
        (play-buf 2 buf rate
                  1 start-pos loop?
                  :free)))
 
 (defonce loaded-samples* (ref {}))
 
-(defn- load-sample* 
+(defn- load-sample*
   [path & args]
   (let [id (alloc-id :audio-buffer)
         arg-map (apply hash-map args)
@@ -50,7 +52,7 @@
 
 (defn- load-all-samples []
   (doseq [[[path args] buf] @loaded-samples*]
-    (println "loading sample: " path args)
+    ;(println "loading sample: " path args)
     (apply load-sample* path args)))
 
 (defonce _sample-handler_ (on :connected load-all-samples))

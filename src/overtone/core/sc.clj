@@ -474,6 +474,7 @@
         target (get argmap :target 0)
         args (flatten (seq (-> argmap (dissoc :position) (dissoc :target))))
         args (stringify (floatify args))]
+    ;(println "node " synth-name id position target args)
     (apply snd "/s_new" synth-name id position target args)
     id))
 
@@ -826,7 +827,7 @@
     (println "loading synthdef: " sname)
     (snd "/d_recv" (synthdef-bytes sdef))))
 
-(defonce _synthdef-handler_ (on :connected load-all-synthdefs)) 
+(defonce _synthdef-handler_ (on :connected load-all-synthdefs))
 
 (defn load-synth-file
   "Load a synth definition file onto the audio server."
@@ -1001,3 +1002,4 @@
                        (name-synth-args args arg-names))]
         (apply tgt-fn named-args))))
 
+(defonce _auto-boot_ (boot))

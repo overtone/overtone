@@ -360,28 +360,33 @@
     (doseq [check (:check spec)]
       (check rate special args))))
 
-(defstruct ugen-struct :id :name :rate :special :args :n-outputs)
+(defrecord ControlProxy [name value])
+(derive ControlProxy ::ugen)
+(defn control-proxy? [obj] (= ControlProxy (type obj)))
 
-(deftype ::ugen ugen
-  (fn [spec rate special args]
-    ;(check-ugen-args spec rate special args)
-    (let [ug (struct ugen-struct
-                     (next-id :ugen)
-                     (:name spec)
-                     (if (keyword? rate) (get RATES rate) rate)
-                     special
-                     args
-                     (or (:num-outs spec) 1))
-          ug (if (contains? spec :init) ((:init spec) ug) ug)]
-      ug))
-  ; Deconstructor should produce the arguments neceessary to construct the same type
-  (fn [u] (vals u)))
+(defn control-proxy [n v]
+  (ControlProxy. n v))
+
+(defrecord UGen [id name rate special args n-outputs])
+(derive UGen ::ugen)
+(defn ugen? [obj] (= UGen (type obj)))
+
+(defn ugen [spec rate special args]
+  ;(check-ugen-args spec rate special args)
+  (let [ug (UGen.
+             (next-id :ugen)
+             (:name spec)
+             (if (keyword? rate) (get RATES rate) rate)
+             special
+             args
+             (or (:num-outs spec) 1))
+        ug (if (contains? spec :init) ((:init spec) ug) ug)]
+    ug))
+
 
 (defn- ugen-base-fn [spec rate special]
   (fn [& args]
     (ugen spec rate special args)))
-
-(defn ugen? [obj] (= ::ugen (type obj)))
 
 (defn- make-buffer-id
   "Returns a function that converts any buffer arguments to their :id property value."
@@ -491,15 +496,6 @@
 
 (load "ops")
 
-(deftype ::control-proxy control-proxy
-  (fn [name]
-    {:name (str name)})
-  (fn [u] (:name u)))
-
-(derive ::control-proxy ::ugen)
-
-(defn control-proxy? [obj] (= ::control-proxy (type obj)))
-
 (defn intern-ugens
   "Iterate over all UGen meta-data, generate the corresponding functions and intern them
   in the current or otherwise specified namespace."
@@ -526,6 +522,10 @@
       (let [func (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" op)))]
       (ns-unmap to-ns (symbol op))
       (intern to-ns (symbol op) (make-expanding func [true true]))))
+
+    ; intern div-meth so we can access the division operator since / is special cased
+    (intern to-ns 'div-meth (make-expanding (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" "/"))) [true true]))
+
     (doseq [[op-name special] UNARY-OPS-COLLIDE]
       (def-unary-op to-ns op-name special))
     (doseq [[op-name special] BINARY-OPS-COLLIDE]

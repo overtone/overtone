@@ -60,12 +60,12 @@
 
 (defmacro inst [sname & args]
   ;(println "inst: " sname "\nargs: " args)
-  `(let [[sname# param-map# ugens#] (pre-synth ~sname ~@args)
+  `(let [[sname# params# ugens#] (pre-synth ~sname ~@args)
          ugens# (inst-prefix ugens#)
-         sdef# (synthdef sname# param-map# ugens#)
+         sdef# (synthdef sname# params# ugens#)
          sgroup# (or (:group (get @instruments* sname#))
                      (group :tail @inst-group*))
-         param-names# (keys param-map#)
+         param-names# (map first (partition 2 params#))
          player# (partial (synth-player sname# param-names#) :tgt sgroup#)
          inst# (callable-map {:name sname#
                               :ugens ugens#
@@ -80,10 +80,9 @@
      inst#))
 
 (defmacro definst [i-name & inst-form]
-  (let [md (if (string? (first inst-form)) {:doc (first inst-form)} {})
-        nsym (with-meta i-name md)]
-    `(def ~nsym
-       (inst ~i-name ~@inst-form))))
+  (let [[md params ugen-form] (synth-form i-name inst-form)]
+    (list 'def (with-meta i-name md)
+       (list 'inst i-name params inst-form))))
 
 (if (and (nil? @inst-group*)
          (connected?))

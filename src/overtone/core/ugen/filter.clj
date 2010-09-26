@@ -190,7 +190,7 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"}
     :args [{:name "in", :default 0.0}
            {:name "up", :default 1.0}
            {:name "dn", :default 1.0}]
-    :doc ""}
+    :doc "Smooth the curve by limiting the slope of the input signal to up and dn"}
 
    {:name "FOS",
     :args [{:name "in", :default 0.0}

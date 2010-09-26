@@ -28,15 +28,14 @@
                       :height 400}))
 
 ; Some utility synths for signal routing and scoping
-(defn define-synths []
-  (defsynth bus->buf [bus 20 buf 0]
-    (record-buf (in bus) buf))
+(defsynth bus->buf [bus 20 buf 0]
+  (record-buf (in bus) buf))
 
-  (defsynth bus->bus [in-bus 20 out-bus 0]
-    (out out-bus (in in-bus)))
+(defsynth bus->bus [in-bus 20 out-bus 0]
+  (out out-bus (in in-bus)))
 
-  (defsynth scoper-outer [buf 0]
-    (scope-out (sin-osc 200) buf))
+(defsynth scoper-outer [buf 0]
+  (scope-out (sin-osc 200) buf))
 
 ;		// linear
 ;	SynthDef("freqScope0", { arg in=0, fftbufnum=0, scopebufnum=1, rate=4, phase=1, dbFactor = 0.02;
@@ -52,18 +51,18 @@
 ;		ScopeOut.ar( ((BufRd.ar(1, fftbufnum, phasor, 1, 1) * mul).ampdb * dbFactor) + 1, scopebufnum);
 ;	}).send(server);
 
-  (defsynth freq-scope-zero [in-bus 0 fft-buf 0 scope-buf 1
-                             rate 4 phase 1 db-factor 0.02]
-    (let [n-samples (* 0.5 (- (buf-samples fft-buf) 2))
-          signal (in in-bus)
-          freqs (fft fft-buf signal 0.75 :hann)
-          chain  (pv-mag-smear fft-buf 1)
-          phasor (+ (+ n-samples 2)
-                    (* n-samples
-                       (lf-saw (/ rate (buf-dur fft-buf)) phase)))
-          phasor (round phasor 2)]
-      (scope-out (* db-factor (ampdb (* 0.00285 (buf-rd 1 fft-buf phasor 1 1))))
-                 scope-buf))))
+(defsynth freq-scope-zero [in-bus 0 fft-buf 0 scope-buf 1
+                           rate 4 phase 1 db-factor 0.02]
+  (let [n-samples (* 0.5 (- (buf-samples fft-buf) 2))
+        signal (in in-bus)
+        freqs (fft fft-buf signal 0.75 :hann)
+        chain  (pv-mag-smear fft-buf 1)
+        phasor (+ (+ n-samples 2)
+                  (* n-samples
+                     (lf-saw (/ rate (buf-dur fft-buf)) phase)))
+        phasor (round phasor 2)]
+    (scope-out (* db-factor (ampdb (* 0.00285 (buf-rd 1 fft-buf phasor 1 1))))
+               scope-buf)))
 
 ;	// logarithmic
 ;	SynthDef("freqScope1", { arg in=0, fftbufnum=0, scopebufnum=1, rate=4, phase=1, dbFactor = 0.02;
@@ -86,10 +85,6 @@
 ;    (+ (sin-osc (/ freq 2))
 ;       (rlpf (saw (+ freq (* (sin-osc 6) 6))) 440 0.2)))))
 ;
-
-(if (connected?)
-  (define-synths)
-  (on :connected define-synths))
 
 (defonce x-array (int-array (:width @scope*)))
 (defonce _x-init (dotimes [i (:width @scope*)]

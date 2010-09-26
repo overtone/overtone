@@ -60,6 +60,8 @@
          (every? #(or (ugen? %) (number? %) (control-proxy? %)) (:args ugen))]
    :post [(contains? % :inputs)
           (every? (fn [in] (not (nil? in))) (:inputs %))]}
+  ;(println "with-inputs: " ugen)
+  ;(println "arg types: " (map type (:args ugen)))
   (let [inputs (flatten
                  (map (fn [arg]
                         (cond
@@ -68,7 +70,7 @@
                           {:src -1 :index (index-of constants arg)}
 
                           ; control
-                          (= :overtone.core.ugen/control-proxy (type arg))
+                          (control-proxy? arg)
                           (param-input-spec grouped-params arg)
 
                           ; child ugen
@@ -98,10 +100,10 @@
 (defn- detail-ugens
   "Fill in all the input and output specs for each ugen."
   [ugens constants grouped-params]
-  (let [outs (doall (map with-outputs ugens))
-        ins (doall (map #(with-inputs %1 outs constants grouped-params) outs))
+  (let [outs  (map with-outputs ugens)
+        ins   (map #(with-inputs %1 outs constants grouped-params) outs)
         final (map #(assoc %1 :args nil) ins)]
-    final))
+    (doall final)))
 
 (defn- collect-ugen-helper [ugen]
   (let [children (filter #(ugen? %1) (:args ugen))
@@ -158,8 +160,8 @@
 ; (defsynth foo [freq [440 :ar]] ...)
 ; Should probably do this with a recursive function that can pull
 ; out argument pairs or triples, and get rid of the vector
-(defn- parse-params [param-map]
-  (for [[p-name p-val] param-map]
+(defn- parse-params [params]
+  (for [[p-name p-val] (partition 2 params)]
     (let [[p-val p-rate] (if (vector? p-val)
                            p-val
                            [p-val DEFAULT-RATE])]
@@ -218,13 +220,15 @@
   to disk or send to the server.
   "
   [sname params top-ugen]
+  ;(println "sname: " sname "\nparams: " params "\ntop-ugen: " top-ugen)
   (let [[ugens constants] (collect-ugen-info top-ugen)
         parsed-params (parse-params params)
         ;_ (println "parsed-params: " parsed-params)
         grouped-params (group-params parsed-params)
-        ;_ (println "parsed-params: " grouped-params)
+        ;_ (println "grouped-params: " grouped-params)
         [params pnames] (make-params grouped-params)
         ;_ (println "params: " params " pnames: " pnames)
+        ;_ (println "ugens: " ugens)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         ;_ (println "with-ctl-ugens: " with-ctl-ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
@@ -237,11 +241,11 @@
 
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
-(defn- parse-synth-params [params]
-  {:pre [(even? (count params))]}
-  (flatten (map (fn [[param default]]
-                  [param (control-proxy param)])
-                (apply hash-map params))))
+(defn- control-proxies [params]
+  (reduce (fn [mem [pname pval]]
+            (concat mem [(symbol pname) `(control-proxy ~pname ~pval)]))
+          []
+          (partition 2 params)))
 
 ; TODO: Figure out how to generate the let-bindings rather than having them
 ; hard coded here.
@@ -253,23 +257,23 @@
         [params ugen-form] (if (vector? (first args))
                              [(first args) (rest args)]
                              [[] args])
-        param-proxies (parse-synth-params params)
-        param-map (apply hash-map (map #(if (symbol? %) (str %) %) params))]
+        params (vec (map #(if (symbol? %) (str %) %) params))
+        param-proxies (control-proxies params)]
     `(let [~@param-proxies
            ~'+ overtone.ugen-collide/+
            ~'- overtone.ugen-collide/-
            ~'* overtone.ugen-collide/*
-           ~'/ (var-get (ns-resolve 'overtone.ugen-collide '/))
+           ~'/ overtone.ugen-collide/div-meth
            ~'>= overtone.ugen-collide/>=
            ~'<= overtone.ugen-collide/<=
            ~'rand overtone.ugen-collide/rand
            ~'mod overtone.ugen-collide/mod
            ~'bit-not overtone.ugen-collide/bit-not
-             ugens# ~@ugen-form
-             sname# (if (= :no-name ~sname)
-                      (str "anon-" (next-id :anonymous-synth))
-                      ~sname)]
-         [sname# ~param-map ugens#])))
+           ugens# ~@ugen-form
+           sname# (if (= :no-name ~sname)
+                    (str "anon-" (next-id :anonymous-synth))
+                    ~sname)]
+       [sname# ~params ugens#])))
 
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen functions
@@ -283,19 +287,32 @@
   (synth (sin-osc (+ 300 (* 10 (sin-osc:kr 10)))))
   "
   [& args]
-  `(let [[sname# param-map# ugens#] (pre-synth ~@args)
-         sdef# (synthdef sname# param-map# ugens#)
-         param-names# (keys param-map#)
-         player# (synth-player sname# param-names#)
+  `(let [[sname# params# ugens#] (pre-synth ~@args)
+         sdef# (synthdef sname# params# ugens#)
+         player# (synth-player sname# (map first (partition 2 params#)))
          smap# (callable-map {:name sname#
                               :ugens ugens#
                               :sdef sdef#
-                              :doc nil
+                              :doc "User defined synth..."
                               :player player#}
                              player#)]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
      smap#))
+
+(defn synth-form 
+  "Internal function used to prepare synth meta-data."
+  [name sdecl]
+  (let [md (if (string? (first sdecl)) 
+             {:doc (first sdecl)} 
+             {})
+        params    (first (take 1 (filter vector? sdecl)))
+        arglists (list (vec (map first (partition 2 params))))
+        md (assoc md 
+                  :name name
+                  :arglists (list 'quote arglists))
+        ugen-form (first (take 1 (filter list? sdecl)))]
+    [md params ugen-form]))
 
 (defmacro defsynth
   "Define a synthesizer and return a player function.  The synth definition
@@ -315,9 +332,8 @@
     [] (...))
   "
   [name & sdecl]
-  (let [md (if (string? (first sdecl)) {:doc (first sdecl)} {})
-        params    (first (take 1 (filter vector? sdecl)))
-        ugen-form (first (take 1 (filter list? sdecl)))]
+  (let [[md params ugen-form] (synth-form name sdecl)]
+;    (println "metadata: " md)
     (list 'def (with-meta name md)
           (list 'synth name params ugen-form))))
 
