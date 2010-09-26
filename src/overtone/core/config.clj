@@ -44,8 +44,9 @@ values if it already exists, and optionally persisting any config-value changes 
   (:n-handlers @config*) ; get the current config setting
   (dosync (alter config* assoc :n-handlers 10)) ; set it to 10
   "
-  [path]
+  [path & [initial-value]]
   (dosync
-    (ref-set config* (restore-config path))
+    (ref-set config* (or initial-value
+                         (restore-config path)))
     (ref-set store-path* path))
   (add-watch config* :live-config config-watcher))
