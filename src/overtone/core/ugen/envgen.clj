@@ -46,7 +46,7 @@
               {:name "levelScale", :default 1.0}
               {:name "levelBias", :default 0.0}
               {:name "timeScale", :default 1.0}
-              {:name "doneAction", :default :none :map DONE-ACTIONS}]
+              {:name "action", :default :none :map DONE-ACTIONS}]
        :doc "envelope generator, interpolates across a path of control points over time, see the
             overtone.core.envelope functions to generate the control points array"}
                ;(let [envec (TODO turn env object into vector)]
@@ -56,7 +56,7 @@
               {:name "attackTime", :default 0.01}
               {:name "susLevel", :default 1.0}
               {:name "releaseTime", :default 1.0}
-              {:name "doneAction", :default :none :map DONE-ACTIONS}],
+              {:name "action", :default :none :map DONE-ACTIONS}],
        :rates #{:kr}
        :doc "a linear envelope generator, rises to susLevel over attackTime seconds and after the
             gate goes non-positive falls over releaseTime to finally perform an option doneAction"}

@@ -97,7 +97,7 @@
               {:name "width", :default 0.1}
               {:name "iphase", :default 0.0}
               {:name "loop", :default 1}
-              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
+              {:name "action", :default 0 :map DONE-ACTIONS}]
        :doc "a non-band-limited gaussian function oscillator"}
 
       ;; LFPulse : UGen {

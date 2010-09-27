@@ -35,7 +35,7 @@
    :append-sequence false
    :append-sequence-set-num-outs false
    :num-outs false
-   :done-action false
+   :action false
    :as-ar true ;; This should still expand right?
    :standard true
    })
@@ -162,7 +162,7 @@
                                  args-specs)]
     (concat args to-append)))
 
-(defn- add-default-args [spec args]
+(comment defn- add-default-args [spec args]
   (let [defaults (map #(:default %) (:args spec))
         defaults (drop (count args) defaults)]
     (when (some #(nil? %) defaults)
@@ -170,6 +170,12 @@
         (str "\n- - -\nMissing arguments for: " (:name spec) " UGen => "
              (doall (drop (count args) (map #(:name %) (:args spec))))))))
     (concat args defaults)))
+
+(defn add-default-args [spec args]
+  (let [arg-names (map #(keyword (:name %)) (:args spec))
+        default-map (zipmap arg-names
+                            (map :default (:args spec)))]
+  (arg-lister args arg-names default-map)))
 
 (defn- with-num-outs-mode [spec ugen]
   (let [args-specs (args-with-specs (:args ugen) spec :mode)
@@ -382,7 +388,6 @@
              (or (:num-outs spec) 1))
         ug (if (contains? spec :init) ((:init spec) ug) ug)]
     ug))
-
 
 (defn- ugen-base-fn [spec rate special]
   (fn [& args]

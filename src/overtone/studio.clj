@@ -82,7 +82,7 @@
 (defmacro definst [i-name & inst-form]
   (let [[md params ugen-form] (synth-form i-name inst-form)]
     (list 'def (with-meta i-name md)
-       (list 'inst i-name params inst-form))))
+       `(inst ~i-name ~params ~ugen-form))))
 
 (if (and (nil? @inst-group*)
          (connected?))

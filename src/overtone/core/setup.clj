@@ -4,7 +4,7 @@
   overtone.core.setup
   (:import [java.io File])
   (:use [overtone.core config]
-        [clojure.contrib.io :only (delete-file)])
+        [clojure.contrib.io :only (delete-file)]))
 
 (defn- get-os []
   (let [os (System/getProperty "os.name")]
@@ -30,9 +30,8 @@
     (delete-file CONFIG-FILE)
     (live-config CONFIG-FILE {})))
 
+;    (assoc config* :user.name "anonymous")))
+  
 (if (not (contains? @config* :os))
   (dosync (alter config* assoc :os (get-os))))
-
-;    (assoc config* :user.name "anonymous")))
-
 

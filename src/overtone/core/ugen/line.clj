@@ -7,14 +7,14 @@
        :args [{:name "start", :default 0.0}
               {:name "end", :default 1.0}
               {:name "dur", :default 1.0}
-              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
+              {:name "action", :default 0 :map DONE-ACTIONS}]
        :doc "Generates a line from the start value to the end value."}
 
       {:name "XLine",
        :args [{:name "start", :default 1.0}
               {:name "end", :default 2.0}
               {:name "dur", :default 1.0}
-              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
+              {:name "action", :default 0 :map DONE-ACTIONS}]
        :doc "Generates an exponential curve from the start value to the end value. Both the start and end values
  must be non-zero and have the same sign."}
 

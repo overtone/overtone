@@ -249,7 +249,7 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"}
    :args [{:name "in", :default 0.0}
           {:name "amp", :default 0.0001}
           {:name "time", :default 0.1}
-          {:name "doneAction", :default 0 :map DONE-ACTIONS}],
+          {:name "action", :default 0 :map DONE-ACTIONS}],
    :num-outs 0
    :check-inputs same-rate-as-first-input})
 

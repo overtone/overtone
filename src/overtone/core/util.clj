@@ -116,3 +116,45 @@
 
 (defn file-exists? [path]
   (.exists (java.io.File. path)))
+
+(defn- syms-to-keywords [coll]
+  (map #(if (symbol? %)
+          (keyword %)
+          %)
+       coll))
+
+(defn- keywords-to-syms [coll]
+  (map #(if (keyword? %)
+          (symbol (name %))
+          %)
+       coll))
+
+(defn arg-mapper [args arg-names default-map]
+  (loop [args args
+         names arg-names
+         arg-map default-map]
+    (if (not (empty? args))
+      (if (and
+            (keyword? (first args))
+            (even? (count args)))
+        (conj arg-map (apply hash-map args))
+        (recur (next args)
+               (next names)
+               (assoc arg-map
+                      (first names)
+                      (first args))))
+      arg-map)))
+
+(defn arg-lister [args arg-names default-map]
+  (let [arg-map (arg-mapper args arg-names default-map)]
+    (vec (map arg-map arg-names))))
+
+; TODO: generate arglists and doc meta-data and attach to var
+(defmacro defunk [name args & body]
+  (let [arg-names (map first (partition 2 args))
+        arg-keys (vec (map keyword arg-names))
+        default-map (apply hash-map (syms-to-keywords args))]
+  `(defn ~name [& args#]
+     (let [{:keys [~@arg-names]}
+           (arg-mapper args# ~arg-keys ~default-map)]
+       ~@body))))

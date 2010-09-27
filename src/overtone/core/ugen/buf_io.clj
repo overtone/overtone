@@ -10,7 +10,7 @@
               {:name "trigger", :default 1.0}
               {:name "startPos", :default 0.0}
               {:name "loop", :default 0.0}
-              {:name "doneAction", :default :none :map DONE-ACTIONS}]
+              {:name "action", :default :none :map DONE-ACTIONS}]
        :doc "sample playback from a Signal buffer"}
 
       ;; TGrains : MultiOutUGen {
@@ -70,7 +70,7 @@
               {:name "run", :default 1.0}
               {:name "loop", :default 1.0}
               {:name "trigger", :default 1.0}
-              {:name "doneAction", :default 0 :map DONE-ACTIONS}]
+              {:name "action", :default 0 :map DONE-ACTIONS}]
        :doc "record a stream of values into a buffer"}
 
       {:name "ScopeOut",

@@ -10,7 +10,8 @@
           they output a series of numbers that is understood by the SC synth
           engine."
      :author "Jeff Rose"}
-  overtone.core.envelope)
+  overtone.core.envelope
+  (:use overtone.core.util))
 
 (def ENV-CURVES
   {:step        0
@@ -65,70 +66,38 @@
            (concat [(first levels) (count durations) reln loopn]
                    (interleave (rest levels) durations shapes curves)))))
 
-(defn triangle [& [dur level]]
-  (let [dur   (or dur 1)
-        dur   (* dur 0.5)
-        level (or level 1)]
+(defunk triangle [dur 1 level 1]
+  (let [dur (* dur 0.5)]
     (envelope [0 level 0] [dur dur])))
 
-(defn sine [& [dur level]]
-  (let [dur   (or dur 1)
-        dur   (* dur 0.5)
-        level (or level 1)]
+(defunk sine [dur 1 level 1]
+  (let [dur (* dur 0.5)]
     (envelope [0 level 0] [dur dur] :sine)))
 
-(defn perc [& [attack release level curve]]
-  (let [attack  (or attack 0.01)
-        release (or release 1)
-        level   (or level 1)
-        curve   (or curve -4)]
-    (envelope [0 level 0] [attack release] curve)))
+(defunk perc [attack 0.01 release 1 level 1 curve -4]
+  (envelope [0 level 0] [attack release] curve))
 
-(defn lin-env [& [attack sustain release level curve]]
-  (let [attack  (or attack 0.01)
-        sustain (or sustain 1)
-        release (or release 1)
-        level   (or level 1)
-        curve   (or curve :linear)]
-    (envelope [0 level level 0] [attack sustain release] curve)))
+(defunk lin-env [attack 0.01 sustain 1 release 1 level 1 curve :linear]
+  (envelope [0 level level 0] [attack sustain release] curve))
 
-(defn cutoff [& [release level curve]]
-  (let [release (or release 0.1)
-        level   (or level 1)
-        curve   (or curve :linear)]
-    (envelope [level 0] [release] curve 0)))
+(defunk cutoff [release 0.1 level 1 curve :linear]
+  (envelope [level 0] [release] curve 0))
 
-(defn dadsr [& [delay-t attack decay sustain release level curve bias]]
-  (let [delay-t (or delay-t 0.1)
-        attack  (or attack 0.01)
-        decay   (or decay 0.3)
-        sustain (or sustain 0.5)
-        release (or release 1)
-        level   (or level 1)
-        curve   (or curve -4)
-        bias    (or bias 0)]
-    (envelope
-      (map #(+ %1 bias) [0 0 level (* level sustain) 0])
-      [delay-t attack decay release] curve)))
+(defunk dadsr [delay-t 0.1 
+               attack 0.01 decay 0.3 sustain 0.5 release 1
+               level 1 curve -4 bias 0]
+  (envelope
+    (map #(+ %1 bias) [0 0 level (* level sustain) 0])
+    [delay-t attack decay release] curve))
 
-(defn adsr [& [attack decay sustain release level curve bias]]
-  (let [attack  (or attack 0.01)
-        decay   (or decay 0.3)
-        sustain (or sustain 1)
-        release (or release 1)
-        level   (or level 1)
-        curve   (or curve -4)
-        bias    (or bias 0)]
-    (envelope
-      (map #(+ %1 bias) [0 level (* level sustain) 0])
-      [attack decay release] curve 2)))
+(defunk adsr [attack 0.01 decay 0.3 sustain 1 release 1 
+              level 1 curve -4 bias 0]
+  (envelope
+    (map #(+ %1 bias) [0 level (* level sustain) 0])
+    [attack decay release] curve 2))
 
-(defn asr [& [attack sustain release curve]]
-  (let [attack  (or attack 0.01)
-        sustain (or sustain 1)
-        release (or release 1)
-        curve   (or curve -4)]
-    (envelope [0 sustain 0] [attack release] curve 1)))
+(defunk asr [attack 0.01 sustain 1 release 1 curve -4]
+  (envelope [0 sustain 0] [attack release] curve 1))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Envelope Curve Shapes
