@@ -58,7 +58,6 @@ Now get Overtone:
 
     $ cd overtone
     $ lein deps      
-    $ lein native-deps
 
     ; In Linux you can create a .jackdrc file with this command 
     ; to automatically start the jack server on boot, or you will need
@@ -139,8 +138,8 @@ include it in this README.
 To setup with all the dependent libraries developed as a part of Overtone you
 should grab the submodules too:
 
-  git submodule init 
-  git submodule update
+    git submodule init 
+    git submodule update
 
 Note, the deps from clojars will be used when you run the code, so you don't
 need these unless you want to develop on one of the sub-libraries.  (osc,

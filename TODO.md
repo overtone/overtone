@@ -1,14 +1,4 @@
-implement a portamento helper on top of slew
-
-
-== 0.2 Release
-
-* Get Undo/Redo working again
-
-* Cleanup resizing so everything works correctly and allows for customizing the
-workspace.
-
-== Studio
+## Studio
 
 * route all synths and samplers to a main mixer bus, providing panning, EQ, and
 volume controls.
@@ -30,7 +20,9 @@ volume and per synth-track control
 
 * hook up the sequencer
 
-== General
+* implement a portamento helper on top of slew
+
+## General
 
 * make things work where there are multiple "roots" in a synthdef graph
  - got around it for now, but we want this for spectrograms...
@@ -62,7 +54,7 @@ modify control params
 
 * figure out how best to attach meta-data to the [unary,binary]-op-ugen
 
-== Editor 
+## Editor 
 
 * create and open new source file in the editor, file-new
 
@@ -91,7 +83,7 @@ from paredit.clj...)
 
 * contro [+|-] to adjust font size
 
-== Curve Editor
+## Curve Editor
 
 * add support for different curve types for the line segments
  - the curve functions are implemented in overtone.core.envelope, so we can 
@@ -108,7 +100,7 @@ hopefully do this by just rendering the lines emitted by these functions.
 * add animated, path-following nodes showing the current location of the synth
 being driven by the envelope
 
-== Oscilloscope
+## Oscilloscope
 
 * zooming
 
@@ -116,13 +108,13 @@ being driven by the envelope
 
 * implement a wave drawing window so data can be directly inserted into a buffer
 
-=== Spectrogram
+### Spectrogram
 
 * do FFT and view frequency data
 
 * apply various PV filters directly to active buffer and view output
 
-== Synths and Audio:
+## Synths and Audio:
 
 * make midi->hz and friends multimethods (or use types and protocols?) so they
 operate immediately on numbers, but generate ugens on input proxy or ugen
@@ -148,7 +140,7 @@ visualization.
 * Create a mini Clojure/Java implementation of the SuperCollider interface on
 top of Java sound so we can run inside of the browser, on phones, etc...
 
-== Midi and Devices:
+## Midi and Devices:
 
 * Start thinking about some kind of generic device layer abstraction so we can
 simplify the task of adding support for new controllers.  Maybe we can have a
@@ -159,22 +151,6 @@ optionally label things or something...
 * Put some nice error messages in the midi code so you know when you pass the
 wrong type of device, etc... 
 
-== OSC: 
-
-* complete implementation of osc bundle reception, and beef up the unit tests
- - bundles need to be recursively decoded
- - should return a collection of packets, and each bundle and message should
-   have the src-host and src-port attached so we can reply to anything.
-
-== GUI
-
-* Create a node based synthdef viewer, and then editor (FlowControl)
-
-== Networking
+## Networking
 
 * search, browse and download remote synth libraries 
-
-
------------------------------
-
-* maybe write out metronome time stamp so we can continue on boot after restart?
