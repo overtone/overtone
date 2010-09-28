@@ -543,6 +543,18 @@
 (defonce _ugens (intern-ugens))
 (defonce _colliders (intern-ugens-collide (create-ns 'overtone.ugen-collide)))
 
+(defmacro with-ugens [& body]
+  `(let [~'+ overtone.ugen-collide/+
+         ~'- overtone.ugen-collide/-
+         ~'* overtone.ugen-collide/*
+         ~'/ overtone.ugen-collide/div-meth
+         ~'>= overtone.ugen-collide/>=
+         ~'<= overtone.ugen-collide/<=
+         ~'rand overtone.ugen-collide/rand
+         ~'mod overtone.ugen-collide/mod
+         ~'bit-not overtone.ugen-collide/bit-not]
+     ~@body))
+
 ;(defn refer-ugens
 ;  []
 ;  (let [local-map (ns-map *ns*)

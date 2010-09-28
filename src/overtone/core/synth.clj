@@ -260,20 +260,11 @@
         params (vec (map #(if (symbol? %) (str %) %) params))
         param-proxies (control-proxies params)]
     `(let [~@param-proxies
-           ~'+ overtone.ugen-collide/+
-           ~'- overtone.ugen-collide/-
-           ~'* overtone.ugen-collide/*
-           ~'/ overtone.ugen-collide/div-meth
-           ~'>= overtone.ugen-collide/>=
-           ~'<= overtone.ugen-collide/<=
-           ~'rand overtone.ugen-collide/rand
-           ~'mod overtone.ugen-collide/mod
-           ~'bit-not overtone.ugen-collide/bit-not
-           ugens# ~@ugen-form
            sname# (if (= :no-name ~sname)
                     (str "anon-" (next-id :anonymous-synth))
                     ~sname)]
-       [sname# ~params ugens#])))
+       (with-ugens
+         [sname# ~params ~@ugen-form]))))
 
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen functions
@@ -300,15 +291,15 @@
      (event :new-synth :synth smap#)
      smap#))
 
-(defn synth-form 
+(defn synth-form
   "Internal function used to prepare synth meta-data."
   [name sdecl]
-  (let [md (if (string? (first sdecl)) 
-             {:doc (first sdecl)} 
+  (let [md (if (string? (first sdecl))
+             {:doc (first sdecl)}
              {})
         params    (first (take 1 (filter vector? sdecl)))
         arglists (list (vec (map first (partition 2 params))))
-        md (assoc md 
+        md (assoc md
                   :name name
                   :arglists (list 'quote arglists))
         ugen-form (first (take 1 (filter list? sdecl)))]
