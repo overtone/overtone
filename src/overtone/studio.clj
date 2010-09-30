@@ -10,24 +10,18 @@
 (defonce instruments* (ref {}))
 (defonce inst-group* (ref nil))
 
-; Re-create the instrument groups after a reset
-(defn- create-inst-groups []
-  ;(println "resetting groups: " @inst-group*)
-  ;(println "groups: " (map :group (vals @instruments*)))
-  ;(println "all-ids: " (all-ids :node))
-  ;(println "status: " (status))
-  (dosync
-    (ref-set inst-group* (group :head ROOT-GROUP))
-    (ref-set instruments* (doall
-                            (zipmap (keys @instruments*)
-                                    (map #(assoc % :group (group :tail @inst-group*))
-                                         (vals @instruments*))))))
-  ;(println "all-ids: " (all-ids :node))
-  ;(println "status: " (status))
-  ;(println "groups: " (map :group (vals @instruments*)))
-  )
+(defn create-inst-group []
+  (let [g (group :tail ROOT-GROUP)]
+    (dosync (ref-set inst-group* g))))
 
-(defonce _reset_inst (on :reset #'create-inst-groups))
+(defonce _on-connect_ (on :connected create-inst-group))
+
+; Clear and re-create the instrument groups after a reset
+(defn reset-inst-groups []
+  (doseq [inst @instruments*]
+    (group-clear (:group inst))))
+
+(defonce _reset_inst (on :reset #'reset-inst-groups))
 
 ; Add instruments to the session when defined
 (defn add-instrument [inst]
@@ -66,7 +60,9 @@
          sgroup# (or (:group (get @instruments* sname#))
                      (group :tail @inst-group*))
          param-names# (map first (partition 2 params#))
-         player# (partial (synth-player sname# param-names#) :tgt sgroup#)
+         s-player# (synth-player sname# param-names#)
+         player# (fn [& play-args#]
+                   (apply s-player# :tgt (:group (get @instruments* sname#)) play-args#))
          inst# (callable-map {:name sname#
                               :ugens ugens#
                               :sdef sdef#

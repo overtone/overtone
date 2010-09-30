@@ -68,5 +68,13 @@
   (event ::filter-sweep-done :instrument :phat-bass)"
   [event-type & args]
   {:pre [(even? (count args))]}
-  (log/debug "firing event: " event-type args)
+  (log/debug "event: " event-type args)
   (.execute thread-pool #(handle-event (apply hash-map :event-type event-type args))))
+
+(defn sync-event
+  "Experimental synchronous event send."
+  [event-type & args]
+  {:pre [(even? (count args))]}
+  (log/debug "synchronous event: " event-type args)
+  (handle-event (apply hash-map :event-type event-type args)))
+

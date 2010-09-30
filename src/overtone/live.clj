@@ -1,26 +1,13 @@
 (ns overtone.live
-  (:require midi osc byte-spec
-            clojure.stacktrace
+  (:require clojure.stacktrace
+            midi 
+            osc 
+            byte-spec
+            overtone.util
             (overtone.core config time-utils log sc ugen synth synthdef envelope sample)
             (overtone.music rhythm pitch tuning)
-            (overtone.gui curve scope)
             overtone.studio
             (overtone.studio fx)))
-
-; TODO: make this work with namespace prefixes too...
-;   (immigrate 'overtone.instruments)
-(defn immigrate
- "Create a public var in this namespace for each public var in the
- namespaces named by ns-names. The created vars have the same name, value
- and metadata as the original except that their :ns metadata value is this
- namespace."
- [& ns-names]
- (doseq [ns ns-names]
-   (doseq [[sym var] (ns-publics ns)]
-     (let [sym (with-meta sym (assoc (meta var) :ns *ns*))]
-       (if (.isBound var)
-         (intern *ns* sym (var-get var))
-         (intern *ns* sym))))))
 
 (immigrate
   'clojure.stacktrace
@@ -38,8 +25,6 @@
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning
-  'overtone.gui.curve
-  'overtone.gui.scope
   'overtone.studio
   'overtone.studio.fx
   )

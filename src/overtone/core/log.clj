@@ -32,8 +32,8 @@
 (defn- print-handler []
   (let [formatter (SimpleFormatter.)]
     (proxy [StreamHandler] []
-      ;(publish [msg] (println (.format formatter msg))))))
-      (publish [msg] (println "info: " msg)))))
+      (publish [msg] (println (.format formatter msg))))))
+;      (publish [msg] (println "info: " msg)))))
 
 (defn console []
   (.addHandler LOGGER (print-handler)))

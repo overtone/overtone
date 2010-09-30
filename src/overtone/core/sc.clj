@@ -16,8 +16,7 @@
     (overtone.core event config setup util time-utils synthdef)
     [clojure.contrib.java-utils :only [file]]
     (clojure.contrib shell-out pprint)
-    osc
-    vijual))
+    osc))
 
 ; TODO: Make this work correctly
 ; NOTE: "localhost" doesn't work, at least on my laptopt
@@ -26,8 +25,6 @@
 
 ; Max number of milliseconds to wait for a reply from the server
 (defonce REPLY-TIMEOUT 500)
-
-(def ROOT-GROUP 0)
 
 (defonce server-thread* (ref nil))
 (defonce server*        (ref nil))
@@ -95,8 +92,13 @@
 (defn clear-ids
   "Clear all ids allocated for key."
   [k]
-  (doseq [id (all-ids k)]
-    (free-id k id)))
+  (println "clear-ids........................")
+  (locking (get allocator-bits k)
+    (doseq [id (all-ids k)]
+      (free-id k id))))
+
+(defonce ROOT-GROUP 0)
+(defonce SYNTH-GROUP 1)
 
 (defn connected? []
   (= :connected @status*))
@@ -430,7 +432,7 @@
   "Quit the SuperCollider synth process."
   []
   (log/info "quiting supercollider")
-  (event :quit)
+  (sync-event :quit)
   (when (connected?)
     (snd "/quit")
     (log/debug "SERVER: " @server*)
@@ -626,46 +628,6 @@
       (with-meta (parse-node-tree tree)
                  {:type ::node-tree})))))
 
-; Note: If we really want to render other node types this should be a multimethod.
-(defn- vijual-node
-  [node]
-  (cond
-   (contains? node :group)     (str "Group " (node :group))
-   (contains? node :synth)     (str "Synth " (node :id) " " (node :synth))
-   (contains? node :synth-set) (str (count (node :ids)) " Synths " (node :synth-set))
-   (true) (throw (Exception. "Please implement a vijual node renderer for this node type"))))
-
-(defn- vijual-synths
-  [node-list]
-  (let [synth-matcher    #(% :synth)
-        synths           (filter synth-matcher node-list)
-        non-synths       (filter (complement synth-matcher) node-list)
-        compact          #(remove nil? %)
-        compacted-synths (reduce (fn [sum node] (update-in sum [(node :synth) :ids]
-                                                           #(-> (conj [(node :id)] %) flatten compact)))
-                                 {} synths)
-        synth-sets       (into [] (map (fn [[k v]] (if (< 1 (count (v :ids)))
-                                                     {:synth-set k :ids (v :ids)}
-                                                     {:synth k :id (first (v :ids))}))
-                                       compacted-synths))]
-       (into non-synths synth-sets)))
-
-(defn- prepare-tree-for-vijual
-  [tree]
-  (let [node     (vijual-node (dissoc tree :children))
-        children (tree :children)]
-    (if (pos? (count children))
-      (apply conj [node] (for [i (vijual-synths children) ] (prepare-tree-for-vijual i)))
-      [node])))
-
-(defn print-node-tree
-  "Pretty print the tree of live synthesizer instances.  Takes the same args as (node-tree)."
-  [& args]
-  (draw-tree [(prepare-tree-for-vijual (apply node-tree args))]))
-
-(defmethod clojure.core/print-method ::node-tree [tree writer]
-  (print-method (draw-tree [(prepare-tree-for-vijual tree)]) writer))
-
 (defn prepend-node
   "Add a synth node to the end of a group list."
   [g n]
@@ -842,11 +804,10 @@
   and then recreates the active synth groups."
   []
   (clear-msg-queue)
-  (group-clear 0) ; clear the root group
-  (Thread/sleep 200)
-  (clear-ids :node)
-  (alloc-id :node) ; ID zero is the root group
-  (event :reset))
+  (group-clear SYNTH-GROUP) ; clear the synth group
+  (sync-event :reset))
+
+(defonce _connect-handler_ (on :connected #(group :tail ROOT-GROUP)))
 
 (defn restart
   "Reset everything and restart the SuperCollider process."
