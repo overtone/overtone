@@ -1,21 +1,24 @@
 (ns overtone.music.instrument.synth
   (:use overtone.live))
 
-(defn overtone-synths []
-  (println "defining instruments!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-  (defsynth ping [note 440 dur 0.1]
-    (* (sin-osc (midicps note)) (env-gen (perc (/ dur 2.0) (/ dur 2.0)) 1 1 0 1 :free)))
+(defsynth ping [note 60 dur 0.4]
+  (let [snd (sin-osc (midicps note))
+        env (env-gen (perc (/ dur 2.0) (/ dur 2.0)) :action :free)] 
+  (out 0 (pan2 (* env snd)))))
 
-  (defsynth alien-computer [trig 0.3]
-    (out 0 (pan2 (ifft
-                   (pv-rand-comb (fft 0 (white-noise 0.8))
-                                 0.95 (impulse :control trig))))))
+(defsynth alien-computer [trig 0.3]
+  (out 0 (pan2 (ifft
+                 (pv-rand-comb (fft 0 (white-noise))
+                               0.95 (impulse:kr trig))))))
 
-  (defsynth buzz [pitch 40 cutoff 300 dur 200]
-    (let [a (lpf (saw (midicps pitch)) (* (lf-noise1 :control 10) 400))
-          b (sin-osc (midicps (- pitch 12)))
-          env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
-      (out 0 (pan2 (* env (+ a b)))))))
+(defsynth foo []
+  (let [snd (fft 0 (white-noise
+
+(defsynth buzz [pitch 40 cutoff 300 dur 200]
+  (let [a (lpf (saw (midicps pitch)) (* (lf-noise1 :control 10) 400))
+        b (sin-osc (midicps (- pitch 12)))
+        env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
+    (out 0 (pan2 (* env (+ a b))))))
 
 ;(defn buzzer [t tick dur notes]
 ;  (let [note (first notes)]

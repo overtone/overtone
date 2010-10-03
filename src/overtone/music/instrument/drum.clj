@@ -1,92 +1,63 @@
 (ns overtone.music.instrument.drum
-  (:use (overtone.core ugen synth envelope)))
+  (:use overtone.live))
 
-(defsynth kick [out 0 freq 50 mod-freq 5 mod-index 5
+(defsynth kick [out-bus 0 freq 50 mod-freq 5 mod-index 5
                 sustain 0.4 amp 0.8 noise 0.025]
   (let [pitch-contour (line:kr (* 2 freq) freq 0.02)
         drum (lpf (sin-osc pitch-contour (sin-osc mod-freq (/ mod-index 1.3))) 1000)
-        drum-env (env-gen 1 1 0 1 2 (perc 0.005 sustain))
+        drum-env (env-gen (perc 0.005 sustain) :action :free)
         hit (hpf (* noise (white-noise)) 500)
         hit (lpf hit (line 6000 500 0.03))
-        hit-env (env-gen 1 1 0 1 2 (perc))]
-    (out out (pan2 (* amp (+ (* drum drum-env) (* hit hit-env))) 0))))
+        hit-env (env-gen (perc))]
+    (out out-bus (pan2 (* amp (+ (* drum drum-env) (* hit hit-env))) 0))))
 
-;(synth soft-kick
-;  (out.ar 0 (pan2.ar
-;              (mul-add.ar
-;                (sin-osc.ar 60 (* Math/PI 2))
-;                (env-gen.ar (perc 0.001 0.1))
-;                0)
-;              0)))
-;
-;(def rk (synth round-kick {:amp 0.5 :decay 0.6 :freq 65}
-;  (let [env (env-gen.ar (perc 0 :decay) :done-free)
-;        snd (* :amp (sin-osc.ar :freq (* Math/PI 0.5)))]
-;    (out.ar 0 (pan2.ar (* snd env) 0)))))
-;
-;(comment synth snare {:out 0 :freq 405 :amp 0.8 :sustain 0.1
-;                 :drum-amp 0.25 :crackle-amp 40 :tightness 1000}
-;  (let [drum-env (* 0.5 (env-gen.ar (perc 0.005 :sustain) :done-free))
-;        drum-s1 (* drum-env (sin-osc.ar :freq))
-;        drum-s2 (* drum-env (sin-osc.ar (* :freq 0.53)))
-;        drum-s3 (* drum-env (pm-osc.ar (saw.ar (* :freq 0.85)) 184 (/ 0.5 1.3)))
-;        drum (* :drum-amp (mix drum-s1 drum-s2 drum-s3))
-;        noise (lf-noise-0.ar 20000 0.1)
-;        filtered (* 0.5 (brf.ar noise 8000 0.1))
-;        filtered (* 0.5 (brf.ar filtered 5000 0.1))
-;        filtered (* 0.5 (brf.ar filtered 3600 0.1))
-;        filtered (* (env-gen.ar (perc 0.005 :sustain) :done-free)
-;                    (brf.ar filtered 2000 0.0001))
-;        crackle (* (resonz.ar filtered :tightness) :crackle-amp)]
-;    (out.ar :out (pan2.ar (* :amp (* 5 (+ drum crackle))) 0))))
-;
-;;; TODO: Port the good ones to Overtone synthdefs
+(defsynth round-kick [amp 0.5 decay 0.6 freq 65]
+  (let [env (env-gen (perc 0 decay) :action :free)
+        snd (* amp (sin-osc freq (* Math/PI 0.5)))]
+    (out 0 (pan2 (* snd env) 0))))
 
-; SynthDef("kick",
-; 	{ arg out = 0, freq = 50, mod_freq = 5, mod_index = 5, sustain = 0.4, amp = 0.8, beater_noise_level = 0.025;
-; 	var pitch_contour, drum_osc, drum_lpf, drum_env;
-; 	var beater_source, beater_hpf, beater_lpf, lpf_cutoff_contour, beater_env;
-; 	var kick_mix;
-; 	pitch_contour = Line.kr(freq*2, freq, 0.02);
-; 	drum_osc = PMOsc.ar(	pitch_contour,
-; 				mod_freq,
-; 				mod_index/1.3,
-; 				mul: 1,
-; 				add: 0);
-; 	drum_lpf = LPF.ar(in: drum_osc, freq: 1000, mul: 1, add: 0);
-; 	drum_env = drum_lpf * EnvGen.ar(Env.perc(0.005, sustain), 1.0, doneAction: 2);
-; 	beater_source = WhiteNoise.ar(beater_noise_level);
-; 	beater_hpf = HPF.ar(in: beater_source, freq: 500, mul: 1, add: 0);
-; 	lpf_cutoff_contour = Line.kr(6000, 500, 0.03);
-; 	beater_lpf = LPF.ar(in: beater_hpf, freq: lpf_cutoff_contour, mul: 1, add: 0);
-; 	beater_env = beater_lpf * EnvGen.ar(Env.perc, 1.0, doneAction: 2);
-; 	kick_mix = Mix.new([drum_env, beater_env]) * 2 * amp;
-; 	Out.ar(out, [kick_mix, kick_mix])
-; }).store
-; Synth("kick")
-;
-; SynthDef("soft-kick", {|amp= 0.5, decay= 0.1, attack= 0.001, freq= 60|
-;         var env, snd;
-;         env= EnvGen.kr(Env.perc(attack, decay), doneAction:2);
-;         snd= SinOsc.ar(freq, 0, amp);
-;         Out.ar(0, Pan2.ar(snd*env, 0));
-; }).store;
-;
-; Synth("soft-kick")
-; Synth("soft-kick", [\freq, 100])
-; Synth("kick", [\freq, 80, \decay, 0.2])
-;
-; //variation with impulse click
-; SynthDef("round-kick", {|amp= 0.5, decay= 0.6, freq= 65|
-;         var env, snd;
-;         env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;         snd= SinOsc.ar(freq, pi*0.5, amp);
-;         Out.ar(0, Pan2.ar(snd*env, 0));
-; }).store;
-;
-; Synth("round-kick")
-; Synth("round-kick", [\freq, 70, \decay, 0.6])
-;
+(defsynth snare [out-bus 0 freq 405 amp 0.8 sustain 0.1
+                 drum-amp 0.25 crackle-amp 40 tightness 1000]
+  (let [drum-env (* 0.5 (env-gen (perc 0.005 sustain) :action :free))
+        drum-s1 (* drum-env (sin-osc freq))
+        drum-s2 (* drum-env (sin-osc (* freq 0.53)))
+        drum-s3 (* drum-env (sin-osc (saw (* freq 0.85)) 
+                                     (sin-osc 184))); (/ 0.5 1.3)))
+        drum (* drum-amp (+ drum-s1 drum-s2 drum-s3))
+        noise (lf-noise0 20000 0.1)
+        filtered (* 0.5 (brf noise 8000 0.1))
+        filtered (* 0.5 (brf filtered 5000 0.1))
+        filtered (* 0.5 (brf filtered 3600 0.1))
+        filtered (* (env-gen (perc 0.005 sustain) :action :free)
+                    (brf filtered 2000 0.0001))
+        crackle (* (resonz filtered tightness) crackle-amp)]
+    (out out-bus (pan2 (* amp (* 5 (+ drum crackle))) 0))))
+
+(defsynth snare2 [amp 0.5 decay 0.1 freq 1000]
+  (let [env (env-gen (perc 0 decay) :action :free)
+        snd (rlpf (* (gray-noise) amp) freq (line 0.1 0.9 decay))]
+    (out 0 (pan2 (* snd env)))))
+
+(defsynth tom [sustain 0.4 mode-level 0.25 freq 90 timbre 1 amp 0.8]
+  (let [env (env-gen (perc 0.005 sustain) :action :free)
+        s1 (* 0.5 env (sin-osc (* freq 0.8)))
+        s2 (* 0.5 env (sin-osc freq))
+        s3 (* 5 env (sin-osc (saw (* 0.9 freq))
+                             (* (sin-osc (* freq 0.85))
+                                (/ timbre 1.3))))
+        mix (* mode-level (+ s1 s2 s3))
+        stick (* 3 (env-gen (perc 0.005 0.01))
+                 (crackle 2.01))
+        mix2 (* amp (+ mix stick))]
+    (out 0 (pan2 mix2))))
+
+(definst c-hat [amp 0.8 t 0.04]
+  (let [env (env-gen (perc 0.001 t) 1 1 0 1 :free)
+        noise (white-noise)
+        sqr (* (env-gen (perc 0.01 0.04)) (pulse 880 0.2))
+        filt (bpf (+ sqr noise) 9000 0.5)]
+    (* amp env filt)))
+
 ; //variation with more sines
 ; SynthDef("dry-kick", {|amp= 0.5, decay= 0.1, freq= 60|
 ;         var env, snd;
@@ -95,14 +66,6 @@
 ;         Out.ar(0, Pan2.ar(snd*env, 0));
 ;         }).store;
 ; Synth("dry-kick")
-;
-; SynthDef("big-kick", { |basefreq = 50, envratio = 3, freqdecay = 0.02, ampdecay = 0.5|
-;         var   fenv = EnvGen.kr(Env([envratio, 1], [freqdecay], \exp), 1) * basefreq,
-;         aenv = EnvGen.kr(Env.perc(0.005, ampdecay), 1, doneAction:2), out;
-;         out = SinOsc.ar(fenv.dup, 0.5pi, aenv);
-;         Out.ar([0,1] ,out);
-;         }).load(s);
-; Synth("big-kick")
 ;
 ; SynthDef("hat",
 ; 	{arg out = 0, freq = 6000, sustain = 0.1, amp = 0.8;
@@ -206,7 +169,7 @@
 ;             Out.ar(0, Pan2.ar(snd*env, 0));
 ;             }).store;
 ; Synth("snare2")
-;
+
 ; SynthDef("snare3", {|amp= 0.5, decay= 0.1, freq= 1000|
 ;             var env, snd, env2, snd2;
 ;             env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
@@ -253,30 +216,7 @@
 ;         };
 ;         ).load(s);
 ; Synth("snare-z")
-;
-; SynthDef("tom",
-; 	{arg out = 0, sustain = 0.4, drum_mode_level = 0.25,
-; 	freq = 90, drum_timbre = 1.0, amp = 0.8;
-; 	var drum_mode_sin_1, drum_mode_sin_2, drum_mode_pmosc, drum_mode_mix, drum_mode_env;
-; 	var stick_noise, stick_env;
-; 	var drum_reson, tom_mix;
-;
-; 	drum_mode_env = EnvGen.ar(Env.perc(0.005, sustain), 1.0, doneAction: 2);
-; 	drum_mode_sin_1 = SinOsc.ar(freq*0.8, 0, drum_mode_env * 0.5);
-; 	drum_mode_sin_2 = SinOsc.ar(freq, 0, drum_mode_env * 0.5);
-; 	drum_mode_pmosc = PMOsc.ar(	Saw.ar(freq*0.9),
-; 								freq*0.85,
-; 								drum_timbre/1.3,
-; 								mul: drum_mode_env*5,
-; 								add: 0);
-; 	drum_mode_mix = Mix.new([drum_mode_sin_1, drum_mode_sin_2, drum_mode_pmosc]) * drum_mode_level;
-; 	stick_noise = Crackle.ar(2.01, 1);
-; 	stick_env = EnvGen.ar(Env.perc(0.005, 0.01), 1.0) * 3;
-; 	tom_mix = Mix.new([drum_mode_mix, stick_env]) * 2 * amp;
-; 	Out.ar(out, [tom_mix, tom_mix])
-; 	}).store
-; Synth("tom")
-;
+
 ; SynthDef("clap", { |freq=100, sustain=5, amp=0.9|
 ;         var mod, sound, env, saw, filter;
 ;         mod = XLine.kr(freq*1,freq,sustain);
@@ -290,4 +230,16 @@
 ; ).load(s);
 ; Synth("clap");
 ; Synth("clap", ["freq", 300, "amp", 1.5]);
-;
+
+; TODO: figure this one out... :-)
+(defsynth clap [freq 100 sustain 5 amp 0.9]
+  (let [env (env-gen (perc 0.02 sustain) :action :free)
+        saw (apply + 
+                   (* (lf-pulse:kr 0.6 0 0.5)
+               (* 0.07 [(white-noise) (white-noise)])
+               [(saw 1000) (saw 1000)]))
+        filt (bpf saw (lin-exp (lf-noise1:kr 0.1)
+                               -1 1 10000
+                               20000)
+                  0.9)]
+    (out 0 (pan2 (* filt env)))))
