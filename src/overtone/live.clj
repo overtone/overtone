@@ -1,9 +1,9 @@
 (ns overtone.live
+  (:use overtone.util)
   (:require clojure.stacktrace
-            midi 
-            osc 
+            midi
+            osc
             byte-spec
-            overtone.util
             (overtone.core config time-utils log sc ugen synth synthdef envelope sample)
             (overtone.music rhythm pitch tuning)
             overtone.studio
