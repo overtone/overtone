@@ -275,14 +275,29 @@
 ;	double - nominal sample rate
 ;	double - actual sample rate
 
-(defn recv [path & [timeout]]
+
+(defn recv
+  "Register your intent to wait for a message associated with given path to be received from the server. Returns a promise that will contain the message once it has been received. Does not block current thread (this only happens once you try and look inside the promise and the reply has not yet been received)."
+  [path]
   (let [p (promise)]
     (on path #(do (deliver p %) :done))
+    p))
+
+(defn read-reply
+    "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Returns :timeout if a timeout occurs."
+    ([msg] (read-reply msg REPLY-TIMEOUT))
+    ([msg timeout]
+       (try
+         (.get (future @msg) timeout TimeUnit/MILLISECONDS)
+         (catch TimeoutException t
+           :timeout))))
+
+(defn recv-and-wait
+  "Wait for a message associated with given path to be received from the server. If a timeout is specified then returns :timeout if no message has been received within timeout ms. Blocks current thread waiting for message"
+  [path & [timeout]]
+  (let [p (recv path)]
     (if timeout
-      (try
-        (.get (future @p) timeout TimeUnit/MILLISECONDS)
-        (catch TimeoutException t
-          :timeout))
+      (read-reply p timeout)
       @p)))
 
 (defn- parse-status [args]
@@ -317,8 +332,9 @@
   "Wait until the audio server has completed all asynchronous commands currently in execution."
   [& [timeout]]
   (let [sync-id (rand-int 999999)
+        reply-p (recv "/synced")
         _ (snd "/sync" sync-id)
-        reply (recv "/synced" (if timeout timeout REPLY-TIMEOUT))
+        reply (read-reply reply-p (if timeout timeout REPLY-TIMEOUT))
         reply-id (first (:args reply))]
     (= sync-id reply-id)))
 
@@ -623,10 +639,11 @@
   ([] (node-tree 0))
   ([id & [ctls?]]
    (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
-    (snd "/g_queryTree" id ctls?)
-    (let [tree (:args (recv "/g_queryTree.reply" REPLY-TIMEOUT))]
-      (with-meta (parse-node-tree tree)
-                 {:type ::node-tree})))))
+     (let [reply-p (recv "/g_queryTree.reply")
+           _ (snd "/g_queryTree" id ctls?)
+          tree (:args (read-reply reply-p))]
+       (with-meta (parse-node-tree tree)
+         {:type ::node-tree})))))
 
 (defn prepend-node
   "Add a synth node to the end of a group list."
@@ -651,7 +668,7 @@
 (defn sync-all
   "Wait until all asynchronous server operations have been completed."
   []
-  (recv "/synced"))
+  (recv-and-wait "/synced"))
 
 ; The /done message just has a single argument:
 ; "/done" "s" <completed-command>
@@ -719,7 +736,7 @@
     (loop [recvd 0]
       (if (= recvd len)
         samples
-        (let [msg (recv "/b_setn" REPLY-TIMEOUT)
+        (let [msg (recv-and-wait "/b_setn")
               ;_ (println "b_setn msg: " (take 3 (:args msg)))
               [buf-id bstart blen & samps] (:args msg)]
           (loop [idx bstart
@@ -764,8 +781,10 @@
     snd-buf))
 
 (defn buffer-info [buf]
-  (snd "/b_query" (buffer-id buf))
-  (let [msg (recv "/b_info" REPLY-TIMEOUT)
+
+  (let [mesg-p (recv "/b_info")
+        _   (snd "/b_query" (buffer-id buf))
+        msg (read-reply mesg-p)
         [buf-id n-frames n-channels rate] (:args msg)]
     {:n-frames n-frames
      :n-channels n-channels
