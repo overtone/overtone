@@ -16,9 +16,10 @@
 
 (defonce _on-connect_ (on :connected create-inst-group))
 
-; Clear and re-create the instrument groups after a reset
+;; Clear and re-create the instrument groups after a reset
+;; TODO: re-create the instrument groups
 (defn reset-inst-groups []
-  (doseq [inst @instruments*]
+  (doseq [[name inst] @instruments*]
     (group-clear (:group inst))))
 
 (defonce _reset_inst (on :reset #'reset-inst-groups))
