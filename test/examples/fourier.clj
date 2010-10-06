@@ -1,16 +1,14 @@
 (ns examples.fourier
-  (:use overtone.live
-    (overtone.gui scope curve)))
-
-(refer-ugens)
+  (:use overtone.live))
+;    (overtone.gui scope curve)))
 
 (def buf (buffer 2048))
 
 ; Bounce around cutting a single band out of white noise.
-(defsynth random-noise-band []
+(definst random-noise-band [rate 0.4]
   (let [src (* 0.8 (white-noise))
-        freqs (fft (:id buf) src)
-	    filtered (pv-rand-comb freqs 0.95 (impulse:kr 0.4))]
+        freqs (fft buf src)
+	    filtered (pv-rand-comb freqs 0.95 (impulse:kr rate))]
   (ifft filtered)))
 
 ; Cut off noise at a wall
@@ -18,11 +16,11 @@
 (defsynth cut-it-out []
     (let [src (* 0.2 (white-noise))
           freqs (fft (:id buf) src)
-	      filtered (pv-brick-wall (:id buf) (sin-osc:kr 0.1))]
-    (ifft filtered)))
+	      filtered (pv-brick-wall buf (sin-osc:kr 0.1))]
+    (out 0 (pan2 (ifft filtered)))))
 
-(defsynth saw-tips [freq 440 thresh 0.5]
+(definst saw-tips [freq 440 thresh 0.5]
     (let [src (* 0.8 (saw freq))
-          freqs (fft (:id buf) src)
+          freqs (fft buf src)
 	      filtered (pv-local-max (:id buf) thresh)]
-    (ifft filtered)))
+      (ifft filtered)))

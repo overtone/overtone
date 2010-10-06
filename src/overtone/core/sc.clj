@@ -68,6 +68,9 @@
             (.set bits id)
             id))))))
 
+; The root group is implicitly allocated
+(defonce _root-group_ (alloc-id :node))
+
 (defn free-id
   "Free the id of type key."
   [k id]
@@ -98,7 +101,12 @@
       (free-id k id))))
 
 (defonce ROOT-GROUP 0)
-(defonce SYNTH-GROUP 1)
+(defonce synth-group* (ref nil))
+
+(declare group)
+(on-event :connected :root-group-creator #(dosync
+                                            (ref-set synth-group*
+                                                   (group :head ROOT-GROUP))))
 
 (defn connected? []
   (= :connected @status*))
@@ -675,7 +683,7 @@
   for an example of usage.
   "
   [path handler]
-  (on-event "/done" :done-handler 
+  (on-event "/done" :done-handler
             #(if (= path (first (:args %)))
                (do
                  (handler)
@@ -819,10 +827,8 @@
   and then recreates the active synth groups."
   []
   (clear-msg-queue)
-  (group-clear SYNTH-GROUP) ; clear the synth group
+  (group-clear @synth-group*) ; clear the synth group
   (event :reset))
-
-(on-event :connected :root-group-creator #(group :tail ROOT-GROUP))
 
 (defn restart
   "Reset everything and restart the SuperCollider process."
@@ -962,7 +968,7 @@
     (let [[args sgroup] (if (or (= :target (first args))
                                 (= :tgt    (first args)))
                           [(drop 2 args) (second args)]
-                          [args ROOT-GROUP])
+                          [args @synth-group*])
           [args pos]    (if (or (= :position (first args))
                                 (= :pos      (first args)))
                           [(drop 2 args) (second args)]

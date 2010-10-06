@@ -91,6 +91,10 @@
       (log/debug "Handler Exception - got args:" args"\n" (with-out-str
                    (print-cause-trace e))))))
 
+(defn map-vals [f m]
+  (zipmap (keys m) 
+          (map f (vals m))))
+
 (defn- map-entry [k v]
   (proxy [clojure.lang.IMapEntry] []
     (key [] k)
@@ -158,3 +162,4 @@
      (let [{:keys [~@arg-names]}
            (arg-mapper args# ~arg-keys ~default-map)]
        ~@body))))
+

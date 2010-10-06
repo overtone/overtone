@@ -10,11 +10,13 @@
 (defonce instruments* (ref {}))
 (defonce inst-group* (ref nil))
 
-(defn create-inst-group []
+(defn create-inst-groups []
   (let [g (group :tail ROOT-GROUP)]
-    (dosync (ref-set inst-group* g))))
+    (dosync
+      (ref-set inst-group* g)
+      (map-vals #(assoc % :group (group :tail g)) @instruments*))))
 
-(on-sync-event :connected :create-instruments create-inst-group)
+(on-sync-event :connected :create-instrument-groups create-inst-groups)
 
 ;; Clear and re-create the instrument groups after a reset
 ;; TODO: re-create the instrument groups
@@ -36,11 +38,6 @@
 (defn clear-instruments []
   (dosync (ref-set instruments* {})))
 
-;(def synth-prefix* (ref #(out 0 (pan2 %))))
-;
-;(defn set-synth-prefix [prefix-fn]
-;  (dosync (ref-set synth-prefix* prefix-fn)))
-
 ; When there is a single channel audio output add pan2 and out ugens
 ; to make all instruments stereo by default.
 (def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
@@ -59,7 +56,9 @@
          ugens# (inst-prefix ugens#)
          sdef# (synthdef sname# params# ugens#)
          sgroup# (or (:group (get @instruments* sname#))
-                     (group :tail @inst-group*))
+                     (if (connected?)
+                       (group :tail @inst-group*)
+                       nil))
          param-names# (map first (partition 2 params#))
          s-player# (synth-player sname# param-names#)
          player# (fn [& play-args#]
@@ -71,7 +70,9 @@
                               :group sgroup#
                               :player player#}
                              player#)]
-     (load-synthdef sdef#)
+
+     (if (connected?)
+       (load-synthdef sdef#))
      (add-instrument inst#)
      (event :new-inst :inst inst#)
      inst#))
