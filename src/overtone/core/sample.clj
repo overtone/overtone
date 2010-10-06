@@ -5,7 +5,7 @@
   (:use (overtone.core synth ugen sc event util)))
 
 ; Define a default wav player synth
-(defsynth mono-player 
+(defsynth mono-player
   "Plays a single channel audio buffer."
   [buf 0 rate 1.0 start-pos 0.0 loop? 0]
   (out 0 (pan2
@@ -55,7 +55,7 @@
     ;(println "loading sample: " path args)
     (apply load-sample* path args)))
 
-(defonce _sample-handler_ (on :connected load-all-samples))
+(on-event :connected :sample-loader load-all-samples)
 
 (defn sample?
   [s]

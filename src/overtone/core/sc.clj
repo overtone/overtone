@@ -107,8 +107,9 @@
 
 ; The base handler for receiving osc messages just forwards the message on
 ; as an event using the osc path as the event key.
-(on ::osc-msg-received (fn [{{path :path args :args} :msg}]
-                         (event path :path path :args args)))
+(on-sync-event ::osc-msg-received :osc-receiver
+               (fn [{{path :path args :args} :msg}]
+                 (event path :path path :args args)))
 
 (defn snd
   "Sends an OSC message."
@@ -190,8 +191,8 @@
   (log/debug (format "node-created: %d" id)))
 
 ; Setup the feedback handlers with the audio server.
-(on "/n_end" #(node-destroyed (first (:args %))))
-(on "/n_go" #(node-created (first (:args %))))
+(on-event "/n_end" :node-destroyer #(node-destroyed (first (:args %))))
+(on-event "/n_go" :node-creator #(node-created (first (:args %))))
 
 (def N-RETRIES 20)
 
@@ -225,7 +226,7 @@
       (ref-set status* :connecting))
 
     ; Runs once when we receive the first status.reply message
-    (on "status.reply"
+    (on-event "status.reply" :connected-handler
         #(do
            (dosync (ref-set status* :connected))
            (notify true) ; turn on notifications now that we can communicate
@@ -280,7 +281,7 @@
   "Register your intent to wait for a message associated with given path to be received from the server. Returns a promise that will contain the message once it has been received. Does not block current thread (this only happens once you try and look inside the promise and the reply has not yet been received)."
   [path]
   (let [p (promise)]
-    (on path #(do (deliver p %) :done))
+    (on-sync-event path (uuid) #(do (deliver p %) :done))
     p))
 
 (defn read-reply
@@ -318,9 +319,10 @@
   []
   (if (= :connected @status*)
     (let [p (promise)]
-      (on "/status.reply" #(do
-                             (deliver p (parse-status (:args %)))
-                             :done))
+      (on-event "/status.reply" :status-check
+                #(do
+                   (deliver p (parse-status (:args %)))
+                   :done))
       (snd "/status")
       (try
         (.get (future @p) STATUS-TIMEOUT TimeUnit/MILLISECONDS)
@@ -367,11 +369,11 @@
                :windows []
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
-(defonce _jack_connector_
-  (if (= :linux (@config* :os))
-    (on :connected #(connect-jack-ports))))
+(if (= :linux (@config* :os))
+  (on-event :connected :jack-connector
+            #(connect-jack-ports)))
 
-(defonce scsynth-server*        (ref nil))
+(defonce scsynth-server* (ref nil))
 
 (defn internal-booter [port]
   (reset! running?* true)
@@ -392,7 +394,7 @@
        (log/debug "Booting SuperCollider internal server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (on :booted connect)
+       (on-event :booted :on-boot-connector connect)
        :booting))))
 
 (defn- sc-log
@@ -448,7 +450,7 @@
   "Quit the SuperCollider synth process."
   []
   (log/info "quiting supercollider")
-  (sync-event :quit)
+  (event :quit)
   (when (connected?)
     (snd "/quit")
     (log/debug "SERVER: " @server*)
@@ -680,10 +682,11 @@
   for an example of usage.
   "
   [path handler]
-  (on "/done" #(if (= path (first (:args %)))
-                 (do
-                   (handler)
-                   :done))))
+  (on-event "/done" :done-handler 
+            #(if (= path (first (:args %)))
+               (do
+                 (handler)
+                 :done))))
 
 ; TODO: Look into multi-channel buffers.  Probably requires adding multi-id allocation
 ; support to the bit allocator too...
@@ -808,7 +811,7 @@
     (println "loading synthdef: " sname)
     (snd "/d_recv" (synthdef-bytes sdef))))
 
-(defonce _synthdef-handler_ (on :connected load-all-synthdefs))
+(on-event :connected :synthdef-loader load-all-synthdefs)
 
 (defn load-synth-file
   "Load a synth definition file onto the audio server."
@@ -824,9 +827,9 @@
   []
   (clear-msg-queue)
   (group-clear SYNTH-GROUP) ; clear the synth group
-  (sync-event :reset))
+  (event :reset))
 
-(defonce _connect-handler_ (on :connected #(group :tail ROOT-GROUP)))
+(on-event :connected :root-group-creator #(group :tail ROOT-GROUP))
 
 (defn restart
   "Reset everything and restart the SuperCollider process."

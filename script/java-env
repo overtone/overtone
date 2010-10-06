@@ -10,12 +10,16 @@ for f in "$DEPS"/*.jar; do
     CLASSPATH=$CLASSPATH:$f
 done
 
+for dir in "checkouts"; do
+    CLASSPATH=$CLASSPATH:$dir/src
+done
+
 # Attempted Windows compatibility
 if [[ "$OSTYPE" == 'cygwin' ]]; then
   CLASSPATH=`cygpath -wp "$CLASSPATH"`
 fi
 
-DEFINES=-Djava.library.path=native/linux/x86,sun.java2d.opengl=True
+DEFINES=-Djava.library.path=native/linux/x86,sun.java2d.opengl=False
 
 # TODO: Tryout these args to use the parallel GC
 #-XX:+UnlockExperimentalVMOptions -XX:+UseG1GC

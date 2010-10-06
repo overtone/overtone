@@ -14,14 +14,14 @@
   (let [g (group :tail ROOT-GROUP)]
     (dosync (ref-set inst-group* g))))
 
-(defonce _on-connect_ (on :connected create-inst-group))
+(on-sync-event :connected :create-instruments create-inst-group)
 
 ; Clear and re-create the instrument groups after a reset
 (defn reset-inst-groups []
   (doseq [inst @instruments*]
     (group-clear (:group inst))))
 
-(defonce _reset_inst (on :reset #'reset-inst-groups))
+(on-sync-event :reset :reset-instruments reset-inst-groups)
 
 ; Add instruments to the session when defined
 (defn add-instrument [inst]
