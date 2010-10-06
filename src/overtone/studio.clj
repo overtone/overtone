@@ -16,9 +16,10 @@
 
 (on-sync-event :connected :create-instruments create-inst-group)
 
-; Clear and re-create the instrument groups after a reset
+;; Clear and re-create the instrument groups after a reset
+;; TODO: re-create the instrument groups
 (defn reset-inst-groups []
-  (doseq [inst @instruments*]
+  (doseq [[name inst] @instruments*]
     (group-clear (:group inst))))
 
 (on-sync-event :reset :reset-instruments reset-inst-groups)
