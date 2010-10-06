@@ -285,12 +285,18 @@
 
 (defn await-promise
     "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Returns :timeout if a timeout occurs."
-    ([prom] (await-promise msg REPLY-TIMEOUT))
+    ([prom] (await-promise prom REPLY-TIMEOUT))
     ([prom timeout]
        (try
-         (.get (future @msg) timeout TimeUnit/MILLISECONDS)
+         (.get (future @prom) timeout TimeUnit/MILLISECONDS)
          (catch TimeoutException t
            :timeout))))
+
+(defn await-promise!
+    "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Raises an exception if the message hasn't been received within timeout ms"
+    ([prom] (await-promise prom REPLY-TIMEOUT))
+    ([prom timeout]
+       (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
 
 (defn- parse-status [args]
   (let [[_ ugens synths groups loaded avg peak nominal actual] args]
@@ -326,7 +332,7 @@
   (let [sync-id (rand-int 999999)
         reply-p (recv "/synced")
         _ (snd "/sync" sync-id)
-        reply (await-promise reply-p (if timeout timeout REPLY-TIMEOUT))
+        reply (await-promise! reply-p (if timeout timeout REPLY-TIMEOUT))
         reply-id (first (:args reply))]
     (= sync-id reply-id)))
 
@@ -633,7 +639,7 @@
    (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
      (let [reply-p (recv "/g_queryTree.reply")
            _ (snd "/g_queryTree" id ctls?)
-          tree (:args (await-promise reply-p))]
+          tree (:args (await-promise! reply-p))]
        (with-meta (parse-node-tree tree)
          {:type ::node-tree})))))
 
@@ -656,11 +662,6 @@
   "Remove any scheduled OSC messages from the run queue."
   []
   (snd "/clearSched"))
-
-(defn sync-all
-  "Wait until all asynchronous server operations have been completed."
-  []
-  @(recv "/synced"))
 
 ; The /done message just has a single argument:
 ; "/done" "s" <completed-command>
@@ -728,7 +729,8 @@
     (loop [recvd 0]
       (if (= recvd len)
         samples
-        (let [msg @(recv "/b_setn")
+        (let [msg-p (recv "/b_setn")
+              msg (await-promise! msg-p)
               ;_ (println "b_setn msg: " (take 3 (:args msg)))
               [buf-id bstart blen & samps] (:args msg)]
           (loop [idx bstart
@@ -776,7 +778,7 @@
 
   (let [mesg-p (recv "/b_info")
         _   (snd "/b_query" (buffer-id buf))
-        msg (await-promise mesg-p)
+        msg (await-promise! mesg-p)
         [buf-id n-frames n-channels rate] (:args msg)]
     {:n-frames n-frames
      :n-channels n-channels
@@ -797,7 +799,6 @@
 
 (defn- load-all-synthdefs []
   (doseq [[sname sdef] @loaded-synthdefs*]
-    (println "loading synthdef: " sname)
     (snd "/d_recv" (synthdef-bytes sdef))))
 
 (defonce _synthdef-handler_ (on :connected load-all-synthdefs))
