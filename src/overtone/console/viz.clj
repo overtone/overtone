@@ -26,7 +26,7 @@
                                        compacted-synths))]
        (into non-synths synth-sets)))
 
-(defn- prepare-tree-for-vijual
+(defn prepare-tree-for-vijual
   [tree]
   (let [node     (vijual-node (dissoc tree :children))
         children (tree :children)]
