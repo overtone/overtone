@@ -896,7 +896,7 @@
     (at time-ms
         (apply node-control synth-id (stringify ctls)))))
 
-(defn kill
+(defmulti kill
   "Free one or more synth nodes.
   Functions that create instance of synth definitions, such as hit, return
   a handle for the synth node that was created.
@@ -912,6 +912,12 @@
   ; or a seq of synth handles can be removed at once
   (kill [(hit) (hit) (hit)])
   "
+  (fn [& args] (cond
+                 (number? (first args)) :number
+                 (associative? (first args)) (:type (first args))
+                 :else (type (first args)))))
+
+(defmethod kill :number
   [& ids]
   (apply node-free (flatten ids))
   :killed)

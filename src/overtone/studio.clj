@@ -63,10 +63,11 @@
          s-player# (synth-player sname# param-names#)
          player# (fn [& play-args#]
                    (apply s-player# :tgt (:group (get @instruments* sname#)) play-args#))
-         inst# (callable-map {:name sname#
+         inst# (callable-map {:type ::instrument
+                              :name sname#
                               :ugens ugens#
                               :sdef sdef#
-                              :doc nil
+                              :doc "This is a test."
                               :group sgroup#
                               :player player#}
                              player#)]
@@ -77,10 +78,20 @@
      (event :new-inst :inst inst#)
      inst#))
 
+(defn inst? [o]
+  (and (associative? o)
+       (= ::instrument (:type o))))
+
 (defmacro definst [i-name & inst-form]
-  (let [[md params ugen-form] (synth-form i-name inst-form)]
+  (let [[md params ugen-form] (synth-form i-name inst-form)
+        md (assoc md :type ::instrument)]
     (list 'def (with-meta i-name md)
        `(inst ~i-name ~params ~ugen-form))))
+
+(defmethod overtone.core.sc/kill :overtone.studio/instrument 
+  [& args]
+  (doseq [inst args]
+    (group-clear (:group inst))))
 
 (if (and (nil? @inst-group*)
          (connected?))

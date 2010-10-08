@@ -5,7 +5,7 @@
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
 ; which come originally from the book Designing Sound by Andy Farnell.
 
-(defsynth overpad [out-bus 0 note 60 amp 0.4 rel 0.3]
+(definst overpad [out-bus 0 note 60 amp 0.4 rel 0.3]
   (let [freq (midicps note)
         env (env-gen (perc 0.01 rel) 1 1 0 1 :free)
         sig (apply + (sin-osc (/ freq 2)) (lpf (saw [freq (* freq 1.01)]) freq))
@@ -33,10 +33,13 @@
   (choose [62 63 63 65])
   (choose [65 67 68 70])])
 
+(def metro (metronome 80))
+
 (defn play-chords [t]
   (let [tick (* 2 (choose [125 500 250 250 500 250 500 250]))]
-    (at t (doseq [note (chord-notes)] (overpad 0 note 0.3 (/ tick 1020))))
-    (apply-at #'play-chords (+ t TICK) (+ t BEAT))))
+    (at t (doseq [note (map #(- %  12) (chord-notes))] 
+            (overpad 0 note 0.3 (/ tick 1020))))
+    (apply-at #'play-chords (+ t (- tick 50)) (+ t BEAT))))
 
 ;(play-chords (now))
 
@@ -109,7 +112,7 @@
   (out out-bus (in (num-output-buses:ir))))
 
 (defn wah-wah [freq depth]
-  (with-ugens 
+  (with-ugens
     (* depth (sin-osc:kr freq))))
 
 (defsynth ticker [freq 2]
