@@ -85,10 +85,10 @@
 (defmacro definst [i-name & inst-form]
   (let [[md params ugen-form] (synth-form i-name inst-form)
         md (assoc md :type ::instrument)]
-    (list 'def (with-meta i-name md)
+    (list 'def i-name ;(with-meta i-name md)
        `(inst ~i-name ~params ~ugen-form))))
 
-(defmethod overtone.core.sc/kill :overtone.studio/instrument 
+(defmethod overtone.core.sc/kill :overtone.studio/instrument
   [& args]
   (doseq [inst args]
     (group-clear (:group inst))))

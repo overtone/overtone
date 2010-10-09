@@ -1,14 +1,35 @@
 (ns overtone.console.viz
   (:use vijual
-        [overtone.core sc]))
+        [overtone.core sc]
+        overtone.studio))
+
+(defn- check-inst-group
+  "Replaces a string 'Group <N>' where N is the group number of an instrument
+  with the instrument name, otherwise just returns the txt unchanged."
+  [txt]
+  (if-let [ins (first (filter #(= txt (str "Group " (:group %))) 
+                              (vals @instruments*)))]
+    (:name ins)
+    txt))
+
+(defn- group-alias 
+  "Replace generic node-tree labels with nicer aliases."
+  [txt]
+  (if (string? txt)
+    (cond
+      (= "Group 0" txt) "Root"
+      (= (str "Group " @inst-group*) txt) "Instruments"
+      (= (str "Group " @synth-group*) txt) "Synthesizers"
+      :else (check-inst-group txt))
+    txt))
 
 ; Note: If we really want to render other node types this should be a multimethod.
 (defn- vijual-node
   [node]
   (cond
-   (contains? node :group)     (str "Group " (node :group))
-   (contains? node :synth)     (str "Synth " (node :id) " " (node :synth))
-   (contains? node :synth-set) (str (count (node :ids)) " Synths " (node :synth-set))
+   (contains? node :group)     (group-alias (str "Group " (node :group)))
+   (contains? node :synth)     (str (node :id))
+   (contains? node :synth-set) (apply str (interpose ", " (node :ids)))
    (true) (throw (Exception. "Please implement a vijual node renderer for this node type"))))
 
 (defn- vijual-synths
@@ -26,20 +47,20 @@
                                        compacted-synths))]
        (into non-synths synth-sets)))
 
-(defn prepare-tree-for-vijual
+(defn vijual-tree
   [tree]
   (let [node     (vijual-node (dissoc tree :children))
         children (tree :children)]
     (if (pos? (count children))
       (apply conj [node]
              (for [i (vijual-synths children)]
-               (prepare-tree-for-vijual i)))
+               (vijual-tree i)))
       [node])))
 
 (defn print-node-tree
   "Pretty print the tree of live synthesizer instances.  Takes the same args as (node-tree)."
   [& args]
-  (draw-tree [(prepare-tree-for-vijual (apply node-tree args))]))
+  (draw-tree [(vijual-tree (apply node-tree args))]))
 
 (defmethod clojure.core/print-method :overtone.core.sc/node-tree [tree writer]
-  (print-method (draw-tree [(prepare-tree-for-vijual tree)]) writer))
+  (print-method (draw-tree [(vijual-tree tree)]) writer))
