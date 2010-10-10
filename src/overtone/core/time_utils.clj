@@ -3,7 +3,8 @@
      :author "Jeff Rose"}
   overtone.core.time-utils
   (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit
-                                 PriorityBlockingQueue)))
+                                 PriorityBlockingQueue))
+  (:use (overtone.core event)))
 
 ; Time
 
@@ -57,6 +58,8 @@
     (.shutdownNow *player-pool*)
     (.shutdown *player-pool*))
   (def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS)))
+
+(on-sync-event :reset ::player-reset #(stop-players true))
 
 (defn stop-player [player & [now]]
   (.cancel player (or now false)))

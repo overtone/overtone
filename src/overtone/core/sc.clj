@@ -13,9 +13,9 @@
     (java.util BitSet))
   (:require [overtone.core.log :as log])
   (:use
-    (overtone.core event config setup util time-utils synthdef)
+    (overtone.core event config setup util time-utils synthdef sc-base)
     [clojure.contrib.java-utils :only [file]]
-    (clojure.contrib shell-out pprint)
+    (clojure.contrib pprint)
     osc))
 
 ; TODO: Make this work correctly
@@ -25,11 +25,6 @@
 
 ; Max number of milliseconds to wait for a reply from the server
 (defonce REPLY-TIMEOUT 500)
-
-(defonce server-thread* (ref nil))
-(defonce server*        (ref nil))
-(defonce status*        (ref :no-audio))
-(defonce sc-world*      (ref nil))
 
 ; Server limits
 (defonce MAX-NODES 1024)
@@ -104,28 +99,16 @@
 (defonce synth-group* (ref nil))
 
 (declare group)
-(on-event :connected :root-group-creator #(dosync
-                                            (ref-set synth-group*
-                                                   (group :head ROOT-GROUP))))
-
-(defn connected? []
-  (= :connected @status*))
+(on-sync-event :connected ::root-group-creator 
+  #(dosync (ref-set synth-group* (group :head ROOT-GROUP))))
 
 (declare boot)
 
 ; The base handler for receiving osc messages just forwards the message on
 ; as an event using the osc path as the event key.
-(on-sync-event ::osc-msg-received :osc-receiver
+(on-sync-event :osc-msg-received ::osc-receiver
                (fn [{{path :path args :args} :msg}]
                  (event path :path path :args args)))
-
-(defn snd
-  "Sends an OSC message."
-  [path & args]
-  (if (connected?)
-    (apply osc-send @server* path args)
-    (log/debug "### trying to snd while disconnected! ###"))
-  (log/debug "(snd " path args ")"))
 
 (defmacro at
   "All messages sent within the body will be sent in the same timestamped OSC
@@ -133,6 +116,17 @@
   accidentally scheduling packets into a bundle started on another thread."
   [time-ms & body]
   `(in-osc-bundle @server* ~time-ms (do ~@body)))
+
+(defn connected? []
+  (= :connected @status*))
+
+(defn snd
+  "Sends an OSC message."
+  [path & args]
+  (log/debug "(snd " path args ")")
+  (if (connected?)
+    (apply osc-send @server* path args)
+    (log/debug "### trying to snd while disconnected! ###")))
 
 (defn debug
   "Control debug output from both the Overtone and the audio server."
@@ -147,26 +141,6 @@
       (osc-debug false)
       (snd "/dumpOSC" 0))))
 
-; Notifications from Server
-; These messages are sent as notification of some event to all clients who have registered via the /notify command .
-; All of these have the same arguments:
-;   int - node ID
-;   int - the node's parent group ID
-;   int - previous node ID, -1 if no previous node.
-;   int - next node ID, -1 if no next node.
-;   int - 1 if the node is a group, 0 if it is a synth
-;
-; The following two arguments are only sent if the node is a group:
-;   int - the ID of the head node, -1 if there is no head node.
-;   int - the ID of the tail node, -1 if there is no tail node.
-;
-;   /n_go   - a node was created
-;   /n_end  - a node was destroyed
-;   /n_on   - a node was turned on
-;   /n_off  - a node was turned off
-;   /n_move - a node was moved
-;   /n_info - in reply to /n_query
-;
 ; Trigger Notifications
 ;
 ; This command is the mechanism that synths can use to trigger events in
@@ -179,13 +153,19 @@
 ;   int - node ID
 ;   int - trigger ID
 ;   float - trigger value
+(defonce trigger-handlers* {})
 
-(defn notify
-  "Turn on notification messages from the audio server.  This lets us free
-  synth IDs when they are automatically freed with envelope triggers.  It also lets
-  us receive custom messages from various trigger ugens."
-  [notify?]
-  (snd "/notify" (if (false? notify?) 0 1)))
+(defn on-trigger [node-id trig-id f]
+  (dosync (alter trigger-handlers* assoc [node-id trig-id] f)))
+
+(defn remove-trigger [node-id trig-id]
+  (dosync (alter trigger-handlers* dissoc [node-id trig-id])))
+
+(on-event "/tr" ::trig-handler
+  (fn [msg] 
+    (let [[node-id trig-id value] (:args msg)
+          handler (get @trigger-handlers* [node-id trig-id])]
+      (handler node-id trig-id value))))
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
@@ -199,58 +179,10 @@
   (log/debug (format "node-created: %d" id)))
 
 ; Setup the feedback handlers with the audio server.
-(on-event "/n_end" :node-destroyer #(node-destroyed (first (:args %))))
-(on-event "/n_go" :node-creator #(node-created (first (:args %))))
-
-(def N-RETRIES 20)
+(on-event "/n_end" ::node-destroyer #(node-destroyed (first (:args %))))
+(on-event "/n_go" ::node-creator #(node-created (first (:args %))))
 
 (declare reset)
-
-(defn- connect-internal
-  []
-  (log/debug "Connecting to internal SuperCollider server")
-  (let [send-fn (fn [peer-obj buffer]
-                  (.send @sc-world* buffer))
-        peer (assoc (osc-peer) :send-fn send-fn)]
-    (.addMessageReceivedListener @sc-world*
-                                 (proxy [MessageReceivedListener] []
-                                   (messageReceived [buf size]
-                                                    (event ::osc-msg-received
-                                                           :msg (osc-decode-packet buf)))))
-    (dosync (ref-set server* peer))
-    (snd "/status")
-    (dosync (ref-set status* :connected))
-    (notify true) ; turn on notifications now that we can communicate
-    (reset)
-    (event :connected)))
-
-(defn- connect-external
-  [host port]
-  (log/debug "Connecting to external SuperCollider server: " host ":" port)
-  (let [sc-server (osc-client host port)]
-    (osc-listen sc-server #(event ::osc-msg-received :msg %))
-    (dosync
-      (ref-set server* sc-server)
-      (ref-set status* :connecting))
-
-    ; Runs once when we receive the first status.reply message
-    (on-event "status.reply" :connected-handler
-        #(do
-           (dosync (ref-set status* :connected))
-           (notify true) ; turn on notifications now that we can communicate
-           (reset)
-           (event :connected)
-           :done))
-
-    ; Send /status in a loop until we get a reply
-    (loop [cnt 0]
-      (log/debug "connect loop...")
-      (when (and (< cnt N-RETRIES)
-                 (= @status* :connecting))
-        (log/debug "sending status...")
-        (snd "/status")
-        (Thread/sleep 100)
-        (recur (inc cnt))))))
 
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
@@ -258,13 +190,13 @@
   [& [host port]]
    (if (and host port)
      (.run (Thread. #(connect-external host port)))
-     (connect-internal))
+     (connect-internal)))
 
-  )
-
-(defonce running?* (atom false))
-
-(def server-log* (ref []))
+(on-event :connect ::connect-handler
+  (fn [event]
+    (if (and (contains? event :host) (contains? event :port))
+      (connect (:host event) (:port event))
+      (connect))))
 
 (defn server-log
   "Print the server log."
@@ -325,7 +257,7 @@
   []
   (if (= :connected @status*)
     (let [p (promise)]
-      (on-event "/status.reply" :status-check
+      (on-event "/status.reply" ::status-check
                 #(do
                    (deliver p (parse-status (:args %)))
                    :done))
@@ -345,103 +277,6 @@
         reply (await-promise! reply-p (if timeout timeout REPLY-TIMEOUT))
         reply-id (first (:args reply))]
     (= sync-id reply-id)))
-
-(defn connect-jack-ports
-  "Connect the jack input and output ports as best we can.  If jack ports are always different
-  names with different drivers or hardware then we need to find a better strategy to auto-connect."
-  ([] (connect-jack-ports 2))
-  ([n-channels]
-  (let [port-list (sh "jack_lsp")
-        sc-ins         (re-seq #"SuperCollider.*:in_[0-9]*" port-list)
-        sc-outs        (re-seq #"SuperCollider.*:out_[0-9]*" port-list)
-        system-ins     (re-seq #"system:capture_[0-9]*" port-list)
-        system-outs    (re-seq #"system:playback_[0-9]*" port-list)
-        interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
-        interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
-        connections (partition 2 (concat
-                                   (interleave sc-outs system-outs)
-                                   (interleave sc-outs interface-outs)
-                                   (interleave system-ins sc-ins)
-                                   (interleave interface-ins sc-ins)))]
-    (doseq [[src dest] connections]
-      (sh "jack_connect" src dest)
-      (log/info "jack_connect " src dest)))))
-
-(def SC-PATHS {:linux "scsynth"
-               :windows "C:/Program Files/SuperCollider/scsynth.exe"
-               :mac  "/Applications/SuperCollider/scsynth" })
-
-(def SC-ARGS  {:linux []
-               :windows []
-               :mac   ["-U" "/Applications/SuperCollider/plugins"] })
-
-(if (= :linux (@config* :os))
-  (on-event :connected :jack-connector
-            #(connect-jack-ports)))
-
-(defonce scsynth-server* (ref nil))
-
-(defn internal-booter [port]
-  (reset! running?* true)
-  (log/info "booting internal audio server listening on port: " port)
-  (let [server (ScSynth.)]
-    (.addScSynthStartedListener server (proxy [ScSynthStartedListener] []
-                                         (started [] (event :booted))))
-    (dosync (ref-set sc-world* server))
-    (.run server)))
-
-(defn boot-internal
-  ([] (boot-internal (+ (rand-int 50000) 2000)))
-  ([port]
-   (log/info "boot-internal: " port)
-   (if (not @running?*)
-     (let [sc-thread (Thread. #(internal-booter port))]
-       (.setDaemon sc-thread true)
-       (log/debug "Booting SuperCollider internal server (scsynth)...")
-       (.start sc-thread)
-       (dosync (ref-set server-thread* sc-thread))
-       (on-event :booted :on-boot-connector connect)
-       :booting))))
-
-(defn- sc-log
-  "Pull audio server log data from a pipe and store for later printing."
-  [stream read-buf]
-  (while (pos? (.available stream))
-    (let [n (min (count read-buf) (.available stream))
-          _ (.read stream read-buf 0 n)
-          msg (String. read-buf 0 n)]
-      (dosync (alter server-log* conj msg))
-      (log/info (String. read-buf 0 n)))))
-
-(defn- external-booter
-  "Boot thread to start the external audio server process and hook up to
-  STDOUT for log messages."
-  [cmd]
-  (reset! running?* true)
-  (log/debug "booting external audio server...")
-  (let [proc (.exec (Runtime/getRuntime) cmd)
-        in-stream (BufferedInputStream. (.getInputStream proc))
-        err-stream (BufferedInputStream. (.getErrorStream proc))
-        read-buf (make-array Byte/TYPE 256)]
-    (while @running?*
-      (sc-log in-stream read-buf)
-      (sc-log err-stream read-buf)
-      (Thread/sleep 250))
-    (.destroy proc)))
-
-(defn boot-external
-  "Boot the audio server in an external process and tell it to listen on a
-  specific port."
-  ([port]
-   (if (not @running?*)
-     (let [cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
-           sc-thread (Thread. #(external-booter cmd))]
-       (.setDaemon sc-thread true)
-       (log/debug "Booting SuperCollider server (scsynth)...")
-       (.start sc-thread)
-       (dosync (ref-set server-thread* sc-thread))
-       (connect "127.0.0.1" port)
-       :booting))))
 
 (defn boot
   "Boot either the internal or external audio server."
@@ -564,9 +399,7 @@
   "Free the specified group."
   [& group-ids]
   {:pre [(connected?)]}
-  (apply node-free group-ids)
-  )
-
+  (apply node-free group-ids))
 
 (defn post-tree
   "Posts a representation of this group's node subtree, i.e. all the groups and
@@ -576,74 +409,9 @@
   {:pre [(connected?)]}
   (snd "/g_dumpTree" id with-args?))
 
-;/g_queryTree				get a representation of this group's node subtree.
-;	[
-;		int - group ID
-;		int - flag: if not 0 the current control (arg) values for synths will be included
-;	] * N
-;
-; Request a representation of this group's node subtree, i.e. all the groups and
-; synths contained within it. Replies to the sender with a /g_queryTree.reply
-; message listing all of the nodes contained within the group in the following
-; format:
-;
-;	int - flag: if synth control values are included 1, else 0
-;	int - node ID of the requested group
-;	int - number of child nodes contained within the requested group
-;	then for each node in the subtree:
-;	[
-;		int - node ID
-;		int - number of child nodes contained within this node. If -1this is a synth, if >=0 it's a group
-;		then, if this node is a synth:
-;		symbol - the SynthDef name for this node.
-;		then, if flag (see above) is true:
-;		int - numControls for this synth (M)
-;		[
-;			symbol or int: control name or index
-;			float or symbol: value or control bus mapping symbol (e.g. 'c1')
-;		] * M
-;	] * the number of nodes in the subtree
-
-(def *data* nil)
-
-(defn- parse-synth-tree
-  [id ctls?]
-  (let [sname (first *data*)]
-    (if ctls?
-      (let [n-ctls (second *data*)
-            [ctl-data new-data] (split-at (* 2 n-ctls) (nnext *data*))
-            ctls (apply hash-map ctl-data)]
-        (set! *data* new-data)
-        {:synth sname
-         :id id
-         :controls ctls})
-      (do
-        (set! *data* (next *data*))
-        {:synth sname
-         :id id}))))
-
-(defn- parse-node-tree-helper [ctls?]
-  (let [[id n-children & new-data] *data*]
-    (set! *data* new-data)
-    (cond
-      (neg? n-children) (parse-synth-tree id ctls?) ; synth
-      (= 0 n-children) {:group id :children nil}
-      (pos? n-children)
-      {:group id
-       :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
-
-(defn- parse-node-tree [data]
-  (let [ctls? (= 1 (first data))]
-    (binding [*data* (next data)]
-      (parse-node-tree-helper ctls?))))
-
-; N.B. The order of nodes corresponds to their execution order on the server.
-; Thus child nodes (those contained within a group) are listed immediately
-; following their parent. See the method Server:queryAllNodes for an example of
-; how to process this reply.
 (defn node-tree
-  "Returns a data structure representing the current arrangement of groups and synthesizer
-  instances residing on the audio server."
+  "Returns a data structure representing the current arrangement of groups and
+  synthesizer instances residing on the audio server."
   ([] (node-tree 0))
   ([id & [ctls?]]
    (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
@@ -683,7 +451,7 @@
   for an example of usage.
   "
   [path handler]
-  (on-event "/done" :done-handler
+  (on-event "/done" (uuid)
             #(if (= path (first (:args %)))
                (do
                  (handler)
@@ -812,7 +580,7 @@
   (doseq [[sname sdef] @loaded-synthdefs*]
     (snd "/d_recv" (synthdef-bytes sdef))))
 
-(on-event :connected :synthdef-loader load-all-synthdefs)
+(on-event :connected ::synthdef-loader load-all-synthdefs)
 
 (defn load-synth-file
   "Load a synth definition file onto the audio server."
@@ -823,12 +591,14 @@
 ;  * Think about a sane policy for setting up state, especially when we are connected
 ; with many peers on one or more servers...
 (defn reset
-  "Clear all synthesizers, groups and pending messages from the audio server
-  and then recreates the active synth groups."
+  "Clear all live synthesizers and instruments, and remove any scheduled triggers or control messages."
   []
-  (clear-msg-queue)
-  (group-clear @synth-group*) ; clear the synth group
   (event :reset))
+
+(on-sync-event :reset :reset-base 
+  (fn []
+    (clear-msg-queue)
+    (group-clear @synth-group*))) ; clear the synth group
 
 (defn restart
   "Reset everything and restart the SuperCollider process."
