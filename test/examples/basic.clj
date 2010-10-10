@@ -8,7 +8,10 @@
 (definst overpad [out-bus 0 note 60 amp 0.4 rel 0.3]
   (let [freq (midicps note)
         env (env-gen (perc 0.01 rel) 1 1 0 1 :free)
-        sig (apply + (sin-osc (/ freq 2)) (lpf (saw [freq (* freq 1.01)]) freq))
+        bfreq (/ freq 2)
+        sig (apply + 
+                   (concat (* 0.4 (sin-osc [bfreq (* 0.99 bfreq)]))
+                           (lpf (saw [freq (* freq 1.01)]) freq)))
         audio (* amp env sig)]
     (out out-bus audio)))
 

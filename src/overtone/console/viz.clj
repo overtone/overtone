@@ -7,12 +7,12 @@
   "Replaces a string 'Group <N>' where N is the group number of an instrument
   with the instrument name, otherwise just returns the txt unchanged."
   [txt]
-  (if-let [ins (first (filter #(= txt (str "Group " (:group %))) 
+  (if-let [ins (first (filter #(= txt (str "Group " (:group %)))
                               (vals @instruments*)))]
     (:name ins)
     txt))
 
-(defn- group-alias 
+(defn- group-alias
   "Replace generic node-tree labels with nicer aliases."
   [txt]
   (if (string? txt)
@@ -28,8 +28,8 @@
   [node]
   (cond
    (contains? node :group)     (group-alias (str "Group " (node :group)))
-   (contains? node :synth)     (str (node :id))
-   (contains? node :synth-set) (apply str (interpose ", " (node :ids)))
+   (contains? node :synth)     (str "ids: " (node :id))
+   (contains? node :synth-set) (apply str "ids: " (interpose ", " (node :ids)))
    (true) (throw (Exception. "Please implement a vijual node renderer for this node type"))))
 
 (defn- vijual-synths
