@@ -4,7 +4,7 @@
 *.scsyndef
 session
 checkouts
-autodoc/**
+autodoc
 lib
 ext
 web

@@ -1,3 +1,8 @@
+* Implement support for multiple output ugens
+ - for example, the (in bus n-chans) ugen for reading from a bus should have the number
+   of outputs as the number of channels you set.
+
+
 ## Studio
 
 * route all synths and samplers to a main mixer bus, providing panning, EQ, and

@@ -1,8 +1,8 @@
 (ns overtone.doc
-  (:require overtone.core.ugen))
+  (:require overtone.sc.ugen))
 
 ; TODO: Write a couple functions that we can use to generate nice
-; UGEN documentation text files (or maybe markdown, html...?) sorted by 
+; UGEN documentation text files (or maybe markdown, html...?) sorted by
 ; name, category, rate, etc.
 
 (defn write-ugen-doc [path]

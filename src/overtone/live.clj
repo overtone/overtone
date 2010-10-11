@@ -1,31 +1,30 @@
 (ns overtone.live
-  (:use overtone.util)
+  (:use overtone.ns)
   (:require clojure.stacktrace
             midi osc byte-spec
-            (overtone.core config time-utils log sc 
-                           ugen synth synthdef envelope sample)
+            (overtone config time-utils log)
+            (overtone.sc core ugen synth synthdef envelope sample)
             (overtone.music rhythm pitch tuning)
-            overtone.studio
-            (overtone.studio fx)
+            (overtone.studio core fx)
             (overtone.console viz)))
 
 (immigrate
   'clojure.stacktrace
   'osc
   'midi
-  'overtone.core.time-utils
-  'overtone.core.util
-  'overtone.core.event
-  'overtone.core.sc
-  'overtone.core.ugen
-  'overtone.core.synth
-  'overtone.core.sample
-  'overtone.core.synthdef
-  'overtone.core.envelope
+  'overtone.time-utils
+  'overtone.util
+  'overtone.event
+  'overtone.sc.core
+  'overtone.sc.ugen
+  'overtone.sc.synth
+  'overtone.sc.sample
+  'overtone.sc.synthdef
+  'overtone.sc.envelope
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning
-  'overtone.studio
+  'overtone.studio.core
   'overtone.studio.fx
   'overtone.console.viz
   )

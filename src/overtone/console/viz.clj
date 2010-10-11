@@ -1,7 +1,7 @@
 (ns overtone.console.viz
   (:use vijual
-        [overtone.core sc]
-        overtone.studio))
+        [overtone.sc core]
+        [overtone.studio core]))
 
 (defn- check-inst-group
   "Replaces a string 'Group <N>' where N is the group number of an instrument

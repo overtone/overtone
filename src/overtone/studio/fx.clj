@@ -2,7 +2,9 @@
   ^{:doc "Audio effects library"
      :author "Jeff Rose"}
   overtone.studio.fx
-  (:use (overtone.core synth ugen event)))
+  (:use 
+    [overtone event]
+    [overtone.sc synth ugen]))
 
 (defsynth fx-noise-gate [in-bus 10 out-bus 0 threshold 0.4
                          slope-below 1 slope-above 0.1

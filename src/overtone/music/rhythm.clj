@@ -2,8 +2,11 @@
   ^{:doc "Functions to help work with musical time."
      :author "Jeff Rose"}
   overtone.music.rhythm
-  (:import (java.util Timer TimerTask))
-  (:use (overtone.core sc time-utils)))
+  (:import 
+    [java.util Timer TimerTask])
+  (:use 
+    [overtone.sc core]
+    [overtone time-utils]))
 
 ; Rhythm
 

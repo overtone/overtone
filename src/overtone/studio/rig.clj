@@ -2,8 +2,9 @@
   ^{:doc "Higher level instrument and studio abstractions."
      :author "Jeff Rose"}
   overtone.studio.rig
-  (:use (overtone.core sc synth)
-     (overtone.music rhythm pitch))
+  (:use 
+    [overtone.sc core synth]
+    [overtone.music rhythm pitch])
   (:require overtone.studio.fx))
 
 ; The goal is to develop a standard "studio configuration" with
