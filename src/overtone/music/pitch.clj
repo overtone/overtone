@@ -3,7 +3,8 @@
           This is the place for functions representing general musical knowledge, like scales, chords,
           intervals, etc."
      :author "Jeff Rose"}
-  overtone.music.pitch)
+  overtone.music.pitch
+  (:require [clojure.contrib.math :as math]))
 
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
 ;; possible 7 note scales, the major scale has the highest number of consonant
@@ -220,6 +221,12 @@
 (defn chosen-from [notes]
   (let [num-notes (count notes)]
     (repeatedly #(get notes (rand-int num-notes)))))
+
+(defn nth-octave
+  "Returns the freq n octaves from the supplied reference freq
+   i.e. (nth-ocatve 440 1) will return 880 which is the freq of the next octave from 440."
+  [freq n]
+  (* freq (math/expt 2 n)))
 
 ;; TODO:
 ;; * weighted random
