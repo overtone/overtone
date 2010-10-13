@@ -106,6 +106,27 @@
               :major-pentatonic (only major [1 2 3 5 6])
               :minor-pentatonic (only minor [1 3 4 5 7])}))
 
+(def DIOTONIC-MODES
+  ;; offset-order: ionian, dorian, phrygian, lydian, mixolydian, aeolian, lochrian
+  (let [ionian-sequence [2 2 1 2 2 2 1]
+        ionian-offset     0
+        dorian-offset     1
+        phrygian-offset   2
+        lydian-offset     3
+        mixolydian-offset 4
+        aeolian-offset    5
+        lochrian-offset   6
+        rotate-ionian (fn [offset] (drop offset (take (+ 7 offset) (cycle ionian-sequence))))]
+    {:ionian     (rotate-ionian ionian-offset)
+     :major      (rotate-ionian ionian-offset)
+     :dorian     (rotate-ionian dorian-offset)
+     :phrygian   (rotate-ionian phrygian-offset)
+     :lydian     (rotate-ionian lydian-offset)
+     :mixolydian (rotate-ionian mixolydian-offset)
+     :aeolian    (rotate-ionian aeolian-offset)
+     :minor      (rotate-ionian aeolian-offset)
+     :lochrian   (rotate-ionian lochrian-offset)}))
+
 ; Various scale intervals in terms of steps on a piano, or midi note numbers
 (def SCALES
   {:pentatonic        [2 2 3 2]
