@@ -108,25 +108,27 @@
 
 (def DIOTONIC-MODES
   (let [ionian-sequence [2 2 1 2 2 2 1]
-        offset-order [:ionian :dorian :phrygian :lydian :mixolydian :aeolian :lochrian]
-        offsets (into {} (map-indexed (fn [i el] [el i]) offset-order))
         ionian-len (count ionian-sequence)
         rotate-ionian (fn [offset] (drop offset (take (+ ionian-len offset) (cycle ionian-sequence))))]
-    {:ionian     (rotate-ionian (:ionian offsets))
-     :major      (rotate-ionian (:ionian offsets))
-     :dorian     (rotate-ionian (:dorian offsets))
-     :phrygian   (rotate-ionian (:phrygian offsets))
-     :lydian     (rotate-ionian (:lydian offsets))
-     :mixolydian (rotate-ionian (:mixolydian offsets))
-     :aeolian    (rotate-ionian (:aeolian offsets))
-     :minor      (rotate-ionian (:aeolian offsets))
-     :lochrian   (rotate-ionian (:lochrian offsets))}))
+    {:ionian     (rotate-ionian 0)
+     :major      (rotate-ionian 0)
+     :dorian     (rotate-ionian 1)
+     :phrygian   (rotate-ionian 2)
+     :lydian     (rotate-ionian 3)
+     :mixolydian (rotate-ionian 4)
+     :aeolian    (rotate-ionian 5)
+     :minor      (rotate-ionian 5)
+     :lochrian   (rotate-ionian 6)}))
 
-; Various scale intervals in terms of steps on a piano, or midi note numbers
+;; Various scale intervals in terms of steps on a piano, or midi note numbers
+;; All sequences should add up to 12 - the number of semitones in an octave
 (def SCALES
-  {:pentatonic        [2 2 3 2]
-   :wholetone         [2 2 2 2 2]
-   :chromatic         [1 1 1 1 1 1 1 1 1 1 1]
+  {:diatonic          [2 2 1 2 2 2 1]
+   :pentatonic        [2 3 2 2 3]
+   :whole-tone        [2 2 2 2 2 2]
+   :chromatic         [1 1 1 1 1 1 1 1 1 1 1 1]
+   :harmonic-minor    [2 1 2 2 1 3 1]
+
    :octatonic         [2 1 2 1 2 1 2]
    :messiaen1         [2 2 2 2 2]
    :messiaen2         [2 1 2 1 2 1 2]
@@ -135,14 +137,8 @@
    :messiaen5         [1 4 1 1 4]
    :messiaen6         [2 2 1 1 2 2 1]
    :messiaen7         [1 1 1 2 1 1 1 1 2]
-   :ionian            [2 2 1 2 2 2]
-   :dorian            [2 1 2 2 2 1]
-   :phrygian          [1 2 2 2 1 2]
-   :lydian            [2 2 2 1 2 2]
-   :lydian-mixolydian [2 1 2 1 2 1 2]
-   :mixolydian        [2 2 1 2 2 1]
-   :aeolian           [2 1 2 2 1 2]
-   :locrian           [1 2 2 1 2 2]})
+   :lydian-mixolydian [2 1 2 1 2 1 2]})
+
 ;; * Diatonic function
 ;;   - in terms of centeredness around the root, this is the order
 ;; of chord degrees: I, V, IV, vi, iii, ii, vii (The first 3 chords
