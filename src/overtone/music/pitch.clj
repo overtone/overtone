@@ -128,16 +128,16 @@
    :whole-tone        [2 2 2 2 2 2]
    :chromatic         [1 1 1 1 1 1 1 1 1 1 1 1]
    :harmonic-minor    [2 1 2 2 1 3 1]
-
-   :octatonic         [2 1 2 1 2 1 2]
-   :messiaen1         [2 2 2 2 2]
-   :messiaen2         [2 1 2 1 2 1 2]
-   :messiaen3         [2 1 1 2 1 1 2 1]
-   :messiaen4         [1 1 3 1 1 1 3]
-   :messiaen5         [1 4 1 1 4]
-   :messiaen6         [2 2 1 1 2 2 1]
-   :messiaen7         [1 1 1 2 1 1 1 1 2]
-   :lydian-mixolydian [2 1 2 1 2 1 2]})
+   :melodic-minor-asc [2 1 2 2 2 2 1]
+   :hungarian-minor   [2 1 3 1 1 3 1]
+   :octatonic         [2 1 2 1 2 1 2 1]
+   :messiaen1         [2 2 2 2 2 2]
+   :messiaen2         [1 2 1 2 1 2 1 2]
+   :messiaen3         [2 1 1 2 1 1 2 1 1]
+   :messiaen4         [1 1 3 1 1 1 3 1]
+   :messiaen5         [1 4 1 1 4 1]
+   :messiaen6         [2 2 1 1 2 2 1 1]
+   :messiaen7         [1 1 1 2 1 1 1 1 2 1]})
 
 ;; * Diatonic function
 ;;   - in terms of centeredness around the root, this is the order
