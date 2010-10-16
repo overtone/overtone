@@ -1,7 +1,6 @@
 (ns examples.fx
   (:use overtone.live))
 
-(refer-ugens)
 ; All of these are based off the compander ugen.  Of course you can just use it
 ; directly in your synths, but it's nice to be able to stick on
 
@@ -30,7 +29,11 @@
 
 (defsynth compressor-demo [in-bus 10]
   (let [source (in in-bus)]
-    (compander source source (mouse-y:kr 0.0 1) 1 0.5 0.01 0.01)))
+    (out 0 (pan2 (compander source source (mouse-y:kr 0.0 1) 1 0.5 0.01 0.01)))))
+
+(bizzle)
+(compressor-demo)
+(reset)
 
 (defsynth limiter-demo [in-bus 10]
   (let [source (in in-bus)]
@@ -52,7 +55,10 @@
 (kill p)
 
 (defsynth reverb-demo [in-bus 10]
-  (free-verb (in in-bus) 0.5 (mouse-y:kr 0.0 1) (mouse-x:kr 0.0 1)))
+  (out 0 (pan2 (free-verb (in in-bus) 0.5 (mouse-y:kr 0.0 1) (mouse-x:kr 0.0 1)))))
+;(pling)
+;(reverb-demo)
+(reset)
 
 (defsynth echo-demo [in-bus 10]
   (let [source (in in-bus)

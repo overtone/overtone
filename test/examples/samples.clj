@@ -1,8 +1,6 @@
 (ns examples.samples
   (:use overtone.live))
 
-(refer-ugens)
-
 ;;; Read me, and evaluate line by line as you go.  To evaluate a form highlight it with the mouse
 ;;; and type <control-e>, using the "e" for evaluate.  The repl window below will show the output
 ;;; of everything you evaluate.  This is helpful for documentation too.  All ugen functions

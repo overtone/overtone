@@ -15,6 +15,13 @@
         audio (* amp env sig)]
     (out out-bus audio)))
 
+(def metro (metronome 128))
+(def infinity [beat a b]
+  (at (metro)))
+
+
+;(overpad 0 60 0.5 5)
+
 (def BEAT 425) ; ms per beat
 (def TICK (- BEAT 100))
 
@@ -36,7 +43,7 @@
   (choose [62 63 63 65])
   (choose [65 67 68 70])])
 
-(def metro (metronome 80))
+(def metro (metronome 120))
 
 (defn play-chords [t]
   (let [tick (* 2 (choose [125 500 250 250 500 250 500 250]))]
@@ -44,7 +51,7 @@
             (overpad 0 note 0.3 (/ tick 1020))))
     (apply-at #'play-chords (+ t (- tick 50)) (+ t BEAT))))
 
-;(play-chords (now))
+(play-chords (now))
 
 (def kick (sample "/home/rosejn/studio/samples/kit/boom.wav"))
 ;(kick)
@@ -88,6 +95,9 @@
 ; be created, each using the successive values.
 (definst dial-tone [freq-a 350 freq-b 440]
   (apply + (* (sin-osc [freq-a freq-b]) 0.2)))
+
+;(dial-tone)
+;(reset)
 
 ; Takes an input signal coming in from a selectable bus, and plays it out
 ; through a series of filters..
@@ -150,7 +160,7 @@
 (defsynth dtmf [freq-a 770 freq-b 1633 gate 1]
   (let [sig (* 0.2 (+ (sin-osc freq-a) (sin-osc freq-b)))
         env (env-gen (asr 0.001 1 0.001) gate 1 0 1 :free)]
-    (* sig env)))
+    (out 0 (pan2 (* sig env)))))
 
 (defn dial-number [num-seq]
   (loop [t (now)
@@ -164,7 +174,7 @@
         (recur t-off (next nums))))))
 
 ; Try this:
-;  (dial-number [2 5 9 3 3 7 7])
+;(dial-number [0 6 2 1 2 2 4 2 9 8])
 
 ; The done ugen can act as a flag for the completion of envelopes and other ugens that
 ; have a done action.  Listen to the noise come on after the 2 second sine wave.
