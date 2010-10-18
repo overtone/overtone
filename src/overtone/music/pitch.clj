@@ -120,6 +120,14 @@
      :minor      (rotate-ionian 5)
      :lochrian   (rotate-ionian 6)}))
 
+(defn nth-diotonic
+  "Return the count of semitones for the nth interval from the start of the diatonic scale in the specifiec mode (or ionian/major by default).
+     i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
+          therefore the 4th interval is (+ 2 2 1 2) semitones from the start of the scale."
+  ([n] (nth-diotonic n :ionian))
+  ([n mode]
+     (reduce + (take n (cycle (mode DIOTONIC-MODES))))))
+
 ;; Various scale intervals in terms of steps on a piano, or midi note numbers
 ;; All sequences should add up to 12 - the number of semitones in an octave
 (def SCALES
@@ -239,6 +247,19 @@
    i.e. (nth-ocatve 440 1) will return 880 which is the freq of the next octave from 440."
   [freq n]
   (* freq (math/expt 2 n)))
+
+(defn nth-equal-tempered-freq
+  "Returns the frequency of a given scale interval using an equal-tempered tuning i.e. dividing all 12 semi-tones equally across an octave. This is currently the standard tuning."
+  [base-freq interval]
+  (* base-freq (math/expt 2 (/ interval 12))))
+
+(defn diotonic-freq
+  "Returns the frequence of the given interval using the specified mode and tuning (defaulting to ionian and equal-tempered respectively)."
+  ([base-freq n] (diotonic-freq base-freq n :ionian :equal-tempered))
+  ([base-freq n mode tuning]
+     (case tuning
+           :equal-tempered (nth-equal-tempered-freq base-freq (nth-diotonic n mode)))))
+
 
 ;; TODO:
 ;; * weighted random
