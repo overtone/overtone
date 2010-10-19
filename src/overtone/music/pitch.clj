@@ -3,7 +3,8 @@
           This is the place for functions representing general musical knowledge, like scales, chords,
           intervals, etc."
      :author "Jeff Rose"}
-  overtone.music.pitch)
+  overtone.music.pitch
+  (:require [clojure.contrib.math :as math]))
 
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
 ;; possible 7 note scales, the major scale has the highest number of consonant
@@ -105,27 +106,47 @@
               :major-pentatonic (only major [1 2 3 5 6])
               :minor-pentatonic (only minor [1 3 4 5 7])}))
 
-; Various scale intervals in terms of steps on a piano, or midi note numbers
+(def DIOTONIC-MODES
+  (let [ionian-sequence [2 2 1 2 2 2 1]
+        ionian-len (count ionian-sequence)
+        rotate-ionian (fn [offset] (drop offset (take (+ ionian-len offset) (cycle ionian-sequence))))]
+    {:ionian     (rotate-ionian 0)
+     :major      (rotate-ionian 0)
+     :dorian     (rotate-ionian 1)
+     :phrygian   (rotate-ionian 2)
+     :lydian     (rotate-ionian 3)
+     :mixolydian (rotate-ionian 4)
+     :aeolian    (rotate-ionian 5)
+     :minor      (rotate-ionian 5)
+     :lochrian   (rotate-ionian 6)}))
+
+(defn nth-diotonic
+  "Return the count of semitones for the nth interval from the start of the diatonic scale in the specifiec mode (or ionian/major by default).
+     i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
+          therefore the 4th interval is (+ 2 2 1 2) semitones from the start of the scale."
+  ([n] (nth-diotonic n :ionian))
+  ([n mode]
+     (reduce + (take n (cycle (mode DIOTONIC-MODES))))))
+
+;; Various scale intervals in terms of steps on a piano, or midi note numbers
+;; All sequences should add up to 12 - the number of semitones in an octave
 (def SCALES
-  {:pentatonic        [2 2 3 2]
-   :wholetone         [2 2 2 2 2]
-   :chromatic         [1 1 1 1 1 1 1 1 1 1 1]
-   :octatonic         [2 1 2 1 2 1 2]
-   :messiaen1         [2 2 2 2 2]
-   :messiaen2         [2 1 2 1 2 1 2]
-   :messiaen3         [2 1 1 2 1 1 2 1]
-   :messiaen4         [1 1 3 1 1 1 3]
-   :messiaen5         [1 4 1 1 4]
-   :messiaen6         [2 2 1 1 2 2 1]
-   :messiaen7         [1 1 1 2 1 1 1 1 2]
-   :ionian            [2 2 1 2 2 2]
-   :dorian            [2 1 2 2 2 1]
-   :phrygian          [1 2 2 2 1 2]
-   :lydian            [2 2 2 1 2 2]
-   :lydian-mixolydian [2 1 2 1 2 1 2]
-   :mixolydian        [2 2 1 2 2 1]
-   :aeolian           [2 1 2 2 1 2]
-   :locrian           [1 2 2 1 2 2]})
+  {:diatonic          [2 2 1 2 2 2 1]
+   :pentatonic        [2 3 2 2 3]
+   :whole-tone        [2 2 2 2 2 2]
+   :chromatic         [1 1 1 1 1 1 1 1 1 1 1 1]
+   :harmonic-minor    [2 1 2 2 1 3 1]
+   :melodic-minor-asc [2 1 2 2 2 2 1]
+   :hungarian-minor   [2 1 3 1 1 3 1]
+   :octatonic         [2 1 2 1 2 1 2 1]
+   :messiaen1         [2 2 2 2 2 2]
+   :messiaen2         [1 2 1 2 1 2 1 2]
+   :messiaen3         [2 1 1 2 1 1 2 1 1]
+   :messiaen4         [1 1 3 1 1 1 3 1]
+   :messiaen5         [1 4 1 1 4 1]
+   :messiaen6         [2 2 1 1 2 2 1 1]
+   :messiaen7         [1 1 1 2 1 1 1 1 2 1]})
+
 ;; * Diatonic function
 ;;   - in terms of centeredness around the root, this is the order
 ;; of chord degrees: I, V, IV, vi, iii, ii, vii (The first 3 chords
@@ -220,6 +241,25 @@
 (defn chosen-from [notes]
   (let [num-notes (count notes)]
     (repeatedly #(get notes (rand-int num-notes)))))
+
+(defn nth-octave
+  "Returns the freq n octaves from the supplied reference freq
+   i.e. (nth-ocatve 440 1) will return 880 which is the freq of the next octave from 440."
+  [freq n]
+  (* freq (math/expt 2 n)))
+
+(defn nth-equal-tempered-freq
+  "Returns the frequency of a given scale interval using an equal-tempered tuning i.e. dividing all 12 semi-tones equally across an octave. This is currently the standard tuning."
+  [base-freq interval]
+  (* base-freq (math/expt 2 (/ interval 12))))
+
+(defn diotonic-freq
+  "Returns the frequence of the given interval using the specified mode and tuning (defaulting to ionian and equal-tempered respectively)."
+  ([base-freq n] (diotonic-freq base-freq n :ionian :equal-tempered))
+  ([base-freq n mode tuning]
+     (case tuning
+           :equal-tempered (nth-equal-tempered-freq base-freq (nth-diotonic n mode)))))
+
 
 ;; TODO:
 ;; * weighted random
