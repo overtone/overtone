@@ -367,16 +367,14 @@
     (doseq [check (:check spec)]
       (check rate special args))))
 
-(defrecord ControlProxy [name value])
+(defrecord ControlProxy [name value rate])
 (derive ControlProxy ::ugen)
-(defn control-proxy? [obj] (= ControlProxy (type obj)))
 
 (defn control-proxy [n v]
-  (ControlProxy. n v))
+  (ControlProxy. n v (:kr RATES)))
 
 (defrecord UGen [id name rate special args n-outputs])
 (derive UGen ::ugen)
-(defn ugen? [obj] (= UGen (type obj)))
 
 (defn ugen [spec rate special args]
   ;(check-ugen-args spec rate special args)
@@ -389,6 +387,9 @@
              (or (:num-outs spec) 1))
         ug (if (contains? spec :init) ((:init spec) ug) ug)]
     ug))
+
+(defn control-proxy? [obj] (= ControlProxy (type obj)))
+(defn ugen? [obj] (isa? (type obj) ::ugen))
 
 (defn- ugen-base-fn [spec rate special]
   (fn [& args]

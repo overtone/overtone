@@ -254,7 +254,7 @@
   (* base-freq (math/expt 2 (/ interval 12))))
 
 (defn diotonic-freq
-  "Returns the frequence of the given interval using the specified mode and tuning (defaulting to ionian and equal-tempered respectively)."
+  "Returns the frequency of the given interval using the specified mode and tuning (defaulting to ionian and equal-tempered respectively)."
   ([base-freq n] (diotonic-freq base-freq n :ionian :equal-tempered))
   ([base-freq n mode tuning]
      (case tuning
@@ -264,6 +264,74 @@
 ;; TODO:
 ;; * weighted random
 ;; * arpeggiator(s)
+
+[:c 0.8 :g 0.2 :e 0.7]
+
+(defn- weighted-bins
+  "Creates N bins where N is the smallest power of two greater than the number
+  of elements to be chosen from.  Elements are placed into bins according to
+  how much weight they are assigned, and each bin contains either one key if it
+  fills the bin or a pair of keys split according to how much of each key sits
+  in that bin.
+
+  Look here for a vague description of this algorithm:
+  http://stackoverflow.com/questions/352670/weighted-random-selection-with-and-without-replacement
+  "
+  [pairs]
+  (let [pairs      (apply hash-map pairs)
+        sum        (float (apply + (vals pairs)))
+        normalized (map #(/ % sum) (vals pairs))
+        elems      (zipmap (keys pairs) normalized)
+        n-bins     (first (filter #(> % (count pairs)) (iterate #(* 2 %) 2)))
+        bin-size   (/ 1.0 n-bins)]
+    (loop [[cur-k cur-v]  (first elems)
+           elems (next elems)
+           space bin-size
+           bins []
+           cur-bin []
+           i 0]
+      (if (and cur-k
+               (< i 10))
+        (let [amount  (min space cur-v)
+              new-pair [cur-k amount]
+              space (- space amount)
+              new-bin (conj cur-bin new-pair)
+              new-bins (if (zero? space)
+                         (conj bins new-bin)
+                         bins)
+              new-bin (if (zero? space) [] new-bin)
+              new-space (if (zero? space) bin-size space)
+              new-v (- cur-v amount)
+              new-elem (if (zero? new-v) (first elems) [cur-k new-v])
+              new-elems (if (zero? new-v) (next elems) elems)]
+          ;(println cur-k cur-v new-space amount)
+          (recur new-elem new-elems new-space new-bins new-bin (inc i)))
+        bins))))
+
+(defn log2 [x]
+  (/ (Math/log x)
+     (Math/log 2)))
+
+(defn choose-weighted [& pairs]
+  (println "here...")
+  (let [bins (weighted-bins pairs)
+        shift (log2 (count bins))
+        ;index (bit-shift-left (rand) shift)  ; Damn!
+        index (first (drop shift (iterate #(* % 2) (rand))))
+        int-index (min (dec (count bins)) (max 0 (int index)))
+        leftover (- index int-index)
+        _ (println "n-bins: " (count bins) int-index)
+        bin (nth bins int-index)]
+    (if (= 2 (count bin))
+      (if (<= leftover (second (first bin)))
+        (ffirst bin)
+        (first (second bin)))
+      (ffirst bin))))
+
+; Hmmmm...  It doesn't seeem to be producing what we would expect:
+;(mapcat (fn [[k v]] [k (/ v 1000000.0)]) (frequencies (take 1000000
+;      (repeatedly #(choose-weighted :a 20 :b 50 :c 30)))))
+
 ;; * shufflers (randomize a sequence, or notes within a scale, etc.)
 ;; *
 ;;* Sequence generators

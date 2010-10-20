@@ -58,8 +58,9 @@
   "Returns ugen object with its input ports connected to constants and upstream
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
-  {:pre [(contains? ugen :args)
-         (every? #(or (ugen? %) (number? %) (control-proxy? %)) (:args ugen))]
+  {:pre [
+         ;(contains? ugen :args)
+         (every? #(or (ugen? %) (number? %)) (:args ugen))]
    :post [(contains? % :inputs)
           (every? (fn [in] (not (nil? in))) (:inputs %))]}
   ;(println "with-inputs: " ugen)
@@ -108,7 +109,8 @@
     (doall final)))
 
 (defn- collect-ugen-helper [ugen]
-  (let [children (filter #(ugen? %1) (:args ugen))
+  (let [children (filter #(and (ugen? %1) (not (control-proxy? %1)))
+                         (:args ugen))
         constants (filter #(number? %1) (:args ugen))]
 
     ; We want depth first (topological) ordering of ugens, so dig down to the
