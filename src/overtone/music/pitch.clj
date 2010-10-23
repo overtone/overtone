@@ -121,9 +121,20 @@
      :lochrian   (rotate-ionian 6)}))
 
 (defn nth-diatonic
-  "Return the count of semitones for the nth interval from the start of the diatonic scale in the specifiec mode (or ionian/major by default).
+  "Return the count of semitones for the nth degree from the start of the diatonic scale in the specifiec mode (or ionian/major by default).
      i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
-          therefore the 4th interval is (+ 2 2 1 2) semitones from the start of the scale."
+          therefore the 4th degree is (+ 2 2 1 2) semitones from the start of the scale.
+
+  You may be interested to know that each of the seven degrees of the diatonic scale has its own name:
+
+  1 (do)  tonic
+  2 (re)  supertonic
+  3 (mi)  mediant
+  4 (fa)  subdominant
+  5 (sol) dominant
+  6 (la)  submediant/superdominant
+  7 (ti)  subtonic"
+
   ([n] (nth-diatonic n :ionian))
   ([n mode]
      (reduce + (take n (cycle (mode DIATONIC-MODES))))))
