@@ -106,7 +106,7 @@
               :major-pentatonic (only major [1 2 3 5 6])
               :minor-pentatonic (only minor [1 3 4 5 7])}))
 
-(def DIOTONIC-MODES
+(def DIATONIC-MODES
   (let [ionian-sequence [2 2 1 2 2 2 1]
         ionian-len (count ionian-sequence)
         rotate-ionian (fn [offset] (drop offset (take (+ ionian-len offset) (cycle ionian-sequence))))]
@@ -120,13 +120,13 @@
      :minor      (rotate-ionian 5)
      :lochrian   (rotate-ionian 6)}))
 
-(defn nth-diotonic
+(defn nth-diatonic
   "Return the count of semitones for the nth interval from the start of the diatonic scale in the specifiec mode (or ionian/major by default).
      i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
           therefore the 4th interval is (+ 2 2 1 2) semitones from the start of the scale."
-  ([n] (nth-diotonic n :ionian))
+  ([n] (nth-diatonic n :ionian))
   ([n mode]
-     (reduce + (take n (cycle (mode DIOTONIC-MODES))))))
+     (reduce + (take n (cycle (mode DIATONIC-MODES))))))
 
 ;; Various scale intervals in terms of steps on a piano, or midi note numbers
 ;; All sequences should add up to 12 - the number of semitones in an octave
