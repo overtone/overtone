@@ -88,8 +88,8 @@
   (try
     (apply handler (take (arg-count handler) args))
     (catch Exception e
-      (log/debug "Handler Exception - got args:" args"\n" (with-out-str
-                   (print-cause-trace e))))))
+      (log/debug "Handler Exception - got args:" args"\n" 
+                 (with-out-str (.printStackTrace e))))))
 
 (defn map-vals [f m]
   (zipmap (keys m)
