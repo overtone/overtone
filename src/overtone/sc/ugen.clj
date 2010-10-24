@@ -154,20 +154,20 @@
     (assoc ugen :args mapped-args)))
 
 (defn- append-seq-args
-  "Apply whatever mode specific functions need to be performed on the argument
-  list."
+  "Handles argument modes :append-sequence and :append-sequence-set-num-outs, where some ugens take a seq for one argument which needs to be appended to the end of the argument list when sent to SC."
   [spec ugen]
-  (let [args (:args ugen)
-        args-specs (args-with-specs args spec :mode)
-        [args to-append] (reduce (fn [[args to-append] [arg mode]]
-                                   (case mode
-                                         :append-sequence (if (and (coll? arg) (not (map? arg)))
-                                                            [args (concat to-append arg)]
-                                                            [args (conj to-append arg)])
-                                     [(conj args arg) to-append]))
-                                 [[] []]
-                                 args-specs)]
-    (assoc ugen :args (concat args to-append))))
+  (let [args-specs     (args-with-specs (:args ugen) spec :mode)
+        pred          #(or (= :append-sequence (second %))
+                           (= :append-sequence-set-num-outs (second %)))
+        normal-args    (map first (remove pred args-specs))
+        to-append      (filter pred args-specs)
+        to-append-args (map first to-append)
+        args           (flatten (conj normal-args to-append-args))
+        ugen           (assoc ugen :args args)]
+    (if-let [n-outs-arg (first (filter #(= :append-sequence-set-num-outs (second %))
+                                       to-append))]
+      (assoc ugen :n-outputs (count (first n-outs-arg)))
+      ugen)))
 
 (defn add-default-args [spec ugen]
   (let [args (:args ugen)
@@ -334,23 +334,23 @@
   [expand-flags args]
   (if (zero? (count args))
     [[]]
-    (let [gc-seqs (fn [[gcount seqs] arg]
+    (let [gc-seqs (fn [[gcount seqs flags] arg]
                     (cond
                       ; Infinite seqs can be used to generate values for expansion
                       (inf? arg) [gcount
                                   (conj seqs arg)
-                                  (next expand-flags)]
+                                  (next flags)]
 
                       ; Regular, non-infinite and non-map collections get expanded
                       (and (expandable? arg)
-                           (first expand-flags)) [(max gcount (count arg))
-                                                  (conj seqs (cycle-vals arg))
-                                                  (next expand-flags)]
+                           (first flags)) [(max gcount (count arg))
+                                           (conj seqs (cycle-vals arg))
+                                           (next flags)]
 
                       :else ; Basic values get used for all expansions
                       [gcount
                        (conj seqs (repeat arg))
-                       (next expand-flags)]))
+                       (next flags)]))
           [greatest-count seqs] (reduce gc-seqs [1 [] expand-flags] args)]
       (take greatest-count (apply parallel-seqs seqs)))))
 
