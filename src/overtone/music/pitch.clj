@@ -264,12 +264,12 @@
   [base-freq interval]
   (* base-freq (math/expt 2 (/ interval 12))))
 
-(defn diotonic-freq
+(defn diatonic-freq
   "Returns the frequency of the given interval using the specified mode and tuning (defaulting to ionian and equal-tempered respectively)."
-  ([base-freq n] (diotonic-freq base-freq n :ionian :equal-tempered))
+  ([base-freq n] (diatonic-freq base-freq n :ionian :equal-tempered))
   ([base-freq n mode tuning]
      (case tuning
-           :equal-tempered (nth-equal-tempered-freq base-freq (nth-diotonic n mode)))))
+           :equal-tempered (nth-equal-tempered-freq base-freq (nth-diatonic n mode)))))
 
 
 ;; TODO:
