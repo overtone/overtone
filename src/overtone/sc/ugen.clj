@@ -8,8 +8,7 @@
     [overtone util]
     [overtone.sc.ugen special-ops common categories]
     [clojure.contrib.types :only (deftype)]
-    [clojure.contrib.generic :only (root-type)]
-    [clojure.contrib.seq-utils :only (indexed)]) ; TODO use keep-indexed or map-indexed
+    [clojure.contrib.generic :only (root-type)])
   (:require
     overtone.sc.core
     [clojure.set :as set]
@@ -162,12 +161,12 @@
         normal-args    (map first (remove pred args-specs))
         to-append      (filter pred args-specs)
         to-append-args (map first to-append)
-        args           (flatten (conj normal-args to-append-args))
+        args           (flatten (concat normal-args to-append-args))
         ugen           (assoc ugen :args args)]
     (if-let [n-outs-arg (first (filter #(= :append-sequence-set-num-outs (second %))
                                        to-append))]
-      (assoc ugen :n-outputs (count (first n-outs-arg)))
-      ugen)))
+        (assoc ugen :n-outputs (count (flatten [(first n-outs-arg)])))
+        ugen)))
 
 (defn add-default-args [spec ugen]
   (let [args (:args ugen)
@@ -191,8 +190,6 @@
 (defn- with-floated-args [spec ugen]
   (assoc ugen :args (floatify (:args ugen))))
 
-; TODO: Refactor these init functions so everything just takes a ugen and a spec
-   ; and outputs an updated ugen...  Should have done it like this initially...
 (defn- with-init-fn
   "Creates the final argument initialization function which is applied to arguments
   at runtime to do things like re-ordering and automatic filling in of arguments.
@@ -251,8 +248,6 @@
         derived (derive-ugen-specs specs)]
     (map decorate-ugen-spec derived)))
 
-; TODO: currently not including pseudo because it causes problems and I
-; don't know what they are...
 (def UGEN-NAMESPACES
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
@@ -282,7 +277,7 @@
     (println (apply str (interpose " -> " cat)))))
 
 (def UGEN-RATE-SORT-FN
-  (apply hash-map (flatten (map reverse (indexed UGEN-RATE-PRECEDENCE)))))
+  (zipmap UGEN-RATE-PRECEDENCE (range (count UGEN-RATE-PRECEDENCE)))
 
 (defn- print-ugen-rates [rates]
   (let [rates (sort-by UGEN-RATE-SORT-FN rates)]
@@ -437,11 +432,6 @@
 
 (defn control? [obj]
   (isa? (type obj) ::control))
-
-;; TODO:
-;; * Need to write a function that takes a ugen-spec, and generates a set
-;; of ugen functions for that spec.  Each of these functions will automatically
-;; set the rate for the ugen.
 
 (defn- ugen-docs
   "Create a string representing the documentation for the given ugen-spec."
