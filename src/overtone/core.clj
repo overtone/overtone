@@ -1,4 +1,4 @@
-(ns overtone.live
+(ns overtone.core
   (:use overtone.ns)
   (:require clojure.stacktrace
             midi osc byte-spec
@@ -26,7 +26,4 @@
   'overtone.music.tuning
   'overtone.studio.core
   'overtone.studio.fx
-  'overtone.console.viz
   )
-
-(defonce _auto-boot_ (boot))

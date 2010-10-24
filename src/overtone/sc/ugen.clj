@@ -215,7 +215,7 @@
                    mod-args (assoc ugen :args (append-fn (:args ugen)))]
                mod-args)))))
 
-(defn- enrich-ugen-spec
+(defn- decorate-ugen-spec
   "Interpret a ugen-spec and add in additional, computed meta-data."
   [spec]
   (-> spec
@@ -246,7 +246,7 @@
   argument initialization functions, and channel expansion flags."
   (let [specs (specs-from-namespaces namespaces)
         derived (derive-ugen-specs specs)]
-    (map enrich-ugen-spec derived)))
+    (map decorate-ugen-spec derived)))
 
 ; TODO: currently not including pseudo because it causes problems and I
 ; don't know what they are...
@@ -376,6 +376,9 @@
 (defrecord UGen [id name rate special args n-outputs])
 (derive UGen ::ugen)
 
+(def *ugens* nil)
+(def *constants* nil)
+
 (defn ugen [spec rate special args]
   ;(check-ugen-args spec rate special args)
   (let [ug (UGen.
@@ -386,7 +389,11 @@
              args
              (or (:num-outs spec) 1))
         ug (if (contains? spec :init) ((:init spec) ug) ug)]
-    ug))
+    (when (and *ugens* *constants*)
+      (set! *ugens* (conj *ugens* ug))
+      (doseq [const (filter number? (:args ug))]
+        (set! *constants* (conj *constants* const))))
+      ug))
 
 (defn control-proxy? [obj] (= ControlProxy (type obj)))
 (defn ugen? [obj] (isa? (type obj) ::ugen))

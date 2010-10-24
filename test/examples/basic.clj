@@ -14,44 +14,6 @@
 
 (reset)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ; Some of the examples gathered here were found on this page:
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
 ; which come originally from the book Designing Sound by Andy Farnell.
@@ -206,7 +168,6 @@
         product (* a b)]
     (send-trig:kr v1 201 sum)
     (send-trig:kr v2 201 product)))
-
 
 ; You can read audio data in from your sound card using the regular (in <bus-num>) ugen,
 ; but you need to know where your input buses start.  The output buses start at number 0,

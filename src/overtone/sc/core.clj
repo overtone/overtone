@@ -760,5 +760,3 @@
                        args
                        (name-synth-args args arg-names))]
         (apply tgt-fn named-args))))
-
-(defonce _auto-boot_ (boot))
