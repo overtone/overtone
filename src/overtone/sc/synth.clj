@@ -61,8 +61,6 @@
          (every? #(or (ugen? %) (number? %)) (:args ugen))]
    :post [(contains? % :inputs)
           (every? (fn [in] (not (nil? in))) (:inputs %))]}
-  ;(println "with-inputs: " ugen)
-  ;(println "arg types: " (map type (:args ugen)))
   (let [inputs (flatten
                  (map (fn [arg]
                         (cond
@@ -193,18 +191,11 @@
   to disk or send to the server.
   "
   [sname params ugens constants]
-  ;(println "sname: " sname "\nparams: " params "\ntop-ugen: " top-ugen)
   (let [parsed-params (parse-params params)
-        ;_ (println "parsed-params: " parsed-params)
         grouped-params (group-params parsed-params)
-        ;_ (println "grouped-params: " grouped-params)
         [params pnames] (make-params grouped-params)
-        ;_ (println "params: " params " pnames: " pnames)
-        ;_ (println "ugens: " ugens)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
-        ;_ (println "with-ctl-ugens: " with-ctl-ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
-    (println "detailed: " detailed)
     (with-meta {:name (str sname)
                 :constants constants
                 :params params
@@ -301,7 +292,6 @@
   "
   [name & sdecl]
   (let [[md params ugen-form] (synth-form name sdecl)]
-;    (println "metadata: " md)
     (list 'def (with-meta name md)
           (list 'synth name params ugen-form))))
 

@@ -136,23 +136,29 @@
 
 (defn- args-with-specs
   "Creates a list of (arg-value, arg-spec-item) pairs."
-  [args spec prop]
-  (partition 2 (interleave args (map #(get % prop) (:args spec)))))
+  [args spec property]
+  {:pre [(keyword? property)]}
+  (partition 2 (interleave args (map property (:args spec)))))
 
 (defn- map-ugen-args
-  "Perform any argument mappings that needs to be done."
-  [spec args]
-  (let [args-specs (args-with-specs args spec :map)]
-    (map (fn [[arg map-val]] (if (and (map? map-val) (keyword? arg))
-                               (get map-val arg)
-                               arg))
-         args-specs)))
+  "Perform argument mappings for ugen args that take a keyword but need to be
+  looked up in a map supplied in the spec. (e.g. envelope actions)"
+  [spec ugen]
+  (let [args (:args ugen)
+        args-specs (args-with-specs args spec :map)
+        mapped-args (map (fn [[arg map-val]] (if (and (map? map-val) 
+                                                      (keyword? arg))
+                                               (arg map-val)
+                                               arg))
+                         args-specs)]
+    (assoc ugen :args mapped-args)))
 
 (defn- append-seq-args
   "Apply whatever mode specific functions need to be performed on the argument
   list."
-  [spec args]
-  (let [args-specs (args-with-specs args spec :mode)
+  [spec ugen]
+  (let [args (:args ugen)
+        args-specs (args-with-specs args spec :mode)
         [args to-append] (reduce (fn [[args to-append] [arg mode]]
                                    (case mode
                                          :append-sequence (if (and (coll? arg) (not (map? arg)))
@@ -161,22 +167,14 @@
                                      [(conj args arg) to-append]))
                                  [[] []]
                                  args-specs)]
-    (concat args to-append)))
+    (assoc ugen :args (concat args to-append))))
 
-(comment defn- add-default-args [spec args]
-  (let [defaults (map #(:default %) (:args spec))
-        defaults (drop (count args) defaults)]
-    (when (some #(nil? %) defaults)
-      (throw (IllegalArgumentException.
-        (str "\n- - -\nMissing arguments for: " (:name spec) " UGen => "
-             (doall (drop (count args) (map #(:name %) (:args spec))))))))
-    (concat args defaults)))
-
-(defn add-default-args [spec args]
-  (let [arg-names (map #(keyword (:name %)) (:args spec))
+(defn add-default-args [spec ugen]
+  (let [args (:args ugen)
+        arg-names (map #(keyword (:name %)) (:args spec))
         default-map (zipmap arg-names
                             (map :default (:args spec)))]
-  (arg-lister args arg-names default-map)))
+  (assoc ugen :args (arg-lister args arg-names default-map))))
 
 (defn- with-num-outs-mode [spec ugen]
   (let [args-specs (args-with-specs (:args ugen) spec :mode)
@@ -190,6 +188,9 @@
            :n-outputs n-outs
            :args args)))
 
+(defn- with-floated-args [spec ugen]
+  (assoc ugen :args (floatify (:args ugen))))
+
 ; TODO: Refactor these init functions so everything just takes a ugen and a spec
    ; and outputs an updated ugen...  Should have done it like this initially...
 (defn- with-init-fn
@@ -201,19 +202,21 @@
   If an init function is already present it will get called after doing the mapping and
   mode transformations."
   [spec]
-  (let [map-fn (partial map-ugen-args spec)
-        append-fn (partial append-seq-args spec)
-        default-fn (partial add-default-args spec)
-        arg-init-fn (if (contains? spec :init)
-                  (comp (:init spec) map-fn default-fn)
-                  (comp map-fn default-fn))]
+  (let [defaulter (partial add-default-args spec)
+        mapper    (partial map-ugen-args spec)
+        initer    (if (contains? spec :init) (:init spec) identity)
+        n-outputer (partial with-num-outs-mode spec)
+        floater   (partial with-floated-args spec)
+        appender  (partial append-seq-args spec)]
     (assoc spec :init
            (fn [ugen]
-             (let [ugen (assoc ugen :args (arg-init-fn (:args ugen)))
-                   ugen (with-num-outs-mode spec ugen)
-                   ugen (assoc ugen :args (floatify (:args ugen)))
-                   mod-args (assoc ugen :args (append-fn (:args ugen)))]
-               mod-args)))))
+             (-> ugen 
+               defaulter 
+               mapper 
+               initer 
+               n-outputer 
+               floater 
+               appender)))))
 
 (defn- decorate-ugen-spec
   "Interpret a ugen-spec and add in additional, computed meta-data."
