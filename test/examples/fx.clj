@@ -51,19 +51,22 @@
        (* (decay (impulse rate) 0.25)
           (* amp (lf-cub 1200 0)))))
 
-(def p (pling 0))
-(kill p)
+;(def p (pling 0))
+;(kill p)
 
 (defsynth reverb-demo [in-bus 10]
   (out 0 (pan2 (free-verb (in in-bus) 0.5 (mouse-y:kr 0.0 1) (mouse-x:kr 0.0 1)))))
 ;(pling)
 ;(reverb-demo)
-(reset)
+;(reset)
 
 (defsynth echo-demo [in-bus 10]
   (let [source (in in-bus)
         echo (comb-n source 0.5 (mouse-x:kr 0 1) (mouse-y:kr 0 1))]
     (+ echo (in in-bus) 0)))
+
+;(pling)
+;(echo-demo)
 
 ; If you have a microphone or some other source of external input, you can read it in
 ; and then run it through fx like this.

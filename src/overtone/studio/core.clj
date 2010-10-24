@@ -44,19 +44,20 @@
 ; to make all instruments stereo by default.
 (def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
 
-(defn inst-prefix [ugens]
-  (if (and (ugen? ugens)
-           (or (= 0 (:n-outputs ugens))
-               (OUTPUT-UGENS (:name ugens))
-               (= :kr (get REVERSE-RATES (:rate ugens)))))
-    ugens
-    (out 0 (pan2 ugens))))
+(defn inst-prefix [ugens constants]
+  (let [root (last ugens)]
+        (if (and (ugen? root)
+                 (or (= 0 (:n-outputs root))
+                     (OUTPUT-UGENS (:name root))
+                     (= :kr (get REVERSE-RATES (:rate root)))))
+          [ugens constants]
+          (let [pan (pan2 root)]
+            [(conj ugens pan (out 0 pan)) (conj constants 0)]))))
 
 (defmacro inst [sname & args]
-  ;(println "inst: " sname "\nargs: " args)
-  `(let [[sname# params# ugens#] (pre-synth ~sname ~@args)
-         ugens# (inst-prefix ugens#)
-         sdef# (synthdef sname# params# ugens#)
+  `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)
+         [ugens# constants#] (inst-prefix ugens# constants#)
+         sdef# (synthdef sname# params# ugens# constants#)
          sgroup# (or (:group (get @instruments* sname#))
                      (if (connected?)
                        (group :tail @inst-group*)

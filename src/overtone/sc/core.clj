@@ -661,16 +661,11 @@
 
   (hit :sin :pitch 50) => 1000
   (ctl 1000 :pitch 40)
-  (ctl (+ (now) 2000) 1000 :pitch 60)
+  (ctl 1000 :pitch 60)
 
   "
-  [& args]
-  (let [[time-ms synth-id ctls] (if (odd? (count args))
-                                  [(now) (first args) (next args)]
-                                  [(first args) (second args) (drop 2 args)])]
-    ;(println time-ms synth-id ": " ctls)
-    (at time-ms
-        (apply node-control synth-id (stringify ctls)))))
+  [synth-id & ctls]
+  (apply node-control synth-id ctls))
 
 (defmulti kill
   "Free one or more synth nodes.
@@ -765,5 +760,3 @@
                        args
                        (name-synth-args args arg-names))]
         (apply tgt-fn named-args))))
-
-(defonce _auto-boot_ (boot))

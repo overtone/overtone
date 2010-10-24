@@ -1,13 +1,13 @@
-(ns synthdef-test
+(ns overtone.sc.synthdef-test
   (:import (java.io FileInputStream FileOutputStream
                     DataInputStream DataOutputStream
                     BufferedInputStream BufferedOutputStream
                     ByteArrayOutputStream ByteArrayInputStream))
-  (:use overtone.live
+  (:use overtone.core
         byte-spec
         test-utils
         clojure.test)
-  (:require [overtone.core.log :as log]))
+  (:require [overtone.log :as log]))
 
 (defn sawzall-raw
   []

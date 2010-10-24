@@ -14,8 +14,6 @@
      [clojure.contrib.seq-utils :only (indexed)]))
 ;;TODO replace this with clojure.core/keep-indexed or map-indexed))
 
-(def *ugens* nil)
-(def *constants* nil)
 (def *params* nil)
 
 (defn- index-of [col item]
@@ -63,8 +61,6 @@
          (every? #(or (ugen? %) (number? %)) (:args ugen))]
    :post [(contains? % :inputs)
           (every? (fn [in] (not (nil? in))) (:inputs %))]}
-  ;(println "with-inputs: " ugen)
-  ;(println "arg types: " (map type (:args ugen)))
   (let [inputs (flatten
                  (map (fn [arg]
                         (cond
@@ -107,35 +103,6 @@
         ins   (map #(with-inputs %1 outs constants grouped-params) outs)
         final (map #(assoc %1 :args nil) ins)]
     (doall final)))
-
-(defn- collect-ugen-helper [ugen]
-  (let [children (filter #(and (ugen? %1) (not (control-proxy? %1)))
-                         (:args ugen))
-        constants (filter #(number? %1) (:args ugen))]
-
-    ; We want depth first (topological) ordering of ugens, so dig down to the
-    ; child ugens before adding the current ugen to the list.
-    (doseq [child children]
-      (collect-ugen-helper child))
-
-    ; Each constant value should appear only once in the set of constants
-    (doseq [const constants]
-      (if (not ((set *constants*) const))
-        (set! *constants* (conj *constants* const))))
-
-    ; Add the current ugen to the list
-    (set! *ugens* (conj *ugens* ugen))))
-
-; * There should be no duplicate values in the constants table.
-(defn- collect-ugen-info
-  "Return a list of all the ugens in the ugen graph in topological, depth first order.
-  SuperCollider wants the ugens listed in the order they should be executed."
-  [& ugens]
-  (binding [*ugens*     []
-            *constants* []]
-    (doseq [ugen (flatten ugens)]
-      (collect-ugen-helper ugen))
-    [*ugens* *constants*]))
 
 (defn- make-control-ugens
   "Controls are grouped by rate, so that a single Control ugen represents
@@ -223,18 +190,11 @@
   "Transforms a synth definition (ugen-graph) into a form that's ready to save
   to disk or send to the server.
   "
-  [sname params top-ugen]
-  ;(println "sname: " sname "\nparams: " params "\ntop-ugen: " top-ugen)
-  (let [[ugens constants] (collect-ugen-info top-ugen)
-        parsed-params (parse-params params)
-        ;_ (println "parsed-params: " parsed-params)
+  [sname params ugens constants]
+  (let [parsed-params (parse-params params)
         grouped-params (group-params parsed-params)
-        ;_ (println "grouped-params: " grouped-params)
         [params pnames] (make-params grouped-params)
-        ;_ (println "params: " params " pnames: " pnames)
-        ;_ (println "ugens: " ugens)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
-        ;_ (println "with-ctl-ugens: " with-ctl-ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
     (with-meta {:name (str sname)
                 :constants constants
@@ -267,8 +227,12 @@
            sname# (if (= :no-name ~sname)
                     (str "anon-" (next-id :anonymous-synth))
                     ~sname)]
-       (with-ugens
-         [sname# ~params ~@ugen-form]))))
+       (binding [*ugens* []
+                 *constants* #{}]
+         (with-ugens
+           (do
+             ~@ugen-form)
+           [sname# ~params *ugens* (into [] *constants*)])))))
 
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen functions
@@ -282,8 +246,8 @@
   (synth (sin-osc (+ 300 (* 10 (sin-osc:kr 10)))))
   "
   [& args]
-  `(let [[sname# params# ugens#] (pre-synth ~@args)
-         sdef# (synthdef sname# params# ugens#)
+  `(let [[sname# params# ugens# constants#] (pre-synth ~@args)
+         sdef# (synthdef sname# params# ugens# constants#)
          player# (synth-player sname# (map first (partition 2 params#)))
          smap# (callable-map {:name sname#
                               :ugens ugens#
@@ -328,7 +292,6 @@
   "
   [name & sdecl]
   (let [[md params ugen-form] (synth-form name sdecl)]
-;    (println "metadata: " md)
     (list 'def (with-meta name md)
           (list 'synth name params ugen-form))))
 

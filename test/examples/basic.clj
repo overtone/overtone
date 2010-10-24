@@ -1,23 +1,67 @@
 (ns examples.basic
   (:use overtone.live))
 
+(defsynth foo [freq 200 dur 0.5]
+  (let [src (saw [freq (* freq 1.01) (* 0.99 freq)])
+        low (sin-osc (/ freq 2))
+        filt (lpf src (line:kr (* 10 freq) freq 10))
+        env (env-gen (perc 0.1 dur) :action :free)]
+    (out 0 (pan2 (* 0.1 low env filt)))))
+
+(dotimes [i 10]
+  (foo (* i 220) 2)
+  (Thread/sleep 800))
+
+(reset)
+
 ; Some of the examples gathered here were found on this page:
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
 ; which come originally from the book Designing Sound by Andy Farnell.
 
 (definst overpad [out-bus 0 note 60 amp 0.4 rel 0.3]
   (let [freq (midicps note)
-        env (env-gen (perc 0.01 rel) 1 1 0 1 :free)
+        env (env-gen (perc 0.1 rel) 1 1 0 1 :free)
         bfreq (/ freq 2)
-        sig (apply + 
+        sig (apply +
                    (concat (* 0.4 (sin-osc [bfreq (* 0.99 bfreq)]))
                            (lpf (saw [freq (* freq 1.01)]) freq)))
         audio (* amp env sig)]
     (out out-bus audio)))
 
+(overpad 0 62 0.5 5)
+
 (def metro (metronome 128))
-(def infinity [beat a b]
-  (at (metro)))
+
+
+(defn foo [a b]
+  (+ a b))
+
+(definst kick []
+  (let [src (sin-osc 100)
+        env (env-gen (perc 0.01 0.1) :action :free)]
+    (* 0.9 src env)))
+
+(defn player [beat notes]
+  (let [notes (if (empty? notes)
+                [50 55 53 50]
+                notes)]
+    (at (metro beat)
+        (kick)
+        (overpad 0 (choose notes) 0.5 0.5))
+  (apply-at #'player (metro (inc beat)) (inc beat) (next notes))))
+
+(player (metro) [])
+
+
+
+
+
+
+
+
+
+
+
 
 
 ;(overpad 0 60 0.5 5)
@@ -47,7 +91,7 @@
 
 (defn play-chords [t]
   (let [tick (* 2 (choose [125 500 250 250 500 250 500 250]))]
-    (at t (doseq [note (map #(- %  12) (chord-notes))] 
+    (at t (doseq [note (map #(- %  12) (chord-notes))]
             (overpad 0 note 0.3 (/ tick 1020))))
     (apply-at #'play-chords (+ t (- tick 50)) (+ t BEAT))))
 
@@ -116,6 +160,14 @@
 
 (defsynth trigger-finger []
   (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))
+
+(defsynth adder [a 1 b 2]
+  (let [v1 (- a b)
+        v2 (- b a)
+        sum (+ a b)
+        product (* a b)]
+    (send-trig:kr v1 201 sum)
+    (send-trig:kr v2 201 product)))
 
 ; You can read audio data in from your sound card using the regular (in <bus-num>) ugen,
 ; but you need to know where your input buses start.  The output buses start at number 0,

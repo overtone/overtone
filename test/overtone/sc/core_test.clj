@@ -1,7 +1,7 @@
-(ns sc-test
+(ns overtone.sc.core-test
   (:use
     clojure.test
-    overtone.live
+    overtone.core
     overtone.music.instrument.synth)
   (:require
     [overtone.core.log :as log]))

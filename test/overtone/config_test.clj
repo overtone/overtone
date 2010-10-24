@@ -1,6 +1,6 @@
-(ns config.test
+(ns overtone.config-test
   (:use clojure.contrib.test-is)
-  (:require config))
+  (:require overtone.config))
 
 (deftest test-basic []
          (config/set-all {:a 1 :b 2})
@@ -15,8 +15,8 @@
 (defn delete-file [name]
   (.delete (java.io.File. name)))
 
-(deftest test-persist 
-  (try 
+(deftest test-persist
+  (try
     (config/set-all {:a 1 :b 2})
     (config/save "test-config")
     (config/value :a 10)
@@ -25,5 +25,5 @@
 
     (config/restore "test-config")
     (is (= 2 (config/value :b)))
-    (finally 
+    (finally
       (delete-file "test-config")))

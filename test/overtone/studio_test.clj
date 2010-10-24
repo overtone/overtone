@@ -1,5 +1,5 @@
 (ns studio-test
-  (:use [overtone.core synth ugen envelope sc]
+  (:use [overtone.sc synth ugen envelope core]
         overtone.studio))
 
 (refer-ugens)
