@@ -21,7 +21,8 @@
        :args [{:name "trig"}
               {:name "reset"}
               {:name "demandUGens", :mode :append-sequence-set-num-outs}],
-       :check (same-rate-as-first-input)}
+       :check (same-rate-as-first-input)
+       :doc "On every trigger it demands the next value from each of the demand ugens passed as args.  Used to pull values from the other demand rate ugens."}
 
       ;; Duty : UGen {
       ;;  *ar { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0;
@@ -53,7 +54,8 @@
                          (not (or (dr? reset)
                                   (ir? reset)
                                   (rate-of? reset rate))))
-                  "TODO write error string. and understad why this is an error"))}
+                  "TODO write error string. and understad why this is an error"))
+       :doc "Expects demand ugen args for dur and level.  Uses successive dur values to determine how long to wait before emitting each level value."}
 
       ;; TDuty : Duty {
       ;;  *ar { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0, gapFirst = 0;
@@ -147,7 +149,8 @@
        :args [{:name "start", :default 1}
               {:name "step", :default 1}
               {:name "length", :default 100.0}], ; TODO inf
-       :rates #{:dr}}
+       :rates #{:dr}
+       :doc "Emits a series of incrementing values as they are demanded."}
 
       ;; Dgeom : DUGen {
       ;;  *new { arg start = 1, grow = 2, length = inf;

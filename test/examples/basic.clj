@@ -161,6 +161,27 @@
 (defsynth trigger-finger []
   (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))
 
+(defsynth dtest []
+         (send-trig:kr (impulse:kr 2) 1 (demand:kr (impulse 0.5) 1 (dwhite))))
+
+;(defsynth demander-tone [rate 3]
+;  (let [trig (impulse:kr rate)
+;        a (dwhite 0 15 1000)
+;        freq (+ 340 (* (demand:kr trig 0 a) 30))]
+;    (out 0 (pan2 (* 0.1 (sin-osc freq))))))
+;
+;ynthDef(\demander,
+;            { arg rate = 3;
+;               var a, freq, trig;
+;               a = Dwhite(0, 15, inf);
+;               trig = Impulse.kr(rate);
+;               freq = Demand.kr(trig, 0, a) * 30 + 340;
+;               Out.ar(0, Pan2.ar( SinOsc.ar(freq) * 0.1));
+;               }).store;
+;)
+;
+;
+
 (defsynth adder [a 1 b 2]
   (let [v1 (- a b)
         v2 (- b a)

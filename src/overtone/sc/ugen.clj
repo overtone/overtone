@@ -109,15 +109,15 @@
 
   All available rates get an explicit function name of the form <fn-name>:<rate>
   like this:
-    * (env-gen:ar ...)
-    * (env-gen:kr ...)
+  * (env-gen:ar ...)
+  * (env-gen:kr ...)
 
   UGens will also have a base-name without a rate suffix that uses the default rate
   for that ugen:
-    * (env-gen ...)   ;; Uses :kr, control rate for EnvGen
+  * (env-gen ...)   ;; Uses :kr, control rate for EnvGen
 
   The default rate is determined by the rate precedence:
-    [:ir :dr :ar :kr]
+  [:ir :dr :ar :kr]
 
   or a :default-rate attribute can override the default precedence order."
   [spec]
@@ -165,24 +165,24 @@
         ugen           (assoc ugen :args args)]
     (if-let [n-outs-arg (first (filter #(= :append-sequence-set-num-outs (second %))
                                        to-append))]
-        (assoc ugen :n-outputs (count (flatten [(first n-outs-arg)])))
-        ugen)))
+      (assoc ugen :n-outputs (count (flatten [(first n-outs-arg)])))
+      ugen)))
 
 (defn add-default-args [spec ugen]
   (let [args (:args ugen)
         arg-names (map #(keyword (:name %)) (:args spec))
         default-map (zipmap arg-names
                             (map :default (:args spec)))]
-  (assoc ugen :args (arg-lister args arg-names default-map))))
+    (assoc ugen :args (arg-lister args arg-names default-map))))
 
 (defn- with-num-outs-mode [spec ugen]
   (let [args-specs (args-with-specs (:args ugen) spec :mode)
         [args n-outs] (reduce (fn [[args n-outs] [arg mode]]
-                                   (if (= :num-outs mode)
-                                     [args arg]
-                                     [(conj args arg) n-outs]))
-                                 [[] (:n-outputs ugen)]
-                                 args-specs)]
+                                (if (= :num-outs mode)
+                                  [args arg]
+                                  [(conj args arg) n-outs]))
+                              [[] (:n-outputs ugen)]
+                              args-specs)]
     (assoc ugen
            :n-outputs n-outs
            :args args)))
@@ -277,7 +277,7 @@
     (println (apply str (interpose " -> " cat)))))
 
 (def UGEN-RATE-SORT-FN
-  (zipmap UGEN-RATE-PRECEDENCE (range (count UGEN-RATE-PRECEDENCE)))
+  (zipmap UGEN-RATE-PRECEDENCE (range (count UGEN-RATE-PRECEDENCE))))
 
 (defn- print-ugen-rates [rates]
   (let [rates (sort-by UGEN-RATE-SORT-FN rates)]
@@ -286,11 +286,9 @@
 (defn print-ugen [& ugens]
   (doseq [ugen ugens]
     (print-ugen-args (:args ugen))
-    ;(println (str "\"" (:name ugen) "\""))
     (println " " (:doc ugen))
     (print "  Categories: ")
     (print-ugen-categories (:categories ugen))
-    ;(print "  default args:\n    ")
     (print "  Rates: ")
     (print-ugen-rates (:rates ugen))))
 
