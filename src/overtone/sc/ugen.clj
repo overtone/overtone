@@ -145,7 +145,7 @@
   [spec ugen]
   (let [args (:args ugen)
         args-specs (args-with-specs args spec :map)
-        mapped-args (map (fn [[arg map-val]] (if (and (map? map-val) 
+        mapped-args (map (fn [[arg map-val]] (if (and (map? map-val)
                                                       (keyword? arg))
                                                (arg map-val)
                                                arg))
@@ -207,12 +207,12 @@
         appender  (partial append-seq-args spec)]
     (assoc spec :init
            (fn [ugen]
-             (-> ugen 
-               defaulter 
-               mapper 
-               initer 
-               n-outputer 
-               floater 
+             (-> ugen
+               defaulter
+               mapper
+               initer
+               n-outputer
+               floater
                appender)))))
 
 (defn- decorate-ugen-spec

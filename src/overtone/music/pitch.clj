@@ -106,7 +106,7 @@
               :major-pentatonic (only major [1 2 3 5 6])
               :minor-pentatonic (only minor [1 3 4 5 7])}))
 
-(def DIOTONIC-MODES
+(def DIATONIC-MODES
   (let [ionian-sequence [2 2 1 2 2 2 1]
         ionian-len (count ionian-sequence)
         rotate-ionian (fn [offset] (drop offset (take (+ ionian-len offset) (cycle ionian-sequence))))]
@@ -120,13 +120,24 @@
      :minor      (rotate-ionian 5)
      :lochrian   (rotate-ionian 6)}))
 
-(defn nth-diotonic
-  "Return the count of semitones for the nth interval from the start of the diatonic scale in the specifiec mode (or ionian/major by default).
+(defn nth-diatonic
+  "Return the count of semitones for the nth degree from the start of the diatonic scale in the specifiec mode (or ionian/major by default).
      i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
-          therefore the 4th interval is (+ 2 2 1 2) semitones from the start of the scale."
-  ([n] (nth-diotonic n :ionian))
+          therefore the 4th degree is (+ 2 2 1 2) semitones from the start of the scale.
+
+  You may be interested to know that each of the seven degrees of the diatonic scale has its own name:
+
+  1 (do)  tonic
+  2 (re)  supertonic
+  3 (mi)  mediant
+  4 (fa)  subdominant
+  5 (sol) dominant
+  6 (la)  submediant/superdominant
+  7 (ti)  subtonic"
+
+  ([n] (nth-diatonic n :ionian))
   ([n mode]
-     (reduce + (take n (cycle (mode DIOTONIC-MODES))))))
+     (reduce + (take n (cycle (mode DIATONIC-MODES))))))
 
 ;; Various scale intervals in terms of steps on a piano, or midi note numbers
 ;; All sequences should add up to 12 - the number of semitones in an octave
@@ -253,12 +264,12 @@
   [base-freq interval]
   (* base-freq (math/expt 2 (/ interval 12))))
 
-(defn diotonic-freq
+(defn diatonic-freq
   "Returns the frequency of the given interval using the specified mode and tuning (defaulting to ionian and equal-tempered respectively)."
-  ([base-freq n] (diotonic-freq base-freq n :ionian :equal-tempered))
+  ([base-freq n] (diatonic-freq base-freq n :ionian :equal-tempered))
   ([base-freq n mode tuning]
      (case tuning
-           :equal-tempered (nth-equal-tempered-freq base-freq (nth-diotonic n mode)))))
+           :equal-tempered (nth-equal-tempered-freq base-freq (nth-diatonic n mode)))))
 
 
 ;; TODO:
