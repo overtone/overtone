@@ -3,7 +3,7 @@
   (:require clojure.stacktrace
             midi osc byte-spec
             (overtone config time-utils log)
-            (overtone.sc core ugen synth synthdef envelope sample)
+            (overtone.sc core ugen synth synthdef envelope sample sc-lang)
             (overtone.music rhythm pitch tuning)
             (overtone.studio core fx)
             (overtone.console viz)))
@@ -21,6 +21,7 @@
   'overtone.sc.sample
   'overtone.sc.synthdef
   'overtone.sc.envelope
+  'overtone.sc.sc-lang
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning
