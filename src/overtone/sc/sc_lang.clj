@@ -61,8 +61,7 @@
   (z/root (zip-map
             #(if-let [op ({"add:" "+",  "mul:" "*"} (z/node %))]
                (let  [right (z/node (z/right %))
-                      left (z/lefts %)
-                      _ (println op left right)]
+                      left (z/lefts %)]
                  (-> %
                    z/up
                    (z/replace (list op left right))))
