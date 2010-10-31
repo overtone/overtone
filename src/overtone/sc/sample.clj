@@ -53,7 +53,6 @@
 
 (defn- load-all-samples []
   (doseq [[[path args] buf] @loaded-samples*]
-    ;(println "loading sample: " path args)
     (apply load-sample* path args)))
 
 (on-event :connected :sample-loader load-all-samples)
@@ -76,9 +75,11 @@
   "
   [path & args]
   (let [s          (load-sample path)
-        player     (fn [& pargs] (node "mono-player"
-                                       (:id (get @loaded-samples* [path args]))
-                                        pargs))]
+        player     (fn [& pargs] 
+                     (let [id (:id (get @loaded-samples* [path args]))]
+                       (if (empty? pargs)
+                         (mono-player id)
+                         (apply mono-player id pargs))))]
     (callable-map (merge {:player player} s)
                   player)))
 
