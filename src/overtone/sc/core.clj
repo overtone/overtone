@@ -371,7 +371,7 @@
   "Set control values for a node."
   [node-id & name-values]
   {:pre [(connected?)]}
-  (apply snd "/n_set" node-id (stringify name-values))
+  (apply snd "/n_set" node-id (floatify (stringify name-values)))
   node-id)
 
 ; This can be extended to support setting multiple ranges at once if necessary...
