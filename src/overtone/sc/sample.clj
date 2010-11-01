@@ -83,7 +83,6 @@
     (callable-map (merge {:player player} s)
                   player)))
 
-
 (defmethod buffer-id ::sample [sample] (:id sample))
 
 (defmacro defsample [s-name path]
