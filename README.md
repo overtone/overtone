@@ -104,4 +104,4 @@ Now get Overtone:
 * Sam Aaron
 * Fabian Aussems
 * Christophe McKeon 
-* Pepijn Devos
+* Pepijn de Vos
