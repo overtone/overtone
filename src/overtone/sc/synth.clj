@@ -72,11 +72,16 @@
                           (control-proxy? arg)
                           (param-input-spec grouped-params arg)
 
+                          ; output proxy
+                          (output-proxy? arg)
+                          (let [src (ugen-index ugens (:ugen arg))]
+                            {:src src :index (:index arg)})
+
                           ; child ugen
                           (ugen? arg)
-                          (let [idx (ugen-index ugens arg)
-                                updated-ugen (nth ugens idx)]
-                            (inputs-from-outputs idx updated-ugen))))
+                          (let [src (ugen-index ugens arg)
+                                updated-ugen (nth ugens src)]
+                            (inputs-from-outputs src updated-ugen))))
                       (:args ugen)))]
     (assoc ugen :inputs inputs)))
 

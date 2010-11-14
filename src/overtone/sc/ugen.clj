@@ -32,6 +32,7 @@
 
 (def UGEN-SPEC-EXPANSION-MODES
   {:not-expanded false
+   :array false
    :append-sequence false
    :append-sequence-set-num-outs false
    :num-outs false
@@ -99,8 +100,11 @@
   [spec]
   (assoc spec :args
          (map (fn [arg]
-                (assoc arg :expands?
-                       (get UGEN-SPEC-EXPANSION-MODES (get arg :mode :standard))))
+                (let [expands? (if (:array arg)
+                                 false
+                                 (get UGEN-SPEC-EXPANSION-MODES 
+                                      (get arg :mode :standard)))]
+                (assoc arg :expands? expands?)))
               (:args spec))))
 
 (defn- with-fn-names
@@ -363,14 +367,20 @@
     (doseq [check (:check spec)]
       (check rate special args))))
 
+(defrecord UGen [id name rate special args n-outputs])
+(derive UGen ::ugen)
+
 (defrecord ControlProxy [name value rate])
 (derive ControlProxy ::ugen)
 
 (defn control-proxy [n v]
   (ControlProxy. n v (:kr RATES)))
 
-(defrecord UGen [id name rate special args n-outputs])
-(derive UGen ::ugen)
+(defrecord UGenOutputProxy [ugen rate index])
+(derive UGenOutputProxy ::ugen)
+
+(defn output-proxy [ugen index]
+  (UGenOutputProxy. ugen (:rate ugen) index))
 
 (def *ugens* nil)
 (def *constants* nil)
@@ -389,10 +399,14 @@
       (set! *ugens* (conj *ugens* ug))
       (doseq [const (filter number? (:args ug))]
         (set! *constants* (conj *constants* const))))
-      ug))
 
-(defn control-proxy? [obj] (= ControlProxy (type obj)))
+    (if (> (:n-outputs ug) 1)
+      (map-indexed (fn [idx _] (output-proxy ug idx)) (range (:n-outputs ug)))
+      ug)))
+
 (defn ugen? [obj] (isa? (type obj) ::ugen))
+(defn control-proxy? [obj] (= ControlProxy (type obj)))
+(defn output-proxy? [obj] (= UGenOutputProxy (type obj)))
 
 (defn- ugen-base-fn [spec rate special]
   (fn [& args]
