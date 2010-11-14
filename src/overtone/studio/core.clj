@@ -51,8 +51,9 @@
                      (OUTPUT-UGENS (:name root))
                      (= :kr (get REVERSE-RATES (:rate root)))))
           [ugens constants]
-          (let [pan (pan2 root)]
-            [(conj ugens pan (out 0 pan)) (conj constants 0)]))))
+          (let [pan-chans (pan2 root)
+                pan (:ugen (first pan-chans))]
+            [(conj ugens pan (out 0 pan-chans)) (set (floatify (conj constants 0 1)))]))))
 
 (defmacro inst [sname & args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)

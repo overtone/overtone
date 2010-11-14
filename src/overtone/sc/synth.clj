@@ -60,7 +60,10 @@
          ;(contains? ugen :args)
          (every? #(or (ugen? %) (number? %)) (:args ugen))]
    :post [(contains? % :inputs)
-          (every? (fn [in] (not (nil? in))) (:inputs %))]}
+          (every? (fn [{:keys [src index]}] 
+                    (and (not (nil? src))
+                         (not (nil? index))))
+                  (:inputs %))]}
   (let [inputs (flatten
                  (map (fn [arg]
                         (cond

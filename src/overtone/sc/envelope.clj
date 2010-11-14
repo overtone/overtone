@@ -11,7 +11,8 @@
           engine."
      :author "Jeff Rose"}
   overtone.sc.envelope
-  (:use overtone.util))
+  (:use [overtone util]
+        [overtone.sc ugen]))
 
 (def ENV-CURVES
   {:step        0
@@ -67,37 +68,45 @@
                    (interleave (rest levels) durations shapes curves)))))
 
 (defunk triangle [dur 1 level 1]
-  (let [dur (* dur 0.5)]
-    (envelope [0 level 0] [dur dur])))
+  (with-ugens 
+    (let [dur (* dur 0.5)]
+      (envelope [0 level 0] [dur dur]))))
 
 (defunk sine [dur 1 level 1]
-  (let [dur (* dur 0.5)]
-    (envelope [0 level 0] [dur dur] :sine)))
+  (with-ugens 
+    (let [dur (* dur 0.5)]
+      (envelope [0 level 0] [dur dur] :sine))))
 
 (defunk perc [attack 0.01 release 1 level 1 curve -4]
-  (envelope [0 level 0] [attack release] curve))
+  (with-ugens 
+    (envelope [0 level 0] [attack release] curve)))
 
 (defunk lin-env [attack 0.01 sustain 1 release 1 level 1 curve :linear]
-  (envelope [0 level level 0] [attack sustain release] curve))
+  (with-ugens 
+    (envelope [0 level level 0] [attack sustain release] curve)))
 
 (defunk cutoff [release 0.1 level 1 curve :linear]
-  (envelope [level 0] [release] curve 0))
+  (with-ugens 
+    (envelope [level 0] [release] curve 0)))
 
 (defunk dadsr [delay-t 0.1
                attack 0.01 decay 0.3 sustain 0.5 release 1
                level 1 curve -4 bias 0]
-  (envelope
-    (map #(+ %1 bias) [0 0 level (* level sustain) 0])
-    [delay-t attack decay release] curve))
+  (with-ugens 
+    (envelope
+      (map #(+ %1 bias) [0 0 level (* level sustain) 0])
+      [delay-t attack decay release] curve)))
 
 (defunk adsr [attack 0.01 decay 0.3 sustain 1 release 1
               level 1 curve -4 bias 0]
-  (envelope
-    (map #(+ %1 bias) [0 level (* level sustain) 0])
-    [attack decay release] curve 2))
+  (with-ugens 
+    (envelope
+      (map #(+ %1 bias) [0 level (* level sustain) 0])
+      [attack decay release] curve 2)))
 
 (defunk asr [attack 0.01 sustain 1 release 1 curve -4]
-  (envelope [0 sustain 0] [attack release] curve 1))
+  (with-ugens 
+    (envelope [0 sustain 0] [attack release] curve 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Envelope Curve Shapes
