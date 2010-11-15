@@ -56,20 +56,20 @@
   "Returns ugen object with its input ports connected to constants and upstream
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
-  {:pre [
-         ;(contains? ugen :args)
+  {:pre [(contains? ugen :args)
          (every? #(or (ugen? %) (number? %)) (:args ugen))]
    :post [(contains? % :inputs)
-          (every? (fn [{:keys [src index]}] 
+          (every? (fn [{:keys [src index]}]
                     (and (not (nil? src))
                          (not (nil? index))))
                   (:inputs %))]}
+  ;(println "with-inputs:\nugen: " ugen)
   (let [inputs (flatten
                  (map (fn [arg]
                         (cond
                           ; constant
                           (number? arg)
-                          {:src -1 :index (index-of constants arg)}
+                          {:src -1 :index (index-of constants (float arg))}
 
                           ; control
                           (control-proxy? arg)
@@ -86,6 +86,7 @@
                                 updated-ugen (nth ugens src)]
                             (inputs-from-outputs src updated-ugen))))
                       (:args ugen)))]
+    ;(println "inputs: " inputs)
     (assoc ugen :inputs inputs)))
 
 ; TODO: Currently the output rate is hard coded to be the same as the
@@ -107,7 +108,8 @@
 (defn- detail-ugens
   "Fill in all the input and output specs for each ugen."
   [ugens constants grouped-params]
-  (let [outs  (map with-outputs ugens)
+  (let [constants (map float constants)
+        outs  (map with-outputs ugens)
         ins   (map #(with-inputs %1 outs constants grouped-params) outs)
         final (map #(assoc %1 :args nil) ins)]
     (doall final)))

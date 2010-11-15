@@ -12,4 +12,6 @@
                  [overtone/osc-clj "0.2.1-SNAPSHOT"]
                  [overtone/byte-spec "0.2.0-SNAPSHOT"]
                  [overtone/midi-clj "0.2.0-SNAPSHOT"]
-                 [org.clojars.overtone/vijual "0.2.1"]])
+                 [org.clojars.overtone/vijual "0.2.1"]]
+
+  :jvm-opts ["-Xms256m" "-Xmx1g" "-XX:+UseConcMarkSweepGC"])
