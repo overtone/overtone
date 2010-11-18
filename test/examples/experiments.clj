@@ -11,11 +11,11 @@
   (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 10) sound)))
 
 (defn square [freq]
-  (with-ugens 
+  (with-ugens
     (pulse freq 0.5)))
 
 (defn mix [& args]
-  (with-ugens 
+  (with-ugens
     (reduce + args)))
 
 ; Beware!!! Playing this synth might make you crash :~)
@@ -39,7 +39,7 @@
   "Returns a frequency computed by adding n-cents to freq.  A cent is a
   logarithmic measurement of pitch, where 1-octave equals 1200 cents."
   [freq n-cents]
-  (with-ugens 
+  (with-ugens
     (* freq (pow 2 (/ n-cents 1200)))))
 
 (definst pad [freq 440 split -5]
@@ -61,3 +61,16 @@
         lfo (* depth (sin-osc:kr lfo))]
     (rlpf (* 0.3 (+ (square freq) (lf-tri (+ lfo (ugen-cents freq split)))))
           (+ (* 0.8 freq) (* f-env 2 freq)) 3/4)))
+
+
+(defsynth pan-test [note 60]
+  (let [freq (midicps note)
+        waves (saw [freq (* 1.5 freq)])
+        pans (pan2 waves (saw 0.2))]
+    (out 0 (map + (overtone.sc.ugen/parallel-seqs (pan2 waves pans))))))
+
+(defsynth splay-test [note 60]
+  (let [freq  (midicps note)
+        waves (saw [freq (* 1.5 freq)])
+        snd   (splay waves :spread 0.1 :level 0.1 :center -0.75)]
+    (out 0 snd)))
