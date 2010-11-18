@@ -102,7 +102,7 @@
          (map (fn [arg]
                 (let [expands? (if (:array arg)
                                  false
-                                 (get UGEN-SPEC-EXPANSION-MODES 
+                                 (get UGEN-SPEC-EXPANSION-MODES
                                       (get arg :mode :standard)))]
                 (assoc arg :expands? expands?)))
               (:args spec))))
@@ -310,18 +310,23 @@
 (defn- mapply [f coll-coll]
   (map #(apply f %) coll-coll))
 
-(defn- parallel-seqs
+(defn parallel-seqs
   "takes n seqs and returns a seq of vectors of length n, lazily
-   (take 4 (parallel-seqs (repeat 5) (cycle [1 2 3]))) ->
-     ([5 1] [5 2] [5 3] [5 1])"
-  [& seqs]
+   (take 4 (parallel-seqs (repeat 5)
+                          (cycle [1 2 3]))) => ([5 1] [5 2] [5 3] [5 1])"
+  [seqs]
   (apply map vector seqs))
 
-(defn- cycle-vals [coll]
-  (cycle (if (map? coll) (vals coll) coll)))
+; Does it really make sense to cycle over the values of a collection when
+; doing expansion?  I don't think maps should be allowed as arguments, unless
+; this is a strategy at having named arguments, but then the ordering wouldn't
+; make sense.
+;(defn- cycle-vals [coll]
+;  (cycle (if (map? coll) (vals coll) coll)))
 
 (defn- expandable? [arg]
-  (and (coll? arg) (not (map? arg))))
+  (and (coll? arg)
+       (not (map? arg))))
 
 (defn- multichannel-expand
   "Does sc style multichannel expansion.
@@ -341,7 +346,7 @@
                       ; Regular, non-infinite and non-map collections get expanded
                       (and (expandable? arg)
                            (first flags)) [(max gcount (count arg))
-                                           (conj seqs (cycle-vals arg))
+                                           (conj seqs (cycle arg))
                                            (next flags)]
 
                       :else ; Basic values get used for all expansions
@@ -349,7 +354,7 @@
                        (conj seqs (repeat arg))
                        (next flags)]))
           [greatest-count seqs] (reduce gc-seqs [1 [] expand-flags] args)]
-      (take greatest-count (apply parallel-seqs seqs)))))
+      (take greatest-count (parallel-seqs seqs)))))
 
 (defn make-expanding
   "Takes a function and returns a multi-channel-expanding version of the function."
@@ -513,7 +518,7 @@
               :args [in mul add]}
              {:type ::ugen}))
 
-(load "ops")
+(load "ugen/generic_ops")
 
 (defn intern-ugens
   "Iterate over all UGen meta-data, generate the corresponding functions and intern them
@@ -572,13 +577,4 @@
          ~'bit-not overtone.ugen-collide/bit-not]
      ~@body))
 
-;(defn refer-ugens
-;  []
-;  (let [local-map (ns-map *ns*)
-;        ugen-map (ns-map 'overtone.ugen)
-;        collisions (set/intersection (set (keys local-map))
-;                                 (set (keys ugen-map)))]
-;    (doseq [v collisions]
-;      (ns-unmap *ns* v))
-;    (refer 'overtone.ugen)))
-;
+(load "ugen/extra")
