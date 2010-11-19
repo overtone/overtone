@@ -80,7 +80,7 @@
 (defn arg-count
   "Get the arity of a function."
   [f]
-  (let [m (first (.getDeclaredMethods (class f)))
+  (let [m (first (filter #(= "invoke" (.getName %)) (.getDeclaredMethods (class f))))
         p (.getParameterTypes m)]
     (alength p)))
 
@@ -88,7 +88,7 @@
   (try
     (apply handler (take (arg-count handler) args))
     (catch Exception e
-      (log/debug "Handler Exception - got args:" args"\n" 
+      (log/debug "Handler Exception - got args:" args"\n"
                  (with-out-str (.printStackTrace e))))))
 
 (defn map-vals [f m]
