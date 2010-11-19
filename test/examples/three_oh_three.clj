@@ -27,15 +27,17 @@
     (* amp drum)))
 
 (defonce wave (atom 1))
-(defonce cutoff* (atom 100))
-(defonce r (atom 0.9))
-(defonce attack (atom 0.101))
-(defonce decay* (atom 1.8))
-(defonce sustain (atom 0.2))
-(defonce release (atom 2.0))
+(defonce cutoff* (atom 579))
+(defonce r (atom 0.309))
+(defonce attack (atom 0.059))
+(defonce decay* (atom 0.039))
+(defonce sustain (atom 0.269))
+(defonce release (atom 3.6))
+(defonce bass-release (atom 0.1))
+(defonce bass-rate (atom 0.38))
 
 (defn- tb303-gui []
-  (let [s (surface "Overtone-303" 190 200)]
+  (let [s (surface "Overtone-303" 300 200)]
     (surface-add-widget s (fader  #(reset! cutoff* (* % 2000))) 20 15)
     (surface-add-widget s (button #(reset! wave (if % 1 0))) 50 85)
     (surface-add-widget s (fader  #(reset! r %)) 80 15)
@@ -43,6 +45,8 @@
     (surface-add-widget s (dial #(reset! decay* (* 4 %)))  120 50)
     (surface-add-widget s (dial #(reset! sustain %))       120 90)
     (surface-add-widget s (dial #(reset! release (* 6 %))) 120 130)
+    (surface-add-widget s (fader #(reset! bass-rate %))    160 15)
+    (surface-add-widget s (fader #(reset! bass-release %)) 200 15)
     s))
 
 (defn tb3 []
@@ -64,8 +68,12 @@
   (let [next-tick (+ time sep)
         [note vol] (first notes:vols)
         vol (/ vol 50)]
-    (at time (tb303 :note note :vol vol :wave @wave :cutoff @cutoff* :r @r
+    (at time (tb303 :note note :vol (/ vol 3.0) :wave @wave :cutoff @cutoff* :r @r
                     :attack @attack :decay @decay* :sustain @sustain :release @release))
+    (if (> (rand) (- 1 @bass-rate))
+      (at time (tb303 :note (- note 24) :vol vol :wave @wave :cutoff @cutoff* :r @r
+                      :attack @attack :decay (+ 0.001 (* (rand-int 10) @decay*)) 
+                      :sustain @sustain :release (* 10 @bass-release))))
     (apply-at #'play-scale next-tick next-tick (next notes:vols) sep)))
 
 (defn reich [tempo phase]
