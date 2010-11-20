@@ -85,7 +85,7 @@
       (ref-set status* :connecting))
 
     ; Runs once when we receive the first status.reply message
-    (on-event "status.reply" ::connected-handler
+    (on-event "/status.reply" ::connected-handler
         #(do
            (dosync (ref-set status* :connected))
            (notify true) ; turn on notifications now that we can communicate

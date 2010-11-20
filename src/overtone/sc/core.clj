@@ -286,7 +286,7 @@
    (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
      (cond
        (= :internal which) (boot-internal port)
-       (= :external which) (boot-external host port)))))
+       (= :external which) (boot-external port)))))
 
 (defn quit
   "Quit the SuperCollider synth process."
