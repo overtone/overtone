@@ -70,7 +70,7 @@
 ; the instance of the function defined earlier.
 ; (apply-at #'my-melody (+ dur (now)) arg1 arg2)
 
-(def *APPLY-AHEAD* 50)
+(def *APPLY-AHEAD* 150)
 
 (defn apply-at [func ms-time & args]
   (let [delay-time (- ms-time *APPLY-AHEAD* (now))]
