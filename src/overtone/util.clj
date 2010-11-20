@@ -163,3 +163,11 @@
            (arg-mapper args# ~arg-keys ~default-map)]
        ~@body))))
 
+
+(defn invert-map
+  "Takes a map and returns a new map that's keys are the original map's vals and that's vals are the original map's keys.
+   Assumes the map's key's and vals are both sets (i.e. don't contain any duplicates)
+
+   (invert-map {:a 1, :b 2, :c 3}) ;=> {1 :a, 2 :b, 3 :c}"
+  [m]
+  (apply hash-map (reverse (flatten (seq m))))  )
