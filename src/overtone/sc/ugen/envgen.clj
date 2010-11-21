@@ -11,7 +11,7 @@
       {:name "FreeSelf",
        :args [{:name "in"}],
        :rates #{:kr}
-       :doc "Pree the enclosing synth when triggered"}
+       :doc "Free the enclosing synth when triggered"}
 
       {:name "PauseSelf",
        :args [{:name "in"}],
