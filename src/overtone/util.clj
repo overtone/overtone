@@ -65,13 +65,6 @@
   "Creates a random, immutable UUID object that is comparable using the '=' function."
   [] (. java.util.UUID randomUUID))
 
-(defn invert-map
-  "Make the keys the values and the values the keys.  Note, if there are
-  duplicate values in the map they will result in key collisions and a smaller
-  result map."
-  [m]
-  (apply hash-map (interleave (vals m) (keys m))))
-
 (defn cpu-count
   "Get the number of CPUs on this machine."
   []
@@ -153,6 +146,8 @@
   (let [arg-map (arg-mapper args arg-names default-map)]
     (vec (map arg-map arg-names))))
 
+
+
 ; TODO: generate arglists and doc meta-data and attach to var
 (defmacro defunk [name args & body]
   (let [arg-names (map first (partition 2 args))
@@ -165,9 +160,9 @@
 
 
 (defn invert-map
-  "Takes a map and returns a new map that's keys are the original map's vals and that's vals are the original map's keys.
-   Assumes the map's key's and vals are both sets (i.e. don't contain any duplicates)
+  "Takes a map m and returns a new map that's keys are the m's vals and that's vals are m's keys.
+   Assumes that m's keys and vals are both sets (i.e. don't contain any duplicates). If there are duplicate values in the map they will result in key collisions and a smaller result map.
 
    (invert-map {:a 1, :b 2, :c 3}) ;=> {1 :a, 2 :b, 3 :c}"
   [m]
-  (apply hash-map (reverse (flatten (seq m)))))
+  (apply hash-map (interleave (vals m) (keys m))))
