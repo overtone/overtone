@@ -35,7 +35,12 @@
 (defn floatify
   "Convert all numbers in col to floats."
   [col]
-  (map #(if (number? %1) (float %1) %1) col))
+  (map #(cond 
+          (number? %1) (float %1)
+          (true? %1) (float 1)
+          (false? %1) (float 0)
+          :else %1)
+       col))
 
 (defn choose
   "Choose a random note from notes."

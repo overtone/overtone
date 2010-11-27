@@ -49,6 +49,18 @@
     (surface-add-widget s (fader #(reset! bass-release %)) 200 15)
     s))
 
+(defn- tb303-gui []
+  (-> (surface "Overtone-303" 300 200)
+    (fader  :cutoff       :x 20  :y 15 :scale 2000)
+    (button :wave         :x 50  :y 85 :type :boolean)
+    (fader  :r            :x 80  :y 15)
+    (dial   :attack       :x 120 :y 10)
+    (dial   :decay*       :x 120 :y 50 :scale 4)
+    (dial   :sustain      :x 120 :y 90)
+    (dial   :release      :x 120 :y 130 :scale 6)
+    (fader  :bass-rate    :x 160 :y 15)
+    (fader  :bass-release :x 200 :y 15)))
+
 (defn tb3 []
   (let [p (promise)]
     (sg/in-swing (deliver p (tb303-gui)))
@@ -72,7 +84,7 @@
                     :attack @attack :decay @decay* :sustain @sustain :release @release))
     (if (> (rand) (- 1 @bass-rate))
       (at time (tb303 :note (- note 24) :vol vol :wave @wave :cutoff @cutoff* :r @r
-                      :attack @attack :decay (+ 0.001 (* (rand-int 10) @decay*)) 
+                      :attack @attack :decay (+ 0.001 (* (rand-int 10) @decay*))
                       :sustain @sustain :release (* 10 @bass-release))))
     (apply-at #'play-scale next-tick next-tick (next notes:vols) sep)))
 
@@ -87,7 +99,7 @@
                 (cycle p:v)
                 (+ tempo phase))))
 
-(tb3)
-(reich 270 6)
+;(tb3)
+;(reich 270 6)
 
 ;(stop)

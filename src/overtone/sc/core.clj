@@ -111,6 +111,10 @@
                (fn [{{path :path args :args} :msg}]
                  (event path :path path :args args)))
 
+(def osc-log* (atom []))
+(on-sync-event :osc-msg-received ::osc-logger
+               (fn [{:keys [path args] :as msg}]
+                 (swap! osc-log* #(conj % msg))))
 (defmacro at
   "All messages sent within the body will be sent in the same timestamped OSC
   bundle.  This bundling is thread-local, so you don't have to worry about
@@ -205,19 +209,6 @@
   (doseq [msg @server-log*]
     (print msg)))
 
-;Replies to sender with the following message.
-;status.reply
-;	int - 1. unused.
-;	int - number of unit generators.
-;	int - number of synths.
-;	int - number of groups.
-;	int - number of loaded synth definitions.
-;	float - average percent CPU usage for signal processing
-;	float - peak percent CPU usage for signal processing
-;	double - nominal sample rate
-;	double - actual sample rate
-
-
 (defn recv
   "Register your intent to wait for a message associated with given path to be received from the server. Returns a promise that will contain the message once it has been received. Does not block current thread (this only happens once you try and look inside the promise and the reply has not yet been received)."
   [path]
@@ -253,15 +244,29 @@
 
 (def STATUS-TIMEOUT 500)
 
+;Replies to sender with the following message.
+;status.reply
+;	int - 1. unused.
+;	int - number of unit generators.
+;	int - number of synths.
+;	int - number of groups.
+;	int - number of loaded synth definitions.
+;	float - average percent CPU usage for signal processing
+;	float - peak percent CPU usage for signal processing
+;	double - nominal sample rate
+;	double - actual sample rate
 (defn status
   "Check the status of the audio server."
   []
   (if (= :connected @status*)
-    (let [p (promise)]
-      (on-event "/status.reply" ::status-check
-                #(do
-                   (deliver p (parse-status (:args %)))
-                   :done))
+    (let [p (promise)
+          handler (fn [event]
+                   (deliver p (parse-status (:args event)))
+                   (remove-handler "status.reply" ::status-check)
+                   (remove-handler "/status.reply" ::status-check))]
+      (on-event "/status.reply" ::status-check handler)
+      (on-event "status.reply" ::status-check handler)
+
       (snd "/status")
       (try
         (.get (future @p) STATUS-TIMEOUT TimeUnit/MILLISECONDS)
@@ -282,24 +287,24 @@
 (defn boot
   "Boot either the internal or external audio server."
   ([] (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
-  ([which & [host port]]
+  ([which & [port]]
    (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
      (cond
        (= :internal which) (boot-internal port)
-       (= :external which) (boot-external host port)))))
+       (= :external which) (boot-external port)))))
 
 (defn quit
   "Quit the SuperCollider synth process."
   []
   (log/info "quiting supercollider")
   (event :quit)
+  (reset! running?* false)
+  (dosync (ref-set server* nil)
+    (ref-set status* :no-audio))
   (when (connected?)
     (snd "/quit")
     (log/debug "SERVER: " @server*)
-    (osc-close @server* true))
-  (reset! running?* false)
-  (dosync (ref-set server* nil)
-    (ref-set status* :no-audio)))
+    (osc-close @server* true)))
 
 ; TODO: Come up with a better way to delay shutdown until all of the :quit event handlers
 ; have executed.  For now we just use 500ms.

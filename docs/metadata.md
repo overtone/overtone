@@ -10,6 +10,8 @@ more UGens then you can probably just copy a similar type of UGen to get a sense
 for how the meta-data works, and then look here for details. Let us know if you
 run into any problems.
 
+The ugen metadata can be found in the overtone.sc.ugen.* namespaces.
+
 ## Intializing the base specs.
 
 First all specs are loaded, and any spec that derives from another using the
@@ -32,33 +34,19 @@ for each rate of each initilized ugen spec, a ugen function is defined.
 
 ### Ugen function naming and rates
 
-if there is only one rate defined in the spec then the function name is not rate
-qualified (i.E. Having :xr postpended), if there are more than one and the rate
-is :ar or :kr then it is qualified by default. In all cases, if the rate is :ir
-or :dr then it is not qualified. The base name for the function is given by
-(normalize-name (spec :name)). 
+Ugen functions have multiple versions to support different processing rates.
+For example, sin-osc:ar and sin-osc:kr product audio-rate and control-rate
+ugens.  Using just sin-osc will also create an audio-rate ugen, except for ugens
+that only support :kr or :ir, in which case that is the default rate for the
+unqualified version.
 
-## Synth def time
+## Synthdef time
 
 ### multi-channel expansion (MCE)
 
 when a ugen function is called. The args and the expansion-spec are passed to
 the expand function.  Which then calls the ugen function potentially multiple
 times. 
-
-### Init
-
-if the spec has an init fuction, which should have args [rate args spec], then
-this function is called.  If the function returns a vector, then those are used
-for the args, if it returns a map, then two keys should be defined. :Args and
-:num-outs.
-
-### Post init
-
-after the init function returns, given there is any, then the args are massaged.
-The args with a mode which require them to be popped, are popped. The args which
-need to be transformed are transformed, etc. Then possibly scalar values are
-wrapped in some datastructure (TODO not sure about that).
 
 ### Check
 

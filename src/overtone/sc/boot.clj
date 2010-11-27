@@ -57,6 +57,20 @@
   [notify?]
   (snd* "/notify" (if (false? notify?) 0 1)))
 
+; We have to do this to handle the change in SC, where they added a "/" to the
+; status.reply messsage, which it should have had in the first place.
+(defn- setup-connect-handlers []
+  (let [handler-fn 
+        (fn []
+          (dosync (ref-set status* :connected))
+          (notify true) ; turn on notifications now that we can communicate
+          (event :reset)
+          (event :connected)
+          (remove-handler "status.reply" ::connected-handler1)
+          (remove-handler "/status.reply" ::connected-handler2))]
+    (on-event "status.reply" ::connected-handler1 handler-fn)
+    (on-event "/status.reply" ::connected-handler2 handler-fn)))
+
 (defn connect-internal
   []
   (log/debug "Connecting to internal SuperCollider server")
@@ -69,11 +83,12 @@
                                                     (event :osc-msg-received
                                                            :msg (osc-decode-packet buf)))))
     (dosync (ref-set server* peer))
-    (snd* "/status")
-    (dosync (ref-set status* :connected))
-    (notify true) ; turn on notifications now that we can communicate
-    (event :reset)
-    (event :connected)))
+    (setup-connect-handlers)
+    (snd* "/status")))
+    ;(dosync (ref-set status* :connected))
+    ;(notify true) ; turn on notifications now that we can communicate
+    ;(event :reset)
+    ;(event :connected)))
 
 (defn connect-external
   [host port]
@@ -84,14 +99,7 @@
       (ref-set server* sc-server)
       (ref-set status* :connecting))
 
-    ; Runs once when we receive the first status.reply message
-    (on-event "status.reply" ::connected-handler
-        #(do
-           (dosync (ref-set status* :connected))
-           (notify true) ; turn on notifications now that we can communicate
-           (event :reset)
-           (event :connected)
-           :done))
+    (setup-connect-handlers)
 
     ; Send /status in a loop until we get a reply
     (loop [cnt 0]
