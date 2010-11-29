@@ -337,7 +337,7 @@
     (throw (Exception. "Not connected to synthesis engine.  Please boot or connect.")))
   (let [id (alloc-id :node)
         argmap (apply hash-map args)
-        position ((get argmap :position :tail) POSITION)
+        position (or ((get argmap :position :tail) POSITION) 1)
         target (get argmap :target 0)
         args (flatten (seq (-> argmap (dissoc :position) (dissoc :target))))
         args (stringify (floatify args))]
@@ -346,11 +346,27 @@
     id))
 
 (defn node-free
-  "Remove a synth node"
+  "Remove a synth node."
   [& node-ids]
   {:pre [(connected?)]}
   (apply snd "/n_free" node-ids)
   (doseq [id node-ids] (free-id :node id)))
+
+(defn group
+  "Create a new synth group as a child of the target group."
+  [position target-id]
+  {:pre [(connected?)]}
+  (let [id (alloc-id :node)
+        pos (if (keyword? position) (get POSITION position) position)
+        pos (or pos 1)]
+    (snd "/g_new" id pos target-id)
+    id))
+
+(defn group-free
+  "Free synth groups, releasing their resources."
+  [& group-ids]
+  {:pre [(connected?)]}
+  (apply node-free group-ids))
 
 (defn node-run
   "Start a stopped synth node."
@@ -392,20 +408,6 @@
   [node-id & names-busses]
   {:pre [(connected?)]}
   (apply snd "/n_map" node-id names-busses))
-
-(defn group
-  "Create a new group as a child of the target group."
-  [position target-id]
-  {:pre [(connected?)]}
-  (let [id (alloc-id :node)]
-    (snd "/g_new" id (get POSITION position) target-id)
-    id))
-
-(defn group-free
-  "Free the specified group."
-  [& group-ids]
-  {:pre [(connected?)]}
-  (apply node-free group-ids))
 
 (defn post-tree
   "Posts a representation of this group's node subtree, i.e. all the groups and

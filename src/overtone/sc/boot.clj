@@ -60,7 +60,7 @@
 ; We have to do this to handle the change in SC, where they added a "/" to the
 ; status.reply messsage, which it should have had in the first place.
 (defn- setup-connect-handlers []
-  (let [handler-fn 
+  (let [handler-fn
         (fn []
           (dosync (ref-set status* :connected))
           (notify true) ; turn on notifications now that we can communicate
@@ -236,36 +236,38 @@
 ;		] * M
 ;	] * the number of nodes in the subtree
 
-(def *data* nil)
+(def *node-tree-data* nil)
 
 (defn- parse-synth-tree
   [id ctls?]
-  (let [sname (first *data*)]
+  (let [sname (first *node-tree-data*)]
     (if ctls?
-      (let [n-ctls (second *data*)
-            [ctl-data new-data] (split-at (* 2 n-ctls) (nnext *data*))
+      (let [n-ctls (second *node-tree-data*)
+            [ctl-data new-data] (split-at (* 2 n-ctls) (nnext *node-tree-data*))
             ctls (apply hash-map ctl-data)]
-        (set! *data* new-data)
-        {:synth sname
+        (set! *node-tree-data* new-data)
+        {:type :synth 
+         :name sname
          :id id
          :controls ctls})
       (do
-        (set! *data* (next *data*))
-        {:synth sname
+        (set! *node-tree-data* (next *node-tree-data*))
+        {:type :synth 
+         :name sname
          :id id}))))
 
 (defn- parse-node-tree-helper [ctls?]
-  (let [[id n-children & new-data] *data*]
-    (set! *data* new-data)
+  (let [[id n-children & new-data] *node-tree-data*]
+    (set! *node-tree-data* new-data)
     (cond
       (neg? n-children) (parse-synth-tree id ctls?) ; synth
-      (= 0 n-children) {:group id :children nil}
+      (= 0 n-children) {:type :group :id id :children nil}
       (pos? n-children)
-      {:group id
+      {:type :group :id id
        :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
 
 (defn parse-node-tree [data]
   (let [ctls? (= 1 (first data))]
-    (binding [*data* (next data)]
+    (binding [*node-tree-data* (next data)]
       (parse-node-tree-helper ctls?))))
 

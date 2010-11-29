@@ -6,30 +6,30 @@
 (defn- check-inst-group
   "Replaces a string 'Group <N>' where N is the group number of an instrument
   with the instrument name, otherwise just returns the txt unchanged."
-  [txt]
-  (if-let [ins (first (filter #(= txt (str "Group " (:group %)))
+  [id]
+  (if-let [ins(first(filter #(= id(:group %))
                               (vals @instruments*)))]
-    (:name ins)
-    txt))
+    (str (:name ins) ": ")
+    id))
 
-(defn- group-alias
-  "Replace generic node-tree labels with nicer aliases."
-  [txt]
-  (if (string? txt)
+(defn- group-label
+  "Returns a string label for groups."
+  [id]
+  (str
     (cond
-      (= "Group 0" txt) "Root"
-      (= (str "Group " @inst-group*) txt) "Instruments"
-      (= (str "Group " @synth-group*) txt) "Synthesizers"
-      :else (check-inst-group txt))
-    txt))
+      (= 0 id) "root: "
+      (= @inst-group* id) "inst: "
+      (= @synth-group* id) "synth: "
+      :else (check-inst-group id))
+    id))
 
 ; Note: If we really want to render other node types this should be a multimethod.
 (defn- vijual-node
   [node]
   (cond
-   (contains? node :group)     (group-alias (str "Group " (node :group)))
-   (contains? node :synth)     (str "ids: " (node :id))
-   (contains? node :synth-set) (apply str "ids: " (interpose ", " (node :ids)))
+   (= :group (:type node))     (group-label (:id node))
+   (= :synth (:type node))     (str "synth: " (:id node))
+   (contains? node :synth-set) (apply str "synths: " (interpose ", " (:ids node)))
    (true) (throw (Exception. "Please implement a vijual node renderer for this node type"))))
 
 (defn- vijual-synths
