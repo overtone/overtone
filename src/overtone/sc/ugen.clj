@@ -25,7 +25,7 @@
             :ar 2
             :dr 3})
 
-(def REVERSE-RATES (apply hash-map (reverse (flatten (seq RATES)))))
+(def REVERSE-RATES (invert-map RATES))
 
 (def UGEN-RATE-PRECEDENCE [:ir :dr :ar :kr])
 (def UGEN-DEFAULT-RATES #{:ar :kr})

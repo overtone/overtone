@@ -100,7 +100,7 @@
       (ref-set status* :connecting))
 
     (setup-connect-handlers)
-
+    
     ; Send /status in a loop until we get a reply
     (loop [cnt 0]
       (log/debug "connect loop...")
@@ -246,13 +246,13 @@
             [ctl-data new-data] (split-at (* 2 n-ctls) (nnext *node-tree-data*))
             ctls (apply hash-map ctl-data)]
         (set! *node-tree-data* new-data)
-        {:type :synth 
+        {:type :synth
          :name sname
          :id id
          :controls ctls})
       (do
         (set! *node-tree-data* (next *node-tree-data*))
-        {:type :synth 
+        {:type :synth
          :name sname
          :id id}))))
 
