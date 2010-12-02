@@ -26,12 +26,13 @@
       true)))
 
 (defn on-event
-  "Runs handler whenever events of type event-type are fired.  The handler can
+  "Takes an event-type (name of the event) a key (to refer back to this handler in the future) and a handler fn.
+  Runs handler whenever events of type event-type are fired.  The handler can
   optionally except a single event argument, which is a map containing the
   :event-type property and any other properties specified when it was fired.
 
-  (on-event ::booted #(do-stuff))
-  (on-event ::midi-note-down (fn [event] (funky-bass (:note event))))
+  (on-event \"/tr\" ::status-check handler)
+  (on-event :midi-note-down ::midi-note-down-handler (fn [event] (funky-bass (:note event))))
 
   Handlers can return :done to be removed from the handler list after execution."
   [event-type key handler]
