@@ -158,7 +158,7 @@
 ;   int - node ID
 ;   int - trigger ID
 ;   float - trigger value
-(defonce trigger-handlers* {})
+(defonce trigger-handlers* (ref {}))
 
 (defn on-trigger [node-id trig-id f]
   (dosync (alter trigger-handlers* assoc [node-id trig-id] f)))
@@ -170,7 +170,8 @@
   (fn [msg]
     (let [[node-id trig-id value] (:args msg)
           handler (get @trigger-handlers* [node-id trig-id])]
-      (handler node-id trig-id value))))
+      (if handler
+        (handler node-id trig-id value)))))
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
