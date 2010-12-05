@@ -307,16 +307,6 @@
 (defn- inf? [obj]
   (:infinite-sequence (meta obj)))
 
-(defn- mapply [f coll-coll]
-  (map #(apply f %) coll-coll))
-
-(defn parallel-seqs
-  "takes n seqs and returns a seq of vectors of length n, lazily
-   (take 4 (parallel-seqs (repeat 5)
-                          (cycle [1 2 3]))) => ([5 1] [5 2] [5 3] [5 1])"
-  [seqs]
-  (apply map vector seqs))
-
 ; Does it really make sense to cycle over the values of a collection when
 ; doing expansion?  I don't think maps should be allowed as arguments, unless
 ; this is a strategy at having named arguments, but then the ordering wouldn't
