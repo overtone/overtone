@@ -8,11 +8,11 @@
         env (env-gen (perc 0.1 dur) :action :free)]
     (out 0 (pan2 (* 0.1 low env filt)))))
 
-(dotimes [i 10]
-  (foo (* i 220) 2)
-  (Thread/sleep 800))
-
-(reset)
+;(dotimes [i 10]
+;  (foo (* i 220) 2)
+;  (Thread/sleep 800))
+;
+;(reset)
 
 ; Some of the examples gathered here were found on this page:
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
@@ -28,13 +28,9 @@
         audio (* amp env sig)]
     (out out-bus audio)))
 
-(overpad 0 62 0.5 5)
+;(overpad 0 62 0.5 5)
 
 (def metro (metronome 128))
-
-
-(defn foo [a b]
-  (+ a b))
 
 (definst kick []
   (let [src (sin-osc 100)
