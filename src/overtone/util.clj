@@ -35,7 +35,7 @@
 (defn floatify
   "Convert all numbers in col to floats."
   [col]
-  (map #(cond 
+  (map #(cond
           (number? %1) (float %1)
           (true? %1) (float 1)
           (false? %1) (float 0)
