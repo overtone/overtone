@@ -21,10 +21,10 @@
 (def UGEN-RATE-SORT-FN
   (zipmap UGEN-RATE-PRECEDENCE (range (count UGEN-RATE-PRECEDENCE))))
 
-(def NO-ARG-DOC-FOUND "Sorry, missing docstring")
+(def NO-ARG-DOC-FOUND "-")
 
 (def DEFAULT-ARG-DOCS
-  {"bufnum" "buf bum"})
+  {"bufnum" "The index of the buffer to use."})
 
 (def DOC-WIDTH 60)
 
