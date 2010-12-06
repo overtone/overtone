@@ -24,17 +24,6 @@ volume and per synth-track control
 
 ## General
 
-* make things work where there are multiple "roots" in a synthdef graph
- - got around it for now, but we want this for spectrograms...
-
-* figure out if the play-buf ugen should be able to have the number of channels
-as an input parameter, in which case we need to modify the num-outs mode.
-
-* do something different with overtone.live rather than the immigrate stuff so
-we can more easily develop in Overtone libs and then use or require just what
-we are changing (currently their are conflicts because vars overshadow the
-immigrated vars in overtone.live)
-
 * create a function that prints out the currently running synths
  - maybe use node-tree + info from the synth-groups
 

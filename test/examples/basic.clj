@@ -18,13 +18,14 @@
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
 ; which come originally from the book Designing Sound by Andy Farnell.
 
-(definst overpad [out-bus 0 note 60 amp 0.4 rel 0.3]
+(definst overpad [out-bus 0 note 60 amp 0.7 a 0.001 rel 0.5]
   (let [freq (midicps note)
-        env (env-gen (perc 0.1 rel) 1 1 0 1 :free)
+        env (env-gen (perc a rel) 1 1 0 1 :free)
+        f-env (+ freq (* 3 freq (env-gen (perc 0.12 (- rel 0.1)))))
         bfreq (/ freq 2)
         sig (apply +
-                   (concat (* 0.4 (sin-osc [bfreq (* 0.99 bfreq)]))
-                           (lpf (saw [freq (* freq 1.01)]) freq)))
+                   (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
+                           (lpf (saw [freq (* freq 1.01)]) f-env)))
         audio (* amp env sig)]
     (out out-bus audio)))
 
@@ -42,7 +43,8 @@
                 [50 55 53 50]
                 notes)]
     (at (metro beat)
-        (kick)
+        (kick))
+    (at (metro (+ 0.5 beat))
         (overpad 0 (choose notes) 0.5 0.5))
   (apply-at #'player (metro (inc beat)) (inc beat) (next notes))))
 

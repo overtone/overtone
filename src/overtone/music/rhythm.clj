@@ -2,9 +2,7 @@
   ^{:doc "Functions to help work with musical time."
      :author "Jeff Rose"}
   overtone.music.rhythm
-  (:import 
-    [java.util Timer TimerTask])
-  (:use 
+  (:use
     [overtone.sc core]
     [overtone time-utils]))
 
@@ -40,7 +38,7 @@
     (fn
       ([] (inc (long (/ (- (now) start) @tick-ms))))
       ([beat] (+ (* beat @tick-ms) start))
-      ([_ bpm] (reset! tick-ms bpm)))))
+      ([_ bpm] (reset! tick-ms (beat-ms 1 bpm))))))
 
 ;== Grooves
 ;
