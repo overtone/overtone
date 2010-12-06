@@ -1,34 +1,24 @@
 (ns
-  ^{:doc "UGens, or Unit Generators, are the functions that act as DSP nodes in the synthesizer definitions used by SuperCollider.  We generate the UGen functions based on hand written metadata about each ugen (ugen directory). (Eventually we hope to get this information dynamically from the server.)"
-     :author "Jeff Rose & Christophe McKeon"}
+    ^{:doc "UGens, or Unit Generators, are the functions that act as DSP nodes in the synthesizer definitions used by SuperCollider.  We generate the UGen functions based on hand written metadata about each ugen (ugen directory). (Eventually we hope to get this information dynamically from the server.)"
+      :author "Jeff Rose & Christophe McKeon"}
   overtone.sc.ugen
   (:refer-clojure :exclude (deftype))
+
   (:use
-    clojure.contrib.pprint
-    [overtone util]
-    [overtone.sc.ugen special-ops common categories]
-    [clojure.contrib.types :only (deftype)]
-    [clojure.contrib.generic :only (root-type)])
+   clojure.contrib.pprint
+   overtone.sc.ugen.defaults
+   [overtone util]
+   [overtone.sc.ugen special-ops common categories]
+   [clojure.contrib.types :only (deftype)]
+   [clojure.contrib.generic :only (root-type)])
+
   (:require
-    overtone.sc.core
-    [clojure.set :as set]
-    [clojure.contrib.generic.arithmetic :as ga]
-    [clojure.contrib.generic.comparison :as gc]
-    [clojure.contrib.generic.math-functions :as gm]))
-
-;; Outputs have a specified calculation rate
-;;   0 = scalar rate - one sample is computed at initialization time only.
-;;   1 = control rate - one sample is computed each control period.
-;;   2 = audio rate - one sample is computed for each sample of audio output.
-(def RATES {:ir 0
-            :kr 1
-            :ar 2
-            :dr 3})
-
-(def REVERSE-RATES (invert-map RATES))
-
-(def UGEN-RATE-PRECEDENCE [:ir :dr :ar :kr])
-(def UGEN-DEFAULT-RATES #{:ar :kr})
+   overtone.sc.core
+   [overtone.sc.ugen.doc :as doc]
+   [clojure.set :as set]
+   [clojure.contrib.generic.arithmetic :as ga]
+   [clojure.contrib.generic.comparison :as gc]
+   [clojure.contrib.generic.math-functions :as gm]))
 
 (def UGEN-SPEC-EXPANSION-MODES
   {:not-expanded false
@@ -227,7 +217,9 @@
     (with-categories)
     (with-expands)
     (with-init-fn)
-    (with-fn-names)))
+    (with-fn-names)
+    (doc/with-arg-defaults)
+    (doc/with-full-doc)))
 
 (defn- specs-from-namespaces [namespaces]
   (reduce (fn [mem ns]
@@ -257,6 +249,8 @@
     io machine-listening misc osc beq-suite chaos control demand
     ff-osc fft info noise pan trig line input filter random])
 
+
+
 (def UGEN-SPECS (load-ugen-specs UGEN-NAMESPACES))
 (def UGEN-SPEC-MAP (zipmap
                      (map #(normalize-ugen-name (:name %)) UGEN-SPECS)
@@ -270,31 +264,6 @@
        (filter (fn [[k v]] (re-find (re-pattern (normalize-ugen-name regexp))
                                     (str k)))
                UGEN-SPEC-MAP)))
-
-(defn- print-ugen-args [args]
-  (let [name-vals (map #(str (:name %) " " (:default %)) args)
-        line (apply str (interpose ", " name-vals))]
-    (println "[" line "]")))
-
-(defn- print-ugen-categories [cats]
-  (doseq [cat cats]
-    (println (apply str (interpose " -> " cat)))))
-
-(def UGEN-RATE-SORT-FN
-  (zipmap UGEN-RATE-PRECEDENCE (range (count UGEN-RATE-PRECEDENCE))))
-
-(defn- print-ugen-rates [rates]
-  (let [rates (sort-by UGEN-RATE-SORT-FN rates)]
-    (println (str "[ " (apply str (interpose ", " rates)) " ]"))))
-
-(defn print-ugen [& ugens]
-  (doseq [ugen ugens]
-    (print-ugen-args (:args ugen))
-    (println " " (:doc ugen))
-    (print "  Categories: ")
-    (print-ugen-categories (:categories ugen))
-    (print "  Rates: ")
-    (print-ugen-rates (:rates ugen))))
 
 (defn inf!
   "users use this to tag infinite sequences for use as
@@ -440,10 +409,6 @@
 (defn control? [obj]
   (isa? (type obj) ::control))
 
-(defn- ugen-docs
-  "Create a string representing the documentation for the given ugen-spec."
-  [ugen-spec]
-  (with-out-str (print-ugen ugen-spec)))
 
 (defn- overload-ugen-op [ns ugen-name ugen-fn]
   (let [original-fn (ns-resolve ns ugen-name)]
@@ -459,7 +424,7 @@
     * base-name plus rate suffix functions for each rate (e.g. env-gen:ar, env-gen:kr)
   "
   [to-ns spec special]
-  (let [metadata {:doc (ugen-docs spec)
+  (let [metadata {:doc (:full-doc spec)
                   :arglists (list (vec (map #(symbol (:name %))
                                             (:args spec))))}
         ugen-fns (map (fn [[uname rate]] [(with-meta (symbol uname) metadata)
@@ -477,7 +442,7 @@
   [to-ns op-name special]
   (let [spec (get UGEN-SPEC-MAP "unaryopugen")
         ugen-name (symbol (overtone-ugen-name op-name))
-        ugen-name (with-meta ugen-name {:doc (ugen-docs spec)})
+        ugen-name (with-meta ugen-name {:doc (:full-doc spec)})
         ugen-fn (fn [arg]
                   (ugen spec (op-rate arg) special (list arg)))
         ugen-fn (make-expanding ugen-fn [true])]
@@ -489,7 +454,7 @@
   [to-ns op-name special]
   (let [spec (get UGEN-SPEC-MAP "binaryopugen")
         ugen-name (symbol (overtone-ugen-name op-name))
-        ugen-name (with-meta ugen-name {:doc (ugen-docs spec)})
+        ugen-name (with-meta ugen-name {:doc (:full-doc spec)})
         ugen-fn (fn [a b]
                   (ugen spec (max (op-rate a) (op-rate b)) special (list a b)))
         ugen-fn (make-expanding ugen-fn [true true])]
@@ -568,3 +533,5 @@
      ~@body))
 
 (load "ugen/extra")
+
+

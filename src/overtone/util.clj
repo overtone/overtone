@@ -172,7 +172,7 @@
   [m]
   (apply hash-map (interleave (vals m) (keys m))))
 
-(defn- mapply [f coll-coll]
+(defn mapply [f coll-coll]
   (map #(apply f %) coll-coll))
 
 (defn parallel-seqs

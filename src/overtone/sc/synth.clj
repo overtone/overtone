@@ -9,6 +9,7 @@
             [clojure.contrib.generic.arithmetic :as ga])
   (:use
      [overtone util event]
+     [overtone.sc.ugen defaults]
      [overtone.sc core ugen synthdef]
      [clojure walk inspector]
      [clojure.contrib.seq-utils :only (indexed)]))

@@ -1,6 +1,7 @@
 (ns overtone.studio.core
   (:use
     [overtone util event time-utils]
+    [overtone.sc.ugen.defaults]
     [overtone.sc core synth ugen envelope]
     [overtone.music rhythm]))
 

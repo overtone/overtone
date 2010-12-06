@@ -45,13 +45,19 @@
        :doc "sample playback from a buffer with fine control for doing granular synthesis"}
 
       {:name "BufRd",
-       :args [{:name "numChannels"    :default 1, :mode :num-outs}
-              {:name "bufnum",        :default 0}
-              {:name "phase",         :default 0.0}
-              {:name "loop",          :default 1.0}
-              {:name "interpolation", :default 2}]
+       :args [{:name "numChannels"    :default 1, :mode :num-outs,
+               :doc "The number of channels of the supplied buffer. This must be a fixed integer. The architecture of the SynthDef cannot change after it is compiled. (Warning: if you supply a bufnum of a buffer that has a different numChannels than you have specified to the BufRd, it will fail silently)."}
+              {:name "bufnum",        :default 0
+               :doc "The index of the buffer to use"}
+              {:name "phase",         :default 0.0
+               :doc "Audio rate modulatable index into the buffer. Warning: The phase argument only offers precision for addressing 2**24 samples (about 6.3 minutes at 44100Hz)"}
+              {:name "loop",          :default 1.0
+               :doc "1 means true, 0 means false.  This is modulatable."}
+              {:name "interpolation", :default 2
+               :doc "1 means no interpolation, 2 is linear, 4 is cubic interpolation"}]
        :check (when-ar (nth-input-ar 1))   ; check phase. NB numChannels has already been popped.
-       :doc "reads the contents of a buffer at a given index"}
+
+       :doc "reads the contents of a buffer at a given index."}
 
       {:name "BufWr",
        :args [{:name "inputArray", :mode :append-sequence}
