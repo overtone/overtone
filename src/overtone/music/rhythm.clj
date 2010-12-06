@@ -33,12 +33,17 @@
   with no arguments to get the next beat number, or pass it a beat number
   to get the timestamp to play a note at that beat."
   [bpm]
-  (let [start (now)
+  (let [start   (atom (now))
         tick-ms (atom (beat-ms 1 bpm))]
     (fn
-      ([] (inc (long (/ (- (now) start) @tick-ms))))
-      ([beat] (+ (* beat @tick-ms) start))
-      ([_ bpm] (reset! tick-ms (beat-ms 1 bpm))))))
+      ([] (inc (long (/ (- (now) @start) @tick-ms))))
+      ([beat] (+ (* beat @tick-ms) @start))
+      ([_ bpm] 
+       (let [tms (beat-ms 1 bpm)
+             cur-beat (long (/ (- (now) @start) @tick-ms))
+             new-start (- (now) (* tms cur-beat))]
+         (reset! tick-ms tms)
+         (reset! start new-start))))))
 
 ;== Grooves
 ;

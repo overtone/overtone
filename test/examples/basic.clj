@@ -34,9 +34,9 @@
 (def metro (metronome 128))
 
 (definst kick []
-  (let [src (sin-osc 100)
-        env (env-gen (perc 0.01 0.1) :action :free)]
-    (* 0.9 src env)))
+  (let [src (sin-osc 80)
+        env (env-gen (perc 0.001 0.02) :action :free)]
+    (* 0.7 src env)))
 
 (defn player [beat notes]
   (let [notes (if (empty? notes)
@@ -46,9 +46,9 @@
         (kick))
     (at (metro (+ 0.5 beat))
         (overpad 0 (choose notes) 0.5 0.5))
-  (apply-at #'player (metro (inc beat)) (inc beat) (next notes))))
+  (apply-at #'player (metro (inc beat)) (inc beat) [(next notes)])))
 
-(player (metro) [])
+;(player (metro) [])
 
 
 
@@ -93,7 +93,7 @@
             (overpad 0 note 0.3 (/ tick 1020))))
     (apply-at #'play-chords (+ t (- tick 50)) (+ t BEAT))))
 
-(play-chords (now))
+;(play-chords (now))
 
 (def kick (sample "/home/rosejn/studio/samples/kit/boom.wav"))
 ;(kick)
