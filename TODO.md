@@ -1,8 +1,3 @@
-* Implement support for multiple output ugens
- - for example, the (in bus n-chans) ugen for reading from a bus should have the number
-   of outputs as the number of channels you set.
-
-
 ## Studio
 
 * route all synths and samplers to a main mixer bus, providing panning, EQ, and
@@ -28,17 +23,6 @@ volume and per synth-track control
 * implement a portamento helper on top of slew
 
 ## General
-
-* make things work where there are multiple "roots" in a synthdef graph
- - got around it for now, but we want this for spectrograms...
-
-* figure out if the play-buf ugen should be able to have the number of channels
-as an input parameter, in which case we need to modify the num-outs mode.
-
-* do something different with overtone.live rather than the immigrate stuff so
-we can more easily develop in Overtone libs and then use or require just what
-we are changing (currently their are conflicts because vars overshadow the
-immigrated vars in overtone.live)
 
 * create a function that prints out the currently running synths
  - maybe use node-tree + info from the synth-groups

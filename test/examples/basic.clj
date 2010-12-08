@@ -8,49 +8,47 @@
         env (env-gen (perc 0.1 dur) :action :free)]
     (out 0 (pan2 (* 0.1 low env filt)))))
 
-(dotimes [i 10]
-  (foo (* i 220) 2)
-  (Thread/sleep 800))
-
-(reset)
+;(dotimes [i 10]
+;  (foo (* i 220) 2)
+;  (Thread/sleep 800))
+;
+;(reset)
 
 ; Some of the examples gathered here were found on this page:
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
 ; which come originally from the book Designing Sound by Andy Farnell.
 
-(definst overpad [out-bus 0 note 60 amp 0.4 rel 0.3]
+(definst overpad [out-bus 0 note 60 amp 0.7 a 0.001 rel 0.5]
   (let [freq (midicps note)
-        env (env-gen (perc 0.1 rel) 1 1 0 1 :free)
+        env (env-gen (perc a rel) 1 1 0 1 :free)
+        f-env (+ freq (* 3 freq (env-gen (perc 0.12 (- rel 0.1)))))
         bfreq (/ freq 2)
         sig (apply +
-                   (concat (* 0.4 (sin-osc [bfreq (* 0.99 bfreq)]))
-                           (lpf (saw [freq (* freq 1.01)]) freq)))
+                   (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
+                           (lpf (saw [freq (* freq 1.01)]) f-env)))
         audio (* amp env sig)]
     (out out-bus audio)))
 
-(overpad 0 62 0.5 5)
+;(overpad 0 62 0.5 5)
 
 (def metro (metronome 128))
 
-
-(defn foo [a b]
-  (+ a b))
-
 (definst kick []
-  (let [src (sin-osc 100)
-        env (env-gen (perc 0.01 0.1) :action :free)]
-    (* 0.9 src env)))
+  (let [src (sin-osc 80)
+        env (env-gen (perc 0.001 0.02) :action :free)]
+    (* 0.7 src env)))
 
 (defn player [beat notes]
   (let [notes (if (empty? notes)
                 [50 55 53 50]
                 notes)]
     (at (metro beat)
-        (kick)
+        (kick))
+    (at (metro (+ 0.5 beat))
         (overpad 0 (choose notes) 0.5 0.5))
-  (apply-at #'player (metro (inc beat)) (inc beat) (next notes))))
+  (apply-at #'player (metro (inc beat)) (inc beat) [(next notes)])))
 
-(player (metro) [])
+;(player (metro) [])
 
 
 
@@ -95,7 +93,7 @@
             (overpad 0 note 0.3 (/ tick 1020))))
     (apply-at #'play-chords (+ t (- tick 50)) (+ t BEAT))))
 
-(play-chords (now))
+;(play-chords (now))
 
 (def kick (sample "/home/rosejn/studio/samples/kit/boom.wav"))
 ;(kick)
