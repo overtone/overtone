@@ -27,7 +27,6 @@
        :args [{:name "bufnum"}
               {:name "channelsArray" :mode :append-sequence}],
        :rates #{:ar},
-       :num-outs 0
        :check (all-but-first-input-ar "channelsArray must all be audio rate")
        :doc "stream audio out to disk file"}
 
