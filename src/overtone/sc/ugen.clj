@@ -307,9 +307,6 @@
 (defn- inf? [obj]
   (:infinite-sequence (meta obj)))
 
-(defn- mapply [f coll-coll]
-  (map #(apply f %) coll-coll))
-
 (defn parallel-seqs
   "takes n seqs and returns a seq of vectors of length n, lazily
    (take 4 (parallel-seqs (repeat 5)
