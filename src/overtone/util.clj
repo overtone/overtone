@@ -172,5 +172,9 @@
   [m]
   (apply hash-map (interleave (vals m) (keys m))))
 
-(defn mapply [f coll-coll]
+(defn mapply
+  "Takes a fn and a seq of seqs and returns a seq representing the application of the fn on each sub-seq
+
+   (mapply + [[1 2 3] [4 5 6] [7 8 9]]) ;=> [6 15 24]"
+  [f coll-coll]
   (map #(apply f %) coll-coll))
