@@ -287,11 +287,11 @@
       ;; 	}
       ;; }
 
-      {:name "MulAdd",
-       :args [{:name "in"}
-              {:name "mul", :default 1.0}
-              {:name "add", :default 0.0}]
-       :doc "Multiply and add, equivalent to (+ add (* mul in))"}
+      ;{:name "MulAdd",
+      ; :args [{:name "in"}
+      ;        {:name "mul", :default 1.0}
+      ;        {:name "add", :default 0.0}]
+      ; :doc "Multiply and add, equivalent to (+ add (* mul in))"}
 
       ])
 
