@@ -548,7 +548,7 @@
         {:keys [header samples n-frames start-frame leave-open]} arg-map]
     (snd "/b_write" (:id buf) path header samples
          n-frames start-frame
-         leave-open)
+         (if leave-open 1 0))
     :done))
 
 (defmulti buffer-id type)

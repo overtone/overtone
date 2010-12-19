@@ -43,7 +43,8 @@
              cur-beat (long (/ (- (now) @start) @tick-ms))
              new-start (- (now) (* tms cur-beat))]
          (reset! tick-ms tms)
-         (reset! start new-start))))))
+         (reset! start new-start))
+       [:bpm bpm]))))
 
 ;== Grooves
 ;
