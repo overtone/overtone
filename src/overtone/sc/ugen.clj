@@ -507,13 +507,16 @@
 ; We define this uniquely because it has to be smart about its rate.
 ; TODO: I think this should probably be handled by one of the ugen modes
 ; that is currently not yet implemented...
-(defn- mul-add [in mul add]
-  (with-meta {:id (next-id :ugen)
-              :name "MulAdd"
-              :rate (or (:rate in) 2)
-              :special 0
-              :args [in mul add]}
-             {:type ::ugen}))
+(def mul-add 
+  (make-expanding 
+    (fn [in mul add]
+      (ugen {:name "MulAdd",
+                       :args [{:name "in"}
+                              {:name "mul", :default 1.0}
+                              {:name "add", :default 0.0}]
+                       :doc "Multiply and add, equivalent to (+ add (* mul in))"}
+            (op-rate in) 0 (list in mul add)))
+    [true true true]))
 
 (load "ugen/generic_ops")
 
@@ -530,7 +533,7 @@
       (def-unary-op to-ns op-name special))
     (doseq [[op-name special] BINARY-OPS]
       (def-binary-op to-ns op-name special))
-    (intern to-ns 'mul-add (make-expanding mul-add [true true true]))
+    ;(intern to-ns 'mul-add (make-expanding mul-add [true true true]))
     ;(refer 'overtone.sc.ugen.extra)
     ))
 
