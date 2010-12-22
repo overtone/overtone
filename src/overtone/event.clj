@@ -21,9 +21,12 @@
   [handler-ref* event-type key handler]
   (log/debug "adding-handler for " event-type)
   (dosync
-    (let [handlers (get @handler-ref* event-type {})]
-      (alter handler-ref* assoc event-type (assoc handlers key [handler (arg-count handler)]))
-      true)))
+   (let [handlers (get @handler-ref* event-type {})
+         arity (if (= clojure.lang.Var (class handler)) -1 (arg-count handler))]
+     (println "registering handler with arity: " arity " and class: " (class handler))
+
+     (alter handler-ref* assoc event-type (assoc handlers key [handler arity]))
+     true)))
 
 (defn on-event
   "Takes an event-type (name of the event) a key (to refer back to this handler in the future) and a handler fn.
@@ -70,11 +73,15 @@
   nil)
 
 (defn- run-handler-with-known-arity [[f arity] & args]
-  (try
-    (apply f (take arity args))
-    (catch Exception e
-      (log/debug "Handler Exception - got args:" args"\n"
-                 (with-out-str (.printStackTrace e))))))
+  "Expects a tuple of fn with arity and applies fn to the first  arity number of args. If arity
+   is -1 it assumes that the fn is a var and so calculates arity on the fly allowing for the
+   potential rebinding of the fn with a different arity."
+  (let [arity (if (= arity -1) (arg-count @f) arity)]
+    (try
+      (apply f (take arity args))
+      (catch Exception e
+        (log/debug "Handler Exception - got args:" args"\n"
+                   (with-out-str (.printStackTrace e)))))))
 
 (defn- handle-event
   "Runs the event handlers for the given event, and removes any handler that returns :done."
