@@ -22,7 +22,7 @@
   (log/debug "adding-handler for " event-type)
   (dosync
    (let [handlers (get @handler-ref* event-type {})
-         arity (if (= clojure.lang.Var (class handler)) -1 (arg-count handler))]
+         arity (if (var? handler) -1 (arg-count handler))]
      (alter handler-ref* assoc event-type (assoc handlers key [handler arity]))
      true)))
 
