@@ -22,7 +22,7 @@
   (log/debug "adding-handler for " event-type)
   (dosync
     (let [handlers (get @handler-ref* event-type {})]
-      (alter handler-ref* assoc event-type (assoc handlers key handler))
+      (alter handler-ref* assoc event-type (assoc handlers key [handler (arg-count handler)]))
       true)))
 
 (defn on-event
@@ -69,6 +69,13 @@
     (alter sync-event-handlers* dissoc event-type))
   nil)
 
+(defn- run-handler-with-known-arity [[f arity] & args]
+  (try
+    (apply f (take arity args))
+    (catch Exception e
+      (log/debug "Handler Exception - got args:" args"\n"
+                 (with-out-str (.printStackTrace e))))))
+
 (defn- handle-event
   "Runs the event handlers for the given event, and removes any handler that returns :done."
   [handlers* event]
@@ -78,7 +85,7 @@
         _ (log/debug "handlers: " handlers)
         drop-keys (doall (map first
                               (filter (fn [[k handler]]
-                                        (= :done (run-handler handler event)))
+                                        (= :done (run-handler-with-known-arity handler event)))
                                       handlers)))]
     (dosync
       (alter handlers* assoc event-type
