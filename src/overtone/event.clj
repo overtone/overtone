@@ -23,8 +23,6 @@
   (dosync
    (let [handlers (get @handler-ref* event-type {})
          arity (if (= clojure.lang.Var (class handler)) -1 (arg-count handler))]
-     (println "registering handler with arity: " arity " and class: " (class handler))
-
      (alter handler-ref* assoc event-type (assoc handlers key [handler arity]))
      true)))
 
