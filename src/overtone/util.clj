@@ -83,11 +83,13 @@
     (alength p)))
 
 (defn run-handler [handler & args]
-  (try
-    (apply handler (take (arg-count handler) args))
-    (catch Exception e
-      (log/debug "Handler Exception - got args:" args"\n"
-                 (with-out-str (.printStackTrace e))))))
+  ;;deref vars so arg-count works correctly
+  (let [handler (if (var? handler) @handler handler)]
+    (try
+      (apply handler (take (arg-count handler) args))
+      (catch Exception e
+        (log/debug "Handler Exception - got args:" args"\n"
+                   (with-out-str (.printStackTrace e)))))))
 
 (defn map-vals [f m]
   (zipmap (keys m)
