@@ -83,11 +83,13 @@
     (alength p)))
 
 (defn run-handler [handler & args]
-  (try
-    (apply handler (take (arg-count handler) args))
-    (catch Exception e
-      (log/debug "Handler Exception - got args:" args"\n"
-                 (with-out-str (.printStackTrace e))))))
+  ;;deref vars so arg-count works correctly
+  (let [handler (if (var? handler) @handler handler)]
+    (try
+      (apply handler (take (arg-count handler) args))
+      (catch Exception e
+        (log/debug "Handler Exception - got args:" args"\n"
+                   (with-out-str (.printStackTrace e)))))))
 
 (defn map-vals [f m]
   (zipmap (keys m)
@@ -172,7 +174,11 @@
   [m]
   (apply hash-map (interleave (vals m) (keys m))))
 
-(defn mapply [f coll-coll]
+(defn mapply
+  "Takes a fn and a seq of seqs and returns a seq representing the application of the fn on each sub-seq
+
+   (mapply + [[1 2 3] [4 5 6] [7 8 9]]) ;=> [6 15 24]"
+  [f coll-coll]
   (map #(apply f %) coll-coll))
 
 (defn parallel-seqs
