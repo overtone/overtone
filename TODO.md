@@ -10,6 +10,7 @@ something in headphones to try it out.
 * create a basic EQ that can be used on any track
 
 * basic record functionality for root group
+ - Sam's disk-out examples
 
 * create a basic volume and pan control node that can be used for the master
 volume and per synth-track control

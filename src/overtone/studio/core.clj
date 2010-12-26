@@ -93,7 +93,7 @@
     (list 'def i-name ;(with-meta i-name md)
        `(inst ~i-name ~params ~ugen-form))))
 
-(defmethod overtone.sc.core/kill :overtone.studio/instrument
+(defmethod overtone.sc.core/kill :overtone.studio.core/instrument
   [& args]
   (doseq [inst args]
     (group-clear (:group inst))))
