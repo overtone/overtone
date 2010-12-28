@@ -72,8 +72,8 @@
 
 (def *APPLY-AHEAD* 150)
 
-(defn apply-at 
-  {:arglists '([f args* argseq])}
+(defn apply-at
+  {:arglists '([f ms-time args* argseq])}
   [#^clojure.lang.IFn f ms-time & args]
   (let [delay-time (- ms-time *APPLY-AHEAD* (now))]
     (if (<= delay-time 0)
