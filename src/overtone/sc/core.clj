@@ -664,14 +664,20 @@
      (let [note# (hit (now) "audition-synth")]
        (at (+ (now) 1000) (node-free note#)))))
 
-(defn ctl
-  "Modify synth parameters, optionally at a specified time.
 
-  (hit :sin :pitch 50) => 1000
-  (ctl 1000 :pitch 40)
-  (ctl 1000 :pitch 60)
+(defn- synth-kind
+  "Resolve synth kind depending on type of arguments. Intended for use as a multimethod dispatch fn"
+  [& args]
+  (cond
+   (number? (first args)) :number
+   (associative? (first args)) (:type (first args))
+   :else (type (first args))))
 
-  "
+(defmulti ctl
+  "Modify synth parameters, optionally at a specified time."
+  synth-kind)
+
+(defmethod ctl :number
   [synth-id & ctls]
   (apply node-control synth-id ctls))
 
@@ -691,10 +697,7 @@
   ; or a seq of synth handles can be removed at once
   (kill [(hit) (hit) (hit)])
   "
-  (fn [& args] (cond
-                 (number? (first args)) :number
-                 (associative? (first args)) (:type (first args))
-                 :else (type (first args)))))
+  synth-kind)
 
 (defmethod kill :number
   [& ids]

@@ -98,6 +98,10 @@
   (doseq [inst args]
     (group-clear (:group inst))))
 
+(defmethod overtone.sc.core/ctl :overtone.studio.core/instrument
+  [inst & ctls]
+  (apply node-control (:group inst) ctls))
+
 (if (and (nil? @inst-group*)
          (connected?))
   (dosync (ref-set inst-group* (group :head ROOT-GROUP))))
