@@ -771,3 +771,14 @@
                        args
                        (name-synth-args args arg-names))]
         (apply tgt-fn named-args))))
+
+(defn booted?
+  "Returns true or false depending on whether scsynth has booted"
+  []
+  @running?*)
+
+(defn wait-until-booted
+  "Makes the current thread sleep until scsynth has successfully booted"
+  []
+  (while (not (booted?))
+    (Thread/sleep 100)))
