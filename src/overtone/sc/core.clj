@@ -27,7 +27,7 @@
 ; Max number of milliseconds to wait for a reply from the server
 (defonce REPLY-TIMEOUT 500)
 
-; Server limits
+;; ## SCSynth limits
 (defonce MAX-NODES 1024)
 (defonce MAX-BUFFERS 1024)
 (defonce MAX-SDEFS 1024)
@@ -35,15 +35,19 @@
 (defonce MAX-CONTROL-BUS 4096)
 (defonce MAX-OSC-SAMPLES 8192)
 
-; We use bit sets to store the allocation state of resources on the audio server.
-; These typically get allocated on usage by the client, and then freed either by
-; client request or automatically by receiving notifications from the server.
-; (e.g. When an envelope trigger fires to free a synth.)
-(defonce allocator-bits
-  {:node         (BitSet. MAX-NODES)
-   :audio-buffer (BitSet. MAX-BUFFERS)
-   :audio-bus    (BitSet. MAX-NODES)
-   :control-bus  (BitSet. MAX-NODES)})
+;; ## Allocators 
+;;
+;; We use bit sets to store the allocation state of resources
+;; on the audio server.  These typically get allocated on usage by the client,
+;; and then freed either by client request or automatically by receiving
+;; notifications from the server.  (e.g. When an envelope trigger fires to
+;; free a synth.)
+(defonce allocator-bits {:node         (BitSet. MAX-NODES) :audio-buffer
+                         (BitSet. MAX-BUFFERS) :audio-bus    (BitSet.
+                                                               MAX-NODES)
+                                                               :control-bus
+                                                               (BitSet.
+                                                                 MAX-NODES)})
 
 (defonce allocator-limits
   {:node        MAX-NODES
@@ -115,6 +119,8 @@
 (on-sync-event :osc-msg-received ::osc-logger
                (fn [{:keys [path args] :as msg}]
                  (swap! osc-log* #(conj % msg))))
+
+;; ## SCSynth Communication
 (defmacro at
   "All messages sent within the body will be sent in the same timestamped OSC
   bundle.  This bundling is thread-local, so you don't have to worry about
@@ -131,7 +137,7 @@
   (log/debug "(snd " path args ")")
   (if (connected?)
     (apply osc-send @server* path args)
-    (log/debug "### trying to snd while disconnected! ###")))
+    (log/debug "## trying to snd while disconnected! ##")))
 
 (defn debug
   "Control debug output from both the Overtone and the audio server."
@@ -146,18 +152,21 @@
       (osc-debug false)
       (snd "/dumpOSC" 0))))
 
-; Trigger Notifications
-;
-; This command is the mechanism that synths can use to trigger events in
-; clients.  The node ID is the node that is sending the trigger. The trigger ID
-; and value are determined by inputs to the SendTrig unit generator which is
-; the originator of this message.
-;
-; /tr a trigger message
-;
-;   int - node ID
-;   int - trigger ID
-;   float - trigger value
+;; ## Trigger Notifications
+;;
+;; This is the mechanism that synths can use to trigger client side events.
+;; The node ID is the node that is sending the trigger. The trigger ID
+;; and value are determined by inputs to the SendTrig unit generator which is
+;; the originator of this message.
+;;
+;;      (defsynth trigger-finger []
+;;        (send-trig:kr 
+;;          (impulse:kr 0.2) 
+;;          200 
+;;          (num-running-synths)))
+;;  
+;;      (on-trigger 15 200 #(println "trigger: " %))
+
 (defonce trigger-handlers* (ref {}))
 
 (defn on-trigger [node-id trig-id f]
@@ -166,12 +175,21 @@
 (defn remove-trigger [node-id trig-id]
   (dosync (alter trigger-handlers* dissoc [node-id trig-id])))
 
+;; /tr a trigger message
+;;
+;;   int - node ID
+;;   int - trigger ID
+;;   float - trigger value
 (on-event "/tr" ::trig-handler
   (fn [msg]
     (let [[node-id trig-id value] (:args msg)
           handler (get @trigger-handlers* [node-id trig-id])]
       (if handler
         (handler node-id trig-id value)))))
+
+;; ## Synth Node Status
+;; SCSynth sends n_end and n_go messages to the client to notify it when
+;; synth nodes are created and destroyed.
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
@@ -218,7 +236,7 @@
     p))
 
 (defn await-promise
-    "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Returns :timeout if a timeout occurs."
+  "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Returns :timeout if a timeout occurs."
     ([prom] (await-promise prom REPLY-TIMEOUT))
     ([prom timeout]
        (try
@@ -227,7 +245,7 @@
            :timeout))))
 
 (defn await-promise!
-    "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Raises an exception if the message hasn't been received within timeout ms"
+  "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Raises an exception if the message hasn't been received within timeout ms"
     ([prom] (await-promise prom REPLY-TIMEOUT))
     ([prom timeout]
        (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
@@ -245,17 +263,17 @@
 
 (def STATUS-TIMEOUT 500)
 
-;Replies to sender with the following message.
-;status.reply
-;	int - 1. unused.
-;	int - number of unit generators.
-;	int - number of synths.
-;	int - number of groups.
-;	int - number of loaded synth definitions.
-;	float - average percent CPU usage for signal processing
-;	float - peak percent CPU usage for signal processing
-;	double - nominal sample rate
-;	double - actual sample rate
+;;Replies to sender with the following message.
+;;status.reply
+;;	int - 1. unused.
+;;	int - number of unit generators.
+;;	int - number of synths.
+;;	int - number of groups.
+;;	int - number of loaded synth definitions.
+;;	float - average percent CPU usage for signal processing
+;;	float - peak percent CPU usage for signal processing
+;;	double - nominal sample rate
+;;	double - actual sample rate
 (defn status
   "Check the status of the audio server."
   []
@@ -311,15 +329,17 @@
 ; have executed.  For now we just use 500ms.
 (defonce _shutdown-hook (.addShutdownHook (Runtime/getRuntime) (Thread. #(do (quit) (Thread/sleep 500)))))
 
-; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists
-; and group zero is the root of the graph.  Nodes can be added to a group in
-; one of these 5 positions relative to either the full list, or a specified node.
+;; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists
+;; and group zero is the root of the graph.  Nodes can be added to a group in
+;; one of these 5 positions relative to either the full list, or a specified node.
 (def POSITION
   {:head         0
    :tail         1
    :before-node  2
    :after-node   3
    :replace-node 4})
+
+;; ## Node creation and manipulation functions
 
 ;; Sending a synth-id of -1 lets the server choose an ID
 (defn node
@@ -352,22 +372,6 @@
   {:pre [(connected?)]}
   (apply snd "/n_free" node-ids)
   (doseq [id node-ids] (free-id :node id)))
-
-(defn group
-  "Create a new synth group as a child of the target group."
-  [position target-id]
-  {:pre [(connected?)]}
-  (let [id (alloc-id :node)
-        pos (if (keyword? position) (get POSITION position) position)
-        pos (or pos 1)]
-    (snd "/g_new" id pos target-id)
-    id))
-
-(defn group-free
-  "Free synth groups, releasing their resources."
-  [& group-ids]
-  {:pre [(connected?)]}
-  (apply node-free group-ids))
 
 (defn node-run
   "Start a stopped synth node."
@@ -440,6 +444,24 @@
   [g n]
   (snd "/g_tail" g n))
 
+;; ## Group manipulation functions
+
+(defn group
+  "Create a new synth group as a child of the target group."
+  [position target-id]
+  {:pre [(connected?)]}
+  (let [id (alloc-id :node)
+        pos (if (keyword? position) (get POSITION position) position)
+        pos (or pos 1)]
+    (snd "/g_new" id pos target-id)
+    id))
+
+(defn group-free
+  "Free synth groups, releasing their resources."
+  [& group-ids]
+  {:pre [(connected?)]}
+  (apply node-free group-ids))
+
 (defn group-clear
   "Free all child synth nodes in a group."
   [group-id]
@@ -466,9 +488,11 @@
                  (handler)
                  :done))))
 
-; TODO: Look into multi-channel buffers.  Probably requires adding multi-id allocation
-; support to the bit allocator too...
-; size is in samples
+;; ## Buffer functions
+;;
+;; TODO: Look into multi-channel buffers.  Probably requires adding multi-id allocation
+;; support to the bit allocator too...
+;; size is in samples
 (defn buffer
   "Allocate a new buffer for storing audio data."
   [size & [channels]]
@@ -575,6 +599,8 @@
 (defn sample-info [s]
   (buffer-info (:buf s)))
 
+;; ## Synthdef Functions
+
 (defonce loaded-synthdefs* (ref {}))
 
 (defn load-synthdef
@@ -620,40 +646,6 @@
   (reset)
   (quit)
   (boot))
-
-(defmulti hit-at (fn [& args] (type (second args))))
-
-(defmethod hit-at String [time-ms synth & args]
-  (at time-ms (apply node synth args)))
-
-(defmethod hit-at clojure.lang.Keyword [time-ms synth & args]
-  (at time-ms (apply node (name synth) args)))
-
-(defmethod hit-at ::sample [time-ms synth & args]
-  (apply hit-at time-ms "granular" :buf (get-in synth [:buf :id]) args))
-
-(defmethod hit-at :default [& args]
-  (throw (Exception. (str "Hit doesn't know how to play the given synth type: " args))))
-
-; Turn hit into a multimethod
-; Convert samples to be a map object instead of an ID
-(defn hit
-  "Fire off a synth or sample at a specified time.
-  These are the same:
-  (hit :kick)
-  (hit \"kick\")
-  (hit (now) \"kick\")
-
-  Or you can get fancier like this:
-  (hit (now) :sin :pitch 60)
-  (doseq [i (range 10)] (hit (+ (now) (* i 250)) :sin :pitch 60 :dur 0.1))
-
-  "
-  ([] (hit-at (now) "ping" :pitch (choose [60 65 72 77])))
-  ([& args]
-   (apply hit-at (if (isa? (type (first args)) Number)
-                   args
-                   (cons (now) args)))))
 
 (defmacro check
   "Try out an anonymous synth definition.  Useful for experimentation.  If the
