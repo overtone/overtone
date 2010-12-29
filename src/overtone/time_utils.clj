@@ -68,13 +68,13 @@
 ;   By passing a function using #'foo syntax instead of just foo, when later
 ; called by the scheduler it will lookup based on the symbol rather than using
 ; the instance of the function defined earlier.
-; (apply-at #'my-melody (+ dur (now)) arg1 arg2)
+; (apply-at (+ dur (now)) #'my-melody arg1 arg2)
 
 (def *APPLY-AHEAD* 150)
 
-(defn apply-at 
-  {:arglists '([f args* argseq])}
-  [#^clojure.lang.IFn f ms-time & args]
+(defn apply-at
+  {:arglists '([ms-time f args* argseq])}
+  [#^clojure.lang.IFn ms-time f & args]
   (let [delay-time (- ms-time *APPLY-AHEAD* (now))]
     (if (<= delay-time 0)
       (apply f (#'clojure.core/spread args))
