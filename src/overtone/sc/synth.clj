@@ -231,9 +231,10 @@
   []
   (str "anon-" (next-id :anonymous-synth)))
 
-; TODO: Figure out how to generate the let-bindings rather than having them
-; hard coded here.
-(defmacro pre-synth [& args]
+(defn- normalize-synth-args
+  "Pull out and normalize the synth name, parameters, control proxies and the ugen form
+   from the supplied arglist resorting to defaults if necessary."
+  [args]
   (let [[sname args] (cond
                        (or (string? (first args))
                            (symbol? (first args))) [(str (first args)) (rest args)]
@@ -243,6 +244,13 @@
                              [[] args])
         params (vec (map #(if (symbol? %) (str %) %) params))
         param-proxies (control-proxies params)]
+    [sname params param-proxies ugen-form]))
+
+; TODO: Figure out how to generate the let-bindings rather than having them
+; hard coded here.
+(defmacro pre-synth
+  [& args]
+  (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
        (binding [*ugens* []
                  *constants* #{}]
