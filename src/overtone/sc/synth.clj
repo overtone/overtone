@@ -224,28 +224,32 @@
           []
           (partition 2 params)))
 
+(defn- gen-synth-name
+  "Auto generate an anonymous synth name. Intended for use in synths that have not
+   been defined with an explicit name. Has the form \"anon-id\" where id is a unique
+   integer across all anonymous synths."
+  []
+  (str "anon-" (next-id :anonymous-synth)))
+
 ; TODO: Figure out how to generate the let-bindings rather than having them
 ; hard coded here.
 (defmacro pre-synth [& args]
   (let [[sname args] (cond
                        (or (string? (first args))
                            (symbol? (first args))) [(str (first args)) (rest args)]
-                       :default                    [:no-name args])
+                       :default                    [(gen-synth-name) args])
         [params ugen-form] (if (vector? (first args))
                              [(first args) (rest args)]
                              [[] args])
         params (vec (map #(if (symbol? %) (str %) %) params))
         param-proxies (control-proxies params)]
-    `(let [~@param-proxies
-           sname# (if (= :no-name ~sname)
-                    (str "anon-" (next-id :anonymous-synth))
-                    ~sname)]
+    `(let [~@param-proxies]
        (binding [*ugens* []
                  *constants* #{}]
          (with-ugens
            (do
              ~@ugen-form)
-           [sname# ~params *ugens* (into [] *constants*)])))))
+           [~sname ~params *ugens* (into [] *constants*)])))))
 
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen functions
