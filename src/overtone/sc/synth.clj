@@ -216,7 +216,9 @@
 
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
-(defn- control-proxies [params]
+(defn- control-proxies
+  "Converts a list of alternating param-name param-values to param-name control-proxies"
+  [params]
   (reduce (fn [mem [pname pval]]
             (concat mem [(symbol pname) `(control-proxy ~pname ~pval)]))
           []
