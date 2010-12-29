@@ -249,6 +249,8 @@
 ; TODO: Figure out how to generate the let-bindings rather than having them
 ; hard coded here.
 (defmacro pre-synth
+  "Resolve a synth def to a list of its name, params, ugens (nested if necessary) and
+   constants."
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
