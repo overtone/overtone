@@ -73,11 +73,11 @@
 (def *APPLY-AHEAD* 150)
 
 (defn apply-at
+  "Calls (apply f args argseq) as soon after ms-time (timestamp in milliseconds) as possible." 
   {:arglists '([ms-time f args* argseq])}
   [#^clojure.lang.IFn ms-time f & args]
   (let [delay-time (- ms-time *APPLY-AHEAD* (now))]
     (if (<= delay-time 0)
       (apply f (#'clojure.core/spread args))
       (schedule #(apply f (#'clojure.core/spread args)) delay-time))))
-
 
