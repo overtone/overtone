@@ -10,16 +10,22 @@
 ; group, so if you later call (kill my-inst) it will be able to stop all the
 ; instances of that group.  (Likewise for controlling them...)
 
-(defonce instruments* (ref {}))
-(defonce inst-group* (ref nil))
+(defonce instruments*  (ref {}))
+(defonce inst-group*   (ref nil))
+(defonce mixer-group*  (ref nil))
+(defonce record-group* (ref nil))
 
-(defn create-inst-groups []
-  (let [g (group :tail ROOT-GROUP)]
+(defn create-studio-groups []
+  (let [g (group :tail ROOT-GROUP)
+        m (group :tail ROOT-GROUP)
+        r (group :tail ROOT-GROUP)]
     (dosync
       (ref-set inst-group* g)
+      (ref-set mixer-group* m)
+      (ref-set record-group* r)
       (map-vals #(assoc % :group (group :tail g)) @instruments*))))
 
-(on-sync-event :connected :create-instrument-groups create-inst-groups)
+(on-sync-event :connected :studio-setup create-studio-groups)
 
 ;; Clear and re-create the instrument groups after a reset
 ;; TODO: re-create the instrument groups
@@ -117,20 +123,28 @@
            :note-fn nil}]
     (dosync (alter session* assoc-in [:tracks tname] t))))
 
-(defn notes [tname f]
+(defn track-fn [tname f]
   (dosync (alter session* assoc-in [:tracks tname :note-fn] f)))
+
+(defn remove-track-fn [tname]
+  (dosync (alter session* dissoc-in [:tracks tname :note-fn])))
 
 (defn session-metro [m]
   (dosync (alter session* assoc :metro m)))
 
-(defn- session-player [b]
+(defn- session-player [beat]
   (when (:playing @session*)
-    (let [{:keys [metro tracks]} @session*]
-      (doseq [[_ {:keys [inst note-fn]}] tracks]
-        (if note-fn
-          (if-let [n (note-fn)]
-            (inst n))))
-      (apply-at #'session-player (metro (inc b)) (inc b)))))
+    (let [{:keys [metro tracks]} @session*
+          tick (metro beat)
+          next-beat (inc beat)
+          next-tick (metro next-beat)]
+      (format "tick: %f\nnext: %d\nnext-tick: %f" tick next-beat next-tick)
+      (at tick
+        (doseq [[_ {:keys [inst note-fn]}] tracks]
+          (if note-fn
+            (if-let [args (note-fn)]
+              (apply inst args)))))
+      (apply-at next-tick #'session-player [next-beat]))))
 
 (defn session-play []
   (dosync (alter session* assoc :playing true))
@@ -139,26 +153,3 @@
 (defn session-stop []
   (dosync (alter session* assoc :playing false)))
 
-(def _ nil)
-(def X 440)
-(def x 220)
-
-;(definst foo [freq 440]
-;  (* 0.1
-;     (env-gen (perc 0.1 0.4) 1 1 0 1 :free)
-;     (rlpf (saw [freq (* 0.98 freq)])
-;           (mul-add (sin-osc:kr 30) 100 (* 1.8 freq)) 0.2)))
-;
-;(definst kick [freq 100]
-;  (* 0.1
-;     (env-gen (perc 0.01 0.3) 1 1 0 1 :free)
-;     (sin-osc freq)))
-;
-;(defn test-session []
-;  (track :kick #'kick)
-;  (notes :kick (fn [] 80))
-;
-;  (track :foo #'foo)
-;  (notes :foo #(if (> (rand) 0.7) (+ 300 (rand-int 500))))
-;  (session-play))
-;
