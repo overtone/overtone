@@ -7,7 +7,8 @@
   (:import [java.net URL])
   (:require [overtone.log :as log])
   (:use byte-spec
-        [overtone util]))
+        [overtone util event]
+        [overtone.sc core]))
 
 ;; param-name is :
 ;;   pstring - the name of the parameter
@@ -191,4 +192,31 @@
   (let [names (map #(keyword (:name %1)) (:pnames sdef))
         vals (:params sdef)]
   (apply hash-map (interleave names vals))))
+
+(defonce loaded-synthdefs* (ref {}))
+
+;; ### Synth Definition
+;; 
+;; Synths are created from Synth Definitions. Synth Definition files are
+;; created by Overtone and then loaded into the synth server using the synth
+;; and inst forms and their derivatives. 
+(defn load-synthdef 
+  "Load an Overtone synth definition onto the audio server."
+  [sdef] 
+  (assert (synthdef? sdef)) 
+  (dosync (alter loaded-synthdefs* assoc (:name sdef) sdef))
+  
+  (if (connected?)
+    (snd "/d_recv" (synthdef-bytes sdef))))
+
+(defn- load-all-synthdefs []
+  (doseq [[sname sdef] @loaded-synthdefs*]
+    (snd "/d_recv" (synthdef-bytes sdef))))
+
+(on-event :connected ::synthdef-loader load-all-synthdefs)
+
+(defn load-synth-file
+  "Load a synth definition file onto the audio server."
+  [path]
+  (snd "/d_recv" (synthdef-bytes (synthdef-read path))))
 

@@ -2,7 +2,7 @@
   ^{:doc "Making it easy to load and play audio samples (wav or aif files)."
      :author "Jeff Rose"}
   overtone.sc.sample
-  (:use [overtone.sc core synth ugen]
+  (:use [overtone.sc core synth ugen buffer]
         [overtone event util]))
 
 ; Define a default wav player synth
@@ -75,7 +75,7 @@
   "
   [path & args]
   (let [s          (load-sample path)
-        player     (fn [& pargs] 
+        player     (fn [& pargs]
                      (let [id (:id (get @loaded-samples* [path args]))]
                        (if (empty? pargs)
                          (mono-player id)

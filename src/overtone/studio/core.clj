@@ -2,7 +2,7 @@
   (:use
     [overtone util event time-utils]
     [overtone.sc.ugen.defaults]
-    [overtone.sc core synth ugen envelope]
+    [overtone.sc core synth ugen envelope node synthdef]
     [overtone.music rhythm]))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
@@ -99,12 +99,12 @@
     (list 'def i-name ;(with-meta i-name md)
        `(inst ~i-name ~params ~ugen-form))))
 
-(defmethod overtone.sc.core/kill :overtone.studio.core/instrument
+(defmethod overtone.sc.node/kill :overtone.studio.core/instrument
   [& args]
   (doseq [inst args]
     (group-clear (:group inst))))
 
-(defmethod overtone.sc.core/ctl :overtone.studio.core/instrument
+(defmethod overtone.sc.node/ctl :overtone.studio.core/instrument
   [inst & ctls]
   (apply node-control (:group inst) ctls))
 
@@ -152,4 +152,11 @@
 
 (defn session-stop []
   (dosync (alter session* assoc :playing false)))
+
+(defn load-instruments []
+  (doseq [synth (filter #(synthdef? %1)
+                        (map #(var-get %1)
+                             (vals (ns-publics 'overtone.instrument))))]
+    ;(println "loading synth: " (:name synth))
+    (load-synthdef synth)))
 
