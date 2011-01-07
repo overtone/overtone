@@ -187,3 +187,10 @@
                           (cycle [1 2 3]))) => ([5 1] [5 2] [5 3] [5 1])"
   [seqs]
   (apply map vector seqs))
+
+; Example:
+;       (dissoc-in { :who { :me { 1 2 3 4 } } } [ :who :me ] 3 )
+(defn dissoc-in
+  "Dissociates the element [keys val] from map."
+  [m keys val]
+        (assoc-in m keys (dissoc (get-in m keys) val)))

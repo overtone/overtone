@@ -1,6 +1,6 @@
 (ns overtone.console.viz
   (:use vijual
-        [overtone.sc core]
+        [overtone.sc core node]
         [overtone.studio core]))
 
 (defn- check-inst-group
