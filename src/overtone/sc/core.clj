@@ -466,3 +466,6 @@
                (do
                  (handler)
                  :done))))
+
+(defn stop []
+  (event :reset))
