@@ -3,6 +3,8 @@
 * rather than using a plain multiply for volume adjustment, we should have 
 a built-in helper that uses dbamp and multiply to adjust volume logarithmically,
 corresponding to perception.
+ - use a range of 0 - 1.0, so it works automatically with GUI controls and other
+   ugens.
 
 ## Studio
 
