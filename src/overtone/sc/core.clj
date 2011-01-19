@@ -9,7 +9,7 @@
     (java.util.regex Pattern)
     (java.util.concurrent TimeUnit TimeoutException)
     (java.io BufferedInputStream)
-    (supercollider ScSynth ScSynthStartedListener MessageReceivedListener)
+    (supercollider.scsynth ScSynth ScSynthStartedListener MessageReceivedListener)
     (java.util BitSet))
   (:require [overtone.log :as log])
   (:use
@@ -334,9 +334,9 @@
                :windows []
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
-(if (= :linux (@config* :os))
-  (on-event :connected ::jack-connector
-            #(connect-jack-ports)))
+;(if (= :linux (@config* :os))
+;  (on-event :connected ::jack-connector
+;            #(connect-jack-ports)))
 
 (defonce scsynth-server* (ref nil))
 
