@@ -5,20 +5,20 @@
   (:refer-clojure :exclude (deftype))
 
   (:use
-   clojure.contrib.pprint
-   overtone.sc.ugen.defaults
-   [overtone util]
-   [overtone.sc.ugen special-ops common categories]
-   [clojure.contrib.types :only (deftype)]
-   [clojure.contrib.generic :only (root-type)])
-
+    clojure.contrib.pprint
+    overtone.sc.ugen.defaults
+    [overtone util]
+    [overtone.sc buffer]
+    [overtone.sc.ugen special-ops common categories]
+    [clojure.contrib.types :only (deftype)]
+    [clojure.contrib.generic :only (root-type)])
   (:require
-   overtone.sc.core
-   [overtone.sc.ugen.doc :as doc]
-   [clojure.set :as set]
-   [clojure.contrib.generic.arithmetic :as ga]
-   [clojure.contrib.generic.comparison :as gc]
-   [clojure.contrib.generic.math-functions :as gm]))
+    overtone.sc.core
+    [overtone.sc.ugen.doc :as doc]
+    [clojure.set :as set]
+    [clojure.contrib.generic.arithmetic :as ga]
+    [clojure.contrib.generic.comparison :as gc]
+    [clojure.contrib.generic.math-functions :as gm]))
 
 (def UGEN-SPEC-EXPANSION-MODES
   {:not-expanded false
@@ -380,7 +380,7 @@
   "Returns a function that converts any buffer arguments to their :id property value."
   [fun]
   (fn [& args]
-    (apply fun (map #(if (overtone.sc.core/buffer? %) (:id %) %) args))))
+    (apply fun (map #(if (buffer? %) (:id %) %) args))))
 
 (defn- make-ugen-fn
   "Returns a function representing the given ugen that will fill in default arguments, rates, etc."

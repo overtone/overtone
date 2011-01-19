@@ -13,4 +13,5 @@
                  [overtone/byte-spec "0.2.0-SNAPSHOT"]
                  [overtone/midi-clj "0.2.0-SNAPSHOT"]
                  [org.clojars.overtone/vijual "0.2.1"]]
+  :dev-dependencies [[marginalia "0.2.0"]]
   :jvm-opts ["-Xms256m" "-Xmx1g" "-XX:+UseConcMarkSweepGC"])

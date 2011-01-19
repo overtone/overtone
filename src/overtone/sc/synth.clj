@@ -5,15 +5,23 @@
           serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.sc.synth
-  (:require [overtone.log :as log]
-            [clojure.contrib.generic.arithmetic :as ga])
+  (:require
+    [overtone.log :as log]
+    [clojure.contrib.generic.arithmetic :as ga])
   (:use
      [overtone util event]
      [overtone.sc.ugen defaults]
-     [overtone.sc core ugen synthdef]
+     [overtone.sc core ugen synthdef node buffer]
      [clojure walk inspector]
      [clojure.contrib.seq-utils :only (indexed)]))
 ;;TODO replace this with clojure.core/keep-indexed or map-indexed))
+
+;; ### Synth
+;;
+;; A Synth is a collection of unit generators that run together. They can be
+;; addressed and controlled by commands to the synthesis engine. They read
+;; input and write output to global audio and control buses. Synths can have
+;; their own local controls that are set via commands to the server.
 
 (def *params* nil)
 
@@ -231,6 +239,57 @@
   []
   (str "anon-" (next-id :anonymous-synth)))
 
+(defn- name-synth-args
+  [args names]
+  (loop [args args
+         names names
+         named []]
+    (if args
+      (recur (next args)
+             (next names)
+             (concat named [(first names) (first args)]))
+      named)))
+
+(defn synth-player
+  "Returns a player function for a named synth.  Used by (synth ...)
+  internally, but can be used to generate a player for a pre-compiled
+  synth.  The function generated will accept two optional arguments that
+  must come first, the :target and :position (see the node function docs).
+
+      (foo)
+      (foo :target 0 :position :tail)
+
+  or if foo has two arguments:
+      (foo 440 0.3)
+      (foo :target 0 :position :tail 440 0.3)
+  at the head of group 2:
+      (foo :target 2 :position :head 440 0.3)
+
+  These can also be abbreviated:
+      (foo :tgt 2 :pos :head)
+  "
+  [sname arg-names]
+  (fn [& args]
+    (let [[args sgroup] (if (or (= :target (first args))
+                                (= :tgt    (first args)))
+                          [(drop 2 args) (second args)]
+                          [args @synth-group*])
+          [args pos]    (if (or (= :position (first args))
+                                (= :pos      (first args)))
+                          [(drop 2 args) (second args)]
+                          [args :tail])
+          controller    (partial node-control sgroup)
+          player        (partial node sname :target sgroup :position pos)
+          [tgt-fn args] (if (= :ctl (first args))
+                          [controller (rest args)]
+                          [player args])
+          args (map #(if (buffer? %) (:id %) %) args)
+          named-args (if (keyword? (first args))
+                       args
+                       (name-synth-args args arg-names))]
+        (apply tgt-fn named-args))))
+
+
 (defn- normalize-synth-args
   "Pull out and normalize the synth name, parameters, control proxies and the ugen form
    from the supplied arglist resorting to defaults if necessary."
@@ -336,4 +395,14 @@
   [synth]
   (let [params decomp-params]
     params))
+
+(defmacro demo
+  "Try out an anonymous synth definition.  Useful for experimentation.  If the
+  root node is not an out ugen, then it will add one automatically."
+  [& body]
+  `(do
+     (load-synthdef (synth "audition-synth" {}
+                           (do ~@body)))
+     (let [note# (hit (now) "audition-synth")]
+       (at (+ (now) 1000) (node-free note#)))))
 

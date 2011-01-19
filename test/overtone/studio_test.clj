@@ -1,8 +1,5 @@
 (ns studio-test
-  (:use [overtone.sc synth ugen envelope core]
-        overtone.studio))
-
-(refer-ugens)
+  (:use overtone.live))
 
 (defn inst-test []
   (definst bar [freq 200]
@@ -16,7 +13,7 @@
                  (rlpf (saw freq) (* 1.1 freq) 0.3))
               0.4)))
 
-(defonce sequencer-metro* (ref (metronome 128)))
+(def metro (metronome 128))
 (defonce sequences* (ref {}))
 
 (defn sequence-pattern [inst pat]
@@ -29,3 +26,26 @@
 
 (defn sequencer-play []
   (sequencer-player (metro)))
+
+(def _ nil)
+(def X 440)
+(def x 220)
+
+(definst foo [freq 440]
+  (* 0.8
+     (env-gen (perc 0.1 0.4) :action :free)
+     (rlpf (saw [freq (* 0.98 freq)])
+           (mul-add (sin-osc:kr 30) 100 (* 1.8 freq)) 0.2)))
+
+(definst kick [freq 240]
+  (* 0.8
+     (env-gen (perc 0.01 0.3) :action :free)
+     (sin-osc freq)))
+
+(defn test-session []
+  (track :kick kick)
+  (track-fn :kick (fn [] [220]))
+  (session-play))
+
+;  (track :foo #'foo)
+;  (track-fn :foo #(if (> (rand) 0.7) (+ 300 (rand-int 500))))

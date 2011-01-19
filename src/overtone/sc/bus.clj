@@ -1,0 +1,34 @@
+(ns overtone.sc.bus
+  (:use [overtone.sc core]))
+
+;; ## Busses 
+;;
+;; Synthesizers can be connected to I/O devices (e.g. sound cards) and
+;; other synthesizers by using busses.  Conceptually they are like 
+;; plugging a cable from the output of one unit to the input of another,
+;; but in SC they are implemented using a simple integer referenced
+;; array of float values.
+
+; TODO: In order to allocate multi-channel busses we actually need to 
+; allocate multiple, adjacent busses, which the current bitset based
+; allocator doesn't support.
+(defn control-bus 
+  "Allocate one ore more control busses."
+  ([] (control-bus 1))
+  ([n-channels]
+   (let [id (alloc-id :control-bus)]
+     (with-meta {:id id
+                 :n-channels
+                 :rate :control}
+                {:type ::control-bus}))))
+
+(defn audio-bus 
+  "Allocate one ore more audio busses."
+  ([] (audio-bus 1))
+  ([n-channels]
+   (let [id (alloc-id :audio-bus)]
+     (with-meta {:id id
+                 :n-channels
+                 :rate :audio}
+                {:type ::audio-bus}))))
+
