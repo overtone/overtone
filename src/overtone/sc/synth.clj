@@ -347,6 +347,8 @@
              {})
         params    (first (take 1 (filter vector? sdecl)))
         arglists (list (vec (map first (partition 2 params))))
+        _ (if-not (even? (count params))
+              (throw (IllegalArgumentException. "A synth requires an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5]")))
         md (assoc md
                   :name name
                   :arglists (list 'quote arglists))
