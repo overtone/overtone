@@ -11,6 +11,26 @@
         hit-env (env-gen (perc))]
     (out out-bus (pan2 (* amp (+ (* drum drum-env) (* hit hit-env))) 0))))
 
+(comment defsynth kick [out 0 ffreq 80 attack 0 release 2 amp 0.1 pan 0]
+  (let [snd (apply + (sin-osc [ffreq (* 1.01 ffreq) (* ffreq 1.03)
+                      (* ffreq 1.06) (* ffreq 1.1) 0 0.5]))
+        snd (+ snd (pink-noise))
+        snd (reduce (fn [mem v]
+                      (rlpf mem (* ffreq v) (* 0.1 v)))
+                    snd (range 1 6))
+        snd (+ snd (lpf (white-noise) (* ffreq 6)))
+        env (env-gen (perc attack release 1 -50) :action :free)]
+    (offset-out out (pan2 (* snd amp env) 0))))
+
+(defsynth hi-hat [out 0 ffreq 200 rq 0.5
+                  attack 0 release 0.025 amp 0.1
+                  pan 0]
+  (let [snd (white-noise)
+        snd (hpf snd ffreq)
+        snd (rhpf snd (* ffreq 2) rq)
+        snd (* snd (env-gen (perc attack release 1 -10) :action :free))]
+    (offset-out out (pan2 (* 2 snd amp)))))
+
 (defsynth round-kick [amp 0.5 decay 0.6 freq 65]
   (let [env (env-gen (perc 0 decay) :action :free)
         snd (* amp (sin-osc freq (* Math/PI 0.5)))]
@@ -21,7 +41,7 @@
   (let [drum-env (* 0.5 (env-gen (perc 0.005 sustain) :action :free))
         drum-s1 (* drum-env (sin-osc freq))
         drum-s2 (* drum-env (sin-osc (* freq 0.53)))
-        drum-s3 (* drum-env (sin-osc (saw (* freq 0.85)) 
+        drum-s3 (* drum-env (sin-osc (saw (* freq 0.85))
                                      (sin-osc 184))); (/ 0.5 1.3)))
         drum (* drum-amp (+ drum-s1 drum-s2 drum-s3))
         noise (lf-noise0 20000 0.1)
@@ -234,7 +254,7 @@
 ; TODO: figure this one out... :-)
 (defsynth clap [freq 100 sustain 5 amp 0.9]
   (let [env (env-gen (perc 0.02 sustain) :action :free)
-        saw (apply + 
+        saw (apply +
                    (* (lf-pulse:kr 0.6 0 0.5)
                (* 0.07 [(white-noise) (white-noise)])
                [(saw 1000) (saw 1000)]))
