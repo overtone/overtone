@@ -2,7 +2,7 @@
   (:use overtone.live))
 
 (defsynth kick [out-bus 0 freq 50 mod-freq 5 mod-index 5
-                sustain 0.4 amp 0.8 noise 0.025]
+                sustain 0.4 amp 0.2 noise 0.025]
   (let [pitch-contour (line:kr (* 2 freq) freq 0.02)
         drum (lpf (sin-osc pitch-contour (sin-osc mod-freq (/ mod-index 1.3))) 1000)
         drum-env (env-gen (perc 0.005 sustain) :action :free)
@@ -31,7 +31,7 @@
         snd (* snd (env-gen (perc attack release 1 -10) :action :free))]
     (offset-out out (pan2 (* 2 snd amp)))))
 
-(defsynth round-kick [amp 0.5 decay 0.6 freq 65]
+(defsynth round-kick [amp 0.3 decay 0.6 freq 65]
   (let [env (env-gen (perc 0 decay) :action :free)
         snd (* amp (sin-osc freq (* Math/PI 0.5)))]
     (out 0 (pan2 (* snd env) 0))))

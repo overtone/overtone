@@ -2,7 +2,7 @@
   ^{:doc "Making it easy to load and play audio samples (wav or aif files)."
      :author "Jeff Rose"}
   overtone.sc.sample
-  (:use [overtone.sc core synth ugen buffer]
+  (:use [overtone.sc core synth ugen buffer allocator]
         [overtone event util]))
 
 ; Define a default wav player synth

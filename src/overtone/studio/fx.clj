@@ -2,7 +2,7 @@
   ^{:doc "Audio effects library"
      :author "Jeff Rose"}
   overtone.studio.fx
-  (:use 
+  (:use
     [overtone event]
     [overtone.sc synth ugen]))
 
@@ -52,3 +52,12 @@
   (let [source (in in-bus)
         echo (comb-n source max-delay delay-time decay-time)]
     (out out-bus (pan2 (+ echo source) 0))))
+
+(defsynth fx-chorus [in-bus 10 out-bus 0 rate 0.002 depth 0.01]
+  (let [src (in in-bus)
+        dub-depth (* 2 depth)
+        rates [rate (+ rate 0.001)]
+        osc (+ dub-depth (* dub-depth (sin-osc:kr rates)))
+        dly-a (delay-l src 0.3 osc)
+        sig (apply + src dly-a)]
+    (out out-bus (* 0.3 sig))))

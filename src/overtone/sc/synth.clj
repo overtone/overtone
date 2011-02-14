@@ -65,13 +65,18 @@
   "Returns ugen object with its input ports connected to constants and upstream
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
-  {:pre [(contains? ugen :args)
-         (every? #(or (ugen? %) (number? %)) (:args ugen))]
-   :post [(contains? % :inputs)
-          (every? (fn [{:keys [src index]}]
-                    (and (not (nil? src))
-                         (not (nil? index))))
-                  (:inputs %))]}
+  (when-not (contains? ugen :args)
+    (throw (Exception. 
+             (format "The %s ugen does not have any arguments." 
+                     (:name ugen)))))
+  (when-not (every? #(or (ugen? %) (number? %)) (:args ugen))
+    (throw (Exception. 
+             (format "The %s ugen has an invalid argument: %s" 
+                     (:name ugen)
+                     (first (filter 
+                              #(not (or (ugen? %) (number? %)))
+                              (:args ugen)))))))
+
   ;(println "with-inputs:\nugen: " ugen)
   (let [inputs (flatten
                  (map (fn [arg]
@@ -94,9 +99,17 @@
                           (let [src (ugen-index ugens arg)
                                 updated-ugen (nth ugens src)]
                             (inputs-from-outputs src updated-ugen))))
-                      (:args ugen)))]
+                      (:args ugen)))
+        ugen (assoc ugen :inputs inputs)]
     ;(println "inputs: " inputs)
-    (assoc ugen :inputs inputs)))
+    (when-not (every? (fn [{:keys [src index]}]
+                    (and (not (nil? src))
+                         (not (nil? index))))
+                  (:inputs ugen))
+      (throw (Exception. 
+               (format "Cannot connect ugen arguments for %s ugen with args: %s" (:name ugen) (str (seq (:args ugen)))))))
+
+    ugen))
 
 ; TODO: Currently the output rate is hard coded to be the same as the
 ; computation rate of the ugen.  We probably need to have some meta-data

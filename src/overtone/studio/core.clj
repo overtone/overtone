@@ -13,9 +13,31 @@
 (defonce instruments*  (ref {}))
 (defonce inst-group*   (ref nil))
 (defonce mixer-group*  (ref nil))
+(defonce mixer-id*     (ref nil))
 (defonce record-group* (ref nil))
 
-(defn create-studio-groups []
+(defonce MIXER-BUS 10)
+
+; A mixer synth for volume, pan, and limiting
+; TODO: Add basic EQ
+(defsynth mixer [in-bus 10 out-bus 0
+                 volume 0.5 pan 0.0
+                 threshold 0.7
+                 slope-below 1 slope-above 0.1
+                 clamp-time 0.005 relax-time 0.005]
+  (let [source  (in in-bus)
+        limited (compander source source threshold
+                           slope-below slope-above
+                           clamp-time relax-time)]
+    (out out-bus (pan2 limited pan volume))))
+
+(on-event :new-synth :mixer-loader
+  (fn [evt]
+    (when (= "mixer" (:name (:synth evt)))
+      (let [mix (mixer :tgt @mixer-group*)]
+        (dosync (ref-set mixer-id* mix))))))
+
+(defn setup-studio []
   (let [g (group :tail ROOT-GROUP)
         m (group :tail ROOT-GROUP)
         r (group :tail ROOT-GROUP)]
@@ -25,7 +47,7 @@
       (ref-set record-group* r)
       (map-vals #(assoc % :group (group :tail g)) @instruments*))))
 
-(on-sync-event :connected :studio-setup create-studio-groups)
+(on-sync-event :connected :studio-setup setup-studio)
 
 ;; Clear and re-create the instrument groups after a reset
 ;; TODO: re-create the instrument groups
@@ -60,7 +82,7 @@
           [ugens constants]
           (let [pan-chans (pan2 root)
                 pan (:ugen (first pan-chans))]
-            [(conj ugens pan (out 0 pan-chans)) (set (floatify (conj constants 0 1)))]))))
+            [(conj ugens pan (out MIXER-BUS pan-chans)) (set (floatify (conj constants MIXER-BUS 1)))]))))
 
 (defmacro inst [sname & args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)
@@ -112,7 +134,7 @@
          (connected?))
   (dosync (ref-set inst-group* (group :head ROOT-GROUP))))
 
-(def session* (ref {:metro (metronome 120)
+(defonce session* (ref {:metro (metronome 120)
                     :tracks {}
                     :playing false}))
 

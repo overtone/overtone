@@ -52,14 +52,16 @@
 
 ; Experimenting with Karplus Strong synthesis...
 
-(definst ks-stringer [freq 440]
+(definst ks-stringer [freq 440 rate 10]
   (let [noize (* 0.8 (white-noise))
-        trig  (impulse 10) 
+        trig  (impulse rate)
         coef  (mouse-x -0.999 0.999)
         delay (/ 1.0 (* (mouse-y 0.001 0.999) freq))
         plk   (pluck noize trig (/ 1.0 freq) delay 10 coef)
-        dist (distort plk)]
-    (* 0.1 dist)))
+        dist (distort plk)
+        filt (rlpf dist (* 12 freq) 0.6)
+        reverb (free-verb filt 0.7 0.7 0.3)]
+    (* 0.8 reverb)))
 
 ;(defn buzzer [t tick dur notes]
 ;  (let [note (first notes)]

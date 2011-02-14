@@ -7,10 +7,9 @@
   "Replaces a string 'Group <N>' where N is the group number of an instrument
   with the instrument name, otherwise just returns the txt unchanged."
   [id]
-  (if-let [ins(first(filter #(= id(:group %))
+  (if-let [ins (first (filter #(= id (:group %))
                               (vals @instruments*)))]
-    (str (:name ins) ": ")
-    id))
+    (:name ins)))
 
 (defn- group-label
   "Returns a string label for groups."
@@ -18,9 +17,9 @@
   (str
     (cond
       (= 0 id) "root: "
-      (= @inst-group* id) "inst: "
-      (= @synth-group* id) "synth: "
-      :else (check-inst-group id))
+      (= @inst-group* id) "insts: "
+      (= @synth-group* id) "synths: "
+      :else (str (check-inst-group id) "group: ")) 
     id))
 
 ; Note: If we really want to render other node types this should be a multimethod.

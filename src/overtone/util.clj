@@ -43,9 +43,9 @@
        col))
 
 (defn choose
-  "Choose a random note from notes."
-  [notes]
-  (nth notes (rand-int (count notes))))
+  "Choose a random element from a collection."
+  [col]
+  (nth col (rand-int (count col))))
 
 ;(defn shuffle
 ;  "Shuffle a collection, returns a seq."
