@@ -3,14 +3,15 @@
         [overtone.sc core node]
         [overtone.studio core]))
 
+;;TODO: figure out if this is necessary
 (defn- check-inst-group
   "Replaces a string 'Group <N>' where N is the group number of an instrument
-  with the instrument name, otherwise just returns the txt unchanged."
+  with the instrument name, otherwise returns nil"
   [id]
   (if-let [ins(first(filter #(= id(:group %))
                               (vals @instruments*)))]
     (str (:name ins) ": ")
-    id))
+    nil))
 
 (defn- group-label
   "Returns a string label for groups."
@@ -20,7 +21,8 @@
       (= 0 id) "root: "
       (= @inst-group* id) "inst: "
       (= @synth-group* id) "synth: "
-      :else (check-inst-group id))
+      (check-inst-group id) (check-inst-group id)
+      :else "group: ")
     id))
 
 ; Note: If we really want to render other node types this should be a multimethod.
