@@ -34,5 +34,5 @@
    "in" "the input signal"
    })
 
-(def DOC-WIDTH 60)
+(def DOC-WIDTH 45)
 

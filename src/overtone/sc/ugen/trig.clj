@@ -108,12 +108,12 @@
        :doc "outputs a linear increasing signal by rate/second on trigger"}
 
       {:name "Phasor"
-       :args [{:name "trig", :default 0.0}
-              {:name "rate", :default 1.0}
-              {:name "start", :default 0.0}
-              {:name "end", :default 1.0}
-              {:name "resetPos", :default 0.0}]
-       :doc "output a signal increasing at rate from start to end, often used to index into buffers"}
+       :args [{:name "trig", :default 0.0 :doc "When triggered, reset value to resetPos (default: 0, Phasor outputs start initially)"}
+              {:name "rate", :default 1.0 :doc "The amount of change per sample i.e at a rate of 1 the value of each sample will be 1 greater than the preceding sample"}
+              {:name "start", :default 0.0 :doc "Starting point of the ramp"}
+              {:name "end", :default 1.0 :doc "End point of the ramp"}
+              {:name "resetPos", :default 0.0  :doc "The value to jump to upon receiving a trigger"}]
+       :doc "Phasor is a linear ramp between start and end values. When its trigger input crosses from non-positive to positive, Phasor's output will jump to its reset position. Upon reaching the end of its ramp Phasor will wrap back to its start. N.B. Since end is defined as the wrap point, its value is never actually output."}
 
       {:name "PeakFollower"
        :args [{:name "in", :default 0.0}
@@ -143,7 +143,11 @@
 
       {:name "Fold", :extends "InRange"}
 
-      {:name "Clip", :extends "InRange"}
+      {:name "Clip"
+       :args [{:name "in", :default 0.0 :doc "The signal to be clipped"}
+              {:name "lo", :default 0.0, :doc "Low threshold of clipping. Must be less then hi"}
+              {:name "hi", :default 1.0, :doc "High threshold of clipping. Must be greater then lo"}]
+       :doc "Clip a signal outside given thresholds. This differs from the BinaryOpUGen clip2 in that it allows one to set both low and high thresholds."}
 
       {:name "Wrap", :extends "InRange"}
 
