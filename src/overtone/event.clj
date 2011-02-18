@@ -29,7 +29,7 @@
 (defn on-event
   "Takes an event-type (name of the event) a key (to refer back to this handler in the future) and a handler fn.
   Runs handler whenever events of type event-type are fired.  The handler can
-  optionally except a single event argument, which is a map containing the
+  optionally accept a single event argument, which is a map containing the
   :event-type property and any other properties specified when it was fired.
 
   (on-event \"/tr\" ::status-check handler)
@@ -41,7 +41,7 @@
 
 (defn on-sync-event
   "Synchronously runs handler whenever events of type event-type are fired.  The handler can
-  optionally except a single event argument, which is a map containing the
+  optionally accept a single event argument, which is a map containing the
   :event-type property and any other properties specified when it was fired."
   [event-type key handler]
   (on-event* sync-event-handlers* event-type key handler))
