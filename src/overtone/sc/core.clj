@@ -292,7 +292,7 @@
        (log/debug "Booting SuperCollider internal server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (on-event :booted ::internal-boot-connector #(connect))
+       (on-sync-event :booted ::internal-boot-connector #(connect))
        :booting))))
 
 (defn- sc-log
