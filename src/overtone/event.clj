@@ -94,7 +94,7 @@
                                       handlers)))]
     (dosync
       (alter handlers* assoc event-type
-             (dissoc (get @handlers* event-type) drop-keys)))))
+             (apply dissoc (get @handlers* event-type) drop-keys)))))
 
 (defn event
   "Fire an event of type event-type with any number of additional properties.
