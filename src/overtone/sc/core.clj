@@ -270,13 +270,13 @@
 (defonce scsynth-server* (ref nil))
 
 (defn- internal-booter [port]
-  (reset! running?* true)
   (log/info "booting internal audio server listening on port: " port)
   (let [server (ScSynth.)
         listener (reify ScSynthStartedListener
                    (started [this]
-                            (log/info "Boot listener...")
-                            (event :booted)))]
+                     (log/info "Boot listener...")
+                     (event :booted)
+                     (reset! running?* true)))]
     (.addScSynthStartedListener server listener)
     (dosync (ref-set sc-world* server))
     (.run server)
