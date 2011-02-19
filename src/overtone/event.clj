@@ -48,6 +48,7 @@
 
 (defn remove-handler
   "Remove an event handler previously registered to handle events of event-type.
+   Removes both sync and async handlers with a given key for a particular event type
 
   (defn my-foo-handler [event] (do-stuff (:val event)))
 
