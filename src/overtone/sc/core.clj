@@ -266,6 +266,10 @@
 
 (defonce scsynth-server* (ref nil))
 
+
+;;TODO: make use of the port or remove it as a param.
+;;      should we be able to get the internal server to listen
+;;      for external processes on a given port?
 (defn- internal-booter [port]
   (log/info "booting internal audio server listening on port: " port)
   (let [server (ScSynth.)
@@ -276,8 +280,7 @@
                      (reset! running?* true)))]
     (.addScSynthStartedListener server listener)
     (dosync (ref-set sc-world* server))
-    (.run server)
-    (.openUdp port)))
+    (.run server)))
 
 (defn- boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
