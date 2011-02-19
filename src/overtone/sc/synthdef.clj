@@ -215,7 +215,7 @@
   (doseq [[sname sdef] @loaded-synthdefs*]
     (snd "/d_recv" (synthdef-bytes sdef))))
 
-(on-event :connected ::synthdef-loader load-all-synthdefs)
+(on-sync-event :connected ::synthdef-loader load-all-synthdefs)
 
 (defn load-synth-file
   "Load a synth definition file onto the audio server."

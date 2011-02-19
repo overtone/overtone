@@ -123,8 +123,8 @@
           (event :connected)
           (remove-handler "status.reply" ::connected-handler1)
           (remove-handler "/status.reply" ::connected-handler2))]
-    (on-event "status.reply" ::connected-handler1 handler-fn)
-    (on-event "/status.reply" ::connected-handler2 handler-fn)))
+    (on-sync-event "status.reply" ::connected-handler1 handler-fn)
+    (on-sync-event "/status.reply" ::connected-handler2 handler-fn)))
 
 (defn connect-internal
   []
@@ -261,7 +261,7 @@
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
 (if (= :linux (@config* :os))
-  (on-event :connected ::jack-connector
+  (on-sync-event :connected ::jack-connector
             #(connect-jack-ports)))
 
 (defonce scsynth-server* (ref nil))
