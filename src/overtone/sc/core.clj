@@ -140,10 +140,7 @@
     (dosync (ref-set server* peer))
     (setup-connect-handlers)
     (snd "/status")))
-    ;(dosync (ref-set status* :connected))
-    ;(notify true) ; turn on notifications now that we can communicate
-    ;(event :reset)
-    ;(event :connected)))
+
 
 (defn connect-external
   [host port]
