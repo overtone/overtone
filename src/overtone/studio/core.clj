@@ -31,11 +31,9 @@
                            clamp-time relax-time)]
     (out out-bus (pan2 limited pan volume))))
 
-(on-event :new-synth :mixer-loader
-  (fn [evt]
-    (when (= "mixer" (:name (:synth evt)))
-      (let [mix (mixer :tgt @mixer-group*)]
-        (dosync (ref-set mixer-id* mix))))))
+(defn start-mixer []
+  (let [mix (mixer :tgt @mixer-group*)]
+    (dosync (ref-set mixer-id* mix))))
 
 (defn setup-studio []
   (let [g (group :tail ROOT-GROUP)
@@ -45,7 +43,9 @@
       (ref-set inst-group* g)
       (ref-set mixer-group* m)
       (ref-set record-group* r)
-      (map-vals #(assoc % :group (group :tail g)) @instruments*))))
+      (ref-set instruments* (map-vals #(assoc % :group (group :tail g)) 
+                                      @instruments*)))
+    (start-mixer)))
 
 (on-sync-event :connected :studio-setup setup-studio)
 
