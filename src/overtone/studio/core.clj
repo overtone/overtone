@@ -32,8 +32,11 @@
     (out out-bus (pan2 limited pan volume))))
 
 (defn start-mixer []
+  (Thread/sleep 2000)
   (let [mix (mixer :tgt @mixer-group*)]
     (dosync (ref-set mixer-id* mix))))
+
+(on-event :studio-setup-completed :start-mixer start-mixer)
 
 (defn setup-studio []
   (let [g (group :tail ROOT-GROUP)
@@ -43,9 +46,9 @@
       (ref-set inst-group* g)
       (ref-set mixer-group* m)
       (ref-set record-group* r)
-      (ref-set instruments* (map-vals #(assoc % :group (group :tail g)) 
+      (ref-set instruments* (map-vals #(assoc % :group (group :tail g))
                                       @instruments*)))
-    (start-mixer)))
+    (event :studio-setup-completed)))
 
 (on-sync-event :connected :studio-setup setup-studio)
 
