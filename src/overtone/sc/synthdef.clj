@@ -201,7 +201,9 @@
 ;; created by Overtone and then loaded into the synth server using the synth
 ;; and inst forms and their derivatives.
 (defn load-synthdef
-  "Load an Overtone synth definition onto the audio server."
+  "Load an Overtone synth definition onto the audio server. The synthdef is also stored so that it can
+   be re-loaded if the server needs rebooted. If the server is currently not running, the synthdef loading
+   is delayed until the server has succesfully connected."
   [sdef]
   (assert (synthdef? sdef))
   (dosync (alter loaded-synthdefs* assoc (:name sdef) sdef))

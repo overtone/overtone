@@ -51,7 +51,9 @@
 
 ;; Clear and re-create the instrument groups after a reset
 ;; TODO: re-create the instrument groups
-(defn reset-inst-groups []
+(defn reset-inst-groups
+  "Frees all synth notes for each of the current instruments"
+  []
   (doseq [[name inst] @instruments*]
     (group-clear (:group inst))))
 
@@ -105,8 +107,7 @@
                               :player player#}
                              player#)]
 
-     (if (connected?)
-       (load-synthdef sdef#))
+     (load-synthdef sdef#)
      (add-instrument inst#)
      (event :new-inst :inst inst#)
      inst#))
