@@ -123,8 +123,8 @@
           (event :connected)
           (remove-handler "status.reply" ::connected-handler1)
           (remove-handler "/status.reply" ::connected-handler2))]
-    (on-event "status.reply" ::connected-handler1 handler-fn)
-    (on-event "/status.reply" ::connected-handler2 handler-fn)))
+    (on-sync-event "status.reply" ::connected-handler1 handler-fn)
+    (on-sync-event "/status.reply" ::connected-handler2 handler-fn)))
 
 (defn connect-internal
   []
@@ -140,10 +140,7 @@
     (dosync (ref-set server* peer))
     (setup-connect-handlers)
     (snd "/status")))
-    ;(dosync (ref-set status* :connected))
-    ;(notify true) ; turn on notifications now that we can communicate
-    ;(event :reset)
-    ;(event :connected)))
+
 
 (defn connect-external
   [host port]
@@ -264,23 +261,26 @@
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
 (if (= :linux (@config* :os))
-  (on-event :connected ::jack-connector
+  (on-sync-event :connected ::jack-connector
             #(connect-jack-ports)))
 
 (defonce scsynth-server* (ref nil))
 
+
+;;TODO: make use of the port or remove it as a param.
+;;      should we be able to get the internal server to listen
+;;      for external processes on a given port?
 (defn- internal-booter [port]
-  (reset! running?* true)
   (log/info "booting internal audio server listening on port: " port)
   (let [server (ScSynth.)
         listener (reify ScSynthStartedListener
                    (started [this]
-                            (log/info "Boot listener...")
-                            (event :booted)))]
+                     (log/info "Boot listener...")
+                     (event :booted)
+                     (reset! running?* true)))]
     (.addScSynthStartedListener server listener)
     (dosync (ref-set sc-world* server))
-    (.run server)
-    (.openUdp port)))
+    (.run server)))
 
 (defn- boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
@@ -292,7 +292,7 @@
        (log/debug "Booting SuperCollider internal server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (on-event :booted ::internal-boot-connector #(connect))
+       (on-sync-event :booted ::internal-boot-connector #(connect))
        :booting))))
 
 (defn- sc-log
