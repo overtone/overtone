@@ -31,6 +31,12 @@
                            clamp-time relax-time)]
     (out out-bus (pan2 limited pan volume))))
 
+(defn volume [vol]
+  (ctl @mixer-id* :volume vol))
+
+(defn pan [pan]
+  (ctl @mixer-id* :pan pan))
+
 (defn start-mixer []
   (Thread/sleep 2000)
   (let [mix (mixer :tgt @mixer-group*)]

@@ -31,10 +31,10 @@
         env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
     (out 0 (pan2 (* env (+ a b))))))
 
-(definst bass [freq 120 t 0.6 amp 0.8]
+(definst bass [freq 120 t 0.6 amp 0.2]
   (let [env (env-gen (perc 0.08 t) :action :free)
         src (saw [freq (* 0.98 freq) (* 2.015 freq)])
-        src (clip2 (* 1.3 src) 0.9)
+        src (clip2 (* 1.3 src) 0.8)
         sub (sin-osc (/ freq 2))
         filt (resonz (rlpf src (* 4.4 freq) 0.09) (* 2.0 freq) 2.9)]
     (fold (distort (* 1.3 (+ filt sub) env amp)) 0.08)))
@@ -47,7 +47,7 @@
         filt (resonz (rlpf src (* 8.4 freq) 0.29) (* 2.0 freq) 2.9)
         meat (ring4 filt sub)
         sliced (rlpf meat (* 2 freq) 0.1)
-        bounced (free-verb sliced 0.2 0.7 0.3)]
+        bounced (free-verb sliced 0.8 0.9 0.2)]
     (* env bounced)))
 
 ; Experimenting with Karplus Strong synthesis...
@@ -60,7 +60,8 @@
                      coef)
         dist (distort plk)
         filt (rlpf dist (* 12 freq) 0.6)
-        reverb (free-verb filt 0.4 0.8 0.2)]
+        clp (clip2 filt 0.8)
+        reverb (free-verb clp 0.4 0.8 0.2)]
     (out 10 (pan2 (* 0.8 (env-gen (perc 0.0001 2) :action :free) reverb)))))
 
 (definst ks1-demo [note 60 gate 1]

@@ -11,18 +11,33 @@
 (defn play [synth pitch-classes]
   (doall (map #(synth %) pitch-classes)))
 
-(defn play-seq [synth notes durs time odds]
+(defn play-seq [count synth notes durs time odds]
   (when (and notes durs)
-    (let [dur   (first durs)
+    (let [dur   (- (/ (first durs) 1.2) 10 (rand-int 20)) 
           pitch (first notes)
           n-time (+ time dur)]
       (at time
-          (if (> (rand) (- 1 odds))
+          (when (> (rand) (- 1 odds))
             (tom))
+
+          (when (zero? count)
+            (kick)
+            (bass (midi->hz (first pitch)) (* 4 (/ dur 1000.0))))
+
+          (when (#{1 3} count)
+            (if (> (rand) (- 1 odds))
+              (bass (midi->hz (first pitch)) (* 4 (/ dur 1000.0 2)) 0.1))
+            (snare))
+
+          (when (= 2 count)
+            (kick))
+
           (play synth pitch))
       (at (+ time (* 0.5 dur))
           (c-hat 0.1))
-      (apply-at n-time #'play-seq synth (next notes) (next durs) n-time odds []))))
+      (apply-at n-time #'play-seq (mod (inc count) 4) synth (next notes) (next durs) n-time odds []))))
+
+; TODO: Strum the chord
 
 (def blues-chords
   [:i  :major
@@ -38,6 +53,9 @@
    :i  :major
    :v  :7])
 
+; Bass note on the one
+(def bass-line (map first (partition 4 blues-chords)))
+
 (defn progression [chord-seq key-note octave scale]
   (for [[roman-numeral chord-type] (partition 2 chord-seq)]
     (chord (+ (key-note NOTE)
@@ -47,7 +65,7 @@
 
 (defn blue-beep []
   (play-seq beep
-            (cycle (progression blues-chords :a 3 :ionian))
+            (cycle (map sort (progression blues-chords :a 3 :ionian)))
             (cycle [1200 1204 1195 1206])
             (now)
             0.2))
@@ -56,10 +74,10 @@
 
 ; Be sure to try moving the mouse around...
 (defn blue-ks1 []
-  (play-seq ks1-demo
-            (cycle (progression blues-chords :a 2 :ionian))
+  (play-seq 0 ks1-demo
+            (cycle (map sort (progression blues-chords :a 2 :ionian)))
             (cycle [530 524 532 528])
             (now)
             0.5))
-;(blue-ks1)
+(blue-ks1)
 

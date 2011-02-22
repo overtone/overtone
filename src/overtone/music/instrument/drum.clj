@@ -51,7 +51,7 @@
         filtered (* (env-gen (perc 0.005 sustain) :action :free)
                     (brf filtered 2000 0.0001))
         crackle (* (resonz filtered tightness) crackle-amp)]
-    (out out-bus (pan2 (* amp (* 5 (+ drum crackle))) 0))))
+    (out out-bus (pan2 (* amp (* (+ drum crackle))) 0))))
 
 (defsynth snare2 [amp 0.5 decay 0.1 freq 1000]
   (let [env (env-gen (perc 0 decay) :action :free)
