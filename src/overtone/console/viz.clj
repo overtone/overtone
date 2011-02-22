@@ -20,7 +20,7 @@
       (= 0 id) "root: "
       (= @inst-group* id) "insts: "
       (= @synth-group* id) "synths: "
-      :else (str (check-inst-group id) "group: "))
+      :else (str (check-inst-group id) " group: "))
     id))
 
 ; Note: If we really want to render other node types this should be a multimethod.
