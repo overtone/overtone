@@ -2,7 +2,7 @@
   ^{:doc "Functions to help generate and manipulate frequencies and sets of related frequencies.
           This is the place for functions representing general musical knowledge, like scales, chords,
           intervals, etc."
-     :author "Jeff Rose"}
+     :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
   (:require [clojure.contrib.math :as math]))
 
