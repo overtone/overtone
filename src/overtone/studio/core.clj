@@ -39,7 +39,7 @@
 (on-event :studio-setup-completed :start-mixer start-mixer)
 
 (defn setup-studio []
-  (let [g (group :tail ROOT-GROUP)
+  (let [g (group :head ROOT-GROUP)
         m (group :tail ROOT-GROUP)
         r (group :tail ROOT-GROUP)]
     (dosync
