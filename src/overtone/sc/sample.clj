@@ -61,6 +61,12 @@
   [s]
   (isa? (type s) ::sample))
 
+(defn sample-ready?
+  "Check whether a sample has completed allocating and/or loading data."
+  [sample]
+
+  @(:ready? sample))
+
 ;; Samples are just audio files loaded into a buffer, so buffer
 ;; functions work on samples too.
 (derive ::sample :overtone.sc.core/buffer)
