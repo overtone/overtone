@@ -8,16 +8,16 @@
 ; size is in samples
 (defn buffer
   "Allocate a new buffer for storing audio data."
-  [size & [channels]]
-  (let [channels (or channels 1)
-        id (alloc-id :audio-buffer)
-        ready? (atom false)]
-    (on-done "/b_alloc" #(reset! ready? true))
-    (snd "/b_alloc" id size channels)
-    (with-meta {:id id
-                :size size
-                :ready? ready?}
-               {:type ::buffer})))
+  ([size] (buffer size 1))
+  ([size num-channels]
+     (let [id     (alloc-id :audio-buffer)
+           ready? (atom false)]
+       (on-done "/b_alloc" #(reset! ready? true))
+       (snd "/b_alloc" id size num-channels)
+       (with-meta {:id id
+                   :size size
+                   :ready? ready?}
+         {:type ::buffer}))))
 
 (defn buffer-ready?
   "Check whether a sample or a buffer has completed allocating and/or loading data."
