@@ -66,14 +66,14 @@
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
   (when-not (contains? ugen :args)
-    (throw (Exception. 
-             (format "The %s ugen does not have any arguments." 
+    (throw (Exception.
+             (format "The %s ugen does not have any arguments."
                      (:name ugen)))))
   (when-not (every? #(or (ugen? %) (number? %)) (:args ugen))
-    (throw (Exception. 
-             (format "The %s ugen has an invalid argument: %s" 
+    (throw (Exception.
+             (format "The %s ugen has an invalid argument: %s"
                      (:name ugen)
-                     (first (filter 
+                     (first (filter
                               #(not (or (ugen? %) (number? %)))
                               (:args ugen)))))))
 
@@ -106,7 +106,7 @@
                     (and (not (nil? src))
                          (not (nil? index))))
                   (:inputs ugen))
-      (throw (Exception. 
+      (throw (Exception.
                (format "Cannot connect ugen arguments for %s ugen with args: %s" (:name ugen) (str (seq (:args ugen)))))))
 
     ugen))
