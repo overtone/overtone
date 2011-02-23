@@ -296,7 +296,10 @@
           [tgt-fn args] (if (= :ctl (first args))
                           [controller (rest args)]
                           [player args])
-          args (map #(if (buffer? %) (:id %) %) args)
+          args (map #(if (or (isa? (type %) :overtone.sc.core/buffer)
+                             (isa? (type %) :overtone.sc.core/sample))
+                       (:id %) %) args)
+
           named-args (if (keyword? (first args))
                        args
                        (name-synth-args args arg-names))]
