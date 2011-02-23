@@ -20,6 +20,8 @@
       (= 0 id) "root: "
       (= @inst-group* id) "insts: "
       (= @synth-group* id) "synths: "
+      (= @mixer-group* id) "mixer: "
+      (= @record-group* id) "recording: "
       :else (str (check-inst-group id) " group: "))
     id))
 
