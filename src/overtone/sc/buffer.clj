@@ -31,8 +31,8 @@
      (wait-until-booted)
      (let [buf (buffer size num-channels)]
        (while (not (buffer-ready? buf))
-         (Thread/sleep 50)))
-     buf))
+         (Thread/sleep 50))
+       buf)))
 
 (defn buffer? [buf]
   (isa? (type buf) ::buffer))
