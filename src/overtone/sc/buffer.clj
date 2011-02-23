@@ -24,6 +24,16 @@
   [buf]
   @(:ready? buf))
 
+(defn sbuffer
+  "Allocate a new buffer synchronously. Halts the current thread until the buffer has been succesfully allocated"
+  ([size] (sbuffer size 1))
+  ([size num-channels]
+     (wait-until-booted)
+     (let [buf (buffer size num-channels)]
+       (while (not (buffer-ready? buf))
+         (Thread/sleep 50)))
+     buf))
+
 (defn buffer? [buf]
   (isa? (type buf) ::buffer))
 
