@@ -79,7 +79,7 @@
 
 ;; Samples are just audio files loaded into a buffer, so buffer
 ;; functions work on samples too.
-(derive ::sample :overtone.sc.core/buffer)
+(derive ::sample :overtone.sc.buffer/buffer)
 
 (defn sample
   "Loads a wave file into a memory buffer. Returns a function capable
