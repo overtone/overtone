@@ -61,9 +61,25 @@
   [s]
   (isa? (type s) ::sample))
 
+(defn sample-ready?
+  "Check whether a sample has completed allocating and/or loading data."
+  [sample]
+
+  @(:ready? sample))
+
+(defn sload-sample
+  "Loads a sample synchronously. Blocks the current thread until the server
+   has booted and the sample has been sucessfully loaded. See load-sample"
+  [path & args]
+  (wait-until-booted)
+  (let [sample (apply load-sample path args)]
+    (while (not (sample-ready? sample))
+      (Thread/sleep 50))
+    sample))
+
 ;; Samples are just audio files loaded into a buffer, so buffer
 ;; functions work on samples too.
-(derive ::sample :overtone.sc.core/buffer)
+(derive ::sample :overtone.sc.buffer/buffer)
 
 (defn sample
   "Loads a wave file into a memory buffer. Returns a function capable

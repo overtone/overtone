@@ -133,7 +133,24 @@
           %)
        coll))
 
-(defn arg-mapper [args arg-names default-map]
+(defn arg-mapper
+  "Takes a list of args, expected arg names and map of defaults.
+   Creates a map of arg names to args using the defaults as the starting
+   point.
+
+   The args should be passed in the order 'ordered params', 'keyword params'
+   such as the following:  [1 2 3 :d 4 :f 5]
+   where 1 2 and 3 are ordered params and
+   4 and 5 are named params (associated with :d and :f respectively).
+
+   If the expected args is the lis [:a :b :c :d :f] then the resulting map
+   will look as follows: {:a 1 :b 2 :c 3 :d 5 :f 5}. If the defaults contains
+   extra keys, these will be merged in with any clashes being overridden with
+   the result map, so if the default map is {:a 99 :h 2} the final output will
+   be {:a 1 :b 2 :c 3 :d 4 :f 5 :h 2}.
+
+   It is assumed that the values passed in as the args are *not* keywords."
+  [args arg-names default-map]
   (loop [args args
          names arg-names
          arg-map default-map]
