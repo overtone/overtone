@@ -51,7 +51,7 @@
     (* env bounced)))
 
 ; Experimenting with Karplus Strong synthesis...
-(definst ks1 [note 60 gate 1 decay 30 coef 0.3]
+(definst ks1 [note 60 gate 1 decay 30 coef 0.3 amp 0.8]
   (let [freq (midicps note)
         noize (* 0.8 (white-noise))
         dly (/ 1.0 freq)
@@ -62,9 +62,9 @@
         filt (rlpf dist (* 12 freq) 0.6)
         clp (clip2 filt 0.8)
         reverb (free-verb clp 0.4 0.8 0.2)]
-    (out 10 (pan2 (* 0.8 (env-gen (perc 0.0001 2) :action :free) reverb)))))
+    (out 10 (pan2 (* amp (env-gen (perc 0.0001 2) :action :free) reverb)))))
 
-(definst ks1-demo [note 60 gate 1]
+(definst ks1-demo [note 60 gate 1 amp 0.8]
   (let [freq (midicps note)
         noize (* 0.8 (white-noise))
         dly (/ 1.0 freq)
@@ -74,7 +74,7 @@
         dist (distort plk)
         filt (rlpf dist (* 12 freq) 0.6)
         reverb (free-verb filt 0.4 0.8 0.2)]
-    (out 10 (pan2 (* 0.8 (env-gen (perc 0.0001 2) :action :free) reverb)))))
+    (out 10 (pan2 (* amp (env-gen (perc 0.0001 2) :action :free) reverb)))))
 
 (definst ks-stringer [freq 440 rate 10]
   (let [noize (* 0.8 (white-noise))

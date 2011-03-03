@@ -11,10 +11,11 @@
 (defn play [synth pitch-classes]
   (doall (map #(synth %) pitch-classes)))
 
-(defn play-seq [count synth notes durs time odds]
+(defn play-seq [count synth notes vels durs time odds]
   (when (and notes durs)
-    (let [dur   (- (/ (first durs) 1.2) 10 (rand-int 20)) 
+    (let [dur   (- (/ (first durs) 1.2) 10 (rand-int 20))
           pitch (first notes)
+          vel (first vels)
           n-time (+ time dur)]
       (at time
           (when (> (rand) (- 1 odds))
@@ -32,10 +33,10 @@
           (when (= 2 count)
             (kick))
 
-          (play synth pitch))
+          (play synth pitch :amp vel))
       (at (+ time (* 0.5 dur))
           (c-hat 0.1))
-      (apply-at n-time #'play-seq (mod (inc count) 4) synth (next notes) (next durs) n-time odds []))))
+      (apply-at n-time #'play-seq (mod (inc count) 4) synth (next notes) (next vels) (next durs) n-time odds []))))
 
 ; TODO: Strum the chord
 
