@@ -14,7 +14,7 @@
   [dep fun]
   (dosync
    (ensure completed-dependencies*)
-   (if (some #{dep} @completed-dependencies*)
+   (if (contains? @completed-dependencies* dep)
      (fun)
      (let [handlers (get @registered-handlers* dep [])]
        (alter registered-handlers* assoc dep (conj handlers fun))))))
