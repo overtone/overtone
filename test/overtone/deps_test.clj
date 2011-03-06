@@ -3,16 +3,23 @@
         overtone.deps))
 
 (deftest deps-basic-test
+  (reset-deps)
   (let [log (atom [])]
-    (on-dep :foo
+    (on-deps :foo
             #(swap! log conj :a))
-    (on-dep [:foo :bar]
+    (satisfy-deps :foo)
+    (on-deps :foo
             #(swap! log conj :b))
-    (on-dep #{:foo :bar :baz}
+    (on-deps [:foo :bar]
             #(swap! log conj :c))
-    (satisfy-dep :foo)
-    (satisfy-dep :bar)
-    (satisfy-dep :baz)
-    (Thread/sleep 500)
-    (is (= [:a :b :c] @log))))
+    (on-deps #{:foo :bar :baz}
+            #(swap! log conj :d))
+    (satisfy-deps :bar)
+    (Thread/sleep 100)
+    (satisfy-deps :baz)
+    (Thread/sleep 200)
+    (on-deps #{:foo :baz}
+            #(swap! log conj :e))
+    (Thread/sleep 300)
+    (is (= [:a :b :c :d :e] @log))))
 

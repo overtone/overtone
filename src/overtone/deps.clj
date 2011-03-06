@@ -1,44 +1,18 @@
 (ns
-    ^{:doc "A basic dependency system for specifying the execution of fns on or after the
-            dependency has been met."
+    ^{:doc "A basic dependency system for specifying the execution of 
+           fns once dependencies have been met."
       :author "Sam Aaron & Jeff Rose"}
   overtone.deps
   (:require [clojure.set :as set]))
-
-(defonce completed-dependencies* (ref #{}))
-(defonce registered-handlers* (ref {}))
-
-(defn on-dependency
-  "Specify that a given fun should only be called after a specific dependency has been satisfied. If the
-   dependency has been satisfied, the fun is immediately executed. If not, it is registered to be executed
-   within the thread that satisfies the dependency with satisfy-dependency"
-  [dep fun]
-  (dosync
-   (ensure completed-dependencies*)
-   (if (contains? @completed-dependencies* dep)
-     (fun)
-     (let [handlers (get @registered-handlers* dep [])]
-       (alter registered-handlers* assoc dep (conj handlers fun))))))
-
-(defn satisfy-dependency
-  "Specifies that a given dependency has been satisfied. This will also synchronously execute all handlers waiting
-   for this dependency to be satisfied."
-  [dep]
-  (let [handlers (dosync
-                  (alter completed-dependencies* conj dep)
-                  (let [deps-handlers (get @registered-handlers* dep [])]
-                    (alter registered-handlers* dissoc dep)
-                    deps-handlers))]
-    (doseq [h handlers] (h))))
 
 (defonce deps* (agent {:satisfied #{}
                        :tasks []
                        :completed []}))
 
-(defn- on-dep*
+(defn- on-deps*
   [cur-deps task-deps task]
   (apply assoc cur-deps
-         (if (set/superset? cur-deps task-deps)
+         (if (set/superset? (:satisfied cur-deps) task-deps)
            (do
              (task)
              [:completed (conj (:completed cur-deps)
@@ -54,7 +28,6 @@
           (fn [[done todo] [task-deps task]]
                 (if (set/superset? satisfied task-deps)
                   (do
-                    (println "running: " task-deps)
                     (task)
                     [(conj done [task-deps task]) todo])
                   [done (conj todo [task-deps task])]))
@@ -65,20 +38,26 @@
      :completed t-done}))
 
 (defn on-deps
+  "Specify that a function should be called once one or more dependencies 
+  have been satisfied. The function is run immediately if the deps have 
+  already been satisfied, otherwise it will run as soon as they are."
   [deps handler]
-  (send-off deps* on-dep*
+  (send-off deps* on-deps*
             (if (coll? deps)
               (set deps)
               (set [deps]))
               handler))
 
 (defn satisfy-deps
+  "Specifies that a given dependency has been satisfied."
   [& deps]
   (send-off deps* satisfy* (set deps)))
 
 (defn reset-deps
+  "Reset the dependency system."
   []
   (send deps* (fn [& args]
                 {:satisfied #{}
                  :tasks []
                  :completed []})))
+
