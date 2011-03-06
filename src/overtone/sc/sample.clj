@@ -2,7 +2,7 @@
   ^{:doc "Making it easy to load and play audio samples (wav or aif files)."
      :author "Jeff Rose"}
   overtone.sc.sample
-  (:use [overtone.sc core synth ugen buffer]
+  (:use [overtone.sc core synth ugen buffer allocator]
         [overtone event util]))
 
 ; Define a default wav player synth
@@ -55,15 +55,31 @@
   (doseq [[[path args] buf] @loaded-samples*]
     (apply load-sample* path args)))
 
-(on-event :connected :sample-loader load-all-samples)
+(on-sync-event :connected :sample-loader load-all-samples)
 
 (defn sample?
   [s]
   (isa? (type s) ::sample))
 
+(defn sample-ready?
+  "Check whether a sample has completed allocating and/or loading data."
+  [sample]
+
+  @(:ready? sample))
+
+(defn sload-sample
+  "Loads a sample synchronously. Blocks the current thread until the server
+   has booted and the sample has been sucessfully loaded. See load-sample"
+  [path & args]
+  (wait-until-booted)
+  (let [sample (apply load-sample path args)]
+    (while (not (sample-ready? sample))
+      (Thread/sleep 50))
+    sample))
+
 ;; Samples are just audio files loaded into a buffer, so buffer
 ;; functions work on samples too.
-(derive ::sample :overtone.sc.core/buffer)
+(derive ::sample :overtone.sc.buffer/buffer)
 
 (defn sample
   "Loads a wave file into a memory buffer. Returns a function capable

@@ -33,33 +33,44 @@
 ; so that's where we'll start.  Eventually we should try with the real-time JVM if
 ; it seems that timing isn't accurate enough.
 
-(def NUM-PLAYER-THREADS 10)
-(def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS))
+(defn make-pool
+  "creates a new pool of threads to schedule new events for. Defaults to 10 threads."
+  ([] (make-pool 10))
+  ([num-threads]
+     (ScheduledThreadPoolExecutor. num-threads)))
+
+(def player-pool* (atom (make-pool)))
 
 (defn now []
   (System/currentTimeMillis))
 
 (defn schedule
-  "Schedules fun to be executed after ms-delay milliseconds."
-  [fun ms-delay]
-  (.schedule *player-pool* fun (long ms-delay) TimeUnit/MILLISECONDS))
+  "Schedules fun to be executed after ms-delay milliseconds. Pool defaults to the player-pool."
+  ([fun ms-delay] (schedule fun ms-delay @player-pool*))
+  ([fun ms-delay pool]
+     (.schedule pool fun (long ms-delay) TimeUnit/MILLISECONDS)))
 
 (defn periodic
-  "Calls fun every ms-period, and takes an optional initial-delay for the first call."
+  "Calls fun every ms-period, and takes an optional initial-delay for the first call in ms. Pool defaults to the player-pool."
+  ([fun ms-period] (periodic fun ms-period 0))
+  ([fun ms-period initial-delay] (periodic fun ms-period initial-delay @player-pool*))
+  ([fun ms-period initial-delay pool]
+     (let [initial-delay (long initial-delay)
+           ms-period     (long ms-period)]
+       (.scheduleAtFixedRate pool fun initial-delay ms-period TimeUnit/MILLISECONDS))))
 
-  [fun ms-period & [initial-delay]]
-  (let [initial-delay (if initial-delay
-                        (long initial-delay)
-                        (long 0))]
-    (.scheduleAtFixedRate *player-pool* fun initial-delay (long ms-period) TimeUnit/MILLISECONDS)))
+(defn stop-and-reset-pool!
+  "Shuts down a given pool (passed in as an atom) either immediately or not depending on whether the optional now param is used.
+   The pool is then reset to a fresh new pool preserving the original size."
+  [pool-ref & [now]]
+  (let [pool @pool-ref
+        num-threads (.getCorePoolSize pool)]
+    (reset! pool-ref (make-pool num-threads))
+    (if now
+      (.shutdownNow pool)
+      (.shutdown pool))))
+  (on-sync-event :reset ::player-reset #(stop-and-reset-pool! player-pool* true ))
 
-(defn stop-players [& [now]]
-  (if now
-    (.shutdownNow *player-pool*)
-    (.shutdown *player-pool*))
-  (def *player-pool* (ScheduledThreadPoolExecutor. NUM-PLAYER-THREADS)))
-
-(on-sync-event :reset ::player-reset #(stop-players true))
 
 (defn stop-player [player & [now]]
   (.cancel player (or now false)))
@@ -68,12 +79,12 @@
 ;   By passing a function using #'foo syntax instead of just foo, when later
 ; called by the scheduler it will lookup based on the symbol rather than using
 ; the instance of the function defined earlier.
-; (apply-at (+ dur (now)) #'my-melody arg1 arg2)
+; (apply-at (+ dur (now)) #'my-melody arg1 arg2 [])
 
 (def *APPLY-AHEAD* 150)
 
 (defn apply-at
-  "Calls (apply f args argseq) as soon after ms-time (timestamp in milliseconds) as possible." 
+  "Calls (apply f args argseq) as soon after ms-time (timestamp in milliseconds) as possible."
   {:arglists '([ms-time f args* argseq])}
   [#^clojure.lang.IFn ms-time f & args]
   (let [delay-time (- ms-time *APPLY-AHEAD* (now))]

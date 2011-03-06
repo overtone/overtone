@@ -1,3 +1,6 @@
+* inst and synth forms should evalute the defaults rather than expecting them to
+be numbers (to use equations, constant vars, etc...)
+
 ## Helpers
 
 * rather than using a plain multiply for volume adjustment, we should have 

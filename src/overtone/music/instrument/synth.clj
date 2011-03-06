@@ -3,7 +3,7 @@
 
 (defsynth ping [note 60 dur 0.4]
   (let [snd (sin-osc (midicps note))
-        env (env-gen (perc (/ dur 2.0) (/ dur 2.0)) :action :free)] 
+        env (env-gen (perc (/ dur 2.0) (/ dur 2.0)) :action :free)]
   (out 0 (pan2 (* env snd)))))
 
 (defsynth alien-computer [trig 0.3]
@@ -11,14 +11,81 @@
                  (pv-rand-comb (fft 0 (white-noise))
                                0.95 (impulse:kr trig))))))
 
-(defsynth foo []
-  (let [snd (fft 0 (white-noise
+(defsynth rise-fall-pad [freq 440 t 4 amt 0.3 amp 0.8]
+  (let [f-env      (env-gen (perc t t) 1 1 0 1 :free)
+        src        (saw [freq (* freq 1.01)])
+        signal     (rlpf (* 0.3 src)
+                         (+ (* 0.6 freq) (* f-env 2 freq)) 0.2)
+        k          (/ (* 2 amt) (- 1 amt))
+        distort    (/ (* (+ 1 k) signal) (+ 1 (* k (abs signal))))
+        gate       (pulse (* 2 (+ 1 (sin-osc:kr 0.05))))
+        compressor (compander distort gate 0.01 1 0.5 0.01 0.01)
+        dampener   (+ 1 (* 0.5 (sin-osc:kr 0.5)))
+        reverb     (free-verb compressor 0.5 0.5 dampener)
+        echo       (comb-n reverb 0.4 0.3 0.5)]
+    (out 0 (* amp echo))))
 
 (defsynth buzz [pitch 40 cutoff 300 dur 200]
   (let [a (lpf (saw (midicps pitch)) (* (lf-noise1 :control 10) 400))
         b (sin-osc (midicps (- pitch 12)))
         env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
     (out 0 (pan2 (* env (+ a b))))))
+
+(definst bass [freq 120 t 0.6 amp 0.2]
+  (let [env (env-gen (perc 0.08 t) :action :free)
+        src (saw [freq (* 0.98 freq) (* 2.015 freq)])
+        src (clip2 (* 1.3 src) 0.8)
+        sub (sin-osc (/ freq 2))
+        filt (resonz (rlpf src (* 4.4 freq) 0.09) (* 2.0 freq) 2.9)]
+    (fold (distort (* 1.3 (+ filt sub) env amp)) 0.08)))
+
+(definst grunge-bass [freq 120 a 0.1 d 0.01 s 0.4 r 0.4 amp 0.8 gate 1]
+  (let [env (env-gen (adsr a d s r) gate :action :free)
+        src (saw [freq (* 0.98 freq) (* 2.015 freq)])
+        src (clip2 (* 1.3 src) 0.9)
+        sub (sin-osc (/ freq 2))
+        filt (resonz (rlpf src (* 8.4 freq) 0.29) (* 2.0 freq) 2.9)
+        meat (ring4 filt sub)
+        sliced (rlpf meat (* 2 freq) 0.1)
+        bounced (free-verb sliced 0.8 0.9 0.2)]
+    (* env bounced)))
+
+; Experimenting with Karplus Strong synthesis...
+(definst ks1 [note 60 gate 1 decay 30 coef 0.3 amp 0.8]
+  (let [freq (midicps note)
+        noize (* 0.8 (white-noise))
+        dly (/ 1.0 freq)
+        plk   (pluck noize gate (/ 1.0 freq) dly
+                     decay
+                     coef)
+        dist (distort plk)
+        filt (rlpf dist (* 12 freq) 0.6)
+        clp (clip2 filt 0.8)
+        reverb (free-verb clp 0.4 0.8 0.2)]
+    (out 10 (pan2 (* amp (env-gen (perc 0.0001 2) :action :free) reverb)))))
+
+(definst ks1-demo [note 60 gate 1 amp 0.8]
+  (let [freq (midicps note)
+        noize (* 0.8 (white-noise))
+        dly (/ 1.0 freq)
+        plk   (pluck noize gate (/ 1.0 freq) dly
+                     (mouse-x 0.1 50)
+                     (mouse-y 0.0001 0.9999))
+        dist (distort plk)
+        filt (rlpf dist (* 12 freq) 0.6)
+        reverb (free-verb filt 0.4 0.8 0.2)]
+    (out 10 (pan2 (* amp (env-gen (perc 0.0001 2) :action :free) reverb)))))
+
+(definst ks-stringer [freq 440 rate 10]
+  (let [noize (* 0.8 (white-noise))
+        trig  (impulse rate)
+        coef  (mouse-x -0.999 0.999)
+        delay (/ 1.0 (* (mouse-y 0.001 0.999) freq))
+        plk   (pluck noize trig (/ 1.0 freq) delay 10 coef)
+        dist (distort plk)
+        filt (rlpf dist (* 12 freq) 0.6)
+        reverb (free-verb filt 0.7 0.7 0.3)]
+    (* 0.8 reverb)))
 
 ;(defn buzzer [t tick dur notes]
 ;  (let [note (first notes)]

@@ -4,14 +4,14 @@
 (def specs
      [
       {:name "PlayBuf",
-       :args [{:name "numChannels" :mode :num-outs}
-              {:name "bufnum", :default 0}
-              {:name "rate", :default 1.0}
-              {:name "trigger", :default 1.0}
-              {:name "startPos", :default 0.0}
-              {:name "loop", :default 0.0}
+       :args [{:name "numChannels" :mode :num-outs :doc "The number of channels that the buffer will be. This must be a fixed integer. The architechture of the SynthDef cannot change after it is compiled. Warning: if you supply a bufnum of a buffer that has a different numChannels then you have specified to the play-buf, it will fail silently."}
+              {:name "bufnum", :default 0 :doc "The index of the buffer to use."}
+              {:name "rate", :default 1.0 :doc "1.0 is the server's sample rate, 2.0 is one octave up, 0.5 is one octave down -1.0 is backwards normal rate ... etc. Interpolation is cubic. Note:  if the buffer's sample rate is different from the server's, you will need to multiply the desired playback rate by (file's rate / server's rate). The UGen (buf-rate-scale bufnum) returns this factor."}
+              {:name "trigger", :default 1.0 :doc "A trigger causes a jump to the startPos. A trigger occurs when a signal changes from <= 0 to > 0."}
+              {:name "startPos", :default 0.0 :doc "Sample frame to start playback."}
+              {:name "loop", :default 0.0 :doc "1 means true, 0 means false. This is modulateable."}
               {:name "action", :default :none :map DONE-ACTIONS}]
-       :doc "play samples from a buffer"}
+       :doc "Plays back a sample resident in a buffer"}
 
       ;; TGrains : MultiOutUGen {
       ;; 	*ar { arg numChannels, trigger=0, bufnum=0, rate=1, centerPos=0,

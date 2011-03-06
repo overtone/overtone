@@ -21,15 +21,7 @@
               {:name "pitchDispersion", :default 0.0}
               {:name "timeDispersion", :default 0.0}],
        :rates #{:ar}
-       :muladd true
        :check (same-rate-as-first-input)}
-
-      ;; from Pluck.sc
-      ;; Pluck : UGen {
-      ;;  *ar { arg in = 0.0, trig = 1.0, maxdelaytime = 0.2, delaytime = 0.2, decaytime = 1.0,
-      ;;      coef = 0.5, mul = 1.0, add = 0.0;
-      ;;    ^this.multiNew('audio', in, trig, maxdelaytime, delaytime, decaytime, coef).madd(mul, add)}
-      ;;  }
 
       {:name "Pluck",
        :args [{:name "in", :default 0.0}
@@ -39,7 +31,7 @@
               {:name "decaytime", :default 1.0}
               {:name "coef", :default 0.5}],
        :rates #{:ar}
-       :muladd true}
+       :doc "Implements the Karplus-Strong style of synthesis, where a delay line (normally starting with noise) is filtered and fed back on itself so that over time it becomes periodic."}
 
       ;; TODO write some functions implementing these classand buffer  methods
       ;; Partitioned Convolution, from PartConv.sc

@@ -196,24 +196,28 @@
 (defonce loaded-synthdefs* (ref {}))
 
 ;; ### Synth Definition
-;; 
+;;
 ;; Synths are created from Synth Definitions. Synth Definition files are
 ;; created by Overtone and then loaded into the synth server using the synth
-;; and inst forms and their derivatives. 
-(defn load-synthdef 
-  "Load an Overtone synth definition onto the audio server."
-  [sdef] 
-  (assert (synthdef? sdef)) 
+;; and inst forms and their derivatives.
+(defn load-synthdef
+  "Load an Overtone synth definition onto the audio server. The synthdef is also stored so that it can
+   be re-loaded if the server needs rebooted. If the server is currently not running, the synthdef loading
+   is delayed until the server has succesfully connected."
+  [sdef]
+  (assert (synthdef? sdef))
   (dosync (alter loaded-synthdefs* assoc (:name sdef) sdef))
-  
-  (if (connected?)
-    (snd "/d_recv" (synthdef-bytes sdef))))
+
+  (when (connected?)
+    (let [res (recv "/done")]
+      (snd "/d_recv" (synthdef-bytes sdef))
+      (await-promise! res))))
 
 (defn- load-all-synthdefs []
   (doseq [[sname sdef] @loaded-synthdefs*]
     (snd "/d_recv" (synthdef-bytes sdef))))
 
-(on-event :connected ::synthdef-loader load-all-synthdefs)
+(on-sync-event :connected ::synthdef-loader load-all-synthdefs)
 
 (defn load-synth-file
   "Load a synth definition file onto the audio server."

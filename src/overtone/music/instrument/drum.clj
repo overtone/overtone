@@ -11,18 +11,38 @@
         hit-env (env-gen (perc))]
     (out out-bus (pan2 (* amp (+ (* drum drum-env) (* hit hit-env))) 0))))
 
+(comment defsynth kick [out 0 ffreq 80 attack 0 release 2 amp 0.1 pan 0]
+  (let [snd (apply + (sin-osc [ffreq (* 1.01 ffreq) (* ffreq 1.03)
+                      (* ffreq 1.06) (* ffreq 1.1) 0 0.5]))
+        snd (+ snd (pink-noise))
+        snd (reduce (fn [mem v]
+                      (rlpf mem (* ffreq v) (* 0.1 v)))
+                    snd (range 1 6))
+        snd (+ snd (lpf (white-noise) (* ffreq 6)))
+        env (env-gen (perc attack release 1 -50) :action :free)]
+    (offset-out out (pan2 (* snd amp env) 0))))
+
+(defsynth hi-hat [out 0 ffreq 200 rq 0.5
+                  attack 0 release 0.025 amp 0.1
+                  pan 0]
+  (let [snd (white-noise)
+        snd (hpf snd ffreq)
+        snd (rhpf snd (* ffreq 2) rq)
+        snd (* snd (env-gen (perc attack release 1 -10) :action :free))]
+    (offset-out out (pan2 (* 2 snd amp)))))
+
 (defsynth round-kick [amp 0.5 decay 0.6 freq 65]
   (let [env (env-gen (perc 0 decay) :action :free)
         snd (* amp (sin-osc freq (* Math/PI 0.5)))]
     (out 0 (pan2 (* snd env) 0))))
 
-(defsynth snare [out-bus 0 freq 405 amp 0.8 sustain 0.1
+(defsynth snare [out-bus 0 freq 405 amp 0.2 sustain 0.1
                  drum-amp 0.25 crackle-amp 40 tightness 1000]
   (let [drum-env (* 0.5 (env-gen (perc 0.005 sustain) :action :free))
         drum-s1 (* drum-env (sin-osc freq))
         drum-s2 (* drum-env (sin-osc (* freq 0.53)))
-        drum-s3 (* drum-env (sin-osc (saw (* freq 0.85)) 
-                                     (sin-osc 184))); (/ 0.5 1.3)))
+        drum-s3 (* drum-env (sin-osc (saw (* freq 0.85))
+                                     (sin-osc 184)))
         drum (* drum-amp (+ drum-s1 drum-s2 drum-s3))
         noise (lf-noise0 20000 0.1)
         filtered (* 0.5 (brf noise 8000 0.1))
@@ -31,14 +51,14 @@
         filtered (* (env-gen (perc 0.005 sustain) :action :free)
                     (brf filtered 2000 0.0001))
         crackle (* (resonz filtered tightness) crackle-amp)]
-    (out out-bus (pan2 (* amp (* 5 (+ drum crackle))) 0))))
+    (out out-bus (pan2 (* amp (* (+ drum crackle))) 0))))
 
 (defsynth snare2 [amp 0.5 decay 0.1 freq 1000]
   (let [env (env-gen (perc 0 decay) :action :free)
         snd (rlpf (* (gray-noise) amp) freq (line 0.1 0.9 decay))]
     (out 0 (pan2 (* snd env)))))
 
-(defsynth tom [sustain 0.4 mode-level 0.25 freq 90 timbre 1 amp 0.8]
+(defsynth tom [amp 0.2 sustain 0.4 mode-level 0.25 freq 90 timbre 1]
   (let [env (env-gen (perc 0.005 sustain) :action :free)
         s1 (* 0.5 env (sin-osc (* freq 0.8)))
         s2 (* 0.5 env (sin-osc freq))
@@ -51,7 +71,7 @@
         mix2 (* amp (+ mix stick))]
     (out 0 (pan2 mix2))))
 
-(definst c-hat [amp 0.8 t 0.04]
+(definst c-hat [amp 0.3 t 0.07]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 :free)
         noise (white-noise)
         sqr (* (env-gen (perc 0.01 0.04)) (pulse 880 0.2))
@@ -234,7 +254,7 @@
 ; TODO: figure this one out... :-)
 (defsynth clap [freq 100 sustain 5 amp 0.9]
   (let [env (env-gen (perc 0.02 sustain) :action :free)
-        saw (apply + 
+        saw (apply +
                    (* (lf-pulse:kr 0.6 0 0.5)
                (* 0.07 [(white-noise) (white-noise)])
                [(saw 1000) (saw 1000)]))

@@ -46,14 +46,14 @@
       ;; }
 
       {:name "Normalizer",
-       :args [{:name "in"}
-              {:name "level", :default 1.0}
-              {:name "dur", :default 0.01}],
+       :args [{:name "in", :doc "The input signal"}
+              {:name "level", :default 1.0 :doc "The peak output amplitude level to which to normalize the input"}
+              {:name "dur", :default 0.01 :doc "The buffer delay time. Shorter times will produce smaller delays and quicker transient response times, but may introduce amplitude modulation artifacts. (AKA lookAheadTime)"}],
        :rates #{:ar}
        :doc "flattens dynamics"}
 
       ;; Limiter : Normalizer {}
 
       {:name "Limiter", :extends "Normalizer"
-       :doc "peak limiter"}
+       :doc "Limits the input amplitude to the given level. Limiter will not overshoot like Compander will, but it needs to look ahead in the audio. Thus there is a delay equal to twice the lookAheadTime. Limiter, unlike Compander, is completely transparent for an in range signal."}
       ])

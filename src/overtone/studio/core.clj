@@ -13,23 +13,56 @@
 (defonce instruments*  (ref {}))
 (defonce inst-group*   (ref nil))
 (defonce mixer-group*  (ref nil))
+(defonce mixer-id*     (ref nil))
 (defonce record-group* (ref nil))
 
-(defn create-studio-groups []
-  (let [g (group :tail ROOT-GROUP)
+(defonce MIXER-BUS 10)
+
+; A mixer synth for volume, pan, and limiting
+; TODO: Add basic EQ
+(defsynth mixer [in-bus 10 out-bus 0
+                 volume 0.5 pan 0.0
+                 threshold 0.7
+                 slope-below 1 slope-above 0.1
+                 clamp-time 0.005 relax-time 0.005]
+  (let [source  (in in-bus)
+        limited (compander source source threshold
+                           slope-below slope-above
+                           clamp-time relax-time)]
+    (out out-bus (pan2 limited pan volume))))
+
+(defn volume [vol]
+  (ctl @mixer-id* :volume vol))
+
+(defn pan [pan]
+  (ctl @mixer-id* :pan pan))
+
+(defn start-mixer []
+  (Thread/sleep 2000)
+  (let [mix (mixer :tgt @mixer-group*)]
+    (dosync (ref-set mixer-id* mix))))
+
+(on-event :studio-setup-completed :start-mixer start-mixer)
+
+(defn setup-studio []
+  (let [g (group :head ROOT-GROUP)
         m (group :tail ROOT-GROUP)
         r (group :tail ROOT-GROUP)]
     (dosync
       (ref-set inst-group* g)
       (ref-set mixer-group* m)
       (ref-set record-group* r)
-      (map-vals #(assoc % :group (group :tail g)) @instruments*))))
+      (ref-set instruments* (map-vals #(assoc % :group (group :tail g))
+                                      @instruments*)))
+    (event :studio-setup-completed)))
 
-(on-sync-event :connected :studio-setup create-studio-groups)
+(on-sync-event :connected :studio-setup setup-studio)
 
 ;; Clear and re-create the instrument groups after a reset
 ;; TODO: re-create the instrument groups
-(defn reset-inst-groups []
+(defn reset-inst-groups
+  "Frees all synth notes for each of the current instruments"
+  []
   (doseq [[name inst] @instruments*]
     (group-clear (:group inst))))
 
@@ -60,7 +93,7 @@
           [ugens constants]
           (let [pan-chans (pan2 root)
                 pan (:ugen (first pan-chans))]
-            [(conj ugens pan (out 0 pan-chans)) (set (floatify (conj constants 0 1)))]))))
+            [(conj ugens pan (out MIXER-BUS pan-chans)) (set (floatify (conj constants MIXER-BUS 1)))]))))
 
 (defmacro inst [sname & args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)
@@ -83,8 +116,7 @@
                               :player player#}
                              player#)]
 
-     (if (connected?)
-       (load-synthdef sdef#))
+     (load-synthdef sdef#)
      (add-instrument inst#)
      (event :new-inst :inst inst#)
      inst#))
@@ -112,7 +144,7 @@
          (connected?))
   (dosync (ref-set inst-group* (group :head ROOT-GROUP))))
 
-(def session* (ref {:metro (metronome 120)
+(defonce session* (ref {:metro (metronome 120)
                     :tracks {}
                     :playing false}))
 
