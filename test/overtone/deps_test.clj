@@ -17,9 +17,9 @@
     (satisfy-deps :bar)
     (Thread/sleep 100)
     (satisfy-deps :baz)
-    (Thread/sleep 200)
+    (Thread/sleep 100)
     (on-deps #{:foo :baz}
             #(swap! log conj :e))
-    (Thread/sleep 300)
+    (Thread/sleep 100)
     (is (= [:a :b :c :d :e] @log))))
 
