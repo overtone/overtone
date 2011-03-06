@@ -93,7 +93,8 @@
           [ugens constants]
           (let [pan-chans (pan2 root)
                 pan (:ugen (first pan-chans))]
-            [(conj ugens pan (out MIXER-BUS pan-chans)) (set (floatify (conj constants MIXER-BUS 1)))]))))
+            [(conj ugens pan (out MIXER-BUS pan-chans)) 
+             (set (floatify (conj constants MIXER-BUS 1 0)))]))))
 
 (defmacro inst [sname & args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)

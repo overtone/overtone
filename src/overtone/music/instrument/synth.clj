@@ -6,9 +6,11 @@
         env (env-gen (perc (/ dur 2.0) (/ dur 2.0)) :action :free)]
   (out 0 (pan2 (* env snd)))))
 
+(def alien-buf (buffer 2048))
+
 (defsynth alien-computer [trig 0.3]
   (out 0 (pan2 (ifft
-                 (pv-rand-comb (fft 0 (white-noise))
+                 (pv-rand-comb (fft alien-buf (white-noise))
                                0.95 (impulse:kr trig))))))
 
 (defsynth rise-fall-pad [freq 440 t 4 amt 0.3 amp 0.8]
@@ -31,7 +33,7 @@
         env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
     (out 0 (pan2 (* env (+ a b))))))
 
-(definst bass [freq 120 t 0.6 amp 0.2]
+(definst bass [freq 120 t 0.6 amp 0.5]
   (let [env (env-gen (perc 0.08 t) :action :free)
         src (saw [freq (* 0.98 freq) (* 2.015 freq)])
         src (clip2 (* 1.3 src) 0.8)

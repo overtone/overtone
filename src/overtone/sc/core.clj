@@ -9,7 +9,7 @@
     [java.util.regex Pattern]
     [java.util.concurrent TimeUnit TimeoutException]
     [java.io BufferedInputStream]
-    [supercollider.scsynth ScSynth ScSynthStartedListener MessageReceivedListener])
+    [supercollider.scsynth ScSynth ScSynthStartedListener ScSynthMessageReceivedListener])
   (:require [overtone.log :as log])
   (:use
     [overtone event config setup util time-utils]
@@ -133,7 +133,7 @@
                   (.send @sc-world* buffer))
         peer (assoc (osc-peer) :send-fn send-fn)]
     (.addMessageReceivedListener @sc-world*
-      (proxy [MessageReceivedListener] []
+      (proxy [ScSynthMessageReceivedListener] []
         (messageReceived [buf size]
                          (event :osc-msg-received
                                 :msg (osc-decode-packet buf)))))

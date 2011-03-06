@@ -8,8 +8,8 @@
         env (env-gen (perc 0.3 2) :action :free)]
     (* vol src env)))
 
-(defn play [synth pitch-classes]
-  (doall (map #(synth %) pitch-classes)))
+(defn play [synth pitch-classes & args]
+  (doall (map #(apply synth % args) pitch-classes)))
 
 (defn play-seq [count synth notes vels durs time odds]
   (when (and notes durs)
@@ -36,7 +36,10 @@
           (play synth pitch :amp vel))
       (at (+ time (* 0.5 dur))
           (c-hat 0.1))
-      (apply-at n-time #'play-seq (mod (inc count) 4) synth (next notes) (next vels) (next durs) n-time odds []))))
+      (apply-at n-time #'play-seq 
+                (mod (inc count) 4) synth 
+                (next notes) (next vels) (next durs) 
+                n-time odds []))))
 
 ; TODO: Strum the chord
 
@@ -65,9 +68,10 @@
            octave)))
 
 (defn blue-beep []
-  (play-seq beep
+  (play-seq 0 beep
             (cycle (map sort (progression blues-chords :a 3 :ionian)))
             (cycle [1200 1204 1195 1206])
+            (cycle [300])
             (now)
             0.2))
 
@@ -78,7 +82,8 @@
   (play-seq 0 ks1-demo
             (cycle (map sort (progression blues-chords :a 2 :ionian)))
             (cycle [530 524 532 528])
+            (cycle [400])
             (now)
             0.5))
-(blue-ks1)
+;(blue-ks1)
 
