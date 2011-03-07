@@ -120,7 +120,7 @@
           (dosync (ref-set status* :connected))
           (notify true) ; turn on notifications now that we can communicate
           (event :reset)
-          (satisfy-dep :connected)
+          (satisfy-deps :connected)
           (event :connected)
           (remove-handler "status.reply" ::connected-handler1)
           (remove-handler "/status.reply" ::connected-handler2))]
@@ -262,7 +262,7 @@
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
 (if (= :linux (@config* :os))
-  (with-dep :connected ::connect-jack-ports #(connect-jack-ports)))
+  (with-deps :connected #(connect-jack-ports)))
 
 (defonce scsynth-server* (ref nil))
 
@@ -276,7 +276,7 @@
         listener (reify ScSynthStartedListener
                    (started [this]
                      (log/info "Boot listener...")
-                     (satisfy-dep :booted)
+                     (satisfy-deps :booted)
                      (reset! running?* true)))]
     (.addScSynthStartedListener server listener)
     (dosync (ref-set sc-world* server))
@@ -292,7 +292,7 @@
        (log/debug "Booting SuperCollider internal server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (with-dep :booted ::boot-internal connect)
+       (with-deps :booted connect)
        :booting))))
 
 (defn- sc-log
@@ -368,7 +368,7 @@
   (dosync
     (ref-set server* nil)
     (ref-set status* :no-audio)
-    (reset-all-dependencies!)))
+    (unsatisfy-all-dependencies)))
 
 ; TODO: Come up with a better way to delay shutdown until all of the :quit event handlers
 ; have executed.  For now we just use 500ms.
