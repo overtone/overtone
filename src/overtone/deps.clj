@@ -61,3 +61,10 @@
                  :tasks []
                  :completed []})))
 
+(defn unsatisfy-all-dependencies
+  "Unsatisfy all deps and reset completed tasks as todo tasks"
+  []
+  (send deps* (fn [deps]
+                {:satisfied #{}
+                 :tasks (deps :completed)
+                 :completed []})))
