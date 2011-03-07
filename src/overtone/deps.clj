@@ -1,5 +1,5 @@
 (ns
-    ^{:doc "A basic dependency system for specifying the execution of 
+    ^{:doc "A basic dependency system for specifying the execution of
            fns once dependencies have been met."
       :author "Sam Aaron & Jeff Rose"}
   overtone.deps
@@ -21,25 +21,22 @@
                          [task-deps task])])))
 
 (defn- satisfy*
-  [{:keys [satisfied tasks]} new-deps]
+  [{:keys [satisfied tasks completed]} new-deps]
   (let [satisfied (set/union satisfied new-deps)
-        [t-done t-todo]
-        (reduce
-          (fn [[done todo] [task-deps task]]
-                (if (set/superset? satisfied task-deps)
-                  (do
-                    (task)
-                    [(conj done [task-deps task]) todo])
-                  [done (conj todo [task-deps task])]))
-          [[] []]
-          tasks)]
+        execute-tasks (fn [[done todo] [task-deps task]]
+                        (if (set/superset? satisfied task-deps)
+                          (do
+                            (task)
+                            [(conj done [task-deps task]) todo])
+                          [done (conj todo [task-deps task])]))
+        [t-done t-todo] (reduce execute-tasks [completed []] tasks)]
     {:satisfied satisfied
-     :tasks t-todo
-     :completed t-done}))
+     :completed t-done
+     :tasks t-todo}))
 
-(defn on-deps
-  "Specify that a function should be called once one or more dependencies 
-  have been satisfied. The function is run immediately if the deps have 
+(defn with-deps
+  "Specify that a function should be called once one or more dependencies
+  have been satisfied. The function is run immediately if the deps have
   already been satisfied, otherwise it will run as soon as they are."
   [deps handler]
   (send-off deps* on-deps*
