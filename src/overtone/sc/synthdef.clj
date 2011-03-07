@@ -7,7 +7,7 @@
   (:import [java.net URL])
   (:require [overtone.log :as log])
   (:use byte-spec
-        [overtone util event]
+        [overtone util event deps]
         [overtone.sc core]))
 
 ;; param-name is :
@@ -217,7 +217,7 @@
   (doseq [[sname sdef] @loaded-synthdefs*]
     (snd "/d_recv" (synthdef-bytes sdef))))
 
-(on-sync-event :connected ::synthdef-loader load-all-synthdefs)
+(with-deps :connected load-all-synthdefs)
 
 (defn load-synth-file
   "Load a synth definition file onto the audio server."
