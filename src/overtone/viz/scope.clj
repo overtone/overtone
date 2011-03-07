@@ -17,6 +17,7 @@
 (def FPS 10)
 (def scopes* (atom {}))
 (def scope-pool* (atom nil))
+(def scopes-running?* (atom false))
 (def WIDTH 600)
 (def HEIGHT 400)
 (def X-PADDING 5)
@@ -32,7 +33,7 @@
 (defn- update-scope [s]
   (let [{:keys [buf size width height panel y-array x-array panel]} s
         frames (buffer-data buf)
-        step (int (/ (:size buf) width))
+        step (int (/ (buffer-size buf) width))
         y-scale (/ (- height (* 2 Y-PADDING)) -2)
         y-shift (+ (/ height 2) Y-PADDING)]
     (dotimes [x width]
@@ -92,13 +93,18 @@
 
 (defn scopes-start
   []
-  (create-pool-if-necessary)
-  (start-scopes-runner))
+  (if-not @scopes-running?*
+    (do
+      (create-pool-if-necessary)
+      (start-scopes-runner)
+      (reset! scopes-running?* true))))
 
 ;;  (.cancel (:runner @scope*) true)
 (defn scopes-stop
   []
-  (stop-and-reset-pool! scope-pool*))
+  (stop-and-reset-pool! scope-pool*)
+  (reset! scopes-running?* false))
+
 
 (defn- scope-bus
   "Set a bus to view in the scope."
@@ -106,8 +112,6 @@
   (let [buf (buffer SCOPE-BUF-SIZE)
         _ (wait-for-buffer buf)
         bus-synth (bus->buf :target 0 :position :tail (:num s) buf)]
-
-    (apply-at (+ (now) 1000) update-scope [])
     (assoc s
       :size SCOPE-BUF-SIZE
       :bus-synth bus-synth
@@ -117,8 +121,8 @@
   "Set a buffer to view in the scope."
   [s]
   (assoc s
-    :size (:size (buffer-info (:num s)))
-    :buf (:num s)))
+    :size (:n-frames (buffer-info (:num s)))
+    :buf (buffer-info (:num s))))
 
 (defn- mk-scope
   [num kind keep-on-top width height]
