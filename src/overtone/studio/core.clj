@@ -1,6 +1,6 @@
 (ns overtone.studio.core
   (:use
-    [overtone util event time-utils]
+    [overtone util event time-utils deps]
     [overtone.sc.ugen.defaults]
     [overtone.sc core synth ugen envelope node synthdef]
     [overtone.music rhythm]))
@@ -42,7 +42,7 @@
   (let [mix (mixer :tgt @mixer-group*)]
     (dosync (ref-set mixer-id* mix))))
 
-(on-event :studio-setup-completed :start-mixer start-mixer)
+(with-dep :studio-setup-completed ::start-mixer start-mixer)
 
 (defn setup-studio []
   (let [g (group :head ROOT-GROUP)
@@ -54,9 +54,9 @@
       (ref-set record-group* r)
       (ref-set instruments* (map-vals #(assoc % :group (group :tail g))
                                       @instruments*)))
-    (event :studio-setup-completed)))
+    (satisfy-dep :studio-setup-completed)))
 
-(on-sync-event :connected :studio-setup setup-studio)
+(with-dep :connected ::setup-studio setup-studio)
 
 ;; Clear and re-create the instrument groups after a reset
 ;; TODO: re-create the instrument groups

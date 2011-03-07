@@ -2,7 +2,7 @@
   (:require
     [overtone.log :as log])
   (:use
-    [overtone event util]
+    [overtone event util deps]
     [overtone.sc core allocator]))
 
 ;; ## Node and Group Management
@@ -282,8 +282,7 @@
        (with-meta (parse-node-tree tree)
          {:type ::node-tree})))))
 
-(on-sync-event :connected ::root-group-creator
-  #(dosync (ref-set synth-group* (group :head ROOT-GROUP))))
+(with-dep :connected ::create-root-group #(dosync (ref-set synth-group* (group :head ROOT-GROUP))))
 
 (on-sync-event :reset :reset-base
   (fn []

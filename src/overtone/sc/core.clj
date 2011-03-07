@@ -12,7 +12,7 @@
     [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
   (:require [overtone.log :as log])
   (:use
-    [overtone event config setup util time-utils]
+    [overtone event config setup util time-utils deps]
     [overtone.sc allocator]
     [clojure.contrib.java-utils :only [file]]
     [clojure.contrib pprint]
@@ -120,6 +120,7 @@
           (dosync (ref-set status* :connected))
           (notify true) ; turn on notifications now that we can communicate
           (event :reset)
+          (satisfy-dep :connected)
           (event :connected)
           (remove-handler "status.reply" ::connected-handler1)
           (remove-handler "/status.reply" ::connected-handler2))]
@@ -261,8 +262,7 @@
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
 (if (= :linux (@config* :os))
-  (on-sync-event :connected ::jack-connector
-            #(connect-jack-ports)))
+  (with-dep :connected ::connect-jack-ports #(connect-jack-ports)))
 
 (defonce scsynth-server* (ref nil))
 
@@ -276,7 +276,7 @@
         listener (reify ScSynthStartedListener
                    (started [this]
                      (log/info "Boot listener...")
-                     (event :booted)
+                     (satisfy-dep :booted)
                      (reset! running?* true)))]
     (.addScSynthStartedListener server listener)
     (dosync (ref-set sc-world* server))
@@ -292,7 +292,7 @@
        (log/debug "Booting SuperCollider internal server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (on-sync-event :booted ::internal-boot-connector #(connect))
+       (with-dep :booted ::boot-internal connect)
        :booting))))
 
 (defn- sc-log
@@ -367,7 +367,8 @@
     (osc-close @server* true))
   (dosync
     (ref-set server* nil)
-    (ref-set status* :no-audio)))
+    (ref-set status* :no-audio)
+    (reset-all-dependencies!)))
 
 ; TODO: Come up with a better way to delay shutdown until all of the :quit event handlers
 ; have executed.  For now we just use 500ms.
