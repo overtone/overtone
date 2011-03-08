@@ -119,7 +119,6 @@
         (fn []
           (dosync (ref-set status* :connected))
           (notify true) ; turn on notifications now that we can communicate
-          (event :reset)
           (satisfy-deps :connected)
           (event :connected)
           (remove-handler "status.reply" ::connected-handler1)
