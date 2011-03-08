@@ -1,3 +1,4 @@
+
 (ns overtone.live
   (:use overtone.ns)
   (:require clojure.stacktrace
@@ -6,7 +7,7 @@
             [overtone.sc allocator core ugen node synth synthdef
              trigger buffer envelope bus sample sc-lang]
             [overtone.music rhythm pitch tuning]
-            [overtone.studio core fx]
+            [overtone.studio core util fx]
             [overtone.console viz]))
 
 (immigrate

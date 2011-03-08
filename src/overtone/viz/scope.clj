@@ -9,6 +9,7 @@
   (:use
    [overtone event util time-utils]
    [overtone.sc core synth ugen buffer node]
+   [overtone.studio.util]
    clojure.stacktrace)
   (:require [overtone.log :as log]
             [clojure.set :as set]))
@@ -22,13 +23,6 @@
 (def HEIGHT 400)
 (def X-PADDING 5)
 (def Y-PADDING 10)
-
-;; Some utility synths for signal routing and scoping
-(defsynth bus->buf [bus 20 buf 0]
-  (record-buf (in bus) buf))
-
-(defsynth bus->bus [in-bus 20 out-bus 0]
-  (out out-bus (in in-bus)))
 
 (defn- update-scope [s]
   (let [{:keys [buf size width height panel y-array x-array panel]} s
