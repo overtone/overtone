@@ -42,7 +42,7 @@
   (let [mix (mixer :tgt @mixer-group*)]
     (dosync (ref-set mixer-id* mix))))
 
-(with-deps :studio-setup-completed start-mixer)
+(on-deps :studio-setup-completed ::start-mixer start-mixer)
 
 (defn setup-studio []
   (let [g (group :head ROOT-GROUP)
@@ -56,7 +56,7 @@
                                       @instruments*)))
     (satisfy-deps :studio-setup-completed)))
 
-(with-deps :connected setup-studio)
+(on-deps :connected ::setup-studio setup-studio)
 
 ;; Clear and re-create the instrument groups after a reset
 ;; TODO: re-create the instrument groups

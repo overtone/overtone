@@ -262,7 +262,7 @@
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
 
 (if (= :linux (@config* :os))
-  (with-deps :connected #(connect-jack-ports)))
+  (on-deps :connected ::connect-jack-ports #(connect-jack-ports)))
 
 (defonce scsynth-server* (ref nil))
 
@@ -292,7 +292,7 @@
        (log/debug "Booting SuperCollider internal server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (with-deps :booted connect)
+       (on-deps :booted ::connect-internal connect)
        :booting))))
 
 (defn- sc-log

@@ -282,7 +282,7 @@
        (with-meta (parse-node-tree tree)
          {:type ::node-tree})))))
 
-(with-deps :connected #(dosync (ref-set synth-group* (group :head ROOT-GROUP))))
+(on-deps :connected ::create-root-group #(dosync (ref-set synth-group* (group :head ROOT-GROUP))))
 
 (on-sync-event :reset :reset-base
   (fn []

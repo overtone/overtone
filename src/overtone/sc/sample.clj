@@ -56,7 +56,7 @@
   (doseq [[[path args] buf] @loaded-samples*]
     (apply load-sample* path args)))
 
-(with-deps :connected load-all-samples)
+(on-deps :connected ::load-all-samples load-all-samples)
 
 (defn sample?
   [s]
