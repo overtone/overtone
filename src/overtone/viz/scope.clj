@@ -15,7 +15,7 @@
             [clojure.set :as set]))
 
 (defonce SCOPE-BUF-SIZE 4096)
-(defonce FPS 25)
+(defonce FPS 10)
 (defonce scopes* (ref {}))
 (defonce scope-pool* (agent (make-pool)))
 (defonce scopes-running?* (ref false))
