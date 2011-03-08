@@ -7,38 +7,43 @@
    (java.awt.geom Rectangle2D$Float Path2D$Float)
    (javax.swing JFrame JPanel))
   (:use
-   [overtone event util time-utils]
+   [overtone event util time-utils deps]
    [overtone.sc core synth ugen buffer node]
    [overtone.studio.util]
    clojure.stacktrace)
   (:require [overtone.log :as log]
             [clojure.set :as set]))
 
-(def SCOPE-BUF-SIZE 4096)
-(def FPS 10)
-(def scopes* (atom {}))
-(def scope-pool* (atom nil))
-(def scopes-running?* (atom false))
-(def WIDTH 600)
-(def HEIGHT 400)
-(def X-PADDING 5)
-(def Y-PADDING 10)
+(defonce SCOPE-BUF-SIZE 4096)
+(defonce FPS 10)
+(defonce scopes* (ref {}))
+(defonce scope-pool* (agent (make-pool)))
+(defonce scopes-running?* (ref false))
+(defonce WIDTH 600)
+(defonce HEIGHT 400)
+(defonce X-PADDING 5)
+(defonce Y-PADDING 10)
+(defonce scope-group* (ref 0))
 
-(defn- update-scope [s]
+(on-deps :connected ::create-scope-group #(dosync (ref-set scope-group* (group :tail ROOT-GROUP))))
+
+(defn- update-scope-data [s]
   (let [{:keys [buf size width height panel y-array x-array panel]} s
         frames (buffer-data buf)
         step (int (/ (buffer-size buf) width))
         y-scale (/ (- height (* 2 Y-PADDING)) -2)
         y-shift (+ (/ height 2) Y-PADDING)]
-    (dotimes [x width]
-      (aset ^ints y-array x
-            (int (+ y-shift
-                    (* y-scale
-                       (aget ^floats frames (unchecked-multiply x step)))))))
+    (if-not (empty? frames)
+      (dotimes [x width]
+        (aset ^ints y-array x
+              (int (+ y-shift
+                      (* y-scale
+                         (aget ^floats frames (unchecked-multiply x step))))))))
+
     (.repaint panel)))
 
 (defn- update-scopes []
-  (doall (map update-scope (vals @scopes*))))
+  (doall (map update-scope-data (vals @scopes*))))
 
 (defn- paint-scope [g id]
   (if-let [scope (get @scopes* id)]
@@ -49,16 +54,6 @@
       (.drawRect ^Graphics g 0 0 width height)
       (.setColor ^Graphics g ^Color color)
       (.drawPolyline ^Graphics g ^ints x-array ^ints y-array width))))
-
-(defn- wait-for-buffer [b]
-  (loop [i 0]
-    (cond
-     (= 20 i) nil
-     (not (buffer-ready? b)) (do
-                               (java.lang.Thread/sleep 50)
-                               (recur (inc i))))))
-
-(def SCOPE-BUF-SIZE 4096)
 
 (defn scope-panel [id width height]
   (let [panel (proxy [JPanel] [true]
@@ -77,35 +72,32 @@
          (.show)
          (.setAlwaysOnTop keep-on-top)))))
 
-(defn- create-pool-if-necessary []
-  (if-not @scope-pool* (reset! scope-pool* (make-pool))))
-
-
 (defn- start-scopes-runner
   []
   (periodic update-scopes (/ 1000 FPS) 0 @scope-pool*))
 
 (defn scopes-start
   []
-  (if-not @scopes-running?*
-    (do
-      (create-pool-if-necessary)
-      (start-scopes-runner)
-      (reset! scopes-running?* true))))
+  (dosync
+   (when-not @scopes-running?*
+     (start-scopes-runner)
+     (ref-set scopes-running?* true))))
 
-;;  (.cancel (:runner @scope*) true)
 (defn scopes-stop
   []
-  (stop-and-reset-pool! scope-pool*)
-  (reset! scopes-running?* false))
+  (dosync
+   (stop-and-reset-pool! scope-pool*)
+   (ref-set scopes-running?* false)))
 
+(defn- start-bus-synth
+  [bus buf]
+  (bus->buf :target @scope-group* bus buf))
 
 (defn- scope-bus
   "Set a bus to view in the scope."
   [s]
   (let [buf (buffer SCOPE-BUF-SIZE)
-        _ (wait-for-buffer buf)
-        bus-synth (bus->buf :target 0 :position :tail (:num s) buf)]
+        bus-synth (start-bus-synth (:num s) buf)]
     (assoc s
       :size SCOPE-BUF-SIZE
       :bus-synth bus-synth
@@ -158,13 +150,28 @@
            kind (if (= -1 buf) :bus :buf)
            num  (if (= -1 buf) bus buf)
            s (mk-scope num kind keep-on-top WIDTH HEIGHT)]
-       (swap! scopes* assoc (:id s) s)
+       (dosync (alter scopes* assoc (:id s) s))
        (scopes-start))))
 
 (defn pscope
   "Creates a 'perminent' scope, i.e. one where the window is always kept on top of other OS windows. See scope."
   ([& args]
      (apply scope (concat args [:keep-on-top true]))))
+
+(defn- reset-scopes
+  "Restart scopes if they have already been running"
+  []
+  (dosync
+   (ref-set scopes*
+            (reduce (fn [new-scopes [k v]]
+                      (let [new-scope (if (= :bus (:kind v))
+                                        (scope-bus v)
+                                        v)]
+                        (assoc new-scopes k new-scope)))
+                    {}
+                    @scopes*))))
+
+(on-deps #{:synthdefs-loaded} ::reset-scopes reset-scopes)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

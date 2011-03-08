@@ -119,7 +119,6 @@
         (fn []
           (dosync (ref-set status* :connected))
           (notify true) ; turn on notifications now that we can communicate
-          (event :reset)
           (satisfy-deps :connected)
           (event :connected)
           (remove-handler "status.reply" ::connected-handler1)
@@ -166,11 +165,10 @@
 
 ; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
-  "Connect to an external SC audio server on the specified host and port."
-  [& [host port]]
-   (if (and host port)
-     (.run (Thread. #(connect-external host port)))
-     (connect-internal)))
+  "Connect to an running SC audio server. Either an external server if host and port are passed or an internal server
+   in the case of no args."
+  ([] (connect-internal))
+  ([host port] (.run (Thread. #(connect-external host port)))))
 
 (defn server-log
   "Print the server log."
