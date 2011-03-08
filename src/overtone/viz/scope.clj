@@ -23,6 +23,9 @@
 (defonce HEIGHT 400)
 (defonce X-PADDING 5)
 (defonce Y-PADDING 10)
+(defonce scope-group* (ref 0))
+
+(on-deps :connected ::create-scope-group #(dosync (ref-set scope-group* (group :tail ROOT-GROUP))))
 
 (defn- update-scope-data [s]
   (let [{:keys [buf size width height panel y-array x-array panel]} s
@@ -88,7 +91,7 @@
 
 (defn- start-bus-synth
   [bus buf]
-  (bus->buf :target 0 :position :tail bus buf))
+  (bus->buf :target @scope-group* bus buf))
 
 (defn- scope-bus
   "Set a bus to view in the scope."

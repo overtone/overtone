@@ -1,7 +1,8 @@
 (ns overtone.console.viz
   (:use vijual
         [overtone.sc core node]
-        [overtone.studio core]))
+        [overtone.studio core]
+        [overtone.viz scope]))
 
 ;;TODO: figure out if this is necessary
 (defn- check-inst-group
@@ -22,6 +23,7 @@
       (= @synth-group* id) "synths: "
       (= @mixer-group* id) "mixer: "
       (= @record-group* id) "recording: "
+      (= @scope-group* id) "scopes: "
       :else (str (check-inst-group id) " group: "))
     id))
 
