@@ -5,14 +5,14 @@
 (deftest deps-basic-test
   (reset-deps)
   (let [log (atom [])]
-    (with-deps :foo
+    (on-deps :foo ::swapper
             #(swap! log conj :a))
     (satisfy-deps :foo)
-    (with-deps :foo
+    (on-deps :foo ::another-swapper
             #(swap! log conj :b))
-    (with-deps [:foo :bar]
+    (on-deps [:foo :bar] ::third-swapper
             #(swap! log conj :c))
-    (with-deps #{:foo :bar :baz}
+    (on-deps #{:foo :bar :baz} ::fourth-swapper
             #(swap! log conj :d))
     (satisfy-deps :bar)
     (Thread/sleep 100)
@@ -21,5 +21,8 @@
     (with-deps #{:foo :baz}
                #(swap! log conj :e))
     (Thread/sleep 100)
+    (on-deps #{:foo :baz} ::fifth-swapper
+            #(swap! log conj :e))
+    (Thread/sleep 300)
     (is (= [:a :b :c :d :e] @log))))
 

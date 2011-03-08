@@ -1,3 +1,4 @@
+
 (ns overtone.live
   (:use overtone.ns)
   (:require clojure.stacktrace
@@ -6,8 +7,9 @@
             [overtone.sc allocator core ugen node synth synthdef
              trigger buffer envelope bus sample sc-lang]
             [overtone.music rhythm pitch tuning]
-            [overtone.studio core fx]
-            [overtone.console viz]))
+            [overtone.studio core util fx]
+            [overtone.console viz]
+            [overtone.viz scope]))
 
 (immigrate
   'osc
@@ -33,7 +35,8 @@
   'overtone.studio.core
   'overtone.studio.fx
   'overtone.console.viz
-  )
+  'overtone.viz.scope
+ )
 
 (defonce _auto-boot_ (boot))
 

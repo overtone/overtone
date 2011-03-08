@@ -101,6 +101,11 @@
 (defmulti buffer-id type)
 (defmethod buffer-id java.lang.Integer [id] id)
 (defmethod buffer-id ::buffer [buf] (:id buf))
+(defmethod buffer-id ::buffer-info [buf-info] (:id buf-info))
+
+(defmulti buffer-size type)
+(defmethod buffer-size ::buffer [buf] (:size buf))
+(defmethod buffer-size ::buffer-info [buf-info] (:n-frames buf-info))
 
 (defn buffer-data
   "Get the floating point data for a buffer on the internal server."
@@ -109,15 +114,18 @@
         snd-buf (.getSndBufAsFloatArray @sc-world* buf-id)]
     snd-buf))
 
-(defn buffer-info [buf]
-
+(defn buffer-info
+  [buf]
   (let [mesg-p (recv "/b_info")
-        _   (snd "/b_query" (buffer-id buf))
+        buf-id (buffer-id buf)
+        _   (snd "/b_query" buf-id)
         msg (await-promise! mesg-p)
         [buf-id n-frames n-channels rate] (:args msg)]
-    {:n-frames n-frames
-     :n-channels n-channels
-     :rate rate}))
+    (with-meta     {:n-frames n-frames
+                    :n-channels n-channels
+                    :rate rate
+                    :id buf-id}
+      {:type ::buffer-info})))
 
 (defn sample-info [s]
   (buffer-info (:buf s)))
