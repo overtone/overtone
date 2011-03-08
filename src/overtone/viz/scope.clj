@@ -14,15 +14,15 @@
   (:require [overtone.log :as log]
             [clojure.set :as set]))
 
-(def SCOPE-BUF-SIZE 4096)
-(def FPS 25)
-(def scopes* (ref {}))
-(def scope-pool* (agent (make-pool)))
-(def scopes-running?* (ref false))
-(def WIDTH 600)
-(def HEIGHT 400)
-(def X-PADDING 5)
-(def Y-PADDING 10)
+(defonce SCOPE-BUF-SIZE 4096)
+(defonce FPS 25)
+(defonce scopes* (ref {}))
+(defonce scope-pool* (agent (make-pool)))
+(defonce scopes-running?* (ref false))
+(defonce WIDTH 600)
+(defonce HEIGHT 400)
+(defonce X-PADDING 5)
+(defonce Y-PADDING 10)
 
 (defn- update-scope-data [s]
   (let [{:keys [buf size width height panel y-array x-array panel]} s
