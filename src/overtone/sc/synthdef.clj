@@ -215,7 +215,8 @@
 
 (defn- load-all-synthdefs []
   (doseq [[sname sdef] @loaded-synthdefs*]
-    (snd "/d_recv" (synthdef-bytes sdef))))
+    (snd "/d_recv" (synthdef-bytes sdef))
+    (satisfy-deps :synthdefs-loaded)))
 
 (on-deps :connected ::load-all-synthdefs load-all-synthdefs)
 
