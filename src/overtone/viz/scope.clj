@@ -117,9 +117,10 @@
 
 (defn- mk-scope
   [num kind keep-on-top width height]
-  (let [id      (str kind ": " num)
+  (let [id      (uuid)
+        name    (str kind ": " num)
         panel   (scope-panel id width height)
-        frame   (scope-frame panel id keep-on-top width height)
+        frame   (scope-frame panel name keep-on-top width height)
         x-array (int-array width)
         _x-init (dotimes [i width]
                   (aset x-array i i))
@@ -129,6 +130,7 @@
                   (aset y-a i (/ height 2))
                   (aset y-b i (/ height 2)))
         scope   {:id id
+                 :name name
                  :size 0
                  :num num
                  :panel panel
