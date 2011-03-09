@@ -9,6 +9,7 @@
         [clojure.set :only [intersection difference]]))
 
 (def NUM-THREADS (cpu-count))
+(def FORCE-SYNC? false)
 (defonce thread-pool (Executors/newFixedThreadPool NUM-THREADS))
 (defonce event-handlers* (ref {}))
 (defonce sync-event-handlers* (ref {}))
@@ -109,4 +110,14 @@
   (log/debug "event: " event-type args)
   (let [event (apply hash-map :event-type event-type args)]
     (handle-event sync-event-handlers* event)
-    (.execute thread-pool #(handle-event event-handlers* event))))
+    (if FORCE-SYNC?
+      (handle-event event-handlers* event)
+      (.execute thread-pool #(handle-event event-handlers* event)))))
+
+(defn sync-event
+  "Runs all event handlers synchronously regardless of whether they were declared as async or not.
+   If handlers create new threads which generate events, these will revert back to the default
+   behaviour of event (i.e. not forced sync). See event."
+  [& args]
+  (binding [FORCE-SYNC? true]
+    (apply event args)))
