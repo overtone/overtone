@@ -28,32 +28,36 @@
 (on-deps :connected ::create-scope-group #(dosync (ref-set scope-group* (group :tail ROOT-GROUP))))
 
 (defn- update-scope-data [s]
-  (let [{:keys [buf size width height panel y-array x-array panel]} s
+  (let [{:keys [buf size width height panel y-arrays x-array panel]} s
         frames (buffer-data buf)
         step (int (/ (buffer-size buf) width))
         y-scale (/ (- height (* 2 Y-PADDING)) -2)
-        y-shift (+ (/ height 2) Y-PADDING)]
+        y-shift (+ (/ height 2) Y-PADDING)
+        [y-a y-b] @y-arrays]
     (if-not (empty? frames)
       (dotimes [x width]
-        (aset ^ints y-array x
+        (aset ^ints y-b x
               (int (+ y-shift
                       (* y-scale
                          (aget ^floats frames (unchecked-multiply x step))))))))
 
+    (reset! y-arrays [y-b y-a])
     (.repaint panel)))
 
 (defn- update-scopes []
   (doall (map update-scope-data (vals @scopes*))))
 
-(defn- paint-scope [g id]
+(defn- paint-scope [^Graphics g id]
   (if-let [scope (get @scopes* id)]
-    (let [{:keys [background width height color x-array y-array]} scope]
-      (.setColor ^Graphics g ^Color background)
-      (.fillRect ^Graphics g 0 0 width height)
-      (.setColor ^Graphics g ^Color (Color. 100 100 100))
-      (.drawRect ^Graphics g 0 0 width height)
-      (.setColor ^Graphics g ^Color color)
-      (.drawPolyline ^Graphics g ^ints x-array ^ints y-array width))))
+    (let [{:keys [background width height color x-array y-arrays]} scope
+          [y-a y-b] @y-arrays]
+      (doto g
+        (.setColor ^Color background)
+        (.fillRect 0 0 width height)
+        (.setColor ^Color (Color. 100 100 100))
+        (.drawRect 0 0 width height)
+        (.setColor ^Color color)
+        (.drawPolyline ^ints x-array ^ints y-a width)))))
 
 (defn scope-panel [id width height]
   (let [panel (proxy [JPanel] [true]
@@ -118,9 +122,11 @@
         x-array (int-array width)
         _x-init (dotimes [i width]
                   (aset x-array i i))
-        y-array (int-array width)
+        y-a     (int-array width)
+        y-b     (int-array width)
         _y-init (dotimes [i width]
-                  (aset y-array i (/ height 2)))
+                  (aset y-a i (/ height 2))
+                  (aset y-b i (/ height 2)))
         scope   {:id id
                  :size 0
                  :num num
@@ -132,7 +138,7 @@
                  :width width
                  :height height
                  :x-array x-array
-                 :y-array y-array}]
+                 :y-arrays (atom [y-a y-b])}]
     (case kind
           :bus (scope-bus scope)
           :buf (scope-buf scope))))

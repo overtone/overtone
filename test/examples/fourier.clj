@@ -24,3 +24,10 @@
           freqs (fft buf src)
 	      filtered (pv-local-max (:id buf) thresh)]
       (ifft filtered)))
+
+
+(comment definst local-noise []
+  (let [in (* [0.1 0.1] (white-noise))
+        chain (fft (local-buf 2048 2) in)
+        chain (pv-brick-wall chain (sin-osc:kr [0.1 0.11]))]
+    (ifft chain)))

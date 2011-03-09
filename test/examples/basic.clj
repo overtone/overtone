@@ -18,16 +18,16 @@
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
 ; which come originally from the book Designing Sound by Andy Farnell.
 
-(definst overpad [out-bus 0 note 60 amp 0.7 a 0.001 rel 0.5]
+(definst overpad [out-bus 0 note 60 amp 0.7 a 0.001 rel 0.02]
   (let [freq (midicps note)
         env (env-gen (perc a rel) 1 1 0 1 :free)
-        f-env (+ freq (* 3 freq (env-gen (perc 0.12 (- rel 0.1)))))
+        f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- rel 0.1)))))
         bfreq (/ freq 2)
         sig (apply +
                    (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
                            (lpf (saw [freq (* freq 1.01)]) f-env)))
         audio (* amp env sig)]
-    (out out-bus audio)))
+    audio))
 
 ;(overpad 0 62 0.5 5)
 
@@ -35,7 +35,7 @@
 
 (definst kick []
   (let [src (sin-osc 80)
-        env (env-gen (perc 0.001 0.02) :action :free)]
+        env (env-gen (perc 0.001 0.3) :action :free)]
     (* 0.7 src env)))
 
 (defn player [beat notes]
@@ -44,22 +44,16 @@
                 notes)]
     (at (metro beat)
         (kick))
+    (at (metro beat)
+        (if (zero? (mod beat 5))
+          (overpad 0 (+ 24 (choose notes)) 0.2 0.75 0.005)))
     (at (metro (+ 0.5 beat))
-        (overpad 0 (choose notes) 0.5 0.5))
-  (apply-at #'player (metro (inc beat)) (inc beat) [(next notes)])))
+        (if (zero? (mod beat 6))
+          (overpad 0 (+ 12 (choose notes)) 0.5 0.15)
+          (overpad 0 (choose notes) 0.5 0.15)))
+  (apply-at (metro (inc beat)) #'player (inc beat) [(next notes)])))
 
-;(player (metro) [])
-
-
-
-
-
-
-
-
-
-
-
+(player (metro) [])
 
 
 ;(overpad 0 60 0.5 5)
@@ -237,8 +231,8 @@
   (loop [t (now)
          nums num-seq]
     (when nums
-      (let [t-on  (+ t 200 (rand-int 200))
-            t-off (+ t-on 200 (rand-int 80))
+      (let [t-on  (+ t 160 (rand-int 200))
+            t-off (+ t-on 160 (rand-int 80))
             [a b] (get DTMF-TONES (first nums))]
         (at t-on (dtmf a b))
         (at t-off (dtmf :ctl :gate 0))
