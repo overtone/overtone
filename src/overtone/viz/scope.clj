@@ -25,7 +25,8 @@
 (defonce Y-PADDING 10)
 (defonce scope-group* (ref 0))
 
-(on-deps :connected ::create-scope-group #(dosync (ref-set scope-group* (group :tail ROOT-GROUP))))
+(on-deps :studio-setup-completed ::create-scope-group #(dosync (ref-set scope-group* (group :tail ROOT-GROUP))
+                                                               (satisfy-deps :scope-group-created)))
 
 (defn- update-scope-data [s]
   (let [{:keys [buf size width height panel y-arrays x-array panel]} s
@@ -177,7 +178,7 @@
                     {}
                     @scopes*))))
 
-(on-deps #{:synthdefs-loaded} ::reset-scopes reset-scopes)
+(on-deps #{:synthdefs-loaded :scope-group-created} ::reset-scopes reset-scopes)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
