@@ -289,3 +289,5 @@
     (clear-msg-queue)
     (group-clear @synth-group*))) ; clear the synth group
 
+(on-sync-event :shutdown ::free-all-nodes #(do (clear-msg-queue)
+                                               (group-clear ROOT-GROUP)))

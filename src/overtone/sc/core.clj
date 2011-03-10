@@ -358,8 +358,7 @@
   "Quit the SuperCollider synth process."
   []
   (log/info "quiting...")
-  (sync-event :reset)
-  (Thread/sleep 500)
+  (sync-event :shutdown)
   (sync-event :quit)
   (reset! running?* false)
   (snd "/quit")
