@@ -369,11 +369,9 @@
     (ref-set status* :no-audio)
     (unsatisfy-all-dependencies)))
 
-; TODO: Come up with a better way to delay shutdown until all of the :quit event handlers
-; have executed.  For now we just use 500ms.
 (defonce _shutdown-hook
   (.addShutdownHook (Runtime/getRuntime)
-                    (Thread. #(do (quit) (Thread/sleep 500)))))
+                    (Thread. quit)))
 
 (defn clear-msg-queue
   "Remove any scheduled OSC messages from the run queue."
