@@ -87,6 +87,12 @@
         reverb (free-verb filt 0.7 0.7 0.3)]
     (* 0.8 reverb)))
 
+(definst fm-demo [freq 440 amp 0.2 gate 0]
+  (let [osc-a (* (sin-osc (mouse-x 20 3000))
+                 0.3)
+        osc-b (* amp (sin-osc (* (mouse-y 3000 0) osc-a)))]
+    osc-a))
+
 ;(defn buzzer [t tick dur notes]
 ;  (let [note (first notes)]
 ;    (if (> (rand) 0.9)
@@ -372,22 +378,6 @@
 ; }).start
 ; );
 ;
-;
-; // Create FM synth SynthDef ======================================
-; (
-;  SynthDef("fm-synth", {
-;      arg freq = 440, amp = 0, gate = 0;
-;
-;      Out.ar(0, Pan2.ar(SinOsc.ar(MouseY.kr(4000, 0) * SinOsc.ar(MouseX.kr(20, 4000), 0,
-;                      MouseButton.kr(0, 1, 0.2), 0, 0.2)), 0, 0.2));
-;
-;      FreeSelf.kr(1 - gate);  // FreeSelf automatically releases on neg-pos transition
-;      }).store;
-;  )
-;
-; // Test FM synth using test variable
-; a = Synth('fm-synth');
-; a.free;
 ;
 ; (
 ;  SynthDef(\sine_osc, {

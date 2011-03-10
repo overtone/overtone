@@ -1,7 +1,7 @@
 (ns overtone.music.instrument.drum
   (:use overtone.live))
 
-(defsynth kick [out-bus 0 freq 50 mod-freq 5 mod-index 5
+(definst kick [freq 80 mod-freq 5 mod-index 5
                 sustain 0.4 amp 0.8 noise 0.025]
   (let [pitch-contour (line:kr (* 2 freq) freq 0.02)
         drum (lpf (sin-osc pitch-contour (sin-osc mod-freq (/ mod-index 1.3))) 1000)
@@ -9,7 +9,7 @@
         hit (hpf (* noise (white-noise)) 500)
         hit (lpf hit (line 6000 500 0.03))
         hit-env (env-gen (perc))]
-    (out out-bus (pan2 (* amp (+ (* drum drum-env) (* hit hit-env))) 0))))
+    (* amp (+ (* drum drum-env) (* hit hit-env)))))
 
 (comment defsynth kick [out 0 ffreq 80 attack 0 release 2 amp 0.1 pan 0]
   (let [snd (apply + (sin-osc [ffreq (* 1.01 ffreq) (* ffreq 1.03)
@@ -22,22 +22,41 @@
         env (env-gen (perc attack release 1 -50) :action :free)]
     (offset-out out (pan2 (* snd amp env) 0))))
 
-(defsynth hi-hat [out 0 ffreq 200 rq 0.5
-                  attack 0 release 0.025 amp 0.1
-                  pan 0]
+(definst small-hat [ffreq 200 rq 0.5
+                    attack 0 release 0.025 amp 0.3
+                    pan 0]
   (let [snd (white-noise)
         snd (hpf snd ffreq)
         snd (rhpf snd (* ffreq 2) rq)
         snd (* snd (env-gen (perc attack release 1 -10) :action :free))]
-    (offset-out out (pan2 (* 2 snd amp)))))
+    (* 2 snd amp)))
 
-(defsynth round-kick [amp 0.5 decay 0.6 freq 65]
+(definst c-hat [amp 0.3 t 0.07]
+  (let [env (env-gen (perc 0.001 t) 1 1 0 1 :free)
+        noise (white-noise)
+        sqr (* (env-gen (perc 0.01 0.04)) (pulse 880 0.2))
+        filt (bpf (+ sqr noise) 9000 0.5)]
+    (* amp env filt)))
+
+(definst o-hat [amp 0.4 t 0.3 low 6000 hi 2000]
+  (let [low (lpf (white-noise) low)
+        hi (hpf low hi)
+        env (line 1 0 t)]
+    (* env hi)))
+
+(definst o-hat-demo [amp 0.4 t 0.3 low 6000 hi 2000]
+  (let [low (lpf (white-noise) (mouse-x 100 20000))
+        hi (hpf low (mouse-y 20 20000))
+        env (line 1 0 t)]
+    (* env hi)))
+
+(definst round-kick [amp 0.5 decay 0.6 freq 65]
   (let [env (env-gen (perc 0 decay) :action :free)
         snd (* amp (sin-osc freq (* Math/PI 0.5)))]
-    (out 0 (pan2 (* snd env) 0))))
+    (* snd env)))
 
-(defsynth snare [out-bus 0 freq 405 amp 0.2 sustain 0.1
-                 drum-amp 0.25 crackle-amp 40 tightness 1000]
+(definst snare [freq 405 amp 0.2 sustain 0.1
+                drum-amp 0.25 crackle-amp 40 tightness 1000]
   (let [drum-env (* 0.5 (env-gen (perc 0.005 sustain) :action :free))
         drum-s1 (* drum-env (sin-osc freq))
         drum-s2 (* drum-env (sin-osc (* freq 0.53)))
@@ -51,12 +70,12 @@
         filtered (* (env-gen (perc 0.005 sustain) :action :free)
                     (brf filtered 2000 0.0001))
         crackle (* (resonz filtered tightness) crackle-amp)]
-    (out out-bus (pan2 (* amp (* (+ drum crackle))) 0))))
+    (* amp (* (+ drum crackle)))))
 
-(defsynth snare2 [amp 0.5 decay 0.1 freq 1000]
+(definst snare2 [amp 0.5 decay 0.1 freq 1000]
   (let [env (env-gen (perc 0 decay) :action :free)
         snd (rlpf (* (gray-noise) amp) freq (line 0.1 0.9 decay))]
-    (out 0 (pan2 (* snd env)))))
+    (* snd env)))
 
 (defsynth tom [amp 0.2 sustain 0.4 mode-level 0.25 freq 90 timbre 1]
   (let [env (env-gen (perc 0.005 sustain) :action :free)
@@ -70,13 +89,6 @@
                  (crackle 2.01))
         mix2 (* amp (+ mix stick))]
     (out 0 (pan2 mix2))))
-
-(definst c-hat [amp 0.3 t 0.07]
-  (let [env (env-gen (perc 0.001 t) 1 1 0 1 :free)
-        noise (white-noise)
-        sqr (* (env-gen (perc 0.01 0.04)) (pulse 880 0.2))
-        filt (bpf (+ sqr noise) 9000 0.5)]
-    (* amp env filt)))
 
 ; //variation with more sines
 ; SynthDef("dry-kick", {|amp= 0.5, decay= 0.1, freq= 60|

@@ -9,7 +9,7 @@
     [overtone.log :as log]
     [clojure.contrib.generic.arithmetic :as ga])
   (:use
-     [overtone util event]
+     [overtone util event time-utils]
      [overtone.sc.ugen defaults]
      [overtone.sc core ugen synthdef node buffer]
      [clojure walk inspector]
@@ -414,13 +414,30 @@
   (let [params decomp-params]
     params))
 
+(def *demo-time* 1200)
+
 (defmacro demo
   "Try out an anonymous synth definition.  Useful for experimentation.  If the
   root node is not an out ugen, then it will add one automatically."
-  [& body]
-  `(do
-     (load-synthdef (synth "audition-synth" {}
-                           (do ~@body)))
-     (let [note# (hit (now) "audition-synth")]
-       (at (+ (now) 1000) (node-free note#)))))
+  [body]
+  (let [b2 (if (= 'out (first body))
+             body
+             (list 'out 0 (list 'pan2 body)))]
+    `(let [s# (synth "audition-synth" ~b2)
+           note# (s#)]
+       (if *demo-time*
+         (at (+ (now) *demo-time*) (node-free note#)))
+       note#)))
+
+(defn active-synths
+  ([] (active-synths (node-tree)))
+  ([root]
+   (let [synths (if (= :synth (:type root))
+                  #{root}
+                  #{})
+         children (mapcat active-synths (:children root))]
+     (into [] (if (empty? children)
+       synths
+       (set (concat synths children)))))))
+
 
