@@ -31,10 +31,19 @@
                            clamp-time relax-time)]
     (out out-bus (pan2 limited pan volume))))
 
-(defn volume [vol]
+(defn volume 
+  "Master volume control on the mixer."
+  [vol]
   (ctl @mixer-id* :volume vol))
 
-(defn pan [pan]
+(defn inst-volume
+  "Control the volume for a single instrument."
+  [inst vol]
+  (ctl inst :volume vol))
+
+(defn pan 
+  "Master pan control on the mixer."
+  [pan]
   (ctl @mixer-id* :pan pan))
 
 (defn start-mixer []
@@ -84,20 +93,38 @@
 ; to make all instruments stereo by default.
 (def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
 
-(defn inst-prefix [ugens constants]
-  (let [root (last ugens)]
-        (if (and (ugen? root)
-                 (or (= 0 (:n-outputs root))
-                     (OUTPUT-UGENS (:name root))
-                     (= :kr (get REVERSE-RATES (:rate root)))))
-          [ugens constants]
-          (let [pan-chans (pan2 root)
-                pan (:ugen (first pan-chans))]
-            [(conj ugens pan (out MIXER-BUS pan-chans)) (set (floatify (conj constants MIXER-BUS 1 0)))]))))
+(def DEFAULT-INST-VOLUME 0.6)
+
+(defn inst-prefix 
+  "Wraps the patch with an out ugen and a volume control, routing it to the master mixer. 
+  (inst (sin-osc 440)) 
+  becomes:
+  (out MIXER-BUS (pan2 (sin-osc 440)))
+  "
+  [params ugens constants]
+  (let [root (last ugens)
+        out-bus (control-proxy "out-bus" MIXER-BUS)
+        volume (control-proxy "volume" DEFAULT-INST-VOLUME)
+        vol-ugen (with-ugens (* volume root))
+        out-ugen (with-ugens (out out-bus vol-ugen))]
+    [(concat params
+             ["out-bus" MIXER-BUS "volume" DEFAULT-INST-VOLUME])
+     (concat ugens
+             [vol-ugen out-ugen])
+     (set (floatify (conj constants MIXER-BUS 1 0)))]))
+
+;    (if (and (ugen? root)
+;             (or (= 0 (:n-outputs root))
+;                 (OUTPUT-UGENS (:name root))
+;                 (= :kr (get REVERSE-RATES (:rate root)))))
+;      [params ugens constants]
+;          (let [pan-chans (pan2 root)
+;                pan (:ugen (first pan-chans))]
+
 
 (defmacro inst [sname & args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)
-         [ugens# constants#] (inst-prefix ugens# constants#)
+         [params# ugens# constants#] (inst-prefix params# ugens# constants#)
          sdef# (synthdef sname# params# ugens# constants#)
          sgroup# (or (:group (get @instruments* sname#))
                      (if (connected?)

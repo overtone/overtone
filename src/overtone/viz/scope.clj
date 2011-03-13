@@ -3,9 +3,10 @@
       :author "Jeff Rose & Sam Aaron"}
   overtone.viz.scope
   (:import
-   (java.awt Graphics Dimension Color BasicStroke)
+   (java.awt Graphics Dimension Color BasicStroke BorderLayout RenderingHints)
+   (java.awt.event WindowListener)
    (java.awt.geom Rectangle2D$Float Path2D$Float)
-   (javax.swing JFrame JPanel))
+   (javax.swing JFrame JPanel JSlider))
   (:use
    [overtone event util time-utils deps]
    [overtone.sc core synth ugen buffer node]
@@ -32,15 +33,13 @@
   (let [{:keys [buf size width height panel y-arrays x-array panel]} s
         frames (buffer-data buf)
         step (int (/ (buffer-size buf) width))
-        y-scale (/ (- height (* 2 Y-PADDING)) -2)
-        y-shift (+ (/ height 2) Y-PADDING)
+        y-scale (- height (* 2 Y-PADDING))
         [y-a y-b] @y-arrays]
     (if-not (empty? frames)
       (dotimes [x width]
         (aset ^ints y-b x
-              (int (+ y-shift
-                      (* y-scale
-                         (aget ^floats frames (unchecked-multiply x step))))))))
+              (int (* y-scale
+                      (aget ^floats frames (unchecked-multiply x step)))))))
 
     (reset! y-arrays [y-b y-a])
     (.repaint panel)))
@@ -50,14 +49,22 @@
 
 (defn- paint-scope [^Graphics g id]
   (if-let [scope (get @scopes* id)]
-    (let [{:keys [background width height color x-array y-arrays]} scope
+    (let [{:keys [background width height color x-array y-arrays slider]} scope
+          s-val (.getValue slider)
+          y-zoom (if (> s-val 49)
+                   (+ 1 (* 0.1 (- s-val 50)))
+                   (+ (* 0.02 s-val) 0.01))
+          y-shift (+ (/ height 2.0) Y-PADDING)
           [y-a y-b] @y-arrays]
       (doto g
+        (.setRenderingHint RenderingHints/KEY_ANTIALIASING RenderingHints/VALUE_ANTIALIAS_ON)
         (.setColor ^Color background)
         (.fillRect 0 0 width height)
         (.setColor ^Color (Color. 100 100 100))
         (.drawRect 0 0 width height)
         (.setColor ^Color color)
+        (.translate 0 y-shift)
+        (.scale 1 y-zoom)
         (.drawPolyline ^ints x-array ^ints y-a width)))))
 
 (defn scope-panel [id width height]
@@ -68,11 +75,16 @@
 
 (defn- scope-frame
   "Display scope window. If you specify keep-on-top to be true, the window will stay on top of the other windows in your environment."
-  ([panel title keep-on-top width height]
-     (let [f (JFrame. title)]
+  ([panel slider title keep-on-top width height]
+     (let [f (JFrame. title)
+           cp (.getContentPane f)
+           side (JPanel. (BorderLayout.))]
+       (.add side slider BorderLayout/CENTER)
+       (doto cp
+         (.add side BorderLayout/WEST)
+         (.add panel BorderLayout/CENTER))
        (doto f
          (.setPreferredSize (Dimension. width height))
-         (.add panel)
          (.pack)
          (.show)
          (.setAlwaysOnTop keep-on-top)))))
@@ -134,12 +146,23 @@
     :size (:n-frames (buffer-info (:num s)))
     :buf (buffer-info (:num s))))
 
+(defn scope-close
+  [s]
+  (log/info (str "Closing scope: \n" s))
+  (let [{:keys [id bus-synth buf]} s]
+    (if bus-synth
+      (kill bus-synth))
+    (if buf
+      (buffer-free buf))
+    (dosync (alter scopes* dissoc id))))
+
 (defn- mk-scope
   [num kind keep-on-top width height]
   (let [id    (uuid)
         name  (str kind ": " num)
         panel (scope-panel id width height)
-        frame (scope-frame panel name keep-on-top width height)
+        slider (JSlider. JSlider/VERTICAL 0 99 50)
+        frame (scope-frame panel slider name keep-on-top width height)
         x-array (int-array width)
         y-a     (int-array width)
         y-b     (int-array width)
@@ -148,6 +171,7 @@
                :size 0
                :num num
                :panel panel
+               :slider slider
                :kind kind
                :color (Color. 0 130 226)
                :background (Color. 50 50 50)
@@ -158,6 +182,16 @@
                :y-arrays (atom [y-a y-b])}
 
         _ (reset-data-arrays scope)]
+    (.addWindowListener frame
+      (reify WindowListener
+        (windowActivated [this e])
+        (windowClosing [this e]
+                       (scope-close (get @scopes* id)))
+        (windowDeactivated [this e])
+        (windowDeiconified [this e])
+        (windowIconified [this e])
+        (windowOpened [this e])
+        (windowClosed [this e])))
 
     (case kind
           :bus (scope-bus scope)

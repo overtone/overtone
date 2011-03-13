@@ -221,6 +221,8 @@
 (defn synthdef
   "Transforms a synth definition (ugen-graph) into a form that's ready to save
   to disk or send to the server.
+
+    (synthdef \"pad-z\" [
   "
   [sname params ugens constants]
   (let [parsed-params (parse-params params)
@@ -238,12 +240,13 @@
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
 (defn- control-proxies
-  "Converts a list of alternating param-name param-values to param-name control-proxies"
+  "Converts a list of alternating param-name, param-value pairs to 
+  param-name, control-proxy pairs."
   [params]
-  (reduce (fn [mem [pname pval]]
-            (concat mem [(symbol pname) `(control-proxy ~pname ~pval)]))
-          []
-          (partition 2 params)))
+  (mapcat
+    (fn [[pname pval]] 
+         [(symbol pname) `(control-proxy ~pname ~pval)])
+    (partition 2 params)))
 
 (defn- gen-synth-name
   "Auto generate an anonymous synth name. Intended for use in synths that have not

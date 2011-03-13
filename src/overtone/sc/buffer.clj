@@ -46,9 +46,13 @@
 (defn buffer-free
   "Free an audio buffer and the memory it was consuming."
   [buf]
-  (snd "/b_free" (:id buf))
-  (free-id :audio-buffer (:id buf))
-  :done)
+  (let [id (cond
+             (buffer? buf) (:id buf)
+             (number? buf) buf
+             :default (throw (Exception. "Not a valid buffer or buffer id.")))]
+    (snd "/b_free" id)
+    (free-id :audio-buffer id)
+    :done))
 
 ; TODO: Test me...
 (defn buffer-read
