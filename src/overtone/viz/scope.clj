@@ -4,7 +4,7 @@
   overtone.viz.scope
   (:import
    (java.awt Graphics Dimension Color BasicStroke BorderLayout RenderingHints)
-   (java.awt.event WindowListener)
+   (java.awt.event WindowListener ComponentListener)
    (java.awt.geom Rectangle2D$Float Path2D$Float)
    (javax.swing JFrame JPanel JSlider))
   (:use
@@ -192,6 +192,25 @@
         (windowIconified [this e])
         (windowOpened [this e])
         (windowClosed [this e])))
+    (comment .addComponentListener frame
+      (reify ComponentListener
+        (componentHidden [this e])
+        (componentMoved  [this e])
+        (componentResized [this e]
+          (let [w (.getWidth frame)
+                h (.getHeight frame)
+                xs (int-array w)
+                ya (int-array w)
+                yb (int-array w)]
+            (dosync 
+              (let [s (get (ensure scopes*) id)
+                    s (assoc s 
+                             :width w
+                             :height h
+                             :x-array xs
+                             :y-arrays (atom [ya yb]))]
+                (alter scopes* assoc id s)))))
+        (componentShown [this e])))
 
     (case kind
           :bus (scope-bus scope)

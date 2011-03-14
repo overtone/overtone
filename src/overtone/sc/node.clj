@@ -3,7 +3,7 @@
     [overtone.log :as log])
   (:use
     [overtone event util deps]
-    [overtone.sc core allocator]))
+    [overtone.sc core allocator bus]))
 
 ;; ## Node and Group Management
 
@@ -17,6 +17,13 @@
    :before-node  2
    :after-node   3
    :replace-node 4})
+
+(defn- bus->id
+  [col]
+  (map #(if (bus? %)
+          (:id %)
+          %)
+       col))
 
 ;; ### Node
 ;;
@@ -44,6 +51,7 @@
         position (or ((get argmap :position :tail) POSITION) 1)
         target (get argmap :target 0)
         args (flatten (seq (-> argmap (dissoc :position) (dissoc :target))))
+        args (bus->id args)
         args (stringify (floatify args))]
     ;(println "node " synth-name id position target args)
     (apply snd "/s_new" synth-name id position target args)
@@ -127,7 +135,7 @@
   "Set control values for a node."
   [node-id & name-values]
   {:pre [(connected?)]}
-  (apply snd "/n_set" node-id (floatify (stringify name-values)))
+  (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
   node-id)
 
 ; This can be extended to support setting multiple ranges at once if necessary...

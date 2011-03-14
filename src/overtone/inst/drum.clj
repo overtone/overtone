@@ -1,4 +1,4 @@
-(ns overtone.music.instrument.drum
+(ns overtone.inst.drum
   (:use overtone.live))
 
 (definst kick [freq 80 mod-freq 5 mod-index 5

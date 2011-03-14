@@ -1,4 +1,3 @@
-
 (ns overtone.live
   (:use overtone.ns)
   (:require clojure.stacktrace

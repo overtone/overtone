@@ -1,4 +1,4 @@
-(ns overtone.music.instrument.sampler
+(ns overtone.inst.sampler
   (:use (overtone.core sc synth envelope ugen)
     (overtone.music pitch)))
 

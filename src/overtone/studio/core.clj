@@ -2,7 +2,7 @@
   (:use
     [overtone util event time-utils deps]
     [overtone.sc.ugen.defaults]
-    [overtone.sc core synth ugen envelope node synthdef]
+    [overtone.sc core synth ugen envelope node synthdef bus]
     [overtone.music rhythm]))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
@@ -31,20 +31,66 @@
                            clamp-time relax-time)]
     (out out-bus (pan2 limited pan volume))))
 
-(defn volume 
+(defn volume
   "Master volume control on the mixer."
   [vol]
   (ctl @mixer-id* :volume vol))
+
+(defn pan
+  "Master pan control on the mixer."
+  [pan]
+  (ctl @mixer-id* :pan pan))
 
 (defn inst-volume
   "Control the volume for a single instrument."
   [inst vol]
   (ctl inst :volume vol))
 
-(defn pan 
-  "Master pan control on the mixer."
-  [pan]
-  (ctl @mixer-id* :pan pan))
+(defn inst-out-bus
+  "Set an instruments downstream bus."
+  [inst bus]
+  (let [ins-name (:name inst)]
+    (ctl inst :out-bus bus)
+    (dosync 
+      (alter instruments* assoc-in [ins-name :out-bus] bus))))
+
+(defn inst-fx
+  "Append an effect to an instrument channel."
+  [inst fx]
+  (let [ins-name (:name inst)
+        fx-chain (:fx-chain (get @instruments* ins-name))
+        bus (audio-bus)
+        fx-id (fx :in-bus bus :out-bus MIXER-BUS)
+        src  (if (empty? fx-chain)
+               inst
+               (:fx-id (last fx-chain)))
+        entry {:fx fx 
+               :fx-id fx-id
+               :bus bus
+               :src src}
+        fx-chain (conj fx-chain entry)]
+    (if (= src inst)
+      (inst-out-bus inst bus)
+      (ctl src :out-bus bus))
+    (dosync 
+      (alter instruments* assoc-in [ins-name :fx-chain] fx-chain))
+    entry))
+
+(comment defn remove-fx
+  [inst fx]
+  (let [ins-name (:name inst)]
+    (dosync 
+      (alter instruments* assoc-in [ins-name :fx-chain] fx-chain))))
+
+(defn clear-fx
+  [inst]
+  (inst-out-bus inst MIXER-BUS)
+  (let [ins-name (:name inst)
+        fx-chain (:fx-chain (get @instruments* ins-name))]
+    (doseq [id (map :fx-id fx-chain)]
+      (kill id))
+    (dosync 
+      (alter instruments* assoc-in [ins-name :fx-chain] []))))
 
 (defn start-mixer []
   (Thread/sleep 2000)
@@ -95,9 +141,9 @@
 
 (def DEFAULT-INST-VOLUME 0.6)
 
-(defn inst-prefix 
-  "Wraps the patch with an out ugen and a volume control, routing it to the master mixer. 
-  (inst (sin-osc 440)) 
+(defn inst-prefix
+  "Wraps the patch with an out ugen and a volume control, routing it to the master mixer.
+  (inst (sin-osc 440))
   becomes:
   (out MIXER-BUS (pan2 (sin-osc 440)))
   "
@@ -133,13 +179,19 @@
          param-names# (map first (partition 2 params#))
          s-player# (synth-player sname# param-names#)
          player# (fn [& play-args#]
-                   (apply s-player# :tgt (:group (get @instruments* sname#)) play-args#))
+                   (let [ins# (get @instruments* sname#)]
+                     (apply s-player# 
+                            :tgt (:group ins#) 
+                            :out-bus (:out-bus ins#)
+                            play-args#)))
          inst# (callable-map {:type ::instrument
                               :name sname#
                               :ugens ugens#
                               :sdef sdef#
                               :doc "This is a test."
                               :group sgroup#
+                              :out-bus MIXER-BUS
+                              :fx-chain []
                               :player player#}
                              player#)]
 

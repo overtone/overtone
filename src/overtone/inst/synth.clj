@@ -1,17 +1,12 @@
-(ns overtone.music.instrument.synth
+(ns overtone.inst.synth
   (:use overtone.live))
 
-(defsynth ping [note 60 dur 0.4]
+(definst ping [note 60 a 0.2 b 0.2]
   (let [snd (sin-osc (midicps note))
-        env (env-gen (perc (/ dur 2.0) (/ dur 2.0)) :action :free)]
-  (out 0 (pan2 (* env snd)))))
+        env (env-gen (perc a b) :action :free)]
+    (* env snd)))
 
-(defsynth alien-computer [trig 0.3]
-  (out 0 (pan2 (ifft
-                 (pv-rand-comb (fft 0 (white-noise))
-                               0.95 (impulse:kr trig))))))
-
-(defsynth rise-fall-pad [freq 440 t 4 amt 0.3 amp 0.8]
+(definst rise-fall-pad [freq 440 t 4 amt 0.3 amp 0.8]
   (let [f-env      (env-gen (perc t t) 1 1 0 1 :free)
         src        (saw [freq (* freq 1.01)])
         signal     (rlpf (* 0.3 src)
@@ -25,7 +20,7 @@
         echo       (comb-n reverb 0.4 0.3 0.5)]
     (out 0 (* amp echo))))
 
-(defsynth buzz [pitch 40 cutoff 300 dur 200]
+(definst buzz [pitch 40 cutoff 300 dur 200]
   (let [a (lpf (saw (midicps pitch)) (* (lf-noise1 :control 10) 400))
         b (sin-osc (midicps (- pitch 12)))
         env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
@@ -93,6 +88,11 @@
         osc-b (* amp (sin-osc (* (mouse-y 3000 0) osc-a)))]
     osc-a))
 
+;(def alien-buffer (buffer 2250))
+;(definst alien-computer [trig 0.3]
+;  (out 0 (pan2 (ifft
+;                 (pv-rand-comb (fft alien-buffer (white-noise))
+;                               0.95 (impulse:kr trig))))))
 ;(defn buzzer [t tick dur notes]
 ;  (let [note (first notes)]
 ;    (if (> (rand) 0.9)
