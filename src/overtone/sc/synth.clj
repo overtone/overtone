@@ -294,20 +294,14 @@
                                 (= :pos      (first args)))
                           [(drop 2 args) (second args)]
                           [args :tail])
-          controller    (partial node-control sgroup)
           player        (partial node sname :target sgroup :position pos)
-          [tgt-fn args] (if (= :ctl (first args))
-                          [controller (rest args)]
-                          [player args])
           args (map #(if (or (isa? (type %) :overtone.sc.buffer/buffer)
                              (isa? (type %) :overtone.sc.sample/sample))
                        (:id %) %) args)
-
           named-args (if (keyword? (first args))
                        args
                        (name-synth-args args arg-names))]
-        (apply tgt-fn named-args))))
-
+        (apply player named-args))))
 
 (defn- normalize-synth-args
   "Pull out and normalize the synth name, parameters, control proxies and the ugen form

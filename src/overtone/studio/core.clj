@@ -179,11 +179,12 @@
          param-names# (map first (partition 2 params#))
          s-player# (synth-player sname# param-names#)
          player# (fn [& play-args#]
-                   (let [ins# (get @instruments* sname#)]
+                   (let [ins# (get @instruments* sname#)
+                         pargs# (concat (mapcat vector (map keyword param-names#) play-args#)
+                                      [:out-bus (:out-bus ins#)])]
                      (apply s-player# 
                             :tgt (:group ins#) 
-                            :out-bus (:out-bus ins#)
-                            play-args#)))
+                            pargs#)))
          inst# (callable-map {:type ::instrument
                               :name sname#
                               :ugens ugens#
