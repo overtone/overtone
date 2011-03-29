@@ -3,8 +3,10 @@
      :author "Jeff Rose"}
   overtone.util
   (:require [overtone.log :as log])
+
   (:use clojure.contrib.def
-        clojure.stacktrace)
+        clojure.stacktrace
+        [clojure.pprint :as pprint])
   (:import (java.util ArrayList Collections)))
 
 ; Some generic counters
@@ -22,7 +24,9 @@
   (dosync (ref-set id-counters* {})))
 
 (defn print-classpath []
-  (println (seq (.getURLs (java.lang.ClassLoader/getSystemClassLoader)))))
+  (let [paths (map (memfn getPath)
+                   (seq (.getURLs (java.lang.ClassLoader/getSystemClassLoader))))]
+    (pprint/pprint (sort paths))))
 
 (defn as-str [s]
   (if (keyword? s) (name s) s))
