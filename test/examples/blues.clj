@@ -78,14 +78,14 @@
 (defn blue-ks1 []
   (play-seq 0 ks1
             (cycle (map sort (progression blues-chords :a 2 :ionian)))
-            (cycle [530 524 532 528])
+            (take 80 (map #(* 1.5 %) (cycle [530 524 532 528])))
             (now)
             0.5))
 
 (defn blue-ks1-demo []
   (play-seq 0 ks1-demo
             (cycle (map sort (progression blues-chords :a 2 :ionian)))
-            (take 20 (cycle [530 524 532 528]))
+            (take 80 (map #(* 1.5 %) (cycle [530 524 532 528])))
             (now)
             0.5))
 
