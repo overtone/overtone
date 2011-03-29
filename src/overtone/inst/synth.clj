@@ -32,7 +32,7 @@
         src (clip2 (* 1.3 src) 0.8)
         sub (sin-osc (/ freq 2))
         filt (resonz (rlpf src (* 4.4 freq) 0.09) (* 2.0 freq) 2.9)]
-    (fold (distort (* 1.3 (+ filt sub) env amp)) 0.08)))
+    (* env amp (fold (distort (* 1.3 (+ filt sub))) 0.08))))
 
 (definst grunge-bass [freq 120 a 0.1 d 0.01 s 0.4 r 0.4 amp 0.8 gate 1]
   (let [env (env-gen (adsr a d s r) gate :action :free)
@@ -71,16 +71,14 @@
         reverb (free-verb filt 0.4 0.8 0.2)]
     (out 10 (pan2 (* amp (env-gen (perc 0.0001 2) :action :free) reverb)))))
 
-(definst ks-stringer [freq 440 rate 10]
+(definst ks-stringer [freq 440 rate 6]
   (let [noize (* 0.8 (white-noise))
-        trig  (impulse rate)
+        trig  (dust rate)
         coef  (mouse-x -0.999 0.999)
         delay (/ 1.0 (* (mouse-y 0.001 0.999) freq))
         plk   (pluck noize trig (/ 1.0 freq) delay 10 coef)
-        dist (distort plk)
-        filt (rlpf dist (* 12 freq) 0.6)
-        reverb (free-verb filt 0.7 0.7 0.3)]
-    (* 0.8 reverb)))
+        filt (rlpf plk (* 12 freq) 0.6)]
+    (* 0.8 filt)))
 
 (definst fm-demo [freq 440 amp 0.2 gate 0]
   (let [osc-a (* (sin-osc (mouse-x 20 3000))

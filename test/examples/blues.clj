@@ -1,6 +1,6 @@
 (ns examples.blues
   (:use overtone.live)
-  (:use [overtone.music.instrument synth drum]))
+  (:use [overtone.inst synth drum]))
 
 (definst beep [note 60 vol 0.2]
   (let [freq (midicps note)
@@ -9,13 +9,13 @@
     (* vol src env)))
 
 (defn play [synth pitch-classes]
-  (doall (map #(synth %) pitch-classes)))
+  (doseq [pitch pitch-classes]
+    (synth pitch)))
 
-(defn play-seq [count synth notes vels durs time odds]
+(defn play-seq [count synth notes durs time odds]
   (when (and notes durs)
     (let [dur   (- (/ (first durs) 1.2) 10 (rand-int 20))
           pitch (first notes)
-          vel (first vels)
           n-time (+ time dur)]
       (at time
           (when (> (rand) (- 1 odds))
@@ -33,10 +33,11 @@
           (when (= 2 count)
             (kick))
 
-          (play synth pitch :amp vel))
+          (play synth pitch))
       (at (+ time (* 0.5 dur))
           (c-hat 0.1))
-      (apply-at n-time #'play-seq (mod (inc count) 4) synth (next notes) (next vels) (next durs) n-time odds []))))
+      (apply-at n-time #'play-seq 
+                [(mod (inc count) 4) synth (next notes) (next durs) n-time odds]))))
 
 ; TODO: Strum the chord
 
@@ -75,10 +76,19 @@
 
 ; Be sure to try moving the mouse around...
 (defn blue-ks1 []
-  (play-seq 0 ks1-demo
+  (play-seq 0 ks1
             (cycle (map sort (progression blues-chords :a 2 :ionian)))
             (cycle [530 524 532 528])
             (now)
             0.5))
-(blue-ks1)
+
+(defn blue-ks1-demo []
+  (play-seq 0 ks1-demo
+            (cycle (map sort (progression blues-chords :a 2 :ionian)))
+            (take 20 (cycle [530 524 532 528]))
+            (now)
+            0.5))
+
+;(blue-ks1)
+
 

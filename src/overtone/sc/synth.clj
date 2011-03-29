@@ -240,11 +240,11 @@
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
 (defn- control-proxies
-  "Converts a list of alternating param-name, param-value pairs to 
+  "Converts a list of alternating param-name, param-value pairs to
   param-name, control-proxy pairs."
   [params]
   (mapcat
-    (fn [[pname pval]] 
+    (fn [[pname pval]]
          [(symbol pname) `(control-proxy ~pname ~pval)])
     (partition 2 params)))
 
@@ -255,7 +255,7 @@
   []
   (str "anon-" (next-id :anonymous-synth)))
 
-(defn- name-synth-args
+(defn name-synth-args
   [args names]
   (loop [args args
          names names

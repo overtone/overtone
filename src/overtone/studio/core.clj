@@ -51,7 +51,7 @@
   [inst bus]
   (let [ins-name (:name inst)]
     (ctl inst :out-bus bus)
-    (dosync 
+    (dosync
       (alter instruments* assoc-in [ins-name :out-bus] bus))))
 
 (defn inst-fx
@@ -64,7 +64,7 @@
         src  (if (empty? fx-chain)
                inst
                (:fx-id (last fx-chain)))
-        entry {:fx fx 
+        entry {:fx fx
                :fx-id fx-id
                :bus bus
                :src src}
@@ -72,14 +72,14 @@
     (if (= src inst)
       (inst-out-bus inst bus)
       (ctl src :out-bus bus))
-    (dosync 
+    (dosync
       (alter instruments* assoc-in [ins-name :fx-chain] fx-chain))
-    entry))
+    :effect-added))
 
 (comment defn remove-fx
   [inst fx]
   (let [ins-name (:name inst)]
-    (dosync 
+    (dosync
       (alter instruments* assoc-in [ins-name :fx-chain] fx-chain))))
 
 (defn clear-fx
@@ -89,8 +89,9 @@
         fx-chain (:fx-chain (get @instruments* ins-name))]
     (doseq [id (map :fx-id fx-chain)]
       (kill id))
-    (dosync 
-      (alter instruments* assoc-in [ins-name :fx-chain] []))))
+    (dosync
+      (alter instruments* assoc-in [ins-name :fx-chain] [])))
+  :clear)
 
 (defn start-mixer []
   (Thread/sleep 2000)
@@ -182,8 +183,8 @@
                    (let [ins# (get @instruments* sname#)
                          pargs# (concat (mapcat vector (map keyword param-names#) play-args#)
                                       [:out-bus (:out-bus ins#)])]
-                     (apply s-player# 
-                            :tgt (:group ins#) 
+                     (apply s-player#
+                            :tgt (:group ins#)
                             pargs#)))
          inst# (callable-map {:type ::instrument
                               :name sname#
