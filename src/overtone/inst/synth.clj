@@ -26,7 +26,7 @@
         env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
     (out 0 (pan2 (* env (+ a b))))))
 
-(definst bass [freq 120 t 0.6 amp 0.2]
+(definst bass [freq 120 t 0.6 amp 0.5]
   (let [env (env-gen (perc 0.08 t) :action :free)
         src (saw [freq (* 0.98 freq) (* 2.015 freq)])
         src (clip2 (* 1.3 src) 0.8)
@@ -34,8 +34,10 @@
         filt (resonz (rlpf src (* 4.4 freq) 0.09) (* 2.0 freq) 2.9)]
     (* env amp (fold (distort (* 1.3 (+ filt sub))) 0.08))))
 
-(definst grunge-bass [freq 120 a 0.1 d 0.01 s 0.4 r 0.4 amp 0.8 gate 1]
-  (let [env (env-gen (adsr a d s r) gate :action :free)
+(definst grunge-bass [note 48 amp 0.5 dur 0.1 a 0.01 d 0.01 s 0.4 r 0.01]
+  (let [freq (midicps note)
+        env (env-gen (adsr a d s r) (line:kr 1 0 (+ a d dur r 0.1))
+                     :action :free)
         src (saw [freq (* 0.98 freq) (* 2.015 freq)])
         src (clip2 (* 1.3 src) 0.9)
         sub (sin-osc (/ freq 2))
@@ -46,7 +48,7 @@
     (* env bounced)))
 
 ; Experimenting with Karplus Strong synthesis...
-(definst ks1 [note 60 gate 1 decay 30 coef 0.3 amp 0.8]
+(definst ks1 [note 60 amp 0.8 dur 2 decay 30 coef 0.3 gate 1]
   (let [freq (midicps note)
         noize (* 0.8 (white-noise))
         dly (/ 1.0 freq)
@@ -57,7 +59,7 @@
         filt (rlpf dist (* 12 freq) 0.6)
         clp (clip2 filt 0.8)
         reverb (free-verb clp 0.4 0.8 0.2)]
-    (out 10 (pan2 (* amp (env-gen (perc 0.0001 2) :action :free) reverb)))))
+    (* amp (env-gen (perc 0.0001 dur) :action :free) reverb)))
 
 (definst ks1-demo [note 60 gate 1 amp 0.8]
   (let [freq (midicps note)
