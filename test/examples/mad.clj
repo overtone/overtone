@@ -3,6 +3,7 @@
         overtone.inst.synth))
 
 ; Adapted from the music as data project, cool stuff!
+; http://mad.emotionull.com/
 
 (definst tone [note 60 amp 0.3 dur 0.4]
   (let [snd (sin-osc (midicps note))
@@ -61,14 +62,14 @@
 ;(p (cycle (pattern [[E4 G4 E4] [E5 B4 G4 D4 A4 E4 G4 A4]], 2)))
 
 ; uncomment these and try with some different synths
-(comment p (cycle (map 
+(comment p (cycle (map
             #(assoc % :synth ks1)
             (pattern [[E4 G4 E4] [E5 B4 G4 D4 A4 E4 G4 A4]], 2))))
 
-(comment p (cycle 
-     (map 
+(comment p (cycle
+     (map
        #(assoc % :pitch (- (:pitch %) 24))
-     (map 
+     (map
        #(assoc % :synth grunge-bass)
        (pattern [[E4 G4 E4] [E5 B4 G4 D4 A4 E4 G4 A4]], 2)))))
 
