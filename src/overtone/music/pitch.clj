@@ -171,7 +171,7 @@
 
 (defn nth-interval
   "Return the count of semitones for the nth degree from the start of the
-  biatonic scale in the specifiec mode (or ionian/major by default).
+  diatonic scale in the specifiec mode (or ionian/major by default).
 
   i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
        therefore the 4th degree is (+ 2 2 1 2) semitones from the start of the
