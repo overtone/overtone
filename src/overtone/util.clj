@@ -23,10 +23,12 @@
 (defn reset-counters []
   (dosync (ref-set id-counters* {})))
 
-(defn print-classpath []
+(defn print-classpath
+  "Pretty print the classpath"
+  []
   (let [paths (map (memfn getPath)
-                   (seq (.getURLs (java.lang.ClassLoader/getSystemClassLoader))))]
-    (pprint/pprint (sort paths))))
+                   (seq (.getURLs (.getClassLoader clojure.lang.RT))))]
+    (pprint/pprint paths)))
 
 (defn as-str [s]
   (if (keyword? s) (name s) s))
