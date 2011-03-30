@@ -1,6 +1,5 @@
 (ns overtone.config
-  (:use [clojure.contrib.io :only (slurp*)]
-        [clojure.contrib.duck-streams :only (spit)])
+  (:use [clojure.contrib.io :only (slurp*)])
   (:import (java.io FileOutputStream FileInputStream)))
 
 ;; Provides a simple key/value configuration system with support for automatically
