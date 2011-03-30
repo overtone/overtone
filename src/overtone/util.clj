@@ -73,7 +73,8 @@
   (fn [obj] (and (map? obj) (= (:type obj) t))))
 
 (defn uuid
-  "Creates a random, immutable UUID object that is comparable using the '=' function."
+  "Creates a random, immutable UUID object that is comparable using the '='
+  function."
   [] (. java.util.UUID randomUUID))
 
 (defn cpu-count
@@ -190,15 +191,18 @@
 
 
 (defn invert-map
-  "Takes a map m and returns a new map that's keys are the m's vals and that's vals are m's keys.
-   Assumes that m's keys and vals are both sets (i.e. don't contain any duplicates). If there are duplicate values in the map they will result in key collisions and a smaller result map.
+  "Takes a map m and returns a new map that's keys are the m's vals and that's
+  vals are m's keys. Assumes that m's keys and vals are both sets (i.e. don't
+  contain any duplicates). If there are duplicate values in the map they will
+  result in key collisions and a smaller result map.
 
    (invert-map {:a 1, :b 2, :c 3}) ;=> {1 :a, 2 :b, 3 :c}"
   [m]
   (apply hash-map (interleave (vals m) (keys m))))
 
 (defn mapply
-  "Takes a fn and a seq of seqs and returns a seq representing the application of the fn on each sub-seq
+  "Takes a fn and a seq of seqs and returns a seq representing the application
+  of the fn on each sub-seq.
 
    (mapply + [[1 2 3] [4 5 6] [7 8 9]]) ;=> [6 15 24]"
   [f coll-coll]

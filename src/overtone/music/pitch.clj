@@ -155,9 +155,10 @@
                 :messiaen7         [1 1 1 2 1 1 1 1 2 1]}))
 
 (defn scale-field [skey & [sname]]
-  "Create the note field for a given scale.  Scales are specified with a keyword:
-  :g :major,
-  :d :minor"
+  "Create the note field for a given scale.  Scales are specified with a keyword
+  representing the key and an optional scale name (defaulting to :major):
+  (scale-field :g)
+  (scale-field :g :minor)"
   (let [base (NOTE skey)
         sname (or sname :major)
         intervals (SCALE sname)]
@@ -169,9 +170,12 @@
             (take (* 8 12) (cycle intervals)))))))
 
 (defn nth-interval
-  "Return the count of semitones for the nth degree from the start of the diatonic scale in the specifiec mode (or ionian/major by default).
-     i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
-          therefore the 4th degree is (+ 2 2 1 2) semitones from the start of the scale."
+  "Return the count of semitones for the nth degree from the start of the
+  biatonic scale in the specifiec mode (or ionian/major by default).
+
+  i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
+       therefore the 4th degree is (+ 2 2 1 2) semitones from the start of the
+       scale."
   ([n] (nth-interval :ionian n))
   ([scale n]
      (reduce + (take n (cycle (scale SCALE))))))
@@ -185,8 +189,9 @@
              :vii 7})
 
 (defn degree->interval
-  "Converts the degree of a scale given as a roman numeral keyword or integer and converts it to the number
-   of intervals (semitones) from the tonic of the specified scale."
+  "Converts the degree of a scale given as a roman numeral keyword or integer
+   and converts it to the number of intervals (semitones) from the tonic of the
+   specified scale."
   [scale degree]
   (if-let [deg (DEGREE degree)]
     (nth-interval scale (dec deg))
@@ -221,7 +226,9 @@
      :i7         dim7}))
 
 (defn chord
-  "Returns a set of notes for the specified chord at the specified octave (defaulting to 4).
+  "Returns a set of notes for the specified chord at the specified octave
+  (defaulting to 4).
+
   (chord :c :major)  ; c major           -> #{60 64 67}
   (chord :a :minor 3); a minor           -> #{57 60 64}
   (chord :Bb :dim)   ; b flat diminished -> #{70 73 76}
@@ -266,17 +273,22 @@
 
 (defn nth-octave
   "Returns the freq n octaves from the supplied reference freq
-   i.e. (nth-ocatve 440 1) will return 880 which is the freq of the next octave from 440."
+
+   i.e. (nth-ocatve 440 1) will return 880 which is the freq of the next octave
+   from 440."
   [freq n]
   (* freq (math/expt 2 n)))
 
 (defn nth-equal-tempered-freq
-  "Returns the frequency of a given scale interval using an equal-tempered tuning i.e. dividing all 12 semi-tones equally across an octave. This is currently the standard tuning."
+  "Returns the frequency of a given scale interval using an equal-tempered
+  tuning i.e. dividing all 12 semi-tones equally across an octave. This is
+  currently the standard tuning."
   [base-freq interval]
   (* base-freq (math/expt 2 (/ interval 12))))
 
 (defn interval-freq
-  "Returns the frequency of the given interval using the specified mode and tuning (defaulting to ionian and equal-tempered respectively)."
+  "Returns the frequency of the given interval using the specified mode and
+  tuning (defaulting to ionian and equal-tempered respectively)."
   ([base-freq n] (interval-freq base-freq n :ionian :equal-tempered))
   ([base-freq n mode tuning]
      (case tuning
@@ -290,8 +302,7 @@
   in that bin.
 
   Look here for a vague description of this algorithm:
-  http://stackoverflow.com/questions/352670/weighted-random-selection-with-and-without-replacement
-  "
+  http://stackoverflow.com/questions/352670/weighted-random-selection-with-and-without-replacement"
   [pairs]
   (let [pairs      (apply hash-map pairs)
         sum        (float (apply + (vals pairs)))
