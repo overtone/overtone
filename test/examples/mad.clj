@@ -90,34 +90,50 @@
 ; (stop)
 
 ; Ok, now try this one slow, and add the echo effect
-(comment p (cycle (map
+(comment
+  (p (cycle (map
             #(assoc % :synth ks1-demo)
-            (pattern derezzed 4))))
+            (pattern derezzed 4)))))
 ;(inst-fx ks1-demo fx-echo)
 
-(comment p (cycle
+(comment
+  (p (cycle
      (map
        #(assoc % :pitch (- (:pitch %) 24))
      (map
        #(assoc % :synth grunge-bass)
-       (pattern derezzed 2)))))
+       (pattern derezzed 2))))))
 
 ;(stop)
 
 ; Now for a Bach challenge:
-; http://www.sheetmusic1.com/new.great.music/bach.minuet.gmajor/bach.1.demo.gif
+;; http://www.sheetmusic1.com/new.great.music/bach.minuet.gmajor/bach.1.demo.gif
+;; http://www.sheetmusic1.com/new.great.music/bach.minuet.gmajor/bach.2.demo.gif
 (def g-minuet-right-hand [[D5 D5 D5]
                          [B4 [A4 B4] G4]
                          [A4 D5 C5]
                          [B4 B4 A4] ; the two B4's should be tied together (ie. they should be one note). I don't think it's possible to express that they are one note using the []-dividing notation
                          [D5 [C5 B4] [A4 G4]]
                          [E5 [C5 B4] [A4 G4]]
-                         [F4 [E4 D4] F4]
+                         [F#4 [E4 D4] F#4]
                          [G4]
                          [B4 E5 E5]
                          [C#5 [B4 C5] A4]
                          [D5 E5 F5]
-                         [[E5 D5] [C#5 B4] A4]])
+                         [[E5 D5] [C#5 B4] A4]
+
+                         [A6 [G5 F#5 E5 D5]]
+                         [B6 [G5 F#5 E5 D5]]
+                         [C#5 A5 C#5]
+                         [D5]
+                         [D5 [C5 B5] A5]
+                         [B5 [A5 B5] [G4]]
+                         [C5 C5 [C5 B5]]
+                         [A5]
+                         [D5 [C5 B5 A5 G4]]
+                         [E5 [C5 B5 A5 G4]]
+                         [F#4 [E4 D4] F#4]
+                         [G4]])
 
 (def g-minuet-left-hand [[G3 F#3 D3]
                         [G3 D3 G2]
@@ -130,15 +146,30 @@
                         [G3 G3 E3]
                         [A3 E3 A2]
                         [F#3 E3 D3]
-                        [A2 E3 [A3 G3]]])
+                        [A2 E3 [A4 G3]]
 
-; now make it play both hands at once! I don't know how.
+                        [F#3]
+                        [G3]
+                        [A4 A4 A3]
+                        [D3 [D4 C4 B4 A4]]
+                        [G3 G3 F#3]
+                        [G3 D3 G2]
+                        [A4 F#3 G3]
+                        [D3 D2 [D3 C3]]
+                        [B3]
+                        [C3]
+                        [D3 D3 D2]
+                        [G3]])
+
+;; now make it play both hands at once! I don't know how.
+
 (comment
   (do
   (p (map
      #(assoc % :synth ks1-demo)
-     (pattern g-minuet-left-hand 10)))
+     (pattern g-minuet-left-hand 20)))
 
   (p (map
      #(assoc % :synth ks1-demo)
-     (pattern g-minuet-right-hand 10)))))
+     (pattern g-minuet-right-hand 20)))))
+
