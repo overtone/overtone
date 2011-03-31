@@ -14,9 +14,9 @@
 (def POSITION
   {:head         0
    :tail         1
-   :before-node  2
-   :after-node   3
-   :replace-node 4})
+   :before       2
+   :after        3
+   :replace      4})
 
 (defn- bus->id
   [col]
@@ -33,10 +33,10 @@
 
 ;; Sending a synth-id of -1 lets the server choose an ID
 (defn node
-  "Instantiate a synth node on the audio server.  Takes the synth name and a set of
-  argument name/value pairs.  Optionally use :target <node/group-id> and :position <pos>
-  to specify where the node should be located.  The position can be one of :head, :tail
-  :before-node, :after-node, or :replace-node.
+  "Instantiate a synth node on the audio server.  Takes the synth name and a 
+  set of argument name/value pairs.  Optionally use :target <node/group-id> 
+  and :position <pos> to specify where the node should be located.  The 
+  position can be one of :head, :tail :before, :after, or :replace.
 
   (node \"foo\")
   (node \"foo\" :pitch 60)

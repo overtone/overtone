@@ -73,8 +73,20 @@
 ; or this to play it forever
 ;(p (cycle (pattern derezzed 2)))
 
+; before you stop, add some reverb
+;(inst-fx tone fx-reverb)
+
 ; call stop to kill the loop
-; (stop)
+;(stop)
+
+; try it slow with an echo effect
+;(inst-fx tone fx-echo)
+;(p (cycle (pattern derezzed 6)))
+
+; clear the fx for this instrument like so
+;(clear-fx tone)
+
+;(stop)
 
 ; uncomment this one and move the mouse around
 (comment p (cycle (map
@@ -106,13 +118,14 @@
 
 ;(stop)
 
-; Now for a Bach challenge:
+; Bach - Minuet in G Major
+; Go here for the sheet music:
 ;; http://www.sheetmusic1.com/new.great.music/bach.minuet.gmajor/bach.1.demo.gif
 ;; http://www.sheetmusic1.com/new.great.music/bach.minuet.gmajor/bach.2.demo.gif
 (def g-minuet-right-hand [[D5 D5 D5]
                          [B4 [A4 B4] G4]
                          [A4 D5 C5]
-                         [B4 B4 A4] ; the two B4's should be tied together (ie. they should be one note). I don't think it's possible to express that they are one note using the []-dividing notation
+                         [B4 B4 A4] ; NOTE: two B4's should be tied together
                          [D5 [C5 B4] [A4 G4]]
                          [E5 [C5 B4] [A4 G4]]
                          [F#4 [E4 D4] F#4]
@@ -140,8 +153,8 @@
                         [G3 [F#3 E3] [F#3 D3]]
                         [G3 G2 [D3 C3]]
                         [B2]
-                        [C3] ; I made up some harmonies here...
-                        [D3] ; ...as the sheet music gif omitted them
+                        [C3] 
+                        [D3]
                         [G2]
                         [G3 G3 E3]
                         [A3 E3 A2]
@@ -161,15 +174,47 @@
                         [D3 D3 D2]
                         [G3]])
 
-;; now make it play both hands at once! I don't know how.
-
-(comment
-  (do
+(comment do
   (p (map
-     #(assoc % :synth ks1-demo)
-     (pattern g-minuet-left-hand 20)))
+       #(assoc % :synth ks1-demo)
+       (pattern g-minuet-left-hand 25)))
 
   (p (map
-     #(assoc % :synth ks1-demo)
-     (pattern g-minuet-right-hand 20)))))
+       #(assoc % :synth ks1-demo)
+       (pattern g-minuet-right-hand 25))))
+
+; Grrrrrrr! ;-)
+;(inst-fx ks1-demo fx-distortion)
+;(clear-fx ks1-demo)
+
+(defn glp
+  [t]
+  (map
+    #(assoc % :synth ks1-demo)
+    (pattern g-minuet-left-hand t)))
+
+(defn grp 
+  [t]
+  (map
+    #(assoc % :synth ks1-demo)
+    (pattern g-minuet-right-hand t)))
+
+(defn transpose
+  [pat shift]
+  (map #(assoc % :pitch (+ (:pitch %) shift)) pat))
+
+; Bach would have had a blast :-)
+(comment do 
+  (p (concat
+       (glp 20)
+       (reverse (glp 20))
+       (transpose (glp 20) 4)
+       (glp 20)
+       ))
+  (p (concat
+       (grp 20)
+       (transpose (reverse (grp 20)) -12)
+       (grp 20)
+       (grp 20)
+       )))
 

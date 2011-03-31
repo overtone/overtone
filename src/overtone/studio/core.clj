@@ -14,6 +14,7 @@
 (defonce inst-group*   (ref nil))
 (defonce mixer-group*  (ref nil))
 (defonce mixer-id*     (ref nil))
+(defonce fx-group*     (ref nil))
 (defonce record-group* (ref nil))
 
 (defonce MIXER-BUS 10)
@@ -60,7 +61,7 @@
   (let [ins-name (:name inst)
         fx-chain (:fx-chain (get @instruments* ins-name))
         bus (audio-bus)
-        fx-id (fx :in-bus bus :out-bus MIXER-BUS)
+        fx-id (fx :tgt @fx-group* :pos :tail :in-bus bus :out-bus MIXER-BUS)
         src  (if (empty? fx-chain)
                inst
                (:fx-id (last fx-chain)))
@@ -102,10 +103,12 @@
 
 (defn setup-studio []
   (let [g (group :head ROOT-GROUP)
+        f (group :after g)
         m (group :tail ROOT-GROUP)
         r (group :tail ROOT-GROUP)]
     (dosync
       (ref-set inst-group* g)
+      (ref-set fx-group* g)
       (ref-set mixer-group* m)
       (ref-set record-group* r)
       (ref-set instruments* (map-vals #(assoc % :group (group :tail g))
