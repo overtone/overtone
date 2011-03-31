@@ -111,18 +111,17 @@
 ; These are the notes for the right hand in bars (I think), but it's tough to 
 ; get the timing right.
 (def g-minuet [[D5 D5 D5] 
-               [B4 A4 B4 G4] 
+               [B4 [A4 B4] G4] 
                [A4 D5 C5] 
-               [B4 A4]
-               [D5 C5 B4 A4 G4]
-               [E5 C5 B4 A4 G4]
-               [F4 E4 D4 F4]
+               [B4 B4 A4] ; the two B4's should be tied together (ie. they should be one note. I don't think it's possible to express that they are one note using the []-dividing notation
+               [D5 [C5 B4] [A4 G4]]
+               [E5 [C5 B4] [A4 G4]]
+               [F4 [E4 D4] F4]
                [G4]
-               [G4]
-               [B4 E5]
-               [C#5 B4 C5 A4]
+               [B4 E5 E5]
+               [C#5 [B4 C5] A4]
                [D5 E5 F5]
-               [E5 D5 C#5 B4 A4]])
+               [[E5 D5] [C#5 B4] A4]])
 
 (comment p (map
      #(assoc % :synth ks1-demo)
