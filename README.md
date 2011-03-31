@@ -15,7 +15,7 @@ Overtone is a toolkit for creating synthesizers and making music.  It provides:
 * metronome and timing system to support live-coding and sequencing
 * plug and play midi device I/O
 * simple Open Sound Control (OSC) message handling
-* 
+*
 
 ### Project Info:
 
@@ -37,7 +37,7 @@ Downloads and the source repository can be found on GitHub:
 
 The project is free and open source.  Clone the repository on GitHub to get
 started developing, and if you are ready to submit a patch then fork your own
-copy and do a pull request.  
+copy and do a pull request.
 
 #### Mailing List
 
@@ -62,9 +62,9 @@ Future versions will also support ALSA audio.
 
 Download and install leiningen wherever you local executables go:
 
-    wget http://github.com/technomancy/leiningen/raw/stable/bin/lein 
+    wget http://github.com/technomancy/leiningen/raw/stable/bin/lein
     chmod u+x lein
-    mv lein ~/bin  
+    mv lein ~/bin
     lein self-install
 
 Now get Overtone:
@@ -72,9 +72,9 @@ Now get Overtone:
     $ git clone git://github.com/rosejn/overtone.git
 
     $ cd overtone
-    $ lein deps      
+    $ lein deps
 
-    ; In Linux you can create a .jackdrc file with this command 
+    ; In Linux you can create a .jackdrc file with this command
     ; to automatically start the jack server on boot, or you will need
     ; to run it manually to start the Jack audio server.
     $ jackd -r -d alsa -r 44100 ; or use qjackctl for a gui
@@ -82,15 +82,15 @@ Now get Overtone:
     $ lein repl
 
     user=> (use 'overtone.live)
-    user=> (synth (out 0 (pan2 (sin-osc 440)))) 
+    user=> (synth (out 0 (pan2 (sin-osc 440))))
 
     ; Defining a new synthesizer with the synth macro will return a function.
 
-    user=> (*1) 
+    user=> (*1)
     5
 
     ; Call the function to trigger the synth and set its control parameters.
-    ; It will return an ID that can be used to kill or adjust parameters for 
+    ; It will return an ID that can be used to kill or adjust parameters for
     ; the synth instance.
 
     user=> (kill 5)
@@ -103,5 +103,6 @@ Now get Overtone:
 * Jon Rose
 * Sam Aaron
 * Fabian Aussems
-* Christophe McKeon 
+* Christophe McKeon
 * Pepijn de Vos
+* Marius Kempe
