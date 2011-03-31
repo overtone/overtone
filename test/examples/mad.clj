@@ -105,11 +105,7 @@
 ;(stop)
 
 ; Now for a Bach challenge:
-; How do we do this:
 ; http://www.sheetmusic1.com/new.great.music/bach.minuet.gmajor/bach.1.demo.gif
-;
-; These are the notes for the right hand in bars (I think), but it's tough to 
-; get the timing right.
 (def g-minuet-right-hand [[D5 D5 D5] 
                          [B4 [A4 B4] G4] 
                          [A4 D5 C5] 
