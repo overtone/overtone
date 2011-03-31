@@ -18,13 +18,13 @@
         dampener   (+ 1 (* 0.5 (sin-osc:kr 0.5)))
         reverb     (free-verb compressor 0.5 0.5 dampener)
         echo       (comb-n reverb 0.4 0.3 0.5)]
-    (out 0 (* amp echo))))
+    (* amp echo)))
 
 (definst buzz [pitch 40 cutoff 300 dur 200]
   (let [a (lpf (saw (midicps pitch)) (* (lf-noise1 :control 10) 400))
         b (sin-osc (midicps (- pitch 12)))
         env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
-    (out 0 (pan2 (* env (+ a b))))))
+    (* env (+ a b))))
 
 (definst bass [freq 120 t 0.6 amp 0.5]
   (let [env (env-gen (perc 0.08 t) :action :free)
@@ -61,7 +61,7 @@
         reverb (free-verb clp 0.4 0.8 0.2)]
     (* amp (env-gen (perc 0.0001 dur) :action :free) reverb)))
 
-(definst ks1-demo [note 60 gate 1 amp 0.8]
+(definst ks1-demo [note 60 amp 0.8 gate 1]
   (let [freq (midicps note)
         noize (* 0.8 (white-noise))
         dly (/ 1.0 freq)
@@ -71,7 +71,7 @@
         dist (distort plk)
         filt (rlpf dist (* 12 freq) 0.6)
         reverb (free-verb filt 0.4 0.8 0.2)]
-    (out 10 (pan2 (* amp (env-gen (perc 0.0001 2) :action :free) reverb)))))
+    (* amp (env-gen (perc 0.0001 2) :action :free) reverb)))
 
 (definst ks-stringer [freq 440 rate 6]
   (let [noize (* 0.8 (white-noise))
@@ -88,10 +88,29 @@
         osc-b (* amp (sin-osc (* (mouse-y 3000 0) osc-a)))]
     osc-a))
 
+; From the SC2 examples included with SC
+; Don't think it's quite there, but almost...
+(definst harmonic-swimming [amp 0.5]
+  (let [freq     100
+        partials 20
+        z-init   0
+        offset   (line:kr 0 -0.02 60)
+        snd (loop [z z-init
+                   i 0]
+              (if (= partials i)
+                z
+                (let [f (clip:kr (mul-add
+                                   (lf-noise1:kr [(+ 6 (rand 4))
+                                                  (+ 6 (rand 4))])
+                                   0.2 offset))
+                      src  (f-sin-osc (* freq (inc i)))
+                      newz (mul-add src f z)]
+                  (recur newz (inc i)))))]
+    (out 10 (pan2 (* amp snd)))))
+
 ;(def alien-buffer (buffer 2250))
 ;(definst alien-computer [trig 0.3]
-;  (out 0 (pan2 (ifft
-;                 (pv-rand-comb (fft alien-buffer (white-noise))
+;  (ifft (pv-rand-comb (fft alien-buffer (white-noise))
 ;                               0.95 (impulse:kr trig))))))
 ;(defn buzzer [t tick dur notes]
 ;  (let [note (first notes)]
@@ -119,10 +138,6 @@
 ;        env (env-gen.kr (linen 0.001 (/ :dur 1000.0) 0.002) :done-free)]
 ;    (out.ar :out (pan2.ar (* (* snd env) :amp) 0)))))
 ;
-;(defn quick [signal]
-;  (syn
-;    (out.ar 0 (pan2.ar signal) 0)))
-;
 ;(synth mouse-saw
 ;  (out.ar 0 (pan2.ar (sin-osc.ar (mouse-y.kr 10 1200 1 0) 0) 0)))
 ;
@@ -131,32 +146,10 @@
 ;  (hit mouse-saw)
 ;  )
 ;
-;(synth line-test
-;  (quick (mul-add.ar (sin-osc.ar (line.kr 100 100 0.5) 0 )
-;                     (line.kr 0.5 0 1) 0)))
-;
 ;(synth noise-filter {:cutoff 500}
 ;  (quick (lpf.ar (* 0.4 (pink-noise.ar)) :cutoff)))
-;
-;
-;(comment synth harmonic-swimming (quick
-;  (let [freq     50
-;;        partials 20
-;        partials 1
-;        z-init   0
-;        offset   (line.kr 0 -0.02 60)]
-;    (loop [z z-init
-;           i 0]
-;      (if (= partials i) z
-;        (let [f (max.kr 0
-;                    (mul-add.kr
-;                        (lf-noise-1.kr
-;                            (+ 2 (* 8 (rand))))
-;                            ; (+ 2 (* 8 (rand)))])
-;                        0.02 offset))
-;              newz (mul-add.ar (f-sin-osc.ar (* freq (+ i 1)) 0) f z)]
-;          (recur newz (inc i))))))))
-;
+
+
 ;(defn basic-sound []
 ;  (syn
 ;    (mul-add.ar
