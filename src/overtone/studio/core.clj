@@ -74,7 +74,7 @@
       (ctl src :out-bus bus))
     (dosync
       (alter instruments* assoc-in [ins-name :fx-chain] fx-chain))
-    :effect-added))
+    entry))
 
 (comment defn remove-fx
   [inst fx]
