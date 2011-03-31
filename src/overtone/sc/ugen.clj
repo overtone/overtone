@@ -37,8 +37,8 @@
   (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
 
 (defn overtone-ugen-name
-  "A basic camelCase to with-dash name converter tuned to convert SuperCollider names to Overtone names.
-  Most likely needs improvement."
+  "A basic camelCase to with-dash name converter tuned to convert SuperCollider
+  names to Overtone names. Most likely needs improvement."
   [n]
   (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2")
         n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2")
@@ -106,8 +106,8 @@
   * (env-gen:ar ...)
   * (env-gen:kr ...)
 
-  UGens will also have a base-name without a rate suffix that uses the default rate
-  for that ugen:
+  UGens will also have a base-name without a rate suffix that uses the default
+  rate for that ugen:
   * (env-gen ...)   ;; Uses :kr, control rate for EnvGen
 
   The default rate is determined by the rate precedence:
@@ -147,7 +147,9 @@
     (assoc ugen :args mapped-args)))
 
 (defn- append-seq-args
-  "Handles argument modes :append-sequence and :append-sequence-set-num-outs, where some ugens take a seq for one argument which needs to be appended to the end of the argument list when sent to SC."
+  "Handles argument modes :append-sequence and :append-sequence-set-num-outs,
+  where some ugens take a seq for one argument which needs to be appended to the
+  end of the argument list when sent to SC."
   [spec ugen]
   (let [args-specs     (args-with-specs (:args ugen) spec :mode)
         pred          #(or (= :append-sequence (second %))
@@ -185,13 +187,13 @@
   (assoc ugen :args (floatify (:args ugen))))
 
 (defn- with-init-fn
-  "Creates the final argument initialization function which is applied to arguments
-  at runtime to do things like re-ordering and automatic filling in of arguments.
-  Typically appending input arrays as the last argument and filling in the number of
-  in or out channels for those ugens that need it.
+  "Creates the final argument initialization function which is applied to
+  arguments at runtime to do things like re-ordering and automatic filling in
+  of arguments. Typically appending input arrays as the last argument and
+  filling in the number of in or out channels for those ugens that need it.
 
-  If an init function is already present it will get called after doing the mapping and
-  mode transformations."
+  If an init function is already present it will get called after doing the
+  mapping and mode transformations."
   [spec]
   (let [defaulter (partial add-default-args spec)
         mapper    (partial map-ugen-args spec)
@@ -316,7 +318,8 @@
       (take greatest-count (parallel-seqs seqs)))))
 
 (defn make-expanding
-  "Takes a function and returns a multi-channel-expanding version of the function."
+  "Takes a function and returns a multi-channel-expanding version of the
+  function."
   [f expand-flags]
   (fn [& args]
     (let [expanded (mapply f (multichannel-expand expand-flags args))]
@@ -337,7 +340,7 @@
 (defrecord ControlProxy [name value rate])
 (derive ControlProxy ::ugen)
 
-(defn control-proxy 
+(defn control-proxy
   [name value]
   (ControlProxy. name value (:kr RATES)))
 
@@ -378,13 +381,15 @@
     (ugen spec rate special args)))
 
 (defn- make-buffer-id
-  "Returns a function that converts any buffer arguments to their :id property value."
+  "Returns a function that converts any buffer arguments to their :id property
+  value."
   [fun]
   (fn [& args]
     (apply fun (map #(if (buffer? %) (:id %) %) args))))
 
 (defn- make-ugen-fn
-  "Returns a function representing the given ugen that will fill in default arguments, rates, etc."
+  "Returns a function representing the given ugen that will fill in default
+  arguments, rates, etc."
   [spec rate special]
   (let [expand-flags (map #(:expands? %) (:args spec))]
     (make-buffer-id
@@ -422,7 +427,8 @@
 (defn- def-ugen
   "Create and intern a set of functions for a given ugen-spec.
     * base name function using default rate and no suffix (e.g. env-gen )
-    * base-name plus rate suffix functions for each rate (e.g. env-gen:ar, env-gen:kr)
+    * base-name plus rate suffix functions for each rate (e.g. env-gen:ar,
+      env-gen:kr)
   "
   [to-ns spec special]
   (let [metadata {:doc (:full-doc spec)
@@ -480,8 +486,8 @@
 (load "ugen/generic_ops")
 
 (defn intern-ugens
-  "Iterate over all UGen meta-data, generate the corresponding functions and intern them
-  in the current or otherwise specified namespace."
+  "Iterate over all UGen meta-data, generate the corresponding functions and
+  intern them in the current or otherwise specified namespace."
   [& [to-ns]]
   (let [to-ns (or to-ns *ns*)]
     (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %))
