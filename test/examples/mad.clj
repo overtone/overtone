@@ -60,7 +60,7 @@
           (defnote (symbol (str n-char "#" octave))
                    (octave-note octave sharp)))
         (when-let [flat (get NOTE (keyword (str n-char "b")))]
-          (defnote (symbol (str n-char "b" octave)) 
+          (defnote (symbol (str n-char "b" octave))
                    (octave-note octave flat)))))))
 
 (def-notes)
@@ -106,9 +106,9 @@
 
 ; Now for a Bach challenge:
 ; http://www.sheetmusic1.com/new.great.music/bach.minuet.gmajor/bach.1.demo.gif
-(def g-minuet-right-hand [[D5 D5 D5] 
-                         [B4 [A4 B4] G4] 
-                         [A4 D5 C5] 
+(def g-minuet-right-hand [[D5 D5 D5]
+                         [B4 [A4 B4] G4]
+                         [A4 D5 C5]
                          [B4 B4 A4] ; the two B4's should be tied together (ie. they should be one note). I don't think it's possible to express that they are one note using the []-dividing notation
                          [D5 [C5 B4] [A4 G4]]
                          [E5 [C5 B4] [A4 G4]]
@@ -130,9 +130,15 @@
                         [G3 G3 E3]
                         [A3 E3 A2]
                         [F#3 E3 D3]
-                        [A2 E3 [A3 G3]]) 
+                        [A2 E3 [A3 G3]]])
 
 ; now make it play both hands at once! I don't know how.
-(comment p (map
+(comment
+  (do
+  (p (map
      #(assoc % :synth ks1-demo)
-     (pattern g-minuet 10)))
+     (pattern g-minuet-left-hand 10)))
+
+  (p (map
+     #(assoc % :synth ks1-demo)
+     (pattern g-minuet-right-hand 10)))))
