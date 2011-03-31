@@ -1,5 +1,6 @@
 (ns overtone.config
   (:use [clojure.contrib.io :only (slurp*)])
+  (:require [clojure.contrib.duck-streams :as ds])
   (:import (java.io FileOutputStream FileInputStream)))
 
 ;; Provides a simple key/value configuration system with support for automatically
@@ -22,7 +23,7 @@
 (defmethod save-config :file
   [path data]
   (locking F-LOCK
-      (spit path data)))
+      (ds/spit path data)))
 
 (defmethod restore-config :file
   [path]
