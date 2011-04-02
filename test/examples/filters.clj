@@ -10,29 +10,29 @@
 ; effect the filter is having.
 ; (scope)
 
-; Lowpass 
+; Lowpass
 (demo 10
-  (lpf (* 0.5 (saw 440)) 
+  (lpf (* 0.5 (saw 440))
        (mouse-x 10 10000))) ; cutoff frequency
 
 ; Highpass
 (demo 10
-  (hpf (* 0.5 (saw 200)) 
+  (hpf (* 0.5 (saw 200))
        (mouse-x 100 10000))) ; cutoff frequency
-  
+
 
 
 ; Bandpass
 ; - only let a band of frequencies pass through
 (demo 10
-  (bpf (* 0.5 (saw 200)) 
+  (bpf (* 0.5 (saw 200))
        (mouse-x 100 10000) ; center frequency
        (mouse-y 0 1)))     ; rq => bandwidth/cutoff
 
 ; Band reject
 ; - the inverse of the bandpass
 (demo 10
-  (brf (* 0.5 (saw 200)) 
+  (brf (* 0.5 (saw 200))
        (mouse-x 100 10000) ; center frequency
        (mouse-y 0 1)))     ; rq => bandwidth/cutoff
 
@@ -43,7 +43,7 @@
            (mouse-y 0.01 0.5)))
 
 
-; Clip 
+; Clip
 ; - limit the amplitude with hi and low thresholds
 (demo 10
   (clip (* (sin-osc 440) 0.4)
@@ -61,7 +61,7 @@
 ; Linear to exponential
 ; - convert from a linear range to an exponential range
 (demo 10
-  (let [freq (lin-exp:kr (mouse-x 0.1 1)
+  (let [freq (lin-exp (mouse-x 0.1 1)
                    0 1                ; linear range
                    10 10000)]         ; exponential range
   (* 0.3 (saw freq))))
@@ -72,14 +72,14 @@
 ;   over the specified lag time
 ; - used to smooth out control signals
 (demo 10
-  (* 0.2 (saw (lag:kr 
+  (* 0.2 (saw (lag:kr
                      (mouse-x 80 10000) ; frequency value
                      3))))             ; lag time
 
 ; Lag Up Down
 ; - allows for different up and down lag times
 (demo 10
-  (* 0.2 (saw (lag-ud:kr 
+  (* 0.2 (saw (lag-ud:kr
                      (mouse-x 80 10000) ; frequency value
                      4 2))))             ; lag time
 
@@ -87,14 +87,14 @@
 ; Ramp
 ; - like lag, but transitions linearly
 (demo 10
-  (* 0.2 (saw (ramp:kr 
+  (* 0.2 (saw (ramp:kr
                      (mouse-x 80 10000) ; frequency value
                      3))))             ; lag time
-  
+
 
 ; amplitude compensation
 ; - to account for higher pitches seeming louder
-; - move the mouse up and down      
+; - move the mouse up and down
 ; first without
 (demo 10
   (let [f (mouse-y 300 15000)]
@@ -104,4 +104,3 @@
 (demo 10
   (let [f (mouse-y 300 15000)]
     (* (sin-osc f) 0.1 (amp-comp f 300))))
-)
