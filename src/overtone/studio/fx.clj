@@ -50,7 +50,7 @@
   [in-bus 20 out-bus 10
    wet-dry 0.5 room-size 0.5 dampening 0.5]
   (out out-bus
-       (free-verb (in in-bus) wet-dry room-size dampening)))
+       (* 1.4 (free-verb (in in-bus) wet-dry room-size dampening))))
 
 (defsynth fx-echo
   [in-bus 20 out-bus 10

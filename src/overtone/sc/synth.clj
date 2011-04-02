@@ -411,19 +411,21 @@
   (let [params decomp-params]
     params))
 
-(def *demo-time* 1200)
+(def *demo-time* 60000)
 
 (defmacro demo
   "Try out an anonymous synth definition.  Useful for experimentation.  If the
   root node is not an out ugen, then it will add one automatically."
-  [body]
-  (let [b2 (if (= 'out (first body))
+  [& body]
+  (let [[demo-time body] (if (number? (first body))
+                           [(* 1000 (first body)) (second body)]
+                           [*demo-time* (first body)])
+        b2 (if (= 'out (first body))
              body
              (list 'out 0 (list 'pan2 body)))]
     `(let [s# (synth "audition-synth" ~b2)
            note# (s#)]
-       (if *demo-time*
-         (at (+ (now) *demo-time*) (node-free note#)))
+       (at (+ (now) ~demo-time) (node-free note#))
        note#)))
 
 (defn active-synths
