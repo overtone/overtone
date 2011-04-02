@@ -1,3 +1,6 @@
+* create a couple functions to append a ugen to the root of a synth, for
+attaching out, pan, etc...
+
 * inst and synth forms should evalute the defaults rather than expecting them to
 be numbers (to use equations, constant vars, etc...)
 
