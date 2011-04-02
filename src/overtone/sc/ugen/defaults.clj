@@ -15,11 +15,11 @@
 
 (def REVERSE-RATES (invert-map RATES))
 
-(def UGEN-RATE-PRECEDENCE [:ir :dr :ar :kr])
+(def UGEN-DEFAULT-RATE-PRECEDENCE [:ir :dr :ar :kr])
 (def UGEN-DEFAULT-RATES #{:ar :kr})
 
 (def UGEN-RATE-SORT-FN
-  (zipmap UGEN-RATE-PRECEDENCE (range (count UGEN-RATE-PRECEDENCE))))
+  (zipmap UGEN-DEFAULT-RATE-PRECEDENCE (range (count UGEN-DEFAULT-RATE-PRECEDENCE))))
 
 (def NO-ARG-DOC-FOUND "-")
 
