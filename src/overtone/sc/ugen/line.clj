@@ -27,12 +27,13 @@
        :doc "Convert from a linear range to an exponential range."}
 
       {:name "LinLin",
-       :args [{:name "in", :default 0.0}
-              {:name "srclo", :default 0.0}
-              {:name "srchi", :default 1.0}
-              {:name "dstlo", :default 1.0}
-              {:name "dsthi", :default 2.0}]
-       :doc "map values from one linear range to another"}
+       :args [{:name "in", :default 0.0 :doc "Input to convert"}
+              {:name "srclo", :default 0.0 :doc "Lower limit of input range"}
+              {:name "srchi", :default 1.0 :doc "Upper limit of input range"}
+              {:name "dstlo", :default 1.0 :doc "Lower limit of output range"}
+              {:name "dsthi", :default 2.0 :doc "Upper limit of output range"}]
+       :doc "Map values from one linear range to another"
+       :inherit-rate "in"}
 
       {:name "AmpComp",
        :args [{:name "freq", :default 261.6256} ; default value of (midicps 60)

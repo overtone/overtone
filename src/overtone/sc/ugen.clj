@@ -112,14 +112,19 @@
 
   The default rate is determined by the rate precedence:
   [:ir :dr :ar :kr]
+  or a :default-rate attribute can override the default precedence order.
 
-  or a :default-rate attribute can override the default precedence order."
+  In the case of functions that don't explicitly specify the rate and in the
+  presence of the key :inherit-rate, the rate is not pre-calculated but instead
+  dynamically obtained from the input parameter specified by the value. For
+  example, the ugen lin-lin inherits its rate from the rate of its first input"
   [spec]
   (let [rates (:rates spec)
         rate-vec (vec rates)
         base-name (overtone-ugen-name (:name spec))
         base-rate (cond
-                    (contains? spec :default-rate) (:default-rate spec)
+                   (contains? spec :default-rate) (:default-rate spec)
+                   (contains? spec :inherit-rate) (as-str (:inherit-rate spec))
                     (= 1 (count rates)) (first rates)
                     :default (first (filter rates UGEN-RATE-PRECEDENCE)))
         name-rates (zipmap (map #(str base-name %) rate-vec)
@@ -293,6 +298,10 @@
   "Does sc style multichannel expansion.
   * does not expand seqs flagged infinite
   * note that this returns a list even in the case of a single expansion
+
+  Takes expand-flags, a seq of boolean values representing whether a given arg
+  should be expanded. Each nth expand-flag boolean corresponds to each nth arg
+  where arg is a seq of arguments passed into the ugen fn.
   "
   [expand-flags args]
   (if (zero? (count args))
