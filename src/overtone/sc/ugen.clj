@@ -126,7 +126,7 @@
                    (contains? spec :default-rate) (:default-rate spec)
                    (contains? spec :inherit-rate) (as-str (:inherit-rate spec))
                     (= 1 (count rates)) (first rates)
-                    :default (first (filter rates UGEN-RATE-PRECEDENCE)))
+                    :default (first (filter rates UGEN-DEFAULT-RATE-PRECEDENCE)))
         name-rates (zipmap (map #(str base-name %) rate-vec)
                            rate-vec)]
     (assoc spec
@@ -191,6 +191,45 @@
 (defn- with-floated-args [spec ugen]
   (assoc ugen :args (floatify (:args ugen))))
 
+(def UGEN-RATE-SPEED {:ir 0
+                      :dr 1
+                      :kr 2
+                      :ar 3})
+
+(declare ugen?)
+
+(defn- op-rate 
+  "Lookup the rate of an input ugen, otherwise use IR because the operand
+  must be a constant float."
+  [arg]
+  (if (ugen? arg)
+    (:rate arg)
+    (get RATES :ir)))
+
+(defn- check-arg-rates [spec ugen]
+  (let [arg-rates (map REVERSE-RATES (map :rate (filter ugen? (:args ugen))))
+        cur-rate (REVERSE-RATES (:rate ugen))]
+    (if (some #(< (UGEN-RATE-SPEED cur-rate) (UGEN-RATE-SPEED %)) arg-rates)
+      (throw (Exception. (format "Invalid ugen rate.  The %s ugen is %s rate, and has an input ugen of a faster rate." (:name spec) cur-rate)))
+      ugen)))
+
+(defn- inherit-input-rate [spec ugen]
+  (if (string? (:rate ugen))
+    (let [arg-index (first (first (filter (fn [[idx arg]] (= arg (:rate ugen)))
+                                   (map-indexed (fn [idx arg] [idx (:name arg)]) 
+                                                (:args spec)))))
+          new-rate (op-rate (nth (:args ugen) arg-index))]
+      (assoc ugen :rate new-rate))
+    ugen))
+
+(defn- buffer->id
+  "Returns a function that converts any buffer arguments to their :id property
+  value."
+  [ugen]
+  (update-in ugen [:args] 
+             (fn [args]
+               (map #(if (buffer? %) (:id %) %) args))))
+
 (defn- with-init-fn
   "Creates the final argument initialization function which is applied to
   arguments at runtime to do things like re-ordering and automatic filling in
@@ -205,7 +244,9 @@
         initer    (if (contains? spec :init) (:init spec) identity)
         n-outputer (partial with-num-outs-mode spec)
         floater   (partial with-floated-args spec)
-        appender  (partial append-seq-args spec)]
+        appender  (partial append-seq-args spec)
+        inheriter (partial inherit-input-rate spec)
+        rate-checker (partial check-arg-rates spec)]
     (assoc spec :init
            (fn [ugen]
              (-> ugen
@@ -214,7 +255,10 @@
                initer
                n-outputer
                floater
-               appender)))))
+               buffer->id
+               appender
+               inheriter
+               rate-checker)))))
 
 (defn- decorate-ugen-spec
   "Interpret a ugen-spec and add in additional, computed meta-data."
@@ -389,20 +433,12 @@
   (fn [& args]
     (ugen spec rate special args)))
 
-(defn- make-buffer-id
-  "Returns a function that converts any buffer arguments to their :id property
-  value."
-  [fun]
-  (fn [& args]
-    (apply fun (map #(if (buffer? %) (:id %) %) args))))
-
 (defn- make-ugen-fn
   "Returns a function representing the given ugen that will fill in default
   arguments, rates, etc."
   [spec rate special]
   (let [expand-flags (map #(:expands? %) (:args spec))]
-    (make-buffer-id
-      (make-expanding (ugen-base-fn spec rate special) expand-flags))))
+    (make-expanding (ugen-base-fn spec rate special) expand-flags)))
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
@@ -448,11 +484,6 @@
                       (:fn-names spec))]
     (doseq [[ugen-name ugen-fn] ugen-fns]
       (intern to-ns ugen-name ugen-fn))))
-
-(defn- op-rate [arg]
-  (if (ugen? arg)
-    (:rate arg)
-    (get RATES :ir)))
 
 (defn- def-unary-op
   [to-ns op-name special]
@@ -536,7 +567,7 @@
 ;; We refer all the ugen functions here so they can be access by other parts
 ;; of the Overtone system using a fixed namespace.  For example, to automatically
 ;; stick an Out ugen on synths that don't explicitly use one.
-(defonce _ugens (intern-ugens))
+(def _ugens (intern-ugens))
 (defonce _colliders (intern-ugens-collide (create-ns 'overtone.ugen-collide)))
 
 (defmacro with-ugens [& body]
