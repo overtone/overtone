@@ -6,7 +6,8 @@
 
   (:use clojure.contrib.def
         clojure.stacktrace
-        [clojure.pprint :as pprint])
+        [clojure.pprint :as pprint]
+        [clojure.contrib.seq-utils :only (indexed)])
   (:import (java.util ArrayList Collections)))
 
 ; Some generic counters
@@ -221,3 +222,11 @@
   "Dissociates the element [keys val] from map."
   [m keys val]
         (assoc-in m keys (dissoc (get-in m keys) val)))
+
+(defn index-of 
+  "Return the index of item in col."
+  [col item]
+  (first (first (filter (fn [[i v]]
+                          (= v item))
+                        (indexed col)))))
+

@@ -25,11 +25,6 @@
 
 (def *params* nil)
 
-(defn- index-of [col item]
-  (first (first (filter (fn [[i v]]
-                          (= v item))
-                        (indexed col)))))
-
 (defn- ugen-index [ugens ugen]
   (first (first (filter (fn [[i v]]
                           (= (:id v) (:id ugen)))

@@ -107,26 +107,24 @@
   * (env-gen:kr ...)
 
   UGens will also have a base-name without a rate suffix that uses the default
-  rate for that ugen:
-  * (env-gen ...)   ;; Uses :kr, control rate for EnvGen
+  rate of :auto, which will use the rate of the fastest argument ugen, or else
+  the default rate according to the ugen rate precedence order:
 
-  The default rate is determined by the rate precedence:
   [:ir :dr :ar :kr]
-  or a :default-rate attribute can override the default precedence order.
 
-  In the case of functions that don't explicitly specify the rate and in the
-  presence of the key :inherit-rate, the rate is not pre-calculated but instead
-  dynamically obtained from the input parameter specified by the value. For
-  example, the ugen lin-lin inherits its rate from the rate of its first input"
+  or a :default-rate attribute can override the default precedence order."
   [spec]
   (let [rates (:rates spec)
         rate-vec (vec rates)
         base-name (overtone-ugen-name (:name spec))
         base-rate (cond
-                   (contains? spec :default-rate) (:default-rate spec)
-                   (contains? spec :inherit-rate) (as-str (:inherit-rate spec))
+                    (contains? spec :default-rate) (:default-rate spec)
                     (= 1 (count rates)) (first rates)
-                    :default (first (filter rates UGEN-DEFAULT-RATE-PRECEDENCE)))
+                    :default (first (filter rates
+                                      UGEN-DEFAULT-RATE-PRECEDENCE)))
+        base-rate (if (= :ir base-rate)
+                    :auto
+                    base-rate)
         name-rates (zipmap (map #(str base-name %) rate-vec)
                            rate-vec)]
     (assoc spec
@@ -198,7 +196,7 @@
 
 (declare ugen?)
 
-(defn- op-rate 
+(defn- op-rate
   "Lookup the rate of an input ugen, otherwise use IR because the operand
   must be a constant float."
   [arg]
@@ -206,19 +204,21 @@
     (:rate arg)
     (get RATES :ir)))
 
+(defn- ugen-arg-rates [ugen]
+  (map REVERSE-RATES (map :rate (filter ugen? (:args ugen)))))
+
 (defn- check-arg-rates [spec ugen]
-  (let [arg-rates (map REVERSE-RATES (map :rate (filter ugen? (:args ugen))))
+  (let [arg-rates (ugen-arg-rates ugen)
         cur-rate (REVERSE-RATES (:rate ugen))]
     (if (some #(< (UGEN-RATE-SPEED cur-rate) (UGEN-RATE-SPEED %)) arg-rates)
       (throw (Exception. (format "Invalid ugen rate.  The %s ugen is %s rate, and has an input ugen of a faster rate." (:name spec) cur-rate)))
       ugen)))
 
-(defn- inherit-input-rate [spec ugen]
-  (if (string? (:rate ugen))
-    (let [arg-index (first (first (filter (fn [[idx arg]] (= arg (:rate ugen)))
-                                   (map-indexed (fn [idx arg] [idx (:name arg)]) 
-                                                (:args spec)))))
-          new-rate (op-rate (nth (:args ugen) arg-index))]
+(defn- auto-rate-setter [spec ugen]
+  (if (= :auto (:rate ugen))
+    (let [arg-rates (ugen-arg-rates ugen)
+          fastest-rate (first (reverse (sort-by UGEN-RATE-SPEED arg-rates)))
+          new-rate (get RATES (or fastest-rate :ir))]
       (assoc ugen :rate new-rate))
     ugen))
 
@@ -226,7 +226,7 @@
   "Returns a function that converts any buffer arguments to their :id property
   value."
   [ugen]
-  (update-in ugen [:args] 
+  (update-in ugen [:args]
              (fn [args]
                (map #(if (buffer? %) (:id %) %) args))))
 
@@ -245,7 +245,7 @@
         n-outputer (partial with-num-outs-mode spec)
         floater   (partial with-floated-args spec)
         appender  (partial append-seq-args spec)
-        inheriter (partial inherit-input-rate spec)
+        auto-rater (partial auto-rate-setter spec)
         rate-checker (partial check-arg-rates spec)]
     (assoc spec :init
            (fn [ugen]
@@ -257,7 +257,7 @@
                floater
                buffer->id
                appender
-               inheriter
+               auto-rater
                rate-checker)))))
 
 (defn- decorate-ugen-spec
@@ -411,7 +411,7 @@
   (let [ug (UGen.
              (next-id :ugen)
              (:name spec)
-             (if (keyword? rate) (get RATES rate) rate)
+             (or (get RATES rate) rate)
              special
              args
              (or (:num-outs spec) 1))
