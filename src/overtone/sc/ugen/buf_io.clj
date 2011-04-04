@@ -31,18 +31,18 @@
       ;; }
 
       {:name "TGrains",
-       :args [{:name "numChannels" :mode :num-outs :default 2}
-              {:name "trigger", :default 0}
-              {:name "bufnum", :default 0}
-              {:name "rate", :default 1}
-              {:name "centerPos", :default 0}
-              {:name "dur", :default 0.1}
-              {:name "pan", :default 0.0}
-              {:name "amp", :default 0.1}
-              {:name "interp", :default 4}],
+       :args [{:name "numChannels" :mode :num-outs :default 2 :doc "number of output channels"}
+              {:name "trigger", :default 0 :doc "at each trigger, the following arguments are sampled and used as the arguments of a new grain. A trigger occurs when a signal changes from <= 0 to > 0. If the trigger is audio rate then the grains will start with sample accuracy."}
+              {:name "bufnum", :default 0 :doc "the index of the buffer to use. It must be a one channel (mono) buffer."}
+              {:name "rate", :default 1 :doc "1.0 is normal, 2.0 is one octave up, 0.5 is one octave down -1.0 is backwards normal rate. Unlike PlayBuf, the rate is multiplied by BufRate, so you needn't do that yourself."}
+              {:name "centerPos", :default 0 :doc "the position in the buffer in seconds at which the grain envelope will reach maximum amplitude."}
+              {:name "dur", :default 0.1 :doc "duration of the grain in seconds"}
+              {:name "pan", :default 0.0 :doc "a value from -1 to 1. Determines where to pan the output in the same manner as PanAz."}
+              {:name "amp", :default 0.1 :doc "amplitude of the grain."}
+              {:name "interp", :default 4 :doc "1,2,or 4. Determines whether the grain uses (1) no interpolation, (2) linear interpolation, or (4) cubic interpolation."}],
        :rates #{:ar}
        :check (num-outs-greater-than 1)
-       :doc "sample playback from a buffer with fine control for doing granular synthesis"}
+       :doc "sample playback from a buffer with fine control for doing granular synthesis. Triggers generate grains from a single channel (mono) buffer. Each grain has a Hann envelope (sin^2(x) for x from 0 to pi) and is panned between two channels of multiple outputs."}
 
       {:name "BufRd",
        :args [{:name "numChannels"    :default 1, :mode :num-outs,
@@ -60,12 +60,12 @@
        :doc "reads the contents of a buffer at a given index."}
 
       {:name "BufWr",
-       :args [{:name "inputArray", :mode :append-sequence}
-              {:name "bufnum", :default 0}
-              {:name "phase", :default 0.0}
-              {:name "loop", :default 1.0}]
+       :args [{:name "inputArray", :mode :append-sequence :doc "input ugens (channelArray)"}
+              {:name "bufnum", :default 0 :doc "the index of the buffer to use"}
+              {:name "phase", :default 0.0 :doc "modulatable index into the buffer (has to be audio rate)."}
+              {:name "loop", :default 1.0 :doc "1 means true, 0 means false.  This is modulatable"}]
        :check (when-ar (nth-input-ar 1))
-       :doc "writes to a buffer at a given index"}
+       :doc "writes to a buffer at a given index. Note, buf-wr (in difference to buf-rd) does not do multichannel expansion, because input is an array."}
 
       {:name "RecordBuf",
        :args [{:name "inputArray", :mode :append-sequence}
@@ -77,11 +77,12 @@
               {:name "loop", :default 1.0}
               {:name "trigger", :default 1.0}
               {:name "action", :default 0 :map DONE-ACTIONS}]
-       :doc "record a stream of values into a buffer"}
+       :doc "record a stream of values into a buffer. If recLevel is 1.0 and preLevel is 0.0 then the new input overwrites the old data. If they are both 1.0 then the new data is added to the existing data. (Any other settings are also valid.) Note that the number of channels must be fixed for the SynthDef, it cannot vary depending on which buffer you use."}
 
       {:name "ScopeOut",
        :args [{:name "inputArray", :mode :append-sequence}
               {:name "bufnum", :default 0.0}],
+       :rates #{:ar}
        :num-outs 0}
 
       ;; TODO investigate local bufs system, flesh out LocalBuf
