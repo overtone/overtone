@@ -14,8 +14,8 @@
        ;; }
 
        {:name "Delay1",
-        :args [{:name "in", :default 0.0}]
-        :doc "delay input signal by one frame of samples"}
+        :args [{:name "in", :default 0.0 :doc "input to be delayed."}]
+        :doc "delay input signal by one frame of samples. Note: for audio-rate signals the delay is 1 audio frame, and for control-rate signals the delay is 1 control period."}
 
        ;; Delay2 : Delay1 { }
 
@@ -34,10 +34,10 @@
        ;; }
 
        {:name "DelayN",
-        :args [{:name "in", :default 0.0, :mode :as-ar}
-               {:name "maxdelaytime", :default 0.2}
-               {:name "delaytime", :default 0.2}]
-        :doc "simple delay line, no interpolation."}
+        :args [{:name "in", :default 0.0, :mode :as-ar :doc "the input signal"}
+               {:name "maxdelaytime", :default 0.2 :doc "the maximum delay time in seconds. used to initialize the delay buffer size"}
+               {:name "delaytime", :default 0.2 :doc "delay time in seconds"}]
+        :doc "simple delay line, no interpolation. See also DelayL which uses linear interpolation, and DelayC which uses cubic interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate."}
 
        ;; DelayL : DelayN {}
 
@@ -59,11 +59,11 @@
        ;; }
 
        {:name "CombN",
-        :args [{:name "in", :default 0.0, :mode :as-ar}
-               {:name "maxdelaytime", :default 0.2}
-               {:name "delaytime", :default 0.2}
-               {:name "decaytime", :default 1.0}]
-        :doc "comb delay line, no interpolation"}
+        :args [{:name "in", :default 0.0, :mode :as-ar :doc "the input signal"}
+               {:name "maxdelaytime", :default 0.2 :doc "the maximum delay time in seconds. used to initialize the delay buffer size"}
+               {:name "delaytime", :default 0.2 :doc "delay time in seconds"}
+               {:name "decaytime", :default 1.0 :doc "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower."}]
+        :doc "comb delay line, no interpolation. See also CombL which uses linear interpolation, and CombC which uses cubic interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate."}
 
        {:name "CombL" :extends "CombN"
         :doc "comb delay line, linear interpolation"}
@@ -72,7 +72,7 @@
         :doc "comb delay line, cubic interpolation"}
 
        {:name "AllpassN" :extends "CombN"
-       :doc "all pass delay line, no interpolation"}
+       :doc "all pass delay line, no interpolation. See also AllpassC which uses cubic interpolation, and AllpassL which uses linear interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate."}
 
        {:name "AllpassL" :extends "CombN"
        :doc "all pass delay line, linear interpolation"}
@@ -92,10 +92,10 @@
        ;; }
 
        {:name "BufDelayN",
-        :args [{:name "buf", :default 0.0}
-               {:name "in", :default 0.0 :mode :as-ar}
-               {:name "delaytime", :default 0.2}]
-        :doc "buffer based simple delay line with no interpolation"}
+        :args [{:name "buf", :default 0.0 :doc "buffer number"}
+               {:name "in", :default 0.0 :mode :as-ar :doc "the input signal"}
+               {:name "delaytime", :default 0.2 :doc "delay time in seconds"}]
+        :doc "buffer based simple delay line with no interpolation. See also BufDelayL which uses linear interpolation, and BufDelayC which uses cubic interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate."}
 
        ;; BufDelayL : BufDelayN {}
 
@@ -114,12 +114,12 @@
        ;; }
 
        {:name "BufCombN",
-        :args [{:name "buf", :default 0}
-               {:name "in", :default 0.0, :mode :as-ar}
-               {:name "delaytime", :default 0.2}
-               {:name "decaytime", :default 1.0}],
+        :args [{:name "buf", :default 0 :doc "buffer number"}
+               {:name "in", :default 0.0, :mode :as-ar :doc "the input signal"}
+               {:name "delaytime", :default 0.2 :doc "delay time in seconds"}
+               {:name "decaytime", :default 1.0 :doc "time for the echoes to decay by 60 decibels. If this time is negative then the feedback coefficient will be negative, thus emphasizing only odd harmonics at an octave lower."}],
         :rates #{:ar}
-        :doc "buffer based comb delay line with no interpolation"}
+        :doc "buffer based comb delay line with no interpolation. See also [BufCombL] which uses linear interpolation, and BufCombC which uses cubic interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate."}
 
        ;; BufCombL : BufCombN {}
 
@@ -134,7 +134,7 @@
        ;; BufAllpassN : BufCombN {}
 
        {:name "BufAllpassN" :extends "BufCombN"
-        :doc "buffer based all pass delay line with no interpolation"}
+        :doc "buffer based all pass delay line with no interpolation. See also BufAllpassC which uses cubic interpolation, and BufAllpassL which uses linear interpolation. Cubic interpolation is more computationally expensive than linear, but more accurate."}
 
        ;; BufAllpassL : BufCombN {}
 
