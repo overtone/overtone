@@ -12,11 +12,12 @@
       ;;                   }
 
       {:name "Amplitude",
-       :args [{:name "in", :default 0.0}
-              {:name "attackTime", :default 0.01}
-              {:name "releaseTime", :default 0.01}]
+       :args [{:name "in", :default 0.0 :doc "input signal"}
+              {:name "attackTime", :default 0.01 :doc "60dB convergence time for following attacks"}
+              {:name "releaseTime", :default 0.01 :doc "60dB convergence time for following decays"}]
        :muladd true
-       :doc "amplitude follower"}
+       :doc "amplitude follower. Tracks the peak amplitude of a signal."
+       :auto-rate true}
 
       ;; Compander : UGen {
       ;;   *ar { arg in = 0.0, control = 0.0, thresh = 0.5, slopeBelow = 1.0, slopeAbove = 1.0,
@@ -27,16 +28,17 @@
       ;; }
 
       {:name "Compander",
-       :args [{:name "in", :default 0.0}
-              {:name "control", :default 0.0}
-              {:name "thresh", :default 0.5}
-              {:name "slopeBelow", :default 1.0}
-              {:name "slopeAbove", :default 1.0}
-              {:name "clampTime", :default 0.01}
-              {:name "relaxTime", :default 0.1}],
+       :args [{:name "in", :default 0.0 :doc "The signal to be compressed / expanded / gated"}
+              {:name "control", :default 0.0 :doc "The signal whose amplitude determines the gain applied to the input signal. Often the same as in (for standard gating or compression) but should be different for ducking."}
+              {:name "thresh", :default 0.5 :doc "Control signal amplitude threshold, which determines the break point between slopeBelow and slopeAbove. Usually 0..1. The control signal amplitude is calculated using RMS."}
+              {:name "slopeBelow", :default 1.0 :doc "Slope of the amplitude curve below the threshold. If this slope > 1.0, the amplitude will drop off more quickly the softer the control signal gets; when the control signal is close to 0 amplitude, the output should be exactly zero -- hence, noise gating. Values < 1.0 are possible, but it means that a very low-level control signal will cause the input signal to be amplified, which would raise the noise floor."}
+              {:name "slopeAbove", :default 1.0 :doc "Same thing, but above the threshold. Values < 1.0 achieve compression (louder signals are attenuated); > 1.0, you get expansion (louder signals are made even louder). For 3:1 compression, you would use a value of 1/3 here."}
+              {:name "clampTime", :default 0.01 :doc "The amount of time it takes for the amplitude adjustment to kick in fully. This is usually pretty small, not much more than 10 milliseconds (the default value). I often set it as low as 2 milliseconds (0.002)."}
+              {:name "relaxTime", :default 0.1 :doc "The amount of time for the amplitude adjustment to be released. Usually a bit longer than clampTime; if both times are too short, you can get some (possibly unwanted) artifacts."}],
        :rates #{:ar}
        :muladd true
-       :doc "compresser, expander, limiter, gate, ducker"}
+       :doc "General purpose (hard-knee) dynamics processor: compresser, expander, limiter, gate, ducker"
+       :auto-rate true}
 
       ;; Normalizer : UGen {
       ;;   var buffer;
@@ -50,7 +52,9 @@
               {:name "level", :default 1.0 :doc "The peak output amplitude level to which to normalize the input"}
               {:name "dur", :default 0.01 :doc "The buffer delay time. Shorter times will produce smaller delays and quicker transient response times, but may introduce amplitude modulation artifacts. (AKA lookAheadTime)"}],
        :rates #{:ar}
-       :doc "flattens dynamics"}
+       :doc "flattens dynamics. Normalizes the input amplitude to the given level. Normalize will not overshoot
+like Compander will, but it needs to look ahead in the audio. Thus there is a
+delay equal to twice the lookAheadTime."}
 
       ;; Limiter : Normalizer {}
 
