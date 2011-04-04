@@ -11,7 +11,8 @@
 (def RATES {:ir 0
             :kr 1
             :ar 2
-            :dr 3})
+            :dr 3
+            :auto :auto})
 
 (def REVERSE-RATES (invert-map RATES))
 

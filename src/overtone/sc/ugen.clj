@@ -78,6 +78,21 @@
   [spec]
   (assoc spec :rates (get spec :rates UGEN-DEFAULT-RATES)))
 
+(defn- with-default-rate
+  "Calculates the default rate which will be used when the rate isn't explicitly
+  used in the fn name (i.e. ugen:kr) or if :ir is available in the rate options"
+  [spec]
+  (let [rates (:rates spec)
+        rate (cond
+              (contains? spec :default-rate) (:default-rate spec)
+              (= 1 (count rates)) (first rates)
+              :default (first (filter rates
+                                      UGEN-DEFAULT-RATE-PRECEDENCE)))
+       rate (if (or (= :ir rate) (:auto-rate spec))
+               :auto
+               rate)]
+    (assoc spec :default-rate rate)))
+
 (defn- with-categories
   "Adds a :categories attribute to a ugen-spec for later use in documentation
   GUI and REPL interaction."
@@ -117,14 +132,7 @@
   (let [rates (:rates spec)
         rate-vec (vec rates)
         base-name (overtone-ugen-name (:name spec))
-        base-rate (cond
-                    (contains? spec :default-rate) (:default-rate spec)
-                    (= 1 (count rates)) (first rates)
-                    :default (first (filter rates
-                                      UGEN-DEFAULT-RATE-PRECEDENCE)))
-        base-rate (if (= :ir base-rate)
-                    :auto
-                    base-rate)
+        base-rate (:default-rate spec)
         name-rates (zipmap (map #(str base-name %) rate-vec)
                            rate-vec)]
     (assoc spec
@@ -219,7 +227,7 @@
     (let [arg-rates (ugen-arg-rates ugen)
           fastest-rate (first (reverse (sort-by UGEN-RATE-SPEED arg-rates)))
           new-rate (get RATES (or fastest-rate :ir))]
-      (assoc ugen :rate new-rate))
+      (assoc ugen :rate new-rate :rate-name (REVERSE-RATES new-rate)))
     ugen))
 
 (defn- buffer->id
@@ -268,6 +276,7 @@
     (with-categories)
     (with-expands)
     (with-init-fn)
+    (with-default-rate)
     (with-fn-names)
     (doc/with-arg-defaults)
     (doc/with-full-doc)))
@@ -387,31 +396,33 @@
     (doseq [check (:check spec)]
       (check rate special args))))
 
-(defrecord UGen [id name rate special args n-outputs])
+(defrecord UGen [id name rate rate-name special args n-outputs])
 (derive UGen ::ugen)
 
-(defrecord ControlProxy [name value rate])
+(defrecord ControlProxy [name value rate rate-name])
 (derive ControlProxy ::ugen)
 
 (defn control-proxy
   [name value]
-  (ControlProxy. name value (:kr RATES)))
+  (ControlProxy. name value (:kr RATES) :kr))
 
-(defrecord UGenOutputProxy [ugen rate index])
+(defrecord UGenOutputProxy [ugen rate rate-name index])
 (derive UGenOutputProxy ::ugen)
 
 (defn output-proxy [ugen index]
-  (UGenOutputProxy. ugen (:rate ugen) index))
+  (UGenOutputProxy. ugen (:rate ugen) (REVERSE-RATES (:rate ugen)) index))
 
 (def *ugens* nil)
 (def *constants* nil)
 
 (defn ugen [spec rate special args]
   ;(check-ugen-args spec rate special args)
-  (let [ug (UGen.
+  (let [rate (or (get RATES rate) rate)
+        ug (UGen.
              (next-id :ugen)
              (:name spec)
-             (or (get RATES rate) rate)
+             rate
+             (REVERSE-RATES rate)
              special
              args
              (or (:num-outs spec) 1))
@@ -449,6 +460,7 @@
   (with-meta {:id (next-id :ugen)
               :name "Control"
               :rate (rate RATES)
+              :rate-name (REVERSE-RATES (rate RATES))
               :special 0
               :args nil
               :n-outputs n-outputs
@@ -567,7 +579,7 @@
 ;; We refer all the ugen functions here so they can be access by other parts
 ;; of the Overtone system using a fixed namespace.  For example, to automatically
 ;; stick an Out ugen on synths that don't explicitly use one.
-(def _ugens (intern-ugens))
+(defonce _ugens (intern-ugens))
 (defonce _colliders (intern-ugens-collide (create-ns 'overtone.ugen-collide)))
 
 (defmacro with-ugens [& body]

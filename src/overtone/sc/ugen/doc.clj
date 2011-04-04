@@ -86,7 +86,9 @@
      "\n\n"
      (str "  Categories: " (categories-str spec))
      "\n"
-     (str "  Rates: " (rates-str spec)))))
+     (str "  Rates: " (rates-str spec))
+     "\n"
+     (str "  Default rate: " (:default-rate spec)))))
 
 (defn- merge-arg-doc-default
   "Adds default doc to arg if doc string isn't present."
