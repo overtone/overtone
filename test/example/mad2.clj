@@ -80,5 +80,5 @@
 
 ;(play tone pitches metro)
 
-;(play ks1-demo (i2p [[:i _ :i] [:i :i :i _ :v _ :i]] :diatonic f4) metro)
+(play ks1-demo (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]] :diatonic f4) metro)
 
