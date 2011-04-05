@@ -193,20 +193,20 @@
   "Converts the degree of a scale given as a roman numeral keyword or integer
    and converts it to the number of intervals (semitones) from the tonic of the
    specified scale."
-  [scale degree]
-  (let [[degree shift] (cond 
-                         (.endsWith (name degree) ".") 
-                         [(keyword (chop (name degree))) -12]
+  [scale degree & [shift]]
+  (let [shift (or shift 0)]
+    (cond 
+      (.endsWith (name degree) ".") 
+      (degree->interval scale (keyword (chop (name degree))) (- shift 12))
 
-                         (.endsWith (name degree) "*") 
-                         [(keyword (chop (name degree))) 12]
+      (.endsWith (name degree) "*") 
+      (degree->interval scale (keyword (chop (name degree))) (+ shift 12))
 
-                         :default
-                         [degree 0])]
-        (+ shift
-           (if-let [deg (DEGREE degree)]
-             (nth-interval scale (dec deg))
-             (nth-interval scale (dec degree))))))
+      :default
+      (+ shift
+         (if-let [deg (DEGREE degree)]
+           (nth-interval scale (dec deg))
+           (nth-interval scale (dec degree)))))))
 
 (def CHORD
   (let [major  [0 4 7]
