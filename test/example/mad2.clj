@@ -76,6 +76,9 @@
 ;in an aeolian scale, starting on E4. 
 (def _ nil)
 (def derez [[:i :iii :i] [:i* :v :iii :vii :iv. :i :iii :iv]])
+(def pitches (i2p derez :aeolian e4))
 
-;(play tone (i2p derez :aeolian e4) metro)
+;(play tone pitches metro)
+
+;(play ks1-demo (i2p [[:i _ :i] [:i :i :i _ :v _ :i]] :diatonic f4) metro)
 
