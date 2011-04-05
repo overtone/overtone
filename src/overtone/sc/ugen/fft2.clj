@@ -30,8 +30,7 @@
        :args [{:name "in"}
               {:name "kernel"}
               {:name "framesize", :default 512.0}],
-       :rates #{:ar}
-       :muladd true}
+       :rates #{:ar}}
 
       ;; //fixed kernel convolver with fix by nescivi to update the kernel on receipt of a trigger message
       ;; Convolution2 : UGen
@@ -46,8 +45,7 @@
               {:name "kernel"}
               {:name "trigger"}
               {:name "framesize", :default 512.0}],
-       :rates #{:ar}
-       :muladd true}
+       :rates #{:ar}}
 
       ;; //fixed kernel convolver with linear crossfade
       ;; Convolution2L : UGen
@@ -63,8 +61,7 @@
               {:name "trigger"}
               {:name "framesize", :default 512.0}
               {:name "crossfade", :default 1.0}],
-       :rates #{:ar}
-       :muladd true}
+       :rates #{:ar}}
 
       ;; //fixed kernel stereo convolver with linear crossfade
       ;; StereoConvolution2L : MultiOutUGen
@@ -90,7 +87,6 @@
               {:name "framesize", :default 512.0}
               {:name "crossfade", :default 1.0}],
        :rates #{:ar}
-       :muladd true
        :num-outs 2}
 
       ;; //time based convolution by nescivi
@@ -109,8 +105,7 @@
        :args [{:name "in"}
               {:name "kernel"}
               {:name "trigger", :default 0.0}
-              {:name "framesize", :default 512.0}]
-       :muladd true}
+              {:name "framesize", :default 512.0}]}
 
       ;; //jensen andersen inspired FFT feature detector
       ;; PV_JensenAndersen : PV_ChainUGen

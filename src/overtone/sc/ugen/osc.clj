@@ -7,33 +7,28 @@
        :args [{:name "bufnum"}
               {:name "freq", :default 440.0}
               {:name "phase", :default 0.0}],
-       :muladd true
        :doc "wavetable oscillator"}
 
       {:name "SinOsc",
        :args [{:name "freq", :default 440.0}
               {:name "phase", :default 0.0}],
-       :muladd true
        :doc "sine table lookup oscillator"}
 
       {:name "SinOscFB",
        :args [{:name "freq", :default 440.0}
               {:name "feedback", :default 0.0}],
-       :muladd true
        :doc "very fast sine oscillator"}
 
       {:name "OscN",
        :args [{:name "bufnum"}
               {:name "freq", :default 440.0}
               {:name "phase", :default 0.0}],
-       :muladd true
        :doc "noninterpolating wavetable oscillator"}
 
       {:name "VOsc",
        :args [{:name "bufpos"}
               {:name "freq", :default 440.0}
               {:name "phase", :default 0.0}],
-       :muladd true
        :doc "a variable wavetable lookup oscillator which can be swept smoothly across wavetables"}
 
       {:name "VOsc3",
@@ -41,14 +36,12 @@
               {:name "freq1", :default 110.0}
               {:name "freq2", :default 220.0}
               {:name "freq3", :default 440.0}],
-       :muladd true
        :doc "three variable wavetable oscillators"}
 
       {:name "COsc",
        :args [{:name "bufnum"}
               {:name "freq", :default 440.0}
               {:name "beats", :default 0.5}],
-       :muladd true
        :doc "a chorusing wavetable lookup oscillator that produces the sum of two signals at (freq +/- (beats / 2))"}
 
       {:name "Formant",
@@ -56,13 +49,11 @@
               {:name "formfreq", :default 1760.0}
               {:name "bwfreq", :default 880.0}],
        :rates #{:ar},
-       :muladd true
        :doc "generates a set of harmonics around a formant frequency at a given fundamental frequency"}
 
       {:name "LFSaw",
        :args [{:name "freq", :default 440.0}
               {:name "iphase", :default 0.0}]
-       :muladd true
        :doc "low freq (i.e. not band limited) sawtooth oscillator"}
 
       {:name "LFPar" :extends "LFSaw"
@@ -116,7 +107,6 @@
        :args [{:name "freq", :default 440.0}
               {:name "iphase", :default 0.0}
               {:name "width", :default 0.5}]
-       :muladd true
        :signal-range :unipolar
        :doc "low freq (i.e. not band limited) pulse wave oscillator"}
 
@@ -124,7 +114,6 @@
        :args [{:name "freq", :default 440.0}
               {:name "iphase", :default 0.0}
               {:name "width", :default 0.5}]
-       :muladd true
        :doc "a variable duty cycle saw wave oscillator"}
 
       ;; Impulse : UGen {
@@ -142,7 +131,6 @@
       {:name "Impulse",
        :args [{:name "freq", :default 440.0}
               {:name "phase", :default 0.0}]
-       :muladd true
        :signal-range :unipolar
        :doc "non band limited impulse oscillator"}
 
@@ -180,7 +168,6 @@
        :args [{:name "bufnum"}
               {:name "in", :default 0.0}
               {:name "octave", :default 12.0}]
-       :muladd true
        :doc "the input signal value is truncated to an integer value and used as an index into an octave repeating table of note values
             (indices wrap around the table)"}
 
@@ -226,7 +213,6 @@
   [{:name "Index",
        :args [{:name "bufnum"}
               {:name "in", :default 0.0}]
-       :muladd true
        :doc "the input signal value is truncated to an integer and used as an index into the table"}])
 
 

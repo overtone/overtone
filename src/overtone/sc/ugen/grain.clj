@@ -96,5 +96,4 @@
               {:name "overlaps" :default 8}
               {:name "windowRandRatio" :default 0.0}
               {:name "interp" :default 1}]
-       :rates #{:ar}
-       :muladd true}])
+       :rates #{:ar}}])

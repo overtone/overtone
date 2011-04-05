@@ -38,7 +38,6 @@
       {:name "IndexL"
        :args [{:name "bufnum"}
               {:name "in", :default 0.0}]
-       :muladd true
        :pseudo-ugen {:ar (fn [bufnum in]
                            (let [vals (index:ar bufnum [in (+ in 1)])]
                              ...))
@@ -100,7 +99,6 @@
               {:name "freq", :default 1200.0}
               {:name "rq", :default 1.0}]
        :rates #{:ar}
-       :muladd true
        :pseudo-ugen {:ar (fn [freq rq mul add]
                            (let [coefs (blowpass:sc ????)]))}}
 
@@ -119,7 +117,6 @@
               {:name "freq", :default 1200.0}
               {:name "rq", :default 1.0}]
        :rates #{:ar}
-       :muladd true
        :pseudo-ugen {:ar (fn [freq rq mul add]
                            (let [coefs (bhipass:sc ????)]))}}
 

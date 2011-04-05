@@ -6,42 +6,36 @@
 
       {:name "WhiteNoise"
        :args []
-       :muladd true
        :rates #{:ar :kr}
        :doc "Generates noise whose spectrum has equal power at all frequencies."}
 
 
       {:name "BrownNoise"
        :args []
-       :muladd true
        :rates #{:ar :kr}
        :doc "Generates noise whose spectrum falls off in power by 6 dB per octave."}
 
 
       {:name "PinkNoise"
        :args []
-       :muladd true
        :rates #{:ar :kr}
        :doc "Generates noise whose spectrum falls off in power by 3 dB per octave. This gives equal power over the span of each octave. This version gives 8 octaves of pink noise."}
 
 
       {:name "ClipNoise"
        :args []
-       :muladd true
        :rates #{:ar}
        :doc "Generates noise whose values are either -1 or 1. This produces the maximum energy for the least peak to peak amplitude."}
 
 
       {:name "GrayNoise"
        :args []
-       :muladd true
        :rates #{:ar}
        :doc "Generates random impulses from -1 to +1 given a density (average number of impulses per second)"}
 
 
       {:name "Crackle"
        :args [{:name "chaosParam", :default 1.5}]
-       :muladd true
        :rates #{:ar :kr}
        :doc "A noise generator based on a chaotic function. The argument represents a parameter of the chaotic function with useful values from just below 1.0 to just above 2.0. Towards 2.0 the sound crackles."}
 
@@ -50,7 +44,6 @@
        :args [{:name "chaos-param", :default 3.0}
               {:name "freq", :default 1000.0}
               {:name "init", :default 0.5}]
-       :muladd true
        :rates #{:ar}
        :doc "A noise generator based on the logistic map:
 
@@ -68,21 +61,18 @@
 
       {:name "LFNoise0"
        :args [{:name "freq", :default 500.0}]
-       :muladd true
        :rates #{:ar :kr}
        :doc "Generates random values at a rate (the rate is not guaranteed but approximate)"}
 
 
       {:name "LFNoise1"
        :args [{:name "freq", :default 500.0}]
-       :muladd true
        :rates #{:ar :kr}
        :doc "Generates linearly interpolated random values at the supplied rate (the rate is not guaranteed but approximate). "}
 
 
       {:name "LFNoise2"
        :args [{:name "freq", :default 500.0}]
-       :muladd true
        :rates #{:ar :kr}
        :doc "Generates quadratically interpolated random values at the suplied rate (the rate is not guaranteed but approximate).
 
@@ -93,14 +83,12 @@
 
       {:name "LFClipNoise"
        :args [{:name "freq", :default 500.0}]
-       :muladd true
        :rates #{:ar}
        :doc "Randomly generates the values -1 or +1 at a rate given by the nearest integer division of the sample rate by the freq argument. It is probably pretty hard on your speakers!"}
 
 
       {:name "LFDNoise0"
        :args [{:name "freq", :default 500.0}]
-       :muladd true
        :rates #{:ar :kr}
        :doc "Like LFNoise0, it generates random values at a rate given
   by the freq argument,  with two differences:
@@ -118,7 +106,6 @@
 
       {:name "LFDNoise1"
        :args [{:name "freq", :default 500.0}]
-       :muladd true
        :rates #{:ar :kr}
        :doc "Like LFNoise1, it generates linearly interpolated random values
   at a rate given by the freq argument, with two differences:
@@ -136,7 +123,6 @@
 
       {:name "LFDNoise3"
        :args [{:name "freq", :default 500.0}]
-       :muladd true
        :rates #{:ar :kr}
        :doc "Similar to LFNoise2, it generates polynomially interpolated random values
   at a rate given by the freq argument, with 3 differences:
@@ -154,7 +140,6 @@
 
       {:name "LFDClipNoise"
        :args [{:name "freq", :default 500.0}]
-       :muladd true
        :rates #{:ar}
        :doc "Like LFClipNoise, it generates the values -1 or +1 at a rate given
   by the freq argument,  with two differences:
@@ -172,7 +157,6 @@
 
       {:name "Hasher"
        :args [{:name "in", :default 0.0}]
-       :muladd true
        :rates #{:ar}
        :doc "Returns a unique output value from zero to one for each input value according to a hash function. The same input value will always produce the same output value. The input need not be from zero to one.
 in - input signal"}
@@ -181,7 +165,6 @@ in - input signal"}
       {:name "MantissaMask"
        :args [{:name "in", :default 0.0}
               {:name "bits", :default 3}]
-       :muladd true
        :rates #{:ar}
        :doc "Masks off bits in the mantissa of the floating point sample value. This introduces a quantization noise, but is less severe than linearly quantizing the signal.
 
@@ -191,7 +174,6 @@ in - input signal"}
 
       {:name "Dust"
        :args [{:name "density", :default 0.0}]
-       :muladd true
        :rates #{:ar}
        :doc "Generates random impulses from 0 to +1.
   density - average number of impulses per second."}
@@ -199,7 +181,6 @@ in - input signal"}
 
       {:name "Dust2"
        :args [{:name "density", :default 0.0}]
-       :muladd true
        :rates #{:ar}
        :doc "Generates random impulses from -1 to +1.
   density - average number of impulses per second"}])

@@ -295,7 +295,6 @@ grains since the grain is just the impulse response of the filter. Note that if 
    :auto-rate true})
 
 (def specs
-     (conj (map #(assoc % :muladd true
-                        :check-inputs same-rate-as-first-input)
+     (conj (map #(assoc % :check-inputs same-rate-as-first-input)
                 muladd-specs)
            detect-silence))

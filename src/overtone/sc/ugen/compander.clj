@@ -15,7 +15,6 @@
        :args [{:name "in", :default 0.0 :doc "input signal"}
               {:name "attackTime", :default 0.01 :doc "60dB convergence time for following attacks"}
               {:name "releaseTime", :default 0.01 :doc "60dB convergence time for following decays"}]
-       :muladd true
        :doc "amplitude follower. Tracks the peak amplitude of a signal."
        :auto-rate true}
 
@@ -36,7 +35,6 @@
               {:name "clampTime", :default 0.01 :doc "The amount of time it takes for the amplitude adjustment to kick in fully. This is usually pretty small, not much more than 10 milliseconds (the default value). I often set it as low as 2 milliseconds (0.002)."}
               {:name "relaxTime", :default 0.1 :doc "The amount of time for the amplitude adjustment to be released. Usually a bit longer than clampTime; if both times are too short, you can get some (possibly unwanted) artifacts."}],
        :rates #{:ar}
-       :muladd true
        :doc "General purpose (hard-knee) dynamics processor: compresser, expander, limiter, gate, ducker"
        :auto-rate true}
 

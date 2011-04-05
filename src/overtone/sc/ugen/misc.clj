@@ -66,8 +66,7 @@
        :args [{:name "in"}
               {:name "fftsize"}
               {:name "irbufnum"}],
-       :rates #{:ar}
-       :muladd true}
+       :rates #{:ar}}
 
       ;; from Hilbert.sc
       ;; Hilbert : MultiOutUGen {
@@ -84,7 +83,6 @@
       {:name "Hilbert",
        :args [{:name "in"}],
        :rates #{:ar},
-       :muladd true
        :num-outs 2}
 
       ;; // single sideband amplitude modulation, using optimized Hilbert phase differencing network
@@ -106,8 +104,7 @@
        :args [{:name "in"}
               {:name "freq", :default 0.0}
               {:name "phase", :default 0.0}],
-       :rates #{:ar}
-       :muladd true}
+       :rates #{:ar}}
 
 
       ;; from GVerb.sc
@@ -153,8 +150,7 @@
               {:name "mix", :default 0.33}
               {:name "room", :default 0.5}
               {:name "damp", :default 0.5}],
-       :rates #{:ar}
-       :muladd true}
+       :rates #{:ar}}
 
       ;; FreeVerb2 : MultiOutUGen {
       ;; 	*ar { arg in, in2, mix = 0.33, room = 0.5, damp = 0.5, mul = 1.0, add = 0.0;
@@ -177,8 +173,7 @@
               {:name "room", :default 0.5}
               {:name "damp", :default 0.5}],
        :rates #{:ar},
-       :num-outs 2
-       :muladd true}
+       :num-outs 2}
 
       ;; from MoogFF.sc
       ;; /**
@@ -208,8 +203,7 @@
       {:name "MoogFF",
        :args [{:name "freq", :default 100.0}
               {:name "gain", :default 2.0}
-              {:name "reset", :default 0.0}]
-       :muladd true}
+              {:name "reset", :default 0.0}]}
 
       ;; from PhysicalModel.sc
       ;; Spring : UGen {
@@ -297,8 +291,7 @@
               {:name "ampscale", :default 0.5}
               {:name "durscale", :default 0.5}
               {:name "initCPs", :default 12}
-              {:name "knum" :default 12}]
-       :muladd true}
+              {:name "knum" :default 12}]}
 
       ;; Gendy2 : UGen {
       ;;      *ar { arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, minfreq=440, maxfreq=660, ampscale= 0.5, durscale=0.5, initCPs= 12, knum, a=1.17, c=0.31, mul=1.0,add=0.0;
@@ -321,8 +314,7 @@
               {:name "initCPs", :default 12}
               {:name "knum" :default 12}
               {:name "a", :default 1.17}
-              {:name "c", :default 0.31}]
-       :muladd true}
+              {:name "c", :default 0.31}]}
 
       ;; Gendy3 : UGen {
 
@@ -345,8 +337,7 @@
               {:name "ampscale", :default 0.5}
               {:name "durscale", :default 0.5}
               {:name "initCPs", :default 12}
-              {:name "knum" :default 12}]
-       :muladd true}])
+              {:name "knum" :default 12}]}])
 
 ;; TODO investigate Poll
 ;; from Poll.sc

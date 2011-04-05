@@ -65,6 +65,5 @@
       {:name "IEnvGen"
        :args [{:name "ienvelope"}
               {:name "index"}]
-       :muladd true
        :init (fn [rate [env & args] spec]
                )}])
