@@ -1,4 +1,4 @@
-(ns example.blues
+(ns examples.blues
   (:use overtone.live)
   (:use [overtone.inst synth drum]))
 
@@ -36,7 +36,7 @@
           (play synth pitch))
       (at (+ time (* 0.5 dur))
           (c-hat 0.1))
-      (apply-at n-time #'play-seq 
+      (apply-at n-time #'play-seq
                 [(mod (inc count) 4) synth (next notes) (next durs) n-time odds]))))
 
 ; TODO: Strum the chord
@@ -66,13 +66,14 @@
            octave)))
 
 (defn blue-beep []
-  (play-seq beep
-            (cycle (map sort (progression blues-chords :a 3 :ionian)))
+  (play-seq 0 beep
+            (cycle (mapcat #(repeat 4 %) (map sort (progression blues-chords :a 3 :ionian))))
             (cycle [1200 1204 1195 1206])
             (now)
             0.2))
 
-;(blue-beep)
+                                        ;(blue-beep)
+(stop)
 
 ; Be sure to try moving the mouse around...
 (defn blue-ks1 []
