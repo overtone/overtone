@@ -4,6 +4,7 @@
           intervals, etc."
      :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
+  (:use [clojure.contrib.str-utils2 :only (chop)])
   (:require [clojure.contrib.math :as math]))
 
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
@@ -193,9 +194,19 @@
    and converts it to the number of intervals (semitones) from the tonic of the
    specified scale."
   [scale degree]
-  (if-let [deg (DEGREE degree)]
-    (nth-interval scale (dec deg))
-    (nth-interval scale (dec degree))))
+  (let [[degree shift] (cond 
+                         (.endsWith (name degree) ".") 
+                         [(keyword (chop (name degree))) -12]
+
+                         (.endsWith (name degree) "*") 
+                         [(keyword (chop (name degree))) 12]
+
+                         :default
+                         [degree 0])]
+        (+ shift
+           (if-let [deg (DEGREE degree)]
+             (nth-interval scale (dec deg))
+             (nth-interval scale (dec degree))))))
 
 (def CHORD
   (let [major  [0 4 7]

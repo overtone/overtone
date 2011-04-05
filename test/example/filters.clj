@@ -1,7 +1,7 @@
 (ns example.filters
   (:use overtone.live))
 
-; Filter example, mostly ported from SC docs
+; Filter examples, mostly ported from SC docs
 
 (comment
 
@@ -89,7 +89,7 @@
                      (mouse-x 80 10000) ; frequency value
                      3))))             ; lag time
 
-(comment 
+(comment
 ; This isn't quite working yet... Not sure how to use klank.
 (demo 10
   (klank [(repeatedly 12 #(+ 200.0 (rand 4000)))
