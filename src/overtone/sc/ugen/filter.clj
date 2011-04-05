@@ -286,9 +286,10 @@ grains since the grain is just the impulse response of the filter. Note that if 
   {:name "DetectSilence",
    :args [{:name "in", :default 0.0 :doc "any source"}
           {:name "amp", :default 0.0001 :doc "when input falls below this, evaluate doneAction"}
-          {:name "time", :default 0.1 :doc "the minimum duration of the for which input must fall below thresh before this triggers. The default is 0.1 seconds"}
-          {:name "action", :default 0 :map DONE-ACTIONS}],
-   :num-outs 0
+          {:name "time", :default 0.1 :doc "the minimum duration of the input signal which input must fall below thresh before this triggers. The default is 0.1 seconds"}
+          {:name "action", :default 0 :map DONE-ACTIONS :doc "the action to perform when silence is detected"}],
+   :num-outs 1 ;; although the spec indicates there's no output, sclang generates one and without
+               ;; any things crash.
    :check-inputs same-rate-as-first-input
    :doc "If the signal input starts with silence at the beginning of the synth's duration, then DetectSilence will wait indefinitely until the first sound before starting to monitor for silence. This UGen outputs 1 if silence is detected, otherwise 0."
    :auto-rate true})
