@@ -172,6 +172,22 @@
 ;                pan (:ugen (first pan-chans))]
 
 
+(defn merge-args
+  "Combine args passed to trigger synth/inst with known arg names. This allows
+  standard args followed by named args. For example, if the inst has the
+  arg-names [\"a\" \"b\" \"c\" \"d\"] then the user may trigger it with the
+  following args: [1 2 :d 4] which will result with an arg-name to arg binding
+  of {:a 1 :b 2 :d 4}"
+  [arg-names args]
+  (loop [arg-names arg-names
+         args args
+         result {}]
+    (cond (keyword? (first args)) (merge result (apply hash-map args))
+          (empty? args) result
+          :else (recur (rest arg-names)
+                       (rest args)
+                       (assoc result (keyword (first arg-names)) (first args))))))
+
 (defmacro inst [sname & args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)
          [params# ugens# constants#] (inst-prefix params# ugens# constants#)
@@ -184,8 +200,9 @@
          s-player# (synth-player sname# param-names#)
          player# (fn [& play-args#]
                    (let [ins# (get @instruments* sname#)
-                         pargs# (concat (mapcat vector (map keyword param-names#) play-args#)
-                                      [:out-bus (:out-bus ins#)])]
+                         pargs-map# (merge {:out-bus (:out-bus ins#)}
+                                           (merge-args param-names# play-args#))
+                         pargs# (flatten (seq pargs-map#))]
                      (apply s-player#
                             :tgt (:group ins#)
                             pargs#)))
