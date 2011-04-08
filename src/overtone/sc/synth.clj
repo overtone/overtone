@@ -250,16 +250,21 @@
   []
   (str "anon-" (next-id :anonymous-synth)))
 
-(defn name-synth-args
-  [args names]
-  (loop [args args
-         names names
-         named []]
-    (if args
-      (recur (next args)
-             (next names)
-             (concat named [(first names) (first args)]))
-      named)))
+(defn merge-args
+  "Combine args passed to trigger synth/inst with known arg names. This allows
+  standard args followed by named args. For example, if the inst has the
+  arg-names [\"a\" \"b\" \"c\" \"d\"] then the user may trigger it with the
+  following args: [1 2 :d 4] which will result with an arg-name to arg binding
+  of {:a 1 :b 2 :d 4}"
+  [arg-names args]
+  (loop [arg-names arg-names
+         args args
+         result {}]
+    (cond (keyword? (first args)) (merge result (apply hash-map args))
+          (empty? args) result
+          :else (recur (rest arg-names)
+                       (rest args)
+                       (assoc result (keyword (first arg-names)) (first args))))))
 
 (defn synth-player
   "Returns a player function for a named synth.  Used by (synth ...)
@@ -293,9 +298,8 @@
           args (map #(if (or (isa? (type %) :overtone.sc.buffer/buffer)
                              (isa? (type %) :overtone.sc.sample/sample))
                        (:id %) %) args)
-          named-args (if (keyword? (first args))
-                       args
-                       (name-synth-args args arg-names))]
+
+          named-args (flatten (seq (merge-args arg-names args)))]
         (apply player named-args))))
 
 (defn- normalize-synth-args
