@@ -336,12 +336,14 @@
   [& args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~@args)
          sdef# (synthdef sname# params# ugens# constants#)
-         player# (synth-player sname# (map first (partition 2 params#)))
+         arg-names# (map first (partition 2 params#))
+         player# (synth-player sname# arg-names#)
          smap# (callable-map {:name sname#
                               :ugens ugens#
                               :sdef sdef#
                               :doc "User defined synth..."
-                              :player player#}
+                              :player player#
+                              :args arg-names#}
                              player#)]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)

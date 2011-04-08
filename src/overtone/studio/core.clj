@@ -197,7 +197,8 @@
                               :group sgroup#
                               :out-bus MIXER-BUS
                               :fx-chain []
-                              :player player#}
+                              :player player#
+                              :args param-names#}
                              player#)]
 
      (load-synthdef sdef#)
