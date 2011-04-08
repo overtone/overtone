@@ -25,6 +25,14 @@
           %)
        col))
 
+(defn- check-node-args!
+  "Throw an error if one of the arg values is not a float."
+  [args]
+  (doall
+   (map #(if (not (float? (last %)))
+           (throw (Exception. (str "Incorrect param type. Was expecting a float, got " (with-out-str (pr (last %))) ". Full arg list: " (vec args)) )))
+        (partition 2 args))))
+
 ;; ### Node
 ;;
 ;; A Node is an addressable node in a tree of nodes run by the synth engine.
@@ -33,9 +41,9 @@
 
 ;; Sending a synth-id of -1 lets the server choose an ID
 (defn node
-  "Instantiate a synth node on the audio server.  Takes the synth name and a 
-  set of argument name/value pairs.  Optionally use :target <node/group-id> 
-  and :position <pos> to specify where the node should be located.  The 
+  "Instantiate a synth node on the audio server.  Takes the synth name and a
+  set of argument name/value pairs.  Optionally use :target <node/group-id>
+  and :position <pos> to specify where the node should be located.  The
   position can be one of :head, :tail :before, :after, or :replace.
 
   (node \"foo\")
@@ -52,7 +60,9 @@
         target (get argmap :target 0)
         args (flatten (seq (-> argmap (dissoc :position) (dissoc :target))))
         args (bus->id args)
-        args (stringify (floatify args))]
+        args (stringify (floatify args))
+        args (remove nil? args)]
+    (check-node-args! args)
     ;(println "node " synth-name id position target args)
     (apply snd "/s_new" synth-name id position target args)
     id))
