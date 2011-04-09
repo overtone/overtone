@@ -5,20 +5,20 @@
   (:refer-clojure :exclude (deftype))
 
   (:use
-    clojure.contrib.pprint
-    overtone.sc.ugen.defaults
-    [overtone util]
-    [overtone.sc buffer]
-    [overtone.sc.ugen special-ops common categories]
-    [clojure.contrib.types :only (deftype)]
-    [clojure.contrib.generic :only (root-type)])
+   clojure.contrib.pprint
+   overtone.sc.ugen.defaults
+   [overtone util]
+   [overtone.sc buffer]
+   [overtone.sc.ugen special-ops common categories]
+   [clojure.contrib.types :only (deftype)]
+   [clojure.contrib.generic :only (root-type)])
   (:require
-    overtone.sc.core
-    [overtone.sc.ugen.doc :as doc]
-    [clojure.set :as set]
-    [clojure.contrib.generic.arithmetic :as ga]
-    [clojure.contrib.generic.comparison :as gc]
-    [clojure.contrib.generic.math-functions :as gm]))
+   overtone.sc.core
+   [overtone.sc.ugen.doc :as doc]
+   [clojure.set :as set]
+   [clojure.contrib.generic.arithmetic :as ga]
+   [clojure.contrib.generic.comparison :as gc]
+   [clojure.contrib.generic.math-functions :as gm]))
 
 (def UGEN-SPEC-EXPANSION-MODES
   {:not-expanded false
@@ -44,7 +44,7 @@
         n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2")
         n (.replaceAll n "_" "-")
         n (.toLowerCase n)]
-  n))
+    n))
 
 (defn- derived? [spec]
   (contains? spec :extends))
@@ -55,23 +55,23 @@
   Recursively reduces the specs to support arbitrary levels of derivation."
   ([specs] (derive-ugen-specs specs {} 0))
   ([children adults depth]
-   ; Make sure a bogus UGen doesn't spin us off into infinity... ;-)
-   {:pre [(< depth 8)]}
+     ;; Make sure a bogus UGen doesn't spin us off into infinity... ;-)
+     {:pre [(< depth 8)]}
 
-   (let [[adults children]
-         (reduce (fn [[full-specs new-children] spec]
-                   (if (derived? spec)
-                     (if (contains? full-specs (:extends spec))
-                       [(assoc full-specs (:name spec)
-                               (merge (get full-specs (:extends spec)) spec))
-                        new-children]
-                       [full-specs (conj new-children spec)])
-                     [(assoc full-specs (:name spec) spec) new-children]))
-                 [adults []]
-                 children)]
-     (if (empty? children)
-       (vals adults)
-       (recur children adults (inc depth))))))
+     (let [[adults children]
+           (reduce (fn [[full-specs new-children] spec]
+                     (if (derived? spec)
+                       (if (contains? full-specs (:extends spec))
+                         [(assoc full-specs (:name spec)
+                                 (merge (get full-specs (:extends spec)) spec))
+                          new-children]
+                         [full-specs (conj new-children spec)])
+                       [(assoc full-specs (:name spec) spec) new-children]))
+                   [adults []]
+                   children)]
+       (if (empty? children)
+         (vals adults)
+         (recur children adults (inc depth))))))
 
 (defn- with-rates
   "Add the default ugen rates to any ugen that doesn't explicitly set it."
@@ -88,7 +88,7 @@
               (= 1 (count rates)) (first rates)
               :default (first (filter rates
                                       UGEN-DEFAULT-RATE-PRECEDENCE)))
-       rate (if (or (= :ir rate) (:auto-rate spec))
+        rate (if (or (= :ir rate) (:auto-rate spec))
                :auto
                rate)]
     (assoc spec :default-rate rate)))
@@ -109,7 +109,7 @@
                                  false
                                  (get UGEN-SPEC-EXPANSION-MODES
                                       (get arg :mode :standard)))]
-                (assoc arg :expands? expands?)))
+                  (assoc arg :expands? expands?)))
               (:args spec))))
 
 (defn- with-fn-names
@@ -136,7 +136,7 @@
         name-rates (zipmap (map #(str base-name %) rate-vec)
                            rate-vec)]
     (assoc spec
-           :fn-names (assoc name-rates base-name base-rate))))
+      :fn-names (assoc name-rates base-name base-rate))))
 
 (defn- args-with-specs
   "Creates a list of (arg-value, arg-spec-item) pairs."
@@ -151,9 +151,9 @@
   (let [args (:args ugen)
         args-specs (args-with-specs args spec :map)
         mapped-args (map (fn [[arg map-val]] (if (and (map? map-val)
-                                                      (keyword? arg))
-                                               (arg map-val)
-                                               arg))
+                                                     (keyword? arg))
+                                              (arg map-val)
+                                              arg))
                          args-specs)]
     (assoc ugen :args mapped-args)))
 
@@ -191,8 +191,8 @@
                               [[] (:n-outputs ugen)]
                               args-specs)]
     (assoc ugen
-           :n-outputs n-outs
-           :args args)))
+      :n-outputs n-outs
+      :args args)))
 
 (defn- with-floated-args [spec ugen]
   (assoc ugen :args (floatify (:args ugen))))
@@ -258,28 +258,28 @@
     (assoc spec :init
            (fn [ugen]
              (-> ugen
-               defaulter
-               mapper
-               initer
-               n-outputer
-               floater
-               buffer->id
-               appender
-               auto-rater
-               rate-checker)))))
+                 defaulter
+                 mapper
+                 initer
+                 n-outputer
+                 floater
+                 buffer->id
+                 appender
+                 auto-rater
+                 rate-checker)))))
 
 (defn- decorate-ugen-spec
   "Interpret a ugen-spec and add in additional, computed meta-data."
   [spec]
   (-> spec
-    (with-rates)
-    (with-categories)
-    (with-expands)
-    (with-init-fn)
-    (with-default-rate)
-    (with-fn-names)
-    (doc/with-arg-defaults)
-    (doc/with-full-doc)))
+      (with-rates)
+      (with-categories)
+      (with-expands)
+      (with-init-fn)
+      (with-default-rate)
+      (with-fn-names)
+      (doc/with-arg-defaults)
+      (doc/with-full-doc)))
 
 (defn- specs-from-namespaces [namespaces]
   (reduce (fn [mem ns]
@@ -287,10 +287,10 @@
                   _ (require [full-ns :only '[specs specs-collide]])
                   specs (var-get (ns-resolve full-ns 'specs))]
 
-              ; TODO: Currently colliders must be loaded before specs in order
-              ; for this to run properly, because some ugens in specs derive
-              ; from the 'index' ugen in colliders.  Maybe the derivation
-              ; process should get smarter...
+              ;; TODO: Currently colliders must be loaded before specs in order
+              ;; for this to run properly, because some ugens in specs derive
+              ;; from the 'index' ugen in colliders.  Maybe the derivation
+              ;; process should get smarter...
               (if-let [colliders (ns-resolve full-ns 'specs-collide)]
                 (concat mem (var-get colliders) specs)
                 (concat mem specs))))
@@ -313,8 +313,8 @@
 
 (def UGEN-SPECS (load-ugen-specs UGEN-NAMESPACES))
 (def UGEN-SPEC-MAP (zipmap
-                     (map #(normalize-ugen-name (:name %)) UGEN-SPECS)
-                     UGEN-SPECS))
+                    (map #(normalize-ugen-name (:name %)) UGEN-SPECS)
+                    UGEN-SPECS))
 
 (defn get-ugen [word]
   (get UGEN-SPEC-MAP (normalize-ugen-name word)))
@@ -322,7 +322,7 @@
 (defn find-ugen [regexp]
   (map #(second %)
        (filter (fn [[k v]] (re-find (re-pattern (normalize-ugen-name regexp))
-                                    (str k)))
+                                   (str k)))
                UGEN-SPEC-MAP)))
 
 (defn inf!
@@ -336,12 +336,12 @@
 (defn- inf? [obj]
   (:infinite-sequence (meta obj)))
 
-; Does it really make sense to cycle over the values of a collection when
-; doing expansion?  I don't think maps should be allowed as arguments, unless
-; this is a strategy at having named arguments, but then the ordering wouldn't
-; make sense.
-;(defn- cycle-vals [coll]
-;  (cycle (if (map? coll) (vals coll) coll)))
+;; Does it really make sense to cycle over the values of a collection when
+;; doing expansion?  I don't think maps should be allowed as arguments, unless
+;; this is a strategy at having named arguments, but then the ordering wouldn't
+;; make sense.
+;;(defn- cycle-vals [coll]
+;;  (cycle (if (map? coll) (vals coll) coll)))
 
 (defn- expandable? [arg]
   (and (coll? arg)
@@ -361,21 +361,21 @@
     [[]]
     (let [gc-seqs (fn [[gcount seqs flags] arg]
                     (cond
-                      ; Infinite seqs can be used to generate values for expansion
-                      (inf? arg) [gcount
-                                  (conj seqs arg)
-                                  (next flags)]
+                     ;; Infinite seqs can be used to generate values for expansion
+                     (inf? arg) [gcount
+                                 (conj seqs arg)
+                                 (next flags)]
 
-                      ; Regular, non-infinite and non-map collections get expanded
-                      (and (expandable? arg)
-                           (first flags)) [(max gcount (count arg))
-                                           (conj seqs (cycle arg))
-                                           (next flags)]
+                     ;; Regular, non-infinite and non-map collections get expanded
+                     (and (expandable? arg)
+                          (first flags)) [(max gcount (count arg))
+                                          (conj seqs (cycle arg))
+                                          (next flags)]
 
-                      :else ; Basic values get used for all expansions
-                      [gcount
-                       (conj seqs (repeat arg))
-                       (next flags)]))
+                          :else ;; Basic values get used for all expansions
+                          [gcount
+                           (conj seqs (repeat arg))
+                           (next flags)]))
           [greatest-count seqs] (reduce gc-seqs [1 [] expand-flags] args)]
       (take greatest-count (parallel-seqs seqs)))))
 
@@ -389,8 +389,8 @@
         (first expanded)
         expanded))))
 
-; TODO: Finish me!
-; Need to execute the check predicates to do things like verify argument rates, etc...
+;; TODO: Finish me!
+;; Need to execute the check predicates to do things like verify argument rates, etc...
 (defn check-ugen-args [spec rate special args]
   (if (vector? (:check spec))
     (doseq [check (:check spec)]
@@ -416,16 +416,16 @@
 (def *constants* nil)
 
 (defn ugen [spec rate special args]
-  ;(check-ugen-args spec rate special args)
+  ;;(check-ugen-args spec rate special args)
   (let [rate (or (get RATES rate) rate)
         ug (UGen.
-             (next-id :ugen)
-             (:name spec)
-             rate
-             (REVERSE-RATES rate)
-             special
-             args
-             (or (:num-outs spec) 1))
+            (next-id :ugen)
+            (:name spec)
+            rate
+            (REVERSE-RATES rate)
+            special
+            args
+            (or (:num-outs spec) 1))
         ug (if (contains? spec :init) ((:init spec) ug) ug)]
     (when (and *ugens* *constants*)
       (set! *ugens* (conj *ugens* ug))
@@ -467,7 +467,7 @@
               :outputs (repeat n-outputs {:rate (rate RATES)})
               :n-inputs 0
               :inputs []}
-            {:type :ugen}))
+    {:type :ugen}))
 
 (defn control? [obj]
   (isa? (type obj) ::control))
@@ -492,7 +492,7 @@
                   :arglists (list (vec (map #(symbol (:name %))
                                             (:args spec))))}
         ugen-fns (map (fn [[uname rate]] [(with-meta (symbol uname) metadata)
-                                          (make-ugen-fn spec rate special)])
+                                         (make-ugen-fn spec rate special)])
                       (:fn-names spec))]
     (doseq [[ugen-name ugen-fn] ugen-fns]
       (intern to-ns ugen-name ugen-fn))))
@@ -521,19 +521,19 @@
       (overload-ugen-op to-ns ugen-name ugen-fn)
       (intern to-ns ugen-name ugen-fn))))
 
-; We define this uniquely because it has to be smart about its rate.
-; TODO: I think this should probably be handled by one of the ugen modes
-; that is currently not yet implemented...
+;; We define this uniquely because it has to be smart about its rate.
+;; TODO: I think this should probably be handled by one of the ugen modes
+;; that is currently not yet implemented...
 (def mul-add
   (make-expanding
-    (fn [in mul add]
-      (ugen {:name "MulAdd",
-                       :args [{:name "in"}
-                              {:name "mul", :default 1.0}
-                              {:name "add", :default 0.0}]
-                       :doc "Multiply and add, equivalent to (+ add (* mul in))"}
-            (op-rate in) 0 (list in mul add)))
-    [true true true]))
+   (fn [in mul add]
+     (ugen {:name "MulAdd",
+            :args [{:name "in"}
+                   {:name "mul", :default 1.0}
+                   {:name "add", :default 0.0}]
+            :doc "Multiply and add, equivalent to (+ add (* mul in))"}
+           (op-rate in) 0 (list in mul add)))
+   [true true true]))
 
 (load "ugen/generic_ops")
 
@@ -545,13 +545,13 @@
     (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %))
                                    (= "BinaryOpUGen" (:name %))))
                          UGEN-SPECS)]
-              (def-ugen to-ns ugen 0))
+      (def-ugen to-ns ugen 0))
     (doseq [[op-name special] UNARY-OPS]
       (def-unary-op to-ns op-name special))
     (doseq [[op-name special] BINARY-OPS]
       (def-binary-op to-ns op-name special))
-    ;(intern to-ns 'mul-add (make-expanding mul-add [true true true]))
-    ;(refer 'overtone.sc.ugen.extra)
+    ;;(intern to-ns 'mul-add (make-expanding mul-add [true true true]))
+    ;;(refer 'overtone.sc.ugen.extra)
     ))
 
 (defn intern-ugens-collide
@@ -561,13 +561,13 @@
         generics #{"+" "-" "*" "/"}]
     (doseq [op generics]
       (let [func (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" op)))]
-      (ns-unmap to-ns (symbol op))
-      (intern to-ns (symbol op) (make-expanding func [true true]))))
+        (ns-unmap to-ns (symbol op))
+        (intern to-ns (symbol op) (make-expanding func [true true]))))
 
-    ; intern div-meth so we can access the division operator since / is special cased
+    ;; intern div-meth so we can access the division operator since / is special cased
     (intern to-ns 'div-meth
             (make-expanding (var-get (resolve
-                                       (symbol "clojure.contrib.generic.arithmetic" "/")))
+                                      (symbol "clojure.contrib.generic.arithmetic" "/")))
                             [true true]))
 
     (doseq [[op-name special] UNARY-OPS-COLLIDE]
