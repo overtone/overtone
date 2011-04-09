@@ -42,30 +42,28 @@
 ;; Sending a synth-id of -1 lets the server choose an ID
 (defn node
   "Instantiate a synth node on the audio server.  Takes the synth name and a
-  set of argument name/value pairs.  Optionally use :target <node/group-id>
-  and :position <pos> to specify where the node should be located.  The
+  map of argument name/value pairs.  Optionally use target <node/group-id>
+  and position <pos> to specify where the node should be located.  The
   position can be one of :head, :tail :before, :after, or :replace.
 
   (node \"foo\")
-  (node \"foo\" :pitch 60)
-  (node \"foo\" :pitch 60 :target 0)
-  (node \"foo\" :pitch 60 :target 2 :position :tail)
+  (node \"foo\" {:pitch 60})
+  (node \"foo\" {:pitch 60} {:target 0})
+  (node \"foo\" {:pitch 60  {:target 2 :position :tail})
   "
-  [synth-name & args]
-  (if (not (connected?))
-    (throw (Exception. "Not connected to synthesis engine.  Please boot or connect.")))
-  (let [id (alloc-id :node)
-        argmap (apply hash-map args)
-        position (or ((get argmap :position :tail) POSITION) 1)
-        target (get argmap :target 0)
-        args (flatten (seq (-> argmap (dissoc :position) (dissoc :target))))
-        args (bus->id args)
-        args (stringify (floatify args))
-        args (remove nil? args)]
-    (check-node-args! args)
-    ;(println "node " synth-name id position target args)
-    (apply snd "/s_new" synth-name id position target args)
-    id))
+  ([synth-name arg-map] (node synth-name arg-map {:position :tail, :target 0}))
+  ([synth-name arg-map location]
+     (if (not (connected?))
+       (throw (Exception. "Not connected to synthesis engine.  Please boot or connect.")))
+     (let [id       (alloc-id :node)
+           position (or ((get location :position :tail) POSITION) 1)
+           target   (get location :target 0)
+           arg-list (flatten (seq arg-map))
+           args     (-> arg-list bus->id floatify stringify)]
+       (check-node-args! args)
+       ;; (println "node " synth-name id position target (vec args))
+       (apply snd "/s_new" synth-name id position target args)
+       id)))
 
 ;; ### Synth node callbacks
 ;;

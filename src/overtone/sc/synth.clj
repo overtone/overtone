@@ -294,13 +294,13 @@
                                 (= :pos      (first args)))
                           [(drop 2 args) (second args)]
                           [args :tail])
-          player        (partial node sname :target sgroup :position pos)
-          args (map #(if (or (isa? (type %) :overtone.sc.buffer/buffer)
-                             (isa? (type %) :overtone.sc.sample/sample))
-                       (:id %) %) args)
+          player        #(node sname % {:target sgroup :position pos})
+          args          (map #(if (or (isa? (type %) :overtone.sc.buffer/buffer)
+                                      (isa? (type %) :overtone.sc.sample/sample))
+                                (:id %) %) args)
 
-          named-args (flatten (seq (merge-args arg-names args)))]
-        (apply player named-args))))
+          arg-map       (merge-args arg-names args)]
+      (player arg-map))))
 
 (defn- normalize-synth-args
   "Pull out and normalize the synth name, parameters, control proxies and the ugen form
