@@ -215,11 +215,39 @@
 (defn- ugen-arg-rates [ugen]
   (map REVERSE-RATES (map :rate (filter ugen? (:args ugen)))))
 
+(defn- real-ugen-name
+  [ugen]
+  (overtone-ugen-name
+    (case (:name ugen)
+      "UnaryOpUGen"
+      (get REVERSE-UNARY-OPS (:special ugen))
+
+      "BinaryOpUGen"
+      (get REVERSE-BINARY-OPS (:special ugen))
+
+      (:name ugen))))
+
 (defn- check-arg-rates [spec ugen]
-  (let [arg-rates (ugen-arg-rates ugen)
-        cur-rate (REVERSE-RATES (:rate ugen))]
-    (if (some #(< (UGEN-RATE-SPEED cur-rate) (UGEN-RATE-SPEED %)) arg-rates)
-      (throw (Exception. (format "Invalid ugen rate.  The %s ugen is %s rate, and has an input ugen of a faster rate." (:name spec) cur-rate)))
+  (let [cur-rate (REVERSE-RATES (:rate ugen))
+        ugen-args (filter ugen? (:args ugen))]
+    (if-let [bad-input (some
+                     (fn [ug]
+                       (if (< (UGEN-RATE-SPEED cur-rate)
+                              (UGEN-RATE-SPEED (get REVERSE-RATES (:rate ug))))
+                         ug false))
+                     ugen-args)]
+      (let [ugen-name (real-ugen-name ugen)
+            in-name (real-ugen-name bad-input)
+            cur-rate-name (get HUMAN-RATES cur-rate)
+            in-rate-name (get HUMAN-RATES (:rate-name bad-input))]
+        ; Special case the a2k ugen
+        (if (and (= "A2K" (:name ugen))
+                 (= :ar (:rate-name bad-input)))
+          ugen
+          (throw (Exception.
+                   (format "Invalid ugen rate.  The %s ugen is %s rate, but it has a %s input ugen running at the faster %s rate.  Besides the a2k ugen, all ugens must be the same speed or faster than their inputs."
+                           ugen-name cur-rate-name
+                           in-name in-rate-name)))))
       ugen)))
 
 (defn- auto-rate-setter [spec ugen]

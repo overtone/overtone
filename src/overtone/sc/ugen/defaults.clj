@@ -16,6 +16,11 @@
 
 (def REVERSE-RATES (invert-map RATES))
 
+(def HUMAN-RATES {:ir "initial"
+                  :kr "control"
+                  :ar "audio"
+                  :dr "demand"})
+
 (def UGEN-DEFAULT-RATE-PRECEDENCE [:ir :dr :ar :kr])
 (def UGEN-DEFAULT-RATES #{:ar :kr})
 

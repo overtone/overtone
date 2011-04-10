@@ -52,6 +52,10 @@
   {"bitNot" 4       ; reciprocal
    "rand" 37})
 
+(def UNARY-OPS-FULL (merge UNARY-OPS UNARY-OPS-COLLIDE))
+
+(def REVERSE-UNARY-OPS (zipmap (vals UNARY-OPS-FULL) (keys UNARY-OPS-FULL)))
+
 ; Commented out ops are implemented with generics instead of generated
 ; see sc/ops.clj
 (def BINARY-OPS
@@ -89,6 +93,17 @@
    "wrap2" 45
    "rrand" 47
    "exprand" 48]))
+
+(def BINARY-OPS-FULL 
+  (merge BINARY-OPS {"+" 0
+                     "-" 1
+                     "*" 2
+                     "/" 4
+                     "mod" 5
+                     "<=" 10
+                     ">=" 11}))
+
+(def REVERSE-BINARY-OPS (zipmap (vals BINARY-OPS-FULL) (keys BINARY-OPS-FULL)))
 
 ; Binary ops that collide with clojure built-ins."
 (def BINARY-OPS-COLLIDE

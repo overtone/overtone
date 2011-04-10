@@ -108,6 +108,14 @@
                   (recur newz (inc i)))))]
     (out 10 (pan2 (* amp snd)))))
 
+(definst whoahaha [freq 440 dur 5 osc 100 mul 1000]
+  (let [freqs [freq (* freq 1.0068) (* freq 1.0159)]
+        sound (resonz (saw (map #(+ % (* (sin-osc osc) mul)) freqs))
+                      (x-line 10000 10 25)
+                      (line 1 0.05 25))
+        sound (apply + sound)]
+  (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 dur :free) sound)))
+
 ;(def alien-buffer (buffer 2250))
 ;(definst alien-computer [trig 0.3]
 ;  (ifft (pv-rand-comb (fft alien-buffer (white-noise))
