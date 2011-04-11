@@ -41,13 +41,13 @@
 (definst o-hat [amp 0.4 t 0.3 low 6000 hi 2000]
   (let [low (lpf (white-noise) low)
         hi (hpf low hi)
-        env (line 1 0 t)]
+        env (line 1 0 t :action :free)]
     (* env hi)))
 
 (definst o-hat-demo [amp 0.4 t 0.3 low 6000 hi 2000]
   (let [low (lpf (white-noise) (mouse-x 100 20000))
         hi (hpf low (mouse-y 20 20000))
-        env (line 1 0 t)]
+        env (line 1 0 t :action :free)]
     (* env hi)))
 
 (definst round-kick [amp 0.5 decay 0.6 freq 65]
