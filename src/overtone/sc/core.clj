@@ -85,14 +85,15 @@
 
 (defn notify
   "Turn on notification messages from the audio server.  This lets us free
-  synth IDs when they are automatically freed with envelope triggers.  It also lets
-  us receive custom messages from various trigger ugens."
+  synth IDs when they are automatically freed with envelope triggers.  It also
+  lets us receive custom messages from various trigger ugens."
   [notify?]
   (snd "/notify" (if (false? notify?) 0 1)))
 
 (defn connect-jack-ports
-  "Connect the jack input and output ports as best we can.  If jack ports are always different
-  names with different drivers or hardware then we need to find a better strategy to auto-connect."
+  "Connect the jack input and output ports as best we can.  If jack ports are
+  always different names with different drivers or hardware then we need to find
+  a better strategy to auto-connect."
   ([] (connect-jack-ports 2))
   ([n-channels]
      (let [port-list (sh "jack_lsp")
@@ -163,8 +164,8 @@
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
-  "Connect to an running SC audio server. Either an external server if host and port are passed or an internal server
-   in the case of no args."
+  "Connect to an running SC audio server. Either an external server if host and
+  port are passed or an internal server in the case of no args."
   ([] (connect-internal))
   ([host port] (.run (Thread. #(connect-external host port)))))
 
@@ -175,14 +176,18 @@
     (print msg)))
 
 (defn recv
-  "Register your intent to wait for a message associated with given path to be received from the server. Returns a promise that will contain the message once it has been received. Does not block current thread (this only happens once you try and look inside the promise and the reply has not yet been received)."
+  "Register your intent to wait for a message associated with given path to be
+  received from the server. Returns a promise that will contain the message once
+  it has been received. Does not block current thread (this only happens once
+  you try and look inside the promise and the reply has not yet been received)."
   [path]
   (let [p (promise)]
     (on-sync-event path (uuid) #(do (deliver p %) :done))
     p))
 
 (defn await-promise
-  "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Returns :timeout if a timeout occurs."
+  "Read the reply received from the server, waiting for timeout ms if the
+  message hasn't yet been received. Returns :timeout if a timeout occurs."
   ([prom] (await-promise prom REPLY-TIMEOUT))
   ([prom timeout]
      (try
@@ -191,7 +196,9 @@
          :timeout))))
 
 (defn await-promise!
-  "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Raises an exception if the message hasn't been received within timeout ms"
+  "Read the reply received from the server, waiting for timeout ms if the
+  message hasn't yet been received. Raises an exception if the message hasn't
+  been received within timeout ms"
   ([prom] (await-promise prom REPLY-TIMEOUT))
   ([prom timeout]
      (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
@@ -240,7 +247,8 @@
     @status*))
 
 (defn wait-sync
-  "Wait until the audio server has completed all asynchronous commands currently in execution."
+  "Wait until the audio server has completed all asynchronous commands
+  currently in execution."
   [& [timeout]]
   (let [sync-id (rand-int 999999)
         reply-p (recv "/synced")
