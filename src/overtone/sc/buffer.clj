@@ -28,7 +28,7 @@
   "Allocate a new buffer synchronously. Halts the current thread until the buffer has been succesfully allocated"
   ([size] (sbuffer size 1))
   ([size num-channels]
-     (wait-until-booted)
+     (wait-until-connected)
      (let [buf (buffer size num-channels)]
        (while (not (buffer-ready? buf))
          (Thread/sleep 50))

@@ -39,4 +39,5 @@
 
 (defonce _auto-boot_ (boot))
 
-(wait-until-booted)
+(wait-until-connected)
+

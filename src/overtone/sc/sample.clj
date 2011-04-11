@@ -72,7 +72,7 @@
   "Loads a sample synchronously. Blocks the current thread until the server
    has booted and the sample has been sucessfully loaded. See load-sample"
   [path & args]
-  (wait-until-booted)
+  (wait-until-connected)
   (let [sample (apply load-sample path args)]
     (while (not (sample-ready? sample))
       (Thread/sleep 50))

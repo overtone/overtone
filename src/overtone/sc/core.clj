@@ -33,8 +33,7 @@
 (defonce server-thread* (ref nil))
 (defonce server-log*    (ref []))
 (defonce sc-world*      (ref nil))
-(defonce running?*      (atom false))
-(defonce status*        (ref :no-audio))
+(defonce status*        (ref :disconnected))
 (defonce synth-group*   (ref nil))
 
 ; The base handler for receiving osc messages just forwards the message on
@@ -148,8 +147,7 @@
   (let [sc-server (osc-client host port)]
     (osc-listen sc-server #(event :osc-msg-received :msg %))
     (dosync
-      (ref-set server* sc-server)
-      (ref-set status* :connecting))
+      (ref-set server* sc-server))
 
     (setup-connect-handlers)
 
@@ -225,7 +223,7 @@
 (defn status
   "Check the status of the audio server."
   []
-  (if (= :connected @status*)
+  (if (connected?)
     (let [p (promise)
           handler (fn [event]
                    (deliver p (parse-status (:args event)))
@@ -274,8 +272,7 @@
         listener (reify ScSynthStartedListener
                    (started [this]
                      (log/info "Boot listener...")
-                     (satisfy-deps :booted)
-                     (reset! running?* true)))]
+                     (satisfy-deps :booted)))]
     (.addScSynthStartedListener server listener)
     (dosync (ref-set sc-world* server))
     (.run server)))
@@ -284,13 +281,13 @@
   ([] (boot-internal (+ (rand-int 50000) 2000)))
   ([port]
    (log/info "boot-internal: " port)
-   (if (not @running?*)
+   (when (not (connected?))
+     (on-deps :booted ::connect-internal connect)
      (let [sc-thread (Thread. #(internal-booter port))]
        (.setDaemon sc-thread true)
        (log/debug "Booting SuperCollider internal server (scsynth)...")
        (.start sc-thread)
        (dosync (ref-set server-thread* sc-thread))
-       (on-deps :booted ::connect-internal connect)
        :booting))))
 
 (defn- sc-log
@@ -307,13 +304,12 @@
   "Boot thread to start the external audio server process and hook up to
   STDOUT for log messages."
   [cmd]
-  (reset! running?* true)
   (log/debug "booting external audio server...")
   (let [proc (.exec (Runtime/getRuntime) cmd)
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
         read-buf (make-array Byte/TYPE 256)]
-    (while @running?*
+    (while (not (= :disconnected @status*))
       (sc-log in-stream read-buf)
       (sc-log err-stream read-buf)
       (Thread/sleep 250))
@@ -323,7 +319,7 @@
   "Boot the audio server in an external process and tell it to listen on a
   specific port."
   ([port]
-   (if (not @running?*)
+   (if (not (connected?))
      (let [cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
            sc-thread (Thread. #(external-booter cmd))]
        (.setDaemon sc-thread true)
@@ -338,20 +334,17 @@
   ([]
    (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [port]]
-   (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
-     (cond
-       (= :internal which) (boot-internal port)
-       (= :external which) (boot-external port)))))
+     (dosync (ref-set status* :connecting))
+     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
+       (cond
+        (= :internal which) (boot-internal port)
+        (= :external which) (boot-external port)))))
 
-(defn booted?
-  "Returns true or false depending on whether scsynth has booted"
+(defn wait-until-connected
+  "Makes the current thread sleep until scsynth has successfully connected"
   []
-  @running?*)
-
-(defn wait-until-booted
-  "Makes the current thread sleep until scsynth has successfully booted"
-  []
-  (while (not (booted?))
+  (while (not (connected?))
+    (println "waiting...")
     (Thread/sleep 100)))
 
 (defn quit
@@ -360,13 +353,12 @@
   (log/info "quiting...")
   (sync-event :shutdown)
   (sync-event :quit)
-  (reset! running?* false)
   (snd "/quit")
   (if @server*
     (osc-close @server* true))
   (dosync
     (ref-set server* nil)
-    (ref-set status* :no-audio)
+    (ref-set status* :disconnected)
     (unsatisfy-all-dependencies)))
 
 (defonce _shutdown-hook
