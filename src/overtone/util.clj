@@ -223,10 +223,27 @@
   [m keys val]
         (assoc-in m keys (dissoc (get-in m keys) val)))
 
-(defn index-of 
+(defn index-of
   "Return the index of item in col."
   [col item]
   (first (first (filter (fn [[i v]]
                           (= v item))
                         (indexed col)))))
+
+(defn await-promise
+  "Read a promise waiting for timeout ms for the promise to be delivered.
+  Returns :timeout if a timeout occurs."
+  ([prom] (await-promise prom TIMEOUT))
+  ([prom timeout]
+     (try
+       (.get (future @prom) timeout TimeUnit/MILLISECONDS)
+       (catch TimeoutException t
+         :timeout))))
+
+(defn await-promise!
+  "Read a promise waiting for timeout ms for the promise to be delivered.
+  Raises an exception if a timeout occurs"
+  ([prom] (await-promise prom TIMEOUT))
+  ([prom timeout]
+     (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
 

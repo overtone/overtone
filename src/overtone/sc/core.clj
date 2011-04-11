@@ -185,24 +185,6 @@
     (on-sync-event path (uuid) #(do (deliver p %) :done))
     p))
 
-(defn await-promise
-  "Read the reply received from the server, waiting for timeout ms if the
-  message hasn't yet been received. Returns :timeout if a timeout occurs."
-  ([prom] (await-promise prom REPLY-TIMEOUT))
-  ([prom timeout]
-     (try
-       (.get (future @prom) timeout TimeUnit/MILLISECONDS)
-       (catch TimeoutException t
-         :timeout))))
-
-(defn await-promise!
-  "Read the reply received from the server, waiting for timeout ms if the
-  message hasn't yet been received. Raises an exception if the message hasn't
-  been received within timeout ms"
-  ([prom] (await-promise prom REPLY-TIMEOUT))
-  ([prom timeout]
-     (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
-
 (defn- parse-status [args]
   (let [[_ ugens synths groups loaded avg peak nominal actual] args]
     {:n-ugens ugens
