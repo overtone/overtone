@@ -26,11 +26,16 @@
        col))
 
 (defn- check-node-args!
-  "Throw an error if one of the arg values is not a float."
+  "Throw an error if one of the arg values is not a float or one of the arg
+  names isn't a string or if the count isn't even."
   [args]
+  (when (not (even? (count args)))
+    (throw (Exception. (str "Incorrect number of args. Was expecting an even number, got " (count args) ". Full arg list: " (vec args)))))
+
   (doall
-   (map #(if (not (float? (last %)))
-           (throw (Exception. (str "Incorrect param type. Was expecting a float, got " (with-out-str (pr (last %))) ". Full arg list: " (vec args)) )))
+   (map #(if (not (and (string? (first %))
+                       (float? (last %))))
+           (throw (Exception. (str "Incorrect param pair. Was expecting a string and a float, got " (vec %)". Full arg list: " (vec args)) )))
         (partition 2 args))))
 
 ;; ### Node
