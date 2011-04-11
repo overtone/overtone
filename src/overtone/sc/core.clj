@@ -1,29 +1,29 @@
 (ns
-  ^{:doc "An interface to the SuperCollider synthesis server.
+    ^{:doc "An interface to the SuperCollider synthesis server.
           This is at heart an OSC client library for the SuperCollider
           scsynth DSP engine."
-     :author "Jeff Rose"}
+      :author "Jeff Rose"}
   overtone.sc.core
   (:import
-    [java.net InetSocketAddress]
-    [java.util.regex Pattern]
-    [java.util.concurrent TimeUnit TimeoutException]
-    [java.io BufferedInputStream]
-    [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
+   [java.net InetSocketAddress]
+   [java.util.regex Pattern]
+   [java.util.concurrent TimeUnit TimeoutException]
+   [java.io BufferedInputStream]
+   [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
   (:require [overtone.log :as log])
   (:use
-    [overtone event config setup util time-utils deps]
-    [overtone.sc allocator]
-    [clojure.contrib.java-utils :only [file]]
-    [clojure.contrib pprint]
-    [clojure.contrib shell-out]
-    osc))
+   [overtone event config setup util time-utils deps]
+   [overtone.sc allocator]
+   [clojure.contrib.java-utils :only [file]]
+   [clojure.contrib pprint]
+   [clojure.contrib shell-out]
+   osc))
 
 (def SERVER-HOST "127.0.0.1")
 (def SERVER-PORT nil) ; nil means a random port
 (def N-RETRIES 20)
 
-; Max number of milliseconds to wait for a reply from the server
+;; Max number of milliseconds to wait for a reply from the server
 (def REPLY-TIMEOUT 500)
 
 (def MAX-OSC-SAMPLES 8192)
@@ -36,8 +36,8 @@
 (defonce status*        (ref :disconnected))
 (defonce synth-group*   (ref nil))
 
-; The base handler for receiving osc messages just forwards the message on
-; as an event using the osc path as the event key.
+;; The base handler for receiving osc messages just forwards the message on
+;; as an event using the osc path as the event key.
 (on-sync-event :osc-msg-received ::osc-receiver
                (fn [{{path :path args :args} :msg}]
                  (event path :path path :args args)))
@@ -95,24 +95,24 @@
   names with different drivers or hardware then we need to find a better strategy to auto-connect."
   ([] (connect-jack-ports 2))
   ([n-channels]
-  (let [port-list (sh "jack_lsp")
-        sc-ins         (re-seq #"SuperCollider.*:in_[0-9]*" port-list)
-        sc-outs        (re-seq #"SuperCollider.*:out_[0-9]*" port-list)
-        system-ins     (re-seq #"system:capture_[0-9]*" port-list)
-        system-outs    (re-seq #"system:playback_[0-9]*" port-list)
-        interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
-        interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
-        connections (partition 2 (concat
-                                   (interleave sc-outs system-outs)
-                                   (interleave sc-outs interface-outs)
-                                   (interleave system-ins sc-ins)
-                                   (interleave interface-ins sc-ins)))]
-    (doseq [[src dest] connections]
-      (sh "jack_connect" src dest)
-      (log/info "jack_connect " src dest)))))
+     (let [port-list (sh "jack_lsp")
+           sc-ins         (re-seq #"SuperCollider.*:in_[0-9]*" port-list)
+           sc-outs        (re-seq #"SuperCollider.*:out_[0-9]*" port-list)
+           system-ins     (re-seq #"system:capture_[0-9]*" port-list)
+           system-outs    (re-seq #"system:playback_[0-9]*" port-list)
+           interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
+           interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
+           connections (partition 2 (concat
+                                     (interleave sc-outs system-outs)
+                                     (interleave sc-outs interface-outs)
+                                     (interleave system-ins sc-ins)
+                                     (interleave interface-ins sc-ins)))]
+       (doseq [[src dest] connections]
+         (sh "jack_connect" src dest)
+         (log/info "jack_connect " src dest)))))
 
-; We have to do this to handle the change in SC, where they added a "/" to the
-; status.reply messsage, which it should have had in the first place.
+;; We have to do this to handle the change in SC, where they added a "/" to the
+;; status.reply messsage, which it should have had in the first place.
 (defn- setup-connect-handlers []
   (let [handler-fn
         (fn []
@@ -132,10 +132,10 @@
                   (.send @sc-world* buffer))
         peer (assoc (osc-peer) :send-fn send-fn)]
     (.addMessageReceivedListener @sc-world*
-      (proxy [MessageReceivedListener] []
-        (messageReceived [buf size]
-                         (event :osc-msg-received
-                                :msg (osc-decode-packet buf)))))
+                                 (proxy [MessageReceivedListener] []
+                                   (messageReceived [buf size]
+                                     (event :osc-msg-received
+                                            :msg (osc-decode-packet buf)))))
     (dosync (ref-set server* peer))
     (setup-connect-handlers)
     (snd "/status")))
@@ -147,11 +147,11 @@
   (let [sc-server (osc-client host port)]
     (osc-listen sc-server #(event :osc-msg-received :msg %))
     (dosync
-      (ref-set server* sc-server))
+     (ref-set server* sc-server))
 
     (setup-connect-handlers)
 
-    ; Send /status in a loop until we get a reply
+;; Send /status in a loop until we get a reply
     (loop [cnt 0]
       (log/debug "connect loop...")
       (when (and (< cnt N-RETRIES)
@@ -161,7 +161,7 @@
         (Thread/sleep 100)
         (recur (inc cnt))))))
 
-; TODO: setup an error-handler in the case that we can't connect to the server
+;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
   "Connect to an running SC audio server. Either an external server if host and port are passed or an internal server
    in the case of no args."
@@ -183,18 +183,18 @@
 
 (defn await-promise
   "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Returns :timeout if a timeout occurs."
-    ([prom] (await-promise prom REPLY-TIMEOUT))
-    ([prom timeout]
-       (try
-         (.get (future @prom) timeout TimeUnit/MILLISECONDS)
-         (catch TimeoutException t
-           :timeout))))
+  ([prom] (await-promise prom REPLY-TIMEOUT))
+  ([prom timeout]
+     (try
+       (.get (future @prom) timeout TimeUnit/MILLISECONDS)
+       (catch TimeoutException t
+         :timeout))))
 
 (defn await-promise!
   "Read the reply received from the server, waiting for timeout ms if the message hasn't yet been received. Raises an exception if the message hasn't been received within timeout ms"
-    ([prom] (await-promise prom REPLY-TIMEOUT))
-    ([prom timeout]
-       (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
+  ([prom] (await-promise prom REPLY-TIMEOUT))
+  ([prom timeout]
+     (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
 
 (defn- parse-status [args]
   (let [[_ ugens synths groups loaded avg peak nominal actual] args]
@@ -211,24 +211,24 @@
 
 ;;Replies to sender with the following message.
 ;;status.reply
-;;	int - 1. unused.
-;;	int - number of unit generators.
-;;	int - number of synths.
-;;	int - number of groups.
-;;	int - number of loaded synth definitions.
-;;	float - average percent CPU usage for signal processing
-;;	float - peak percent CPU usage for signal processing
-;;	double - nominal sample rate
-;;	double - actual sample rate
+;;      int - 1. unused.
+;;      int - number of unit generators.
+;;      int - number of synths.
+;;      int - number of groups.
+;;      int - number of loaded synth definitions.
+;;      float - average percent CPU usage for signal processing
+;;      float - peak percent CPU usage for signal processing
+;;      double - nominal sample rate
+;;      double - actual sample rate
 (defn status
   "Check the status of the audio server."
   []
   (if (connected?)
     (let [p (promise)
           handler (fn [event]
-                   (deliver p (parse-status (:args event)))
-                   (remove-handler "status.reply" ::status-check)
-                   (remove-handler "/status.reply" ::status-check))]
+                    (deliver p (parse-status (:args event)))
+                    (remove-handler "status.reply" ::status-check)
+                    (remove-handler "/status.reply" ::status-check))]
       (on-event "/status.reply" ::status-check handler)
       (on-event "status.reply" ::status-check handler)
 
@@ -280,15 +280,15 @@
 (defn- boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
   ([port]
-   (log/info "boot-internal: " port)
-   (when (not (connected?))
-     (on-deps :booted ::connect-internal connect)
-     (let [sc-thread (Thread. #(internal-booter port))]
-       (.setDaemon sc-thread true)
-       (log/debug "Booting SuperCollider internal server (scsynth)...")
-       (.start sc-thread)
-       (dosync (ref-set server-thread* sc-thread))
-       :booting))))
+     (log/info "boot-internal: " port)
+     (when (not (connected?))
+       (on-deps :booted ::connect-internal connect)
+       (let [sc-thread (Thread. #(internal-booter port))]
+         (.setDaemon sc-thread true)
+         (log/debug "Booting SuperCollider internal server (scsynth)...")
+         (.start sc-thread)
+         (dosync (ref-set server-thread* sc-thread))
+         :booting))))
 
 (defn- sc-log
   "Pull audio server log data from a pipe and store for later printing."
@@ -319,20 +319,20 @@
   "Boot the audio server in an external process and tell it to listen on a
   specific port."
   ([port]
-   (if (not (connected?))
-     (let [cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
-           sc-thread (Thread. #(external-booter cmd))]
-       (.setDaemon sc-thread true)
-       (log/debug "Booting SuperCollider server (scsynth)...")
-       (.start sc-thread)
-       (dosync (ref-set server-thread* sc-thread))
-       (connect "127.0.0.1" port)
-       :booting))))
+     (if (not (connected?))
+       (let [cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
+             sc-thread (Thread. #(external-booter cmd))]
+         (.setDaemon sc-thread true)
+         (log/debug "Booting SuperCollider server (scsynth)...")
+         (.start sc-thread)
+         (dosync (ref-set server-thread* sc-thread))
+         (connect "127.0.0.1" port)
+         :booting))))
 
 (defn boot
   "Boot either the internal or external audio server."
   ([]
-   (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
+     (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [port]]
      (dosync (ref-set status* :connecting))
      (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
@@ -357,9 +357,9 @@
   (if @server*
     (osc-close @server* true))
   (dosync
-    (ref-set server* nil)
-    (ref-set status* :disconnected)
-    (unsatisfy-all-dependencies)))
+   (ref-set server* nil)
+   (ref-set status* :disconnected)
+   (unsatisfy-all-dependencies)))
 
 (defonce _shutdown-hook
   (.addShutdownHook (Runtime/getRuntime)
@@ -370,10 +370,10 @@
   []
   (snd "/clearSched"))
 
-; The /done message just has a single argument:
-; "/done" "s" <completed-command>
-;
-; where the command would be /b_alloc and others.
+;; The /done message just has a single argument:
+;; "/done" "s" <completed-command>
+;;
+;; where the command would be /b_alloc and others.
 (defn on-done
   "Runs a one shot handler that takes no arguments when an OSC /done
   message from scsynth arrives with a matching path.  Look at load-sample
