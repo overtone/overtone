@@ -334,7 +334,6 @@
   "Makes the current thread sleep until scsynth has successfully connected"
   []
   (while (not (connected?))
-    (println "waiting...")
     (Thread/sleep 100)))
 
 (defn quit
