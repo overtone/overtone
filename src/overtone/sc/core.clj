@@ -342,7 +342,6 @@
   []
   (log/info "quiting...")
   (sync-event :shutdown)
-  (sync-event :quit)
   (snd "/quit")
   (if @server*
     (osc-close @server* true))
