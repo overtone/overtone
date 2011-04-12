@@ -100,7 +100,9 @@
         (log/debug "Handler Exception - got args:" args"\n"
                    (with-out-str (.printStackTrace e)))))))
 
-(defn map-vals [f m]
+(defn map-vals
+  "Takes a map m and returns a new map with all of m's values mapped through f"
+  [f m]
   (zipmap (keys m)
           (map f (vals m))))
 
