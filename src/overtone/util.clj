@@ -32,23 +32,29 @@
                    (seq (.getURLs (.getClassLoader clojure.lang.RT))))]
     (pprint/pprint paths)))
 
-(defn as-str [s]
-  (if (keyword? s) (name s) s))
+(defn to-str
+  "If val is a keyword, return its name sans :, otherwise return val"
+  [val]
+  (if (keyword? val) (name val) val))
+
+(defn to-float
+  "If val is a number or bool, return its float equivalent otherwise return val"
+  [val]
+  (cond
+   (number? val) (float val)
+   (true? val)   (float 1)
+   (false? val)  (float 0)
+   :else val))
 
 (defn stringify
   "Convert all keywords in col to strings without ':' prefixed."
   [col]
-  (map #(as-str %1) col))
+  (map to-str col))
 
 (defn floatify
   "Convert all numbers in col to floats."
   [col]
-  (map #(cond
-          (number? %1) (float %1)
-          (true? %1) (float 1)
-          (false? %1) (float 0)
-          :else %1)
-       col))
+  (map to-float col))
 
 (defn choose
   "Choose a random element from a collection."

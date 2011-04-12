@@ -2,7 +2,7 @@
   (:require
     [overtone.log :as log])
   (:use
-    [overtone event util deps]
+    [overtone util event deps]
     [overtone.sc core allocator bus]))
 
 ;; ## Node and Group Management
@@ -19,24 +19,28 @@
    :replace      4})
 
 (defn- bus->id
-  [col]
-  (map #(if (bus? %)
-          (:id %)
-          %)
-       col))
+  "if val is a bus, return its ref id otherwise return val"
+  [val]
+  (if (bus? val)
+    (:id val)
+    val))
 
-(defn- check-node-args!
-  "Throw an error if one of the arg values is not a float or one of the arg
-  names isn't a string or if the count isn't even."
-  [args]
-  (when (not (even? (count args)))
-    (throw (Exception. (str "Incorrect number of args. Was expecting an even number, got " (count args) ". Full arg list: " (vec args)))))
+(defn- map-and-check-node-args
+  [arg-map]
+  (let [name-fn (fn [name]
+                  (let [name (to-str name)]
+                    (when (not (string? name))
+                      (throw (Exception. (str "Incorrect arg. Was expecting a string and found " name ". Full arg map: " arg-map))))
+                    name))
+        val-fn (fn [val]
+                 (let [val (bus->id val)
+                       val (to-float val)]
+                   (when (not (float? val))
+                     (throw (Exception. (str "Incorrect arg. Was expecting a float and found " val ". Full arg map: " arg-map))))
+                   val))]
 
-  (doall
-   (map #(if (not (and (string? (first %))
-                       (float? (last %))))
-           (throw (Exception. (str "Incorrect param pair. Was expecting a string and a float, got " (vec %)". Full arg list: " (vec args)) )))
-        (partition 2 args))))
+    (zipmap (map name-fn (keys arg-map))
+            (map val-fn (vals arg-map)))))
 
 ;; ### Node
 ;;
@@ -63,9 +67,9 @@
      (let [id       (alloc-id :node)
            position (or ((get location :position :tail) POSITION) 1)
            target   (get location :target 0)
-           arg-list (flatten (seq arg-map))
-           args     (-> arg-list bus->id floatify stringify)]
-       (check-node-args! args)
+           arg-map  (map-and-check-node-args arg-map)
+           args     (flatten (seq arg-map))]
+
        ;; (println "node " synth-name id position target (vec args))
        (apply snd "/s_new" synth-name id position target args)
        id)))
