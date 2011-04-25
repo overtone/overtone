@@ -12,7 +12,6 @@
      [overtone util event time-utils]
      [overtone.sc.ugen defaults]
      [overtone.sc core ugen synthdef node buffer]
-     [clojure walk inspector]
      [clojure.contrib.seq-utils :only (indexed)]))
 ;;TODO replace this with clojure.core/keep-indexed or map-indexed))
 
@@ -173,7 +172,7 @@
   (let [param-list (flatten grouped-params)
         pvals  (map #(:value %1) param-list)
         pnames (map (fn [[idx param]]
-                      {:name (as-str (:name param))
+                      {:name (to-str (:name param))
                        :index idx})
                     (indexed param-list))]
     [pvals pnames]))
@@ -283,7 +282,8 @@
                                       (isa? (type %) :overtone.sc.sample/sample))
                                 (:id %) %) args)
 
-          arg-map       (arg-mapper args arg-names {})]
+          arg-map       (arg-mapper args arg-names {})
+]
       (player arg-map))))
 
 (defn- normalize-synth-args

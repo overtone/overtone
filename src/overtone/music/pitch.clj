@@ -94,6 +94,51 @@
            :A# 10 :a# 10 :Bb 10 :bb 10
            :B  11 :b  11})
 
+
+(defn resolve-note
+  "Resolves note to MIDI number format. Resolves upper and lower-case keywords
+  and strings in MIDI note format. If given an integer or nil, returns them
+  unmodified. All other inputs will raise an exception.
+
+  Usage examples:
+
+  (resolve-note \"C4\")  ;=> 60
+  (resolve-note \"C#4\") ;=> 61
+  (resolve-note \"eb2\") ;=> 39
+  (resolve-note :F#7)    ;=> 102
+  (resolve-note :db5)    ;=> 73
+  (resolve-note 60)      ;=> 60
+  (resolve-note nil)     ;=> nil"
+
+  [note]
+  (cond
+   (nil? note) nil
+   (integer? note) (if (>= note 0)
+                    note
+                    (throw (Exception.
+                            (str "Unable to resolve note: " note ". Value is out of range. Lowest value is 0"))))
+   (keyword? note) (resolve-note (name note))
+   (string? note) (let [midi-note-re #"\A([a-gA-G][#b]?)([-0-9]+\Z)"
+                        separated (re-find midi-note-re note)
+                        _ (when (nil? separated)
+                            (throw (Exception.
+                                    (str "Unable to resolve note: " note ". Does not appear to be in MIDI format i.e. C#4"))))
+
+                        [_ pitch-class octave] separated
+                        octave (Integer. octave)
+                        _ (when (< octave -1)
+                            (throw (Exception.
+                                    (str "Unable to resolve note: " note ". Octave is out of range. Lowest octave value is -1"))))
+                        _ (println "pc: " pitch-class)
+                        interval (NOTE (keyword pitch-class))
+                        _                        (println "int" interval)
+
+                        _ (when (nil? interval)
+                            (throw (Exception.
+                                    (str "Unable to resolve note: " note ". Not a valid pitch class such as C or Db"))))]
+                    (+ interval 12 (* 12 octave)))
+   :else (throw (Exception. (str "Unable to resolve note: " note ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
+
 ;; * Each note in a scale acts as either a generator or a collector of other notes,
 ;; depending on their relations in time within a sequence.
 ;;  - How can this concept be developed into parameterized sequences with knobs for
@@ -155,6 +200,15 @@
                 :messiaen6         [2 2 1 1 2 2 1 1]
                 :messiaen7         [1 1 1 2 1 1 1 1 2 1]}))
 
+(defn resolve-scale
+  "Either looks the scale up in the map of SCALEs if it's a keyword or simply
+  returns it unnmodified. Allows users to specify a scale either as a seq
+  such as [2 2 1 2 2 2 1] or by keyword such as :aeolian"
+  [scale]
+  (if (keyword? scale)
+    (SCALE scale)
+    scale))
+
 (defn scale-field [skey & [sname]]
   "Create the note field for a given scale.  Scales are specified with a keyword
   representing the key and an optional scale name (defaulting to :major):
@@ -177,47 +231,127 @@
   i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
        therefore the 4th degree is (+ 2 2 1 2) semitones from the start of the
        scale."
-  ([n] (nth-interval :ionian n))
+  ([n] (nth-interval :scale n))
   ([scale n]
      (reduce + (take n (cycle (scale SCALE))))))
 
-(def DEGREE {:i   1
-             :ii  2
-             :iii 3
-             :iv  4
-             :v   5
-             :vi  6
-             :vii 7})
+(def DEGREE {:i     1
+             :ii    2
+             :iii   3
+             :iv    4
+             :v     5
+             :vi    6
+             :vii   7
+             :_     nil})
+
+(defn resolve-degree
+  [degree]
+  (if (some #{degree} (keys DEGREE))
+    (degree DEGREE)
+    (throw (Exception. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
 
 (defn degree->interval
-  "Converts the degree of a scale given as a roman numeral keyword or integer
-   and converts it to the number of intervals (semitones) from the tonic of the
-   specified scale."
-  [scale degree & [shift]]
-  (let [shift (or shift 0)]
-    (cond 
-      (.endsWith (name degree) ".") 
-      (degree->interval scale (keyword (chop (name degree))) (- shift 12))
+  "Converts the degree of a scale given as a roman numeral keyword and converts
+  it to the number of intervals (semitones) from the tonic of the specified
+  scale."
+  ([degree scale] (degree->interval degree scale 0))
+  ([degree scale shift]
+     (cond
+      (nil? degree) nil
+      (= :_ degree) nil
 
-      (.endsWith (name degree) "*") 
-      (degree->interval scale (keyword (chop (name degree))) (+ shift 12))
+      (number? degree) (+ shift (nth-interval scale (dec degree)))
 
-      :default
-      (+ shift
-         (if-let [deg (DEGREE degree)]
-           (nth-interval scale (dec deg))
-           (nth-interval scale (dec degree)))))))
+      (keyword? degree) (cond
+                         (.endsWith (name degree) "-")
+                         (degree->interval (keyword (chop (name degree))) scale (- shift 12))
+
+                         (.endsWith (name degree) "+")
+                         (degree->interval (keyword (chop (name degree))) scale (+ shift 12))
+
+                         :default
+                         (+ shift (nth-interval scale (dec (resolve-degree degree))))))))
+
+(defn degrees->pitches
+  "Convert intervals to pitches in MIDI number format.  Supports nested collections."
+  [degrees scale root]
+  (let [root (resolve-note root)
+        _ (when (nil? root)
+            (throw (Exception. (str "root resolved to a nil value. degrees->pitches requires a non-nil root."))))]
+    (map (fn [degree]
+           (cond
+            (coll? degree) (degrees degree scale root)
+            (nil? degree) nil
+            :default (let [interval (degree->interval degree scale)]
+                       (if (nil? interval) nil
+                           (+ root interval)))))
+         degrees)))
+
+(defn resolve-degrees
+  "Either maps the degrees to integers if they're keywords using the map DEGREE
+  or leaves them unmodified"
+  [degrees]
+  (map #(if (keyword? %) (DEGREE %) %) degrees))
+
+(defn degrees
+  [ds scale root]
+  (let [ds (resolve-degrees)
+        ]))
+
+(defn scale
+  ([root scale-name] (scale root scale-name (range 1 8) 4))
+  ([root scale-name degrees] (scale root scale-name degrees 4))
+  ([root scale-name degrees octave]
+     (let [root (resolve-note root)
+           degrees (resolve-degrees degrees)
+           scale (resolve-scale scale-name)
+           base (octave-note octave root)]
+       (map #(+ % base) scale))))
 
 (def CHORD
-  (let [major  [0 4 7]
-        minor  [0 3 7]
-        major7 [0 4 7 11]
-        dom7   [0 4 7 10]
-        minor7 [0 3 7 10]
-        aug    [0 4 8]
-        dim    [0 3 6]
-        dim7   [0 3 6 9]]
-    {:major      major
+  (let [major  #{0 4 7}
+        minor  #{0 3 7}
+        major7 #{0 4 7 11}
+        dom7   #{0 4 7 10}
+        minor7 #{0 3 7 10}
+        aug    #{0 4 8}
+        dim    #{0 3 6}
+        dim7   #{0 3 6 9}]
+    {:1         #{0}
+     :5         #{0 7}
+     :+5        #{0 4 8}
+     :m+5       #{0 3 8}
+     :sus2      #{0 2 7}
+     :sus4      #{0 5 7}
+     :6         #{0 4 7 9}
+     :m6        #{0 3 7 9}
+     :7sus2     #{0 2 7 10}
+     :7sus4     #{0 5 7 10}
+     :7-5       #{0 4 6 10}
+     :m7-5      #{0 3 6 10}
+     :7+5       #{0 4 8 10}
+     :m7+5      #{0 3 8 10}
+     :9         #{0 4 7 10 14}
+     :m9        #{0 3 7 10 14}
+     :maj9      #{0 4 7 11 14}
+     :9sus4     #{0 5 7 10 14}
+     :6*9       #{0 4 7 9 14}
+     :m6*9      #{0 3 9 7 14}
+     :7-9       #{0 4 7 10 13}
+     :m7-9      #{0 3 7 10 13}
+     :7-10      #{0 4 7 10 15}
+     :9+5       #{0 10 13}
+     :m9+5      #{0 10 14}
+     :7+5-9     #{0 4 8 10 13}
+     :m7+5-9    #{0 3 8 10 13}
+     :11        #{0 4 7 10 14 17}
+     :m11       #{0 3 7 10 14 17}
+     :maj11     #{0 4 7 11 14 17}
+     :11+       #{0 4 7 10 14 18}
+     :m11+      #{0 3 7 10 14 18}
+     :13        #{0 4 7 10 14 17 21}
+     :m13       #{0 3 7 10 14 17 21}
+     :major      major
      :M          major
      :minor      minor
      :m          minor
@@ -236,6 +370,15 @@
      :dim7       dim7
      :i7         dim7}))
 
+(defn resolve-chord
+  "Either looks the chord up in the map of CHORDs if it's a keyword or simply
+  returns it unnmodified. Allows users to specify a chord either with a set
+  such as #{0 4 7} or by keyword such as :major"
+  [chord]
+  (if (keyword? chord)
+    (CHORD chord)
+    chord))
+
 (defn chord
   "Returns a set of notes for the specified chord at the specified octave
   (defaulting to 4).
@@ -246,10 +389,9 @@
   "
   ([root chord-name] (chord root chord-name 4))
   ([root chord-name octave]
-     (let [root (if (keyword? root) (NOTE root) root)
-           chord-name (if (keyword? chord-name) (CHORD chord-name) chord-name)
-           base (octave-note octave root)]
-       (set (map #(+ % base) chord-name)))))
+     (let [root (resolve-note root)
+           chord (resolve-chord chord-name)]
+       (set (map #(+ % root) chord)))))
 
 ; midicps
 (defn midi->hz

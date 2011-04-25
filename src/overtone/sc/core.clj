@@ -337,7 +337,6 @@
   "Makes the current thread sleep until scsynth has successfully connected"
   []
   (while (not (connected?))
-    (println "waiting...")
     (Thread/sleep 100)))
 
 (defn quit
@@ -345,7 +344,6 @@
   []
   (log/info "quiting...")
   (sync-event :shutdown)
-  (sync-event :quit)
   (snd "/quit")
   (if @server*
     (osc-close @server* true))

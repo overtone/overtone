@@ -1,6 +1,10 @@
 (ns overtone.inst.synth
   (:use overtone.core))
 
+(definst tick [freq 880]
+  (* (env-gen (perc 0.001 0.01) :action :free)
+     (sin-osc freq)))
+
 (definst ping [note 60 a 0.2 b 0.2]
   (let [snd (sin-osc (midicps note))
         env (env-gen (perc a b) :action :free)]

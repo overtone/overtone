@@ -31,13 +31,13 @@
 
 (def DEFAULT-ARG-DOCS
   {"bufnum" "A buffer or buffer index value."
-   "freq" "frequency in hz (cycles per second)"
-   "freq1" "frequency in hz (cycles per second)"
-   "freq2" "frequency in hz (cycles per second)"
-   "freq3" "frequency in hz (cycles per second)"
-   "phase" "the start point within a cycle"
-   "loop" "a boolean switch to turn on looping"
-   "in" "the input signal"
+   "freq" "Frequency in hz (cycles per second)"
+   "freq1" "Frequency in hz (cycles per second)"
+   "freq2" "Frequency in hz (cycles per second)"
+   "freq3" "Frequency in hz (cycles per second)"
+   "phase" "The start point within a cycle"
+   "loop" "A boolean switch to turn on looping"
+   "in" "The input signal"
    })
 
 (def DOC-WIDTH 45)

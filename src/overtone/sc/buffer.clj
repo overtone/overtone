@@ -1,5 +1,5 @@
 (ns overtone.sc.buffer
-  (:use 
+  (:use
     [overtone util]
     [overtone.sc core allocator]))
 
