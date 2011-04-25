@@ -10,6 +10,24 @@
         env (env-gen (perc a b) :action :free)]
     (* env snd)))
 
+(definst tb303 [note 60 wave 1
+                cutoff 100 r 0.9
+                attack 0.101 decay 1.8 sustain 0.2 release 0.2
+                env 200 gate 0 vol 0.8]
+  (let [freq       (midicps note)
+        freqs      [freq (* 1.01 freq)]
+        vol-env    (env-gen (adsr attack decay sustain release)
+                            (line:kr 1 0 (+ attack decay release))
+                            :action :free)
+        fil-env    (env-gen (perc))
+        fil-cutoff (+ cutoff (* env fil-env))
+        waves     [(* vol-env (saw freqs))
+                   (* vol-env [(pulse (first freqs) 0.5)
+                               (lf-tri (second freqs))])]
+        selector   (select wave (apply + waves))
+        filt       (rlpf selector fil-cutoff r)]
+    filter))
+
 (definst rise-fall-pad [freq 440 t 4 amt 0.3 amp 0.8]
   (let [f-env      (env-gen (perc t t) 1 1 0 1 :free)
         src        (saw [freq (* freq 1.01)])
@@ -131,6 +149,14 @@
                       (line 1 0.05 25))
         sound (apply + sound)]
   (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 dur :free) sound)))
+
+(definst bubbles [bass-freq 80]
+  (let [bub (+ bass-freq (* 3 (lf-saw:kr [8 7.23])))
+        glis (+ bub (* 24 (lf-saw:kr 0.4 0)))
+        freq (midicps glis)
+        src (* 0.04 (sin-osc freq))
+        zout (comb-n src :decaytime 4)]
+    zout))
 
 ;(def alien-buffer (buffer 2250))
 ;(definst alien-computer [trig 0.3]
