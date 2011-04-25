@@ -396,7 +396,7 @@
   (let [params decomp-params]
     params))
 
-(def *demo-time* 60000)
+(def *demo-time* 2000)
 
 (defmacro demo
   "Try out an anonymous synth definition.  Useful for experimentation.  If the

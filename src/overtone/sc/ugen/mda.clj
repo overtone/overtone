@@ -1,22 +1,10 @@
 (ns overtone.sc.ugen.mda
   (:use (overtone.sc.ugen common)))
 
+; NOTE: You will need to have the sc3 plugins installed for this ugen to be available.
+
 (def specs
   [
-   ;; Mdapiano : MultiOutUGen {
-   ;; 	*ar {
-   ;; 		| freq=440.0, gate=1, vel=100, decay=0.8, release=0.8, hard=0.8, velhard=0.8, muffle=0.8, velmuff=0.8, velcurve=0.8, stereo=0.2, tune=0.5, random=0.1, stretch=0.1, sustain=0, mul=1, add=0 |
-   ;; 		^this.multiNew('audio', freq, gate, vel, decay, release, hard, velhard, muffle, velmuff, velcurve, stereo, tune, random, stretch, sustain).madd(mul, add)
-   ;; 	}
-
-   ;; 	init { arg ... theInputs;
-   ;; 		inputs = theInputs;
-   ;; 		^this.initOutputs(2, rate);
-   ;; 	}
-   ;; }
-
-   ;; IMPORTANT: This ugen isn't yet available in the standard Overtone ugen set.
-
    {:name "MdaPiano",
     :args [{:name "freq", :default 440.0 :doc "Frequency of the note."}
            {:name "gate", :default 1.0 :doc "Note-on occurs when gate goes from nonpositive to positive; note-off occurs when it goes from positive to nonpositive. Most of the other controls are only updated when a new note-on occurs."}

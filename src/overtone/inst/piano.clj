@@ -33,5 +33,5 @@
                        :random random
                        :stretch stretch
                        :sustain sustain)
-        sil (detect-silence snd 0.001 :action :free)]
+        sil (detect-silence snd 0.005 :action :free)]
     (* 1 snd))) ;;TODO: figure out why this mul is required

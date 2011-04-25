@@ -129,9 +129,7 @@
                         _ (when (< octave -1)
                             (throw (Exception.
                                     (str "Unable to resolve note: " note ". Octave is out of range. Lowest octave value is -1"))))
-                        _ (println "pc: " pitch-class)
                         interval (NOTE (keyword pitch-class))
-                        _                        (println "int" interval)
 
                         _ (when (nil? interval)
                             (throw (Exception.
@@ -164,41 +162,38 @@
 ;; Various scale intervals in terms of steps on a piano, or midi note numbers
 ;; All sequences should add up to 12 - the number of semitones in an octave
 
-(def SCALE   (let [ionian-sequence [2 2 1 2 2 2 1]
-                   ionian-len (count ionian-sequence)
-                   rotate-ionian (fn [offset] (drop offset (take (+ ionian-len offset) (cycle ionian-sequence))))]
-
-               {:diatonic          ionian-sequence
-                :ionian            (rotate-ionian 0)
-                :dorian            (rotate-ionian 1)
-                :phrygian          (rotate-ionian 2)
-                :lydian            (rotate-ionian 3)
-                :mixolydian        (rotate-ionian 4)
-                :aeolian           (rotate-ionian 5)
-                :lochrian          (rotate-ionian 6)
-
-                ;;comment these out for the time being as
-                ;;they can be confused with major and minor
-                ;;chords:
-                ;;:minor             (rotate-ionian 5)
-                ;;:major             (rotate-ionian 0)
-
-                :pentatonic        [2 3 2 2 3]
-                :major-pentatonic  [2 2 3 2 3]
-                :minor-pentatonic  [3 2 2 3 2]
-                :whole-tone        [2 2 2 2 2 2]
-                :chromatic         [1 1 1 1 1 1 1 1 1 1 1 1]
-                :harmonic-minor    [2 1 2 2 1 3 1]
-                :melodic-minor-asc [2 1 2 2 2 2 1]
-                :hungarian-minor   [2 1 3 1 1 3 1]
-                :octatonic         [2 1 2 1 2 1 2 1]
-                :messiaen1         [2 2 2 2 2 2]
-                :messiaen2         [1 2 1 2 1 2 1 2]
-                :messiaen3         [2 1 1 2 1 1 2 1 1]
-                :messiaen4         [1 1 3 1 1 1 3 1]
-                :messiaen5         [1 4 1 1 4 1]
-                :messiaen6         [2 2 1 1 2 2 1 1]
-                :messiaen7         [1 1 1 2 1 1 1 1 2 1]}))
+(def SCALE   
+  (let [ionian-sequence [2 2 1 2 2 2 1]
+        ionian-len    (count ionian-sequence)
+        rotate-ionian (fn [offset] 
+                        (drop offset (take (+ ionian-len offset) 
+                                           (cycle ionian-sequence))))]
+  {:diatonic          ionian-sequence
+   :ionian            (rotate-ionian 0)
+   :major             (rotate-ionian 0)
+   :dorian            (rotate-ionian 1)
+   :phrygian          (rotate-ionian 2)
+   :lydian            (rotate-ionian 3)
+   :mixolydian        (rotate-ionian 4)
+   :aeolian           (rotate-ionian 5)
+   :minor             (rotate-ionian 5)
+   :lochrian          (rotate-ionian 6)
+   :pentatonic        [2 3 2 2 3]
+   :major-pentatonic  [2 2 3 2 3]
+   :minor-pentatonic  [3 2 2 3 2]
+   :whole-tone        [2 2 2 2 2 2]
+   :chromatic         [1 1 1 1 1 1 1 1 1 1 1 1]
+   :harmonic-minor    [2 1 2 2 1 3 1]
+   :melodic-minor-asc [2 1 2 2 2 2 1]
+   :hungarian-minor   [2 1 3 1 1 3 1]
+   :octatonic         [2 1 2 1 2 1 2 1]
+   :messiaen1         [2 2 2 2 2 2]
+   :messiaen2         [1 2 1 2 1 2 1 2]
+   :messiaen3         [2 1 1 2 1 1 2 1 1]
+   :messiaen4         [1 1 3 1 1 1 3 1]
+   :messiaen5         [1 4 1 1 4 1]
+   :messiaen6         [2 2 1 1 2 2 1 1]
+   :messiaen7         [1 1 1 2 1 1 1 1 2 1]}))
 
 (defn resolve-scale
   "Either looks the scale up in the map of SCALEs if it's a keyword or simply
@@ -275,16 +270,15 @@
 (defn degrees->pitches
   "Convert intervals to pitches in MIDI number format.  Supports nested collections."
   [degrees scale root]
-  (let [root (resolve-note root)
-        _ (when (nil? root)
-            (throw (Exception. (str "root resolved to a nil value. degrees->pitches requires a non-nil root."))))]
+  (let [root (resolve-note root)]
+    (when (nil? root)
+      (throw (Exception. (str "root resolved to a nil value. degrees->pitches requires a non-nil root."))))
     (map (fn [degree]
            (cond
-            (coll? degree) (degrees degree scale root)
+            (coll? degree) (degrees->pitches degree scale root)
             (nil? degree) nil
-            :default (let [interval (degree->interval degree scale)]
-                       (if (nil? interval) nil
-                           (+ root interval)))))
+            :default (if-let [interval (degree->interval degree scale)]
+                       (+ root interval))))
          degrees)))
 
 (defn resolve-degrees
@@ -292,11 +286,6 @@
   or leaves them unmodified"
   [degrees]
   (map #(if (keyword? %) (DEGREE %) %) degrees))
-
-(defn degrees
-  [ds scale root]
-  (let [ds (resolve-degrees)
-        ]))
 
 (defn scale
   ([root scale-name] (scale root scale-name (range 1 8) 4))
@@ -483,7 +472,6 @@
               new-v (- cur-v amount)
               new-elem (if (zero? new-v) (first elems) [cur-k new-v])
               new-elems (if (zero? new-v) (next elems) elems)]
-          ;(println cur-k cur-v new-space amount)
           (recur new-elem new-elems new-space new-bins new-bin (inc i)))
         bins))))
 
@@ -492,14 +480,12 @@
      (Math/log 2)))
 
 (defn choose-weighted [& pairs]
-  (println "here...")
   (let [bins (weighted-bins pairs)
         shift (log2 (count bins))
         ;index (bit-shift-left (rand) shift)  ; Damn!
         index (first (drop shift (iterate #(* % 2) (rand))))
         int-index (min (dec (count bins)) (max 0 (int index)))
         leftover (- index int-index)
-        _ (println "n-bins: " (count bins) int-index)
         bin (nth bins int-index)]
     (if (= 2 (count bin))
       (if (<= leftover (second (first bin)))

@@ -9,8 +9,8 @@ floor .. next lower integer
 ceil .. next higher integer 
 frac .. fractional part 
 sign .. -1 when a < 0, +1 when a > 0, 0 when a is 0 
-squared .. a*a 
-cubed .. a*a*a 
+squared .. a * a 
+cubed .. a * a * a 
 sqrt .. square root 
 exp .. exponential 
 midicps .. MIDI note number to cycles per second 
@@ -53,24 +53,23 @@ isStrictlyPositive .. 1 when a > 0, else 0
 >= .. greater than or equal 
 == .. equal 
 != .. not equal 
-<! .. return first argument 
 min .. minimum of two 
 max .. maximum of two 
 round .. quantization by rounding 
 trunc .. quantization by truncation 
 atan2 .. arctangent 
-hypot .. hypotenuse sqrt(a*a + b*b) 
-ring1 .. a*b + a or equivalently: a*(b + 1) 
-ring2 .. a*b + a + b 
-ring3 .. a*a*b 
-ring4 .. a*a*b - a*b*b 
-sumsqr .. a*a + b*b 
-difsqr .. a*a - b*b 
+hypot .. hypotenuse sqrt(a * a + b * b) 
+ring1 .. a * b + a or equivalently: a * (b + 1) 
+ring2 .. a * b + a + b 
+ring3 .. a * a * b 
+ring4 .. a * a * b - a * b * b 
+sumsqr .. a * a + b * b 
+difsqr .. a * a - b * b 
 sqrsum .. (a + b)**2 
 sqrdif .. (a - b)**2 
 absdif .. fabs(a - b) 
-amclip .. two quadrant multiply { 0 when b <= 0, a*b when b > 0 } 
-scaleneg .. nonlinear amplification { a when a >= 0, a*b when a < 0 } 
+amclip .. two quadrant multiply { 0 when b <= 0, a * b when b > 0 } 
+scaleneg .. nonlinear amplification { a when a >= 0, a * b when a < 0 } 
 clip2 .. bilateral clipping { b when a > b, -b when a < -b, else a } 
 excess .. residual of clipping a - clip2(a,b) 
   
