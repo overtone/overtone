@@ -8,7 +8,8 @@
         clojure.stacktrace
         [clojure.pprint :as pprint]
         [clojure.contrib.seq-utils :only (indexed)])
-  (:import (java.util ArrayList Collections)))
+  (:import [java.util ArrayList Collections]
+           [java.util.concurrent TimeUnit TimeoutException]))
 
 ; Some generic counters
 (def id-counters* (ref {}))
@@ -230,10 +231,12 @@
                           (= v item))
                         (indexed col)))))
 
+(def DEFAULT-PROMISE-TIMEOUT 1000)
+
 (defn await-promise
   "Read a promise waiting for timeout ms for the promise to be delivered.
   Returns :timeout if a timeout occurs."
-  ([prom] (await-promise prom TIMEOUT))
+  ([prom] (await-promise prom DEFAULT-PROMISE-TIMEOUT))
   ([prom timeout]
      (try
        (.get (future @prom) timeout TimeUnit/MILLISECONDS)
@@ -243,7 +246,7 @@
 (defn await-promise!
   "Read a promise waiting for timeout ms for the promise to be delivered.
   Raises an exception if a timeout occurs"
-  ([prom] (await-promise prom TIMEOUT))
+  ([prom] (await-promise! prom DEFAULT-PROMISE-TIMEOUT))
   ([prom timeout]
      (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
 

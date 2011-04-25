@@ -1,5 +1,5 @@
 (ns overtone.inst.drum
-  (:use overtone.live))
+  (:use overtone.core))
 
 (definst kick [freq 80 mod-freq 5 mod-index 5
                 sustain 0.4 amp 0.8 noise 0.025]

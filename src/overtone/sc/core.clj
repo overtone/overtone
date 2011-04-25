@@ -12,7 +12,7 @@
    [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
   (:require [overtone.log :as log])
   (:use
-   [overtone event config setup util time-utils deps]
+   [overtone event config log setup util time-utils deps]
    [overtone.sc allocator]
    [clojure.contrib.java-utils :only [file]]
    [clojure.contrib pprint]
@@ -151,6 +151,7 @@
      (ref-set server* sc-server))
 
     (setup-connect-handlers)
+    (snd "/status")
 
 ;; Send /status in a loop until we get a reply
     (loop [cnt 0]
@@ -167,7 +168,10 @@
   "Connect to an running SC audio server. Either an external server if host and
   port are passed or an internal server in the case of no args."
   ([] (connect-internal))
-  ([host port] (.run (Thread. #(connect-external host port)))))
+  ([port] (connect "127.0.0.1" port))
+  ([host port] 
+   (dosync (ref-set status* :connecting))
+   (.run (Thread. #(connect-external host port)))))
 
 (defn server-log
   "Print the server log."
@@ -324,7 +328,6 @@
   ([]
      (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [port]]
-     (dosync (ref-set status* :connecting))
      (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
        (cond
         (= :internal which) (boot-internal port)
@@ -378,3 +381,26 @@
 
 (defn stop []
   (event :reset))
+
+(def osc-log* (atom []))
+
+(defn osc-log [on?]
+  (if on?
+    (on-sync-event :osc-msg-received ::osc-logger
+                   (fn [{:keys [path args] :as msg}]
+                     (swap! osc-log* #(conj % msg))))
+    (remove-handler :osc-msg-received ::osc-logger)))
+
+(defn sc-debug
+  "Control debug output from both the Overtone and the audio server."
+  [on?]
+  (if on?
+    (do
+      (log/level :debug)
+      (osc-debug true)
+      (snd "/dumpOSC" 1))
+    (do
+      (log/level :error)
+      (osc-debug false)
+      (snd "/dumpOSC" 0))))
+

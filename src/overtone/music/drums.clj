@@ -1,5 +1,5 @@
 (ns overtone.lib.drums
-  (:use overtone.live))
+  (:use overtone.core))
 
 ;* Pattern based rhythms
 ; - define piano rolls of triggers and assign instruments to each channel

@@ -1,5 +1,5 @@
 (ns overtone.inst.synth
-  (:use overtone.live))
+  (:use overtone.core))
 
 (definst ping [note 60 a 0.2 b 0.2]
   (let [snd (sin-osc (midicps note))
@@ -19,6 +19,17 @@
         reverb     (free-verb compressor 0.5 0.5 dampener)
         echo       (comb-n reverb 0.4 0.3 0.5)]
     (* amp echo)))
+
+(definst pad [note 60 t 4 amt 0.3 amp 0.8]
+  (let [freq       (midicps note)
+        f-env      (env-gen (perc t t) 1 1 0 1 :free)
+        src        (saw [freq (* freq (+ 2 (* 0.01 (sin-osc:kr 5 (rand 1.5)))))])
+        signal     (rlpf (* 0.9 src)
+                         (+ (* 0.3 freq) (* f-env 4 freq)) 0.5)
+        k          (/ (* 4 amt) (- 1 amt))
+        dist       (clip2 (/ (* (+ 1 k) signal) (+ 1 (* k (abs signal))))
+                          0.03)]
+    (* amp dist (line:kr 1 0 t))))
 
 (definst buzz [pitch 40 cutoff 300 dur 200]
   (let [a (lpf (saw (midicps pitch)) (* (lf-noise1 :control 10) 400))
@@ -82,8 +93,9 @@
         filt (rlpf plk (* 12 freq) 0.6)]
     (* 0.8 filt)))
 
-(definst fm-demo [freq 440 amp 0.2 gate 0]
-  (let [osc-a (* (sin-osc (mouse-x 20 3000))
+(definst fm-demo [note 60 amp 0.2 gate 0]
+  (let [freq (midicps note)
+        osc-a (* (sin-osc (mouse-x 20 3000))
                  0.3)
         osc-b (* amp (sin-osc (* (mouse-y 3000 0) osc-a)))]
     osc-a))

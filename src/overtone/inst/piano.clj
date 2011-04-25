@@ -1,5 +1,5 @@
 (ns overtone.inst.piano
-  (:use overtone.live))
+  (:use overtone.core))
 
 ;; IMPORTANT: requires the mda-piano ugen to be available on your system
 

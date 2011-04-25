@@ -33,10 +33,10 @@
   "Convert intervals to pitches.  Supports nested collections as well."
   [intervals scale root]
   (map (fn [i]
-         (cond 
+         (cond
            (coll? i) (i2p i scale root)
            (nil? i) nil
-           :default (+ root (degree->interval scale i)))) 
+           :default (+ root (degree->interval scale i))))
        intervals))
 
 (defn play-over
@@ -45,11 +45,11 @@
   [inst notes t dur]
   (let [interval (/ dur (count notes))]
     (doall
-      (map-indexed 
+      (map-indexed
         (fn [idx pitch]
           (let [cur-t (+ t (* idx interval))]
             (cond
-              (coll? pitch) 
+              (coll? pitch)
               (play-over inst pitch cur-t interval)
 
               (number? pitch)
@@ -70,10 +70,10 @@
       (play-over inst bar bar-start ms-per-bar)
       (apply-at (m (+ beat beats-per-bar)) #'play [inst (next bars) m t-sig]))))
 
-(def metro (metronome 160))
+(def metro (metronome 120))
 
-;[[e4 g4 e4] [e5 b4 g4 d4 a4 e4 g4 a4]], the derezzed example, could be: 
-;in an aeolian scale, starting on E4. 
+;[[e4 g4 e4] [e5 b4 g4 d4 a4 e4 g4 a4]], the derezzed example, could be:
+;in an aeolian scale, starting on E4.
 (def _ nil)
 (def derez [[:i :iii :i] [:i* :v :iii :vii :iv. :i :iii :iv]])
 (def pitches (i2p derez :aeolian e4))
@@ -81,4 +81,16 @@
 ;(play tone pitches metro)
 
 (play ks1-demo (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]] :diatonic f4) metro)
+
+(do
+(play grunge-bass 
+      (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]] 
+           :diatonic f2)) 
+      metro)
+
+(play pad
+      (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]] 
+           :diatonic f3)) 
+      metro)
+)
 
