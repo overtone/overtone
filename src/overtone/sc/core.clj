@@ -8,9 +8,9 @@
    [java.net InetSocketAddress]
    [java.util.regex Pattern]
    [java.util.concurrent TimeUnit TimeoutException]
-   [java.io BufferedInputStream]
-   [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
+   [java.io BufferedInputStream])
   (:require [overtone.log :as log])
+  (:require [scsynth :as scsynth])
   (:use
    [overtone event config log setup util time-utils deps]
    [overtone.sc allocator]
@@ -33,6 +33,7 @@
 (defonce server-thread* (ref nil))
 (defonce server-log*    (ref []))
 (defonce sc-world*      (ref nil))
+(defonce sc-reply-cb*   (ref nil))
 (defonce status*        (ref :disconnected))
 (defonce synth-group*   (ref nil))
 
@@ -129,18 +130,15 @@
 (defn connect-internal
   []
   (log/debug "Connecting to internal SuperCollider server")
-  (let [send-fn (fn [peer-obj buffer]
-                  (.send @sc-world* buffer))
-        peer (assoc (osc-peer) :send-fn send-fn)]
-    (.addMessageReceivedListener @sc-world*
-                                 (proxy [MessageReceivedListener] []
-                                   (messageReceived [buf size]
-                                     (event :osc-msg-received
-                                            :msg (osc-decode-packet buf)))))
+
+  (dosync (ref-set sc-reply-cb*
+                   (scsynth/make-reply-callback (fn [bb]
+                                                  (event :osc-msg-received
+                                                         :msg (osc-decode-packet bb))))))
+  (let [peer (assoc (osc-peer) :send-fn (fn [peerobj buf] (scsynth/send-packet @sc-world* @sc-reply-cb* buf)))]
     (dosync (ref-set server* peer))
     (setup-connect-handlers)
     (snd "/status")))
-
 
 (defn connect-external
   [host port]
@@ -169,7 +167,7 @@
   port are passed or an internal server in the case of no args."
   ([] (connect-internal))
   ([port] (connect "127.0.0.1" port))
-  ([host port] 
+  ([host port]
    (dosync (ref-set status* :connecting))
    (.run (Thread. #(connect-external host port)))))
 
@@ -262,14 +260,9 @@
 ;;      for external processes on a given port?
 (defn- internal-booter [port]
   (log/info "booting internal audio server listening on port: " port)
-  (let [server (ScSynth.)
-        listener (reify ScSynthStartedListener
-                   (started [this]
-                     (log/info "Boot listener...")
-                     (satisfy-deps :booted)))]
-    (.addScSynthStartedListener server listener)
-    (dosync (ref-set sc-world* server))
-    (.run server)))
+  (dosync (ref-set sc-world* (scsynth/start "native/linux/x86_64/ugens"))) ;; FIXME!
+  (log/info "Boot listener...")
+  (satisfy-deps :booted))
 
 (defn- boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
