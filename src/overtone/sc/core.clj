@@ -132,10 +132,10 @@
 (defn connect-internal
   []
   (log/debug "Connecting to internal SuperCollider server")
-  (let [reply-fn (sc/make-reply-callback 
-                   (fn [buf] 
+  (let [reply-fn (sc/make-reply-callback
+                   (fn [buf]
                      (let [msg (osc-decode-packet buf)]
-                       (event :osc-msg-received 
+                       (event :osc-msg-received
                               :msg msg))))
         send-fn (fn [peer-obj buffer]
                   (sc/send-packet (:world @sc*) reply-fn buffer))
@@ -143,7 +143,6 @@
     (dosync (alter sc* assoc :connection peer))
     (setup-connect-handlers)
     (snd "/status")))
-
 
 (defn connect-external
   [host port]
@@ -264,7 +263,7 @@
   (log/info "booting internal audio server listening on port: " port)
   (let [server (sc/start "native/linux/x86/ugens")]
     (dosync (alter sc* assoc :world server))
-    (future 
+    (future
       (Thread/sleep 3000)
       (satisfy-deps :booted))))
 
@@ -345,7 +344,7 @@
   (if (:connection @sc*)
     (osc-close (:connection @sc*) true))
   (dosync
-   (alter sc* assoc 
+   (alter sc* assoc
           :connection nil
           :status :disconnected)
    (unsatisfy-all-dependencies)))
