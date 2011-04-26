@@ -8,9 +8,9 @@
    [java.net InetSocketAddress]
    [java.util.regex Pattern]
    [java.util.concurrent TimeUnit TimeoutException]
-   [java.io BufferedInputStream]
-   [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
-  (:require [overtone.log :as log])
+   [java.io BufferedInputStream])
+  (:require [overtone.log :as log]
+            [scsynth :as sc])
   (:use
    [overtone event config log setup util time-utils deps]
    [overtone.sc allocator]
@@ -29,18 +29,21 @@
 (def MAX-OSC-SAMPLES 8192)
 (def ROOT-GROUP 0)
 
-(defonce server*        (ref nil))
-(defonce server-thread* (ref nil))
-(defonce server-log*    (ref []))
-(defonce sc-world*      (ref nil))
-(defonce status*        (ref :disconnected))
+(defonce sc* (ref {:type       nil           ; :internal or :external
+                   :connection nil           ; osc connection
+                   :thread     nil           ; server thread
+                   :world      nil           ; internal sc pointer
+                   :log        []            ; log
+                   :status     :disconnected ; current status
+                   }))
+
 (defonce synth-group*   (ref nil))
 
 ;; The base handler for receiving osc messages just forwards the message on
 ;; as an event using the osc path as the event key.
 (on-sync-event :osc-msg-received ::osc-receiver
-               (fn [{{path :path args :args} :msg}]
-                 (event path :path path :args args)))
+  (fn [{{path :path args :args} :msg}]
+    (event path :path path :args args)))
 
 ;; ## Basic communication with the synth server
 
@@ -49,16 +52,16 @@
   bundle.  This bundling is thread-local, so you don't have to worry about
   accidentally scheduling packets into a bundle started on another thread."
   [time-ms & body]
-  `(in-osc-bundle @server* ~time-ms (do ~@body)))
+  `(in-osc-bundle (:connection @sc*) ~time-ms (do ~@body)))
 
 (defn connected? []
-  (= :connected @status*))
+  (= :connected (:status @sc*)))
 
 (defn snd
   "Sends an OSC message."
   [path & args]
   (log/debug "(snd " path args ")")
-  (apply osc-send @server* path args)
+  (apply osc-send (:connection @sc*) path args)
   (if (not (connected?))
     (log/debug "### trying to snd while disconnected! ###")))
 
@@ -117,7 +120,7 @@
 (defn- setup-connect-handlers []
   (let [handler-fn
         (fn []
-          (dosync (ref-set status* :connected))
+          (dosync (alter sc* assoc :status :connected))
           (notify true) ; turn on notifications now that we can communicate
           (satisfy-deps :connected)
           (event :connected)
@@ -129,15 +132,15 @@
 (defn connect-internal
   []
   (log/debug "Connecting to internal SuperCollider server")
-  (let [send-fn (fn [peer-obj buffer]
-                  (.send @sc-world* buffer))
+  (let [reply-fn (sc/make-reply-callback 
+                   (fn [buf] 
+                     (let [msg (osc-decode-packet buf)]
+                       (event :osc-msg-received 
+                              :msg msg))))
+        send-fn (fn [peer-obj buffer]
+                  (sc/send-packet (:world @sc*) reply-fn buffer))
         peer (assoc (osc-peer) :send-fn send-fn)]
-    (.addMessageReceivedListener @sc-world*
-                                 (proxy [MessageReceivedListener] []
-                                   (messageReceived [buf size]
-                                     (event :osc-msg-received
-                                            :msg (osc-decode-packet buf)))))
-    (dosync (ref-set server* peer))
+    (dosync (alter sc* assoc :connection peer))
     (setup-connect-handlers)
     (snd "/status")))
 
@@ -148,7 +151,7 @@
   (let [sc-server (osc-client host port)]
     (osc-listen sc-server #(event :osc-msg-received :msg %))
     (dosync
-     (ref-set server* sc-server))
+     (alter sc* assoc :connection sc-server))
 
     (setup-connect-handlers)
     (snd "/status")
@@ -157,7 +160,7 @@
     (loop [cnt 0]
       (log/debug "connect loop...")
       (when (and (< cnt N-RETRIES)
-                 (= @status* :connecting))
+                 (= (:status @sc*) :connecting))
         (log/debug "sending status...")
         (snd "/status")
         (Thread/sleep 100)
@@ -169,14 +172,14 @@
   port are passed or an internal server in the case of no args."
   ([] (connect-internal))
   ([port] (connect "127.0.0.1" port))
-  ([host port] 
-   (dosync (ref-set status* :connecting))
+  ([host port]
+   (dosync (alter sc* assoc :status :connecting))
    (.run (Thread. #(connect-external host port)))))
 
 (defn server-log
   "Print the server log."
   []
-  (doseq [msg @server-log*]
+  (doseq [msg (:log @sc*)]
     (print msg)))
 
 (defn recv
@@ -230,7 +233,7 @@
         (.get (future @p) STATUS-TIMEOUT TimeUnit/MILLISECONDS)
         (catch TimeoutException t
           :timeout)))
-    @status*))
+    (:status @sc*)))
 
 (defn wait-sync
   "Wait until the audio server has completed all asynchronous commands
@@ -254,22 +257,16 @@
 (if (= :linux (@config* :os))
   (on-deps :connected ::connect-jack-ports #(connect-jack-ports)))
 
-(defonce scsynth-server* (ref nil))
-
-
 ;;TODO: make use of the port or remove it as a param.
 ;;      should we be able to get the internal server to listen
 ;;      for external processes on a given port?
 (defn- internal-booter [port]
   (log/info "booting internal audio server listening on port: " port)
-  (let [server (ScSynth.)
-        listener (reify ScSynthStartedListener
-                   (started [this]
-                     (log/info "Boot listener...")
-                     (satisfy-deps :booted)))]
-    (.addScSynthStartedListener server listener)
-    (dosync (ref-set sc-world* server))
-    (.run server)))
+  (let [server (sc/start "native/linux/x86/ugens")]
+    (dosync (alter sc* assoc :world server))
+    (future 
+      (Thread/sleep 3000)
+      (satisfy-deps :booted))))
 
 (defn- boot-internal
   ([] (boot-internal (+ (rand-int 50000) 2000)))
@@ -281,7 +278,7 @@
          (.setDaemon sc-thread true)
          (log/debug "Booting SuperCollider internal server (scsynth)...")
          (.start sc-thread)
-         (dosync (ref-set server-thread* sc-thread))
+         (dosync (alter sc* assoc :thread sc-thread))
          :booting))))
 
 (defn- sc-log
@@ -291,7 +288,7 @@
     (let [n (min (count read-buf) (.available stream))
           _ (.read stream read-buf 0 n)
           msg (String. read-buf 0 n)]
-      (dosync (alter server-log* conj msg))
+      (dosync (alter sc* assoc :log (conj (:log @sc*) msg)))
       (log/info (String. read-buf 0 n)))))
 
 (defn- external-booter
@@ -303,7 +300,7 @@
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
         read-buf (make-array Byte/TYPE 256)]
-    (while (not (= :disconnected @status*))
+    (while (not (= :disconnected (:status @sc*)))
       (sc-log in-stream read-buf)
       (sc-log err-stream read-buf)
       (Thread/sleep 250))
@@ -319,14 +316,14 @@
          (.setDaemon sc-thread true)
          (log/debug "Booting SuperCollider server (scsynth)...")
          (.start sc-thread)
-         (dosync (ref-set server-thread* sc-thread))
+         (dosync (alter sc* assoc :thread sc-thread))
          (connect "127.0.0.1" port)
          :booting))))
 
 (defn boot
   "Boot either the internal or external audio server."
   ([]
-     (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
+     (boot (get @config* :connection :internal) SERVER-HOST SERVER-PORT))
   ([which & [port]]
      (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
        (cond
@@ -345,11 +342,12 @@
   (log/info "quiting...")
   (sync-event :shutdown)
   (snd "/quit")
-  (if @server*
-    (osc-close @server* true))
+  (if (:connection @sc*)
+    (osc-close (:connection @sc*) true))
   (dosync
-   (ref-set server* nil)
-   (ref-set status* :disconnected)
+   (alter sc* assoc 
+          :connection nil
+          :status :disconnected)
    (unsatisfy-all-dependencies)))
 
 (defonce _shutdown-hook

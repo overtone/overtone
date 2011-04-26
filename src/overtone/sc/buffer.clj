@@ -117,7 +117,7 @@
   "Get the floating point data for a buffer on the internal server."
   [buf]
   (let [buf-id (buffer-id buf)
-        snd-buf (.getSndBufAsFloatArray @sc-world* buf-id)]
+        snd-buf (.getSndBufAsFloatArray (:world @sc*) buf-id)]
     snd-buf))
 
 (defn buffer-info
