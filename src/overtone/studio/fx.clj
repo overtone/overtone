@@ -54,13 +54,14 @@
 
 (defsynth fx-echo
   [in-bus 20 out-bus 10
-   max-delay 0.5 delay-time 0.2 decay-time 2.0]
+   max-delay 1.0 delay-time 0.4 decay-time 2.0]
   (let [source (in in-bus)
         echo (comb-n source max-delay delay-time decay-time)]
     (out out-bus (pan2 (+ echo source) 0))))
 
 (defsynth fx-chorus
-  [in-bus 20 out-bus 10 rate 0.002 depth 0.01]
+  [in-bus 20 out-bus 10 
+   rate 0.002 depth 0.01]
   (let [src (in in-bus)
         dub-depth (* 2 depth)
         rates [rate (+ rate 0.001)]
@@ -70,8 +71,19 @@
     (out out-bus (* 0.3 sig))))
 
 (defsynth fx-distortion
-  [in-bus 20 out-bus 10 boost 4 level 0.01]
+  [in-bus 20 out-bus 10 
+   boost 4 level 0.01]
   (let [src (in in-bus)]
     (out out-bus (distort (* boost (clip2 src level))))))
 
+(defsynth fx-rlpf
+  [in-bus 20 out-bus 10
+   cutoff 40000 res 0.6]
+  (let [src (in in-bus)]
+    (out out-bus (rlpf src cutoff res))))
 
+(defsynth fx-rhpf
+  [in-bus 20 out-bus 10
+   cutoff 2 res 0.6]
+  (let [src (in in-bus)]
+    (out out-bus (rhpf src cutoff res))))

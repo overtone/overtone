@@ -1,9 +1,7 @@
 (ns example.filters
-  (:use overtone.live))
+  (:use overtone.core))
 
 ; Filter examples, mostly ported from SC docs
-
-(comment
 
 ; You might want to bring up the scope while trying the filters out,
 ; because in at least some instances it can help to understand what
@@ -14,6 +12,12 @@
 (demo 10
   (lpf (* 0.5 (saw 440))
        (mouse-x 10 10000))) ; cutoff frequency
+
+; Resonant Lowpass
+(demo 10
+  (rlpf (* 0.5 (saw 440))
+       (mouse-x 10 10000)
+       (mouse-y 0.0001 0.9999))) ; cutoff frequency
 
 ; Highpass
 (demo 10
@@ -111,5 +115,3 @@
 (demo 10
   (let [f (mouse-y 300 15000)]
     (* (saw f) 0.1 (amp-comp f 300))))
-
-)

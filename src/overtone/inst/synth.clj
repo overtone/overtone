@@ -28,6 +28,23 @@
         filt       (rlpf selector fil-cutoff r)]
     filter))
 
+(definst mooger
+  [note 60 amp 0.8
+   osc1 0 osc2 1     ; Choose 0 1 2 for saw, sin, or pulse
+   cutoff 500
+   attack 0.1 decay 0.1 sustain 0.7 release 0.2
+   fattack 0.1 fdecay 0.1 fsustain 0.9 frelease 0.2
+   gate 1]
+  (let [freq (midicps note)
+        osc-bank-1 [(saw freq) (sin-osc freq) (pulse freq)]
+        osc-bank-2 [(saw freq) (sin-osc freq) (pulse freq)]
+        amp-env (env-gen (adsr attack decay sustain release) gate :action :free)
+        f-env (env-gen (adsr fattack fdecay fsustain frelease) gate :action :free)
+        s1 (select osc1 osc-bank-1)
+        s2 (select osc2 osc-bank-2)
+        filt (moog-ff (+ s1 s2) (* cutoff f-env) 3)]
+    (* amp filt)))
+
 (definst rise-fall-pad [freq 440 t 4 amt 0.3 amp 0.8]
   (let [f-env      (env-gen (perc t t) 1 1 0 1 :free)
         src        (saw [freq (* freq 1.01)])
