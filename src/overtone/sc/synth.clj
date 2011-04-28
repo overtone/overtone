@@ -1,18 +1,19 @@
 (ns
   ^{:doc "The ugen functions create a data structure representing a synthesizer
-          graph that can be executed on the synthesis server.  This is the logic
-          to \"compile\" these clojure data structures into a form that can be
-          serialized by the byte-spec defined in synthdef.clj."
+         graph that can be executed on the synthesis server.  This is the logic
+         to \"compile\" these clojure data structures into a form that can be
+         serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.sc.synth
   (:require
     [overtone.log :as log]
     [clojure.contrib.generic.arithmetic :as ga])
   (:use
-     [overtone util event time-utils]
-     [overtone.sc.ugen defaults]
-     [overtone.sc core ugen synthdef node buffer]
-     [clojure.contrib.seq-utils :only (indexed)]))
+    [overtone util event time-utils]
+    [overtone.sc.ugen defaults]
+    [overtone.sc core ugen synthdef node buffer]
+    [clojure.contrib [def :only [name-with-attributes]]]
+    [clojure.contrib.seq-utils :only (indexed)]))
 ;;TODO replace this with clojure.core/keep-indexed or map-indexed))
 
 ;; ### Synth
@@ -339,19 +340,17 @@
 
 (defn synth-form
   "Internal function used to prepare synth meta-data."
-  [name sdecl]
-  (let [md (if (string? (first sdecl))
-             {:doc (first sdecl)}
-             {})
-        params    (first (take 1 (filter vector? sdecl)))
+  [s-name s-form]
+  (let [[s-name s-form] (name-with-attributes s-name s-form)
+        params   (first s-form)
+        ugen-form (second s-form)
         arglists (list (vec (map first (partition 2 params))))
         _ (if-not (even? (count params))
               (throw (IllegalArgumentException. "A synth requires an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5]")))
-        md (assoc md
-                  :name name
-                  :arglists (list 'quote arglists))
-        ugen-form (first (take 1 (filter list? sdecl)))]
-    [md params ugen-form]))
+        md (assoc (meta s-name)
+                  :name s-name
+                  :arglists (list 'quote arglists))]
+    [(with-meta s-name md) params ugen-form]))
 
 (defmacro defsynth
   "Define a synthesizer and return a player function.  The synth definition
@@ -370,10 +369,9 @@
     \"The phatest space pad ever!\"
     [] (...))
   "
-  [name & sdecl]
-  (let [[md params ugen-form] (synth-form name sdecl)]
-    (list 'def (with-meta name md)
-          (list 'synth name params ugen-form))))
+  [s-name & s-form]
+  (let [[s-name params ugen-form] (synth-form s-name s-form)]
+    `(def ~s-name (synth ~s-name ~params ~ugen-form))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Synthdef de-compilation

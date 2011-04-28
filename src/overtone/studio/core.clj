@@ -1,6 +1,5 @@
 (ns overtone.studio.core
   (:use
-    [clojure.contrib [def :only [name-with-attributes]]]
     [overtone util event time-utils deps]
     [overtone.sc.ugen.defaults]
     [overtone.sc core synth ugen envelope node synthdef bus]
@@ -210,12 +209,10 @@
        (= ::instrument (:type o))))
 
 (defmacro definst [i-name & inst-form]
-  (let [[i-name inst-form] (name-with-attributes i-name inst-form)
-        [md params ugen-form] (synth-form i-name inst-form)
-        md (assoc md :type ::instrument)]
-    `(do
-       (def ~i-name (inst ~i-name ~params ~ugen-form))
-       (.setMeta #'~i-name (merge (.meta #'~i-name) ~md)))))
+  (let [[i-name params ugen-form] (synth-form i-name inst-form)
+        i-name (with-meta i-name
+                          (assoc (meta i-name) :type ::instrument))]
+    `(def ~i-name (inst ~i-name ~params ~ugen-form))))
 
 (defmethod overtone.sc.node/kill :overtone.studio.core/instrument
   [& args]
