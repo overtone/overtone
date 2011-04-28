@@ -475,7 +475,7 @@
           (recur new-elem new-elems new-space new-bins new-bin (inc i)))
         bins))))
 
-(defn log2 [x]
+(defn- log2 [x]
   (/ (Math/log x)
      (Math/log 2)))
 
