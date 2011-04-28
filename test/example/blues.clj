@@ -1,4 +1,4 @@
-(ns examples.blues
+(ns example.blues
   (:use overtone.live)
   (:use [overtone.inst synth drum]))
 
@@ -8,11 +8,14 @@
         env (env-gen (perc 0.3 2) :action :free)]
     (* vol src env)))
 
-(defn play [synth pitch-classes]
-  (doseq [pitch pitch-classes]
-    (synth pitch)))
+(def ps (atom []))
 
-(defn play-seq [count synth notes durs time odds]
+(defn play [instr pitch-classes]
+  (doseq [pitch pitch-classes]
+    (swap! ps conj pitch)
+    (instr pitch)))
+
+(defn play-seq [count instr notes durs time odds]
   (when (and notes durs)
     (let [dur   (- (/ (first durs) 1.2) 10 (rand-int 20))
           pitch (first notes)
@@ -33,11 +36,11 @@
           (when (= 2 count)
             (kick))
 
-          (play synth pitch))
+          (play instr pitch))
       (at (+ time (* 0.5 dur))
           (c-hat 0.1))
       (apply-at n-time #'play-seq
-                [(mod (inc count) 4) synth (next notes) (next durs) n-time odds]))))
+                [(mod (inc count) 4) instr (next notes) (next durs) n-time odds]))))
 
 ; TODO: Strum the chord
 
@@ -60,10 +63,9 @@
 
 (defn progression [chord-seq key-note octave scale]
   (for [[roman-numeral chord-type] (partition 2 chord-seq)]
-    (chord (+ (key-note NOTE)
-              (degree->interval scale roman-numeral))
-           chord-type
-           octave)))
+    (chord (+ (resolve-note (str (name key-note) octave))
+              (degree->interval roman-numeral scale))
+           chord-type)))
 
 (defn blue-beep []
   (play-seq 0 beep

@@ -162,11 +162,11 @@
 ;; Various scale intervals in terms of steps on a piano, or midi note numbers
 ;; All sequences should add up to 12 - the number of semitones in an octave
 
-(def SCALE   
+(def SCALE
   (let [ionian-sequence [2 2 1 2 2 2 1]
         ionian-len    (count ionian-sequence)
-        rotate-ionian (fn [offset] 
-                        (drop offset (take (+ ionian-len offset) 
+        rotate-ionian (fn [offset]
+                        (drop offset (take (+ ionian-len offset)
                                            (cycle ionian-sequence))))]
   {:diatonic          ionian-sequence
    :ionian            (rotate-ionian 0)
@@ -372,12 +372,11 @@
   "Returns a set of notes for the specified chord at the specified octave
   (defaulting to 4).
 
-  (chord :c :major)  ; c major           -> #{60 64 67}
-  (chord :a :minor 3); a minor           -> #{57 60 64}
-  (chord :Bb :dim)   ; b flat diminished -> #{70 73 76}
+  (chord :c3 :major)  ; c major           -> #{60 64 67}
+  (chord :a4 :minor)  ; a minor           -> #{57 60 64}
+  (chord :Bb4 :dim)   ; b flat diminished -> #{70 73 76}
   "
-  ([root chord-name] (chord root chord-name 4))
-  ([root chord-name octave]
+  ([root chord-name]
      (let [root (resolve-note root)
            chord (resolve-chord chord-name)]
        (set (map #(+ % root) chord)))))
