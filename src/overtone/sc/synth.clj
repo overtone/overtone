@@ -349,6 +349,7 @@
               (throw (IllegalArgumentException. "A synth requires an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5]")))
         md (assoc (meta s-name)
                   :name s-name
+                  :type ::synth
                   :arglists (list 'quote arglists))]
     [(with-meta s-name md) params ugen-form]))
 
@@ -372,6 +373,10 @@
   [s-name & s-form]
   (let [[s-name params ugen-form] (synth-form s-name s-form)]
     `(def ~s-name (synth ~s-name ~params ~ugen-form))))
+
+(defmethod print-method ::synth [syn w]
+  (let [info (meta syn)]
+    (.write w (format "#<synth: %s>" (:name info)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Synthdef de-compilation
