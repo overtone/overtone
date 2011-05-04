@@ -209,10 +209,13 @@
        (= ::instrument (:type o))))
 
 (defmacro definst [i-name & inst-form]
-  (let [[i-name params ugen-form] (synth-form i-name inst-form)
-        i-name (with-meta i-name
-                          (assoc (meta i-name) :type ::instrument))]
+  (let [i-name (with-meta i-name {:type ::instrument})
+        [i-name params ugen-form] (synth-form i-name inst-form)]
     `(def ~i-name (inst ~i-name ~params ~ugen-form))))
+
+(defmethod print-method ::instrument [ins w]
+  (let [info (meta ins)]
+    (.write w (format "#<instrument: %s>" (:name info)))))
 
 (defmethod overtone.sc.node/kill :overtone.studio.core/instrument
   [& args]
