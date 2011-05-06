@@ -39,11 +39,11 @@
       :note-on (let [note (:note event)
                      id   (get @notes* note)]
                  (if id (ctl id :gate 0))
-                 (dosync (def note-id (pad (midi->hz note)
+                 (dosync (alter notes* assoc note
+                                (pad (midi->hz note)
                                      (/ (:vel event) 128.0)
                                      ;;(/ (get @controls* 71) 127.0)
-                                     0.3))
-                         (alter notes* assoc note note-id)))
+                                     0.3))))
       :note-off (let [note (:note event)
                       id   (get @notes* note)]
                   (ctl id :gate 0)
