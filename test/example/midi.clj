@@ -42,7 +42,7 @@
                  (dosync (alter notes* assoc note
                                 (pad (midi->hz note)
                                      (/ (:vel event) 128.0)
-                                     ;;(/ (get @controls* 71) 127.0)
+                                     (if (get @controls* 71) (/ (get @controls* 71) 127.0))
                                      0.3))))
       :note-off (let [note (:note event)
                       id   (get @notes* note)]
