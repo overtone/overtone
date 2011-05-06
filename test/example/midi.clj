@@ -1,8 +1,8 @@
 (ns example.midi
   (:use overtone.live))
 
-(refer-ugens)
-(def kb (midi-in "axiom"))
+;;(refer-ugens)
+(def kb (midi-in "nanokey"))
 
 (defsynth pad [freq 440 vel 0.4 amt 0.3 gate 1.0]
   (let [vel        (+ 0.5 (* 0.5 vel))
@@ -39,11 +39,15 @@
       :note-on (let [note (:note event)
                      id   (get @notes* note)]
                  (if id (ctl id :gate 0))
-                 (dosync (alter notes* assoc note
-                                (pad (midi->hz note)
+                 (dosync (def note-id (pad (midi->hz note)
                                      (/ (:vel event) 128.0)
-                                     (/ (get @controls* 71) 127.0)))))
-      :note-off (ctl (get @notes* (:note event)) :gate 0)
+                                     ;;(/ (get @controls* 71) 127.0)
+                                     0.3))
+                         (alter notes* assoc note note-id)))
+      :note-off (let [note (:note event)
+                      id   (get @notes* note)]
+                  (ctl id :gate 0)
+                  (dosync (alter notes* assoc (:note event) nil)))
       true)
     (catch java.lang.Exception e (println "midi-listener exception: \n" e))))
 
@@ -52,7 +56,7 @@
 
 (midi-handle-events kb #'midi-listener)
 
-(midi-handle-events kb (fn [event ts] (dosync (alter conj mlog* event))))
+(midi-handle-events kb (fn [event ts] (dosync (alter conj midi-log* event))))
 
 (defn midi-handle-events
   "Specify a single handler that will receive all midi events from the input device."
@@ -61,4 +65,46 @@
                    (close [] nil)
                    (send [msg timestamp] (dosync (alter midi-log* conj msg))))]
     (.setReceiver (:transmitter input) receiver)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
