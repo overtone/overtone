@@ -415,7 +415,7 @@
                            [*demo-time* (first body)])
         b2 (if (= 'out (first body))
              body
-             (list 'out 0 (list 'pan2 body)))]
+             (list 'out 0 body))]
     `(let [s# (synth "audition-synth" ~b2)
            note# (s#)]
        (at (+ (now) ~demo-time) (node-free note#))
