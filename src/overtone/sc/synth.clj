@@ -403,7 +403,12 @@
 
 (defmacro demo
   "Try out an anonymous synth definition.  Useful for experimentation.  If the
-  root node is not an out ugen, then it will add one automatically."
+  root node is not an out ugen, then it will add one automatically.
+  You can specify a timeout in seconds as the first argument otherwise it
+  defaults to *demo-time* ms.
+
+  (demo (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
+  (demo 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
   [& body]
   (let [[demo-time body] (if (number? (first body))
                            [(* 1000 (first body)) (second body)]
@@ -426,5 +431,3 @@
      (into [] (if (empty? children)
        synths
        (set (concat synths children)))))))
-
-
