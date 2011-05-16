@@ -34,8 +34,8 @@
 ; it seems that timing isn't accurate enough.
 
 (defn make-pool
-  "Creates a new pool of threads to schedule new events for. Pool size defaults to the cpu count"
-  ([] (make-pool (cpu-count)))
+  "Creates a new pool of threads to schedule new events for. Pool size defaults to the cpu count + 2"
+  ([] (make-pool (+ 2 (cpu-count))))
   ([num-threads]
      (ScheduledThreadPoolExecutor. num-threads)))
 
