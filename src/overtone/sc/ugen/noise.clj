@@ -174,13 +174,13 @@ in - input signal"}
 
       {:name "Dust"
        :args [{:name "density", :default 0.0}]
-       :rates #{:ar}
+       :rates #{:ar :kr}
        :doc "Generates random impulses from 0 to +1.
   density - average number of impulses per second."}
 
 
       {:name "Dust2"
        :args [{:name "density", :default 0.0}]
-       :rates #{:ar}
+       :rates #{:ar :kr}
        :doc "Generates random impulses from -1 to +1.
   density - average number of impulses per second"}])
