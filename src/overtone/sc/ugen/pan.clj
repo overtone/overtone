@@ -51,16 +51,16 @@
        ;; }
 
        {:name "Pan2",
-        :args [{:name "in"}
-               {:name "pos", :default 0.0}
-               {:name "level", :default 1.0}]
+        :args [{:name "in" :doc "input signal"}
+               {:name "pos", :default 0.0, :doc "pan position, -1 is left, +1 is right"}
+               {:name "level", :default 1.0, :doc "a control rate level input"}]
         :num-outs 2
-        :doc "stereo pan"}
+        :doc "Two channel (stereo) equal power panner."}
 
        ;; LinPan2 : Pan2 {}
 
        {:name "LinPan2" :extends "Pan2"
-        :doc "linear stereo pan"}
+        :doc "Two channel (stereo) linear panner. This one sounds more like the Rhodes tremolo than Pan2."}
 
        ;; Pan4 : Panner {
 
@@ -79,12 +79,12 @@
        ;; }
 
        {:name "Pan4",
-        :args [{:name "in"}
-               {:name "xpos", :default 0.0}
-               {:name "ypos", :default 0.0}
-               {:name "level", :default 1.0}]
+        :args [{:name "in", :doc "input signal"}
+               {:name "xpos", :default 0.0, :doc "x  pan position from -1 to +1(left to right)"}
+               {:name "ypos", :default 0.0, :doc "y pan position from -1 to +1 (back to front)"}
+               {:name "level", :default 1.0, :doc "a control rate level input."}]
         :num-outs 4
-        :doc "quad pan"}
+        :doc "Four channel equal power panner. Outputs are in order LeftFront, RightFront, LeftBack, RightBack."}
 
        ;; Balance2 : Panner {
        ;;  *ar { arg left, right, pos = 0.0, level = 1.0;
@@ -104,11 +104,12 @@
        ;; }
 
        {:name "Balance2",
-        :args [{:name "left"}
-               {:name "right"}
-               {:name "pos", :default 0.0}
-               {:name "level", :default 1.0}]
+        :args [{:name "left", :doc "channel 1 of input stereo signal"}
+               {:name "right", :doc "channel 2 of input stereo signal"}
+               {:name "pos", :default 0.0, :doc "pan position, -1 is left, +1 is right"}
+               {:name "level", :default 1.0, :doc "a control rate level input."}]
         :num-outs 2
+        :doc "Equal power panning balances two channels; by panning, you are favouring one or other channel in the mix, and the other loses power. The middle pan position (pos=0.0) corresponds to the original stereo mix; full left (pos of -1) is essentially just left channel playing, full right (pos of 1) just the right. The output of Balance2 remains a stereo signal."
         }
 
        ;; Rotate2 : Panner {
@@ -129,11 +130,21 @@
        ;; }
 
        {:name "Rotate2",
-        :args [{:name "x"}
-               {:name "y"}
-               {:name "pos", :default 0.0}]
+        :args [{:name "x", :doc "input signal"}
+               {:name "y", :doc "input signal"}
+               {:name "pos", :default 0.0, :doc "angle to rotate around the circle from -1 to +1. -1 is 180 degrees, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind."}]
         :num-outs 2
-        :doc "rotate a sound field"}
+        :doc "Rotate2 can be used for rotating an ambisonic B-format sound field around an axis.
+Rotate2 does an equal power rotation so it also works well on stereo sounds.
+It takes two audio inputs (x, y) and an angle control (pos).
+It outputs two channels (x, y).
+It computes this:
+
+xout = cos(angle) * xin + sin(angle) * yin;
+yout = cos(angle) * yin - sin(angle) * xin;
+
+where angle = pos * pi,  so that -1 becomes -pi and +1 becomes +pi.
+This allows you to use an LFSaw to do continuous rotation around a circle."}
 
        ;; PanB : Panner {
        ;;  *ar { arg in, azimuth=0, elevation=0, gain=1;
@@ -151,11 +162,12 @@
        ;; }
 
        {:name "PanB",
-        :args [{:name "in"}
-               {:name "azimuth", :default 0.0}
-               {:name "elevation", :default 0.0}
-               {:name "gain", :default 1.0}]
-        :num-outs 4}
+        :args [{:name "in", :doc "input signal"}
+               {:name "azimuth", :default 0.0, :doc "in radians, -pi to +pi"}
+               {:name "elevation", :default 0.0, :doc "in radians, -0.5pi to +0.5pi"}
+               {:name "gain", :default 1.0, :doc "a control rate level input"}]
+        :num-outs 4
+        :doc "Ambisonic B format panner. Output channels are in order W,X,Y,Z."}
 
        ;; PanB2 : Panner {
        ;;  *ar { arg in, azimuth=0, gain=1;
@@ -173,10 +185,11 @@
        ;; }
 
        {:name "PanB2",
-        :args [{:name "in"}
-               {:name "azimuth", :default 0.0}
-               {:name "gain", :default 1.0}]
-        :num-outs 3}
+        :args [{:name "in", :doc "input signal"}
+               {:name "azimuth", :default 0.0, :doc "position around the circle from -1 to +1. -1 is behind, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind."}
+               {:name "gain", :default 1.0, :doc "amplitude control"}]
+        :num-outs 3
+        :doc "Encode a mono signal to two dimensional ambisonic B-format."}
 
        ;; BiPanB2 : Panner {
        ;;  *ar { arg inA, inB, azimuth, gain=1;
@@ -195,11 +208,17 @@
        ;; }
 
        {:name "BiPanB2",
-        :args [{:name "inA"}
-               {:name "inB"}
-               {:name "azimuth"}
-               {:name "gain", :default 1.0}]
+        :args [{:name "inA", :doc "input signal A"}
+               {:name "inB", :doc "input signal B"}
+               {:name "azimuth", :doc "position around the circle from -1 to +1. -1 is behind, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind."}
+               {:name "gain", :default 1.0, :doc "amplitude control"}]
         :num-outs 3
+        :doc "Encode a two channel signal to two dimensional ambisonic B-format.
+This puts two channels at opposite poles of a 2D ambisonic field.
+This is one way to map a stereo sound onto a soundfield.
+It is equivalent to:
+
+PanB2(inA, azimuth, gain) + PanB2(inB, azimuth + 1, gain)"
         :check (when-ar (first-n-inputs-ar 2))}
 
        ;; DecodeB2 : Panner {
@@ -218,11 +237,13 @@
        ;; }
 
        {:name "DecodeB2",
-        :args [{:name "numChannels" :mode :num-outs}
-               {:name "w"}
-               {:name "x"}
-               {:name "y"}
-               {:name "orientation", :default 0.5}]
+        :args [{:name "numChannels" :mode :num-outs, :doc "number of output speakers. Typically 4 to 8."}
+               {:name "w", :doc "B-format signal"}
+               {:name "x", :doc "B-format signal"}
+               {:name "y", :doc "B-format signal"}
+               {:name "orientation", :default 0.5, :doc "Should be zero if the front is a vertex of the polygon. The first speaker will be directly in front. Should be 0.5 if the front bisects a side of the polygon. Then the first speaker will be the one left of center. Default is 0.5."}]
+        :doc "2D Ambisonic B-format decoder. Decode a two dimensional ambisonic B-format signal to a set of speakers in a regular polygon.
+The outputs will be in clockwise order. The position of the first speaker is either center or left of center."
         :check (when-ar (first-n-inputs-ar 3))}
 
        ;; PanAz : Panner {
@@ -240,12 +261,13 @@
        ;; }
 
        {:name "PanAz",
-        :args [{:name "numChannels" :mode :num-outs}
-               {:name "in"}
-               {:name "pos", :default 0.0}
-               {:name "level", :default 1.0}
-               {:name "width", :default 2.0}
-               {:name "orientation", :default 0.5}]}
+        :args [{:name "numChannels" :mode :num-outs, :doc "number of output channels"}
+               {:name "in", :doc "input signal"}
+               {:name "pos", :default 0.0, :doc "pan position. Channels are evenly spaced over a cyclic period of 2.0 with 0.0 equal to the position directly in front, 2.0/numChans a clockwise shift 1/numChans of the way around the ring, 4.0/numChans equal to a shift of 2/numChans, etc. Thus all channels will be cyclically panned through if a sawtooth wave from -1 to +1 is used to modulate the pos. N.B. Front may or may not correspond to a speaker depending on the setting of the orientation arg, see below."}
+               {:name "level", :default 1.0, :doc "a control rate level input."}
+               {:name "width", :default 2.0, :doc "The width of the panning envelope. Nominally this is 2.0 which pans between pairs of adjacent speakers. Width values greater than two will spread the pan over greater numbers of speakers. Width values less than one will leave silent gaps between speakers."}
+               {:name "orientation", :default 0.5, :doc "Should be zero if the front is a vertex of the polygon. The first speaker will be directly in front. Should be 0.5 if the front bisects a side of the polygon. Then the first speaker will be the one left of center. Default is 0.5."}]
+        :doc "Multichannel equal power panner."}
 
        ;; XFade2 : XFade {
        ;;  // equal power two channel cross fade
@@ -279,7 +301,9 @@
 
        ;; TODO MAYBE? level not supported as of yet
        {:name "LinXFade2",
-        :args [{:name "inA"}
-               {:name "inB"}
-               {:name "pan", :default 0.0}]
+        :args [{:name "inA", :doc "input signal A"}
+               {:name "inB", :doc "input signal B"}
+               {:name "pan", :default 0.0, :doc "cross fade position from -1 to +1"}
+               {:name "level", :default 1.0, :doc "a control rate level input"}]
+        :doc "Two channel linear crossfader."
         :check (when-ar (first-n-inputs-ar 2))}]))
