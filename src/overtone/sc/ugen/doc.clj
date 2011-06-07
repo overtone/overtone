@@ -7,7 +7,8 @@
    [clojure.contrib.string :only (split)]))
 
 (defn- length-of-longest-key
-  "Returns the length of the longest key of map m. Assumes m's keys are strings and returns 0 if map is empty:
+  "Returns the length of the longest key of map m. Assumes m's keys are strings
+   and returns 0 if map is empty:
    (length-of-longest-key {\"foo\" 1 \"barr\" 2 \"bazzz\" 3}) ;=> 5
    (length-of-longest-key {}) ;=> 0"
 
@@ -18,7 +19,8 @@
 (defn- gen-padding
   "Generates a padding string starting concatting s with len times pad:
    (gen-padding \"\" 5 \"b\") ;=> \"bbbbb\"
-   May be called without starting string s in which case it defaults to the empty string."
+   May be called without starting string s in which case it defaults to the
+   empty string."
   ([len pad] (gen-padding "" len pad))
   ([s len pad]
      (if (> len 0)
@@ -26,9 +28,9 @@
        s)))
 
 (defn- indented-str-block
-  "Appends a list ls of strings to string s in a formatted block with a specific width max-len
-   and indentation indent. May be called with a basic text string and max-len and indent in which
-   case text will be split on whitespace."
+  "Appends a list ls of strings to string s in a formatted block with a specific
+   width max-len and indentation indent. May be called with a basic text string
+   and max-len and indent in which case text will be split on whitespace."
   ([txt max-len indent] (indented-str-block "" (split #" +" txt) 0 max-len indent))
   ([s ls cur-len max-len indent]
      (if (empty? ls)
@@ -101,16 +103,18 @@
     (merge last-resort default arg)))
 
 (defn with-arg-defaults
-  "Manipulates the spec's arg key to add documentation strings for each argument. If the doc string is
-   present it is left unmodified. Otherwise it will look up the argument in a list of default doc strings
-   for common keys. If a default is present it will add it otherwise last resort default NO-ARG-DOC-FOUND
-   will be used."
+  "Manipulates the spec's arg key to add documentation strings for each
+  argument. If the doc string is present it is left unmodified. Otherwise it
+  will look up the argument in a list of default doc strings for common keys.
+  If a default is present it will add it otherwise last resort default
+  NO-ARG-DOC-FOUND will be used."
   [spec]
   (let [new-args (map merge-arg-doc-default (:args spec))]
     (assoc spec :args new-args)))
 
 (defn with-full-doc
-  "Adds an extra key to the spec representing the full documentation string specifically prepared to be the
-   final ugen fn's docstring for printing on the REPL"
+  "Adds an extra key to the spec representing the full documentation string
+   specifically prepared to be the final ugen fn's docstring for printing on
+   the REPL"
   [spec]
   (assoc spec :full-doc (full-doc-str spec)))
