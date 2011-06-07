@@ -6,8 +6,10 @@
 
   (:use clojure.contrib.def
         clojure.stacktrace
+        overtone.doc-util
         [clojure.pprint :as pprint]
         [clojure.contrib.seq-utils :only (indexed)])
+
   (:import [java.util ArrayList Collections]
            [java.util.concurrent TimeUnit TimeoutException]))
 
@@ -187,18 +189,21 @@
   (let [arg-map (arg-mapper args arg-names default-map)]
     (vec (map arg-map arg-names))))
 
-
-
-; TODO: generate arglists and doc meta-data and attach to var
-(defmacro defunk [name args & body]
+(defmacro defunk [name docstring args & body]
   (let [arg-names (map first (partition 2 args))
         arg-keys (vec (map keyword arg-names))
         default-map (apply hash-map (syms-to-keywords args))]
-  `(defn ~name [& args#]
-     (let [{:keys [~@arg-names]}
-           (arg-mapper args# ~arg-keys ~default-map)]
-       ~@body))))
-
+    (let [arg-pairs (map #(str (first %) " " (second %)) (partition 2 args))
+          arg-pairs-str (apply str (interpose ", " arg-pairs))
+          arg-string (str "[" arg-pairs-str "]")
+          indented-doc   (indented-str-block docstring 55 2)
+          full-docstring (str arg-string "\n\n  " indented-doc)]
+      `(defn ~name
+         ~full-docstring
+         [& args#]
+         (let [{:keys [~@arg-names]}
+               (arg-mapper args# ~arg-keys ~default-map)]
+           ~@body)))))
 
 (defn invert-map
   "Takes a map m and returns a new map that's keys are the m's vals and that's
