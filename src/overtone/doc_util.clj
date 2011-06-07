@@ -2,7 +2,9 @@
     ^{:doc "Utility functions for the generation of docstrings"
       :author "Sam Aaron"}
   overtone.doc-util
-  (:use [clojure.contrib.string :only (split)]))
+  (:use
+   [clojure.contrib.string :only (split replace-re replace-str)])
+)
 
 (defn length-of-longest-key
   "Returns the length of the longest key of map m. Assumes m's keys are strings
@@ -29,7 +31,12 @@
   "Appends a list ls of strings to string s in a formatted block with a specific
    width max-len and indentation indent. May be called with a basic text string
    and max-len and indent in which case text will be split on whitespace."
-  ([txt max-len indent] (indented-str-block "" (split #" +" txt) 0 max-len indent))
+  ([txt max-len indent] (let [id (str (java.util.UUID/randomUUID))
+                              split-text (replace-re #"[\n]{2}" id txt)
+                              split-text (replace-str "\n" " " split-text)
+                              split-text (replace-str id "\n" split-text)
+                              split-text (split #" +" split-text)]
+                          (indented-str-block "" split-text 0 max-len indent)))
   ([s ls cur-len max-len indent]
      (if (empty? ls)
        s
