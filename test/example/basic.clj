@@ -8,11 +8,11 @@
         env (env-gen (perc 0.1 dur) :action :free)]
     (out 0 (pan2 (* 0.1 low env filt)))))
 
-;(dotimes [i 10]
-;  (foo (* i 220) 2)
-;  (Thread/sleep 800))
-;
-;(reset)
+;; (dotimes [i 10]
+;;   (foo (* i 220) 2)
+;;   (Thread/sleep 800))
+
+;;(stop)
 
 ; Some of the example gathered here were found on this page:
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
@@ -29,7 +29,7 @@
         audio (* amp env sig)]
     audio))
 
-;(overpad 0 62 0.5 5)
+;;(overpad 0 62 0.5 5)
 
 (def metro (metronome 128))
 
@@ -53,25 +53,22 @@
           (overpad 0 (choose notes) 0.5 0.15)))
   (apply-at (metro (inc beat)) #'player (inc beat) [(next notes)])))
 
-(player (metro) [])
+;; (player (metro) [])
+;; (stop)
 
 
-;(overpad 0 60 0.5 5)
-
-(def BEAT 425) ; ms per beat
-(def TICK (- BEAT 100))
+(def BEAT 1025) ; ms per beat
 
 (defn play-notes [t notes durs]
   (when notes
     (at t (overpad 0 (first notes) 0.5 (first durs)))
-    (apply-at #'play-notes (+ t TICK) (+ t BEAT) (next notes) durs)))
+    (apply-at  (+ t BEAT) #'play-notes [ (+ t BEAT) (next notes) (next durs)])))
 
-;(play-notes (now) [40 42 44 45 47 49 51 52] (repeat 0.4))
-;(play-notes (now) (scale :c :major) (repeat 0.05))
+;; (play-notes (now) [40 42 44 45 47 49 51 52] (repeat 0.8))
 
-;(play-notes (now) (take 50 (cycle [40 42 44 45 47 49 51 52])) (repeat 0.3))
-
-;(play-notes (now) (take 24 (drop 36 (scale :a :minor))) (repeat 0.4))
+;; (play-notes (now) (scale :c :major) (repeat 0.05))
+;; (play-notes (now) (take 50 (cycle [40 42 44 45 47 49 51 52])) (repeat 0.3))
+;; (play-notes (now) (take 24 (drop 3 (scale :a :minor))) (repeat 0.4))
 
 ; Inspired by "How do I play a chord" from Impromptu website
 (defn chord-notes []
@@ -85,20 +82,21 @@
   (let [tick (* 2 (choose [125 500 250 250 500 250 500 250]))]
     (at t (doseq [note (map #(- %  12) (chord-notes))]
             (overpad 0 note 0.3 (/ tick 1020))))
-    (apply-at #'play-chords (+ t (- tick 50)) (+ t BEAT))))
+    (apply-at (+ t BEAT) #'play-chords [(+ t BEAT)])))
+;;    (apply-at #'play-chords (+ t (- tick 50)) (+ t BEAT))))
 
-;(play-chords (now))
+;;(play-chords (now))
 
-(def kick (sample "/home/rosejn/studio/samples/kit/boom.wav"))
+(def kick (sample "/Users/iain/Music/Sounds/Drums/Kick/LIVEKICK2.WAV"))
 ;(kick)
 
 (defn looper [t dur notes]
   (at t (kick))
   (at (+ t 350) (doseq [note (chord-notes)] (overpad 0 (first notes) 0.3 0.1)))
   (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
-  (apply-at #'looper (+ t (* 0.5 dur)) (+ t dur) dur (next notes)))
+  (apply-at (+ t dur) #'looper  [(+ t dur) dur (next notes)]))
 
-;(looper (now) 500 (cycle [60 67 65 72 75 70]))
+;;(looper (now) 500 (cycle [60 67 65 72 75 70]))
 
 ; When a multiplication is done involving UGen objects, then
 ; multiply UGens will be produced with the operands as their
@@ -108,7 +106,7 @@
   []
   (* 0.2 (sin-osc 2500) (lf-pulse 5)))
 
-;(pedestrian-crossing)
+;; (pedestrian-crossing)
 
 ; You can mix signals by adding them together.  The soundcard can take audio
 ; data between -1 and 1, so if you add up signals remember to multiply
@@ -117,8 +115,8 @@
   (* 0.2
      (+ (sin-osc 200) (saw 200) (saw 203) (sin-osc 400))))
 
-;(trancy-waves)
-;(reset)
+;; (trancy-waves)
+;; (stop)
 
 (definst foo [gate 1]
   (let [env (env-gen:kr (adsr 0.2 0.8 0.2) gate 1 0 1 :free)
@@ -132,9 +130,13 @@
 (definst dial-tone [freq-a 350 freq-b 440]
   (apply + (* (sin-osc [freq-a freq-b]) 0.2)))
 
-;(dial-tone)
-;(reset)
+;; (dial-tone)
+;; (stop)
 
+;; Working up to here (except for TODO bits) 3rd May 2011
+
+
+;; TODO check this works ok
 ; Takes an input signal coming in from a selectable bus, and plays it out
 ; through a series of filters..
 (definst transmission-interference [in-bus 10]
@@ -153,9 +155,10 @@
 (defsynth trigger-finger []
   (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))
 
-(defsynth dtest []
-         (send-trig:kr (impulse:kr 2) 1 (demand:kr (impulse 0.5) 1 (dwhite))))
+;; (defsynth dtest []
+;;  (send-trig:kr (impulse:kr 2) 1 (demand:kr (impulse:kr 0.5) 1 (dwhite))))
 
+;; TODO What does (should) this do?
 ;(defsynth demander-tone [rate 3]
 ;  (let [trig (impulse:kr rate)
 ;        a (dwhite 0 15 1000)
@@ -193,7 +196,7 @@
   (with-ugens
     (* depth (sin-osc:kr freq))))
 
-(defsynth ticker [freq 2]
+(definst ticker [freq 2]
   (* (sin-osc 440) (env-gen (perc 0.1 0.2) (sin-osc:kr freq))))
 
 (defsynth sizzle [bus 0 amp 0.4 depth 10 freq 220 lfo 8]
@@ -203,7 +206,7 @@
 (defsynth line-two [bus 0]
   (out bus (* (sin-osc [480 440]) (lf-pulse 1/6 0 1/3))))
 
-(defsynth busy-signal []
+(definst busy-signal []
   (let [on-off (lpf (lf-pulse 2) 100)]
     (* 0.2
        (apply + (* (sin-osc [480 620]) on-off)))))
@@ -222,10 +225,10 @@
                  0 [770, 1633]
                  \# [852, 1633]})
 
-(defsynth dtmf [freq-a 770 freq-b 1633 gate 1]
+(definst dtmf [freq-a 770 freq-b 1633 gate 1]
   (let [sig (* 0.2 (+ (sin-osc freq-a) (sin-osc freq-b)))
         env (env-gen (asr 0.001 1 0.001) gate 1 0 1 :free)]
-    (out 0 (pan2 (* sig env)))))
+    (* sig env)))
 
 (defn dial-number [num-seq]
   (loop [t (now)
@@ -235,17 +238,20 @@
             t-off (+ t-on 160 (rand-int 80))
             [a b] (get DTMF-TONES (first nums))]
         (at t-on (dtmf a b))
-        (at t-off (dtmf :ctl :gate 0))
+        (at t-off (ctl dtmf :gate 0))
         (recur t-off (next nums))))))
 
 ; Try this:
-;(dial-number [0 6 2 1 2 2 4 2 9 8])
+;;(dial-number [0 6 2 1 2 2 4 2 9 8])
 
 ; The done ugen can act as a flag for the completion of envelopes and other ugens that
 ; have a done action.  Listen to the noise come on after the 2 second sine wave.
 (defsynth done-trigger []
   (let [line (line:kr 1 0 2)]
-    (* 0.1 (+ (* line (sin-osc 440)) (* (done line) (white-noise))))))
+    (out 0 (pan2 (* 0.3 (+ (* line (sin-osc 440)) (* (done line) (white-noise))))))))
+
+
+
 
 ;(defsynth two-tone-alarm []
 ;  (let [t1 (sin-osc 600)
@@ -265,4 +271,34 @@
 ;                out = Select.ar(MouseX.kr(0,4).poll, operations);
 ;                Pan2.ar(out * 0.1)
 ;              }).play
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

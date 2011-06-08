@@ -287,15 +287,24 @@
   [degrees]
   (map #(if (keyword? %) (DEGREE %) %) degrees))
 
+;; (defn scale
+;;   ([root scale-name] (scale root scale-name (range 1 8) 4))
+;;   ([root scale-name degrees] (scale root scale-name degrees 4))
+;;   ([root scale-name degrees octave]
+;;      (let [;;root (resolve-note root)
+;;            ;;root (NOTE root)
+;;            degrees (resolve-degrees degrees)
+;;            scale (resolve-scale scale-name)
+;;            ;;base (octave-note octave root)
+;;            base (octave-note octave (NOTE root))]
+;;        (map #(+ % base) scale))))
 (defn scale
   ([root scale-name] (scale root scale-name (range 1 8) 4))
   ([root scale-name degrees] (scale root scale-name degrees 4))
   ([root scale-name degrees octave]
-     (let [root (resolve-note root)
-           degrees (resolve-degrees degrees)
-           scale (resolve-scale scale-name)
-           base (octave-note octave root)]
-       (map #(+ % base) scale))))
+     (let [degrees (resolve-degrees degrees)
+           base (octave-note octave (NOTE root))]
+       (map #(+ (nth-interval scale-name %) base) degrees))))
 
 (def CHORD
   (let [major  #{0 4 7}
