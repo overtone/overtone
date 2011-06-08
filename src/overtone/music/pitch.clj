@@ -288,14 +288,17 @@
   (map #(if (keyword? %) (DEGREE %) %) degrees))
 
 (defn scale
-  ([root scale-name] (scale root scale-name (range 1 8) 4))
-  ([root scale-name degrees] (scale root scale-name degrees 4))
-  ([root scale-name degrees octave]
+  "Returns a list of notes for the specified scale. The root must be in
+   midi note format i.e. :C4 or :Bb4
+
+   (scale :c4 :major)  ; c major      -> (60 62 64 65 67 69 71 72)
+   (scale :Bb4 :minor) ; b flat minor -> (70 72 73 75 77 78 80 82)"
+
+  ([root scale-name] (scale root scale-name (range 1 8)))
+  ([root scale-name degrees]
      (let [root (resolve-note root)
-           degrees (resolve-degrees degrees)
-           scale (resolve-scale scale-name)
-           base (octave-note octave root)]
-       (map #(+ % base) scale))))
+           degrees (resolve-degrees degrees)]
+       (cons root (map #(+ root (nth-interval scale-name %)) degrees)))))
 
 (def CHORD
   (let [major  #{0 4 7}
