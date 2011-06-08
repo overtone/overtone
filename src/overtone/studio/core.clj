@@ -183,6 +183,11 @@
          s-player# (synth-player sname# param-names#)
          player# (fn [& play-args#]
                    (let [ins# (get @instruments* sname#)
+                         play-args# (if (and
+                                          (= 1 (count play-args#))
+                                          (map? (first play-args#)))
+                                      (flatten (seq (first play-args#)))
+                                      play-args#)
                          pargs# (concat play-args# [:out-bus (:out-bus ins#)])]
                      (apply s-player#
                             :tgt (:group ins#)
@@ -230,9 +235,10 @@
          (connected?))
   (dosync (ref-set inst-group* (group :head ROOT-GROUP))))
 
-(defonce session* (ref {:metro (metronome 120)
-                    :tracks {}
-                    :playing false}))
+(defonce session* (ref
+                    {:metro (metronome 120)
+                     :tracks {}
+                     :playing false}))
 
 (defn track [tname inst]
   (let [t {:type :track
@@ -241,32 +247,43 @@
            :note-fn nil}]
     (dosync (alter session* assoc-in [:tracks tname] t))))
 
+(defn remove-track
+  [tname]
+  (dosync (alter session* dissoc-in [:tracks] tname)))
+
 (defn track-fn [tname f]
   (dosync (alter session* assoc-in [:tracks tname :note-fn] f)))
 
 (defn remove-track-fn [tname]
-  (dosync (alter session* dissoc-in [:tracks tname :note-fn])))
+  (dosync (alter session* dissoc-in [:tracks tname] :note-fn)))
 
 (defn session-metro [m]
   (dosync (alter session* assoc :metro m)))
 
-(defn- session-player [beat]
-  (when (:playing @session*)
-    (let [{:keys [metro tracks]} @session*
-          tick (metro beat)
-          next-beat (inc beat)
-          next-tick (metro next-beat)]
-      (format "tick: %f\nnext: %d\nnext-tick: %f" tick next-beat next-tick)
-      (at tick
-        (doseq [[_ {:keys [inst note-fn]}] tracks]
-          (if note-fn
-            (if-let [args (note-fn)]
-              (apply inst args)))))
-      (apply-at next-tick #'session-player [next-beat]))))
+(defn track-start
+  [t]
+  )
 
-(defn session-play []
-  (dosync (alter session* assoc :playing true))
-  (session-player ((:metro @session*))))
+(defn track-stop
+  [t]
+  )
+
+;(def m (:metro @session*))
+;(f m (m) kick)
+
+(defn playing?
+  []
+  (:playing @session*))
+
+(defn session-play
+  "Call the player functions for all tracks with the session metronome,
+  and the appropriate track instrument."
+  []
+  (let [metro (:metro @session*)
+        beat (inc (metro))]
+    (dosync (alter session* assoc :playing true))
+    (doseq [[_ t] (:tracks @session*)]
+      ((:note-fn t) metro beat (:inst t)))))
 
 (defn session-stop []
   (dosync (alter session* assoc :playing false)))

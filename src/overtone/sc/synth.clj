@@ -270,7 +270,10 @@
   "
   [sname arg-names]
   (fn [& args]
-    (let [[args sgroup] (if (or (= :target (first args))
+    (let [args (if (map? args)
+                 (flatten (seq args))
+                 args)
+          [args sgroup] (if (or (= :target (first args))
                                 (= :tgt    (first args)))
                           [(drop 2 args) (second args)]
                           [args @synth-group*])
