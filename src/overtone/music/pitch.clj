@@ -372,8 +372,8 @@
     chord))
 
 (defn chord
-  "Returns a set of notes for the specified chord at the specified octave
-  (defaulting to 4).
+  "Returns a set of notes for the specified chord. The root must be in midi note
+  format i.e. :C3.
 
   (chord :c3 :major)  ; c major           -> #{60 64 67}
   (chord :a4 :minor)  ; a minor           -> #{57 60 64}
