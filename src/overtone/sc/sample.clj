@@ -30,12 +30,15 @@
         start (get arg-map :start 0)
         n-frames (get arg-map :n-frames 0)
         ready (atom :loading)
+        info (atom {})
         sample (with-meta {:id id
-                           :size n-frames
                            :path path
+                           :info info
                            :ready? ready}
                           {:type ::sample})]
-    (on-done "/b_allocRead" #(reset! ready true))
+    (on-done "/b_allocRead" #(do
+                               (reset! ready true)
+                               (reset! info (buffer-info id))))
     (snd "/b_allocRead" id path start n-frames)
     (dosync (alter loaded-samples* assoc [path args] sample))
     sample))

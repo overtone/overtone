@@ -9,12 +9,15 @@
 ; support to the bit allocator too...
 ; size is in samples
 (defn buffer
-  "Allocate a new buffer for storing audio data."
+  "Allocate a new zero filled buffer for storing audio data with the specified size and num-channels."
   ([size] (buffer size 1))
   ([size num-channels]
      (let [id     (alloc-id :audio-buffer)
-           ready? (atom false)]
-       (on-done "/b_alloc" #(reset! ready? true))
+           ready? (atom false)
+           info   (atom {})]
+       (on-done "/b_alloc" #(do
+                              (reset! ready? true)
+                              (reset! info (buffer-info id))))
        (snd "/b_alloc" id size num-channels)
        (with-meta {:id id
                    :size size
@@ -133,6 +136,10 @@
                     :id buf-id}
       {:type ::buffer-info})))
 
+;;TODO Check to see if this can be removed
 (defn sample-info [s]
   (buffer-info (:buf s)))
 
+(defn num-frames
+  [buf]
+  (:n-frames  @(:info buf)))
