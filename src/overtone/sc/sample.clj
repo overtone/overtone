@@ -49,6 +49,12 @@
     ; load a sample a
     (load-sample \"/home/rosejn/studio/samples/kit/boom.wav\")
 
+  Takes optional params :start and :size. Allocates buffer to number of channels
+  of file and number of samples requested (:size), or fewer if sound file is
+  smaller than requested. Reads sound file data from the given starting frame
+  in the file (:start). If the number of frames argument is less than or equal
+  to zero, the entire file is read.
+
   "
   [path & args]
   (dosync (alter loaded-samples* assoc [path args] nil))
