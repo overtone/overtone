@@ -344,3 +344,54 @@
 ;;Synth("PMCrotale", ["midi", rrand(48, 72).round(1), "tone", rrand(1, 6)])
 
 (pmc-rotale :midi (ranged-rand 48 72) :tone (ranged-rand 1 6))
+
+
+;;Page 25
+;;
+;;~houston = Buffer.read(s, "sounds/a11wlk01-44_1.aiff");
+;;~chooston = Buffer.read(s, "sounds/a11wlk01.wav");
+;;
+;;{PlayBuf.ar(1, ~houston)}.play;
+;;{PlayBuf.ar(1, ~chooston)}.play;
+
+
+;;this assumes you have a separate install of SuperCollider and
+;;you're running OS X. Feel free to change the following audio paths
+;;to any other audio file on your disk...
+
+(def houston (load-sample "/Applications/SuperCollider/sounds/a11wlk01-44_1.aiff"))
+(def chooston (load-sample "/Applications/SuperCollider/sounds/a11wlk01.wav"))
+
+(demo 4 (play-buf 1 houston))
+(demo 5 (play-buf 1 chooston))
+
+
+;;Page 26
+;;
+;;[~houston.bufnum, ~houston.numChannels, ~houston.path, ~houston.numFrames];
+;;[~chooston.bufnum, ~chooston.numChannels, ~chooston.path, ~chooston.numFrames];
+
+;;samples are represented as standard clojure maps
+houston
+chooston
+
+
+
+;;(
+;;{
+;;        var rate, trigger, frames;
+;;        frames = ~houston.numFrames;
+;;
+;;        rate = [1, 1.01];
+;;        trigger = Impulse.kr(rate);
+;;        PlayBuf.ar(1, ~houston, 1, trigger, frames * Line.kr(0, 1, 60)) *
+;;        EnvGen.kr(Env.linen(0.01, 0.96, 0.01), trigger) * rate;
+;;}.play
+;;)
+
+(demo 60 (let [frames (num-frames houston)
+              rate   [1 1.01]
+              trigger (impulse:kr rate)
+              src (play-buf 1 houston 1 trigger (* frames (line:kr 0 1 60)))
+              env (env-gen:kr (lin-env 0.01 0.96 0.01) trigger)]
+          (* src env rate)))
