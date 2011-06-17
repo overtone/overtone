@@ -3,6 +3,8 @@
     [overtone util]
     [overtone.sc core allocator]))
 
+(declare buffer-info)
+
 ;; ## Buffer functions
 ;;
 ; TODO: Look into multi-channel buffers.  Probably requires adding multi-id allocation
