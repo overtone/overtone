@@ -8,7 +8,7 @@
    clojure.contrib.pprint
    overtone.sc.ugen.defaults
    [overtone util]
-   [overtone.sc buffer]
+   [overtone.sc buffer bus]
    [overtone.sc.ugen special-ops common categories]
    [clojure.contrib.types :only (deftype)]
    [clojure.contrib.generic :only (root-type)])
@@ -266,6 +266,14 @@
              (fn [args]
                (map #(if (buffer? %) (:id %) %) args))))
 
+(defn- bus->id
+  "Returns a function that converts any bus arguments to their :id property
+  value."
+  [ugen]
+  (update-in ugen [:args]
+             (fn [args]
+               (map #(if (bus? %) (:id %) %) args))))
+
 (defn- with-init-fn
   "Creates the final argument initialization function which is applied to
   arguments at runtime to do things like re-ordering and automatic filling in
@@ -292,6 +300,7 @@
                  n-outputer
                  floater
                  buffer->id
+                 bus->id
                  appender
                  auto-rater
                  rate-checker)))))
@@ -623,5 +632,3 @@
      ~@body))
 
 (load "ugen/extra")
-
-

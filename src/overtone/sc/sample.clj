@@ -30,12 +30,15 @@
         start (get arg-map :start 0)
         n-frames (get arg-map :n-frames 0)
         ready (atom :loading)
+        info (atom {})
         sample (with-meta {:id id
-                           :size n-frames
                            :path path
+                           :info info
                            :ready? ready}
                           {:type ::sample})]
-    (on-done "/b_allocRead" #(reset! ready true))
+    (on-done "/b_allocRead" #(do
+                               (reset! ready true)
+                               (reset! info (buffer-info id))))
     (snd "/b_allocRead" id path start n-frames)
     (dosync (alter loaded-samples* assoc [path args] sample))
     sample))
@@ -45,6 +48,12 @@
 
     ; load a sample a
     (load-sample \"/home/rosejn/studio/samples/kit/boom.wav\")
+
+  Takes optional params :start and :size. Allocates buffer to number of channels
+  of file and number of samples requested (:size), or fewer if sound file is
+  smaller than requested. Reads sound file data from the given starting frame
+  in the file (:start). If the number of frames argument is less than or equal
+  to zero, the entire file is read.
 
   "
   [path & args]

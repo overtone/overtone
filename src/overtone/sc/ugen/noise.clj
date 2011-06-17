@@ -83,7 +83,7 @@
 
       {:name "LFClipNoise"
        :args [{:name "freq", :default 500.0}]
-       :rates #{:ar}
+       :rates #{:ar :kr}
        :doc "Randomly generates the values -1 or +1 at a rate given by the nearest integer division of the sample rate by the freq argument. It is probably pretty hard on your speakers!"}
 
 
@@ -140,7 +140,7 @@
 
       {:name "LFDClipNoise"
        :args [{:name "freq", :default 500.0}]
-       :rates #{:ar}
+       :rates #{:ar :kr}
        :doc "Like LFClipNoise, it generates the values -1 or +1 at a rate given
   by the freq argument,  with two differences:
 
