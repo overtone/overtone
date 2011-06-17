@@ -280,7 +280,9 @@
                           [args :tail])
           player        #(node sname % {:target sgroup :position pos})
           args          (map #(if (or (isa? (type %) :overtone.sc.buffer/buffer)
-                                      (isa? (type %) :overtone.sc.sample/sample))
+                                      (isa? (type %) :overtone.sc.sample/sample)
+                                      (isa? (type %) :overtone.sc.bus/audio-bus)
+                                      (isa? (type %) :overtone.sc.bus/control-bus))
                                 (:id %) %) args)
 
           arg-map       (arg-mapper args arg-names {})
