@@ -43,7 +43,7 @@
   [b]
   (case (type b)
     :audio-bus   (free-id :audio-bus (:id b))
-    :control-bus (free-id :audio-bus (:id b))))
+    :control-bus (free-id :control-bus (:id b))))
 
 ; Reserve the first 11 busses for audio I/O and mixer, forever.
 (dotimes [i 11]
