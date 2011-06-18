@@ -334,7 +334,8 @@
                               :sdef sdef#
                               :doc "User defined synth..."
                               :player player#
-                              :args arg-names#}
+                              :args arg-names#
+                              :type ::synth}
                              player#)]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
