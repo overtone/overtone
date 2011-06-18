@@ -395,3 +395,141 @@ chooston
               src (play-buf 1 houston 1 trigger (* frames (line:kr 0 1 60)))
               env (env-gen:kr (lin-env 0.01 0.96 0.01) trigger)]
           (* src env rate)))
+
+;; note how the envelope is used to stop clicking between segments. Contrast with the following
+
+(demo 5 (let [frames (num-frames houston)
+              rate   [1 1.01]
+              trigger (impulse:kr rate)
+              src (play-buf 1 houston 1 trigger (* frames (line:kr 0 1 60)))]
+          (* src rate)))
+
+;;( // speed and direction change
+;;{
+;;        var speed, direction;
+;;        speed = LFNoise0.kr(12) * 0.2 + 1;
+;;        direction = ]LFClipNoise.kr(1/3);
+;;        PlayBuf.ar(1, ~houston, (speed * direction), loop: 1);
+;;}.play
+;;)
+
+(demo 5 (let [speed     (+ 1 (* 0.2 (lf-noise0:kr 12)))
+              direction (lf-clip-noise:kr 1/3)]
+          (play-buf 1 houston (* speed direction) :loop 1)))
+
+
+;; Page 27
+
+;;( // if these haven't been used they will hold 0
+;;~kbus1 = Bus.control; // a control bus
+;;~kbus2 = Bus.control; // a control bus
+;;{
+;;        var speed, direction;
+;;        speed = In.kr(~kbus1, 1) * 0.2 + 1;
+;;        direction = In.kr(~kbus2);
+;;        PlayBuf.ar(1, ~chooston, (speed * direction), loop: 1);
+;;}.play
+;;)
+;;
+;;(
+;;// now start the controls
+;;{Out.kr(~kbus1, LFNoise0.kr(12))}.play;
+;;{Out.kr(~kbus2, LFClipNoise.kr(1/4))}.play;
+;;)
+;;// Now start the second buffer with the same control input buses,
+;;// but send it to the right channel using Out.ar(1 etc.
+;;
+;;(
+;;{
+;;        var speed, direction;
+;;        speed = In.kr(~kbus1, 1) * 0.2 + 1;
+;;        direction = In.kr(~kbus2);
+;;        Out.ar(1, PlayBuf.ar(1, ~houston, (speed * direction), loop: 1));
+;;}.play;
+;;)
+
+(def kbus1 (control-bus))
+(def kbus2 (control-bus))
+
+(defsynth src []
+  (let [speed (+ 1 (* 0.2 (in:kr kbus1 1)))
+        direction (in:kr kbus2)]
+    (out 0 (play-buf 1 chooston (* speed direction) :loop 1))))
+
+(defsynth control1 []
+  (out:kr kbus1 (lf-noise0:kr 12)))
+
+(defsynth control2 []
+  (out:kr kbus2 (lf-clip-noise:kr 1/4)))
+
+(defsynth player []
+  (let [speed (+ 1 (* 0.2 (in:kr kbus1 1)))
+        direction (in:kr kbus2)]
+    (out 1 (play-buf 1 houston (* speed direction) :loop 1))))
+
+(do
+  (src)
+  (control1)
+  (control2)
+  (player))
+
+(stop)
+
+
+;; Page 28
+
+;;~kbus3 = Bus.control;
+;;~kbus4 = Bus.control;
+;;{Out.kr(~kbus3, SinOsc.kr(3).range(340, 540))}.play;
+;;{Out.kr(~kbus4, LFPulse.kr(6).range(240, 640))}.play;
+;;SynthDef("Switch", {arg freq = 440; Out.ar(0, SinOsc.ar(freq, 0, 0.3))}).add
+;;x = Synth("Switch");
+;;x.map(\freq, ~kbus3)
+;;x.map(\freq, ~kbus4)
+
+(def kbus3 (control-bus))
+(def kbus4 (control-bus))
+
+(defsynth wave-ctl [] (out:kr kbus3 (lin-lin (sin-osc:kr 1) -1 1 140 740)))
+(defsynth pulse-ctl [] (out:kr kbus4 (lin-lin (sin-osc:kr 1) -1 1 240 640)))
+
+(defsynth switch [freq 440]
+  (out 0 (sin-osc freq 0 0.3)))
+
+(definst foo [] (sin-osc 440))
+
+(keys foo)
+(type kbus4)
+
+(:type foo)
+(keys switch)
+
+(:type switch)
+
+(:ugens :group :args :player :name :sdef :out-bus :fx-chain :type :doc)
+
+(defn node-id [node]
+  (let [id (if (inst? node) (:group node) node)]
+    (if-not (integer? id)
+      (throw (Exception. (str "The following node id is not an integer:" id))))))
+
+(defn make-foo [s]
+  (reify clojure.lang.IFn
+    (invoke [this] (str "Hello, " s))))
+
+(def s (switch))
+(def w (wave-ctl))
+(def p (pulse-ctl))
+
+(defn map-ctl [node control control-bus]
+  (let [n-id ]))
+
+(snd "/n_map" s "freq" (:id kbus4))
+(parents {})
+
+(def foo [a]
+  (if-let [b ()]))
+
+
+
+(stop)
