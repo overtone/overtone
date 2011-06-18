@@ -25,10 +25,10 @@
    :control-bus  (mk-bitset MAX-NODES)})
 
 (defonce allocator-limits
-  {:node    MAX-NODES
-   :sdefs     MAX-SDEFS
-   :audio-bus   MAX-AUDIO-BUS
-   :control-bus MAX-CONTROL-BUS})
+  {:node         MAX-NODES
+   :audio-buffer MAX-BUFFERS
+   :audio-bus    MAX-AUDIO-BUS
+   :control-bus  MAX-CONTROL-BUS})
 
 (defn- fill-gaps
   "Fill a given vector bs with size consecutive vals from idx"
@@ -42,7 +42,7 @@
 
 (defn- find-gap
   [bs size idx gap-found limit]
-  (if (> idx limit)
+  (when (> idx limit)
     (throw (Exception. (str "No more ids! Unable to allocate a sequence of ids of length" size))))
   (if (= gap-found size)
     (- idx gap-found)
@@ -55,6 +55,10 @@
   ([k size]
      (let [bits  (get allocator-bits k)
            limit (get allocator-limits k)]
+       (when-not bits
+         (throw (Exception. (str "Unable to get allocator bits for keyword " k))))
+       (when-not limit
+         (throw (Exception. (str "Unable to get allocator limit for keyword " k))))
        (dosync
         (let [id (find-gap @bits size 0 0 limit)]
           (alter bits fill-gaps id size true)
