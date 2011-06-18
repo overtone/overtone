@@ -25,6 +25,25 @@
     (:id val)
     val))
 
+(defn node-id
+  "Resolves the id of node. If it's an instrument, returns the group id, else
+  just returns the node unchanged. Throws an exception if the id isn't an
+  integer"
+  [node]
+  (let [id (if   (and (associative? node)
+                      (= ::instrument (:type node))) (:group node) node)]
+    (if-not (integer? id)
+      (throw (Exception. (str "The following node id is not an integer:" id)))
+      id)))
+
+(defn map-ctl
+  "Maps node's control param to the values in the control-bus"
+  [node control control-bus]
+  (let [n-id (node-id node)
+        ctl (to-str control)
+        bus (bus->id control-bus)]
+    (snd "/n_map" n-id ctl bus)))
+
 (defn- map-and-check-node-args
   [arg-map]
   (let [name-fn (fn [name]
