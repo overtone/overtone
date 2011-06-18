@@ -475,7 +475,6 @@ chooston
 
 (stop)
 
-
 ;; Page 28
 
 ;;~kbus3 = Bus.control;
@@ -487,49 +486,23 @@ chooston
 ;;x.map(\freq, ~kbus3)
 ;;x.map(\freq, ~kbus4)
 
-(def kbus3 (control-bus))
-(def kbus4 (control-bus))
+(do
 
-(defsynth wave-ctl [] (out:kr kbus3 (lin-lin (sin-osc:kr 1) -1 1 140 740)))
-(defsynth pulse-ctl [] (out:kr kbus4 (lin-lin (sin-osc:kr 1) -1 1 240 640)))
+  (def kbus3 (control-bus))
+  (def kbus4 (control-bus))
 
-(defsynth switch [freq 440]
-  (out 0 (sin-osc freq 0 0.3)))
+  (defsynth wave-ctl [] (out:kr kbus3 (lin-lin (sin-osc:kr 1) -1 1 140 740)))
+  (defsynth pulse-ctl [] (out:kr kbus4 (lin-lin (sin-osc:kr 1) -1 1 240 640)))
 
-(definst foo [] (sin-osc 440))
+  (defsynth switch [freq 440]
+    (out 0 (sin-osc freq 0 0.3)))
 
-(keys foo)
-(type kbus4)
+  (def s (switch))
+  (def w (wave-ctl))
+  (def p (pulse-ctl)))
 
-(:type foo)
-(keys switch)
-
-(:type switch)
-
-(:ugens :group :args :player :name :sdef :out-bus :fx-chain :type :doc)
-
-(defn node-id [node]
-  (let [id (if (inst? node) (:group node) node)]
-    (if-not (integer? id)
-      (throw (Exception. (str "The following node id is not an integer:" id))))))
-
-(defn make-foo [s]
-  (reify clojure.lang.IFn
-    (invoke [this] (str "Hello, " s))))
-
-(def s (switch))
-(def w (wave-ctl))
-(def p (pulse-ctl))
-
-(defn map-ctl [node control control-bus]
-  (let [n-id ]))
-
-(snd "/n_map" s "freq" (:id kbus4))
-(parents {})
-
-(def foo [a]
-  (if-let [b ()]))
-
-
+;;try evaling these
+(map-ctl s :freq kbus3)
+(map-ctl s :freq kbus4)
 
 (stop)
