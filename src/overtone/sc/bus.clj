@@ -25,7 +25,7 @@
   "Allocate one ore more control busses."
   ([] (control-bus 1))
   ([n-channels]
-   (let [id (alloc-id :control-bus)]
+   (let [id (alloc-id :control-bus n-channels)]
      (with-meta {:id id
                  :n-channels n-channels
                  :rate :control}
@@ -35,7 +35,7 @@
   "Allocate one ore more audio busses."
   ([] (audio-bus 1))
   ([n-channels]
-   (let [id (alloc-id :audio-bus)]
+   (let [id (alloc-id :audio-bus n-channels)]
      (with-meta {:id id
                  :n-channels n-channels
                  :rate :audio}
@@ -44,8 +44,8 @@
 (defn free-bus
   [b]
   (case (type b)
-    ::audio-bus   (free-id :audio-bus (:id b))
-    ::control-bus (free-id :control-bus (:id b))))
+    ::audio-bus   (free-id :audio-bus (:id b) (:n-channels b))
+    ::control-bus (free-id :control-bus (:id b) (:n-channels b))))
 
 ; Reserve the first 11 busses for audio I/O and mixer, forever.
 (dotimes [i 11]
