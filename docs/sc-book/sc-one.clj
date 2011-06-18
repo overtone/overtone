@@ -434,7 +434,7 @@ chooston
 ;;(
 ;;// now start the controls
 ;;{Out.kr(~kbus1, LFNoise0.kr(12))}.play;
-;;{Out.kr(~kbus2, LFClipNoise.kr(1/4))}.play;
+#;;{Out.kr(~kbus2, LFClipNoise.kr(1/4))}.play;
 ;;)
 ;;// Now start the second buffer with the same control input buses,
 ;;// but send it to the right channel using Out.ar(1 etc.
@@ -491,7 +491,7 @@ chooston
   (def kbus3 (control-bus))
   (def kbus4 (control-bus))
 
-  (defsynth wave-ctl [] (out:kr kbus3 (lin-lin (sin-osc:kr 1) -1 1 140 740)))
+  (defsynth wave-ctl [] (out:kr kbus3 (lin-lin (sin-osc:kr 1) -1 1 340 540)))
   (defsynth pulse-ctl [] (out:kr kbus4 (lin-lin (sin-osc:kr 1) -1 1 240 640)))
 
   (defsynth switch [freq 440]
@@ -504,5 +504,91 @@ chooston
 ;;try evaling these
 (map-ctl s :freq kbus3)
 (map-ctl s :freq kbus4)
+
+(stop)
+
+
+;; Page 29
+
+;;(
+;;{
+;;        Out.ar(0,
+;;            Pan2.ar( PlayBuf.ar(1, ~houston, loop: 1) *
+;;                SinOsc.ar(LFNoise0.kr(12, mul: 500, add: 600)),
+;;            0.5)
+;;        )
+;;}.play
+;;)
+
+(demo 10 (pan2 (* (play-buf 1 houston :loop 1)
+                  (sin-osc (+ 600 (* 500 (lf-noise0:kr 12)))))
+               0.5))
+
+;;
+;;(
+;;{
+;;        var source, delay;
+;;        source = PlayBuf.ar(1, ~chooston, loop: 1);
+;;        delay = AllpassC.ar(source, 2, [0.65, 1.15], 10);
+;;        Out.ar(0, Pan2.ar(source) + delay)
+;;}.play
+;;)
+
+(demo 10 (let [source (play-buf 1 chooston :loop 1)
+               delay (allpass-c source 2 [0.65 1.15] 10)]
+           (+ delay (pan2 source))))
+
+
+;;//Create and name buses
+;;~delay = Bus.audio(s, 2);
+;;~mod = Bus.audio(s, 2);
+;;~gate = Bus.audio(s, 2);
+;;~k5 = Bus.control;
+;;
+;;~controlSyn= {Out.kr(~k5, LFNoise0.kr(4))}.play //start the control
+;;
+;;// Start the last item in the chain, the delay
+;;~delaySyn = {Out.ar(0, AllpassC.ar(In.ar(~delay, 2), 2, [0.65, 1.15], 10))}.play(~controlSyn, addAction: \addAfter);
+;;
+;;// Start the next to last item, the modulation
+;;~modSyn = {Out.ar(~delay, In.ar(~mod, 2) * SinOsc.ar(In.kr(~k5) * 500 + 1100))}.play(~delaySyn, addAction: \addBefore);
+;;
+;;//Start the third to last item, the gate
+;;~gateSyn = {Out.ar([0, ~mod], In.ar(~gate, 2) * max(0, In.kr(~k5)))}.play(~modSyn, addAction: \addBefore);
+;;
+;;//make a group for the PlayBuf synths at the head of the chain
+;;~pbGroup = Group.before(~controlSyn);
+;;
+;;// Start one buffer. Since we add to the group, we know where it will go
+;;{Out.ar(~gate, Pan2.ar(PlayBuf.ar(1, ~houston, loop: 1), 0.5))}.play(~pbGroup);
+;;
+;;// Start the other
+;;{Out.ar(~gate, Pan2.ar(PlayBuf.ar(1, ~chooston, loop: 1), -0.5))}.play(~pbGroup);
+
+(do
+  (def delay-b (audio-bus 2))
+  (def mod-b (audio-bus 2))
+  (def gate-b (audio-bus 2))
+  (def k5-b (control-bus))
+
+  (defsynth control-syn [] (out:kr k5-b (lf-noise0:kr 4)))
+  (def c-syn (control-syn))
+
+  (defsynth delay-syn [] (out:ar 0 (allpass-c (in delay-b 2) 2 [0.65 1.15] 10)))
+  (def d-syn (delay-syn :pos :after :tgt c-syn))
+
+  (defsynth mod-syn [] (out delay-b (* (in mod-b 2) (sin-osc (+ 1100 (* 500 (in:kr k5-b)))))))
+  (def m-syn (mod-syn :pos :before :tgt d-syn))
+
+  (defsynth gate-syn [] (out [0 mod-b] (* (in gate-b 2) (maximum 0 (in:kr k5-b)))))
+  (def g-syn (gate-syn :pos :before :tgt m-syn ))
+
+  (def pb-group (group :before c-syn))
+
+  (defsynth hous [] (out gate-b (pan2 (play-buf 1 houston :loop 1) 0.5)))
+  (defsynth choos [] (out gate-b (pan2 (play-buf 1 chooston :loop 1) -0.5))))
+
+(hous :tgt pb-group)
+(choos :tgt pb-group)
 
 (stop)
