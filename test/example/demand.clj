@@ -1,5 +1,6 @@
 (ns example.demand
   (:use overtone.core))
+
 ; Play a sequence of notes, where the demand ugen pulls them
 ; each time it gets a trigger.
 (demo 2

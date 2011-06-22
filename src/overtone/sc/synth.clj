@@ -284,7 +284,7 @@
           [args sgroup] (if (or (= :target (first args))
                                 (= :tgt    (first args)))
                           [(drop 2 args) (second args)]
-                          [args @synth-group*])
+                          [args sgroup])
           player        #(node sname % {:position pos :target sgroup })
           args          (map #(if (or (isa? (type %) :overtone.sc.buffer/buffer)
                                       (isa? (type %) :overtone.sc.sample/sample)

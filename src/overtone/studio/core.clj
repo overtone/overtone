@@ -163,14 +163,6 @@
              [vol-ugen out-ugen])
      (set (floatify (conj constants MIXER-BUS 1 0)))]))
 
-;    (if (and (ugen? root)
-;             (or (= 0 (:n-outputs root))
-;                 (OUTPUT-UGENS (:name root))
-;                 (= :kr (get REVERSE-RATES (:rate root)))))
-;      [params ugens constants]
-;          (let [pan-chans (pan2 root)
-;                pan (:ugen (first pan-chans))]
-
 (defmacro inst [sname & args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)
          [params# ugens# constants#] (inst-prefix params# ugens# constants#)
