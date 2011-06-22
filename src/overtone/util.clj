@@ -58,17 +58,6 @@
   [col]
   (map to-float col))
 
-(defn choose
-  "Choose a random element from a collection."
-  [col]
-  (nth col (rand-int (count col))))
-
-;(defn shuffle
-;  "Shuffle a collection, returns a seq."
-;  [coll]
-;  (let [l (ArrayList. coll)]
-;    (Collections/shuffle l)
-;    (seq l)))
 
 ; Now available in recent Clojure versions as of Nov. 29, 2009...
 ;(defn byte-array [len]
@@ -262,30 +251,3 @@
   ([prom] (await-promise! prom DEFAULT-PROMISE-TIMEOUT))
   ([prom timeout]
      (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
-
-
-(defn scale-range
-  "Scales a given input value within the specified input range to a corresponding value in the specified
-   output range using the formula:
-
-           (out-max - out-min) (x - in-min)
-   f (x) = --------------------------------  + out-min
-                    in-max - in-min
-
-
-  The result will be limited to the specified out range. So if the result of f(x) is greater than out-max
-  it is reduced to out-max.
-
-  in-min must be less than in-max and out-min must be less than out-max"
-
-  [x in-min in-max out-min out-max]
-  (letfn [(scale [x] (+ (/ (* (- out-max out-min) (- x in-min)) (- in-max in-min)) out-min))]
-    (let [result (scale x)
-          result (if (< result out-min) out-min result)
-          result (if (> result out-max) out-max result)]
-      result)))
-
-(defn ranged-rand
-  "Returns a random value within the specified range"
-  [min max]
-  (scale-range (rand) 0 1 min max))

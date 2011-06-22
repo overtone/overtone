@@ -25,6 +25,25 @@
     (:id val)
     val))
 
+(defn node-id
+  "Resolves the id of node. If it's an instrument, returns the group id, else
+  just returns the node unchanged. Throws an exception if the id isn't an
+  integer"
+  [node]
+  (let [id (if   (and (associative? node)
+                      (= ::instrument (:type node))) (:group node) node)]
+    (if-not (integer? id)
+      (throw (Exception. (str "The following node id is not an integer:" id)))
+      id)))
+
+(defn map-ctl
+  "Maps node's control param to the values in the control-bus"
+  [node control control-bus]
+  (let [n-id (node-id node)
+        ctl (to-str control)
+        bus (bus->id control-bus)]
+    (snd "/n_map" n-id ctl bus)))
+
 (defn- map-and-check-node-args
   [arg-map]
   (let [name-fn (fn [name]
@@ -58,7 +77,7 @@
   (node \"foo\")
   (node \"foo\" {:pitch 60})
   (node \"foo\" {:pitch 60} {:target 0})
-  (node \"foo\" {:pitch 60} {:target 2 :position :tail})
+  (node \"foo\" {:pitch 60} {:position :tail :target 2})
   "
   ([synth-name arg-map] (node synth-name arg-map {:position :tail, :target 0}))
   ([synth-name arg-map location]

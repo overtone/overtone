@@ -6,8 +6,6 @@
 
 (demo 10 (sin-osc (+ 1000 (* 600 (lf-noise0:kr 12))) 0.3))
 
-
-
 ;;;;;;;;
 ;;page 5
 ;;play({RLPF.ar(Dust.ar([12, 15]), LFNoise1.ar(1/[3,4], 1500, 1600), 0.02)})
@@ -395,3 +393,259 @@ chooston
               src (play-buf 1 houston 1 trigger (* frames (line:kr 0 1 60)))
               env (env-gen:kr (lin-env 0.01 0.96 0.01) trigger)]
           (* src env rate)))
+
+;; note how the envelope is used to stop clicking between segments. Contrast with the following
+
+(demo 5 (let [frames (num-frames houston)
+              rate   [1 1.01]
+              trigger (impulse:kr rate)
+              src (play-buf 1 houston 1 trigger (* frames (line:kr 0 1 60)))]
+          (* src rate)))
+
+;;( // speed and direction change
+;;{
+;;        var speed, direction;
+;;        speed = LFNoise0.kr(12) * 0.2 + 1;
+;;        direction = ]LFClipNoise.kr(1/3);
+;;        PlayBuf.ar(1, ~houston, (speed * direction), loop: 1);
+;;}.play
+;;)
+
+(demo 5 (let [speed     (+ 1 (* 0.2 (lf-noise0:kr 12)))
+              direction (lf-clip-noise:kr 1/3)]
+          (play-buf 1 houston (* speed direction) :loop 1)))
+
+
+;; Page 27
+
+;;( // if these haven't been used they will hold 0
+;;~kbus1 = Bus.control; // a control bus
+;;~kbus2 = Bus.control; // a control bus
+;;{
+;;        var speed, direction;
+;;        speed = In.kr(~kbus1, 1) * 0.2 + 1;
+;;        direction = In.kr(~kbus2);
+;;        PlayBuf.ar(1, ~chooston, (speed * direction), loop: 1);
+;;}.play
+;;)
+;;
+;;(
+;;// now start the controls
+;;{Out.kr(~kbus1, LFNoise0.kr(12))}.play;
+;;{Out.kr(~kbus2, LFClipNoise.kr(1/4))}.play;
+;;)
+;;// Now start the second buffer with the same control input buses,
+;;// but send it to the right channel using Out.ar(1 etc.
+;;
+;;(
+;;{
+;;        var speed, direction;
+;;        speed = In.kr(~kbus1, 1) * 0.2 + 1;
+;;        direction = In.kr(~kbus2);
+;;        Out.ar(1, PlayBuf.ar(1, ~houston, (speed * direction), loop: 1));
+;;}.play;
+;;)
+
+(def kbus1 (control-bus))
+(def kbus2 (control-bus))
+
+(defsynth src []
+  (let [speed (+ 1 (* 0.2 (in:kr kbus1 1)))
+        direction (in:kr kbus2)]
+    (out 0 (play-buf 1 chooston (* speed direction) :loop 1))))
+
+(defsynth control1 []
+  (out:kr kbus1 (lf-noise0:kr 12)))
+
+(defsynth control2 []
+  (out:kr kbus2 (lf-clip-noise:kr 1/4)))
+
+(defsynth player []
+  (let [speed (+ 1 (* 0.2 (in:kr kbus1 1)))
+        direction (in:kr kbus2)]
+    (out 1 (play-buf 1 houston (* speed direction) :loop 1))))
+
+(do
+  (src)
+  (control1)
+  (control2)
+  (player))
+
+(stop)
+
+;; Page 28
+
+;;~kbus3 = Bus.control;
+;;~kbus4 = Bus.control;
+;;{Out.kr(~kbus3, SinOsc.kr(3).range(340, 540))}.play;
+;;{Out.kr(~kbus4, LFPulse.kr(6).range(240, 640))}.play;
+;;SynthDef("Switch", {arg freq = 440; Out.ar(0, SinOsc.ar(freq, 0, 0.3))}).add
+;;x = Synth("Switch");
+;;x.map(\freq, ~kbus3)
+;;x.map(\freq, ~kbus4)
+
+(do
+
+  (def kbus3 (control-bus))
+  (def kbus4 (control-bus))
+
+  (defsynth wave-ctl [] (out:kr kbus3 (lin-lin (sin-osc:kr 1) -1 1 340 540)))
+  (defsynth pulse-ctl [] (out:kr kbus4 (lin-lin (sin-osc:kr 1) -1 1 240 640)))
+
+  (defsynth switch [freq 440]
+    (out 0 (sin-osc freq 0 0.3)))
+
+  (def s (switch))
+  (def w (wave-ctl))
+  (def p (pulse-ctl)))
+
+;;try evaling these
+(map-ctl s :freq kbus3)
+(map-ctl s :freq kbus4)
+
+(stop)
+
+
+;; Page 29
+
+;;(
+;;{
+;;        Out.ar(0,
+;;            Pan2.ar( PlayBuf.ar(1, ~houston, loop: 1) *
+;;                SinOsc.ar(LFNoise0.kr(12, mul: 500, add: 600)),
+;;            0.5)
+;;        )
+;;}.play
+;;)
+
+(demo 10 (pan2 (* (play-buf 1 houston :loop 1)
+                  (sin-osc (+ 600 (* 500 (lf-noise0:kr 12)))))
+               0.5))
+
+;;
+;;(
+;;{
+;;        var source, delay;
+;;        source = PlayBuf.ar(1, ~chooston, loop: 1);
+;;        delay = AllpassC.ar(source, 2, [0.65, 1.15], 10);
+;;        Out.ar(0, Pan2.ar(source) + delay)
+;;}.play
+;;)
+
+(demo 10 (let [source (play-buf 1 chooston :loop 1)
+               delay (allpass-c source 2 [0.65 1.15] 10)]
+           (+ delay (pan2 source))))
+
+
+;;//Create and name buses
+;;~delay = Bus.audio(s, 2);
+;;~mod = Bus.audio(s, 2);
+;;~gate = Bus.audio(s, 2);
+;;~k5 = Bus.control;
+;;
+;;~controlSyn= {Out.kr(~k5, LFNoise0.kr(4))}.play //start the control
+;;
+;;// Start the last item in the chain, the delay
+;;~delaySyn = {Out.ar(0, AllpassC.ar(In.ar(~delay, 2), 2, [0.65, 1.15], 10))}.play(~controlSyn, addAction: \addAfter);
+;;
+;;// Start the next to last item, the modulation
+;;~modSyn = {Out.ar(~delay, In.ar(~mod, 2) * SinOsc.ar(In.kr(~k5) * 500 + 1100))}.play(~delaySyn, addAction: \addBefore);
+;;
+;;//Start the third to last item, the gate
+;;~gateSyn = {Out.ar([0, ~mod], In.ar(~gate, 2) * max(0, In.kr(~k5)))}.play(~modSyn, addAction: \addBefore);
+;;
+;;//make a group for the PlayBuf synths at the head of the chain
+;;~pbGroup = Group.before(~controlSyn);
+;;
+;;// Start one buffer. Since we add to the group, we know where it will go
+;;{Out.ar(~gate, Pan2.ar(PlayBuf.ar(1, ~houston, loop: 1), 0.5))}.play(~pbGroup);
+;;
+;;// Start the other
+;;{Out.ar(~gate, Pan2.ar(PlayBuf.ar(1, ~chooston, loop: 1), -0.5))}.play(~pbGroup);
+
+(do
+  (def delay-b (audio-bus 2))
+  (def mod-b (audio-bus 2))
+  (def gate-b (audio-bus 2))
+  (def k5-b (control-bus))
+
+  (defsynth control-syn [] (out:kr k5-b (lf-noise0:kr 4)))
+  (def c-syn (control-syn))
+
+  (defsynth delay-syn [] (out:ar 0 (allpass-c (in delay-b 2) 2 [0.65 1.15] 10)))
+  (def d-syn (delay-syn :pos :after :tgt c-syn))
+
+  (defsynth mod-syn [] (out delay-b (* (in mod-b 2) (sin-osc (+ 1100 (* 500 (in:kr k5-b)))))))
+  (def m-syn (mod-syn :pos :before :tgt d-syn))
+
+  (defsynth gate-syn [] (out [0 mod-b] (* (in gate-b 2) (maximum 0 (in:kr k5-b)))))
+  (def g-syn (gate-syn :pos :before :tgt m-syn ))
+
+  (def pb-group (group :before c-syn))
+
+  (defsynth hous [] (out gate-b (pan2 (play-buf 1 houston :loop 1) 0.5)))
+  (defsynth choos [] (out gate-b (pan2 (play-buf 1 chooston :loop 1) -0.5))))
+
+(hous :tgt pb-group)
+(choos :tgt pb-group)
+
+(stop)
+
+
+;; Page 32
+
+;;// This uses the PMCrotale synth definition
+;;(
+;;a = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+;;"event, midi, pitch, octave".postln;
+;;r = Task({
+;;        inf.do({ arg count;
+;;        	var midi, oct, density;
+;;        	density = 1.0;
+;;        	// density = 0.7;
+;;        	// density = 0.3;
+;;        	midi = [0, 2, 4, 7, 9].choose;
+;;        	// midi = [0, 2, 4, 5, 7, 9, 11].choose
+;;        	// midi = [0, 2, 3, 5, 6, 8, 9, 11].choose;
+;;        	// midi = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].choose;
+;;        	oct = [48, 60, 72].choose;
+;;        	if(density.coin,
+;;        	    { // true action
+;;        		    "".postln;
+;;        		    [midi + oct, a.wrapAt(midi),
+;;        		    (oct/12).round(1)].post;
+;;        		    Synth("PMCrotale",
+;;        		    ["midi", midi + oct, "tone", rrand(1, 7),
+;;        		    "art", rrand(0.3, 2.0), "amp", rrand(0.3, 0.6), "pan", 1.0.rand2]);
+;;        	    }, {["rest"].post}); // false action
+;;        	0.2.wait;
+;;        });
+;;}).start
+;; )
+
+(do
+  (def a [:C :C# :D :Eb :E :F :F# :G :Ab :A :Bb :B])
+
+  (def cont (atom true))
+
+  (loop []
+    (let [density 1
+          midi (choose [0 2 4 7 9])
+          oct (choose [48 60 72])]
+      (if (weighted-coin density)
+        (do
+          (println "")
+          (println [(+ midi oct) (nth (cycle a) midi) (round-to (/ oct 12) 1)])
+          (pmc-rotale :midi (+ midi oct)
+                      :tone (ranged-rand 1 7)
+                      :art (ranged-rand 0.3 2.0)
+                      :amp (ranged-rand 0.3 0.6)
+                      :pan (ranged-rand -1 1)))
+        (println "rest"))
+      (Thread/sleep 200)
+      (if @cont
+        (recur)))))
+
+
+;; to stop
+(reset! cont false)

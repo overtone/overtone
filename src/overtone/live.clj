@@ -3,6 +3,7 @@
   (:require clojure.stacktrace
             midi osc byte-spec
             [overtone config time-utils log]
+            [overtone.helpers chance scaling]
             [overtone.sc allocator core ugen node synth synthdef
              trigger buffer envelope bus sample sc-lang]
             [overtone.music rhythm pitch tuning]
@@ -16,6 +17,8 @@
   'overtone.log
   'overtone.time-utils
   'overtone.util
+  'overtone.helpers.chance
+  'overtone.helpers.scaling
   'overtone.event
   'overtone.sc.core
   'overtone.sc.node
@@ -40,4 +43,3 @@
 (defonce _auto-boot_ (boot))
 
 (wait-until-connected)
-

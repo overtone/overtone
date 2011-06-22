@@ -254,16 +254,16 @@
   "Returns a player function for a named synth.  Used by (synth ...)
   internally, but can be used to generate a player for a pre-compiled
   synth.  The function generated will accept two optional arguments that
-  must come first, the :target and :position (see the node function docs).
+  must come first, the :position and :target (see the node function docs).
 
       (foo)
-      (foo :target 0 :position :tail)
+      (foo :position :tail :target 0)
 
   or if foo has two arguments:
       (foo 440 0.3)
-      (foo :target 0 :position :tail 440 0.3)
+      (foo :position :tail :target 0 440 0.3)
   at the head of group 2:
-      (foo :target 2 :position :head 440 0.3)
+      (foo :position :head :target 2 440 0.3)
 
   These can also be abbreviated:
       (foo :tgt 2 :pos :head)
@@ -281,9 +281,15 @@
                                 (= :pos      (first args)))
                           [(drop 2 args) (second args)]
                           [args :tail])
-          player        #(node sname % {:target sgroup :position pos})
+          [args sgroup] (if (or (= :target (first args))
+                                (= :tgt    (first args)))
+                          [(drop 2 args) (second args)]
+                          [args @synth-group*])
+          player        #(node sname % {:position pos :target sgroup })
           args          (map #(if (or (isa? (type %) :overtone.sc.buffer/buffer)
-                                      (isa? (type %) :overtone.sc.sample/sample))
+                                      (isa? (type %) :overtone.sc.sample/sample)
+                                      (isa? (type %) :overtone.sc.bus/audio-bus)
+                                      (isa? (type %) :overtone.sc.bus/control-bus))
                                 (:id %) %) args)
 
           arg-map       (arg-mapper args arg-names {})
@@ -335,7 +341,8 @@
                               :sdef sdef#
                               :doc "User defined synth..."
                               :player player#
-                              :args arg-names#}
+                              :args arg-names#
+                              :type ::synth}
                              player#)]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
