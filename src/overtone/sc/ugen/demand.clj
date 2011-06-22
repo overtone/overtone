@@ -3,46 +3,12 @@
 
 (def specs
      [
-      ;; Demand : MultiOutUGen {
-      ;;  *ar { arg trig, reset, demandUGens;
-      ;;    ^this.multiNewList(['audio', trig, reset] ++ demandUGens.asArray)
-      ;;  }
-      ;;  *kr { arg trig, reset, demandUGens;
-      ;;    ^this.multiNewList(['control', trig, reset] ++ demandUGens.asArray)
-      ;;  }
-      ;;  init { arg ... argInputs;
-      ;;    inputs = argInputs;
-      ;;    ^this.initOutputs(inputs.size - 2, rate)
-      ;;  }
-      ;;    checkInputs { ^this.checkSameRateAsFirstInput }
-      ;; }
-
       {:name "Demand",
        :args [{:name "trig"}
               {:name "reset"}
               {:name "demandUGens", :mode :append-sequence-set-num-outs}],
        :check (same-rate-as-first-input)
        :doc "On every trigger it demands the next value from each of the demand ugens passed as args.  Used to pull values from the other demand rate ugens."}
-
-      ;; Duty : UGen {
-      ;;  *ar { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0;
-      ;;    ^this.multiNew('audio', dur, reset, doneAction, level)
-      ;;  }
-      ;;  *kr { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0;
-      ;;    ^this.multiNew('control', dur, reset, doneAction, level)
-      ;;  }
-      ;;   checkInputs {
-      ;;    ^if(inputs.at(0).rate === \demand) {
-      ;;      if (inputs.at(1).rate !== \demand and: { inputs.at(1).rate !== \scalar } and:
-      ;;        { inputs.at(1).rate !== rate }) {
-      ;;          ("reset input is not" + rate + "rate: " +
-      ;;              inputs.at(1) + inputs.at(1).rate);
-      ;;        }
-      ;;      } {
-      ;;        this.checkValidInputs
-      ;;      }
-      ;;    }
-      ;; }
 
       {:name "Duty",
        :args [{:name "dur", :default 1.0}
@@ -56,15 +22,6 @@
                                   (rate-of? reset rate))))
                   "TODO write error string. and understad why this is an error"))
        :doc "Expects demand ugen args for dur and level.  Uses successive dur values to determine how long to wait before emitting each level value."}
-
-      ;; TDuty : Duty {
-      ;;  *ar { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0, gapFirst = 0;
-      ;;    ^this.multiNew('audio', dur, reset, doneAction, level, gapFirst)
-      ;;  }
-      ;;  *kr { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0, gapFirst = 0;
-      ;;    ^this.multiNew('control', dur, reset, doneAction, level, gapFirst)
-      ;;  }
-      ;; }
 
       {:name "TDuty" :extends "Duty"
        :args [{:name "dur", :default 1.0}
@@ -198,7 +155,7 @@
       ;; Dseq : ListDUGen {}
 
       {:name "Dseq",
-       :args [{:name "list", :array true}
+       :args [{:name "list", :mode :append-sequence, :array true}
               {:name "repeats", :default 1}],
        :rates #{:dr}}
 
@@ -225,7 +182,7 @@
       ;; }
 
       {:name "Dswitch1",
-       :args [{:name "list", :array true}
+       :args [{:name "list", :mode :append-sequence, :array true}
               {:name "index"}],
        :rates #{:dr}}
 
