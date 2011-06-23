@@ -1,6 +1,11 @@
 (ns example.demand
   (:use overtone.core))
 
+; Unlike the audio and control rate ugens, which produce a constant
+; stream of values, the demand rate ugens only produce a value
+; when it is "demanded" of them.  This is normally done using the
+; demand ugen, which will pull from its arguments when triggered.
+
 (def inf Float/POSITIVE_INFINITY)
 
 ; Play a sequence of notes, where the demand ugen pulls them
@@ -46,6 +51,23 @@
             note-gen (demand:kr trig 0 freqs)
             src (sin-osc note-gen)]
         (pan2 (* 0.1 src))))
+
+(def buf (buffer 8))
+(overtone.sc.buffer/buffer-write buf 0 8
+                                 (map #(+ 12 %) [50 50 54 50 57 50 45 49]))
+
+(demo 20
+      (let [trig (impulse:kr 8)
+            indexes (dseq (range 8) inf)
+            freqs (dbufrd buf indexes)
+            note-gen (demand:kr trig 0 freqs)
+            src (sin-osc (midicps note-gen))]
+        (* [0.1 0.1] src)))
+
+; Now while it's playing you can set buffer elements to change the notes:
+(overtone.sc.buffer/buffer-set buf 3 45)
+(overtone.sc.buffer/buffer-set buf 3 80)
+(overtone.sc.buffer/buffer-set buf 7 50)
 
 ; TODO: Fixme
 (demo 4

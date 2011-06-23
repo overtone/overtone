@@ -73,13 +73,6 @@
       ;;    ^pow(outMax/outMin, log(this.prune(inMin, inMax, clip/inMin) / log(inMax/inMin)) * outMin)
       ;;  }
       ;; }
-      ;;
-      ;; Dseries : DUGen {
-      ;;  *new { arg start = 1, step = 1, length = inf;
-      ;;    ^this.multiNew('demand', length, start, step)
-      ;;  }
-      ;; }
-
       ;; TODO understand forceAudioRateInputsIntoUGenGraph
       ;; which is implemented in the pseudo-ugen DUGen parent of below
 
@@ -88,26 +81,29 @@
               {:name "step", :default 1}
               {:name "length", :default INFINITE}]
        :rates #{:dr}
-       :doc "Emits a series of incrementing values as they are demanded."}
+       :doc "Generate a series of incrementing values on demand."}
 
       {:name "Dgeom",
        :args [{:name "start", :default 1}
               {:name "grow", :default 2}
               {:name "length", :default INFINITE}]
-       :rates #{:dr}}
+       :rates #{:dr}
+       :doc "Generate a geometric sequence on demand."}
 
       {:name "Dbufrd",
        :args [{:name "bufnum", :default 0.0}
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}],
-       :rates #{:dr}}
+       :rates #{:dr}
+       :doc "Read values from a buffer on demand, using phase (index) value that is also pulled on demand."}
 
       {:name "Dbufwr",
        :args [{:name "input", :default 0.0}
               {:name "bufnum", :default 0}
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}],
-       :rates #{:dr}}
+       :rates #{:dr}
+       :doc "Write a demand sequence into a buffer."}
 
       {:name "Dseq",
        :args [{:name "list", :mode :append-sequence, :array true}
@@ -135,66 +131,44 @@
        :rates #{:dr}
        :doc "A demand rate switch that can be used to select one of multiple demand rate inputs."}
 
-      {:name "Dswitch" :extends "Dswitch1"}
+      {:name "Dswitch" :extends "Dswitch1"
+       :doc "A demand rate switch."}
 
       {:name "Dwhite",
        :args [{:name "lo", :default 0.0}
               {:name "hi", :default 1.0}
               {:name "length", :default INFINITE}]
        :rates #{:dr}
-       :doc "Generate a sequence of length random values between lo and hi."}
+       :doc "Generate a sequence of random values between lo and hi."}
 
-      {:name "Diwhite" :extends "Dwhite"}
-
-      ;; Dbrown : DUGen {
-      ;;  *new { arg lo = 0.0, hi = 1.0, step = 0.01, length = inf;
-      ;;    ^this.multiNew('demand', length, lo, hi, step)
-      ;;  }
-      ;; }
+      {:name "Diwhite" :extends "Dwhite"
+       :doc "Generates a sequence of random integer values between lo and hi."}
 
       {:name "Dbrown",
        :args [{:name "lo", :default 0.0}
               {:name "hi", :default 1.0}
               {:name "step", :default 0.01}
               {:name "length", :default INFINITE}]
-       :rates #{:dr}}
+       :rates #{:dr}
+       :doc "Generates a sequence of random values betweeen lo and hi, not exceeding step from one value to the next."}
 
-      ;; Dibrown : Dbrown {}
-
-      {:name "Dibrown" :extends "Dbrown"}
-
-      ;; Dstutter : DUGen {
-      ;;  *new { arg n, in;
-      ;;    ^this.multiNew('demand', n, in)
-      ;;  }
-      ;; }
+      {:name "Dibrown" :extends "Dbrown"
+       :doc "Generates a sequence of random integer values betweeen lo and hi, not exceeding step from one value to the next."}
 
       {:name "Dstutter",
        :args [{:name "n"}
               {:name "in"}],
-       :rates #{:dr}}
-
-      ;; Donce : DUGen {
-      ;;  *new { arg in;
-      ;;    ^this.multiNew('demand', in)
-      ;;  }
-      ;; }
+       :rates #{:dr}
+       :doc "Replicates input values n times on demand.  Both inputs can be demand rate ugens."}
 
       {:name "Donce",
        :args [{:name "in"}],
        :rates #{:dr}}
 
-      ;; TODO how does this one work ??
-      ;; Dpoll : DUGen {
-      ;;  *new { arg in, label, run = 1, trigid = -1;
-      ;;    ^this.multiNew('demand', in, label, run, trigid)
-      ;;  }
-
-      ;;  *new1 { arg rate, in, label, run, trigid;
-      ;;    label = label ?? { "DemandUGen(%)".format(in.class) };
-      ;;    label = label.ascii;
-      ;;    ^super.new.rate_(rate).addToSynth.init(*[in, trigid, run, label.size] ++ label);
-      ;;  }
-      ;; }
-
+      {:name "Dpoll",
+       :args [{:name "in" :doc "ugen to poll values from"}
+              {:name "label" :doc "a label string"}
+              {:name "run", :default 1.0 :doc "activation switch 0 or 1"}],
+       :rates #{:dr}
+       :doc "Print the value of an input demand ugen."}
       ])

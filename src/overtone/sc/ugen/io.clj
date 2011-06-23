@@ -3,26 +3,6 @@
 
 (def specs
      [
-      ;; from DiskIO.sc
-      ;; DiskOut : UGen {
-      ;; 	*ar { arg bufnum, channelsArray;
-      ;; 		this.multiNewList(['audio', bufnum] ++ channelsArray.asArray)
-      ;; 		^0.0		// DiskOut has no output
-      ;; 	}
-      ;; 	numOutputs { ^0 }
-      ;; 	writeOutputSpecs {}
-      ;;  	checkInputs {
-      ;;  		if (rate == 'audio', {
-      ;;  			for(1, inputs.size - 1, { arg i;
-      ;;  				if (inputs.at(i).rate != 'audio', {
-      ;;  					^("input was not audio rate: " + inputs.at(i));
-      ;;  				});
-      ;;  			});
-      ;;  		});
-      ;;  		^this.checkValidInputs
-      ;;  	}
-      ;; }
-
       {:name "DiskOut",
        :args [{:name "bufnum" :doc "the number of the buffer to write to (prepared with /b-write)"}
               {:name "channelsArray" :mode :append-sequence :doc "the Array of channels to write to the file."}],
@@ -34,17 +14,6 @@ The output of DiskOut is the number of frames written to disk.
 
 Note that the number of channels in the buffer and the channelsArray must be the same, otherwise DiskOut will fail silently (and not write anything to your file)."}
 
-      ;; from DiskIO.sc
-      ;; DiskIn : MultiOutUGen {
-      ;; 	*ar { arg numChannels, bufnum, loop = 0;
-      ;; 		^this.multiNew('audio', numChannels, bufnum, loop)
-      ;; 	}
-      ;; 	init { arg numChannels, bufnum, loop = 0;
-      ;; 		inputs = [bufnum, loop];
-      ;; 		^this.initOutputs(numChannels, rate)
-      ;; 	}
-      ;; }
-
       {:name "DiskIn",
        :args [{:name "numChannels" :mode :num-outs :doc "Number of channels in the incoming audio."}
               {:name "bufnum" :doc "id of buffer"}
@@ -53,17 +22,6 @@ Note that the number of channels in the buffer and the channelsArray must be the
        :doc "stream audio in from disk file
 
 Continuously play a longer soundfile from disk.  This requires a buffer to be preloaded with one buffer size of sound. If loop is set to 1, the soundfile will loop."}
-
-      ;; from DiskIO.sc
-      ;; VDiskIn : MultiOutUGen {
-      ;; 	*ar { arg numChannels, bufnum, rate = 1, loop = 0, sendID = 0;
-      ;; 		^this.multiNew('audio', numChannels, bufnum, rate, loop, sendID)
-      ;; 	}
-      ;; 	init { arg numChannels, bufnum, argRate = 1, loop = 0, sendID = 0;
-      ;; 		inputs = [bufnum, argRate, loop, sendID];
-      ;; 		^this.initOutputs(numChannels, rate)
-      ;; 	}
-      ;; }
 
       {:name "VDiskIn",
        :args [{:name "numChannels" :mode :num-outs :doc "Number of channels in the audio"}
@@ -76,25 +34,6 @@ Continuously play a longer soundfile from disk.  This requires a buffer to be pr
 
 Continuously play a longer soundfile from disk.  This requires a buffer to be preloaded with one buffer size of sound."}
 
-      ;; from InOut.sc
-      ;; AbstractIn : MultiOutUGen {
-      ;;  	*isInputUGen { ^true }
-      ;; }
-
-      ;; from InOut.sc
-      ;; In : AbstractIn {
-      ;; 	*ar { arg bus = 0, numChannels = 1;
-      ;; 		^this.multiNew('audio', numChannels, bus)
-      ;; 	}
-      ;; 	*kr { arg bus = 0, numChannels = 1;
-      ;; 		^this.multiNew('control', numChannels, bus)
-      ;; 	}
-      ;; 	init { arg numChannels ... argBus;
-      ;; 		inputs = argBus.asArray;
-      ;; 		^this.initOutputs(numChannels, rate)
-      ;; 	}
-      ;; }
-
       {:name "In",
        :args [{:name "bus", :default 0 :doc "the index of the bus to read in from"}
               {:name "numChannels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef."}]
@@ -103,19 +42,6 @@ Continuously play a longer soundfile from disk.  This requires a buffer to be pr
 
 
 in:kr is functionally similar to in-feedback. That is it reads all data on the bus whether it is from the current cycle or not. This allows for it to receive data from later in the node order. in:ar reads only data from the current cycle, and will zero data from earlier cycles (for use within that synth; the data remains on the bus). Because of this and the fact that the various out ugens mix their output with data from the current cycle but overwrite data from an earlier cycle it may be necessary to use a private control bus when this type of feedback is desired. There is an example below which demonstrates the problem."}
-
-      ;; from InOut.sc
-      ;; LocalIn : AbstractIn {
-      ;; 	*ar { arg numChannels = 1;
-      ;; 		^this.multiNew('audio', numChannels)
-      ;; 	}
-      ;; 	*kr { arg numChannels = 1;
-      ;; 		^this.multiNew('control', numChannels)
-      ;; 	}
-      ;; 	init { arg numChannels;
-      ;; 		^this.initOutputs(numChannels, rate)
-      ;; 	}
-      ;; }
 
       {:name "LocalIn",
        :args [{:name "numChannels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef."}]
@@ -126,33 +52,11 @@ There can only be one audio rate and one control rate local-in per SynthDef.
 
 The audio can be written to the bus using local-out."}
 
-      ;; from InOut.sc
-      ;; LagIn : AbstractIn {
-      ;; 	*kr { arg bus = 0, numChannels = 1, lag = 0.1;
-      ;; 		^this.multiNew('control', numChannels, bus, lag)
-      ;; 	}
-      ;; 	init { arg numChannels ... argInputs;
-      ;; 		inputs = argInputs.asArray;
-      ;; 		^this.initOutputs(numChannels, rate)
-      ;; 	}
-      ;; }
-
       {:name "LagIn",
        :args [{:name "bus", :default 0}
               {:name "numChannels", :mode :num-outs :default 1}
               {:name "lag", :default 0.1}],
        :rates #{:kr}}
-
-      ;; from InOut.sc
-      ;; InFeedback : AbstractIn {
-      ;; 	*ar { arg bus = 0, numChannels = 1;
-      ;; 		^this.multiNew('audio', numChannels, bus)
-      ;; 	}
-      ;; 	init { arg numChannels ... argBus;
-      ;; 		inputs = argBus.asArray;
-      ;; 		^this.initOutputs(numChannels, rate)
-      ;; 	}
-      ;; }
 
       {:name "InFeedback",
        :args [{:name "bus", :default 0 :doc "the index of the bus to read in from."}
@@ -188,17 +92,6 @@ Synth 3 -> busB + busA
 
 "}
 
-      ;; from InOut.sc
-      ;; InTrig : AbstractIn {
-      ;; 	*kr { arg bus = 0, numChannels = 1;
-      ;; 		^this.multiNew('control', numChannels, bus)
-      ;; 	}
-      ;; 	init { arg numChannels ... argBus;
-      ;; 		inputs = argBus.asArray;
-      ;; 		^this.initOutputs(numChannels, rate)
-      ;; 	}
-      ;; }
-
       {:name "InTrig",
        :args [{:name "bus", :default 0 :doc "the index of the bus to read in from."}
               {:name "numChannels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef."}],
@@ -207,17 +100,6 @@ Synth 3 -> busB + busA
 
 Any time the bus is 'touched' ie. has its value set (using \"/c_set\" etc.), a single impulse trigger will be generated. Its amplitude is the value that the bus was set to."}
 
-      ;; from InOut.sc
-      ;; SharedIn : AbstractIn {
-      ;; 	*kr { arg bus = 0, numChannels = 1;
-      ;; 		^this.multiNew('control', numChannels, bus)
-      ;; 	}
-      ;; 	init { arg numChannels ... argBus;
-      ;; 		inputs = argBus.asArray;
-      ;; 		^this.initOutputs(numChannels, rate)
-      ;; 	}
-      ;; }
-
       {:name "SharedIn",
        :args [{:name "bus", :default 0 :doc "the index of the shared control bus to read from"}
               {:name "numChannels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef."}],
@@ -225,45 +107,6 @@ Any time the bus is 'touched' ie. has its value set (using \"/c_set\" etc.), a s
        :doc "read from a shared control bus (internal dsp only)
 
 Reads from a control bus shared between the internal server and the SC client. Control rate only. Writing to a shared control bus from the client is synchronous. When not using the internal server use node arguments or the set method of Bus (or /c_set in messaging style). "}
-
-      ;; from InOut.sc
-      ;; AbstractOut : UGen {
-      ;; 	numOutputs { ^0 }
-      ;; 	writeOutputSpecs {}
-      ;;  	checkInputs {
-      ;;  		if (rate == 'audio', {
-      ;;  			for(this.class.numFixedArgs, inputs.size - 1, { arg i;
-      ;;  				if (inputs.at(i).rate != 'audio', {
-      ;;  					^(" input at index " + i +
-      ;;  						"(" + inputs.at(i) + ") is not audio rate");
-      ;;  				});
-      ;;  			});
-      ;;  		});
-      ;;  		^this.checkValidInputs
-      ;;  	}
-
-      ;;  	*isOutputUGen { ^true }
-
-      ;;  	numAudioChannels {
-      ;;  		^inputs.size - this.class.numFixedArgs
-      ;;  	}
-      ;;  	writesToBus { ^this.subclassResponsibility(thisMethod) }
-      ;; }
-
-      ;; from InOut.sc
-      ;; Out : AbstractOut {
-      ;; 	*ar { arg bus, channelsArray;
-      ;; 		channelsArray = this.replaceZeroesWithSilence(channelsArray.asArray);
-      ;; 		this.multiNewList(['audio', bus] ++ channelsArray)
-      ;; 		^0.0		// Out has no output
-      ;; 	}
-      ;; 	*kr { arg bus, channelsArray;
-      ;; 		this.multiNewList(['control', bus] ++ channelsArray.asArray)
-      ;; 		^0.0		// Out has no output
-      ;; 	}
-      ;; 	*numFixedArgs { ^1 }
-      ;; 	writesToBus { ^true }
-      ;; }
 
       {:name "Out",
        :args [{:name "bus" :doc "the index, or array of indexes, of busses to write to. The lowest index numbers are written to the audio hardware."}
@@ -278,16 +121,9 @@ N.B. Out is subject to control rate jitter. Where sample accurate output is need
 
 When using an array of bus indexes, the channel array will just be copied to each bus index in the array. So (out:ar [bus1 bus2] channels-array) will be the same as (+ (out:ar bus1 channelsArray)  (out:ar bus2 channelsArray))."}
 
-      ;; from InOut.sc
-      ;; ReplaceOut : Out {}
-
       {:name "ReplaceOut", :extends "Out"
        :doc "write signal to a bus, replacing the contents rather than adding to it."
        }
-
-      ;; OffsetOut : Out {
-      ;; 	*kr { ^this.shouldNotImplement(thisMethod) }
-      ;; }
 
       {:name "OffsetOut" :extends "Out"
        :rates #{:ar}
@@ -298,21 +134,6 @@ Output signal to a bus,  the sample offset within the bus is kept exactly; i.e. 
 
 This ugen is used where sample accurate output is needed."}
 
-      ;; from InOut.sc
-      ;; LocalOut : AbstractOut {
-      ;; 	*ar { arg channelsArray;
-      ;; 		channelsArray = this.replaceZeroesWithSilence(channelsArray.asArray);
-      ;; 		this.multiNewList(['audio'] ++ channelsArray)
-      ;; 		^0.0		// LocalOut has no output
-      ;; 	}
-      ;; 	*kr { arg channelsArray;
-      ;; 		this.multiNewList(['control'] ++ channelsArray.asArray)
-      ;; 		^0.0		// LocalOut has no output
-      ;; 	}
-      ;; 	*numFixedArgs { ^0 }
-      ;; 	writesToBus { ^false }
-      ;; }
-
       {:name "LocalOut",
        :args [{:name "channelsArray" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
        :num-outs 0
@@ -320,32 +141,6 @@ This ugen is used where sample accurate output is needed."}
        :doc "write to buses local to a synth
 
 local-out writes to buses that are local to the enclosing synth. The buses should have been defined by a local-in ugen. The channelsArray must be the same number of channels as were declared in the LocalIn. These are like the global buses, but are more convenient if you want to implement a self contained effect that uses a feedback processing loop."}
-
-      ;; from InOut.sc
-      ;; XOut : AbstractOut {
-      ;; 	*ar { arg bus, xfade, channelsArray;
-      ;; 		channelsArray = this.replaceZeroesWithSilence(channelsArray.asArray);
-      ;; 		this.multiNewList(['audio', bus, xfade] ++ channelsArray)
-      ;; 		^0.0		// Out has no output
-      ;; 	}
-      ;; 	*kr { arg bus, xfade, channelsArray;
-      ;; 		this.multiNewList(['control', bus, xfade] ++ channelsArray.asArray)
-      ;; 		^0.0		// Out has no output
-      ;; 	}
-      ;; 	*numFixedArgs { ^2 }
-      ;; 	checkInputs {
-      ;;  		if (rate == 'audio', {
-      ;;  			for(2, inputs.size - 1, { arg i;
-      ;;  				if (inputs.at(i).rate != 'audio', {
-      ;;  					^(" input at index " + i +
-      ;;  						"(" + inputs.at(i) + ") is not audio rate");
-      ;;  				});
-      ;;  			});
-      ;;  		});
-      ;;  		^this.checkValidInputs
-      ;;  	}
-      ;;  	writesToBus { ^true }
-      ;; }
 
       {:name "XOut",
        :args [{:name "bus" :doc "the index, or array of indexes, of busses to write to. The lowest index numbers are written to the audio hardware."}
@@ -360,15 +155,6 @@ xfade is a level for the crossfade between what is on the bus and what you are s
 The algorithm is equivalent to this:
 
 bus_signal = (input_signal * xfade) + (bus_signal * (1 - xfade));"}
-
-      ;; from InOut.sc
-      ;; SharedOut : AbstractOut {
-      ;; 	*kr { arg bus, channelsArray;
-      ;; 		this.multiNewList(['control', bus] ++ channelsArray.asArray)
-      ;; 		^0.0		// Out has no output
-      ;; 	}
-      ;; 	writesToBus { ^false }
-      ;; }
 
       {:name "SharedOut",
        :args [{:name "bus" :doc "the index of the shared control bus to read from"}

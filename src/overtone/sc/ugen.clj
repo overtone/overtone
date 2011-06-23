@@ -31,6 +31,8 @@
    :standard true
    })
 
+(def INF Float/POSITIVE_INFINITY)
+
 (defn normalize-ugen-name
   "Normalizes SuperCollider and overtone-style names to squeezed lower-case."
   [n]
@@ -215,7 +217,7 @@
 (defn- ugen-arg-rates [ugen]
   (map REVERSE-RATES (map :rate (filter ugen? (:args ugen)))))
 
-(defn- real-ugen-name
+(defn real-ugen-name
   [ugen]
   (overtone-ugen-name
     (case (:name ugen)
