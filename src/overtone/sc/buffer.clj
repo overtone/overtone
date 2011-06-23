@@ -61,7 +61,6 @@
     (free-id :audio-buffer id)
     :done))
 
-; TODO: Test me...
 (defn buffer-read
   "Read a section of an audio buffer."
   [buf start len]
@@ -77,7 +76,6 @@
         samples
         (let [msg-p (recv "/b_setn")
               msg (await-promise! msg-p)
-              ;_ (println "b_setn msg: " (take 3 (:args msg)))
               [buf-id bstart blen & samps] (:args msg)]
           (loop [idx bstart
                  samps samps]
@@ -86,12 +84,31 @@
               (recur (inc idx) (next samps))))
           (recur (+ recvd blen)))))))
 
-;; TODO: test me...
 (defn buffer-write
   "Write into a section of an audio buffer."
   [buf start len data]
   (assert (buffer? buf))
-  (snd "/b_setn" (:id buf) start len data))
+  (apply snd "/b_setn" (:id buf) start len (map double data)))
+
+(defn buffer-fill
+  "Fill a buffer range with a single value."
+  [buf start len val]
+  (assert (buffer? buf))
+  (snd "/b_fill" (:id buf) start len (double val)))
+
+(defn buffer-set
+  "Write a single value into a buffer."
+  [buf index val]
+  (assert (buffer? buf))
+  (snd "/b_set" (:id buf) index (double val)))
+
+(defn buffer-get
+  "Read a single value from a buffer."
+  [buf index]
+  (assert (buffer? buf))
+  (let [res (recv "/b_set")]
+    (snd "/b_get" (:id buf) index)
+    (last (:args (await-promise! res)))))
 
 (defn buffer-save
   "Save the float audio data in an audio buffer to a wav file."
