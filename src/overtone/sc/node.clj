@@ -88,8 +88,6 @@
            target   (get location :target 0)
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))]
-
-       ;; (println "node " synth-name id position target (vec args))
        (apply snd "/s_new" synth-name id position target args)
        id)))
 

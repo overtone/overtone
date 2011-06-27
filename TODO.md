@@ -6,7 +6,7 @@ be numbers (to use equations, constant vars, etc...)
 
 ## Helpers
 
-* rather than using a plain multiply for volume adjustment, we should have 
+* rather than using a plain multiply for volume adjustment, we should have
 a built-in helper that uses dbamp and multiply to adjust volume logarithmically,
 corresponding to perception.
  - use a range of 0 - 1.0, so it works automatically with GUI controls and other
@@ -55,10 +55,10 @@ modify control params
 operate immediately on numbers, but generate ugens on input proxy or ugen
 arguments.
 
-* add docs to Unary and Binary op ugens 
+* add docs to Unary and Binary op ugens
 
 * add another argument mode to ugens so that buffers and samples can be passed
-to ugens as arguments and their :id property will be used 
+to ugens as arguments and their :id property will be used
   - get rid of UGen wrapper function currently doing this for all ugens
 
 * implement the rest of the argument modes for ugens, as described in

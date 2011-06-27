@@ -3,46 +3,12 @@
 
 (def specs
      [
-      ;; Demand : MultiOutUGen {
-      ;;  *ar { arg trig, reset, demandUGens;
-      ;;    ^this.multiNewList(['audio', trig, reset] ++ demandUGens.asArray)
-      ;;  }
-      ;;  *kr { arg trig, reset, demandUGens;
-      ;;    ^this.multiNewList(['control', trig, reset] ++ demandUGens.asArray)
-      ;;  }
-      ;;  init { arg ... argInputs;
-      ;;    inputs = argInputs;
-      ;;    ^this.initOutputs(inputs.size - 2, rate)
-      ;;  }
-      ;;    checkInputs { ^this.checkSameRateAsFirstInput }
-      ;; }
-
       {:name "Demand",
        :args [{:name "trig"}
               {:name "reset"}
               {:name "demandUGens", :mode :append-sequence-set-num-outs}],
        :check (same-rate-as-first-input)
        :doc "On every trigger it demands the next value from each of the demand ugens passed as args.  Used to pull values from the other demand rate ugens."}
-
-      ;; Duty : UGen {
-      ;;  *ar { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0;
-      ;;    ^this.multiNew('audio', dur, reset, doneAction, level)
-      ;;  }
-      ;;  *kr { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0;
-      ;;    ^this.multiNew('control', dur, reset, doneAction, level)
-      ;;  }
-      ;;   checkInputs {
-      ;;    ^if(inputs.at(0).rate === \demand) {
-      ;;      if (inputs.at(1).rate !== \demand and: { inputs.at(1).rate !== \scalar } and:
-      ;;        { inputs.at(1).rate !== rate }) {
-      ;;          ("reset input is not" + rate + "rate: " +
-      ;;              inputs.at(1) + inputs.at(1).rate);
-      ;;        }
-      ;;      } {
-      ;;        this.checkValidInputs
-      ;;      }
-      ;;    }
-      ;; }
 
       {:name "Duty",
        :args [{:name "dur", :default 1.0}
@@ -57,40 +23,12 @@
                   "TODO write error string. and understad why this is an error"))
        :doc "Expects demand ugen args for dur and level.  Uses successive dur values to determine how long to wait before emitting each level value."}
 
-      ;; TDuty : Duty {
-      ;;  *ar { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0, gapFirst = 0;
-      ;;    ^this.multiNew('audio', dur, reset, doneAction, level, gapFirst)
-      ;;  }
-      ;;  *kr { arg dur = 1.0, reset = 0.0, level = 1.0, doneAction = 0, gapFirst = 0;
-      ;;    ^this.multiNew('control', dur, reset, doneAction, level, gapFirst)
-      ;;  }
-      ;; }
-
       {:name "TDuty" :extends "Duty"
        :args [{:name "dur", :default 1.0}
               {:name "reset", :default 0.0}
               {:name "level", :default 1.0}
               {:name "action", :default 0 :map DONE-ACTIONS}
               {:name "gapFirst", :default 0}]}
-
-
-      ;; DemandEnvGen : UGen {
-
-      ;;  *kr { arg level, dur, shape = 1, curve = 0, gate = 1.0, reset = 1.0,
-      ;;        levelScale = 1.0, levelBias = 0.0, timeScale = 1.0, doneAction=0;
-      ;;    ^this.multiNew('control', level, dur, shape, curve, gate, reset,
-      ;;        levelScale, levelBias, timeScale, doneAction)
-      ;;  }
-      ;;  *ar { arg level, dur, shape = 1, curve = 0, gate = 1.0, reset = 1.0,
-      ;;        levelScale = 1.0, levelBias = 0.0, timeScale = 1.0, doneAction=0;
-      ;;          if(gate.rate === 'audio' or: { reset.rate === 'audio' }) {
-      ;;            if(gate.rate !== 'audio') { gate = K2A.ar(gate) };
-      ;;            if(reset.rate !== 'audio') { reset = K2A.ar(reset) };
-      ;;          };
-      ;;    ^this.multiNew('audio', level, dur, shape, curve, gate, reset,
-      ;;        levelScale, levelBias, timeScale, doneAction)
-      ;;  }
-      ;; }
 
       {:name "DemandEnvGen",
        :args [{:name "level"}
@@ -135,169 +73,102 @@
       ;;    ^pow(outMax/outMin, log(this.prune(inMin, inMax, clip/inMin) / log(inMax/inMin)) * outMin)
       ;;  }
       ;; }
-      ;;
-      ;; Dseries : DUGen {
-      ;;  *new { arg start = 1, step = 1, length = inf;
-      ;;    ^this.multiNew('demand', length, start, step)
-      ;;  }
-      ;; }
-
       ;; TODO understand forceAudioRateInputsIntoUGenGraph
       ;; which is implemented in the pseudo-ugen DUGen parent of below
 
       {:name "Dseries",
        :args [{:name "start", :default 1}
               {:name "step", :default 1}
-              {:name "length", :default 100.0}], ; TODO inf
+              {:name "length", :default INFINITE}]
        :rates #{:dr}
-       :doc "Emits a series of incrementing values as they are demanded."}
-
-      ;; Dgeom : DUGen {
-      ;;  *new { arg start = 1, grow = 2, length = inf;
-      ;;    ^this.multiNew('demand', length, start, grow)
-      ;;  }
-      ;; }
+       :doc "Generate a series of incrementing values on demand."}
 
       {:name "Dgeom",
        :args [{:name "start", :default 1}
               {:name "grow", :default 2}
-              {:name "length", :default 100.0}], ; TODO inf
-       :rates #{:dr}}
-
-      ;; Dbufrd : DUGen {
-      ;;  *new { arg bufnum = 0, phase = 0.0, loop = 1.0;
-      ;;    ^this.multiNew('demand', bufnum, phase, loop)
-      ;;  }
-      ;; }
+              {:name "length", :default INFINITE}]
+       :rates #{:dr}
+       :doc "Generate a geometric sequence on demand."}
 
       {:name "Dbufrd",
        :args [{:name "bufnum", :default 0.0}
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}],
-       :rates #{:dr}}
-
-      ;; Dbufwr : DUGen {
-      ;;  *new { arg input = 0.0, bufnum = 0, phase = 0.0, loop = 1.0;
-      ;;    ^this.multiNew('demand', bufnum, phase, input, loop)
-      ;;  }
-      ;; }
+       :rates #{:dr}
+       :doc "Read values from a buffer on demand, using phase (index) value that is also pulled on demand."}
 
       {:name "Dbufwr",
        :args [{:name "input", :default 0.0}
               {:name "bufnum", :default 0}
               {:name "phase", :default 0.0}
               {:name "loop", :default 1.0}],
-       :rates #{:dr}}
-
-      ;; ListDUGen : DUGen {
-      ;;  *new { arg list, repeats = 1;
-      ;;    ^this.multiNewList(['demand', repeats] ++ list)
-      ;;  }
-      ;; }
-
-      ;; Dseq : ListDUGen {}
+       :rates #{:dr}
+       :doc "Write a demand sequence into a buffer."}
 
       {:name "Dseq",
-       :args [{:name "list", :array true}
+       :args [{:name "list", :mode :append-sequence, :array true}
               {:name "repeats", :default 1}],
-       :rates #{:dr}}
+       :rates #{:dr}
+       :doc "Output a sequence of values, possibly repeating multiple times."}
 
-      ;; Dser : ListDUGen {}
+      {:name "Dser"
+       :args [{:name "list", :mode :append-sequence, :array true}
+              {:name "count", :default 1}],
+       :doc "Generates a sequence of values Like dseq, except outputs only count total values, rather than repeating."}
 
-      {:name "Dser" :extends "Dseq"}
+      {:name "Dshuf" :extends "Dseq"
+       :doc "Shuffle a sequence once and then output it one or more times."}
 
-      ;; Dshuf : ListDUGen {}
+      {:name "Drand" :extends "Dseq"
+       :doc "Generate a random ordering of an input sequence."}
 
-      {:name "Dshuf" :extends "Dseq"}
-
-      ;; Drand : ListDUGen {}
-
-      {:name "Drand" :extends "Dseq"}
-
-      ;; Dxrand : ListDUGen {}
-
-      {:name "Dxrand" :extends "Dseq"}
-
-      ;; Dswitch1 : DUGen {
-      ;;  *new { arg list, index;
-      ;;    ^this.multiNewList(['demand', index] ++ list)
-      ;;  }
-      ;; }
+      {:name "Dxrand" :extends "Dseq"
+       :doc "Generate a random ordering of the given sequence without repeating any element until all elements have been returned."}
 
       {:name "Dswitch1",
-       :args [{:name "list", :array true}
+       :args [{:name "list", :mode :append-sequence, :array true}
               {:name "index"}],
-       :rates #{:dr}}
+       :rates #{:dr}
+       :doc "A demand rate switch that can be used to select one of multiple demand rate inputs."}
 
-      ;; Dswitch : Dswitch1 {}
-
-      {:name "Dswitch" :extends "Dswitch1"}
-
-      ;; Dwhite : DUGen {
-      ;;  *new { arg lo = 0.0, hi = 1.0, length = inf;
-      ;;    ^this.multiNew('demand', length, lo, hi)
-      ;;  }
-      ;; }
+      {:name "Dswitch" :extends "Dswitch1"
+       :doc "A demand rate switch."}
 
       {:name "Dwhite",
        :args [{:name "lo", :default 0.0}
               {:name "hi", :default 1.0}
-              {:name "length", :default 100}], ; TODO inf ??
-       :rates #{:dr}}
+              {:name "length", :default INFINITE}]
+       :rates #{:dr}
+       :doc "Generate a sequence of random values between lo and hi."}
 
-      ;; Diwhite : Dwhite {}
-
-      {:name "Diwhite" :extends "Dwhite"}
-
-      ;; Dbrown : DUGen {
-      ;;  *new { arg lo = 0.0, hi = 1.0, step = 0.01, length = inf;
-      ;;    ^this.multiNew('demand', length, lo, hi, step)
-      ;;  }
-      ;; }
+      {:name "Diwhite" :extends "Dwhite"
+       :doc "Generates a sequence of random integer values between lo and hi."}
 
       {:name "Dbrown",
        :args [{:name "lo", :default 0.0}
               {:name "hi", :default 1.0}
               {:name "step", :default 0.01}
-              {:name "length", :default 100}], ; TODO inf ??
-       :rates #{:dr}}
+              {:name "length", :default INFINITE}]
+       :rates #{:dr}
+       :doc "Generates a sequence of random values betweeen lo and hi, not exceeding step from one value to the next."}
 
-      ;; Dibrown : Dbrown {}
-
-      {:name "Dibrown" :extends "Dbrown"}
-
-      ;; Dstutter : DUGen {
-      ;;  *new { arg n, in;
-      ;;    ^this.multiNew('demand', n, in)
-      ;;  }
-      ;; }
+      {:name "Dibrown" :extends "Dbrown"
+       :doc "Generates a sequence of random integer values betweeen lo and hi, not exceeding step from one value to the next."}
 
       {:name "Dstutter",
        :args [{:name "n"}
               {:name "in"}],
-       :rates #{:dr}}
-
-      ;; Donce : DUGen {
-      ;;  *new { arg in;
-      ;;    ^this.multiNew('demand', in)
-      ;;  }
-      ;; }
+       :rates #{:dr}
+       :doc "Replicates input values n times on demand.  Both inputs can be demand rate ugens."}
 
       {:name "Donce",
        :args [{:name "in"}],
        :rates #{:dr}}
 
-      ;; TODO how does this one work ??
-      ;; Dpoll : DUGen {
-      ;;  *new { arg in, label, run = 1, trigid = -1;
-      ;;    ^this.multiNew('demand', in, label, run, trigid)
-      ;;  }
-
-      ;;  *new1 { arg rate, in, label, run, trigid;
-      ;;    label = label ?? { "DemandUGen(%)".format(in.class) };
-      ;;    label = label.ascii;
-      ;;    ^super.new.rate_(rate).addToSynth.init(*[in, trigid, run, label.size] ++ label);
-      ;;  }
-      ;; }
-
+      {:name "Dpoll",
+       :args [{:name "in" :doc "ugen to poll values from"}
+              {:name "label" :doc "a label string"}
+              {:name "run", :default 1.0 :doc "activation switch 0 or 1"}],
+       :rates #{:dr}
+       :doc "Print the value of an input demand ugen."}
       ])

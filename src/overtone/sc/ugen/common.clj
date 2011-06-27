@@ -36,6 +36,8 @@
    :free-children              13
    :free-group                 14})
 
+(def INFINITE Float/POSITIVE_INFINITY)
+
 (defn as-ar [a])
 
 ;; checks

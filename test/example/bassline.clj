@@ -1,5 +1,5 @@
 (ns example.bassline
-  (:use overtone.live))
+  (:use overtone.core))
 
 (definst z []
   (let [snd (saw 110)]
@@ -33,3 +33,4 @@
         sliced (rlpf meat (* 2 freq) 0.1)
         bounced (free-verb sliced 0.8 0.9 0.2)]
     (* env bounced)))
+

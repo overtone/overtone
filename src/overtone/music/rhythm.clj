@@ -31,20 +31,32 @@
   "A metronome is a beat management function.  Tell it what BPM you want,
   and it will output beat timestamps accordingly.  Call the returned function
   with no arguments to get the next beat number, or pass it a beat number
-  to get the timestamp to play a note at that beat."
+  to get the timestamp to play a note at that beat.
+
+  (def m (metronome 128))
+  (m)          ; => <current beat number>
+  (m 200)      ; => <timestamp of beat 200>
+  (m :bpm 140) ; => set bpm to 140"
   [bpm]
   (let [start   (atom (now))
         tick-ms (atom (beat-ms 1 bpm))]
     (fn
       ([] (inc (long (/ (- (now) @start) @tick-ms))))
       ([beat] (+ (* beat @tick-ms) @start))
-      ([_ bpm] 
+      ([_ bpm]
        (let [tms (beat-ms 1 bpm)
              cur-beat (long (/ (- (now) @start) @tick-ms))
              new-start (- (now) (* tms cur-beat))]
          (reset! tick-ms tms)
          (reset! start new-start))
        [:bpm bpm]))))
+
+(comment defprotocol IMetronome
+  (start [this])
+  (stop  [this])
+  (beat  [this])
+  (tick  [this])
+  (bpm   [this] [this bpm]))
 
 ;== Grooves
 ;
