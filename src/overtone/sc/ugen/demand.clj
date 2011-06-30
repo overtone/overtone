@@ -8,6 +8,7 @@
               {:name "reset" :doc "Resets the list of ugens when triggered."}
               {:name "demandUGens", :mode :append-sequence-set-num-outs}],
        :check (same-rate-as-first-input)
+       :auto-rate true
        :doc "On every trigger it demands the next value from each of the demand ugens passed as args.  Used to pull values from the other demand rate ugens.
 
 By design, a reset trigger only resets the demand ugens; it does not reset the value at Demand's output. Demand continues to hold its value until the next value is demanded, at which point its output value will be the first expected item in the list."}
