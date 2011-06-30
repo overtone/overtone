@@ -244,10 +244,8 @@
                  (and (= "A2K" (:name ugen))
                       (= :ar (:rate-name bad-input)))
                  ;; Special case demand rate ugens which may have kr ugens plugged into them
-                 ;; Unless it's a Demand ugen which only allows dr ugens to be connected
                  (and (= :dr cur-rate)
-                      (= :kr (:rate-name bad-input))
-                      (not (= "Demand" (:name ugen)))))
+                      (= :kr (:rate-name bad-input))))
 
         (let [ugen-name (real-ugen-name ugen)
               in-name (real-ugen-name bad-input)
