@@ -59,20 +59,20 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"
    {:name "Decay",
     :args [{:name "in", :default 0.0 :doc "input signal"}
            {:name "decayTime", :default 1.0 :doc "60 dB decay time in seconds"}]
-    :doc "triggered exponential decay. This is essentially the same as Integrator except that instead of supplying the coefficient directly, it is caculated from a 60 dB decay time. This is the time required for the integrator to lose 99.9 % of its value or -60dB. This is useful for exponential decaying envelopes triggered by impulses."
+    :doc "triggered exponential decay. This is essentially the same as integrator except that instead of supplying the coefficient directly, it is calculated from a 60 dB decay time. This is the time required for the integrator to lose 99.9 % of its value or -60dB. This is useful for exponential decaying envelopes triggered by impulses."
     :auto-rate true}
 
    {:name "Decay2",
-    :args [{:name "in", :default 0.0}
-           {:name "attackTime", :default 0.01}
-           {:name "decayTime", :default 1.0}]
+    :args [{:name "in", :default 0.0 :doc "input signal"}
+           {:name "attackTime", :default 0.01 :doc "60 dB attack time in seconds."}
+           {:name "decayTime", :default 1.0 :doc "60 dB decay time in seconds."}]
     :doc "triggered exponential attack and exponential decay. Decay has a very sharp attack and can produce clicks. Decay2 rounds off the attack by subtracting one Decay from another. (decay in attack-time decay-time) equivalent to: (- (decay in attack-time decay-time) (decay in attack-time decay-time))"
     :auto-rate true}
 
    {:name "Lag",
     :args [{:name "in", :default 0.0 :doc "input signal"}
            {:name "lagTime", :default 0.1 :doc "60 dB lag time in seconds"}]
-    :doc "exponential lag, useful for smoothing out control signals. This is essentially the same as OnePole except that instead of supplying the coefficient directly, it is calculated from a 60 dB lag time. This is the time required for the filter to converge to within 0.01 % of a value. This is useful for smoothing out control signals."
+    :doc "exponential lag, useful for smoothing out control signals. This is essentially the same as OnePole except that instead of supplying the coefficient directly, it is calculated from a 60 dB lag time. This is the time required for the filter to converge to within 0.01 % of a value."
     :auto-rate true}
 
    {:name "Lag2",

@@ -6,7 +6,7 @@
       {:name "Demand",
        :args [{:name "trig" :doc "Can be any signal. A trigger happens when the signal changes from non-positive to positive."}
               {:name "reset" :doc "Resets the list of ugens when triggered."}
-              {:name "demandUGens", :mode :append-sequence-set-num-outs}],
+              {:name "demandUGens", :mode :append-sequence-set-num-outs :doc "list of demand rate ugens"}],
        :check (same-rate-as-first-input)
        :auto-rate true
        :doc "On every trigger it demands the next value from each of the demand ugens passed as args.  Used to pull values from the other demand rate ugens.
@@ -125,7 +125,7 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
        :args [{:name "list", :mode :append-sequence, :array true, :doc "array of values or other ugens"}
               {:name "num-repeats", :default 1, :doc "number of repeats"}],
        :rates #{:dr}
-       :doc "Demand rate sequence generator. Outputs a sequence of values, possibly repeating multiple times. Use INFINITY as a repeat val to create an endless loop."}
+       :doc "Demand rate sequence generator. Outputs a sequence of values, possibly repeating multiple times. Use INF as a repeat val to create an endless loop."}
 
       {:name "Dser"
        :args [{:name "list", :mode :append-sequence, :array true :doc "array of values or other ugens"}
