@@ -65,3 +65,6 @@ to ugens as arguments and their :id property will be used
   docs/dev/core/ugen_definition.mdml.
  (currently there is just :append-seq)
 
+## Ugens
+
+* complete ugen checker machinery (see check-ugen-args)
