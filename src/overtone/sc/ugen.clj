@@ -232,25 +232,31 @@
 (defn- check-arg-rates [spec ugen]
   (let [cur-rate (REVERSE-RATES (:rate ugen))
         ugen-args (filter ugen? (:args ugen))]
-    (if-let [bad-input (some
-                     (fn [ug]
-                       (if (< (UGEN-RATE-SPEED cur-rate)
-                              (UGEN-RATE-SPEED (get REVERSE-RATES (:rate ug))))
-                         ug false))
-                     ugen-args)]
-      (let [ugen-name (real-ugen-name ugen)
-            in-name (real-ugen-name bad-input)
-            cur-rate-name (get HUMAN-RATES cur-rate)
-            in-rate-name (get HUMAN-RATES (:rate-name bad-input))]
-        ; Special case the a2k ugen
-        (if (and (= "A2K" (:name ugen))
-                 (= :ar (:rate-name bad-input)))
-          ugen
+    (when-let [bad-input (some
+                        (fn [ug]
+                          (if (< (UGEN-RATE-SPEED cur-rate)
+                                 (UGEN-RATE-SPEED (get REVERSE-RATES (:rate ug))))
+                            ug false))
+                        ugen-args)]
+      ;;special cases
+      (when-not (or
+                 ;; Special case the a2k ugen
+                 (and (= "A2K" (:name ugen))
+                      (= :ar (:rate-name bad-input)))
+                 ;; Special case demand rate ugens which may have kr ugens plugged into them
+                 (and (= :dr cur-rate)
+                      (= :kr (:rate-name bad-input))))
+
+        (let [ugen-name (real-ugen-name ugen)
+              in-name (real-ugen-name bad-input)
+              cur-rate-name (get HUMAN-RATES cur-rate)
+              in-rate-name (get HUMAN-RATES (:rate-name bad-input))]
           (throw (Exception.
-                   (format "Invalid ugen rate.  The %s ugen is %s rate, but it has a %s input ugen running at the faster %s rate.  Besides the a2k ugen, all ugens must be the same speed or faster than their inputs."
-                           ugen-name cur-rate-name
-                           in-name in-rate-name)))))
-      ugen)))
+                  (format "Invalid ugen rate.  The %s ugen is %s rate, but it has a %s input ugen running at the faster %s rate.  Besides the a2k ugen and demand rate ugens (which are allowed kr inputs), all ugens must be the same speed or faster than their inputs."
+                          ugen-name cur-rate-name
+                          in-name in-rate-name))))))
+    ;;simply return the ugen if there's no problem with rates
+    ugen))
 
 (defn- auto-rate-setter [spec ugen]
   (if (= :auto (:rate ugen))
