@@ -643,8 +643,7 @@ chooston
                       :pan (ranged-rand -1 1)))
         (println "rest"))
       (Thread/sleep 200)
-      (if @cont
-        (recur)))))
+      (when @cont (recur)))))
 
 
 ;; to stop
