@@ -338,7 +338,6 @@
                        (or (string? (first args))
                            (symbol? (first args))) [(str (first args)) (rest args)]
                            :default                    [(gen-synth-name) args])
-                _ (println "howdy " args)
 
         [params ugen-form] (if (vector? (first args))
                              [(first args) (rest args)]
