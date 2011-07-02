@@ -158,7 +158,8 @@
         vol-ugen (with-ugens (* volume root))
         out-ugen (with-ugens (out out-bus vol-ugen))]
     [(concat params
-             ["out-bus" MIXER-BUS "volume" DEFAULT-INST-VOLUME])
+             [{:name "out-bus" :default MIXER-BUS :rate DEFAULT-RATE}
+              {:name "volume" :default DEFAULT-INST-VOLUME :rate DEFAULT-RATE}])
      (concat ugens
              [vol-ugen out-ugen])
      (set (floatify (conj constants MIXER-BUS 1 0)))]))
@@ -171,8 +172,8 @@
                      (if (connected?)
                        (group :tail @inst-group*)
                        nil))
-         param-names# (map first (partition 2 params#))
-         s-player# (synth-player sname# param-names#)
+         arg-names# (map :name params#)
+         s-player# (synth-player sname# arg-names#)
          player# (fn [& play-args#]
                    (let [ins# (get @instruments* sname#)
                          play-args# (if (and
@@ -193,7 +194,7 @@
                               :out-bus MIXER-BUS
                               :fx-chain []
                               :player player#
-                              :args param-names#}
+                              :args arg-names#}
                              player#)]
 
      (load-synthdef sdef#)

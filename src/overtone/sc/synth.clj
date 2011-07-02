@@ -34,8 +34,8 @@
 ; number (source) and param index within the group (index) from a grouped
 ; parameter structure like this (2x2 in this example):
 ;
-;[[{:name :freq :value 440.0 :rate  1} {:name :amp :value 0.4 :rate  1}]
-; [{:name :adfs :value 20.23 :rate  2} {:name :bar :value 8.6 :rate  2}]]
+;[[{:name :freq :default 440.0 :rate  1} {:name :amp :default 0.4 :rate  1}]
+; [{:name :adfs :default 20.23 :rate  2} {:name :bar :default 8.6 :rate  2}]]
 (defn- param-input-spec [grouped-params param-proxy]
   (let [param-name (:name param-proxy)
         ctl-filter (fn [[idx ctl]] (= param-name (:name ctl)))
@@ -150,26 +150,66 @@
 
 (def DEFAULT-RATE :kr)
 
-; TODO: Figure out a good way to specify rates for synth parameters
-; currently this is the syntax:
-; (defsynth foo [freq 440] ...)
-; (defsynth foo [freq [440 :ar]] ...)
-; Should probably do this with a recursive function that can pull
-; out argument pairs or triples, and get rid of the vector
-(defn- parse-params [params]
+(defn- ensure-param-keys!
+  "throws an error if map m doesn't contain the correct keys: :name, :default and :rate"
+  [m]
+  (when-not (and
+             (contains? m :name)
+             (contains? m :default)
+             (contains? m :rate))
+    (throw (Exception. (str "Invalid synth param map. Expected to find the keys :name, :default, :rate, got" m)))))
+
+(defn- ensure-paired-params!
+  "throws an error if list l does not contain an even number of elements"
+  [l]
+  (when-not (even? (count l))
+    (throw (IllegalArgumentException. "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5] or a list of maps"))))
+
+(defn- mapify-params
+  "converts a list of param name val pairs to a param map. If the val of a param
+  is a vector, it assumes it's a pair of [val rate] and sets the rate of the
+  param accordingly. If the val is a plain number, it sets the rate to
+  DEFAULT-RATE. All names are converted to strings"
+  [params]
   (for [[p-name p-val] (partition 2 params)]
     (let [[p-val p-rate] (if (vector? p-val)
                            p-val
                            [p-val DEFAULT-RATE])]
-      {:name  p-name
-       :value (float p-val)
+      {:name  (str p-name)
+       :default (float p-val)
        :rate  p-rate})))
+
+(defn- stringify-names
+  "takes a map and converts the val of key :name to a string"
+  [m]
+  (into {} (for [[k v] m] (if (= :name k) [k (str v)] [k v]))))
+
+;; TODO: Figure out a better way to specify rates for synth parameters
+;; perhaps using name post-fixes such as [freq:kr 440]
+(defn- parse-params
+  "Used by defsynth to parse the param list. Accepts either a vector of
+   name default pairs, name [default rate] pairs or a vector of maps:
+
+  (defsynth foo [freq 440] ...)
+  (defsynth foo [freq [440 :ar]] ...)
+  (defsynth foo [{:name \"freq\" :default 440 :rate :ar}] ...)
+
+  Returns a vec of param maps"
+
+  [params]
+  (if (associative? (first params))
+    (do
+      (dorun (map ensure-param-keys! params))
+      (vec (map stringify-names params)))
+    (do
+      (ensure-paired-params! params)
+      (vec (mapify-params params)))))
 
 (defn- make-params
   "Create the param value vector and parameter name vector."
   [grouped-params]
   (let [param-list (flatten grouped-params)
-        pvals  (map #(:value %1) param-list)
+        pvals  (map #(:default %1) param-list)
         pnames (map (fn [[idx param]]
                       {:name (to-str (:name param))
                        :index idx})
@@ -218,8 +258,7 @@
     (synthdef \"pad-z\" [
   "
   [sname params ugens constants]
-  (let [parsed-params (parse-params params)
-        grouped-params (group-params parsed-params)
+  (let [grouped-params (group-params params)
         [params pnames] (make-params grouped-params)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
@@ -233,13 +272,10 @@
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
 (defn- control-proxies
-  "Converts a list of alternating param-name, param-value pairs to
-  param-name, control-proxy pairs."
+  "Returns a list of param name symbols and control proxies"
   [params]
-  (mapcat
-    (fn [[pname pval]]
-         [(symbol pname) `(control-proxy ~pname ~pval)])
-    (partition 2 params)))
+  (mapcat (fn [param] [(symbol (:name param)) `(control-proxy ~(:name param) ~(:default param))])
+          params))
 
 (defn- gen-synth-name
   "Auto generate an anonymous synth name. Intended for use in synths that have not
@@ -301,11 +337,12 @@
   (let [[sname args] (cond
                        (or (string? (first args))
                            (symbol? (first args))) [(str (first args)) (rest args)]
-                       :default                    [(gen-synth-name) args])
+                           :default                    [(gen-synth-name) args])
+                _ (println "howdy " args)
+
         [params ugen-form] (if (vector? (first args))
                              [(first args) (rest args)]
                              [[] args])
-        params (vec (map #(if (symbol? %) (str %) %) params))
         param-proxies (control-proxies params)]
     [sname params param-proxies ugen-form]))
 
@@ -313,7 +350,8 @@
 ; hard coded here.
 (defmacro pre-synth
   "Resolve a synth def to a list of its name, params, ugens (nested if necessary) and
-   constants."
+   constants. Sets the lexical bindings of the param names to control proxies within
+   the synth definition"
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
@@ -332,7 +370,7 @@
   [& args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~@args)
          sdef# (synthdef sname# params# ugens# constants#)
-         arg-names# (map first (partition 2 params#))
+         arg-names# (map :name params#)
          player# (synth-player sname# arg-names#)
          smap# (callable-map {:name sname#
                               :ugens ugens#
@@ -350,15 +388,14 @@
   "Internal function used to prepare synth meta-data."
   [s-name s-form]
   (let [[s-name s-form] (name-with-attributes s-name s-form)
-        params   (first s-form)
-        ugen-form (second s-form)
-        arglists (list (vec (map first (partition 2 params))))
-        _ (if-not (even? (count params))
-              (throw (IllegalArgumentException. "A synth requires an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5]")))
-        md (assoc (meta s-name)
-                  :name s-name
-                  :type ::synth
-                  :arglists (list 'quote arglists))]
+        params          (first s-form)
+        params          (parse-params params)
+        ugen-form       (second s-form)
+        param-names     (list (vec (map :name params)))
+        md              (assoc (meta s-name)
+                          :name s-name
+                          :type ::synth
+                          :arglists (list 'quote param-names))]
     [(with-meta s-name md) params ugen-form]))
 
 (defmacro defsynth
