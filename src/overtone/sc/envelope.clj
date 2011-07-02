@@ -14,7 +14,7 @@
   (:use [overtone util]
         [overtone.sc ugen]))
 
-(def ENV-CURVES
+(def ENV-SHAPES
   {:step        0
    :lin         1
    :linear      1
@@ -30,19 +30,27 @@
    :cubed       7
    })
 
-(defn- curve-to-shapes
-  "Create the shapes list corresponding to either a curve type or a set of curve types."
+(defn- shape->id
+  "Create a repeating shapes list corresponding to a specific curve type.
+  Looks curve c up in ENV-SHAPES and if not found used curve id 5.
+  Mirrors *shapeNumber in supercollider/SCClassLibrary/Common/Audio/Env.sc"
   [c]
   (cond
-    (keyword? c) (repeat (c ENV-CURVES))
+   (keyword? c) (repeat (c ENV-SHAPES))
+
     (or
-      (seq? c)
+      (sequential? c)
       (number? c))  (repeat 5)))
 
-(defn- curve-to-curves
-  "Create the curves list for this curve type."
+(defn- curve-value
+  "Create the curves list for this curve type.
+  Mirrors curveValue in supercollider/SCClassLibrary/Common/Audio/Env.sc"
+  ;;
   [c]
-  (repeat (if (number? c) c 0)))
+  (cond
+   (sequential? c)  c
+   (number? c) (repeat c)
+   :else (repeat 0)))
 
 ;; Envelope specs describe a series of segments of a line, which can be used to automate
 ;; control values in synths.
@@ -57,12 +65,13 @@
 
 (defn envelope
   "Create an envelope curve description array suitable for the EnvGen ugen."
+  ;;See prAsArray in supercollider/SCClassLibrary/Common/Audio/Env.sc
   [levels durations & [curve release-node loop-node]]
   (let [curve (or curve :linear)
         reln  (or release-node -99)
         loopn (or loop-node -99)
-        shapes (curve-to-shapes curve)
-        curves (curve-to-curves curve)]
+        shapes (shape->id curve)
+        curves (curve-value curve)]
     (apply vector
            (concat [(first levels) (count durations) reln loopn]
                    (interleave (rest levels) durations shapes curves)))))
