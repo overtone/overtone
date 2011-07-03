@@ -274,7 +274,7 @@
 (defn- control-proxies
   "Returns a list of param name symbols and control proxies"
   [params]
-  (mapcat (fn [param] [(symbol (:name param)) `(control-proxy ~(:name param) ~(:default param))])
+  (mapcat (fn [param] [(symbol (:name param)) `(control-proxy ~(:name param) ~(:default param) ~(:rate param))])
           params))
 
 (defn- gen-synth-name

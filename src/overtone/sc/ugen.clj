@@ -448,8 +448,8 @@
 (derive ControlProxy ::ugen)
 
 (defn control-proxy
-  [name value]
-  (ControlProxy. name value (:kr RATES) :kr))
+  [name value rate]
+  (ControlProxy. name value (rate RATES) rate))
 
 (defrecord UGenOutputProxy [ugen rate rate-name index])
 (derive UGenOutputProxy ::ugen)
