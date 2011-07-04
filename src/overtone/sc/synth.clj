@@ -377,6 +377,7 @@
                               :doc "User defined synth..."
                               :player player#
                               :args arg-names#
+                              :params params#
                               :type ::synth}
                              player#)]
      (load-synthdef sdef#)

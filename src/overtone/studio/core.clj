@@ -186,6 +186,7 @@
                             :tgt (:group ins#)
                             pargs#)))
          inst# (callable-map {:type ::instrument
+                              :params params#
                               :name sname#
                               :ugens ugens#
                               :sdef sdef#
