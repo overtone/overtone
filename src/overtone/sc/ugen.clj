@@ -243,6 +243,9 @@
                  ;; Special case the a2k ugen
                  (and (= "A2K" (:name ugen))
                       (= :ar (:rate-name bad-input)))
+                 ;; Special case the FFT ugen which may have ar ugens plugged into it
+                 (and (= "FFT" (:name ugen))
+                      (= :ar (:rate-name bad-input)))
                  ;; Special case demand rate ugens which may have kr ugens plugged into them
                  (and (= :dr cur-rate)
                       (= :kr (:rate-name bad-input))))
