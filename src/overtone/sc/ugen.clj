@@ -451,8 +451,11 @@
 (derive ControlProxy ::ugen)
 
 (defn control-proxy
-  [name value rate]
-  (ControlProxy. name value (rate RATES) rate))
+  "Create a new control proxy with the specified name, value and rate. Rate
+  defaults to :kr."
+  ([name value] (control-proxy name value :kr))
+  ([name value rate]
+     (ControlProxy. name value (rate RATES) rate)))
 
 (defrecord UGenOutputProxy [ugen rate rate-name index])
 (derive UGenOutputProxy ::ugen)
