@@ -11,8 +11,9 @@
               {:name "active", :default 1}
               {:name "winsize", :default 0}],
        :rates #{:kr}
-       :doc "fast fourier transform, converts input data from the time to the frequency domain and
-            stores the result in a buffer (audio waveform -> graph equalizer bands)"}
+       :doc "fast fourier transform, converts input data from the time to the frequency domain and stores the result in a buffer (audio waveform -> graph equalizer bands)
+
+Output is -1 except when an FFT frame is ready, when the output is the buffer index. This creates a special kind of slower pseudo-rate (built on top of control rate) which all the pv-ugens understand."}
 
       {:name "IFFT",
        :args [{:name "buffer"}
