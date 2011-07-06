@@ -388,6 +388,8 @@
   "Internal function used to prepare synth meta-data."
   [s-name s-form]
   (let [[s-name s-form] (name-with-attributes s-name s-form)
+        _               (when (not (symbol? s-name))
+                          (throw (Exception. (str "You need to specify a name for your synth using a symbol"))))
         params          (first s-form)
         params          (parse-params params)
         ugen-form       (second s-form)
