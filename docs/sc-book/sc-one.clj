@@ -35,11 +35,11 @@
 
 (demo 2 (let [sines 5
                speed 1000]
-           (* (apply +
-                     (map #(pan2 (* (sin-osc (* % 100))
-                                    (maximum 0 (+ (lf-noise1:kr speed) (line:kr 1 -1 30))))
-                                 (- (clojure.core/rand 2) 1))
-                          (range sines)))
+           (* (mix
+               (map #(pan2 (* (sin-osc (* % 100))
+                              (maximum 0 (+ (lf-noise1:kr speed) (line:kr 1 -1 30))))
+                           (- (clojure.core/rand 2) 1))
+                    (range sines)))
               (/ 1 sines))))
 
 
@@ -351,7 +351,7 @@
 ;;
 ;;{PlayBuf.ar(1, ~houston)}.play;
 ;;{PlayBuf.ar(1, ~chooston)}.play;
-
+play
 
 ;;this assumes you have a separate install of SuperCollider and
 ;;you're running OS X. Feel free to change the following audio paths
@@ -648,3 +648,67 @@ chooston
 
 ;; to stop
 (reset! cont false)
+
+
+;; Page 36
+
+;;// Mix down a few of them tuned to harmonics
+;;
+;;(
+;;{
+;;        var fund = 220;
+;;        Mix.ar(
+;;        	[
+;;        	SinOsc.ar(220, mul: max(0, LFNoise1.kr(12))),
+;;        	SinOsc.ar(440, mul: max(0, LFNoise1.kr(12))) * 1/2,
+;;              SinOsc.ar(660, mul: max(0, LFNoise1.kr(12))) * 1/3,
+;;        	SinOsc.ar(880, mul: max(0, LFNoise1.kr(12))) * 1/4,
+;;        	SinOsc.ar(1110, mul: max(0, LFNoise1.kr(12))) * 1/5,
+;;        	SinOsc.ar(1320, mul: max(0, LFNoise1.kr(12))) * 1/6
+;;        	]
+;;        	) * 0.3
+;;}.play
+;;)
+
+(demo 15
+      (* 0.3
+         (+ (* (sin-osc 220)  (maximum 0 (lf-noise1:kr 12)) 1)
+            (* (sin-osc 440)  (maximum 0 (lf-noise1:kr 12)) 1/2)
+            (* (sin-osc 660)  (maximum 0 (lf-noise1:kr 12)) 1/3)
+            (* (sin-osc 880)  (maximum 0 (lf-noise1:kr 12)) 1/4 )
+            (* (sin-osc 1110) (maximum 0 (lf-noise1:kr 12)) 1/5)
+            (* (sin-osc 1320) (maximum 0 (lf-noise1:kr 12)) 1/6))))
+
+;; or the more compact but equivalent:
+
+(demo 15
+      (let [freqs [220 440 660 880 1110 1320]
+            muls  [1   1/2 1/3 1/4 1/5  1/6]
+            mk-sin #(* (sin-osc %1) (maximum 0 (lf-noise1 12)) %2)
+            sins  (map mk-sin freqs muls)]
+        (* (mix sins) 0.3)))
+
+
+;; Page 37
+
+;;// And a patch
+;;(
+;;{
+;;        Mix.ar(
+;;            Array.fill(12,
+;;                {arg count;
+;;        	        var harm;
+;;        	        harm = count + 1 * 110; //remember precedence; count + 1, then * 110
+;;        	        SinOsc.ar(harm, mul: max([0, 0], SinOsc.kr(count + 1/4))) * 1/(count + 1)
+;;                })
+;;    )*0.7}.play
+;;)
+
+(demo 15
+      (* 0.7
+         (mix
+          (for [count (range 12)]
+            (let [harm (* (inc count) 110)]
+              (* (sin-osc harm)
+                 (maximum [0 0] (sin-osc:kr (/ (inc count) 4)))
+                 (/ 1 (inc count))))))))
