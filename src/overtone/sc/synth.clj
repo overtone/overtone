@@ -180,7 +180,13 @@
   "throws an error if list l does not contain an even number of elements"
   [l]
   (when-not (even? (count l))
-    (throw (IllegalArgumentException. "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5] or a list of maps"))))
+    (throw (IllegalArgumentException. (str "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5] or a list of maps. You passed " (count l) " args:" l)))))
+
+(defn- ensure-vec!
+  "throws an error if list l is not a vector"
+  [l]
+  (when-not (vector? l)
+    (throw (IllegalArgumentException. (str "Your synth argument list is not a vector. Instead I found " (type l) ": " l)))))
 
 (defn- mapify-params
   "converts a list of param name val pairs to a param map. If the val of a param
@@ -219,6 +225,7 @@
       (dorun (map ensure-param-keys! params))
       (vec (map stringify-names params)))
     (do
+      (ensure-vec! params)
       (ensure-paired-params! params)
       (vec (mapify-params params)))))
 
