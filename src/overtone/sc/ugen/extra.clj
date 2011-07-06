@@ -1,7 +1,7 @@
 (defn mix
-  "Mix down (sum) a set of input channels into a single channel."
-  [& inputs]
-  (reduce overtone.ugen-collide/+ inputs))
+  "Mix down (sum) a list of input channels into a single channel."
+  [ins]
+  (apply overtone.ugen-collide/+ ins))
 
 (defn square
   "a square wave generator."
