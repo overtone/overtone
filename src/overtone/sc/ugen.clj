@@ -452,10 +452,13 @@
 
 (defn control-proxy
   "Create a new control proxy with the specified name, value and rate. Rate
-  defaults to :kr."
+  defaults to :kr. Specifically handles :tr which is really a TrigControl
+  ugen at :kr."
   ([name value] (control-proxy name value :kr))
   ([name value rate]
-     (ControlProxy. name value (rate RATES) rate)))
+     (ControlProxy. name value (if (= :tr)
+                                 (:kr RATES)
+                                 (rate RATES)) rate)))
 
 (defrecord UGenOutputProxy [ugen rate rate-name index])
 (derive UGenOutputProxy ::ugen)
@@ -505,20 +508,45 @@
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
 ;; all ugens which should be specified as external controls.
-(def CONTROLS #{"control"})
+(def CONTROLS #{"control" "trig-control audio-control"})
 
-(defn control-ugen [rate n-outputs]
+(defn mk-generic-control-ugen
+  [name rate n-outputs offset]
   (with-meta {:id (next-id :ugen)
-              :name "Control"
+              :name name
               :rate (rate RATES)
               :rate-name (REVERSE-RATES (rate RATES))
-              :special 0
+              :special offset
               :args nil
               :n-outputs n-outputs
               :outputs (repeat n-outputs {:rate (rate RATES)})
               :n-inputs 0
               :inputs []}
     {:type :ugen}))
+
+(defn control-ugen
+  "Creates a new control ugen at control rate.
+  Used as the standard control proxy for synths"
+  [n-outputs offset]
+  (mk-generic-control-ugen "Control" :kr  n-outputs offset))
+
+(defn trig-control-ugen
+  "Creates a new trigger control ugen at control rate.
+  Used as a trigger-style control proxy for synths"
+  [n-outputs offset]
+  (mk-generic-control-ugen "TrigControl" :kr n-outputs offset))
+
+(defn audio-control-ugen
+  "Creates a new control ugen at audio rate.
+  Used for audio-rate modulation of synth params"
+  [n-outputs offset]
+  (mk-generic-control-ugen "AudioControl" :ar n-outputs offset))
+
+(defn inst-control-ugen
+  "Creates a new control ugen at instrument rate
+  Used for instrument-rate modulation of synth params"
+  [n-outputs offset]
+  (mk-generic-control-ugen "Control" :ir  n-outputs offset))
 
 (defn control? [obj]
   (isa? (type obj) ::control))

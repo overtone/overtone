@@ -132,9 +132,26 @@
 (defn- make-control-ugens
   "Controls are grouped by rate, so that a single Control ugen represents
   each rate present in the params.  The Control ugens are always the top nodes
-  in the graph, so they can be prepended to the topologically sorted tree."
+  in the graph, so they can be prepended to the topologically sorted tree.
+
+  Specifically handles control proxies at :tr, :ar, :kr and :ir"
   [grouped-params]
-  (map #(control-ugen (:rate (first %1)) (count %1)) grouped-params))
+  (loop [done   {}
+         todo   grouped-params
+         offset 0]
+    (if (empty? todo)
+      (filter #(not (nil? %))
+              [(:ir done) (:tr done) (:ar done) (:kr done)])
+      (let [group      (first todo)
+            group-rate (:rate (first group))
+            group-size (count group)
+            ctl-proxy  (case group-rate
+                             :tr (trig-control-ugen group-size offset)
+                             :ar (audio-control-ugen group-size offset)
+                             :kr (control-ugen group-size offset)
+                             :ir (inst-control-ugen group-size offset))]
+
+        (recur (assoc done group-rate ctl-proxy) (rest todo) (+ offset group-size))))))
 
 (defn- group-params
   "Groups params by rate.  Groups a list of parameters into a
@@ -146,7 +163,7 @@
                             (assoc mem rate (conj rate-group param))))
                         {} params)]
     (filter #(not (nil? %1))
-            (conj [] (:ir by-rate) (:kr by-rate) (:ar by-rate)))))
+            [(:ir by-rate) (:tr by-rate) (:ar by-rate) (:kr by-rate)])))
 
 (def DEFAULT-RATE :kr)
 
@@ -259,7 +276,7 @@
   "
   [sname params ugens constants]
   (let [grouped-params (group-params params)
-        [params pnames] (make-params grouped-params)
+       [params pnames] (make-params grouped-params)
         with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
         detailed (detail-ugens with-ctl-ugens constants grouped-params)]
     (with-meta {:name (str sname)
@@ -274,7 +291,8 @@
 (defn- control-proxies
   "Returns a list of param name symbols and control proxies"
   [params]
-  (mapcat (fn [param] [(symbol (:name param)) `(control-proxy ~(:name param) ~(:default param) ~(:rate param))])
+  (mapcat (fn [param] [(symbol (:name param))
+                      `(control-proxy ~(:name param) ~(:default param) ~(:rate param))])
           params))
 
 (defn- gen-synth-name
