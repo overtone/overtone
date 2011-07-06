@@ -49,13 +49,13 @@
   (let [name-fn (fn [name]
                   (let [name (to-str name)]
                     (when (not (string? name))
-                      (throw (Exception. (str "Incorrect arg. Was expecting a string and found " name ". Full arg map: " arg-map))))
+                      (throw (IllegalArgumentException. (str "Incorrect arg. Was expecting a string and found " name ". Full arg map: " arg-map))))
                     name))
         val-fn (fn [val]
                  (let [val (bus->id val)
                        val (to-float val)]
                    (when (not (float? val))
-                     (throw (Exception. (str "Incorrect arg. Was expecting a float and found " val ". Full arg map: " arg-map))))
+                     (throw (IllegalArgumentException. (str "Incorrect arg. Was expecting a float and found " val ". Full arg map: " arg-map))))
                    val))]
 
     (zipmap (map name-fn (keys arg-map))

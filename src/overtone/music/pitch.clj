@@ -115,27 +115,27 @@
    (nil? note) nil
    (integer? note) (if (>= note 0)
                     note
-                    (throw (Exception.
+                    (throw (IllegalArgumentException.
                             (str "Unable to resolve note: " note ". Value is out of range. Lowest value is 0"))))
    (keyword? note) (resolve-note (name note))
    (string? note) (let [midi-note-re #"\A([a-gA-G][#b]?)([-0-9]+\Z)"
                         separated (re-find midi-note-re note)
                         _ (when (nil? separated)
-                            (throw (Exception.
+                            (throw (IllegalArgumentException.
                                     (str "Unable to resolve note: " note ". Does not appear to be in MIDI format i.e. C#4"))))
 
                         [_ pitch-class octave] separated
                         octave (Integer. octave)
                         _ (when (< octave -1)
-                            (throw (Exception.
+                            (throw (IllegalArgumentException.
                                     (str "Unable to resolve note: " note ". Octave is out of range. Lowest octave value is -1"))))
                         interval (NOTE (keyword pitch-class))
 
                         _ (when (nil? interval)
-                            (throw (Exception.
+                            (throw (IllegalArgumentException.
                                     (str "Unable to resolve note: " note ". Not a valid pitch class such as C or Db"))))]
                     (+ interval 12 (* 12 octave)))
-   :else (throw (Exception. (str "Unable to resolve note: " note ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
+   :else (throw (IllegalArgumentException. (str "Unable to resolve note: " note ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
 
 ;; * Each note in a scale acts as either a generator or a collector of other notes,
 ;; depending on their relations in time within a sequence.
@@ -243,7 +243,7 @@
   [degree]
   (if (some #{degree} (keys DEGREE))
     (degree DEGREE)
-    (throw (Exception. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
+    (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
 
 (defn degree->interval
   "Converts the degree of a scale given as a roman numeral keyword and converts
@@ -272,7 +272,7 @@
   [degrees scale root]
   (let [root (resolve-note root)]
     (when (nil? root)
-      (throw (Exception. (str "root resolved to a nil value. degrees->pitches requires a non-nil root."))))
+      (throw (IllegalArgumentException. (str "root resolved to a nil value. degrees->pitches requires a non-nil root."))))
     (map (fn [degree]
            (cond
             (coll? degree) (degrees->pitches degree scale root)

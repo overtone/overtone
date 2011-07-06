@@ -48,7 +48,7 @@
   (cond
     (buffer? b) (:id b)
     (number? b) b
-    :default (throw (Exception. "Not a valid buffer: " b))))
+    :default (throw (IllegalArgumentException. "Not a valid buffer: " b))))
 
 (defn buffer-free
   "Free an audio buffer and the memory it was consuming."
@@ -56,7 +56,7 @@
   (let [id (cond
              (buffer? buf) (:id buf)
              (number? buf) buf
-             :default (throw (Exception. "Not a valid buffer or buffer id.")))]
+             :default (throw (IllegalArgumentException. "Not a valid buffer or buffer id.")))]
     (snd "/b_free" id)
     (free-id :audio-buffer id)
     :done))

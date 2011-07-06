@@ -26,12 +26,12 @@
   ([val-prob-map] (weighted-choose (keys val-prob-map) (vals (val-prob-map))))
   ([vals probabilities]
      (when-not (= (count vals) (count probabilities))
-       (throw (Exception. (str "Size of vals and probabilities don't match. Got "
+       (throw (IllegalArgumentException. (str "Size of vals and probabilities don't match. Got "
                                (count vals)
                                " and "
                                (count probabilities)))))
      (when-not (= (reduce + probabilities) 1)
-       (throw (Exception. (str "The sum of your probabilities is not 1.0"))))
+       (throw (IllegalArgumentException. (str "The sum of your probabilities is not 1.0"))))
 
      (let [paired (map vector probabilities vals)
            sorted (sort #(< (first %1) (first %2)) paired)

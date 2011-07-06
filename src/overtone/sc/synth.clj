@@ -61,11 +61,11 @@
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
   (when-not (contains? ugen :args)
-    (throw (Exception.
+    (throw (IllegalArgumentException.
              (format "The %s ugen does not have any arguments."
                      (:name ugen)))))
   (when-not (every? #(or (ugen? %) (number? %) (string? %)) (:args ugen))
-    (throw (Exception.
+    (throw (IllegalArgumentException.
              (format "The %s ugen has an invalid argument: %s"
                      (:name ugen)
                      (first (filter
@@ -157,7 +157,7 @@
              (contains? m :name)
              (contains? m :default)
              (contains? m :rate))
-    (throw (Exception. (str "Invalid synth param map. Expected to find the keys :name, :default, :rate, got" m)))))
+    (throw (IllegalArgumentException. (str "Invalid synth param map. Expected to find the keys :name, :default, :rate, got" m)))))
 
 (defn- ensure-paired-params!
   "throws an error if list l does not contain an even number of elements"
@@ -389,7 +389,7 @@
   [s-name s-form]
   (let [[s-name s-form] (name-with-attributes s-name s-form)
         _               (when (not (symbol? s-name))
-                          (throw (Exception. (str "You need to specify a name for your synth using a symbol"))))
+                          (throw (IllegalArgumentException. (str "You need to specify a name for your synth using a symbol"))))
         params          (first s-form)
         params          (parse-params params)
         ugen-form       (second s-form)
