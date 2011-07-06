@@ -1,33 +1,53 @@
-; This is an annotated version of this synth definition to help in understanding
-; some basics about synths and the synthdef data structure used in Overtone.
+(ns doc.kick
+  (:use [overtone.live]))
 
-; Here is a basic kick drum.  An envelope generator is multiplied by a low frequency
-; sin wave, which is like turning the volume knob up and down really quick while playing
-; a low tone.
+;;This is an annotated version of this synth definition to help in understanding
+;; some basics about synths and the synthdef data structure used in Overtone.
+
+;; Here is a basic kick drum.  An envelope generator is multiplied by a low frequency
+;; sin wave, which is like turning the volume knob up and down really quick while playing
+;; a low tone.
 (defsynth kick [amp 0.5 decay 0.6 freq 65]
   (let [env (env-gen (perc 0 decay) 1 1 0 1 :free)
         snd (sin-osc freq (* Math/PI 0.5) amp)]
     (out 0 (pan2 (* snd env) 0))))
 
-; A shorter variation leaving out the out and pan ugens, which get added by default
-; to synths that are rooted by an audio rate ugen that isn't out.
-(defsynth kick [amp 0.5 decay 0.6 freq 65]
+;; This can be triggered using the name as a function call:
+(kick)
+
+;; A shorter variation using definst which allows you to leave out the out and pan ugens,
+;; which get added by default to synths that are rooted by an audio rate ugen that isn't out.
+(definst kick [amp 0.5 decay 0.6 freq 65]
   (* (sin-osc freq (* Math/PI 0.5) amp)
      (env-gen (perc 0 decay) 1 1 0 1 :free)))
 
-; The defsynth function will create a synthesizer definition structure that mimics the
-; binary format sent to the SuperCollider server.  These could also be created in other
-; ways, for example if you have in idea for a synthesizer DSL...
+;; Similarly this is also triggered using the name as a function call:
+(kick)
+
+;; The defsynth function will create a synthesizer definition structure that mimics the
+;; binary format sent to the SuperCollider server.  These could also be created in other
+;; ways, for example if you have in idea for a synthesizer DSL...
+
+;; The structure is stored in each synth you create in a key called :sdef. So to retrieve
+;; the structure of our kick synth we need to issue:
+(:sdef kick)
+
+;; This might be improved by pretty printing the result:
+(synthdef-print (:sdef kick))
+
+;; Here is the annotated output of (:sdef kick)
+(pprint (:sdef kick))
+
 {
  :name "kick",
  :n-params 3,             ; The number of controllable parameters
  :params [0.5 0.6 65.0],  ; default parameter values
 
- ; The name of each parameter with the index of it's default value in the :params vector.
+ ;; The name of each parameter with the index of its default value in the :params vector.
  :n-pnames 3,
  :pnames [{:index 0, :name "amp"} {:index 1, :name "decay"} {:index 2, :name "freq"}],
 
- ; All constant values used in the synth definition
+ ;; All constant values used in the synth definition
  :n-constants 7,
  :constants [1.0 0.0 2.0 -99.0 5.0 -4.0 1.5707964]
 
@@ -38,7 +58,7 @@
  [
   ; One control ugen is created for each rate of input parameters.  In this case all of
   ; the inputs are standard control rate (:kr) so we just have a single control.  A control
-  ; is always the first ugen executed, and it's named parameters can be modified at
+  ; is always the first ugen executed, and its named parameters can be modified at
   ; runtime.
   {:outputs [{:rate 1} {:rate 1} {:rate 1}],
    :inputs [],
