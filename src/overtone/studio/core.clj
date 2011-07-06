@@ -288,5 +288,4 @@
   (doseq [synth (filter #(synthdef? %1)
                         (map #(var-get %1)
                              (vals (ns-publics 'overtone.instrument))))]
-    ;(println "loading synth: " (:name synth))
     (load-synthdef synth)))

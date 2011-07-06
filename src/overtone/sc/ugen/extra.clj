@@ -33,6 +33,4 @@
                   level)
           positions (splay-pan n center spread)
           pans (pan2 in-array positions level)]
-      (println "positions: " positions)
       (map + (parallel-seqs pans)))))
-
