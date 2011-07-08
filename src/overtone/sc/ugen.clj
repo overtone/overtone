@@ -286,9 +286,9 @@
                (map #(if (bus? %) (:id %) %) args))))
 
 (defn- with-ugen-metadata-init
-  "Calls init fn (catching, wrappign and rethrowing any errors). If init fn
-  returns a map, merges it with the ugen else assumes the result is a new
-  arg list and simply assocs it to the ugen under the key :args."
+  "Calls init fn fun. If init fn returns a map, merges it with the ugen
+  otherwise if the result is a new arg list and simply assocs it to the ugen
+  under the key :args, else throws an exception."
   [spec fun ugen]
   (let [rate (:rate ugen)
         args (:args ugen)
@@ -300,7 +300,7 @@
 
 (defn- placebo-ugen-init-fn
   "The default ugen init fn (used if an :init key is not present in the ugen
-  metadata. Simply returns the args unchanged."
+  metadata). Simply returns the args unchanged."
   [rate args spec] args)
 
 (defn- with-init-fn
