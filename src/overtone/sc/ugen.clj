@@ -285,6 +285,24 @@
              (fn [args]
                (map #(if (bus? %) (:id %) %) args))))
 
+(defn- with-ugen-metadata-init
+  "Calls init fn (catching, wrappign and rethrowing any errors). If init fn
+  returns a map, merges it with the ugen else assumes the result is a new
+  arg list and simply assocs it to the ugen under the key :args."
+  [spec fun ugen]
+  (let [rate (:rate ugen)
+        args (:args ugen)
+        new-args (fun rate args spec)]
+    (cond
+     (associative? new-args) (merge ugen new-args)
+     (sequential? new-args) (assoc ugen :args new-args)
+     :else (throw (Exception. (str "Unexpected return type from a ugen metadata init fn. Expected either a map or a list, got " new-args))))))
+
+(defn- placebo-ugen-init-fn
+  "The default ugen init fn (used if an :init key is not present in the ugen
+  metadata. Simply returns the args unchanged."
+  [rate args spec] args)
+
 (defn- with-init-fn
   "Creates the final argument initialization function which is applied to
   arguments at runtime to do things like re-ordering and automatic filling in
@@ -296,13 +314,18 @@
   [spec]
   (let [defaulter (partial add-default-args spec)
         mapper    (partial map-ugen-args spec)
-        initer    (if (contains? spec :init) (:init spec) identity)
+        init-fn   (if (contains? spec :init)
+                    (:init spec)
+                    placebo-ugen-init-fn)
+        initer    (partial with-ugen-metadata-init spec init-fn)
         n-outputer (partial with-num-outs-mode spec)
         floater   (partial with-floated-args spec)
         appender  (partial append-seq-args spec)
         auto-rater (partial auto-rate-setter spec)
         rate-checker (partial check-arg-rates spec)]
+
     (assoc spec :init
+
            (fn [ugen]
              (-> ugen
                  defaulter
