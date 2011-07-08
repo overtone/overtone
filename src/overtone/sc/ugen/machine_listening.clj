@@ -98,9 +98,10 @@
               {:name "numcoeff", :default 13}],
        :rates #{:kr}
        :num-outs :variable
-       :init (fn [rate args spec]
-               {:args args
-                :num-outs (args 1)})}
+;;       :init (fn [rate args spec]
+;;               {:args args
+;;                :num-outs (args 1)})
+       }
 
       ;; //6 outs
       ;; BeatTrack2 : MultiOutUGen {

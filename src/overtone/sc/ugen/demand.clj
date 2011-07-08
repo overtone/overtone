@@ -56,9 +56,9 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
               {:name "levelBias", :default 0.0 :doc "demand ugen returning level offset values"}
               {:name "timeScale", :default 1.0 :doc "demand ugen returning time scaling values"}
               {:name "action", :default :none :map DONE-ACTIONS}]
-       :init (fn [rate [l d s c gate reset ls lb ts da] spec]
-               (if (or (ar? gate) (ar? reset))
-                 [l d s c (as-ar gate) (as-ar reset) ls lb ts da]))
+;;       :init (fn [rate [l d s c gate reset ls lb ts da] spec]
+;;               (if (or (ar? gate) (ar? reset))
+;;                 [l d s c (as-ar gate) (as-ar reset) ls lb ts da]))
        :doc "Plays back break point envelope contours (levels, times, shapes) given by demand ugens. The next values are called when the next node is reached."}
 
       ;; DUGen : UGen {

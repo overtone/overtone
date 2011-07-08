@@ -70,5 +70,5 @@ The actual minimum duration of a segment is not zero, but one sample step for au
        :args [{:name "ienvelope" :doc "an InterplEnv (this is static for the life of the UGen)"}
               {:name "index" :doc "a point to access within the InterplEnv"}]
        :doc "Plays back break point envelopes from the index point."
-       :init (fn [rate [env & args] spec]
-               )}])
+;;       :init (fn [rate [env & args] spec])
+       }])

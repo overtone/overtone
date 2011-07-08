@@ -151,8 +151,9 @@
        :args [{:name "buf"}
               {:name "values" :mode :not-expanded}
               {:name "offset" :default 0}]
-       :init (fn [rate [buf values offset] spec]
-               (apply vector buf offset (count values) values))}
+       ;;:init (fn [rate [buf values offset] spec]
+       ;;         (apply vector buf offset (count values) values))
+       }
 
       ;; ClearBuf : UGen {
       ;; 	*new { arg buf;
