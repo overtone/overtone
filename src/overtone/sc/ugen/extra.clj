@@ -34,3 +34,17 @@
           positions (splay-pan n center spread)
           pans (pan2 in-array positions level)]
       (map + (parallel-seqs pans)))))
+
+(defn pm-osc
+  "Phase modulation sine oscillator pair. Defaults to :ar"
+  [car-freq mod-freq pm-index mod-phase]
+  (with-ugens
+    (sin-osc:ar car-freq (* pm-index (sin-osc:ar mod-freq mod-phase)))))
+
+(defn pm-osc:kr
+  "Phase modulation sine oscillator pair at :kr"
+  [car-freq mod-freq pm-index mod-phase]
+  (with-ugens
+    (sin-osc:kr car-freq (* pm-index (sin-osc:kr mod-freq mod-phase)))))
+
+(def pm-osc:ar pm-osc)
