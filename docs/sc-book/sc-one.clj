@@ -737,7 +737,6 @@ chooston
                                 amps  (repeatedly num-res #(ranged-rand 0.3 0.9))
                                 rings (repeatedly num-res #(ranged-rand 1 4))
                                 specs [freqs amps rings]
-                                _ (println specs)
                                 pan (softclip (* 2 (lf-noise1:kr (ranged-rand 3 6))))]
                             (pan2 (klank specs (* 0.03 (dust (/ 1 6)) ))
                                   pan)))]
