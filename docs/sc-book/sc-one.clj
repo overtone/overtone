@@ -705,3 +705,40 @@ chooston
               (* (sin-osc harm)
                  (maximum [0 0] (sin-osc:kr (/ (inc count) 4)))
                  (/ 1 (inc count))))))))
+
+
+;; Page 38
+
+;;(
+;;{
+;;        var scale, specs, freqs, amps, rings,
+;;         numRes = 5, bells = 20, pan;
+;;     scale = [60, 62, 64, 67, 69].midicps;
+;;         Mix.fill(bells, {
+;;                 freqs = Array.fill(numRes, {rrand(1, 15)*(scale.choose)});
+;;                 amps = Array.fill(numRes, {rrand(0.3, 0.9)});
+;;                 rings = Array.fill(numRes, {rrand(1.0, 4.0)});
+;;                 specs = [freqs, amps, rings].round(0.01);
+;;                 specs.postln;
+;;                 pan = (LFNoise1.kr(rrand(3,6))* 2).softclip;
+;;                 Pan2.ar(
+;;                     Klank.ar(`specs,
+;;                         Dust.ar(1/6, 0.03)),
+;;                         pan)
+;;         })
+;;}.play;
+;;)
+
+(demo 10
+      (let [num-res 5
+            bells   20
+            scale   (map midi->hz [60 62 64 67 69])
+            mk-bell (fn [] (let [freqs (repeatedly num-res #(* (ranged-rand 1 5) (choose scale)))
+                                amps  (repeatedly num-res #(ranged-rand 0.3 0.9))
+                                rings (repeatedly num-res #(ranged-rand 1 4))
+                                specs [freqs amps rings]
+                                _ (println specs)
+                                pan (softclip (* 2 (lf-noise1:kr (ranged-rand 3 6))))]
+                            (pan2 (klank specs (* 0.03 (dust (/ 1 6)) ))
+                                  pan)))]
+        (out 0 (mix (repeatedly bells mk-bell)))))
