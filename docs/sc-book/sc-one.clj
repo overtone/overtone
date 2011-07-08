@@ -94,11 +94,7 @@
 
 (demo (* 0.5 (sin-osc 100 (* 10 (sin-osc 500 0)))))
 
-;;we could also define our own pseudo ugen fn:
-
-(defn pm-osc [car-freq mod-freq pm-index mod-phase]
-  (with-ugens
-    (sin-osc car-freq (* pm-index (sin-osc mod-freq mod-phase)))))
+;;we can use the pm-osc pseudo ugen provided by overtone:
 
 (demo (* 0.5 (pm-osc 100 500 10 0)))
 
@@ -127,7 +123,7 @@
 ;;
 ;;/////////////
 
-(demo 30
+(demo 10
       (let [trigger       (line:kr :start 1, :end 20, :dur 60)
             freq          (t-rand:kr :lo 100, :hi 1000, :trig (impulse:kr trigger))
             num-harmonics (t-rand:kr :lo 1,   :hi 10,   :trig (impulse:kr trigger))
@@ -208,14 +204,12 @@
 ;;
 ;;/////////////
 
-(defn pm-osc [car-freq mod-freq pm-index mod-phase]
-  (with-ugens
-    (sin-osc car-freq (* pm-index (sin-osc mod-freq mod-phase)))))
+
 
 (demo 10 (let [r (impulse:kr 10)
                c (t-rand:kr :lo 100, :hi 5000, :trig r)
                m (t-rand:kr :lo 100, :hi 5000, :trig r)]
-           (* 0.3 (pm-osc c m 12 0))))
+           (* [0.3 0.3] (pm-osc c m 12 0))))
 
 (demo 10 (let [rate 4
                carrier (+ 700 (* 500 (lf-noise0:kr rate)))
@@ -291,9 +285,10 @@
 (do
   (ctl a :freq (midi->hz 64))
   (ctl c :freq (midi->hz 72)))
-(kill a)
-(kill b)
-(kill c)
+(do
+  (kill a)
+  (kill b)
+  (kill c))
 
 
 
@@ -325,9 +320,7 @@
 ;;}).add;
 ;;)
 
-(defn pm-osc [car-freq mod-freq pm-index mod-phase]
-  (with-ugens
-    (sin-osc car-freq (* pm-index (sin-osc mod-freq mod-phase)))))
+
 
 (defsynth pmc-rotale [midi 60 tone 3 art 1 amp 0.8 pan 0]
   (let [freq (midicps midi)
