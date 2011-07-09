@@ -52,7 +52,7 @@
 
 (midi-handle-events kb #'midi-listener)
 
-(midi-handle-events kb (fn [event ts] (dosync (alter conj mlog* event))))
+(midi-handle-events kb (fn [event ts] (dosync (alter conj midi-log* event))))
 
 (defn midi-handle-events
   "Specify a single handler that will receive all midi events from the input device."
@@ -61,4 +61,3 @@
                    (close [] nil)
                    (send [msg timestamp] (dosync (alter midi-log* conj msg))))]
     (.setReceiver (:transmitter input) receiver)))
-

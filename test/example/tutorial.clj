@@ -37,8 +37,8 @@
 (my-sin 447)
 
 ; If you lose a synth ID or things are going crazy and you just need to kill
-; all the current synths, call reset to clear all the live synths.
-(reset)
+; all the current synths, call stop to clear all the live synths.
+(stop)
 
 ; Square wave, created by a pulse generator
 ; Adjust the width to create different harmonics
@@ -102,7 +102,7 @@
 ; pass a seq of values.
 (definst bar [] (sin-osc [440 442]))
 (bar)
-(reset)
+(stop)
 
 ; As you might have noticed, the synths can take parameters too, so that you can
 ; control their input values both when you instantiate a synth, and later while
@@ -116,12 +116,4 @@
 (baz 200)
 (baz 800)
 (baz 400)
-(reset)
-
-(definst ping [freq 600]
-  (* (env-gen (perc 0.02 0.4) 1 1 0 1 :free)
-     (sin-osc freq)))
-
-(def server (osc-server 5708))
-(osc-handle server "/play" #(ping (+ 100 (* 100 (first (:args %))))))
-
+(stop)
