@@ -169,7 +169,7 @@
   port are passed or an internal server in the case of no args."
   ([] (connect-internal))
   ([port] (connect "127.0.0.1" port))
-  ([host port] 
+  ([host port]
    (dosync (ref-set status* :connecting))
    (.run (Thread. #(connect-external host port)))))
 
@@ -324,7 +324,10 @@
          :booting))))
 
 (defn boot
-  "Boot either the internal or external audio server."
+  "Boot either the internal or external audio server.
+   (boot) ; uses the default settings defined in your config
+   (boot :internal) ; boots the internal server
+   (boot :external 57110) ; boots an external server listening on port 57110"
   ([]
      (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [port]]
@@ -401,4 +404,3 @@
       (log/level :error)
       (osc-debug false)
       (snd "/dumpOSC" 0))))
-
