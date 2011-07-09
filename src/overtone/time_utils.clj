@@ -88,7 +88,7 @@
 ; the instance of the function defined earlier.
 ; (apply-at (+ dur (now)) #'my-melody arg1 arg2 [])
 
-(def APPLY-AHEAD 150)
+(def APPLY-AHEAD 300)
 
 (defn apply-at
   "Calls (apply f args argseq) APPLY-AHEAD ms before ms-time."
@@ -98,4 +98,3 @@
     (if (<= delay-time 0)
       (apply f (#'clojure.core/spread args))
       (schedule #(apply f (#'clojure.core/spread args)) delay-time))))
-
