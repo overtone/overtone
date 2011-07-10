@@ -100,6 +100,7 @@
   ;;For connecting with a monome to control the wobble and note
   (require '(polynome [core :as poly]))
   (def m (poly/init "/dev/tty.usbserial-m64-0790"))
+  (def notes (reverse [25 27 28 35 40 41 50 78]))
   (poly/on-press m (fn [x y s]
                    (do
                      (let [wobble (inc y)
