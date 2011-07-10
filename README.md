@@ -90,7 +90,12 @@ Now get Overtone:
     $ lein repl
 
     user=> (use 'overtone.live)
-    user=> (synth (out 0 (pan2 (sin-osc 440))))
+
+    ; sin-osc creates a sine wave at the specified Hz (440 in this case)
+    ; and pan2 makes the signal stereo
+    ; demo simply plays the synth for the specified time in seconds:
+
+    user=> (demo 5 (pan2 (sin-osc 440))))
 
 
     ; Defining a new synthesizer instrument with the definst macro will return a function which
