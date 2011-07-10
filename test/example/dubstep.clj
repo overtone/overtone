@@ -65,3 +65,49 @@
        snare (clip2 snare 1)]
 
    (clip2 (+ wob kick snare) 1)))
+
+;; An inst that lets you modulate the speed, wobble and note of the dubstep synth
+(definst dubstep [bpm 120 wobble 1 note 50]
+ (let [trig (impulse:kr (/ bpm 120))
+       freq (midicps (lag (demand trig 0 (dxrand [note] INF)) 0.25))
+       swr (demand trig 0 (dseq [wobble] INF))
+       sweep (lin-exp (lf-tri swr) -1 1 40 3000)
+       wob (apply + (saw (* freq [0.99 1.01])))
+       wob (lpf wob sweep)
+       wob (* 0.8 (normalizer wob))
+       wob (+ wob (bpf wob 1500 2))
+       wob (+ wob (* 0.2 (g-verb wob 9 0.7 0.7)))
+
+       kickenv (decay (t2a (demand (impulse:kr (/ bpm 30)) 0 (dseq [1 0 0 0 0 0 1 0 1 0 0 1 0 0 0 0] INF))) 0.7)
+       kick (* (* kickenv 7) (sin-osc (+ 40 (* kickenv kickenv kickenv 200))))
+       kick (clip2 kick 1)
+
+       snare (* 3 (pink-noise [1 1]) (apply + (* (decay (impulse (/ bpm 240) 0.5) [0.4 2]) [1 0.05])))
+       snare (+ snare (bpf (* 4 snare) 2000))
+       snare (clip2 snare 1)]
+
+   (clip2 (+ wob kick snare) 1)))
+
+(comment
+  ;;Control the dubstep synth with the following:
+  (dubstep)
+  (ctl dubstep :wobble 8)
+  (ctl dubstep :note 40)
+  (stop))
+
+
+(comment
+  ;;For connecting with a monome to control the wobble and note
+  (require '(polynome [core :as poly]))
+  (def m (poly/init "/dev/tty.usbserial-m64-0790"))
+  (poly/on-press m (fn [x y s]
+                   (do
+                     (let [wobble (inc y)
+                           note (nth notes x)]
+                       (println "wobble:" wobble)
+                       (println "note:" note)
+                       (poly/clear m)
+                       (poly/led-on m x y)
+                       (ctl dubstep :wobble wobble)
+                       (ctl dubstep :note note)))))
+  (poly/disconnect m))
