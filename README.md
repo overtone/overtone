@@ -6,7 +6,7 @@
 
 ---------------------------------------------------------
 
-#### Live-coding and musical exploration
+### Live-coding and musical exploration
 
 Overtone is a toolkit for creating synthesizers and making music.  It provides:
 
@@ -15,7 +15,13 @@ Overtone is a toolkit for creating synthesizers and making music.  It provides:
 * metronome and timing system to support live-coding and sequencing
 * plug and play midi device I/O
 * simple Open Sound Control (OSC) message handling
-*
+
+### Live-Coding Video Introduction
+
+Head over to vimeo for a 4 minute introduction to live-coding with Overtone to see what's
+possible:
+
+  http://vimeo.com/22798433
 
 ### Project Info:
 
@@ -26,7 +32,7 @@ your project.clj is:
 
 [overtone "<version>"]
 
-The current version is 0.1.3-SNAPSHOT, but search on Clojars to get the latest
+The current version is 0.1.5 but search on Clojars to get the latest
 release.
 
 #### Source Repository
@@ -69,7 +75,7 @@ Download and install leiningen wherever you local executables go:
 
 Now get Overtone:
 
-    $ git clone git://github.com/rosejn/overtone.git
+    $ git clone git://github.com/overtone/overtone.git
 
     $ cd overtone
     $ lein deps
@@ -84,18 +90,26 @@ Now get Overtone:
     user=> (use 'overtone.live)
     user=> (synth (out 0 (pan2 (sin-osc 440))))
 
-    ; Defining a new synthesizer with the synth macro will return a function.
 
-    user=> (*1)
-    5
+    ; Defining a new synthesizer instrument with the definst macro will return a function which
+    ; can be used to trigger the inst.
 
-    ; Call the function to trigger the synth and set its control parameters.
-    ; It will return an ID that can be used to kill or adjust parameters for
-    ; the synth instance.
+    user=> (definst beep [freq 440] (sin-osc freq))
+    user=> (beep)
+    user=> (stop)
 
-    user=> (kill 5)
+    ; Call the ctl function to modulate any params and to eventually kill that instrumetn:
 
+    user=> (beep)
+    user=> (ctl beep :freq 880)
+    user=> (kill beep)
     user=> (quit)
+
+
+### Getting Started Videos
+
+* Setting up an Overtone Development Environment - Running on Edge http://vimeo.com/25102399
+* How to Hack Overtone with Emacs http://vimeo.com/25190186
 
 ### Acknowledgements
 
