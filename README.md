@@ -1,4 +1,4 @@
-<img src="http://cloud.github.com/downloads/overtone/overtone/overtone-logo.png" alt="Overtone Logo" title="Overtone" />
+<img src="https://github.com/downloads/overtone/overtone/overtone-logo.png" alt="Overtone Logo" title="Overtone" />
 
 ---------------------------------------------------------
 
