@@ -8,7 +8,6 @@
              trigger buffer envelope bus sample sc-lang]
             [overtone.music rhythm pitch tuning]
             [overtone.studio core util fx]
-            [overtone.console viz]
             [overtone.viz scope]))
 
 (immigrate
@@ -36,6 +35,5 @@
   'overtone.music.tuning
   'overtone.studio.core
   'overtone.studio.fx
-  'overtone.console.viz
   'overtone.viz.scope
  )

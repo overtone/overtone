@@ -1,5 +1,4 @@
-(ns overtone.sc.ugen.categories
-	(:use vijual))
+(ns overtone.sc.ugen.categories)
 
 (def UGEN-CATEGORIES
   {"osc-n"          [["Generators" "Deterministic"]]
@@ -199,32 +198,6 @@
 	 "osc"                  [["Generators" "Deterministic"]]
 	 "poll"                 [["Info"]]})
 
-(defn path-to-edges [path root] 
-	(loop [edges []
-				 path path
-				 last-edge root]
-	 (if path
-		(recur (conj edges [(keyword last-edge)
-											  (keyword (first path))])
-				 (next path)
-				 (first path))
-		edges)))
-
-(defn ugen-category-graph 
-	"Outputs an adjacency seq representing the ugen category graph."
-	[]
-	(let [category-edges (mapcat (fn [[ugen cats]]
-																(mapcat (fn [cat]
-													                (path-to-edges (conj cat ugen) "ugen"))
-												                cats))
-															UGEN-CATEGORIES)]
-	 (seq (set category-edges))))
-
-;TODO: Maybe this is exposing the bug Sam talked about?  Vijual dies here.
-(defn print-ugen-category-tree 
-	"Pretty print the ugen category tree."
-	[]
-	(vijual/draw-tree (ugen-category-graph)))
 
 ;; #!/usr/bin/ruby
 ;; data = File.read("/Applications/Audio/SuperCollider/SCClassLibrary/Common/Audio/UGenCategories.sc").scan(/^\+ (\w+).+\#(\[.*\])/)
@@ -250,6 +223,6 @@
 ;;
 ;;  Then to convert from SC names to overtone names:
 ;;
-;;  (zipmap 
+;;  (zipmap
 ;;    (map overtone-ugen-name (keys UGEN-CATEGORY-MAP))
 ;;    (vals UGEN-CATEGORY-MAP))
