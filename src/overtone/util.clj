@@ -251,3 +251,20 @@
   ([prom] (await-promise! prom DEFAULT-PROMISE-TIMEOUT))
   ([prom timeout]
      (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
+
+
+(defn print-ascii-art-overtone-logo
+  []
+  (println "
+          _____                 __
+         / __  /_  _____  _____/ /_____  ____  ___
+        / / / / | / / _ \\/ ___/ __/ __ \\/ __ \\/ _ \\
+       / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
+       \\____/ |___/\\___/_/   \\__/\\____/_/ /_/\\___/
+
+                          Programmable Music.
+
+
+May this be the start of a beautiful music hacking session...
+
+"))

@@ -36,4 +36,6 @@
   'overtone.studio.core
   'overtone.studio.fx
   'overtone.viz.scope
- )
+  )
+
+(print-ascii-art-overtone-logo)
