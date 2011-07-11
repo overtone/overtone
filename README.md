@@ -1,6 +1,8 @@
 <img src="https://github.com/downloads/overtone/overtone/overtone-logo.png" alt="Overtone Logo" title="Overtone" />
 
----------------------------------------------------------
+
+## Programmable Music
+
 
 ### Live-coding and musical exploration
 
