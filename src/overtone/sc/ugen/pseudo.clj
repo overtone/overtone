@@ -12,10 +12,11 @@
       ;; }
 
       {:name "Tap"
-       :args [{:name "bufnum", :default 0}
-              {:name "numChannels" :mode :num-outs, :default 1}
-              {:name "delaytime" :default 0.2}]
-       :rates #{:ar}}
+       :args [{:name "bufnum", :default 0 :doc " the index of the buffer to use"}
+              {:name "numChannels" :mode :num-outs, :default 1 :doc "number of channels of the buffer"}
+              {:name "delaytime" :default 0.2 :doc "tap delay; cannot be modulated"}]
+       :rates #{:ar}
+       :doc "The Tap UGen allows a single tap at a delay into a buffer. "}
 ;       :pseudo-ugen {:ar (fn [bufnum num-channels delaytime]
 ;                           (let [n (* delaytime (- (sample-rate)))]
 ;                             (playbuf:ar num-channels bufnum 1 0 n 1)))}}

@@ -53,13 +53,13 @@
 
 
       {:name "K2A",
-       :args [{:name "in", :default 0.0}],
+       :args [{:name "in", :default 0.0 :doc "input signal"}],
        :rates #{:ar}
        :doc "control rate to audio rate converter via linear interpolation."}
 
 
       {:name "A2K",
-       :args [{:name "in", :default 0.0}],
+       :args [{:name "in", :default 0.0 :doc "input signal"}],
        :rates #{:kr}
        :doc "audio rate to control rate converter via linear interpolation"}
 
@@ -69,8 +69,8 @@
        :doc "audio rate trigger to control rate trigger converter. Uses the maxiumum trigger in the input during each control period."}
 
       {:name "T2A",
-       :args [{:name "in", :default 0.0}
-              {:name "offset", :default 0}],
+       :args [{:name "in", :default 0.0 :doc "input signal"}
+              {:name "offset", :default 0 :doc "sample offset within control period"}],
        :rates #{:ar}
        :doc "control rate trigger to audio rate trigger converter (maximally one per control period)."}
 

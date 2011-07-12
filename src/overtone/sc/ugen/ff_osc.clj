@@ -9,26 +9,6 @@
 
   WARNING: In the current implementation, the amplitude can blow up if the frequency is modulated by certain alternating signals."}
 
-      ;; Klang : UGen {
-      ;;  *ar { arg specificationsArrayRef, freqscale = 1.0, freqoffset = 0.0;
-      ;;      ^this.multiNewList(['audio', freqscale,
-      ;;            freqoffset, specificationsArrayRef] )
-      ;;  }
-      ;;  *new1 { arg rate, freqscale, freqoffset, arrayRef;
-      ;;    var specs, freqs, amps, phases;
-      ;;    # freqs, amps, phases = arrayRef.dereference;
-      ;;    specs = [freqs,
-      ;;        amps ?? {Array.fill(freqs.size,1.0)},
-      ;;        phases ?? {Array.fill(freqs.size,0.0)}
-      ;;        ].flop.flat;
-      ;;    ^super.new.rate_(rate).addToSynth.init([freqscale,freqoffset] ++ specs);
-      ;;  }
-      ;;    init { arg theInputs;
-      ;;      // store the inputs as an array
-      ;;      inputs = theInputs;
-      ;;    }
-      ;;  argNamesInputsOffset { ^2 }
-      ;; }
 
       {:name "Klang",
        :args [{:name "specs", :mode :append-sequence :doc "An array of three arrays frequencies, amplitudes and phases:  1) an array of filter frequencies, 2) an Array of filter amplitudes, or nil. If nil, then amplitudes default to 1.0, 3) an Array of initial phases, or nil. If nil, then phases default to 0.0."}
@@ -47,26 +27,7 @@
   The specs can't be changed after it has been started.
   For a modulatable but less efficient version, see dyn-klang."}
 
-      ;; Klank : UGen {
-      ;;  *ar { arg specificationsArrayRef, input, freqscale = 1.0, freqoffset = 0.0, decayscale = 1.0;
-      ;;      ^this.multiNewList(['audio',  input, freqscale,
-      ;;            freqoffset, decayscale, specificationsArrayRef] )
-      ;;  }
-      ;;  *new1 { arg rate, input, freqscale, freqoffset, decayscale, arrayRef;
-      ;;    var specs, freqs, amps, times;
-      ;;    # freqs, amps, times = arrayRef.dereference;
-      ;;    specs = [freqs,
-      ;;        amps ?? {Array.fill(freqs.size,1.0)},
-      ;;        times ?? {Array.fill(freqs.size,1.0)}
-      ;;        ].flop.flat;
-      ;;    ^super.new.rate_(rate).addToSynth.init([input,freqscale,freqoffset,decayscale] ++ specs);
-      ;;  }
-      ;;    init { arg theInputs;
-      ;;      // store the inputs as an array
-      ;;      inputs = theInputs;
-      ;;    }
-      ;;  argNamesInputsOffset { ^2 }
-      ;; }
+
 
       {:name "Klank",
        :args [{:name "specs", :mode :append-sequence :doc "An array of three arrays: frequencies, amplitudes and ring times: *all arrays should have the same length*  1) an Array of filter frequencies. 2)  an Array of filter amplitudes, or nil. If nil, then amplitudes default to 1.0 3) an Array of 60 dB decay times for the filters."}
@@ -110,23 +71,13 @@
        :rates #{:ar}
        :doc "band limited pulse wave generator with pulse width modulation"}
 
-      ;; from PSinGrain.sc
-      ;; 	fixed frequency sine oscillator
-      ;; 	arguments :
-      ;; 		freq - frequency in cycles per second. Must be a scalar.
-      ;; 		dur - grain duration
-      ;; 		amp - amplitude of grain
-      ;; 	This unit generator uses a very fast algorithm for generating a sine
-      ;; 	wave at a fixed frequency.
-      ;; PSinGrain : UGen {
-      ;; 	*ar { arg freq = 440.0, dur = 0.2, amp = 1.0;
-      ;; 		^this.multiNew('audio', freq, dur, amp)
-      ;; 	}
-      ;; }
 
       {:name "PSinGrain",
-       :args [{:name "freq", :default 440.0}
-              {:name "dur", :default 0.2}
-              {:name "amp", :default 1.0}],
-       :rates #{:ar}}
+       :args [{:name "freq", :default 440.0 :doc "frequency in cycles per second. Must be a scalar"}
+              {:name "dur", :default 0.2 :doc "grain duration"}
+              {:name "amp", :default 1.0 :doc "amplitude of grain"}],
+       :rates #{:ar}
+       :doc "Fixed frequency sine oscillator
+
+this ugen uses a very fast algorithm for generating a sine wave at a fixed frequency"}
       ])

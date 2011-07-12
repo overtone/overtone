@@ -13,22 +13,7 @@
               {:name "action", :default :none :map DONE-ACTIONS}]
        :doc "Plays back a sample resident in a buffer"}
 
-      ;; TGrains : MultiOutUGen {
-      ;; 	*ar { arg numChannels, trigger=0, bufnum=0, rate=1, centerPos=0,
-      ;; 			dur=0.1, pan=0, amp=0.1, interp=4;
-      ;; 		if (numChannels < 2) {
-      ;; 			 "TGrains needs at least two channels.".error;
-      ;; 			 ^nil
-      ;; 		}
-      ;; 		^this.multiNew('audio', numChannels, trigger, bufnum, rate, centerPos,
-      ;; 				dur, pan, amp, interp)
-      ;; 	}
-      ;; 	init { arg argNumChannels ... theInputs;
-      ;; 		inputs = theInputs;
-      ;; 		^this.initOutputs(argNumChannels, rate);
-      ;; 	}
-      ;; 	argNamesInputsOffset { ^2 }
-      ;; }
+
 
       {:name "TGrains",
        :args [{:name "numChannels" :mode :num-outs :default 2 :doc "number of output channels"}
@@ -43,6 +28,8 @@
        :rates #{:ar}
        :check (num-outs-greater-than 1)
        :doc "sample playback from a buffer with fine control for doing granular synthesis. Triggers generate grains from a single channel (mono) buffer. Each grain has a Hann envelope (sin^2(x) for x from 0 to pi) and is panned between two channels of multiple outputs."}
+
+
 
       {:name "BufRd",
        :args [{:name "numChannels"    :default 1, :mode :num-outs,

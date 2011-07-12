@@ -51,39 +51,42 @@
     :doc "returns the number of currently running synths"}
 
    {:name "BufSampleRate"
-    :args [{:name "buf" :default 0}]
+    :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
     :doc "returns the buffers current sample rate"}
 
    {:name "BufRateScale"
-    :args [{:name "buf" :default 0}]
+    :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
     :doc "returns a ratio by which the playback of a buffer is to be scaled"}
 
    {:name "BufFrames"
-    :args [{:name "buf" :default 0}]
+    :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
     :doc "returns the current number of allocated frames"}
 
    {:name "BufSamples"
-    :args [{:name "buf" :default 0}]
+    :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
     :doc "current number of samples allocated in the buffer"}
 
    {:name "BufDur"
-    :args [{:name "buf" :default 0}]
+    :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
     :doc "returns the current duration of a buffer"}
 
    {:name "BufChannels"
-    :args [{:name "buf" :default 0}]
+    :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
     :doc "current number of channels of soundfile in buffer"}
 
    {:name "CheckBadValues"
-    :args [{:name "val"}]
+    :args [{:name "in" :doc "the UGen whose output is to be tested"}
+           {:name "id" :default 0 :doc "an id number to identify this UGen."}
+           {:name "post" :default 2 :doc "One of three post modes: 0 = no posting; 1 = post a line for every bad value; 2 = post a line only when the floating-point classification changes (e.g., normal -> NaN and vice versa)
+"}]
     :rates #{:kr :ir}
-    :doc "test for infinity, not-a-number, and denormals"}
+    :doc "test for infinity, not-a-number, and denormals.  If one of these is found, it posts a warning. Its output is as follows: 0 = a normal float, 1 = NaN, 2 = infinity, and 3 = a denormal."}
 
    {:name "Poll"
     :args [{:name "trig" :default 0.0

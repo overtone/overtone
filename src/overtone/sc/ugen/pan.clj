@@ -33,22 +33,6 @@
      (map
        #(assoc % :check (when-ar (first-input-ar)))
       [
-       ;; Pan2 : Panner {
-       ;;  *ar { arg in, pos = 0.0, level = 1.0;
-       ;;    ^this.multiNew('audio', in, pos, level )
-       ;;  }
-       ;;  *kr { arg in, pos = 0.0, level = 1.0;
-       ;;    ^this.multiNew('control', in, pos, level )
-       ;;  }
-       ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;
-       ;;    channels = [
-       ;;      OutputProxy(rate, this, 0),
-       ;;      OutputProxy(rate, this, 1)
-       ;;    ];
-       ;;    ^channels
-       ;;  }
-       ;; }
 
        {:name "Pan2",
         :args [{:name "in" :doc "input signal"}
@@ -62,21 +46,6 @@
        {:name "LinPan2" :extends "Pan2"
         :doc "Two channel (stereo) linear panner. This one sounds more like the Rhodes tremolo than Pan2."}
 
-       ;; Pan4 : Panner {
-
-       ;;  *ar { arg in, xpos = 0.0, ypos = 0.0, level = 1.0;
-       ;;    ^this.multiNew('audio', in, xpos, ypos, level )
-       ;;  }
-       ;;  *kr { arg in, xpos = 0.0, ypos = 0.0, level = 1.0;
-       ;;    ^this.multiNew('control', in, xpos, ypos, level )
-       ;;  }
-       ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;
-       ;;    channels = [ OutputProxy(rate,this, 0), OutputProxy(rate,this, 1),
-       ;;          OutputProxy(rate,this, 2), OutputProxy(rate,this, 3) ];
-       ;;    ^channels
-       ;;  }
-       ;; }
 
        {:name "Pan4",
         :args [{:name "in", :doc "input signal"}
@@ -86,22 +55,6 @@
         :num-outs 4
         :doc "Four channel equal power panner. Outputs are in order LeftFront, RightFront, LeftBack, RightBack."}
 
-       ;; Balance2 : Panner {
-       ;;  *ar { arg left, right, pos = 0.0, level = 1.0;
-       ;;    ^this.multiNew('audio', left, right, pos, level )
-       ;;  }
-       ;;  *kr { arg left, right, pos = 0.0, level = 1.0;
-       ;;    ^this.multiNew('control', left, right, pos, level )
-       ;;  }
-       ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;
-       ;;    channels = [
-       ;;      OutputProxy(rate, this, 0),
-       ;;      OutputProxy(rate, this, 1)
-       ;;    ];
-       ;;    ^channels
-       ;;  }
-       ;; }
 
        {:name "Balance2",
         :args [{:name "left", :doc "channel 1 of input stereo signal"}
@@ -112,22 +65,6 @@
         :doc "Equal power panning balances two channels; by panning, you are favouring one or other channel in the mix, and the other loses power. The middle pan position (pos=0.0) corresponds to the original stereo mix; full left (pos of -1) is essentially just left channel playing, full right (pos of 1) just the right. The output of Balance2 remains a stereo signal."
         }
 
-       ;; Rotate2 : Panner {
-       ;;  *ar { arg x, y, pos = 0.0;
-       ;;    ^this.multiNew('audio', x, y, pos )
-       ;;  }
-       ;;  *kr { arg x, y, pos = 0.0;
-       ;;    ^this.multiNew('control', x, y, pos )
-       ;;  }
-       ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;
-       ;;    channels = [
-       ;;      OutputProxy(rate, this, 0),
-       ;;      OutputProxy(rate, this, 1)
-       ;;    ];
-       ;;    ^channels
-       ;;  }
-       ;; }
 
        {:name "Rotate2",
         :args [{:name "x", :doc "input signal"}
@@ -146,20 +83,6 @@ yout = cos(angle) * yin - sin(angle) * xin;
 where angle = pos * pi,  so that -1 becomes -pi and +1 becomes +pi.
 This allows you to use an LFSaw to do continuous rotation around a circle."}
 
-       ;; PanB : Panner {
-       ;;  *ar { arg in, azimuth=0, elevation=0, gain=1;
-       ;;    ^this.multiNew('audio', in, azimuth, elevation, gain )
-       ;;  }
-       ;;  *kr { arg in, azimuth=0, elevation=0, gain=1;
-       ;;    ^this.multiNew('control', in, azimuth, elevation, gain )
-       ;;  }
-       ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;
-       ;;    channels = [ OutputProxy(rate,this,0), OutputProxy(rate,this,1),
-       ;;          OutputProxy(rate,this,2), OutputProxy(rate,this,3) ];
-       ;;    ^channels
-       ;;  }
-       ;; }
 
        {:name "PanB",
         :args [{:name "in", :doc "input signal"}
@@ -169,20 +92,6 @@ This allows you to use an LFSaw to do continuous rotation around a circle."}
         :num-outs 4
         :doc "Ambisonic B format panner. Output channels are in order W,X,Y,Z."}
 
-       ;; PanB2 : Panner {
-       ;;  *ar { arg in, azimuth=0, gain=1;
-       ;;    ^this.multiNew('audio', in, azimuth, gain )
-       ;;  }
-       ;;  *kr { arg in, azimuth=0, gain=1;
-       ;;    ^this.multiNew('control', in, azimuth, gain )
-       ;;  }
-       ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;
-       ;;    channels = [ OutputProxy(rate,this,0), OutputProxy(rate,this,1),
-       ;;          OutputProxy(rate,this,2) ];
-       ;;    ^channels
-       ;;  }
-       ;; }
 
        {:name "PanB2",
         :args [{:name "in", :doc "input signal"}
@@ -190,22 +99,6 @@ This allows you to use an LFSaw to do continuous rotation around a circle."}
                {:name "gain", :default 1.0, :doc "amplitude control"}]
         :num-outs 3
         :doc "Encode a mono signal to two dimensional ambisonic B-format."}
-
-       ;; BiPanB2 : Panner {
-       ;;  *ar { arg inA, inB, azimuth, gain=1;
-       ;;    ^this.multiNew('audio', inA, inB, azimuth, gain )
-       ;;  }
-       ;;  *kr { arg inA, inB, azimuth, gain=1;
-       ;;    ^this.multiNew('control', inA, inB, azimuth, gain )
-       ;;  }
-       ;;  init { arg ... theInputs;
-       ;;    inputs = theInputs;
-       ;;    channels = [ OutputProxy(rate,this,0), OutputProxy(rate,this,1),
-       ;;          OutputProxy(rate,this,2) ];
-       ;;    ^channels
-       ;;  }
-       ;;    checkInputs { ^this.checkNInputs(2) }
-       ;; }
 
        {:name "BiPanB2",
         :args [{:name "inA", :doc "input signal A"}
@@ -221,20 +114,6 @@ It is equivalent to:
 PanB2(inA, azimuth, gain) + PanB2(inB, azimuth + 1, gain)"
         :check (when-ar (first-n-inputs-ar 2))}
 
-       ;; DecodeB2 : Panner {
-       ;;  *ar { arg numChans, w, x, y, orientation = 0.5;
-       ;;    ^this.multiNew('audio', numChans, w, x, y, orientation = 0.5 )
-       ;;  }
-       ;;  *kr { arg numChans, w, x, y, orientation = 0.5;
-       ;;    ^this.multiNew('control', numChans, w, x, y, orientation = 0.5 )
-       ;;  }
-       ;;  init { arg numChans ... theInputs;
-       ;;    inputs = theInputs;
-       ;;    channels = Array.fill(numChans, { arg i; OutputProxy(rate,this, i) });
-       ;;    ^channels
-       ;;  }
-       ;;    checkInputs { ^this.checkNInputs(3) }
-       ;; }
 
        {:name "DecodeB2",
         :args [{:name "numChannels" :mode :num-outs, :doc "number of output speakers. Typically 4 to 8."}
@@ -246,19 +125,6 @@ PanB2(inA, azimuth, gain) + PanB2(inB, azimuth + 1, gain)"
 The outputs will be in clockwise order. The position of the first speaker is either center or left of center."
         :check (when-ar (first-n-inputs-ar 3))}
 
-       ;; PanAz : Panner {
-       ;;  *ar { arg numChans, in, pos = 0.0, level = 1.0, width = 2.0, orientation = 0.5;
-       ;;    ^this.multiNew('audio', numChans, in, pos, level, width, orientation )
-       ;;  }
-       ;;  *kr { arg numChans, in, pos = 0.0, level = 1.0, width = 2.0, orientation = 0.5;
-       ;;    ^this.multiNew('control', numChans, in, pos, level, width, orientation )
-       ;;  }
-       ;;  init { arg numChans ... theInputs;
-       ;;    inputs = theInputs;
-       ;;    channels = Array.fill(numChans, { arg i; OutputProxy(rate,this, i) });
-       ;;    ^channels
-       ;;  }
-       ;; }
 
        {:name "PanAz",
         :args [{:name "numChannels" :mode :num-outs, :doc "number of output channels"}
