@@ -252,10 +252,21 @@
   ([prom timeout]
      (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
 
+(defn user-name
+  "returns the name of the current user"
+  []
+  (System/getProperty "user.name"))
+
+(defn get-os []
+  (let [os (System/getProperty "os.name")]
+    (cond
+      (re-find #"[Ww]indows" os) :windows
+      (re-find #"[Ll]inux" os)   :linux
+      (re-find #"[Mm]ac" os)     :mac)))
 
 (defn print-ascii-art-overtone-logo
   []
-  (println "
+  (println (str "
           _____                 __
          / __  /_  _____  _____/ /_____  ____  ___
         / / / / | / / _ \\/ ___/ __/ __ \\/ __ \\/ _ \\
