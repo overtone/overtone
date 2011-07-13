@@ -122,6 +122,12 @@
 
 (defn synthdef? [obj] (= ::synthdef (type obj)))
 
+(defn- supercollider-synthdef-path
+  "Returns a constructed path to a named synthdef on the current platform"
+  [synth-name]
+  (case (get-os)
+        :mac   (str "/Users/" (user-name) "/Library/Application Support/SuperCollider/synthdefs/" synth-name ".scsyndef")))
+
 ; TODO: byte array shouldn't really be the default here, but I don't
 ; know how to test for one correctly... (byte-array? data) please?
 (defn synthdef-read
@@ -129,13 +135,12 @@
   a URL, or a byte array."
   [data]
   (first (:synths
-    (cond
-      (string? data)
-      (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" data)))
-      (instance? java.net.URL data)
-      (spec-read-url synthdef-file-spec data)
-      (byte-array? data) (spec-read-bytes synthdef-file-spec data)
-      :default (throw (IllegalArgumentException. (str "synthdef-read expects either a string, a URL, or a byte-array argument.")))))))
+          (cond
+           (keyword? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" (supercollider-synthdef-path (to-str data)))) )
+           (string? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" data)))
+           (instance? java.net.URL data) (spec-read-url synthdef-file-spec data)
+           (byte-array? data) (spec-read-bytes synthdef-file-spec data)
+           :default (throw (IllegalArgumentException. (str "synthdef-read expects either a string, a URL, or a byte-array argument.")))))))
 
 (defn synthdef-write
   "Write a synth definition to a new file at the given path, which includes
@@ -224,4 +229,3 @@
   "Load a synth definition file onto the audio server."
   [path]
   (snd "/d_recv" (synthdef-bytes (synthdef-read path))))
-
