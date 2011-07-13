@@ -659,10 +659,9 @@
 (defn intern-ugens-collide
   "Intern the ugens that collide with built-in clojure functions."
   [& [to-ns]]
-  (let [to-ns (or to-ns *ns*)
-        generics #{"+" "-" "*" "/"}]
-    (doseq [op generics]
-      (let [func (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" op)))]
+  (let [to-ns (or to-ns *ns*)]
+    (doseq [[op kind] generics]
+      (let [func (var-get (resolve (symbol (str "clojure.contrib.generic." (to-str kind)) op)))]
         (ns-unmap to-ns (symbol op))
         (intern to-ns (symbol op) (make-expanding func [true true]))))
 
