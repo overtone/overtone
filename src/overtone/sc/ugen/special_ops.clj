@@ -26,7 +26,7 @@
    "log10" 27      ; base 10 logarithm
    "sin" 28        ; sine
    "cos" 29        ; cosine
-   "tam" 30        ; tangent
+   "tan" 30        ; tangent
    "asin" 31       ; arcsine
    "acos" 32       ; arccosine
    "atan" 33       ; arctangent
