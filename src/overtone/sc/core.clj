@@ -380,7 +380,11 @@
                  (handler)
                  :done))))
 
-(defn stop []
+(defn stop
+  "Stop all running synths and metronomes. This does not remove any synths/insts
+  you may have defined, rather it just stops any of them that are currently
+  playing."
+  []
   (event :reset))
 
 (def osc-log* (atom []))
