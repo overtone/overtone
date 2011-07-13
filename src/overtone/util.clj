@@ -276,6 +276,4 @@
                           Programmable Music.
 
 
-May this be the start of a beautiful music hacking session...
-
-"))
+Hello " (user-name) ", may this be the start of a beautiful music hacking session...")))
