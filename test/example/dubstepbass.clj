@@ -31,7 +31,7 @@
 ;; son.dup
 ;;}.play
 
-(demo 5
+(demo 30
       (let [trig (coin-gate 0.5 (impulse:kr 2))
             note (demand trig 0 (dseq (shuffle (map midi->hz (conj (range 24 45) 22))) INF))
             sweep (lin-exp (lf-saw (demand trig 0 (drand [1 2 2 3 4 5 6 8 16] INF))) -1 1 40 5000)
