@@ -687,9 +687,13 @@
   `(let [~'+ overtone.ugen-collide/+
          ~'- overtone.ugen-collide/-
          ~'* overtone.ugen-collide/*
+         ~'< overtone.ugen-collide/<
+         ~'> overtone.ugen-collide/>
+         ~'= overtone.ugen-collide/=
          ~'/ overtone.ugen-collide/div-meth
          ~'>= overtone.ugen-collide/>=
          ~'<= overtone.ugen-collide/<=
+;;TODO addme when available in gc  ~'!= overtone.ugen-collide/!=
          ~'rand overtone.ugen-collide/rand
          ~'mod overtone.ugen-collide/mod
          ~'bit-not overtone.ugen-collide/bit-not]

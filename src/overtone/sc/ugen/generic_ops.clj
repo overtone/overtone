@@ -1,13 +1,21 @@
 (derive :overtone.sc.ugen/ugen root-type)
 
 (def generics
-  { "+" :arithmetic
-    "-" :arithmetic
-    "*" :arithmetic
-    "/" :arithmetic })
+  { "+"  :arithmetic
+    "-"  :arithmetic
+    "*"  :arithmetic
+    "/"  :arithmetic
+    ">"  :comparison
+    "<"  :comparison
+    "="  :comparison
+    "<=" :comparison
+    ">=" :comparison
+;;TODO addme when available in gc    "!=" :comparison
+    })
 
 (def generic-namespaces
-  { :arithmetic "ga" })
+  { :arithmetic "ga"
+    :comparison "gc"})
 
 (defmacro mk-binary-op-ugen [sym]
   (let [generic-kind (get generics (to-str sym))
@@ -38,6 +46,12 @@
 (mk-binary-op-ugen :+)
 (mk-binary-op-ugen :-)
 (mk-binary-op-ugen :*)
+(mk-binary-op-ugen :<)
+(mk-binary-op-ugen :>)
+(mk-binary-op-ugen :<=)
+(mk-binary-op-ugen :>=)
+(mk-binary-op-ugen :=)
+;; TODO addme when available in gc (mk-binary-op-ugen :!=)
 
 (def div-meth (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" "/"))))
 
