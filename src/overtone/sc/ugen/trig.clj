@@ -23,7 +23,7 @@
        :doc "outputs one for dur seconds whenever the input goes from negative to positive"}
 
       {:name "Trig", :extends "Trig1"
-       :doc "outputs the level of the triggering input when it goes from negative to positive"}
+       :doc "When a nonpositive to positive transition occurs at the input, Trig outputs the level of the triggering input for the specified duration, otherwise it outputs zero."}
 
       {:name "TDelay"
        :args [{:name "trig", :default 0.0 :doc "input trigger signal."}
@@ -104,7 +104,7 @@ One use of this is to have some precipitating event cause something to happen un
               {:name "step", :default 1 :doc "step value each trigger. May be negative."}
               {:name "resetval" :default 1 :doc "value to which the counter is reset when it receives a reset trigger."}] ; TODO MAYBE? allow :default :min
        :check [same-rate-as-first-input]
-       :doc "triggers increment a counter that loops around from max to min"}
+       :doc "triggers increment a counter which is output as a signal. The counter loops around from max to min by step increments"}
 
       {:name "PulseDivider"
        :args [{:name "trig", :default 0.0 :doc "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive."}
@@ -162,12 +162,13 @@ One use of this is to have some precipitating event cause something to happen un
 This is a better pitch follower than ZeroCrossing, but more costly of CPU. For most purposes the default settings can be used and only in needs to be supplied. Pitch returns two values (via an Array of OutputProxys, see the OutputProxy help file), a freq which is the pitch estimate and hasFreq, which tells whether a pitch was found. Some vowels are still problematic, for instance a wide open mouth sound somewhere between a low pitched short 'a' sound as in 'sat', and long 'i' sound as in 'fire', contains enough overtone energy to confuse the algorithm."}
 
       {:name "InRange"
-       :args [{:name "in", :default 0.0 :doc "signal to be tested"}
+       :args [{:name "in", :default 0.0 :doc "input signal"}
               {:name "lo", :default 0.0 :doc "low threshold"}
               {:name "hi", :default 1.0 :doc "high threshold"}]
-       :doc "tests if a signal is between lo and hi"}
+       :doc "Tests if a signal is between lo and hi"}
 
-      {:name "Fold", :extends "InRange"}
+      {:name "Fold", :extends "InRange"
+       :doc "Folds input wave to within the lo and hi thresholds. This differs from the BinaryOpUGen fold2 in that it allows one to set both low and high thresholds."}
 
       {:name "Clip"
        :args [{:name "in", :default 0.0 :doc "The signal to be clipped"}
@@ -175,7 +176,8 @@ This is a better pitch follower than ZeroCrossing, but more costly of CPU. For m
               {:name "hi", :default 1.0, :doc "High threshold of clipping. Must be greater then lo"}]
        :doc "Clip a signal outside given thresholds. This differs from the BinaryOpUGen clip2 in that it allows one to set both low and high thresholds."}
 
-      {:name "Wrap", :extends "InRange"}
+      {:name "Wrap", :extends "InRange"
+       :doc "Wraps input wave to the low and high thresholds. This differs from the BinaryOpUGen wrap2 in that it allows one to set both low and high thresholds."}
 
       {:name "Schmidt", :extends "InRange"
        :doc "outout one when signal greater than high, and zero when lower than low."}
