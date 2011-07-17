@@ -113,6 +113,7 @@ Reads from a control bus shared between the internal server and the SC client. C
               {:name "channelsArray" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
        :num-outs 0
        :rates #{:ar :kr}
+       :auto-rate true
        :check (when-ar
                (all-but-first-input-ar "channelsArray must all be audio rate"))
        :doc "write a signal to a bus, adding to any existing contents
