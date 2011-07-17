@@ -20,6 +20,7 @@
               {:name "warp",
                :default :linear
                :map {:linear 0 :exponential 1 :lin 0 :exp 1}
+               :rates #{:kr}
                :doc "mapping curve - either :linear or :exponential (:lin and :exp abbreviations are allowed)"}
               {:name "lag", :default 0.2 :doc "lag factor to dezipper cursor movement."}]
 
