@@ -6,13 +6,11 @@
 ; when it is "demanded" of them.  This is normally done using the
 ; demand ugen, which will pull from its arguments when triggered.
 
-(def inf Float/POSITIVE_INFINITY)
-
 ; Play a sequence of notes, where the demand ugen pulls them
 ; each time it gets a trigger.
 (demo 2
       (let [trig (impulse:kr 8)
-            freqs (dseq [440 880 220] Float/POSITIVE_INFINITY)
+            freqs (dseq [440 880 220] INF)
             note-gen (demand:kr trig 0 freqs)
             src (sin-osc note-gen)]
         (* [0.1 0.1] src)))
@@ -20,7 +18,7 @@
 ; Randomize the sequence of notes
 (demo 2
       (let [trig (impulse:kr 8)
-            freqs (drand [440 880 220] Float/POSITIVE_INFINITY)
+            freqs (drand [440 880 220] INF)
             note-gen (demand:kr trig 0 freqs)
             src (sin-osc note-gen)]
         (pan2 (* 0.1 src))))
@@ -28,7 +26,7 @@
 ; Shuffle the notes, but then repeat them in the same order
 (demo 4
       (let [trig (impulse:kr 3)
-            freqs (dseq (dshuf [440 880 220] 2) Float/POSITIVE_INFINITY)
+            freqs (dseq (dshuf [440 880 220] 2) INF)
             note-gen (demand:kr trig 0 freqs)
             src (sin-osc [(* 1.01 note-gen) note-gen])]
         (* 0.2 src)))
@@ -37,7 +35,7 @@
 ; the others have played.
 (demo 2
       (let [trig (impulse:kr 8)
-            freqs (dxrand [440 880 220] Float/POSITIVE_INFINITY)
+            freqs (dxrand [440 880 220] INF)
             note-gen (demand:kr trig 0 freqs)
             src (sin-osc note-gen)]
         (* [0.2 0.2] src)))
@@ -99,8 +97,7 @@
 ; Demanding noise...
 (demo 2
       (let [trig (impulse:kr 2)
-            freqs (dwhite 0 20 Float/POSITIVE_INFINITY)
+            freqs (dwhite 0 20 INF)
             note-gen (+ 340 (* 30 (demand:kr trig 0 freqs)))
             src (sin-osc note-gen)]
         (pan2 (* 0.1 src))))
-
