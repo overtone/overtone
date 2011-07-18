@@ -34,13 +34,21 @@
 (def INF Float/POSITIVE_INFINITY)
 
 (defn normalize-ugen-name
-  "Normalizes SuperCollider and overtone-style names to squeezed lower-case."
+  "Normalizes both SuperCollider and overtone-style names to squeezed lower-case.
+
+  This produces strings that may be used to represent unique ugen keys that can be
+  generated from both SC and Overtone names.
+
+  (normalize-ugen-name \"SinOsc\")  ;=> \"sinosc\"
+  (normalize-ugen-name \"sin-osc\") ;=> \"sinosc\""
   [n]
   (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
 
 (defn overtone-ugen-name
   "A basic camelCase to with-dash name converter tuned to convert SuperCollider
-  names to Overtone names. Most likely needs improvement."
+  names to Overtone names. Most likely needs improvement.
+
+  (overtone-ugen-name \"SinOsc\") ;=> \"sin-osc\""
   [n]
   (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2")
         n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2")
@@ -48,13 +56,17 @@
         n (.toLowerCase n)]
     n))
 
-(defn- derived? [spec]
+(defn- derived?
+  "Determines whether the supplied ugen spec is derived from another ugen spec.
+
+   This means that the ugen needs to inherit some properties from its parent.
+   (The ugen spec's parent is specified using the key :extends)"
+  [spec]
   (contains? spec :extends))
 
 (defn- derive-ugen-specs
-  "Merge the ugen spec maps to give children their parent's attributes.
-
-  Recursively reduces the specs to support arbitrary levels of derivation."
+  "Merge the specified ugen spec maps to give children their parent's attributes
+   by recursively reducing the specs to support arbitrary levels of derivation."
   ([specs] (derive-ugen-specs specs {} 0))
   ([children adults depth]
      ;; Make sure a bogus UGen doesn't spin us off into infinity... ;-)
@@ -352,7 +364,13 @@
       (doc/with-arg-defaults)
       (doc/with-full-doc)))
 
-(defn- specs-from-namespaces [namespaces]
+(defn- specs-from-namespaces
+  "Gathers all ugen spec metadata (stored in the vars spec and specs-collide)
+  from the specified namespaces into a single vector of maps.
+
+  Takes a seq of namespace endings (see UGEN-NAMESPACES) and returns a vector
+  of maps containing ugen metadata."
+  [namespaces]
   (reduce (fn [mem ns]
             (let [full-ns (symbol (str "overtone.sc.ugen." ns))
                   _ (require [full-ns :only '[specs specs-collide]])
