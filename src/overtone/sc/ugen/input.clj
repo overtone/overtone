@@ -22,7 +22,7 @@
                :map {:linear 0 :exponential 1 :lin 0 :exp 1}
                :rates #{:kr}
                :doc "mapping curve - either :linear or :exponential (:lin and :exp abbreviations are allowed)"}
-              {:name "lag", :default 0.2 :doc "lag factor to dezipper cursor movement."}]
+              {:name "lag", :default 0.2 :doc "lag factor to smooth out cursor movement."}]
 
        :doc "maps the current mouse Y coordinate to a value between min and max"}
 
