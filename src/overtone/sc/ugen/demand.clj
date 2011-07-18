@@ -19,8 +19,9 @@ By design, a reset trigger only resets the demand ugens; it does not reset the v
        :args [{:name "dur", :default 1.0 :doc "time values. Can be a demand ugen or any signal. The next level is acquired after duration.
 "}
               {:name "reset", :default 0.0 :doc "trigger or reset time values. Resets the list of ugens and the duration ugen when triggered. The reset input may also be a demand ugen, providing a stream of reset times."}
+              {:name "action", :default :none :map DONE-ACTIONS}
               {:name "level", :default 1.0 :doc "demand ugen providing the output values."}
-              {:name "action", :default :none :map DONE-ACTIONS}]
+]
        :check (fn [rate num-outs [dur reset & _] spec]
                 (if (and (dr? dur)
                          (not (or (dr? reset)
@@ -37,8 +38,8 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
       {:name "TDuty" :extends "Duty"
        :args [{:name "dur", :default 1.0 :doc "time values. Can be a demand ugen or any signal. The next trigger value is acquired after the duration provided by the last time value."}
               {:name "reset", :default 0.0 :doc "trigger or reset time values. Resets the list of ugens and the duration ugen when triggered. The reset input may also be a demand ugen, providing a stream of reset times."}
-              {:name "level", :default 1.0 :doc "demand ugen providing the output values."}
               {:name "action", :default 0 :map DONE-ACTIONS}
+              {:name "level", :default 1.0 :doc "demand ugen providing the output values."}
               {:name "gapFirst", :default 0}]
        :doc "A value is demanded each ugen in the list and output  as a trigger according to a stream of duration values. The unit generators in the list should be 'demand' rate.
 
@@ -93,16 +94,17 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
       ;; which is implemented in the pseudo-ugen DUGen parent of below
 
       {:name "Dseries",
-       :args [{:name "start", :default 1, :doc "start value"}
+       :args [{:name "length", :default INFINITE, :doc "number of values to create"}
               {:name "step", :default 1, :doc "step value"}
-              {:name "length", :default INFINITE, :doc "number of values to create"}]
+              {:name "start", :default 1, :doc "start value"}]
        :rates #{:dr}
        :doc "Generate a series of incrementing values on demand."}
 
       {:name "Dgeom",
-       :args [{:name "start", :default 1, :doc "start value"}
+       :args [{:name "length", :default INFINITE, :doc "doc number of values to create"}
+              {:name "start", :default 1, :doc "start value"}
               {:name "grow", :default 2, :doc "value by which to grow ( x = x[-1] * grow )"}
-              {:name "length", :default INFINITE, :doc "doc number of values to create"}]
+]
        :rates #{:dr}
        :doc "Generate a geometric sequence on demand. The arguments can be a number or any other ugen"}
 
@@ -114,9 +116,9 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
        :doc "Read values from a buffer on demand, using phase (index) value that is also pulled on demand. All inputs can be either demand ugen or any other ugen."}
 
       {:name "Dbufwr",
-       :args [{:name "input", :default 0.0 :doc "single channel input"}
-              {:name "bufnum", :default 0, :doc "buffer number to read from (single channel buffer)"}
+       :args [{:name "bufnum", :default 0, :doc "buffer number to read from (single channel buffer)"}
               {:name "phase", :default 0.0, :doc "index into the buffer"}
+              {:name "input", :default 0.0 :doc "single channel input"}
               {:name "loop", :default 1.0, :doc "when phase exceeds number of frames in buffer, loops when set to 1"}],
        :rates #{:dr}
        :doc "Write a demand sequence into a buffer. All inputs can be either demand ugen or any other ugen."}
@@ -151,9 +153,11 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
        :doc "A demand rate switch. In difference to Dswitch1, Dswitch embeds all items of an input demand ugen first before looking up the next index."}
 
       {:name "Dwhite",
-       :args [{:name "lo", :default 0.0 :doc "minimum value"}
+       :args [
+              {:name "length", :default INFINITE :doc "number of values to create"}
+              {:name "lo", :default 0.0 :doc "minimum value"}
               {:name "hi", :default 1.0 :doc "maximum value"}
-              {:name "length", :default INFINITE :doc "number of values to create"}]
+]
        :rates #{:dr}
        :doc "Generate a sequence of random values in the continuous range between lo and hi."}
 
@@ -161,10 +165,11 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
        :doc "Generates a sequence of random integer values between lo and hi. The arguments can be a number or any other ugen"}
 
       {:name "Dbrown",
-       :args [{:name "lo", :default 0.0 :doc "minimum value"}
+       :args [{:name "length", :default INFINITE :doc "number of values to create"}
+              {:name "lo", :default 0.0 :doc "minimum value"}
               {:name "hi", :default 1.0 :doc "maximum value"}
               {:name "step", :default 0.01 :doc "maximum step for each new value"}
-              {:name "length", :default INFINITE :doc "number of values to create"}]
+]
        :rates #{:dr}
        :doc "Generates a sequence of random values in the continuous range betweeen lo and hi, not exceeding step from one value to the next. The arguments can be a number or any other ugen"}
 
