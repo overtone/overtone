@@ -7,6 +7,6 @@
 
 (defn write-ugen-doc [path]
   (spit path (with-out-str
-               (doseq [ugen overtone.core.ugen/UGEN-SPECS]
+               (doseq [ugen (vals overtone.core.ugen/UGEN-SPECS)]
                  (println "Name: " (:name ugen))
                  (println (:doc ugen))))))

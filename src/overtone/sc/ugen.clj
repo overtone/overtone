@@ -400,19 +400,20 @@
 
 
 
-(def UGEN-SPECS (load-ugen-specs UGEN-NAMESPACES))
-(def UGEN-SPEC-MAP (zipmap
-                    (map #(normalize-ugen-name (:name %)) UGEN-SPECS)
-                    UGEN-SPECS))
+
+(def UGEN-SPECS (let [specs (load-ugen-specs UGEN-NAMESPACES)]
+                  (zipmap
+                   (map #(normalize-ugen-name (:name %)) specs)
+                    specs)))
 
 (defn get-ugen [word]
-  (get UGEN-SPEC-MAP (normalize-ugen-name word)))
+  (get UGEN-SPECS (normalize-ugen-name word)))
 
 (defn find-ugen [regexp]
   (map #(second %)
        (filter (fn [[k v]] (re-find (re-pattern (normalize-ugen-name regexp))
                                    (str k)))
-               UGEN-SPEC-MAP)))
+               (vals UGEN-SPECS))))
 
 (defn inf!
   "users use this to tag infinite sequences for use as
@@ -619,7 +620,7 @@
 
 (defn- def-unary-op
   [to-ns op-name special]
-  (let [spec (get UGEN-SPEC-MAP "unaryopugen")
+  (let [spec (get UGEN-SPECS "unaryopugen")
         ugen-name (symbol (overtone-ugen-name op-name))
         ugen-name (with-meta ugen-name {:doc (:full-doc spec)})
         ugen-fn (fn [arg]
@@ -631,7 +632,7 @@
 
 (defn- def-binary-op
   [to-ns op-name special]
-  (let [spec (get UGEN-SPEC-MAP "binaryopugen")
+  (let [spec (get UGEN-SPECS "binaryopugen")
         ugen-name (symbol (overtone-ugen-name op-name))
         ugen-name (with-meta ugen-name {:doc (:full-doc spec)})
         ugen-fn (fn [a b]
@@ -664,7 +665,7 @@
   (let [to-ns (or to-ns *ns*)]
     (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %))
                                    (= "BinaryOpUGen" (:name %))))
-                         UGEN-SPECS)]
+                         (vals UGEN-SPECS))]
       (def-ugen to-ns ugen 0))
     (doseq [[op-name special] UNARY-OPS]
       (def-unary-op to-ns op-name special))

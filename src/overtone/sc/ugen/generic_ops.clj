@@ -24,21 +24,21 @@
     `(do
       (defmethod ~(symbol gen-nspace sym) [:overtone.sc.ugen/ugen :overtone.sc.ugen/ugen]
          [a# b#]
-         (ugen (get UGEN-SPEC-MAP "binaryopugen")
+         (ugen (get UGEN-SPECS "binaryopugen")
                (max (op-rate a#) (op-rate b#))
                ~(get BINARY-OPS-FULL sym)
                (list a# b#)))
 
       (defmethod ~(symbol gen-nspace sym) [root-type :overtone.sc.ugen/ugen]
          [a# b#]
-         (ugen (get UGEN-SPEC-MAP "binaryopugen")
+         (ugen (get UGEN-SPECS "binaryopugen")
                (op-rate b#)
                ~(get BINARY-OPS-FULL sym)
                (list a# b#)))
 
       (defmethod ~(symbol gen-nspace sym) [:overtone.sc.ugen/ugen root-type]
          [a# b#]
-         (ugen (get UGEN-SPEC-MAP "binaryopugen")
+         (ugen (get UGEN-SPECS "binaryopugen")
                (op-rate a#)
                ~(get BINARY-OPS-FULL sym)
                (list a# b#))))))
@@ -57,21 +57,21 @@
 
 (defmethod div-meth [:overtone.sc.ugen/ugen :overtone.sc.ugen/ugen]
   [a b]
-  (ugen (get UGEN-SPEC-MAP "binaryopugen")
+  (ugen (get UGEN-SPECS "binaryopugen")
         (max (op-rate a) (op-rate b))
         4
         (list a b)))
 
 (defmethod div-meth [:overtone.sc.ugen/ugen root-type]
   [a b]
-  (ugen (get UGEN-SPEC-MAP "binaryopugen")
+  (ugen (get UGEN-SPECS "binaryopugen")
         (op-rate a)
         4
         (list a b)))
 
 (defmethod div-meth [root-type :overtone.sc.ugen/ugen]
   [a b]
-  (ugen (get UGEN-SPEC-MAP "binaryopugen")
+  (ugen (get UGEN-SPECS "binaryopugen")
         (op-rate b)
         4
         (list a b)))
@@ -79,7 +79,7 @@
 
 (defmethod ga/- :overtone.sc.ugen/ugen
   [a]
-  (ugen (get UGEN-SPEC-MAP "unaryopugen")
+  (ugen (get UGEN-SPECS "unaryopugen")
         (op-rate a)
         0
         (list a)))
