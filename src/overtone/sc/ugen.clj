@@ -389,7 +389,7 @@
 (defn- load-ugen-specs [namespaces]
   "Perform the derivations and setup defaults for rates, names
   argument initialization functions, and channel expansion flags."
-  (let [specs (specs-from-namespaces namespaces)
+  (let [specs   (specs-from-namespaces namespaces)
         derived (derive-ugen-specs specs)]
     (map decorate-ugen-spec derived)))
 
