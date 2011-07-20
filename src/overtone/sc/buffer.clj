@@ -84,28 +84,35 @@
               (recur (inc idx) (next samps))))
           (recur (+ recvd blen)))))))
 
-(defn buffer-write
-  "Write into a section of an audio buffer."
+(defn buffer-write!
+  "Write into a section of an audio buffer.
+   Modifies the buffer in place on the server."
   [buf start len data]
   (assert (buffer? buf))
+
   (apply snd "/b_setn" (:id buf) start len (map double data)))
 
-(defn buffer-fill
-  "Fill a buffer range with a single value."
+(defn buffer-fill!
+  "Fill a buffer range with a single value.
+   Modifies the buffer in place on the server."
   [buf start len val]
   (assert (buffer? buf))
+
   (snd "/b_fill" (:id buf) start len (double val)))
 
-(defn buffer-set
-  "Write a single value into a buffer."
+(defn buffer-set!
+  "Write a single value into a buffer.
+  Modifies the buffer in place on the server."
   [buf index val]
   (assert (buffer? buf))
+
   (snd "/b_set" (:id buf) index (double val)))
 
 (defn buffer-get
   "Read a single value from a buffer."
   [buf index]
   (assert (buffer? buf))
+
   (let [res (recv "/b_set")]
     (snd "/b_get" (:id buf) index)
     (last (:args (await-promise! res)))))
@@ -114,6 +121,7 @@
   "Save the float audio data in an audio buffer to a wav file."
   [buf path & args]
   (assert (buffer? buf))
+
   (let [arg-map (merge (apply hash-map args)
                        {:header "wav"
                         :samples "float"
@@ -121,6 +129,7 @@
                         :start-frame 0
                         :leave-open 0})
         {:keys [header samples n-frames start-frame leave-open]} arg-map]
+
     (snd "/b_write" (:id buf) path header samples
          n-frames start-frame
          (if leave-open 1 0))
