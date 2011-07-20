@@ -10,7 +10,8 @@
                             :done []}))
 
 (defn- process-handler
-  "Returns a new deps map containing either processed handler or it placed in the todo list"
+  "Returns a new deps map containing either processed handler or it placed in
+  the todo list"
   [dep-state key deps task]
   (apply assoc dep-state
          (if (set/superset? (:satisfied dep-state) deps)
@@ -23,7 +24,8 @@
                         [key deps task])])))
 
 (defn- replace-handler
-  "Replace all occurances of handers with the given key with the new handler and deps set"
+  "Replace all occurances of handers with the given key with the new handler
+  and deps set"
   [dep-state key deps task]
   (let [replacer-fn #(if (= key (first %))
                        [key deps task]
@@ -33,14 +35,15 @@
      :done (map replacer-fn (dep-state :done))}))
 
 (defn- key-known?
-  "Returns true or false depending on whether this key is associated with a handler in either the completed
-   or todo lists."
+  "Returns true or false depending on whether this key is associated with a
+  handler in either the completed or todo lists."
   [dep-state key]
   (some #(= key (first %)) (concat (:done dep-state) (:todo dep-state))))
 
 (defn- on-deps*
-  "If a handler with this key has already been registered, just replace the handler - either in todo or completed
-   If the key is unknown, then either execute the handler if the deps are satisfied or add it to the todo list"
+  "If a handler with this key has already been registered, just replace the
+  handler - either in todo or completed. If the key is unknown, then either
+  execute the handler if the deps are satisfied or add it to the todo list"
   [dep-state key deps task]
   (if (key-known? dep-state key)
     (replace-handler dep-state key deps task)
