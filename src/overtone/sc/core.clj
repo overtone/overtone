@@ -10,7 +10,8 @@
    [java.util.concurrent TimeUnit TimeoutException]
    [java.io BufferedInputStream]
    [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
-  (:require [overtone.log :as log])
+  (:require [overtone.log :as log]
+            [overtone.sc.osc :as osc])
   (:use
    [overtone event config log setup util time-utils deps]
    [overtone.sc allocator]
@@ -55,10 +56,13 @@
   (= :connected @status*))
 
 (defn snd
-  "Sends an OSC message."
+  "Sends an OSC message. If the message path is a known scsynth path, then the
+   types of the arguments will be checked according to what scsynth is
+   expecting.
+
+  (snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
-  (log/debug "(snd " path args ")")
-  (apply osc-send @server* path args)
+  (apply osc/snd @server* path args)
   (if (not (connected?))
     (log/debug "### trying to snd while disconnected! ###")))
 
