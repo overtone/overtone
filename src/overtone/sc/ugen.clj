@@ -173,15 +173,26 @@
 
 (defn- append-seq-args
   "Handles argument modes :append-sequence and :append-sequence-set-num-outs,
-  where some ugens take a seq for one argument which needs to be appended to the
-  end of the argument list when sent to SC."
+  and :append-string  where some ugens take a seq or string for one argument
+  which needs to be appended to the end of the argument list when sent to SC.
+  (and in the case of strings need to be converted to a list of char ints)"
   [spec ugen]
   (let [args-specs     (args-with-specs (:args ugen) spec :mode)
-        pred          #(or (= :append-sequence (second %))
-                           (= :append-sequence-set-num-outs (second %)))
+        pred           #(or (= :append-sequence (second %))
+                            (= :append-sequence-set-num-outs (second %))
+                            (= :append-string (second %)))
         normal-args    (map first (remove pred args-specs))
         to-append      (filter pred args-specs)
-        to-append-args (map first to-append)
+        intify-strings (map (fn [[arg spec]]
+                              (if (= :append-string spec)
+                                (if (or (string? arg)
+                                        (keyword? arg))
+                                  [(cons (count (name arg)) (map int (name arg))) spec]
+                                  (throw (IllegalArgumentException.
+                                          (str "The following param: " arg " passed to ugen " (:name ugen) " should either be a string or a keyword" ))))
+                                [arg spec]))
+                            to-append)
+        to-append-args (map first intify-strings)
         args           (flatten (concat normal-args to-append-args))
         ugen           (assoc ugen :args args)]
     (if-let [n-outs-arg (first (filter #(= :append-sequence-set-num-outs (second %))

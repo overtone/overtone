@@ -95,8 +95,8 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
 
       {:name "Dseries",
        :args [{:name "length", :default INFINITE, :doc "number of values to create"}
-              {:name "step", :default 1, :doc "step value"}
-              {:name "start", :default 1, :doc "start value"}]
+              {:name "start", :default 1, :doc "start value"}
+              {:name "step", :default 1, :doc "step value"}]
        :rates #{:dr}
        :doc "Generate a series of incrementing values on demand."}
 
@@ -187,9 +187,12 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
        :rates #{:dr}}
 
       {:name "Dpoll",
-       :args [{:name "in" :doc "ugen to poll values from"}
-              {:name "label" :doc "a label string"}
-              {:name "run", :default 1.0 :doc "activation switch 0 or 1"}],
+       :args [{:name "in" :doc "demand ugen to poll values from"}
+              {:name "trig-id" :default -1
+               :doc "if greater than 0, a '/tr' message is sent back to the client (similar to SendTrig)"}
+              {:name "label" :doc "a label string" :default "dpoll-val" :mode :append-string}
+              {:name "run", :default 1.0 :doc "activation switch 0 or 1 (can be a demand ugen)"}
+],
        :rates #{:dr}
        :doc "Print the value of an input demand ugen. The print-out is in the form: label: value block offset: offset.
 

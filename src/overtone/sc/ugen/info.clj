@@ -93,10 +93,11 @@
             :doc "a non-positive to positive transition telling Poll to return a value"}
            {:name "in" :default 0.0
             :doc "the signal you want to poll"}
-           {:name "label" :default "val: "
-            :doc "a string or symbol to be printed with the polled value"}
-           {:name "trigid" :default 0.0
-            :doc "if greater then 0, a '/tr' message is sent back to the client (similar to SendTrig)"}]
+           {:name "label" :default "polled-val"
+            :doc "a string or symbol to be printed with the polled value"
+            :mode :append-string}
+           {:name "trig-id" :default -1
+            :doc "if greater than 0, a '/tr' message is sent back to the client (similar to SendTrig)"}]
     :rates #{:ar :kr}
     :doc "Print the current output value of a ugen.  (Returns its input value, so it is transparent to the signal path when debugging.)"}
 
