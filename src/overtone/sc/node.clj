@@ -101,7 +101,8 @@
   [& node-ids]
   {:pre [(connected?)]}
   (apply snd "/n_free" node-ids)
-  (doseq [id node-ids] (free-id :node id)))
+  (doseq [id node-ids] (free-id :node id))
+  :free)
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
@@ -143,7 +144,8 @@
   "Free synth groups, releasing their resources."
   [& group-ids]
   {:pre [(connected?)]}
-  (apply node-free group-ids))
+  (apply node-free group-ids)
+  :free)
 
 (defn node-run
   "Start a stopped synth node."
@@ -207,7 +209,8 @@
 (defn group-clear
   "Free all child synth nodes in a group."
   [group-id]
-  (snd "/g_freeAll" group-id))
+  (snd "/g_freeAll" group-id)
+  :clear)
 
 (defn- synth-kind
   "Resolve synth kind depending on type of arguments. Intended for use as a multimethod dispatch fn"

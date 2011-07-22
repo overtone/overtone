@@ -59,7 +59,7 @@
              :default (throw (IllegalArgumentException. "Not a valid buffer or buffer id.")))]
     (snd "/b_free" id)
     (free-id :audio-buffer id)
-    :done))
+    :free))
 
 (defn buffer-read
   "Read a section of an audio buffer."
