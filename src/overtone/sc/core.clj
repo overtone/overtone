@@ -247,9 +247,10 @@
         reply-id (first (:args reply))]
     (= sync-id reply-id)))
 
-(def SC-PATHS {:linux "scsynth"
-               :windows "C:/Program Files/SuperCollider/scsynth.exe"
-               :mac  "/Applications/SuperCollider/scsynth" })
+(def SC-PATHS {:linux ["scsynth"]
+               :windows ["C:/Program Files/SuperCollider/scsynth.exe"
+                         "C:/Program Files (x86)/SuperCollider/scsynth.exe"]
+               :mac  ["/Applications/SuperCollider/scsynth"] })
 
 (def SC-ARGS  {:linux []
                :windows []
@@ -318,7 +319,8 @@
   specific port."
   ([port]
      (if (not (connected?))
-       (let [cmd (into-array String (concat [(SC-PATHS (@config* :os)) "-u" (str port)] (SC-ARGS (@config* :os))))
+       (let [sc-path (first (filter #(.exists (java.io.File. %)) (SC-PATHS (@config* :os))))
+             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (@config* :os))))
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
          (log/debug "Booting SuperCollider server (scsynth)...")
