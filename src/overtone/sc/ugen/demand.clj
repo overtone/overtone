@@ -132,7 +132,8 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
       {:name "Dser"
        :args [{:name "list", :mode :append-sequence, :array true :doc "array of values or other ugens"}
               {:name "count", :default 1 :doc "number of values to return"}],
-       :doc "Demand rate sequence generator. Generates a sequence of values Like dseq, except outputs only count total values, rather than repeating."}
+       :doc "Demand rate sequence generator. Generates a sequence of values Like dseq, except outputs only count total values, rather than repeating."
+       :rates #{:dr}}
 
       {:name "Dshuf" :extends "Dseq"
        :doc "Demand rate random sequence generator. Shuffle a sequence once and then output it one or more times."}
