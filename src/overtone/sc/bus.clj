@@ -56,3 +56,20 @@
   nil)
 
 ;(on-sync-event :reset :reset-busses reset-busses)
+
+(defn bus-set!
+  "Takes a list of bus indices and values and sets the buses to those values.
+  Modifies bus(ses) in place on the server.
+
+  (bus-set! my-bus 3) ;=> Sets my-bus to the value 3"
+  [bus val]
+  (assert (bus? bus))
+
+  (send "/c_set" (:id bus) (double val)))
+
+(defn bus-set-range!
+  "Set a range of consecutive busses to the supplied vals"
+  [bus start len data]
+  (assert (bus? bus))
+
+  (apply snd "/c_setn" (:id bus) start len (map double data)))
