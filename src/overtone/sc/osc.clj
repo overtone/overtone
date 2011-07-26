@@ -140,7 +140,7 @@
    ;;Node Commands
    "/n_free"             [:node-id]
    "/n_run"              [:node-id :zero-or-one]
-   "/n_set"              [:node-id :ctl-handle :ctl-val]
+   "/n_set"              [:node-id :ALTERNATING-ctl-handle-THEN-ctl-val*]
    "/n_setn"             [:node-id :ctl-handle :count :ctl-val*]
    "/n_fill"             [:node-id :ctl-handle :count :ctl-val]
    "/n_map"              [:node-id :ctl-handle :ctl-bus-idx]
