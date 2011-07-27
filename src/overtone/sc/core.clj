@@ -382,7 +382,7 @@
 
 (defn on-server-sync
   "Registers the handler to be executed when all the osc messages generated
-   by executing the action-fn have completed."
+   by executing the action-fn have completed. Returns result of action-fn."
   [action-fn handler-fn]
   (let [id (update-server-sync-id)]
     (on-event "/synced" (uuid)
@@ -390,11 +390,14 @@
                          (do
                            (handler-fn)
                            :done))))
-    (action-fn)
-    (snd "/sync" id)))
+
+    (let [res (action-fn)]
+      (snd "/sync" id)
+      res)))
 
 (defn with-server-sync
-  "Blocks current thread until all osc messages in action-fn have completed"
+  "Blocks current thread until all osc messages in action-fn have completed.
+  Returns result of action-fn."
   [action-fn]
   (let [id (update-server-sync-id)
         prom (promise)]
@@ -403,9 +406,10 @@
                          (do
                            (deliver prom true)
                            :done))))
-    (action-fn)
-    (snd "/sync" id)
-    (await-promise! prom)))
+    (let [res (action-fn)]
+      (snd "/sync" id)
+      (await-promise! prom)
+      res)))
 
 
 (defn stop
