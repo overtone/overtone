@@ -102,7 +102,7 @@
 (on-deps :studio-setup-completed ::start-mixer start-mixer)
 
 (defn setup-studio []
-  (let [g (group :head ROOT-GROUP)
+  (let [g (with-server-sync #(group :head ROOT-GROUP))
         f (group :after g)
         m (group :tail ROOT-GROUP)
         r (group :tail ROOT-GROUP)]
