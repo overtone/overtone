@@ -148,11 +148,12 @@ The outputs will be in clockwise order. The position of the first speaker is eit
 
        ;; TODO why is inB default 0.0 in sc code if checkNInputs(2)?
        {:name "XFade2",
-        :args [{:name "inA"}
-               {:name "inB"}
-               {:name "pan", :default 0.0}
-               {:name "level", :default 1.0}]
-        :check (when-ar (first-n-inputs-ar 2))}
+        :args [{:name "inA" :doc "input signal A"}
+               {:name "inB" :doc "input signal B"}
+               {:name "pan", :default 0.0 :doc "Pan between the two input signals with -1 being inA only and 1 being inB only with values between being a mix of the two."}
+               {:name "level", :default 1.0 :doc "Output level - 0 being silent and 1 being original volume"}]
+        :check (when-ar (first-n-inputs-ar 2))
+        :doc "Equal power two channel cross fade"}
 
        ;; LinXFade2 : XFade {
        ;;  // linear two channel cross fade
