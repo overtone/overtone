@@ -370,21 +370,43 @@
   []
   (snd "/clearSched"))
 
-;; The /done message just has a single argument:
-;; "/done" "s" <completed-command>
-;;
-;; where the command would be /b_alloc and others.
-(defn on-done
-  "Runs a one shot handler that takes no arguments when an OSC /done
-  message from scsynth arrives with a matching path.  Look at load-sample
-  for an example of usage.
-  "
-  [path handler]
-  (on-event "/done" (uuid)
-            #(if (= path (first (:args %)))
-               (do
-                 (handler)
-                 :done))))
+(defonce server-sync-id* (atom 0))
+
+(defn- update-server-sync-id
+  "update osc-sync-id*. Increments by 1 unless it has maxed out
+  in which case it resets it to 0."
+  []
+  (swap! server-sync-id* (fn [cur] (if (= Integer/MAX_VALUE cur)
+                                    0
+                                    (inc cur)))))
+
+(defn on-server-sync
+  "Registers the handler to be executed when all the osc messages generated
+   by executing the action-fn have completed."
+  [action-fn handler-fn]
+  (let [id (update-server-sync-id)]
+    (on-event "/synced" (uuid)
+              (fn [msg] (when (= id (first (:args msg)))
+                         (do
+                           (handler-fn)
+                           :done))))
+    (action-fn)
+    (snd "/sync" id)))
+
+(defn with-server-sync
+  "Blocks current thread until all osc messages in action-fn have completed"
+  [action-fn]
+  (let [id (update-server-sync-id)
+        prom (promise)]
+    (on-event "/synced" (uuid)
+              (fn [msg] (when (= id (first (:args msg)))
+                         (do
+                           (deliver prom true)
+                           :done))))
+    (action-fn)
+    (snd "/sync" id)
+    (await-promise! prom)))
+
 
 (defn stop
   "Stop all running synths and metronomes. This does not remove any synths/insts

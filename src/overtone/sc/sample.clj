@@ -35,11 +35,13 @@
                            :path path
                            :info info
                            :ready? ready}
-                          {:type ::sample})]
-    (on-done "/b_allocRead" #(do
-                               (reset! ready true)
-                               (reset! info (buffer-info id))))
-    (snd "/b_allocRead" id path start n-frames)
+                 {:type ::sample})]
+    (on-server-sync
+     #(snd "/b_allocRead" id path start n-frames)
+     #(do
+        (reset! ready true)
+        (reset! info (buffer-info id))))
+
     (dosync (alter loaded-samples* assoc [path args] sample))
     sample))
 

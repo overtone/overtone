@@ -17,10 +17,12 @@
      (let [id     (alloc-id :audio-buffer)
            ready? (atom false)
            info   (atom {})]
-       (on-done "/b_alloc" #(do
-                              (reset! ready? true)
-                              (reset! info (buffer-info id))))
-       (snd "/b_alloc" id size num-channels)
+       (on-server-sync
+        #(snd "/b_alloc" id size num-channels)
+        #(do
+           (reset! ready? true)
+           (reset! info (buffer-info id))))
+
        (with-meta {:id id
                    :size size
                    :ready? ready?}
