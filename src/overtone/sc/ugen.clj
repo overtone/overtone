@@ -335,16 +335,16 @@
   If an init function is already present it will get called after doing the
   mapping and mode transformations."
   [spec]
-  (let [defaulter (partial add-default-args spec)
-        mapper    (partial map-ugen-args spec)
-        init-fn   (if (contains? spec :init)
-                    (:init spec)
-                    placebo-ugen-init-fn)
-        initer    (partial with-ugen-metadata-init spec init-fn)
-        n-outputer (partial with-num-outs-mode spec)
-        floater   (partial with-floated-args spec)
-        appender  (partial append-seq-args spec)
-        auto-rater (partial auto-rate-setter spec)
+  (let [defaulter    (partial add-default-args spec)
+        mapper       (partial map-ugen-args spec)
+        init-fn      (if (contains? spec :init)
+                       (:init spec)
+                       placebo-ugen-init-fn)
+        initer       (partial with-ugen-metadata-init spec init-fn)
+        n-outputer   (partial with-num-outs-mode spec)
+        floater      (partial with-floated-args spec)
+        appender     (partial append-seq-args spec)
+        auto-rater   (partial auto-rate-setter spec)
         rate-checker (partial check-arg-rates spec)]
 
     (assoc spec :init
