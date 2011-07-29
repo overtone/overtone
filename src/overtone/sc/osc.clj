@@ -81,7 +81,7 @@
                       :validator (fn [val] (string? val))}
 
    :bytes            {:desc "a buffer of bytes"
-                      :validator (fn [val] true)}
+                      :validator (fn [val] (= (type (byte-array 0)) (type val)))}
 
    :zero-to-three    {:desc "an integer in the range 0 -> 3 inclusive"
                       :validator (fn [val] (and (integer? val)
