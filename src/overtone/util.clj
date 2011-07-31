@@ -264,6 +264,12 @@
       (re-find #"[Ll]inux" os)   :linux
       (re-find #"[Mm]ac" os)     :mac)))
 
+(defn stringify-map-vals
+  "converts a map by running all its vals through str
+  (or name if val is a keyword"
+  [m]
+  (into {} (map (fn [[k v]] [k (if (keyword? v) (name v) (str v))]) m)))
+
 (defn print-ascii-art-overtone-logo
   []
   (println (str "
