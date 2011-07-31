@@ -4,7 +4,7 @@
             midi osc byte-spec
             [overtone config time-utils log]
             [overtone.helpers chance scaling]
-            [overtone.sc allocator core ugen node synth synthdef
+            [overtone.sc allocator core ugen node synth synthdef cgen
              trigger buffer envelope bus sample sc-lang]
             [overtone.music rhythm pitch tuning]
             [overtone.studio core util fx]
@@ -30,6 +30,7 @@
   'overtone.sc.envelope
   'overtone.sc.sc-lang
   'overtone.sc.bus
+  'overtone.sc.cgen
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning
