@@ -151,7 +151,7 @@
    where 1 2 and 3 are ordered params and
    4 and 5 are named params (associated with :d and :f respectively).
 
-   If the expected args is the lis [:a :b :c :d :f] then the resulting map
+   If the expected args is the list [:a :b :c :d :f] then the resulting map
    will look as follows: {:a 1 :b 2 :c 3 :d 5 :f 5}. If the defaults contains
    extra keys, these will be merged in with any clashes being overridden with
    the result map, so if the default map is {:a 99 :h 2} the final output will
