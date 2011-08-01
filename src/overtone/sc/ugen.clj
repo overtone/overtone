@@ -555,8 +555,16 @@
   "Returns a function representing the given ugen that will fill in default
   arguments, rates, etc."
   [spec rate special]
-  (let [expand-flags (map #(:expands? %) (:args spec))]
-    (make-expanding (ugen-base-fn spec rate special) expand-flags)))
+  (let [expand-flags (map #(:expands? %) (:args spec))
+        ugen-fn (make-expanding (ugen-base-fn spec rate special) expand-flags)]
+    (callable-map {:name (:name spec)
+                   :doc (:doc spec)
+                   :full-doc (:full-doc spec)
+                   :categories (:categories spec)
+                   :rate rate
+                   :src "Implemented in C code"
+                   :type :ugen}
+                  ugen-fn)))
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
