@@ -136,16 +136,16 @@
   * (env-gen:kr ...)
 
   UGens will also have a base-name without a rate suffix that uses the default
-  rate of :auto, which will use the rate of the fastest argument ugen, or else
-  the default rate according to the ugen rate precedence order:
-
-  [:ir :dr :ar :kr]
-
-  or a :default-rate attribute can override the default precedence order."
+  rate. If the ugen spec contains the key :internal-name with a true value,
+  the base-name will contain the prefix internal: This is to allow cgens with
+  the same name to subsume the role of a specific ugen whilst allowing it to
+  reference the original via the prefixed name."
   [spec]
   (let [rates (:rates spec)
         rate-vec (vec rates)
         base-name (overtone-ugen-name (:name spec))
+        internal-name? (:internal-name spec)
+        base-name (if internal-name? (str "internal:" base-name) base-name)
         base-rate (:default-rate spec)
         name-rates (zipmap (map #(str base-name %) rate-vec)
                            rate-vec)]
