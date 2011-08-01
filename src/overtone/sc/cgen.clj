@@ -129,7 +129,7 @@
        (mk-cgen c-name doc params body categories rate))))
 
 (defmacro defcgen
-  "Define one or more related cgens (composite generators) with differnt rates.
+  "Define one or more related cgens (composite generators) with different rates.
 
   A cgen has a name, docstring and 0 or more params which themselves have names
   and optional info maps with the keys :default and :doc. Next you need to
