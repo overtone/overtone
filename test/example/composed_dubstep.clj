@@ -10,6 +10,7 @@
          kick (* (* kickenv 7) (sin-osc (+ 40 (* kickenv kickenv kickenv 200))))]
      (clip2 kick 1))))
 
+
 (defcgen snare-drum
   "basic synthesised snare drum"
   [bpm {:default 120 :doc "tempo of snare in beats per minute"}]
@@ -17,6 +18,7 @@
    (let [snare (* 3 (pink-noise [1 1]) (apply + (* (decay (impulse (/ bpm 240) 0.5) [0.4 2]) [1 0.05])))
          snare (+ snare (bpf (* 4 snare) 2000))]
      (clip2 snare 1))))
+
 
 (defcgen wobble
   "wobble an input src"
@@ -29,9 +31,9 @@
          wob   (+ wob (bpf wob 1500 2))]
      (+ wob (* 0.2 (g-verb wob 9 0.7 0.7))))))
 
+
 (definst dubstep [bpm 120 wobble-factor 1 note 50]
- (let [trig (impulse:kr (/ bpm 120))
-       freq (midicps (lag note 0.25))
+ (let [freq (midicps (lag note 0.25))
        bass (apply + (saw (* freq [0.99 1.01])))
        bass (wobble bass wobble-factor)
        kick (kick-drum bpm :pattern [1 0 0 0 0 0 1 0 1 0 0 1 0 0 0 0])
@@ -40,4 +42,5 @@
    (clip2 (+ bass kick snare) 1)))
 
 ;;(dubstep)
+;;(ctl dubstep :wobble-factor 3)
 ;;(stop)
