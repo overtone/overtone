@@ -7,6 +7,7 @@
             [overtone.helpers chance scaling]
             [overtone.sc allocator core ugen node synth synthdef cgen
              trigger buffer envelope bus sample sc-lang]
+            [overtone.sc.cgen oscillators demand]
             [overtone.music rhythm pitch tuning]
             [overtone.studio core util fx]
             [overtone.viz scope]))
@@ -33,6 +34,8 @@
   'overtone.sc.sc-lang
   'overtone.sc.bus
   'overtone.sc.cgen
+  'overtone.sc.cgen.oscillators
+  'overtone.sc.cgen.demand
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning

@@ -66,13 +66,14 @@
 (buffer-set! buf 3 80)
 (buffer-set! buf 7 20)
 
+
 (demo 4
       (let [freq (duty (drand [0.2 0.4 0.8 0.6] INF)
-                       0
                        0
                        (dseq [440 880 1200 600] 2))
             src (saw freq)]
         (* [0.2 0.2] src)))
+
 
 
 ; Generate a series of values, incrementing linearly.
