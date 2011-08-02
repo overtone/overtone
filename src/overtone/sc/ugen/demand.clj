@@ -1,5 +1,5 @@
 (ns overtone.sc.ugen.demand
-  (:use (overtone.sc.ugen common)))
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
      [
@@ -38,7 +38,7 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
       {:name "TDuty" :extends "Duty"
        :args [{:name "dur", :default 1.0 :doc "time values. Can be a demand ugen or any signal. The next trigger value is acquired after the duration provided by the last time value."}
               {:name "reset", :default 0.0 :doc "trigger or reset time values. Resets the list of ugens and the duration ugen when triggered. The reset input may also be a demand ugen, providing a stream of reset times."}
-              {:name "action", :default 0 :map DONE-ACTIONS}
+              {:name "action", :default NO-ACTION}
               {:name "level", :default 1.0 :doc "demand ugen providing the output values."}
               {:name "gapFirst", :default 0}]
        :doc "A value is demanded each ugen in the list and output  as a trigger according to a stream of duration values. The unit generators in the list should be 'demand' rate.
@@ -56,7 +56,7 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
               {:name "levelScale", :default 1.0 :doc "demand ugen returning level scaling values"}
               {:name "levelBias", :default 0.0 :doc "demand ugen returning level offset values"}
               {:name "timeScale", :default 1.0 :doc "demand ugen returning time scaling values"}
-              {:name "action", :default :none :map DONE-ACTIONS}]
+              {:name "action", :default NO-ACTION}]
 ;;       :init (fn [rate [l d s c gate reset ls lb ts da] spec]
 ;;               (if (or (ar? gate) (ar? reset))
 ;;                 [l d s c (as-ar gate) (as-ar reset) ls lb ts da]))

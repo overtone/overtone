@@ -1,4 +1,5 @@
-(ns overtone.sc.ugen.input)
+(ns overtone.sc.ugen.input
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
      [
@@ -7,8 +8,7 @@
        :args [{:name "min", :default 0.0 :doc "minimum value (when mouse is at the left of the screen)"}
               {:name "max", :default 1.0 :doc "maximum value (when mouse is at the right of the screen)"}
               {:name "warp",
-               :default :linear
-               :map {:linear 0 :exponential 1 :lin 0 :exp 1}
+               :default LINEAR
                :doc "mapping curve - either :linear or :exponential (:lin and :exp abbreviations are allowed)"}
               {:name "lag", :default 0.2 :doc "lag factor to dezipper cursor movement."}],
        :rates #{:kr}
@@ -18,8 +18,7 @@
               :args [{:name "min", :default 0.0 :doc "minimum value (when mouse is at the top of the screen)"}
               {:name "max", :default 1.0 :doc "maximum value (when mouse is at the bottom of the screen)"}
               {:name "warp",
-               :default :linear
-               :map {:linear 0 :exponential 1 :lin 0 :exp 1}
+               :default LINEAR
                :doc "mapping curve - either :linear or :exponential (:lin and :exp abbreviations are allowed)"}
               {:name "lag", :default 0.2 :doc "lag factor to smooth out cursor movement."}]
        :rates #{:kr}

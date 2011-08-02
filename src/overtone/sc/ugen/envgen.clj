@@ -1,5 +1,5 @@
 (ns overtone.sc.ugen.envgen
-  (:use (overtone.sc.ugen common)))
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
      [
@@ -47,7 +47,7 @@
               {:name "levelScale", :default 1.0 :doc "scales the levels of the breakpoints."}
               {:name "levelBias", :default 0.0 :doc "offsets the levels of the breakpoints."}
               {:name "timeScale", :default 1.0 :doc "scales the durations of the segments."}
-              {:name "action", :default :none :map DONE-ACTIONS :doc "an integer representing an action to be executed when the env is finished playing. This can be used to free the enclosing synth, etc."}]
+              {:name "action", :default NO-ACTION :doc "an integer representing an action to be executed when the env is finished playing. This can be used to free the enclosing synth, etc."}]
        :doc "envelope generator, interpolates across a path of control points over time, see the overtone.sc.envelope functions to generate the control points array
 
   Note:
@@ -61,7 +61,7 @@ The actual minimum duration of a segment is not zero, but one sample step for au
               {:name "attackTime", :default 0.01 :doc "Time taken to rise to susLevel in seconds"}
               {:name "susLevel", :default 1.0 :doc "Level to hold the envelope at until gate is triggered"}
               {:name "releaseTime", :default 1.0 :doc "Time to fall from susLevel back to 0 after the gate has been triggered"}
-              {:name "action", :default :none :map DONE-ACTIONS :doc "done action"}],
+              {:name "action", :default NO-ACTION :doc "done action"}],
        :rates #{:kr}
        :doc "A linear envelope generator, rises to susLevel over attackTime seconds and after the gate goes non-positive falls over releaseTime to finally perform an option doneAction"}
 

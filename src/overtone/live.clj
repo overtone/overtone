@@ -2,6 +2,7 @@
   (:use overtone.ns)
   (:require clojure.stacktrace
             midi osc byte-spec
+            [overtone.sc.ugen constants]
             [overtone config time-utils log]
             [overtone.helpers chance scaling]
             [overtone.sc allocator core ugen node synth synthdef
@@ -14,6 +15,7 @@
 (immigrate
   'osc
   'midi
+  'overtone.sc.ugen.constants
   'overtone.log
   'overtone.time-utils
   'overtone.util

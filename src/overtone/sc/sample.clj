@@ -4,6 +4,7 @@
   overtone.sc.sample
   (:use
    [overtone event util deps]
+   [overtone.sc.ugen.constants]
    [overtone.sc core synth ugen buffer allocator]))
 
 ; Define a default wav player synth
@@ -13,13 +14,13 @@
   (out 0 (pan2
            (play-buf 1 buf rate
                      1 start-pos loop?
-                     :free))))
+                     FREE))))
 
 (defsynth stereo-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
   (out 0
        (play-buf 2 buf rate
                  1 start-pos loop?
-                 :free)))
+                 FREE)))
 
 (defonce loaded-samples* (ref {}))
 

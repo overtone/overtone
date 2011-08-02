@@ -1,5 +1,5 @@
 (ns overtone.sc.ugen.filter
-  (:use (overtone.sc.ugen common)))
+  (:use [overtone.sc.ugen common constants]))
 
 ;; Filter : UGen {
 ;;  	checkInputs { ^this.checkSameRateAsFirstInput }
@@ -287,7 +287,7 @@ grains since the grain is just the impulse response of the filter. Note that if 
    :args [{:name "in", :default 0.0 :doc "any source"}
           {:name "amp", :default 0.0001 :doc "when input falls below this, evaluate doneAction"}
           {:name "time", :default 0.1 :doc "the minimum duration of the input signal which input must fall below thresh before this triggers. The default is 0.1 seconds"}
-          {:name "action", :default 0 :map DONE-ACTIONS :doc "the action to perform when silence is detected"}],
+          {:name "action", :default NO-ACTION :doc "the action to perform when silence is detected"}],
    :num-outs 1 ;; although the spec indicates there's no output, sclang generates one and without
                ;; any things crash.
    :check-inputs same-rate-as-first-input

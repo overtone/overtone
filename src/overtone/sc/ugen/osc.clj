@@ -1,5 +1,5 @@
 (ns overtone.sc.ugen.osc
-  (:use (overtone.sc.ugen common)))
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
      [
@@ -92,7 +92,7 @@ The frequency inputs are read at control rate only, so if you use an audio rate 
               {:name "width", :default 0.1 :doc "relative width of the bell. Best to keep below 0.25 when used as envelope."}
               {:name "iphase", :default 0.0 :doc "initial offset "}
               {:name "loop", :default 1 :doc "if loop is > 0, UGen oscillates. Otherwise it calls doneAction after one cycle"}
-              {:name "action", :default 0 :map DONE-ACTIONS :doc "doneAction, which is evaluated after cycle completes"}]
+              {:name "action", :default NO-ACTION :doc "action to be evaluated after cycle completes"}]
        :rates #{:ar :kr}
        :doc "A non-band-limited gaussian function oscillator. Output ranges from minval to 1.
 

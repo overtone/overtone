@@ -1,4 +1,5 @@
-(ns overtone.sc.ugen.machine-listening)
+(ns overtone.sc.ugen.machine-listening
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
      [
@@ -30,10 +31,8 @@ On the other hand, it is tireless, relatively general (though obviously best at 
        :args [{:name "chain" :doc "an FFT chain"}
               {:name "threshold", :default 0.5 :doc " the detection threshold, typically between 0 and 1, although in rare cases you may find values outside this range useful"}
               {:name "odftype"
-               :default :rcomplex
-               :map {:power 0 :magsum 1 :complex 2
-                     :rcomplex 3 :phase 4 :wphase 5 :mkl 6}
-               :doc "the function used to analyse the signal"}
+               :default RCOMPLEX
+               :doc "the function used to analyse the signal. Options: POWER, MAGSUM, COMPLEX, RCOMPLEX (default), PHASE, WPHASE and MKL"}
 
               {:name "relaxtime", :default 1 :doc "specifies the time (in seconds) for the normalisation to forget about a recent onset. If you find too much re-triggering (e.g. as a note dies away unevenly) then you might wish to increase this value."}
               {:name "floor", :default 0.1 :doc "is a lower limit, connected to the idea of how quiet the sound is expected to get without becoming indistinguishable from noise. For some cleanly-recorded classical music with wide dynamic variations, I found it helpful to go down as far as 0.000001."}

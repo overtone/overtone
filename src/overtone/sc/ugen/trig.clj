@@ -1,5 +1,5 @@
 (ns overtone.sc.ugen.trig
-  (:use (overtone.sc.ugen common)))
+  (:use [overtone.sc.ugen common constants]))
 
 ;;TODO:
 ;;* figure out what the signal-range is about

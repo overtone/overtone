@@ -9,7 +9,7 @@
    overtone.sc.ugen.defaults
    [overtone util]
    [overtone.sc buffer bus]
-   [overtone.sc.ugen special-ops common categories]
+   [overtone.sc.ugen special-ops common categories constants]
    [clojure.contrib.types :only (deftype)]
    [clojure.contrib.generic :only (root-type)])
   (:require
