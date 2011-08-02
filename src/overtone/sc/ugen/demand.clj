@@ -25,17 +25,16 @@ By design, a reset trigger only resets the demand ugens; it does not reset the v
                                   (rate-of? reset rate))))
                   "TODO write error string. and understad why this is an error"))
        :internal-name true
-       :doc "This ugen has been internalised for scserver compatibility. Please use the  cgen duty instead."}
+       :doc "This ugen has been internalised for scserver compatibility. Please use the duty cgen instead."}
 
       {:name "TDuty" :extends "Duty"
-       :args [{:name "dur", :default 1.0 :doc "time values. Can be a demand ugen or any signal. The next trigger value is acquired after the duration provided by the last time value."}
-              {:name "reset", :default 0.0 :doc "trigger or reset time values. Resets the list of ugens and the duration ugen when triggered. The reset input may also be a demand ugen, providing a stream of reset times."}
+       :args [{:name "dur", :default 1.0}
+              {:name "reset", :default 0.0}
               {:name "action", :default NO-ACTION}
-              {:name "level", :default 1.0 :doc "demand ugen providing the output values."}
+              {:name "level", :default 1.0}
               {:name "gapFirst", :default 0}]
-       :doc "A value is demanded each ugen in the list and output  as a trigger according to a stream of duration values. The unit generators in the list should be 'demand' rate.
-
-When there is a trigger at the reset input, the demand rate ugens in the list and the duration are reset.The reset input may also be a demand ugen, providing a stream of reset times."}
+       :internal-name true
+       :doc "This ugen has been internalised for scserver compatibility. Please use the tduty cgen instead."}
 
       {:name "DemandEnvGen",
        :args [{:name "level" :doc "demand ugen (or other ugen) returning level values"}

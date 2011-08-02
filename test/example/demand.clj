@@ -75,6 +75,10 @@
         (* [0.2 0.2] src)))
 
 
+;;play a little rhythm
+(demo 5
+      (t-duty (dseq [0.1 0.2 0.4 0.3] INF)))
+
 
 ; Generate a series of values, incrementing linearly.
 (demo 8
