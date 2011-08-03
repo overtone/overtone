@@ -25,7 +25,8 @@
 
        (with-meta {:id id
                    :size size
-                   :ready? ready?}
+                   :ready? ready?
+                   :info info}
          {:type ::buffer}))))
 
 (defn buffer-ready?
