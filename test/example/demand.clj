@@ -102,8 +102,6 @@
         (* 0.3 (sin-osc freq))))
 
 
-
-
 ; Generate a geometric sequence
 (demo 2
       (let [trig (impulse:kr 8)
@@ -115,10 +113,17 @@
 ; Demanding noise...
 (demo 2
       (let [trig (impulse:kr 2)
-            freqs (dwhite INF 0 20)
+            freqs (dwhite 0 20 INF)
             note-gen (+ 340 (* 30 (demand:kr trig 0 freqs)))
             src (sin-osc note-gen)]
         (pan2 (* 0.1 src))))
+
+;;diwhite example
+(demo 5
+      (let [vals (diwhite 0 15 INF)
+            trig (impulse:kr (mouse-x 1 40 1))
+            freq (+ 340 (* 30 (demand:kr trig 0 vals)))]
+        (* 0.1 (sin-osc freq))))
 
 
 ;; write demand sequence into a buffer

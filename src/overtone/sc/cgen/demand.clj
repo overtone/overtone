@@ -53,3 +53,17 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
    phase {:default 0.0, :doc "index into the buffer"}
    loop {:default 1.0, :doc "when phase exceeds number of frames in buffer, loops when set to 1"}]
   (:dr (internal:dbufwr:dr bufnum phase input loop)))
+
+(defcgen dwhite
+  "Generate a sequence of random values in the continuous range between lo and hi."
+  [lo {:default 0.0 :doc "minimum value"}
+   hi {:default 1.0 :doc "maximum value"}
+   length {:default INFINITE :doc "number of values to create"}]
+  (:dr (internal:dwhite:dr length lo hi)))
+
+(defcgen diwhite
+  "Generates a sequence of random integer values between lo and hi. The arguments can be a number or any other ugen"
+  [lo {:default 0.0 :doc "minimum value"}
+   hi {:default 1.0 :doc "maximum value"}
+   length {:default INFINITE :doc "number of values to create"}]
+  (:dr (internal:diwhite:dr length lo hi)))
