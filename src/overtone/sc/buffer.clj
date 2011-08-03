@@ -89,10 +89,13 @@
 (defn buffer-write!
   "Write into a section of an audio buffer.
    Modifies the buffer in place on the server."
-  [buf start len data]
+  [buf start data]
   (assert (buffer? buf))
-
-  (apply snd "/b_setn" (:id buf) start len (map double data)))
+  (let [size (count data)
+        doubles (map double data)]
+    (if (> (+ start size) size)
+      (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index."))))
+    (apply snd "/b_setn" (:id buf) start size doubles)))
 
 (defn buffer-fill!
   "Fill a buffer range with a single value.
