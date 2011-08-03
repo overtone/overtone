@@ -160,16 +160,17 @@ By design, a reset trigger only resets the demand ugens; it does not reset the v
        :doc "This ugen has been internalised for scserver compatibility. Please use the diwhite cgen instead."}
 
       {:name "Dbrown",
-       :args [{:name "length", :default INFINITE :doc "number of values to create"}
-              {:name "lo", :default 0.0 :doc "minimum value"}
-              {:name "hi", :default 1.0 :doc "maximum value"}
-              {:name "step", :default 0.01 :doc "maximum step for each new value"}
+       :args [{:name "length", :default INFINITE}
+              {:name "lo", :default 0.0}
+              {:name "hi", :default 1.0}
+              {:name "step", :default 0.01 }
 ]
        :rates #{:dr}
-       :doc "Generates a sequence of random values in the continuous range betweeen lo and hi, not exceeding step from one value to the next. The arguments can be a number or any other ugen"}
+       :internal-name true
+       :doc "This ugen has been internalised for scserver compatibility. Please use the dbrown cgen instead."}
 
       {:name "Dibrown" :extends "Dbrown"
-       :doc "Generates a sequence of random integer values betweeen lo and hi, not exceeding step from one value to the next. The arguments can be a number or any other ugen"}
+       :doc "This ugen has been internalised for scserver compatibility. Please use the dibrown cgen instead."}
 
       {:name "Dstutter",
        :args [{:name "num-repeats" :doc "number of repeats (can be a demand ugen)"}

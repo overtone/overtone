@@ -137,3 +137,17 @@
             write (mouse-button)]
         (demand:kr write 0 (dbufwr val b pos 1))
         (* 0.1 (sin-osc (duty:kr (* 0.2 (dseq [0.5 0.75 0.5 1] INF)) 0 (dbufrd b (dseries 0 1 INF)))))))
+
+;;dbrown
+(demo 10
+      (let [vals (dbrown 0 15 1 INF)
+            trig (impulse:kr (mouse-x 1 40 1))
+            freq (+ 340 (* 30 (demand:kr trig 0 vals)))]
+        (* 0.1 (sin-osc freq))))
+
+;;dibrown
+(demo 10
+      (let [vals (dibrown 0 15 1 INF)
+            trig (impulse:kr (mouse-x 1 40 1))
+            freq (+ 340 (* 30 (demand:kr trig 0 vals)))]
+        (* 0.1 (sin-osc freq))))

@@ -67,3 +67,19 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
    hi {:default 1.0 :doc "maximum value"}
    length {:default INFINITE :doc "number of values to create"}]
   (:dr (internal:diwhite:dr length lo hi)))
+
+(defcgen dbrown
+  "Generates a sequence of random values in the continuous range betweeen lo and hi, not exceeding step from one value to the next. The arguments can be a number or any other ugen"
+  [lo {:default 0.0 :doc "minimum value"}
+   hi {:default 1.0 :doc "maximum value"}
+   step {:default 0.01 :doc "maximum step for each new value"}
+   length {:default INFINITE :doc "number of values to create"}]
+  (:dr (internal:dbrown:dr length lo hi step)))
+
+(defcgen dibrown
+  "Generates a sequence of random integer values betweeen lo and hi, not exceeding step from one value to the next. The arguments can be a number or any other ugen"
+  [lo {:default 0.0 :doc "minimum value"}
+   hi {:default 1.0 :doc "maximum value"}
+   step {:default 0.01 :doc "maximum step for each new value"}
+   length {:default INFINITE :doc "number of values to create"}]
+  (:dr (internal:dibrown:dr length lo hi step)))
