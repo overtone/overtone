@@ -85,19 +85,20 @@ By design, a reset trigger only resets the demand ugens; it does not reset the v
       ;; which is implemented in the pseudo-ugen DUGen parent of below
 
       {:name "Dseries",
-       :args [{:name "length", :default INFINITE, :doc "number of values to create"}
-              {:name "start", :default 1, :doc "start value"}
-              {:name "step", :default 1, :doc "step value"}]
+       :args [{:name "length", :default INFINITE}
+              {:name "start" :default 1}
+              {:name "step" :default 1}]
        :rates #{:dr}
-       :doc "Generate a series of incrementing values on demand."}
+       :internal-name true
+       :doc "This ugen has been internalised for scserver compatibility. Please use the dseries cgen instead."}
 
       {:name "Dgeom",
-       :args [{:name "length", :default INFINITE, :doc "doc number of values to create"}
-              {:name "start", :default 1, :doc "start value"}
-              {:name "grow", :default 2, :doc "value by which to grow ( x = x[-1] * grow )"}
-]
+       :args [{:name "length", :default INFINITE}
+              {:name "start", :default 1}
+              {:name "grow", :default 2}]
        :rates #{:dr}
-       :doc "Generate a geometric sequence on demand. The arguments can be a number or any other ugen"}
+       :internal-name true
+       :doc "This ugen has been internalised for scserver compatibility. Please use the dgeom cgen instead."}
 
       {:name "Dbufrd",
        :args [{:name "bufnum", :default 0.0, :doc "buffer number to read from"}
@@ -107,12 +108,13 @@ By design, a reset trigger only resets the demand ugens; it does not reset the v
        :doc "Read values from a buffer on demand, using phase (index) value that is also pulled on demand. All inputs can be either demand ugen or any other ugen."}
 
       {:name "Dbufwr",
-       :args [{:name "bufnum", :default 0, :doc "buffer number to read from (single channel buffer)"}
-              {:name "phase", :default 0.0, :doc "index into the buffer"}
-              {:name "input", :default 0.0 :doc "single channel input"}
-              {:name "loop", :default 1.0, :doc "when phase exceeds number of frames in buffer, loops when set to 1"}],
+       :args [{:name "bufnum", :default 0}
+              {:name "phase", :default 0.0}
+              {:name "input", :default 0.0}
+              {:name "loop", :default 1.0}],
        :rates #{:dr}
-       :doc "Write a demand sequence into a buffer. All inputs can be either demand ugen or any other ugen."}
+       :internal-name true
+       :doc "This ugen has been internalised for scserver compatibility. Please use the dbufwr cgen instead."}
 
       {:name "Dseq",
        :args [{:name "list", :mode :append-sequence, :array true, :doc "array of values or other ugens"}

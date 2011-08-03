@@ -83,16 +83,31 @@
 ; Generate a series of values, incrementing linearly.
 (demo 8
       (let [trig (impulse:kr 2)
-            freqs (dseries 100 50 2)
+            freqs (internal:dseries 100 50 2)
             note-gen (demand:kr trig 0 freqs)
             src (sin-osc note-gen)]
         (pan2 (* 0.2 src))))
+
+(demo 8
+      (let [trig (impulse:kr 10)
+            freqs (dseries 150 2 200)
+            note-gen (demand:kr trig 0 freqs)
+            src (sin-osc note-gen)]
+        src))
+
+(demo 5
+      (let [notes (dseries 0 1 15)
+            trig (impulse:kr (mouse-x 1 40 1))
+            freq (+ 340 (* 30 (demand:kr trig 0 notes)))]
+        (* 0.3 (sin-osc freq))))
+
+
 
 
 ; Generate a geometric sequence
 (demo 2
       (let [trig (impulse:kr 8)
-            freqs (dgeom  10 1  1.2)
+            freqs (dgeom 1 1.2 10)
             note-gen (+ 340 (* 30 (demand:kr trig 0 freqs)))
             src (sin-osc note-gen)]
         (pan2 (* 0.1 src))))
@@ -104,3 +119,16 @@
             note-gen (+ 340 (* 30 (demand:kr trig 0 freqs)))
             src (sin-osc note-gen)]
         (pan2 (* 0.1 src))))
+
+
+;; write demand sequence into a buffer
+;;create and fill the buffer:
+(def b (buffer 24 1))
+(buffer-write! b 0 24 (repeat 24 210))
+;;play this and click around the screen. y is freq, x is buf pos
+(demo 60
+      (let [val (mouse-y 1000 200 1)
+            pos (mouse-x 0 (- (buf-frames:kr b) 1))
+            write (mouse-button)]
+        (demand:kr write 0 (dbufwr val b pos 1))
+        (* 0.1 (sin-osc (duty:kr (* 0.2 (dseq [0.5 0.75 0.5 1] INF)) 0 (dbufrd b (dseries 0 1 INF)))))))

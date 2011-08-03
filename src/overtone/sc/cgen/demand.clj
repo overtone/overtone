@@ -31,3 +31,25 @@ When there is a trigger at the reset input, the demand rate ugens in the list an
    action {:default NO-ACTION :doc "action to perform when the duration stream ends"}]
   (:ar (internal:t-duty:ar dur reset action level))
   (:kr (internal:t-duty:kr dur reset action level)))
+
+(defcgen dseries
+  "Generate a series of incrementing values on demand."
+  [start {:default 1 :doc "start value"}
+   step {:default 1 :doc "step value"}
+   length {:default INFINITE :doc "number of values to create"}]
+  (:dr (internal:dseries:dr length start step)))
+
+(defcgen dgeom
+  "Generate a geometric sequence on demand. The arguments can be a number or any other ugen"
+  [start {:default 1, :doc "start value"}
+   grow {:default 2, :doc "value by which to grow ( x = x[-1] * grow )"}
+   length {:default INFINITE :doc "doc number of values to create"}]
+  (:dr (internal:dgeom:dr length start grow)))
+
+(defcgen dbufwr
+  "Write a demand sequence into a buffer. All inputs can be either demand ugen or any other ugen."
+  [input {:default 0.0 :doc "single channel input"}
+   bufnum {:default 0, :doc "buffer number to read from (single channel buffer)"}
+   phase {:default 0.0, :doc "index into the buffer"}
+   loop {:default 1.0, :doc "when phase exceeds number of frames in buffer, loops when set to 1"}]
+  (:dr (internal:dbufwr:dr bufnum phase input loop)))
