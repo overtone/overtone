@@ -31,8 +31,6 @@
    :standard true
    })
 
-(def INF Float/POSITIVE_INFINITY)
-
 (defn normalize-ugen-name
   "Normalizes both SuperCollider and overtone-style names to squeezed lower-case.
 
