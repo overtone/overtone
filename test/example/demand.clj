@@ -51,7 +51,7 @@
         (pan2 (* 0.1 src))))
 
 (def buf (buffer 8))
-(buffer-write! buf 0 8 (map #(+ 12 %) [50 50 54 50 57 50 45 49]))
+(buffer-write! buf 0 (map #(+ 12 %) [50 50 54 50 57 50 45 49]))
 
 (demo 20
       (let [trig (impulse:kr 8)
@@ -65,7 +65,7 @@
 (buffer-set! buf 3 85)
 (buffer-set! buf 3 80)
 (buffer-set! buf 7 20)
-
+(stop)
 
 (demo 4
       (let [freq (duty (drand [0.2 0.4 0.8 0.6] INF)
@@ -81,12 +81,6 @@
 
 
 ; Generate a series of values, incrementing linearly.
-(demo 8
-      (let [trig (impulse:kr 2)
-            freqs (internal:dseries 100 50 2)
-            note-gen (demand:kr trig 0 freqs)
-            src (sin-osc note-gen)]
-        (pan2 (* 0.2 src))))
 
 (demo 8
       (let [trig (impulse:kr 10)
