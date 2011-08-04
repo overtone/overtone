@@ -1,4 +1,4 @@
-(defproject overtone "0.1.5"
+(defproject overtone "0.2.1"
   :description "An audio/musical experiment."
   :url "http://project-overtone.org"
   :autodoc {:load-except-list [#"/test/" #"/classes/" #"/devices/"]
