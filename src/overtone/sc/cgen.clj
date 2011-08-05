@@ -7,7 +7,7 @@
         [overtone.sc ugen]
         [overtone.sc.ugen defaults doc]))
 
-(defn- parse-cgen-params
+(defn parse-cgen-params
   "Parse a defcgen's param list throwing exceptions where it isn't well-formed
   Returns a list of maps containing at least the key :name"
   [params]
@@ -84,17 +84,20 @@
          (with-ugens
            ~body)))))
 
-(defn- generate-full-doc
-  "generate a full docstring from a the specified cgen information"
-  [doc categories rate params rates]
-  (let [spec {:doc          doc
-              :categories   categories
-              :default-rate rate
-              :args         (map stringify-map-vals params)
-              :rates        (into #{} rates)}]
-    (:full-doc (with-full-doc spec))))
+(defn generate-full-cgen-doc
+  "Generate a full docstring from a the specified cgen information"
+  ([doc categories rate params rates] (generate-full-cgen-doc doc categories rate params rates nil nil))
+  ([doc categories rate params rates src-str contributor]
+     (let [spec {:doc          doc
+                 :categories   categories
+                 :default-rate rate
+                 :args         (map stringify-map-vals params)
+                 :rates        (into #{} rates)
+                 :src-str      src-str
+                 :contributor  contributor}]
+       (:full-doc (with-full-doc spec)))))
 
-(defn- mk-cgen
+(defn mk-cgen
   "Generate the form represign a cgen - a callable map of associated information
   and the function that evaluates the body within the binding context of the
   params."
@@ -105,7 +108,7 @@
            defaults    (reduce (fn [s el] (assoc s (:name el) (:default el)))
                                {}
                                params)
-           full-doc    (generate-full-doc doc categories rate params rates)
+           full-doc    (generate-full-cgen-doc doc categories rate params rates)
            cgen-fn     (mk-cgen-fn param-names defaults body)]
        `(callable-map {:params ~params
                        :doc ~doc
@@ -154,7 +157,7 @@
         arglists                         (list 'quote arglists)
         rates                            (into #{} (keys bodies))
         categories                       [["Composite Ugen"]]
-        full-doc                         (generate-full-doc doc categories default-rate params rates)
+        full-doc                         (generate-full-cgen-doc doc categories default-rate params rates)
         metadata                         {:doc full-doc
                                           :arglists arglists}
         default-body                     (get bodies default-rate)

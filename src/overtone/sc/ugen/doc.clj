@@ -52,12 +52,19 @@
      (arg-doc-str spec)
      "\n"
      (str "  " (indented-str-block doc  (+ 10 DOC-WIDTH) 2))
+     "\n"
+     (if (:src-str spec)
+       (:src-str spec)
+       "")
      "\n\n"
      (str "  Categories: " (categories-str spec))
      "\n"
      (str "  Rates: " (rates-str spec))
      "\n"
-     (str "  Default rate: " (:default-rate spec)))))
+     (str "  Default rate: " (:default-rate spec))
+     (if (:contributor spec)
+       (str "\n  Contributed by: " (:contributor spec))
+       ""))))
 
 (defn- merge-arg-doc-default
   "Adds default doc to arg if doc string isn't present."
