@@ -4,7 +4,7 @@
         [overtone.sc.cgen.demand]
         [overtone.sc.example]))
 
-(defexample dibrown
+(defexamples dibrown
   (:rand-walk
    "Random walk through freqs with rate determined by mouse-x"
    "Here we use dibrown to create an infinite sequence of values between 0 and max where each successive value is no more than step plus or minus the last value. This creates a walk-like effect. We then pull out the values from dibrown using the demand ugen, pulling at the rate defined by the impulse - which is between 1 and 40 depending on the mouse-x coord. Therefore, you can use the mouse to speed up and slow down the walk."

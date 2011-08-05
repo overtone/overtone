@@ -45,7 +45,7 @@
                            :type :example}
                           ~cgen-fn))))
 
-(defmacro defexample
+(defmacro defexamples
   "Define a set of examples for a specific ugen or cgen.
 
   Each example requires you to specify:
