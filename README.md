@@ -34,7 +34,7 @@ your project.clj is:
 
 [overtone "<version>"]
 
-The current version is 0.1.5 but search on Clojars to get the latest
+The current version is 0.2.1 but search on Clojars to get the latest
 release.
 
 #### Source Repository
