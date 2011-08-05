@@ -96,7 +96,7 @@
 (defn example
   "Fetch and call specific example for gen with key
   This can then be passed to demo:
-  (demo (example impulse :create-trig))
+  (demo (example dibrown :rand-walk))
 
   Also, params can be passed by appending them to the end of the args:
   (demo (example foo :key arg1 arg2 :key1 arg3 :key2 arg4))"
@@ -114,7 +114,8 @@
     (get-in examples [gen-name key])))
 
 (defn examples
-  "List examples for a specific gen"
+  "List examples for a specific gen. If passed with a gen and a key will list
+  the full example documentation."
   ([gen]
      (let [all-examples @examples*
            gen-name (resolve-gen-name gen)
