@@ -561,7 +561,8 @@
                    :categories (:categories spec)
                    :rate rate
                    :src "Implemented in C code"
-                   :type :ugen}
+                   :type :ugen
+                   :params (:args spec)}
                   ugen-fn)))
 
 ;; TODO: Figure out the complete list of control types
