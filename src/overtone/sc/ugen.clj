@@ -555,7 +555,7 @@
   [spec rate special]
   (let [expand-flags (map #(:expands? %) (:args spec))
         ugen-fn (make-expanding (ugen-base-fn spec rate special) expand-flags)]
-    (callable-map {:name (:name spec)
+    (callable-map {:name (overtone-ugen-name (:name spec))
                    :doc (:doc spec)
                    :full-doc (:full-doc spec)
                    :categories (:categories spec)
