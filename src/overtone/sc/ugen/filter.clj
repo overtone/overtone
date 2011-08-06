@@ -259,39 +259,16 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"
 grains since the grain is just the impulse response of the filter. Note that if attacktime == decaytime then the signal cancels out and if attacktime > decaytime then the impulse response is inverted."
     :auto-rate true}])
 
-;; // the doneAction arg lets you cause the EnvGen to stop or end the
-;; // synth without having to use a PauseSelfWhenDone or FreeSelfWhenDone ugen.
-;; // It is more efficient to use a doneAction.
-;; // doneAction = 0   do nothing when the envelope has ended.
-;; // doneAction = 1   pause the synth running, it is still resident.
-;; // doneAction = 2   remove the synth and deallocate it.
-;; // doneAction = 3   remove and deallocate both this synth and the preceeding node.
-;; // doneAction = 4   remove and deallocate both this synth and the following node.
-;; // doneAction = 5   remove and deallocate this synth and free all children in the preceeding group (if it is a group).
-;; // doneAction = 6   remove and deallocate this synth and free all children in the following group (if it is a group).
-
-;; DetectSilence : Filter {
-
-;; 	*ar { arg in = 0.0, amp = 0.0001, time = 0.1, doneAction = 0;
-;; 		^this.multiNew('audio', in, amp, time, doneAction)
-;; 		//		^0.0		// DetectSilence has no output
-;; 	}
-;; 	*kr { arg in = 0.0, amp = 0.0001, time = 0.1, doneAction = 0;
-;; 		^this.multiNew('control', in, amp, time, doneAction)
-;; 		//		^0.0		// DetectSilence has no output
-;; 	}
-;; }
-
 (def detect-silence
   {:name "DetectSilence",
    :args [{:name "in", :default 0.0 :doc "any source"}
           {:name "amp", :default 0.0001 :doc "when input falls below this, evaluate doneAction"}
           {:name "time", :default 0.1 :doc "the minimum duration of the input signal which input must fall below thresh before this triggers. The default is 0.1 seconds"}
           {:name "action", :default NO-ACTION :doc "the action to perform when silence is detected"}],
-   :num-outs 1 ;; although the spec indicates there's no output, sclang generates one and without
-               ;; any things crash.
+   :num-outs 1
    :check-inputs same-rate-as-first-input
    :doc "If the signal input starts with silence at the beginning of the synth's duration, then DetectSilence will wait indefinitely until the first sound before starting to monitor for silence. This UGen outputs 1 if silence is detected, otherwise 0."
+   :rates #{:ar :kr}
    :auto-rate true})
 
 (def specs
