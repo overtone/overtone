@@ -69,7 +69,7 @@
    (let [vals (dwhite 0 15 INF)
          trig (impulse:kr (mouse-x 1 40 1))
          val (demand:kr trig 0 vals)
-         poll (poll trig val \"diwhite val:\")
+         poll (poll trig val \"dwhite val:\")
          freq (+ 340 (* 30 val))]
      (* 0.1 (sin-osc freq)))"
    contributor "Sam Aaron"))
