@@ -30,5 +30,36 @@
 (pingr)
 (pingr 440 50)
 (pingr 990 40)
+(kill pingr)
 (ctl r-trig :rate 50)
 (stop)
+
+;; Creating an internal metro synth to send trig messages back
+;; to Overtone to use for whatever purpose you need.
+;;
+;; Here, we create a synth called metro-synth which has two control params:
+;; c-bus and rate. c-bus represents the bus to output trigger information to
+;; and rate is the beats-per-second. We then pass the rate to an impulse ugen
+;; running at control rate - we bind this to the var trigger. This trigger is
+;; pthen used for three things:
+;;
+;; 1) it's passed through a stepper which wraps a count between min and max which we bind to count
+;; 2) we send the current value of count out as an osc message when the trigger fires
+;; 3) we output the trigger to the control bus with id c-bus
+;;
+;; Next we register an osc handler which will be called when the osc message
+;; with path "/tr" is received. We give this handler the id :metro-synth so we
+;; can refer to it in the future. Finally we pass an anonymous fn which simply
+;; prints out the osc msg received. Clearly this fn could do a lot more
+;; interesting things ;-)
+
+
+(defsynth metro-synth [c-bus 0 rate 1]
+  (let [trigger (impulse:kr rate)
+        count (stepper:kr trigger :min 1 :max 4)]
+    (send-trig:kr trigger count)
+    (out c-bus trigger)))
+
+(on-event "/tr" :metro-synth #(println "trigger: " %))
+
+(metro-synth)
