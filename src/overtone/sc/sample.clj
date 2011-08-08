@@ -113,3 +113,13 @@
 
 (defmacro defsample [s-name path]
   `(def ~s-name (sample ~path)))
+
+;;;; simple sample manager
+(def *sample-root* "/home/duke/samples/")
+
+(defn sample-seq
+  ([] (seq (.list (java.io.File. *sample-root*))))
+  ([pred] (filter pred (sample-seq))))
+
+(defn sample-load [name]
+  (sample (str *sample-root* name)))
