@@ -5,7 +5,7 @@
   (let [src (saw [freq (* freq 1.01) (* 0.99 freq)])
         low (sin-osc (/ freq 2))
         filt (lpf src (line:kr (* 10 freq) freq 10))
-        env (env-gen (perc 0.1 dur) :action :free)]
+        env (env-gen (perc 0.1 dur) :action FREE)]
     (out 0 (pan2 (* 0.1 low env filt)))))
 
 ;(dotimes [i 10]
@@ -20,7 +20,7 @@
 
 (definst overpad [out-bus 0 note 60 amp 0.7 a 0.001 rel 0.02]
   (let [freq (midicps note)
-        env (env-gen (perc a rel) 1 1 0 1 :free)
+        env (env-gen (perc a rel) 1 1 0 1 FREE)
         f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- rel 0.1)))))
         bfreq (/ freq 2)
         sig (apply +
@@ -35,7 +35,7 @@
 
 (definst kick []
   (let [src (sin-osc 80)
-        env (env-gen (perc 0.001 0.3) :action :free)]
+        env (env-gen (perc 0.001 0.3) :action FREE)]
     (* 0.7 src env)))
 
 (defn player [beat notes]
@@ -245,7 +245,7 @@
 
 (definst dtmf [freq-a 770 freq-b 1633 gate 1]
   (let [sig (* 0.2 (+ (sin-osc freq-a) (sin-osc freq-b)))
-        env (env-gen (asr 0.001 1 0.001) gate 1 0 1 :free)]
+        env (env-gen (asr 0.001 1 0.001) gate 1 0 1 FREE)]
     (* sig env)))
 
 (defn dial-number [num-seq]
