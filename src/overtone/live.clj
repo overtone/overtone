@@ -9,7 +9,7 @@
              trigger buffer envelope bus sample sc-lang cgen]
             [overtone.sc.cgen oscillators demand]
             [overtone.sc.example]
-            [overtone.sc.examples.demand]
+            [overtone.sc.examples demand osc]
             [overtone.music rhythm pitch tuning]
             [overtone.studio core util fx]
             [overtone.viz scope]))
@@ -40,6 +40,7 @@
   'overtone.sc.cgen.demand
   'overtone.sc.example
   'overtone.sc.examples.demand
+  'overtone.sc.examples.osc
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning
