@@ -341,8 +341,7 @@
      (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
        (cond
         (= :internal which) (boot-internal port)
-        (= :external which) (boot-external port))
-       (print-ascii-art-overtone-logo))))
+        (= :external which) (boot-external port)))))
 
 (defn wait-until-connected
   "Makes the current thread sleep until scsynth has successfully connected"
