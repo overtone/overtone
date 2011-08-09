@@ -195,8 +195,7 @@
                               :fx-chain []
                               :player player#
                               :args arg-names#}
-                             player#)
-         inst# (with-meta inst# {:type ::instrument})]
+                             player#)]
 
      (load-synthdef sdef#)
      (add-instrument inst#)
