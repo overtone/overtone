@@ -190,13 +190,13 @@
                               :name sname#
                               :ugens ugens#
                               :sdef sdef#
-                              :doc "This is a test."
                               :group sgroup#
                               :out-bus MIXER-BUS
                               :fx-chain []
                               :player player#
                               :args arg-names#}
-                             player#)]
+                             player#)
+         inst# (with-meta inst# {:type ::instrument})]
 
      (load-synthdef sdef#)
      (add-instrument inst#)
@@ -210,8 +210,8 @@
        (= ::instrument (:type o))))
 
 (defmacro definst [i-name & inst-form]
-  (let [i-name (with-meta i-name {:type ::instrument})
-        [i-name params ugen-form] (synth-form i-name inst-form)]
+  (let [[i-name params ugen-form] (synth-form i-name inst-form)
+        i-name (with-meta i-name {:type ::instrument})]
     `(def ~i-name (inst ~i-name ~params ~ugen-form))))
 
 (defmethod print-method ::instrument [ins w]

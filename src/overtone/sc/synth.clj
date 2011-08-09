@@ -399,7 +399,6 @@
          smap# (callable-map {:name sname#
                               :ugens ugens#
                               :sdef sdef#
-                              :doc "User defined synth..."
                               :player player#
                               :args arg-names#
                               :params params#

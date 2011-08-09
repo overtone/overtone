@@ -117,7 +117,7 @@
                        :rate ~rate
                        :name ~(name c-name)
                        :src (quote ~body)
-                       :type :cgen}
+                       :type ::cgen}
                       ~cgen-fn))))
 
 (defmacro cgen
@@ -159,7 +159,8 @@
         categories                       [["Composite Ugen"]]
         full-doc                         (generate-full-cgen-doc doc categories default-rate params rates)
         metadata                         {:doc full-doc
-                                          :arglists arglists}
+                                          :arglists arglists
+                                          :type ::cgen}
         default-body                     (get bodies default-rate)
         default-cgen                     (mk-cgen c-name doc params default-body categories default-rate)
         default-c-name                   (with-meta c-name metadata)
@@ -172,3 +173,7 @@
              c-name (symbol (str (name default-c-name) rate))
              c-name (with-meta c-name metadata)]
          `(def ~c-name ~cgen))))))
+
+(defmethod print-method ::cgen [cgen w]
+  (let [info (meta cgen)]
+    (.write w (format "#<cgen: %s>" (:name info)))))
