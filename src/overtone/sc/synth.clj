@@ -64,12 +64,12 @@
     (throw (IllegalArgumentException.
              (format "The %s ugen does not have any arguments."
                      (:name ugen)))))
-  (when-not (every? #(or (ugen? %) (number? %) (string? %)) (:args ugen))
+  (when-not (every? #(or (sc-ugen? %) (number? %) (string? %)) (:args ugen))
     (throw (IllegalArgumentException.
              (format "The %s ugen has an invalid argument: %s"
                      (:name ugen)
                      (first (filter
-                              #(not (or (ugen? %) (number? %)))
+                              #(not (or (sc-ugen? %) (number? %)))
                               (:args ugen)))))))
 
   (let [inputs (flatten
@@ -89,7 +89,7 @@
                             {:src src :index (:index arg)})
 
                           ; child ugen
-                          (ugen? arg)
+                          (sc-ugen? arg)
                           (let [src (ugen-index ugens arg)
                                 updated-ugen (nth ugens src)]
                             (inputs-from-outputs src updated-ugen))))
@@ -248,11 +248,11 @@
   (REVERSE-RATES (first (reverse (sort (map RATES rates))))))
 
 (defn- special-op-args? [args]
-  (some #(or (ugen? %1) (keyword? %1)) args))
+  (some #(or (sc-ugen? %1) (keyword? %1)) args))
 
 (defn- find-rate [args]
   (fastest-rate (map #(cond
-                        (ugen? %1) (REVERSE-RATES (:rate %1))
+                        (sc-ugen? %1) (REVERSE-RATES (:rate %1))
                         (keyword? %1) :kr)
                      args)))
 

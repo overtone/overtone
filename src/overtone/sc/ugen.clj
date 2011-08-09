@@ -225,18 +225,18 @@
                       :kr 2
                       :ar 3})
 
-(declare ugen?)
+(declare sc-ugen?)
 
 (defn- op-rate
   "Lookup the rate of an input ugen, otherwise use IR because the operand
   must be a constant float."
   [arg]
-  (if (ugen? arg)
+  (if (sc-ugen? arg)
     (:rate arg)
     (get RATES :ir)))
 
 (defn- ugen-arg-rates [ugen]
-  (map REVERSE-RATES (map :rate (filter ugen? (:args ugen)))))
+  (map REVERSE-RATES (map :rate (filter sc-ugen? (:args ugen)))))
 
 (defn real-ugen-name
   [ugen]
@@ -252,7 +252,7 @@
 
 (defn- check-arg-rates [spec ugen]
   (let [cur-rate (REVERSE-RATES (:rate ugen))
-        ugen-args (filter ugen? (:args ugen))]
+        ugen-args (filter sc-ugen? (:args ugen))]
     (when-let [bad-input (some
                         (fn [ug]
                           (if (< (UGEN-RATE-SPEED cur-rate)
@@ -495,25 +495,25 @@
     (doseq [check (:check spec)]
       (check rate special args))))
 
-(defrecord UGen [id name rate rate-name special args n-outputs])
-(derive UGen ::ugen)
+(defrecord SCUGen [id name rate rate-name special args n-outputs])
+(derive SCUGen ::sc-ugen)
 
 (defn count-ugen-args
   "Count the number of ugens in the args of ug (and their args recursively)"
   [ug]
   (let [args (:args ug)]
     (reduce (fn [sum arg]
-              (if (ugen? arg)
+              (if (sc-ugen? arg)
                 (+ sum 1 (count-ugen-args arg))
                 sum))
             0
             args)))
 
-(defmethod print-method UGen [ug w]
-  (.write w (str "#<ugen: " (:name ug) " with " (count-ugen-args ug) " internal ugens.")))
+(defmethod print-method SCUGen [ug w]
+  (.write w (str "#<sc-ugen: " (:name ug) " with " (count-ugen-args ug) " internal sc-ugens.")))
 
 (defrecord ControlProxy [name value rate rate-name])
-(derive ControlProxy ::ugen)
+(derive ControlProxy ::sc-ugen)
 
 (defn control-proxy
   "Create a new control proxy with the specified name, value and rate. Rate
@@ -525,11 +525,11 @@
                                  (:kr RATES)
                                  (rate RATES)) rate)))
 
-(defrecord UGenOutputProxy [ugen rate rate-name index])
-(derive UGenOutputProxy ::ugen)
+(defrecord OutputProxy [ugen rate rate-name index])
+(derive OutputProxy ::sc-ugen)
 
 (defn output-proxy [ugen index]
-  (UGenOutputProxy. ugen (:rate ugen) (REVERSE-RATES (:rate ugen)) index))
+  (OutputProxy. ugen (:rate ugen) (REVERSE-RATES (:rate ugen)) index))
 
 (def *ugens* nil)
 (def *constants* nil)
@@ -537,7 +537,7 @@
 (defn ugen [spec rate special args]
   ;;(check-ugen-args spec rate special args)
   (let [rate (or (get RATES rate) rate)
-        ug (UGen.
+        ug (SCUGen.
             (next-id :ugen)
             (:name spec)
             rate
@@ -555,9 +555,9 @@
       (map-indexed (fn [idx _] (output-proxy ug idx)) (range (:n-outputs ug)))
       ug)))
 
-(defn ugen? [obj] (isa? (type obj) ::ugen))
+(defn sc-ugen? [obj] (isa? (type obj) ::sc-ugen))
 (defn control-proxy? [obj] (= ControlProxy (type obj)))
-(defn output-proxy? [obj] (= UGenOutputProxy (type obj)))
+(defn output-proxy? [obj] (= OutputProxy (type obj)))
 
 (defn- ugen-base-fn [spec rate special]
   (fn [& args]
@@ -630,7 +630,7 @@
   (let [original-fn (ns-resolve ns ugen-name)]
     (ns-unmap ns ugen-name)
     (intern ns ugen-name (fn [& args]
-                           (if (some #(or (ugen? %) (not (number? %))) args)
+                           (if (some #(or (sc-ugen? %) (not (number? %))) args)
                              (apply ugen-fn args)
                              (apply original-fn args))))))
 
