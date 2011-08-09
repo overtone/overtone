@@ -20,3 +20,4 @@ src/external
 *.tmproj
 .DS_Store
 pom.xml
+*.jar
