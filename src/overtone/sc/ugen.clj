@@ -510,7 +510,7 @@
             args)))
 
 (defmethod print-method SCUGen [ug w]
-  (.write w (str "#<sc-ugen: " (:name ug) " with " (count-ugen-args ug) " internal sc-ugens.")))
+  (.write w (str "#<sc-ugen: " (:name ug) " with " (count-ugen-args ug) " internal sc-ugens>")))
 
 (defrecord ControlProxy [name value rate rate-name])
 (derive ControlProxy ::sc-ugen)
