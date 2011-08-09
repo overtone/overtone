@@ -115,11 +115,12 @@
   `(def ~s-name (sample ~path)))
 
 ;;;; simple sample manager
-(def *sample-root* "/home/duke/samples/")
+(def *sample-root* "")
 
 (defn sample-seq
-  ([] (seq (.list (java.io.File. *sample-root*))))
-  ([pred] (filter pred (sample-seq))))
+  ([] (sample-seq *sample-root*))
+  ([path] (seq (.list (java.io.File. path))))
+  ([path regex] (filter #(re-find (re-pattern regex) %) (sample-seq))))
 
 (defn sample-load [name]
   (sample (str *sample-root* name)))
