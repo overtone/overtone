@@ -3,8 +3,9 @@
      :author "Sam Aaron & Jeff Rose"}
   overtone.sc.ugen.doc
   (:use
-   overtone.sc.ugen.defaults
-   overtone.doc-util
+   [overtone.sc.ugen.defaults]
+   [overtone.doc-util]
+   [overtone.util]
    [clojure.contrib.string :only (split)]))
 
 (defn- args-str
@@ -30,7 +31,7 @@
   "Returns a string representing the arg docs of a ugen spec"
   [spec]
   (let [args (:args spec)
-        name:doc (fn [arg] [(or (:name arg) "NAME MISSING!")  (or (:doc arg) "DOC MISSING!")])
+        name:doc (fn [arg] [(or (:name arg) "NAME MISSING!")  (or (capitalize (:doc arg)) "DOC MISSING!")])
         doc-map (into {} (map name:doc args))
         arg-max-key-len (length-of-longest-key doc-map)
         indentation (+ 3 arg-max-key-len)]
