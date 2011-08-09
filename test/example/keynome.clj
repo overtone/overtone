@@ -3,7 +3,7 @@
          [overtone.studio.keynome]]))
 
 ;; make a short keyboard with Q key as Eb
-(def marimba (new-keynome))
+(def marimba (keynome))
 (definst marimba-note [freq 300]
   (let [src (sin-osc freq)
         env (env-gen (perc 0.01 1.0) :action :free)]
@@ -57,3 +57,47 @@
 
 ;; which is enough to play a Zelda theme on marimba
 ;; I saw somewhere on youtube..
+
+
+
+
+
+
+;;;;;;;;;;; new example stuff
+;;
+;; demo use of
+;; 1. trigger functions, chords, samples
+;; 2. on / off buttons for loops
+;; 3. trigger up-for-playing, and off in metro loop
+;; 4. paint FFT buffer to JPanel
+
+;; changed to
+(comment
+  (foo :paint (fn [g2d] bla))
+  (foo :map :a #(nty) etc.)
+  )
+(def foo (keynome)) ;; or (defkeynome foo)
+(def sw (switch))
+(set-actions foo
+             :a #(nty)
+             :b #(sot)
+             :0 #(marimba-note)
+             :1 #(new-keynome)
+             :2 #(sw :swap))
+
+(doall (for [i (range 1 10)]
+         (set-actions foo
+                      (keyword (str i))
+                      #(do (marimba-note (midi->hz (+ 50 i)))
+                           (marimba-note (midi->hz (+ 57 i)))))))
+
+(use 'overtone.live)
+
+(definst marimba-note [freq 300]
+  (let [src (sin-osc freq)
+        env (env-gen (perc 0.01 1.0) :action 2)]
+    (* 0.9 src env)))
+
+
+(def nty (sample "/home/duke/samples/were-not-done-yet.wav"))
+(def sot (sample "/home/duke/samples/sound-of-threads.wav"))
