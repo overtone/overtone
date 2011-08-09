@@ -88,8 +88,8 @@
    unchanged"
   [gen]
   (if (and (associative? gen)
-                          (or (= :ugen (:type gen))
-                              (= :cgen (:type gen))))
+                          (or (= :overtone.sc.ugen/ugen (:type gen))
+                              (= :overtone.sc.cgen/cgen (:type gen))))
     (keyword (:name gen))
     gen))
 

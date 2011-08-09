@@ -498,6 +498,8 @@
 (defrecord UGen [id name rate rate-name special args n-outputs])
 (derive UGen ::ugen)
 
+
+
 (defrecord ControlProxy [name value rate rate-name])
 (derive ControlProxy ::ugen)
 
@@ -561,7 +563,7 @@
                    :categories (:categories spec)
                    :rate rate
                    :src "Implemented in C code"
-                   :type :ugen
+                   :type ::ugen
                    :params (:args spec)}
                   ugen-fn)))
 
@@ -582,7 +584,7 @@
               :outputs (repeat n-outputs {:rate (rate RATES)})
               :n-inputs 0
               :inputs []}
-    {:type :ugen}))
+    {:type ::ugen}))
 
 (defn control-ugen
   "Creates a new control ugen at control rate.
