@@ -498,7 +498,19 @@
 (defrecord UGen [id name rate rate-name special args n-outputs])
 (derive UGen ::ugen)
 
+(defn count-ugen-args
+  "Count the number of ugens in the args of ug (and their args recursively)"
+  [ug]
+  (let [args (:args ug)]
+    (reduce (fn [sum arg]
+              (if (ugen? arg)
+                (+ sum 1 (count-ugen-args arg))
+                sum))
+            0
+            args)))
 
+(defmethod print-method UGen [ug w]
+  (.write w (str "#<ugen: " (:name ug) " with " (count-ugen-args ug) " internal ugens.")))
 
 (defrecord ControlProxy [name value rate rate-name])
 (derive ControlProxy ::ugen)
