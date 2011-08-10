@@ -1,66 +1,18 @@
 (ns example.keynome
-  (:use [[overtone.live]
-         [overtone.studio.keynome]]))
+  (:use overtone.live
+        [overtone.studio keynome]))
 
-;; make a short keyboard with Q key as Eb
-(def marimba (keynome))
-(definst marimba-note [freq 300]
-  (let [src (sin-osc freq)
-        env (env-gen (perc 0.01 1.0) :action :free)]
-    (* 0.9 src env)))
-
-(def note-diff (Math/pow 2.0 (/ 1.0 12.0)))
-(defn change-note [note steps]
-  (* note (Math/pow note-diff steps)))
-
-;; keyboard like, though we aren't restricted to that
-(def melody-kbd
-  (let [base-note (change-note 440 -6)
-        keys [:q :a :s :e :d :r :f :t :g :h :u :j :i :k :l :p
-              (keyword (str ";")) (keyword (str "["))]
-        notes (for [i (range (count keys))] (change-note base-note i))]
-    (doall (for [[key note] (partition 2 (interleave keys notes))]
-             (set-actions marimba key #(marimba-note note))))
-    {:keys keys :notes notes}))
-
-;; lazy harmony, press z for bass only, x  for highs and bass
-(def hit-count (ref 0))
-(def base-note (change-note 440 -16))
-
-(def bass-sequence [[0] [3 7] [3 7]
-                    [2] [5 9] []
-                    [3] [7 10] [7 10]
-                    [2] [5 9] []])
-
-(def high-sequence [[0 36 43] [3 7 36 43] [3 7 36 43]
-                    [2 38 45] [5 9 38 45] [ 38 45]
-                    [3 39 46] [7 10 39 46] [7 10 39 46]
-                    [2 38 45] [5 9 38 45] [ 38 45]])
-
-(defn play-bass []
-  (let [cc (mod @hit-count 12)
-        notes (nth bass-sequence cc)]
-    (do (dosync (ref-set hit-count (inc @hit-count)))
-        (doall (map #(marimba-note (change-note base-note %)) notes)))))
-
-(defn play-high []
-  (let [cc (mod @hit-count 12)
-        notes (nth high-sequence cc)]
-    (do (dosync (ref-set hit-count (inc @hit-count)))
-        (doall (map #(marimba-note (change-note base-note %)) notes)))))
-
-(set-actions marimba
-             :x play-high
-             :z play-bass
-             :1 #(dosync (ref-set hit-count 0)) ;; reset sequence
-             )
-
-;; which is enough to play a Zelda theme on marimba
-;; I saw somewhere on youtube..
-
-
-
-
+;; net sample steps
+;; 1. define url
+;; 2. pull file with java.net.URL.openStream
+;; 3. open tempfile, write
+;; 4. pass file to overtone's sample
+;; http://www.davidreilly.com/java/java_network_programming/#2.3
+;; http://www.roseindia.net/java/example/java/io/create-temp-file.shtml
+(def url "https://github.com/downloads/mmwoodman/overtone/sound-of-threads.wav")
+;;
+;; withthis, coudl make a nouveau swing thing with a bouncing bass line
+;; then swing drums and clarinet....
 
 
 ;;;;;;;;;;; new example stuff
@@ -101,3 +53,48 @@
 
 (def nty (sample "/home/duke/samples/were-not-done-yet.wav"))
 (def sot (sample "/home/duke/samples/sound-of-threads.wav"))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; inspired by these guys playing Zelda Song of Storms,
+;;; (http://www.youtube.com/watch?v=ziUSQKcURBE)
+;;; we create a little keyboard for the melody and
+;;; button driven sequence for the harmony
+
+;; set up a new keynome
+(def kbd (keynome :title "zelda"))
+
+;; a basic instrument, sounds like a marimba in the lower freqs
+(definst marimba [freq 300]
+  (let [src (sin-osc freq)
+        env (env-gen (perc 0.01 1.0) :action :free)]
+    (* 0.9 src env)))
+
+;; set up a mini-piano on the keyboard, with black keys on the
+;; qwery row, and white keys on home row, starting with Q -> Eb4
+(let [keys [:q :a :s :e :d :r :f :t :g :h :u :j :i :k :l :p
+            (keyword (str ";")) (keyword (str "["))]
+      notes (for [i (range (count keys))] (midi->hz (+ (resolve-note :eb4) i)))]
+  (doall (for [[key note] (map list keys notes)]
+           (kbd :map key #(marimba note)))))
+
+;; for the harmony,  we use a simple sequence
+;; of notes, triggered by z for bass only or
+;; x for highs and bass (press repeatedly!)
+(let [hit-count (atom 0), base-note (resolve-note :f3)
+      bass  [[0] [3 7] [3 7], [2] [5 9] [], [3] [7 10] [7 10], [2] [5 9] []]
+      highs-too [[0 36 43] [3 7 36 43]  [3 7 36 43],  [2 38 45] [5 9 38 45] [ 38 45]
+                [3 39 46] [7 10 39 46] [7 10 39 46], [2 38 45] [5 9 38 45] [ 38 45]]
+      play-seq (fn [sequ] (fn [] (do (doall (map #(marimba (midi->hz (+ base-note %)))
+                                               (nth sequ (mod @hit-count 12))))
+                                   (reset! hit-count (inc @hit-count)))))]
+  (kbd :map
+       :x (play-seq bass)
+       :z (play-seq highs-too)
+       :c #(reset! hit-count 0) ;; to reset sequences
+       ))
+
+;; We haven't put in place everything needed to place the song
+;; the rest is left as an exercise to the hacker..
