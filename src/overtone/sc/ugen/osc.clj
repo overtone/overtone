@@ -107,6 +107,7 @@ where x is to vary in the range -1 to 1 over the period dur. minval is the initi
               {:name "width", :default 0.5 :doc "Pulse width duty cycle from zero to one"}]
        :signal-range :unipolar
        :rates #{:ar :kr}
+       :default-rate :kr
        :doc "A non-band-limited pulse oscillator. Outputs a high value of one and a low value of zero.
 "}
 
@@ -123,6 +124,7 @@ where x is to vary in the range -1 to 1 over the period dur. minval is the initi
               {:name "phase", :default 0.0 :doc "Phase offset in cycles ( 0..1 )"}]
        :signal-range :unipolar
        :rates #{:ar :kr}
+       :default-rate :kr
        :doc "non band limited impulse oscillator. Outputs a single 1 every freq cycles per second and 0 the rest of the time."}
 
 
