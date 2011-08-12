@@ -1,11 +1,12 @@
-(ns overtone.config
+(ns
+    ^{:doc "Provides a simple key/value configuration system with support for automatically persisting to a file on disk.  The config file is serialized clojure code which is easily editable as a text file."
+      :author "Jeff Rose"}
+  overtone.config
   (:use [clojure.contrib.io :only (slurp*)])
   (:require [clojure.contrib.duck-streams :as ds])
   (:import (java.io FileOutputStream FileInputStream)))
 
-;; Provides a simple key/value configuration system with support for automatically
-;; persisting to a file on disk.  The config file is serialized clojure code which
-;; is easily editable as a text file.
+
 
 (defonce config*  (ref {}))
 
