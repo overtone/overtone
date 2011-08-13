@@ -1,6 +1,6 @@
 (ns overtone.sc.bus
   (:use
-    [overtone.sc core allocator]))
+    [overtone.sc defaults core allocator]))
 
 ;; ## Busses
 ;;
@@ -47,9 +47,10 @@
     ::audio-bus   (free-id :audio-bus (:id b) (:n-channels b))
     ::control-bus (free-id :control-bus (:id b) (:n-channels b))))
 
-; Reserve the first 11 busses for audio I/O and mixer, forever.
-(dotimes [i 11]
-  (audio-bus))
+; Reserve busses for overtone
+(defonce ___reserve-overtone-busses____
+  (dotimes [i AUDIO-BUS-RESERVE-COUNT]
+    (audio-bus)))
 
 (defn reset-busses
   []

@@ -1,11 +1,5 @@
-(ns overtone.sc.allocator)
-
-;; ## SCSynth limits
-(def MAX-NODES 4000)
-(def MAX-BUFFERS 4000)
-(def MAX-SDEFS 2000)
-(def MAX-AUDIO-BUS 1000)
-(def MAX-CONTROL-BUS 4000)
+(ns overtone.sc.allocator
+  (:use [overtone.sc defaults]))
 
 ;; ## Allocators
 ;;
