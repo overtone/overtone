@@ -132,7 +132,6 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 ### Contributors
 
 * Jeff Rose
-* Jon Rose
 * Sam Aaron
 * Fabian Aussems
 * Christophe McKeon
