@@ -1,4 +1,5 @@
 (ns overtone.sc.allocator
+  (:require [overtone.log :as log])
   (:use [overtone.sc defaults]))
 
 ;; ## Allocators
@@ -43,10 +44,31 @@
     (let [gap-found (if (not (get bs idx)) (inc gap-found) 0)]
       (find-gap bs size (inc idx) gap-found limit))))
 
+(def action-fn-executor* (agent nil))
+
+(defn- execute-action-fn
+  "Execute action-fn and catch all exceptions - outputting them to the error
+  log. All actions are executed in sequence."
+  [action-fn caller-name]
+  (send action-fn-executor* (fn [_]
+                              (try
+                                (action-fn)
+                                (catch Exception e
+                                  (log/error "Exception in " caller-name " action-fn: " e "\nstacktrace: " (.printStackTrace e)))
+                                (finally nil)))))
+
 (defn alloc-id
-  "Allocate a new ID for the type corresponding to key."
-  ([k] (alloc-id k 1))
-  ([k size]
+  "Allocate a new ID for the type corresponding to key. Takes an optional
+  action-fn which it will evaluate in transaction with the allocation of the id.
+  Therefore there is no possibility of interleaving concurrent allocation of ids
+  and the execution of associated action-fns. Execution of action-fn is also
+  synchronised with the execution of free-id action-fns. Action-fn takes one
+  param - the newly allocated id.
+
+  Returns newly allocated id."
+  ([k] (alloc-id k 1 nil))
+  ([k size] (alloc-id k 1 nil))
+  ([k size action-fn]
      (let [bits  (get allocator-bits k)
            limit (get allocator-limits k)]
        (when-not bits
@@ -56,20 +78,26 @@
        (dosync
         (let [id (find-gap @bits size 0 0 limit)]
           (alter bits fill-gaps id size true)
+          (when action-fn (execute-action-fn #(action-fn id) "alloc-id"))
           id)))))
 
 ; The root group is implicitly allocated
 (defonce _root-group_ (alloc-id :node))
 
 (defn free-id
-  "Free the id of type key."
-  ([k id] (free-id k id 1))
-  ([k id size]
-  (let [bits (get allocator-bits k)
-        limit (get allocator-limits k)]
-    (dosync
-     (alter bits fill-gaps id size false)))))
-
+  "Free the id of type key. Takes an optional action-fn which it will evaluate
+  in transaction with the freeing of the id. Therefore there is no possibility
+  of interleaving concurrent freeing of ids and execution of associated
+  action-fns. Execution of action-fn is also synchronised with the execution of
+  alloc-id action-fns."
+  ([k id] (free-id k id 1 nil))
+  ([k id size] (free-id k id size nil))
+  ([k id size action-fn]
+     (let [bits (get allocator-bits k)
+           limit (get allocator-limits k)]
+       (dosync
+        (alter bits fill-gaps id size false)
+        (when action-fn (execute-action-fn action-fn "free-id"))))))
 
 (defn clear-ids
   "Clear all ids allocated for key."
