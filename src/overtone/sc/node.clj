@@ -3,7 +3,7 @@
     [overtone.log :as log])
   (:use
     [overtone util event deps]
-    [overtone.sc core allocator bus]))
+    [overtone.sc defaults core allocator bus]))
 
 ;; ## Node and Group Management
 

@@ -2,6 +2,7 @@
   (:use
     [overtone util]
     [overtone.sc core allocator]))
+    [overtone.sc defaults core allocator]))
 
 (declare buffer-info)
 

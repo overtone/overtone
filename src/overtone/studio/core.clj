@@ -2,7 +2,7 @@
   (:use
     [overtone util event time-utils deps]
     [overtone.sc.ugen.defaults]
-    [overtone.sc core synth ugen envelope node synthdef bus]
+    [overtone.sc defaults core synth ugen envelope node synthdef bus]
     [overtone.music rhythm]))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
