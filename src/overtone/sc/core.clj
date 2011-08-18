@@ -14,22 +14,12 @@
             [overtone.sc.osc :as osc])
   (:use
    [overtone event config log setup util time-utils deps]
-   [overtone.sc allocator]
+   [overtone.sc defaults allocator]
    [clojure.contrib.java-utils :only [file]]
    [clojure.contrib pprint]
    [clojure.contrib shell-out]
    [osc.decode :only [osc-decode-packet]]
    osc))
-
-(def SERVER-HOST "127.0.0.1")
-(def SERVER-PORT nil) ; nil means a random port
-(def N-RETRIES 20)
-
-;; Max number of milliseconds to wait for a reply from the server
-(def REPLY-TIMEOUT 500)
-
-(def MAX-OSC-SAMPLES 8192)
-(def ROOT-GROUP 0)
 
 (defonce server*        (ref nil))
 (defonce server-thread* (ref nil))
