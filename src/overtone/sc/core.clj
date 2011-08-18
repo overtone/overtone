@@ -221,31 +221,13 @@
   "Check the status of the audio server."
   []
   (if (connected?)
-    (let [p (promise)
-          handler (fn [event]
-                    (deliver p (parse-status (:args event)))
-                    (remove-handler "status.reply" ::status-check)
-                    (remove-handler "/status.reply" ::status-check))]
-      (on-event "/status.reply" ::status-check handler)
-      (on-event "status.reply" ::status-check handler)
-
+    (let [p (recv "/status.reply") ]
       (snd "/status")
       (try
-        (.get (future @p) STATUS-TIMEOUT TimeUnit/MILLISECONDS)
+        (parse-status (:args (await-promise! p)))
         (catch TimeoutException t
           :timeout)))
     @status*))
-
-(defn wait-sync
-  "Wait until the audio server has completed all asynchronous commands
-  currently in execution."
-  [& [timeout]]
-  (let [sync-id (rand-int 999999)
-        reply-p (recv "/synced")
-        _ (snd "/sync" sync-id)
-        reply (await-promise! reply-p (if timeout timeout REPLY-TIMEOUT))
-        reply-id (first (:args reply))]
-    (= sync-id reply-id)))
 
 (def SC-PATHS {:linux ["scsynth"]
                :windows ["C:/Program Files/SuperCollider/scsynth.exe"
