@@ -178,11 +178,20 @@
   "Register your intent to wait for a message associated with given path to be
   received from the server. Returns a promise that will contain the message once
   it has been received. Does not block current thread (this only happens once
-  you try and look inside the promise and the reply has not yet been received)."
-  [path]
-  (let [p (promise)]
-    (on-sync-event path (uuid) #(do (deliver p %) :done))
-    p))
+  you try and look inside the promise and the reply has not yet been received).
+
+  If an optional matcher-fn is specified, will only deliver the promise when
+  the matcher-fn returns true. The matcher-fn should accept one arg which is
+  the incoming event info."
+  ([path] (recv path nil))
+  ([path matcher-fn]
+     (let [p (promise)]
+       (on-sync-event path (uuid) (fn [info]
+                                    (when (or (nil? matcher-fn)
+                                              (matcher-fn info))
+                                      (deliver p info)
+                                      :done)))
+    p)))
 
 (defn- parse-status [args]
   (let [[_ ugens synths groups loaded avg peak nominal actual] args]
@@ -384,6 +393,32 @@
 
     (let [res (action-fn)]
       (snd "/sync" id)
+      res)))
+
+(defn server-sync
+  "Send a sync message to the server with the specified id. Server will reply
+  with a synced message when all incoming messages up to the sync message have
+  been handled. See with-server-sync and on-server-sync for more typical
+  usage."
+  [id]
+  (snd "/sync" id))
+
+(defn with-server-self-sync
+  "Blocks the current thread until the action-fn explicitly sends a server sync.
+  The action-fn is assumed to have one argument which will be the unique sync id.
+  This is useful when the action-fn is itself asynchronous yet you wish to
+  synchronise with its completion. The action-fn can sync using the fn server-sync.
+  Returns the result of action-fn."
+  [action-fn]
+  (let [id (update-server-sync-id)
+        prom (promise)]
+    (on-event "/synced" (uuid)
+              (fn [msg] (when (= id (first (:args msg)))
+                         (do
+                           (deliver prom true)
+                           :done))))
+    (let [res (action-fn id)]
+      (await-promise! prom)
       res)))
 
 (defn with-server-sync
