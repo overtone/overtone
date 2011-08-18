@@ -7,7 +7,7 @@
     (+ (+ (sin-osc (* (pulse 1) 24))
        (sin-osc (+ 90 (* a 90))))
        (moog-ff (saw (lf-noise0 4 333 666))
-                (* a (* 99 (x-line 1 39 99 :free)))))))
+                (* a (* 99 (x-line 1 39 99 FREE)))))))
 
 ; Originally by Julian Rohrhuber
 ;{ SinOsc.ar( BrownNoise.ar(30!2, 200), Ndef(\x).ar * LFNoise1.kr(1!2,1,1)) }).play;

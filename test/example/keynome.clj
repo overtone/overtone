@@ -49,7 +49,7 @@
 (def marimba (new-keynome))
 (definst marimba-note [freq 300]
   (let [src (sin-osc freq)
-        env (env-gen (perc 0.01 1.0) :action :free)]
+        env (env-gen (perc 0.01 1.0) :action FREE)]
     (* 0.9 src env)))
 
 (def note-diff (Math/pow 2.0 (/ 1.0 12.0)))

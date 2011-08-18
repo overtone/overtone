@@ -11,7 +11,7 @@
         freqs [freq (* 1.01 freq)]
         vol-env (env-gen (adsr attack decay sustain release)
                          (line:kr 1 0 (+ attack decay release))
-                         :action :free)
+                         :action FREE)
         fil-env (env-gen (perc))
         fil-cutoff (+ cutoff (* env fil-env))
         waves [(* vol-env (saw freqs))
@@ -20,7 +20,7 @@
 
 (definst kick [amp 0.6 freq 100 dur 0.3 width 0.5]
   (let [freq-env (* freq (env-gen (perc 0 (* 0.9 dur))))
-        env (env-gen (perc 0.01 dur) 1 1 0 1 :free)
+        env (env-gen (perc 0.01 dur) 1 1 0 1 FREE)
         sqr (* 0.8 (env-gen (perc 0 0.01)) (pulse (* 2 freq) width))
         src (sin-osc freq-env)
         drum (+ sqr (* env src))]
