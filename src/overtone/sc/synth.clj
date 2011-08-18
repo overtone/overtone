@@ -7,7 +7,8 @@
   overtone.sc.synth
   (:require
     [overtone.log :as log]
-    [clojure.contrib.generic.arithmetic :as ga])
+    [clojure.contrib.generic.arithmetic :as ga]
+    [at-at])
   (:use
     [overtone util event time-utils]
     [overtone.sc.ugen defaults]
@@ -547,7 +548,7 @@
              (list 'out 0 body))]
     `(let [s# (synth "audition-synth" ~b2)
            note# (s#)]
-       (at (+ (now) ~demo-time) (node-free note#))
+       (at-at/at (+ (now) ~demo-time) #(node-free note#))
        note#)))
 
 (defn active-synths
