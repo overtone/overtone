@@ -4,7 +4,7 @@
     [overtone.sc defaults core allocator]))
 
 (defn buffer-info
-  "Fetch the information for buffer associated with buf-id "
+  "Fetch the information for buffer associated with buf-id. Synchronous."
   [buf-id]
   (let [prom   (recv "/b_info" (fn [msg]
                                  (= buf-id (first (:args msg)))))]
@@ -27,7 +27,7 @@
                                                    (fn [id]
                                                      (snd "/b_alloc" id size num-channels)
                                                      (server-sync uid)))))
-           info (with-server-sync #(buffer-info id))]
+           info (buffer-info id)]
        (with-meta
          {:allocated-on-server (atom true)
           :size (:n-frames info)
