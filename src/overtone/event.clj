@@ -28,33 +28,39 @@
      true)))
 
 (defn on-event
-  "Takes an event-type (name of the event) a key (to refer back to this handler in the future) and a handler fn.
-  Runs handler whenever events of type event-type are fired.  The handler can
-  optionally accept a single event argument, which is a map containing the
-  :event-type property and any other properties specified when it was fired.
+  "Takes an event-type (name of the event) a key (to refer back to this handler
+  in the future) and a handler fn. Runs handler whenever events of type event-
+  type are fired.  The handler can optionally accept a single event argument,
+  which is a map containing the :event-type property and any other properties
+  specified when it was fired.
 
   (on-event \"/tr\" ::status-check handler)
-  (on-event :midi-note-down ::midi-note-down-handler (fn [event] (funky-bass (:note event))))
+  (on-event :midi-note-down ::midi-note-down-hdlr (fn [event]
+                                                    (funky-bass (:note event))))
 
   Handlers can return :done to be removed from the handler list after execution."
   [event-type key handler]
   (on-event* event-handlers* event-type key handler))
 
 (defn on-sync-event
-  "Synchronously runs handler whenever events of type event-type are fired.  The handler can
-  optionally accept a single event argument, which is a map containing the
-  :event-type property and any other properties specified when it was fired."
+  "Synchronously runs handler whenever events of type event-type are fired.
+  The handler can optionally accept a single event argument, which is a map
+  containing the :event-type property and any other properties specified when it
+  was fired. If handler returns :done it will automatically be removed and will
+  therefore no longer respond to future matching events."
   [event-type key handler]
   (on-event* sync-event-handlers* event-type key handler))
 
 (defn remove-handler
   "Remove an event handler previously registered to handle events of event-type.
-   Removes both sync and async handlers with a given key for a particular event type
+   Removes both sync and async handlers with a given key for a particular event
+  type
 
   (defn my-foo-handler [event] (do-stuff (:val event)))
 
   (on-event ::foo my-foo-handler)
-  (event ::foo :val 200) ; my-foo-handler gets called with {:event-type ::foo :val 200}
+  (event ::foo :val 200) ; my-foo-handler gets called with:
+                         ; {:event-type ::foo :val 200}
   (remove-handler ::foo my-foo-handler)
   (event ::foo :val 200) ; my-foo-handler no longer called
   "
