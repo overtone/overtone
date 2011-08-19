@@ -60,6 +60,6 @@
     (send-trig:kr trigger count)
     (out c-bus trigger)))
 
-(on-event "/tr" :metro-synth #(println "trigger: " %))
+(on-event "/tr" #(println "trigger: " %) ::metro-synth)
 
 (metro-synth)

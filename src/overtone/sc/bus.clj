@@ -56,7 +56,7 @@
   []
   nil)
 
-;(on-sync-event :reset :reset-busses reset-busses)
+;(on-sync-event :reset reset-busses ::reset-busses)
 
 (defn bus-set!
   "Takes a list of bus indices and values and sets the buses to those values.

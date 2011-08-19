@@ -58,7 +58,7 @@ The trigger message sent back to the client is this:
 
       {:name "SendReply"
        :args [{:name "trig", :default 0.0 :doc "input trigger signal"}
-              {:name "cmd-name", :default "/reply" :doc "a string or symbol, as a message name."}
+              {:name "cmd-name", :default "/reply" :doc "a string or symbol, as a message name." :mode :append-string}
               {:name "values", :default 0.0 :mode :append-sequence :doc "array of ugens, or valid ugen inputs"}
               {:name "reply-id", :default -1 :doc "integer id (similar to send-trig)"}]
        :default-rate :kr

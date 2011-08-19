@@ -7,8 +7,8 @@
 
 (deftest handler-test
   (let [counter (atom 0)]
-    (on-sync-event :test-event :a #(swap! counter inc))
-    (on-event :test-event :b #(swap! counter inc))
+    (on-sync-event :test-event #(swap! counter inc) :a)
+    (on-event :test-event #(swap! counter inc) :b)
     (event :test-event)
     (Thread/sleep 100)
     (is (= 2 @counter))
@@ -18,9 +18,9 @@
     (Thread/sleep 100)
     (is (= 3 @counter))
 
-    (on-event :test-event :x #(swap! counter inc))
-    (on-event :test-event :y #(swap! counter inc))
-    (on-event :test-event :z #(swap! counter inc))
+    (on-event :test-event #(swap! counter inc) :x)
+    (on-event :test-event #(swap! counter inc) :y)
+    (on-event :test-event #(swap! counter inc) :z)
     (event :test-event)
     (Thread/sleep 100)
     (is (= 7 @counter))
