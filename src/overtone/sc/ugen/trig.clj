@@ -1,5 +1,5 @@
 (ns overtone.sc.ugen.trig
-  (:use (overtone.sc.ugen common)))
+  (:use [overtone.sc.ugen common constants]))
 
 ;;TODO:
 ;;* figure out what the signal-range is about
@@ -14,12 +14,14 @@
        :args [{:name "trig" :doc "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive."}
               {:name "array", :array true :doc "list of probabilities"}
               {:name "normalize", :default 0 :doc "normalise flag - 0 off, 1 on"}]
+       :default-rate :kr
        :doc "When triggered, returns a random index value based on array as a list of probabilities. By default the list of probabilities should sum to 1.0, when the normalize flag is set to 1, the values get normalized by the ugen (less efficient)"}
 
       {:name "Trig1"
        :args [{:name "trig", :default 0.0 :doc "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive."}
               {:name "dur", :default 0.1 :doc "duration of the trigger output."}]
        :signal-range :unipolar
+       :default-rate :kr
        :doc "outputs one for dur seconds whenever the input goes from negative to positive"}
 
       {:name "Trig", :extends "Trig1"
@@ -29,6 +31,7 @@
        :args [{:name "trig", :default 0.0 :doc "input trigger signal."}
               {:name "dur", :default 0.1 :doc "delay time in seconds."}]
        :signal-range :unipolar
+       :default-rate :kr
        :check [same-rate-as-first-input]
        :doc "delays an input trigger by dur, ignoring other triggers in the meantime"}
 
@@ -36,6 +39,7 @@
        :args [{:name "in", :default 0.0 :doc "input trigger signal"}
               {:name "id", :default 0 :doc "an integer that will be passed with the trigger message. This is useful if you have more than one SendTrig in a SynthDef"}
               {:name "value", :default 0.0 :doc "a UGen or float that will be polled at the time of trigger, and its value passed with the trigger message"}]
+       :default-rate :kr
        :num-outs 0
        :check [same-rate-as-first-input]
        :doc "on receiving a trigger sends a :trigger event with id and value. This command is the mechanism that synths can use to trigger events in clients.
@@ -57,6 +61,7 @@ The trigger message sent back to the client is this:
               {:name "cmd-name", :default "/reply" :doc "a string or symbol, as a message name."}
               {:name "values", :default 0.0 :mode :append-sequence :doc "array of ugens, or valid ugen inputs"}
               {:name "reply-id", :default -1 :doc "integer id (similar to send-trig)"}]
+       :default-rate :kr
        :doc "send an array of values from the server to all notified clients
 
 cmdName
@@ -70,6 +75,7 @@ cmdName
       {:name "Latch"
        :args [{:name "in", :default 0.0 :doc "input signal."}
               {:name "trig", :default 0.0 :doc "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive."}]
+       :default-rate :kr
        :doc "holds the input signal value when triggered"}
 
       {:name "Gate", :extends "Latch"
@@ -79,6 +85,7 @@ cmdName
        :args [{:name "trig", :default 0.0 :doc "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive."}
               {:name "reset", :default 0.0 :doc "resets the counter to zero when triggered."}]
        :check [same-rate-as-first-input]
+       :default-rate :kr
        :doc "each input trigger increments a counter value that is output."}
 
       {:name "SetResetFF", :extends "PulseCount"
@@ -104,31 +111,37 @@ One use of this is to have some precipitating event cause something to happen un
               {:name "step", :default 1 :doc "step value each trigger. May be negative."}
               {:name "resetval" :default 1 :doc "value to which the counter is reset when it receives a reset trigger."}] ; TODO MAYBE? allow :default :min
        :check [same-rate-as-first-input]
+       :default-rate :kr
        :doc "triggers increment a counter which is output as a signal. The counter loops around from max to min by step increments"}
 
       {:name "PulseDivider"
        :args [{:name "trig", :default 0.0 :doc "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive."}
               {:name "div", :default 2.0 :doc "number of pulses to divide by."}
               {:name "start-val", :default 0.0 :doc "starting value for the trigger count. This lets you start somewhere in the middle of a count, or if startCount is negative it adds that many counts to the first time the output is triggers."}]
+       :default-rate :kr
        :doc "outputs a trigger every div input triggers"}
 
       {:name "ToggleFF"
        :args [{:name "trig", :default 0.0 :doc "trigger input"}]
+       :default-rate :kr
        :doc "flip-flops between zero and one each trigger"}
 
       {:name "ZeroCrossing"
        :args [{:name "in", :default 0.0 :doc "input signal"}]
+       :default-rate :kr
        :check [same-rate-as-first-input]
        :doc "Outputs a frequency based upon the distance between interceptions of the X axis. The X intercepts are determined via linear interpolation so this gives better than just integer wavelength resolution. This is a very crude pitch follower, but can be useful in some situations."}
 
       {:name "Timer"
        :args [{:name "trig", :default 0.0 :doc "trigger input"}]
        :check [same-rate-as-first-input]
+       :default-rate :kr
        :doc "outputs time since last trigger"}
 
       {:name "Sweep"
        :args [{:name "trig", :default 0.0 :doc "trigger input"}
               {:name "rate", :default 1.0 :doc "rate in seconds"}]
+       :default-rate :kr
        :doc "outputs a linear increasing signal by rate/second on trigger"}
 
       {:name "Phasor"
@@ -137,11 +150,13 @@ One use of this is to have some precipitating event cause something to happen un
               {:name "start", :default 0.0 :doc "Starting point of the ramp"}
               {:name "end", :default 1.0 :doc "End point of the ramp"}
               {:name "resetPos", :default 0.0  :doc "The value to jump to upon receiving a trigger"}]
+       :default-rate :kr
        :doc "Phasor is a linear ramp between start and end values. When its trigger input crosses from non-positive to positive, Phasor's output will jump to its reset position. Upon reaching the end of its ramp Phasor will wrap back to its start. N.B. Since end is defined as the wrap point, its value is never actually output."}
 
       {:name "PeakFollower"
        :args [{:name "in", :default 0.0 :doc "input signal."}
               {:name "decay", :default 0.999 :doc "decay factor."}]
+       :default-rate :kr
        :doc "outputs the peak signal amplitude, falling with decay over time until reaching signal level"}
 
       {:name "Pitch"
@@ -165,6 +180,7 @@ This is a better pitch follower than ZeroCrossing, but more costly of CPU. For m
        :args [{:name "in", :default 0.0 :doc "input signal"}
               {:name "lo", :default 0.0 :doc "low threshold"}
               {:name "hi", :default 1.0 :doc "high threshold"}]
+       :default-rate :kr
        :doc "Tests if a signal is between lo and hi"}
 
       {:name "Fold", :extends "InRange"
@@ -174,6 +190,7 @@ This is a better pitch follower than ZeroCrossing, but more costly of CPU. For m
        :args [{:name "in", :default 0.0 :doc "The signal to be clipped"}
               {:name "lo", :default 0.0, :doc "Low threshold of clipping. Must be less then hi"}
               {:name "hi", :default 1.0, :doc "High threshold of clipping. Must be greater then lo"}]
+       :default-rate :kr
        :doc "Clip a signal outside given thresholds. This differs from the BinaryOpUGen clip2 in that it allows one to set both low and high thresholds."}
 
       {:name "Wrap", :extends "InRange"
@@ -191,6 +208,7 @@ This is a better pitch follower than ZeroCrossing, but more costly of CPU. For m
               {:name "top"}
               {:name "right"}
               {:name "bottom"}]
+       :default-rate :kr
        :doc "outputs one if the 2d coordinate of x,y input values falls inside a rectangle, else zero"}
 
       {:name "Trapezoid"
@@ -198,11 +216,13 @@ This is a better pitch follower than ZeroCrossing, but more costly of CPU. For m
               {:name "a", :default 0.2}
               {:name "b", :default 0.4}
               {:name "c", :default 0.6}
-              {:name "d", :default 0.8}]}
+              {:name "d", :default 0.8}]
+       :default-rate :kr}
 
       {:name "MostChange"
        :args [{:name "a", :default 0.0 :doc "first input"}
               {:name "b", :default 0.0 :doc "second input"}]
+       :default-rate :kr
        :doc "output whichever signal changed the most"}
 
       {:name "LeastChange", :extends "MostChange"
@@ -211,4 +231,5 @@ This is a better pitch follower than ZeroCrossing, but more costly of CPU. For m
       {:name "LastValue"
        :args [{:name "in", :default 0.0 :doc "input signal"}
               {:name "diff", :default 0.01 :doc "difference threshold"}]
+       :default-rate :kr
        :doc "output the last value before the input changed by a threshold of diff"}])

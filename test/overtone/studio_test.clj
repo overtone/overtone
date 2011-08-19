@@ -3,12 +3,12 @@
 
 (defn inst-test []
   (definst bar [freq 200]
-           (* (env-gen (perc 0.1 0.8) 1 1 0 1 :free)
+           (* (env-gen (perc 0.1 0.8) 1 1 0 1 FREE)
               (rlpf (saw freq) (* 1.1 freq) 0.3)
               0.4))
 
   (definst buz [freq 200]
-           (* (env-gen (perc 0.1 0.8) 1 1 0 1 :free)
+           (* (env-gen (perc 0.1 0.8) 1 1 0 1 FREE)
               (+ (sin-osc (/ freq 2))
                  (rlpf (saw freq) (* 1.1 freq) 0.3))
               0.4)))
@@ -33,13 +33,13 @@
 
 (definst foo [freq 440]
   (* 0.8
-     (env-gen (perc 0.1 0.4) :action :free)
+     (env-gen (perc 0.1 0.4) :action FREE)
      (rlpf (saw [freq (* 0.98 freq)])
            (mul-add (sin-osc:kr 30) 100 (* 1.8 freq)) 0.2)))
 
 (definst kick [freq 240]
   (* 0.8
-     (env-gen (perc 0.01 0.3) :action :free)
+     (env-gen (perc 0.01 0.3) :action FREE)
      (sin-osc freq)))
 
 (defn test-session []

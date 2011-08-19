@@ -1,5 +1,5 @@
 (ns example.demand
-  (:use overtone.core))
+  (:use overtone.live))
 
 ; Unlike the audio and control rate ugens, which produce a constant
 ; stream of values, the demand rate ugens only produce a value
@@ -51,40 +51,51 @@
         (pan2 (* 0.1 src))))
 
 (def buf (buffer 8))
-(overtone.sc.buffer/buffer-write buf 0 8
-                                 (map #(+ 12 %) [50 50 54 50 57 50 45 49]))
+(buffer-write! buf 0 (map #(+ 12 %) [50 50 54 50 57 50 45 49]))
 
 (demo 20
       (let [trig (impulse:kr 8)
-            indexes (dseq (range 8) inf)
+            indexes (dseq (range 8) INF)
             freqs (dbufrd buf indexes)
             note-gen (demand:kr trig 0 freqs)
             src (sin-osc (midicps note-gen))]
         (* [0.1 0.1] src)))
 
 ; Now while it's playing you can set buffer elements to change the notes:
-(overtone.sc.buffer/buffer-set buf 3 45)
-(overtone.sc.buffer/buffer-set buf 3 80)
-(overtone.sc.buffer/buffer-set buf 7 50)
+(buffer-set! buf 3 85)
+(buffer-set! buf 3 80)
+(buffer-set! buf 7 20)
+(stop)
 
-; TODO: Fixme
 (demo 4
-      (let [freq (duty (drand [0.2 0.4 0.8 0.6] inf)
+      (let [freq (duty (drand [0.2 0.4 0.8 0.6] INF)
                        0
                        (dseq [440 880 1200 600] 2))
             src (saw freq)]
         (* [0.2 0.2] src)))
 
-; TODO: Fixme
+
+;;play a little rhythm
+(demo 5
+      (t-duty (dseq [0.1 0.2 0.4 0.3] INF)))
+
+
 ; Generate a series of values, incrementing linearly.
+
 (demo 8
-      (let [trig (impulse:kr 2)
-            freqs (dseries 100 50 2)
+      (let [trig (impulse:kr 10)
+            freqs (dseries 150 2 200)
             note-gen (demand:kr trig 0 freqs)
             src (sin-osc note-gen)]
-        (pan2 (* 0.2 src))))
+        src))
 
-; TODO: Fixme
+(demo 5
+      (let [notes (dseries 0 1 15)
+            trig (impulse:kr (mouse-x 1 40 1))
+            freq (+ 340 (* 30 (demand:kr trig 0 notes)))]
+        (* 0.3 (sin-osc freq))))
+
+
 ; Generate a geometric sequence
 (demo 2
       (let [trig (impulse:kr 8)
@@ -93,7 +104,6 @@
             src (sin-osc note-gen)]
         (pan2 (* 0.1 src))))
 
-; TODO: Fixme
 ; Demanding noise...
 (demo 2
       (let [trig (impulse:kr 2)
@@ -101,3 +111,37 @@
             note-gen (+ 340 (* 30 (demand:kr trig 0 freqs)))
             src (sin-osc note-gen)]
         (pan2 (* 0.1 src))))
+
+;;diwhite example
+(demo 5
+      (let [vals (diwhite 0 15 INF)
+            trig (impulse:kr (mouse-x 1 40 1))
+            freq (+ 340 (* 30 (demand:kr trig 0 vals)))]
+        (* 0.1 (sin-osc freq))))
+
+
+;; write demand sequence into a buffer
+;;create and fill the buffer:
+(def b (buffer 24 1))
+(buffer-write! b 0 24 (repeat 24 210))
+;;play this and click around the screen. y is freq, x is buf pos
+(demo 60
+      (let [val (mouse-y 1000 200 1)
+            pos (mouse-x 0 (- (buf-frames:kr b) 1))
+            write (mouse-button)]
+        (demand:kr write 0 (dbufwr val b pos 1))
+        (* 0.1 (sin-osc (duty:kr (* 0.2 (dseq [0.5 0.75 0.5 1] INF)) 0 (dbufrd b (dseries 0 1 INF)))))))
+
+;;dbrown
+(demo 10
+      (let [vals (dbrown 0 15 1 INF)
+            trig (impulse:kr (mouse-x 1 40 1))
+            freq (+ 340 (* 30 (demand:kr trig 0 vals)))]
+        (* 0.1 (sin-osc freq))))
+
+;;dibrown
+(demo 10
+      (let [vals (dibrown 0 15 1 INF)
+            trig (impulse:kr (mouse-x 1 40 1))
+            freq (+ 340 (* 30 (demand:kr trig 0 vals)))]
+        (* 0.1 (sin-osc freq))))

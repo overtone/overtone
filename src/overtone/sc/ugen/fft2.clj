@@ -1,4 +1,5 @@
-(ns overtone.sc.ugen.fft2)
+(ns overtone.sc.ugen.fft2
+  (:use [overtone.sc.ugen common constants]))
 
 ;; //third party FFT UGens
 

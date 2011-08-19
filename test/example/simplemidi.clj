@@ -13,7 +13,7 @@
 
 (definst pad2 [freq 440 vel 0.4 amt 0.3 gate 1.0]
   (let [vel        (+ 0.5 (* 0.5 vel))
-        env        (env-gen (adsr 0.01 0.1 0.7 0.5) gate 1 0 1 :free)
+        env        (env-gen (adsr 0.01 0.1 0.7 0.5) gate 1 0 1 FREE)
         f-env      (env-gen (perc 1 3))
         src        (saw [freq (* freq 1.01)])
         signal     (rlpf (* 0.3 src)

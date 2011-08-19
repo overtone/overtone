@@ -12,7 +12,7 @@
 (defsynth sweep-sin [duration 10 amp 0.01 freq-base 1000 freq-target 1100]
   (let [freq (line:kr freq-base freq-target duration)
         sine (sin-osc freq)
-        env (env-gen:kr (lin-env 0.1 (- duration 0.5) 0.4 amp) :done :free)]
+        env (env-gen:kr (lin-env 0.1 (- duration 0.5) 0.4 amp) :action FREE)]
     (out 0 (* sine env))))
 
 

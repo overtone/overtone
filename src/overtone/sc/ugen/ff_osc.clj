@@ -1,4 +1,5 @@
-(ns overtone.sc.ugen.ff-osc)
+(ns overtone.sc.ugen.ff-osc
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
      [

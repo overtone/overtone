@@ -9,7 +9,7 @@
    overtone.sc.ugen.defaults
    [overtone util]
    [overtone.sc buffer bus]
-   [overtone.sc.ugen special-ops common categories]
+   [overtone.sc.ugen special-ops common categories constants]
    [clojure.contrib.types :only (deftype)]
    [clojure.contrib.generic :only (root-type)])
   (:require
@@ -30,8 +30,6 @@
    :as-ar true ;; This should still expand right?
    :standard true
    })
-
-(def INF Float/POSITIVE_INFINITY)
 
 (defn normalize-ugen-name
   "Normalizes both SuperCollider and overtone-style names to squeezed lower-case.
@@ -136,16 +134,16 @@
   * (env-gen:kr ...)
 
   UGens will also have a base-name without a rate suffix that uses the default
-  rate of :auto, which will use the rate of the fastest argument ugen, or else
-  the default rate according to the ugen rate precedence order:
-
-  [:ir :dr :ar :kr]
-
-  or a :default-rate attribute can override the default precedence order."
+  rate. If the ugen spec contains the key :internal-name with a true value,
+  the base-name will contain the prefix internal: This is to allow cgens with
+  the same name to subsume the role of a specific ugen whilst allowing it to
+  reference the original via the prefixed name."
   [spec]
   (let [rates (:rates spec)
         rate-vec (vec rates)
         base-name (overtone-ugen-name (:name spec))
+        internal-name? (:internal-name spec)
+        base-name (if internal-name? (str "internal:" base-name) base-name)
         base-rate (:default-rate spec)
         name-rates (zipmap (map #(str base-name %) rate-vec)
                            rate-vec)]
@@ -227,18 +225,18 @@
                       :kr 2
                       :ar 3})
 
-(declare ugen?)
+(declare sc-ugen?)
 
 (defn- op-rate
   "Lookup the rate of an input ugen, otherwise use IR because the operand
   must be a constant float."
   [arg]
-  (if (ugen? arg)
+  (if (sc-ugen? arg)
     (:rate arg)
     (get RATES :ir)))
 
 (defn- ugen-arg-rates [ugen]
-  (map REVERSE-RATES (map :rate (filter ugen? (:args ugen)))))
+  (map REVERSE-RATES (map :rate (filter sc-ugen? (:args ugen)))))
 
 (defn real-ugen-name
   [ugen]
@@ -254,7 +252,7 @@
 
 (defn- check-arg-rates [spec ugen]
   (let [cur-rate (REVERSE-RATES (:rate ugen))
-        ugen-args (filter ugen? (:args ugen))]
+        ugen-args (filter sc-ugen? (:args ugen))]
     (when-let [bad-input (some
                         (fn [ug]
                           (if (< (UGEN-RATE-SPEED cur-rate)
@@ -335,16 +333,16 @@
   If an init function is already present it will get called after doing the
   mapping and mode transformations."
   [spec]
-  (let [defaulter (partial add-default-args spec)
-        mapper    (partial map-ugen-args spec)
-        init-fn   (if (contains? spec :init)
-                    (:init spec)
-                    placebo-ugen-init-fn)
-        initer    (partial with-ugen-metadata-init spec init-fn)
-        n-outputer (partial with-num-outs-mode spec)
-        floater   (partial with-floated-args spec)
-        appender  (partial append-seq-args spec)
-        auto-rater (partial auto-rate-setter spec)
+  (let [defaulter    (partial add-default-args spec)
+        mapper       (partial map-ugen-args spec)
+        init-fn      (if (contains? spec :init)
+                       (:init spec)
+                       placebo-ugen-init-fn)
+        initer       (partial with-ugen-metadata-init spec init-fn)
+        n-outputer   (partial with-num-outs-mode spec)
+        floater      (partial with-floated-args spec)
+        appender     (partial append-seq-args spec)
+        auto-rater   (partial auto-rate-setter spec)
         rate-checker (partial check-arg-rates spec)]
 
     (assoc spec :init
@@ -497,11 +495,25 @@
     (doseq [check (:check spec)]
       (check rate special args))))
 
-(defrecord UGen [id name rate rate-name special args n-outputs])
-(derive UGen ::ugen)
+(defrecord SCUGen [id name rate rate-name special args n-outputs])
+(derive SCUGen ::sc-ugen)
+
+(defn count-ugen-args
+  "Count the number of ugens in the args of ug (and their args recursively)"
+  [ug]
+  (let [args (:args ug)]
+    (reduce (fn [sum arg]
+              (if (sc-ugen? arg)
+                (+ sum 1 (count-ugen-args arg))
+                sum))
+            0
+            args)))
+
+(defmethod print-method SCUGen [ug w]
+  (.write w (str "#<sc-ugen: " (:name ug) " with " (count-ugen-args ug) " internal sc-ugens>")))
 
 (defrecord ControlProxy [name value rate rate-name])
-(derive ControlProxy ::ugen)
+(derive ControlProxy ::sc-ugen)
 
 (defn control-proxy
   "Create a new control proxy with the specified name, value and rate. Rate
@@ -513,11 +525,11 @@
                                  (:kr RATES)
                                  (rate RATES)) rate)))
 
-(defrecord UGenOutputProxy [ugen rate rate-name index])
-(derive UGenOutputProxy ::ugen)
+(defrecord OutputProxy [ugen rate rate-name index])
+(derive OutputProxy ::sc-ugen)
 
 (defn output-proxy [ugen index]
-  (UGenOutputProxy. ugen (:rate ugen) (REVERSE-RATES (:rate ugen)) index))
+  (OutputProxy. ugen (:rate ugen) (REVERSE-RATES (:rate ugen)) index))
 
 (def *ugens* nil)
 (def *constants* nil)
@@ -525,7 +537,7 @@
 (defn ugen [spec rate special args]
   ;;(check-ugen-args spec rate special args)
   (let [rate (or (get RATES rate) rate)
-        ug (UGen.
+        ug (SCUGen.
             (next-id :ugen)
             (:name spec)
             rate
@@ -543,9 +555,9 @@
       (map-indexed (fn [idx _] (output-proxy ug idx)) (range (:n-outputs ug)))
       ug)))
 
-(defn ugen? [obj] (isa? (type obj) ::ugen))
+(defn sc-ugen? [obj] (isa? (type obj) ::sc-ugen))
 (defn control-proxy? [obj] (= ControlProxy (type obj)))
-(defn output-proxy? [obj] (= UGenOutputProxy (type obj)))
+(defn output-proxy? [obj] (= OutputProxy (type obj)))
 
 (defn- ugen-base-fn [spec rate special]
   (fn [& args]
@@ -555,8 +567,17 @@
   "Returns a function representing the given ugen that will fill in default
   arguments, rates, etc."
   [spec rate special]
-  (let [expand-flags (map #(:expands? %) (:args spec))]
-    (make-expanding (ugen-base-fn spec rate special) expand-flags)))
+  (let [expand-flags (map #(:expands? %) (:args spec))
+        ugen-fn (make-expanding (ugen-base-fn spec rate special) expand-flags)]
+    (callable-map {:name (overtone-ugen-name (:name spec))
+                   :doc (:doc spec)
+                   :full-doc (:full-doc spec)
+                   :categories (:categories spec)
+                   :rate rate
+                   :src "Implemented in C code"
+                   :type ::ugen
+                   :params (:args spec)}
+                  ugen-fn)))
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
@@ -575,7 +596,7 @@
               :outputs (repeat n-outputs {:rate (rate RATES)})
               :n-inputs 0
               :inputs []}
-    {:type :ugen}))
+    {:type ::ugen}))
 
 (defn control-ugen
   "Creates a new control ugen at control rate.
@@ -609,7 +630,7 @@
   (let [original-fn (ns-resolve ns ugen-name)]
     (ns-unmap ns ugen-name)
     (intern ns ugen-name (fn [& args]
-                           (if (some #(or (ugen? %) (not (number? %))) args)
+                           (if (some #(or (sc-ugen? %) (not (number? %))) args)
                              (apply ugen-fn args)
                              (apply original-fn args))))))
 

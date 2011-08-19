@@ -1,4 +1,5 @@
-(ns overtone.sc.ugen.fft-unpacking)
+(ns overtone.sc.ugen.fft-unpacking
+  (:use [overtone.sc.ugen common constants]))
 
 ;; /**
 ;; "Unpack FFT" UGens (c) 2007 Dan Stowell.

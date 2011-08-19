@@ -27,6 +27,11 @@
 (def UGEN-RATE-SORT-FN
   (zipmap UGEN-DEFAULT-RATE-PRECEDENCE (range (count UGEN-DEFAULT-RATE-PRECEDENCE))))
 
+(defn default-ugen-rate
+  "Given a list of rates, returns the default rate based on UGEN-RATE-SORT-FN"
+  [rates]
+  (first (sort-by UGEN-RATE-SORT-FN rates)))
+
 (def NO-ARG-DOC-FOUND "-")
 
 (def DEFAULT-ARG-DOCS
@@ -41,4 +46,3 @@
    })
 
 (def DOC-WIDTH 45)
-

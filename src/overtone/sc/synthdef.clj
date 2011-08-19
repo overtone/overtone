@@ -214,9 +214,8 @@
   (dosync (alter loaded-synthdefs* assoc (:name sdef) sdef))
 
   (when (connected?)
-    (let [res (recv "/done")]
-      (snd "/d_recv" (synthdef-bytes sdef))
-      (await-promise! res))))
+    (with-server-sync
+      #(snd "/d_recv" (synthdef-bytes sdef)))))
 
 (defn- load-all-synthdefs []
   (doseq [[sname sdef] @loaded-synthdefs*]

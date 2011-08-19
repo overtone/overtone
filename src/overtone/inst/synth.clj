@@ -2,12 +2,12 @@
   (:use overtone.core))
 
 (definst tick [freq 880]
-  (* (env-gen (perc 0.001 0.01) :action :free)
+  (* (env-gen (perc 0.001 0.01) :action FREE)
      (sin-osc freq)))
 
 (definst ping [note 60 a 0.2 b 0.2]
   (let [snd (sin-osc (midicps note))
-        env (env-gen (perc a b) :action :free)]
+        env (env-gen (perc a b) :action FREE)]
     (* env snd)))
 
 (definst tb303 [note 60 wave 1
@@ -18,7 +18,7 @@
         freqs      [freq (* 1.01 freq)]
         vol-env    (env-gen (adsr attack decay sustain release)
                             (line:kr 1 0 (+ attack decay release))
-                            :action :free)
+                            :action FREE)
         fil-env    (env-gen (perc))
         fil-cutoff (+ cutoff (* env fil-env))
         waves     [(* vol-env (saw freqs))
@@ -38,15 +38,15 @@
   (let [freq (midicps note)
         osc-bank-1 [(saw freq) (sin-osc freq) (pulse freq)]
         osc-bank-2 [(saw freq) (sin-osc freq) (pulse freq)]
-        amp-env (env-gen (adsr attack decay sustain release) gate :action :free)
-        f-env (env-gen (adsr fattack fdecay fsustain frelease) gate :action :free)
+        amp-env (env-gen (adsr attack decay sustain release) gate :action FREE)
+        f-env (env-gen (adsr fattack fdecay fsustain frelease) gate :action FREE)
         s1 (select osc1 osc-bank-1)
         s2 (select osc2 osc-bank-2)
         filt (moog-ff (+ s1 s2) (* cutoff f-env) 3)]
     (* amp filt)))
 
 (definst rise-fall-pad [freq 440 t 4 amt 0.3 amp 0.8]
-  (let [f-env      (env-gen (perc t t) 1 1 0 1 :free)
+  (let [f-env      (env-gen (perc t t) 1 1 0 1 FREE)
         src        (saw [freq (* freq 1.01)])
         signal     (rlpf (* 0.3 src)
                          (+ (* 0.6 freq) (* f-env 2 freq)) 0.2)
@@ -61,7 +61,7 @@
 
 (definst pad [note 60 t 4 amt 0.3 amp 0.8]
   (let [freq       (midicps note)
-        f-env      (env-gen (perc t t) 1 1 0 1 :free)
+        f-env      (env-gen (perc t t) 1 1 0 1 FREE)
         src        (saw [freq (* freq (+ 2 (* 0.01 (sin-osc:kr 5 (rand 1.5)))))])
         signal     (rlpf (* 0.9 src)
                          (+ (* 0.3 freq) (* f-env 4 freq)) 0.5)
@@ -77,7 +77,7 @@
     (* env (+ a b))))
 
 (definst bass [freq 120 t 0.6 amp 0.5]
-  (let [env (env-gen (perc 0.08 t) :action :free)
+  (let [env (env-gen (perc 0.08 t) :action FREE)
         src (saw [freq (* 0.98 freq) (* 2.015 freq)])
         src (clip2 (* 1.3 src) 0.8)
         sub (sin-osc (/ freq 2))
@@ -87,7 +87,7 @@
 (definst grunge-bass [note 48 amp 0.5 dur 0.1 a 0.01 d 0.01 s 0.4 r 0.01]
   (let [freq (midicps note)
         env (env-gen (adsr a d s r) (line:kr 1 0 (+ a d dur r 0.1))
-                     :action :free)
+                     :action FREE)
         src (saw [freq (* 0.98 freq) (* 2.015 freq)])
         src (clip2 (* 1.3 src) 0.9)
         sub (sin-osc (/ freq 2))
@@ -109,7 +109,7 @@
         filt (rlpf dist (* 12 freq) 0.6)
         clp (clip2 filt 0.8)
         reverb (free-verb clp 0.4 0.8 0.2)]
-    (* amp (env-gen (perc 0.0001 dur) :action :free) reverb)))
+    (* amp (env-gen (perc 0.0001 dur) :action FREE))))
 
 (definst ks1-demo [note 60 amp 0.8 gate 1]
   (let [freq (midicps note)
@@ -121,7 +121,7 @@
         dist (distort plk)
         filt (rlpf dist (* 12 freq) 0.6)
         reverb (free-verb filt 0.4 0.8 0.2)]
-    (* amp (env-gen (perc 0.0001 2) :action :free) reverb)))
+    (* amp (env-gen (perc 0.0001 2) :action FREE))))
 
 (definst ks-stringer [freq 440 rate 6]
   (let [noize (* 0.8 (white-noise))
@@ -165,7 +165,7 @@
                       (x-line 10000 10 25)
                       (line 1 0.05 25))
         sound (apply + sound)]
-  (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 dur :free) sound)))
+  (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 dur FREE))))
 
 (definst bubbles [bass-freq 80]
   (let [bub (+ bass-freq (* 3 (lf-saw:kr [8 7.23])))

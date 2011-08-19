@@ -124,7 +124,8 @@
                   ([k] (get m k))
                   ([k d] (get m k d)))
       (invoke      [& args] (apply fun args))
-      (applyTo    ([args] (apply fun args)))))
+      (applyTo    ([args] (apply fun args)))
+      (toString   [] "Callable Map")))
 
 (defn file-exists? [path]
   (.exists (java.io.File. path)))
@@ -151,7 +152,7 @@
    where 1 2 and 3 are ordered params and
    4 and 5 are named params (associated with :d and :f respectively).
 
-   If the expected args is the lis [:a :b :c :d :f] then the resulting map
+   If the expected args is the list [:a :b :c :d :f] then the resulting map
    will look as follows: {:a 1 :b 2 :c 3 :d 5 :f 5}. If the defaults contains
    extra keys, these will be merged in with any clashes being overridden with
    the result map, so if the default map is {:a 99 :h 2} the final output will
@@ -264,6 +265,12 @@
       (re-find #"[Ll]inux" os)   :linux
       (re-find #"[Mm]ac" os)     :mac)))
 
+(defn stringify-map-vals
+  "converts a map by running all its vals through str
+  (or name if val is a keyword"
+  [m]
+  (into {} (map (fn [[k v]] [k (if (keyword? v) (name v) (str v))]) m)))
+
 (defn print-ascii-art-overtone-logo
   []
   (println (str "
@@ -277,3 +284,10 @@
 
 
 Hello " (user-name) ", may this be the start of a beautiful music hacking session...")))
+
+(defn capitalize
+  "Make the first char of the text uppercase and leave the rest unmodified"
+  [text]
+  (let [first-char (.toUpperCase (str (first text)))
+        rest-chars (apply str (rest text))]
+    (str first-char rest-chars)))

@@ -1,121 +1,139 @@
 (ns overtone.sc.buffer
   (:use
-    [overtone util]
-    [overtone.sc core allocator]))
+    [overtone util event]
+    [overtone.sc defaults core allocator]))
 
-(declare buffer-info)
+(defn buffer-info
+  "Fetch the information for buffer associated with buf-id. Synchronous."
+  [buf-id]
+  (let [prom   (recv "/b_info" (fn [msg]
+                                 (= buf-id (first (:args msg)))))]
+    (with-server-sync #(snd "/b_query" buf-id))
+    (let [msg                               (await-promise! prom)
+          [buf-id n-frames n-channels rate] (:args msg)]
+      (with-meta     {:n-frames n-frames
+                      :n-channels n-channels
+                      :rate rate
+                      :id buf-id}
+        {:type ::buffer-info}))))
 
-;; ## Buffer functions
-;;
-; TODO: Look into multi-channel buffers.  Probably requires adding multi-id allocation
-; support to the bit allocator too...
-; size is in samples
 (defn buffer
-  "Allocate a new zero filled buffer for storing audio data with the specified size and num-channels."
+  "Synchronously allocate a new zero filled buffer for storing audio data with the specified size and num-channels."
   ([size] (buffer size 1))
   ([size num-channels]
-     (let [id     (alloc-id :audio-buffer)
-           ready? (atom false)
-           info   (atom {})]
-       (on-done "/b_alloc" #(do
-                              (reset! ready? true)
-                              (reset! info (buffer-info id))))
-       (snd "/b_alloc" id size num-channels)
-       (with-meta {:id id
-                   :size size
-                   :ready? ready?}
+     (let [id   (with-server-self-sync (fn [uid]
+                                         (alloc-id :audio-buffer
+                                                   1
+                                                   (fn [id]
+                                                     (snd "/b_alloc" id size num-channels)
+                                                     (server-sync uid)))))
+           info (buffer-info id)]
+       (with-meta
+         {:allocated-on-server (atom true)
+          :size (:n-frames info)
+          :n-channels (:n-channels info)
+          :rate (:rate info)
+          :id (:id info)}
          {:type ::buffer}))))
-
-(defn buffer-ready?
-  "Check whether a sample or a buffer has completed allocating and/or loading data."
-  [buf]
-  @(:ready? buf))
-
-(defn sbuffer
-  "Allocate a new buffer synchronously. Halts the current thread until the buffer has been succesfully allocated"
-  ([size] (sbuffer size 1))
-  ([size num-channels]
-     (wait-until-connected)
-     (let [buf (buffer size num-channels)]
-       (while (not (buffer-ready? buf))
-         (Thread/sleep 50))
-       buf)))
 
 (defn buffer? [buf]
   (isa? (type buf) ::buffer))
 
-(defn- buf-or-id [b]
-  (cond
-    (buffer? b) (:id b)
-    (number? b) b
-    :default (throw (IllegalArgumentException. "Not a valid buffer: " b))))
-
 (defn buffer-free
-  "Free an audio buffer and the memory it was consuming."
+  "Synchronously free an audio buffer and the memory it was consuming."
   [buf]
-  (let [id (cond
-             (buffer? buf) (:id buf)
-             (number? buf) buf
-             :default (throw (IllegalArgumentException. "Not a valid buffer or buffer id.")))]
-    (snd "/b_free" id)
-    (free-id :audio-buffer id)
-    :done))
+  (assert (buffer? buf))
+  (let [id (:id buf)]
+    (with-server-self-sync (fn [uid]
+                             (free-id :audio-buffer
+                                      id
+                                      1
+                                      #(do (snd "/b_free" id)
+                                           (reset! (:allocated-on-server buf) false)
+                                           (server-sync uid)))))
+    buf))
 
 (defn buffer-read
-  "Read a section of an audio buffer."
-  [buf start len]
-  (assert (buffer? buf))
-  (loop [reqd 0]
-    (when (< reqd len)
-      (let [to-req (min MAX-OSC-SAMPLES (- len reqd))]
-        (snd "/b_getn" (:id buf) (+ start reqd) to-req)
-        (recur (+ reqd to-req)))))
-  (let [samples (float-array len)]
-    (loop [recvd 0]
-      (if (= recvd len)
-        samples
-        (let [msg-p (recv "/b_setn")
-              msg (await-promise! msg-p)
-              [buf-id bstart blen & samps] (:args msg)]
-          (loop [idx bstart
-                 samps samps]
-            (when samps
-              (aset-float samples idx (first samps))
-              (recur (inc idx) (next samps))))
-          (recur (+ recvd blen)))))))
+  "Read a section of an audio buffer. Defaults to reading the full buffer if no
+  start and len vals are specified. Returns a float array of vals.
+
+  For more efficient reading of buffer data with the internal server, see
+  buffer-data."
+  ([buf] (buffer-read buf 0 (:size buf)))
+  ([buf start len]
+     (assert (buffer? buf))
+     (assert @(:allocated-on-server buf))
+     (let [buf-id  (:id buf)
+           samples (float-array len)]
+       (loop [n-vals-read 0]
+         (if (< n-vals-read len)
+           (let [n-to-read (min MAX-OSC-SAMPLES (- len n-vals-read))
+                 offset    (+ start n-vals-read)
+                 prom (recv "/b_setn" (fn [msg]
+                                        (let [[msg-buf-id msg-start msg-len & m-args] (:args msg)]
+
+                                          (and (= msg-buf-id buf-id)
+                                               (= msg-start offset)
+                                               (= n-to-read (count m-args))))))]
+             (with-server-sync #(snd "/b_getn" buf-id offset n-to-read))
+             (let [m (await-promise! prom)
+                   [buf-id bstart blen & samps] (:args m)]
+               (dorun
+                (map-indexed (fn [idx el]
+                               (aset-float samples (+ bstart idx) el))
+                             samps))
+               (recur (+ n-vals-read blen))))
+           samples)))))
+
+
 
 (defn buffer-write!
-  "Write into a section of an audio buffer.
-   Modifies the buffer in place on the server."
-  [buf start len data]
-  (assert (buffer? buf))
-
-  (apply snd "/b_setn" (:id buf) start len (map double data)))
+  "Write into a section of an audio buffer which modifies the buffer in place on
+  the server. Data can either be a single number or a collection of numbers.
+  Accepts an optional param start-idx which specifies an initial offset into the
+  buffer from which to start writing the data (defaults to 0)."
+  ([buf data] (buffer-write! buf 0 data))
+  ([buf start-idx data]
+     (assert (buffer? buf))
+     (let [data (if (number? data) [data] data)
+           size (count data)
+           doubles (map double data)]
+       (if (> (+ start-idx size) size)
+         (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index.")))
+         (apply snd "/b_setn" (:id buf) start-idx size doubles)))))
 
 (defn buffer-fill!
-  "Fill a buffer range with a single value.
-   Modifies the buffer in place on the server."
-  [buf start len val]
-  (assert (buffer? buf))
-
-  (snd "/b_fill" (:id buf) start len (double val)))
+  "Fill a buffer range with a single value. Modifies the buffer in place on the
+  server. Defaults to filling in the full buffer unless start and len vals are
+  specified. Asynchronous."
+  ([buf val]
+     (assert (buffer? buf))
+     (buffer-fill! buf 0 (:size buf) val))
+  ([buf start len val]
+     (assert (buffer? buf))
+     (snd "/b_fill" (:id buf) start len (double val))))
 
 (defn buffer-set!
-  "Write a single value into a buffer.
-  Modifies the buffer in place on the server."
-  [buf index val]
-  (assert (buffer? buf))
-
-  (snd "/b_set" (:id buf) index (double val)))
+  "Write a single value into a buffer. Modifies the buffer in place on the
+  server. Index defaults to 0 if not specified."
+  ([buf val] (buffer-set! buf 0 val))
+  ([buf index val]
+     (assert (buffer? buf))
+     (snd "/b_set" (:id buf) index (double val))))
 
 (defn buffer-get
-  "Read a single value from a buffer."
-  [buf index]
-  (assert (buffer? buf))
+  "Read a single value from a buffer. Index defaults to 0 if not specified."
+  ([buf] (buffer-get buf 0))
+  ([buf index]
+     (assert (buffer? buf))
+     (let [buf-id (:id buf)
+           prom   (recv "/b_set" (fn [msg]
+                                   (let [[msg-buf-id msg-start _] (:args msg)]
+                                     (and (= msg-buf-id buf-id)
+                                          (= msg-start index)))))]
 
-  (let [res (recv "/b_set")]
-    (snd "/b_get" (:id buf) index)
-    (last (:args (await-promise! res)))))
+       (with-server-sync #(snd "/b_get" buf-id index))
+       (last (:args (await-promise! prom))))))
 
 (defn buffer-save
   "Save the float audio data in an audio buffer to a wav file."
@@ -151,23 +169,10 @@
         snd-buf (.getSndBufAsFloatArray @sc-world* buf-id)]
     snd-buf))
 
-(defn buffer-info
-  [buf]
-  (let [mesg-p (recv "/b_info")
-        buf-id (buffer-id buf)
-        _   (snd "/b_query" buf-id)
-        msg (await-promise! mesg-p)
-        [buf-id n-frames n-channels rate] (:args msg)]
-    (with-meta     {:n-frames n-frames
-                    :n-channels n-channels
-                    :rate rate
-                    :id buf-id}
-      {:type ::buffer-info})))
-
 ;;TODO Check to see if this can be removed
 (defn sample-info [s]
   (buffer-info (:buf s)))
 
 (defn num-frames
   [buf]
-  (:n-frames  @(:info buf)))
+  (:size  buf))

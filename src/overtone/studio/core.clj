@@ -2,7 +2,7 @@
   (:use
     [overtone util event time-utils deps]
     [overtone.sc.ugen.defaults]
-    [overtone.sc core synth ugen envelope node synthdef bus]
+    [overtone.sc defaults core synth ugen envelope node synthdef bus]
     [overtone.music rhythm]))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
@@ -102,7 +102,7 @@
 (on-deps :studio-setup-completed ::start-mixer start-mixer)
 
 (defn setup-studio []
-  (let [g (group :head ROOT-GROUP)
+  (let [g (with-server-sync #(group :head ROOT-GROUP))
         f (group :after g)
         m (group :tail ROOT-GROUP)
         r (group :tail ROOT-GROUP)]
@@ -190,7 +190,6 @@
                               :name sname#
                               :ugens ugens#
                               :sdef sdef#
-                              :doc "This is a test."
                               :group sgroup#
                               :out-bus MIXER-BUS
                               :fx-chain []
@@ -210,8 +209,8 @@
        (= ::instrument (:type o))))
 
 (defmacro definst [i-name & inst-form]
-  (let [i-name (with-meta i-name {:type ::instrument})
-        [i-name params ugen-form] (synth-form i-name inst-form)]
+  (let [[i-name params ugen-form] (synth-form i-name inst-form)
+        i-name (with-meta i-name {:type ::instrument})]
     `(def ~i-name (inst ~i-name ~params ~ugen-form))))
 
 (defmethod print-method ::instrument [ins w]

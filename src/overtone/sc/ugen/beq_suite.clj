@@ -1,4 +1,5 @@
-(ns overtone.sc.ugen.beq-suite)
+(ns overtone.sc.ugen.beq-suite
+  (:use [overtone.sc.ugen common constants]))
 
 ;; BEQSuite : Filter {}
 

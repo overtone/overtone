@@ -1,5 +1,5 @@
 (ns overtone.sc.ugen.line
-  (:use (overtone.sc.ugen common)))
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
      [
@@ -7,14 +7,14 @@
        :args [{:name "start", :default 0.0 :doc "Starting value"}
               {:name "end", :default 1.0 :doc "Ending value"}
               {:name "dur", :default 1.0 :doc "Duration in seconds"}
-              {:name "action", :default 0 :map DONE-ACTIONS :doc "A done action to be evaluated when the line is completed."}]
+              {:name "action", :default NO-ACTION :doc "A done action to be evaluated when the line is completed."}]
        :doc "Generates a line from the start value to the end value."}
 
       {:name "XLine",
        :args [{:name "start", :default 1.0 :doc "Starting value"}
               {:name "end", :default 2.0 :doc "Ending value"}
               {:name "dur", :default 1.0 :doc "Duration in seconds"}
-              {:name "action", :default 0 :map DONE-ACTIONS :doc "A done action to be evaluated when the line is completed."}]
+              {:name "action", :default NO-ACTION :doc "A done action to be evaluated when the line is completed."}]
        :doc "Generates an exponential curve from the start value to the end value. Both the start and end values
  must be non-zero and have the same sign."}
 

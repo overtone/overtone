@@ -81,7 +81,7 @@
                       :validator (fn [val] (string? val))}
 
    :bytes            {:desc "a buffer of bytes"
-                      :validator (fn [val] true)}
+                      :validator (fn [val] (= (type (byte-array 0)) (type val)))}
 
    :zero-to-three    {:desc "an integer in the range 0 -> 3 inclusive"
                       :validator (fn [val] (and (integer? val)
@@ -140,7 +140,7 @@
    ;;Node Commands
    "/n_free"             [:node-id]
    "/n_run"              [:node-id :zero-or-one]
-   "/n_set"              [:node-id :ctl-handle :ctl-val]
+   "/n_set"              [:node-id :ALTERNATING-ctl-handle-THEN-ctl-val*]
    "/n_setn"             [:node-id :ctl-handle :count :ctl-val*]
    "/n_fill"             [:node-id :ctl-handle :count :ctl-val]
    "/n_map"              [:node-id :ctl-handle :ctl-bus-idx]

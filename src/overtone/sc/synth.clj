@@ -7,7 +7,8 @@
   overtone.sc.synth
   (:require
     [overtone.log :as log]
-    [clojure.contrib.generic.arithmetic :as ga])
+    [clojure.contrib.generic.arithmetic :as ga]
+    [at-at])
   (:use
     [overtone util event time-utils]
     [overtone.sc.ugen defaults]
@@ -64,12 +65,12 @@
     (throw (IllegalArgumentException.
              (format "The %s ugen does not have any arguments."
                      (:name ugen)))))
-  (when-not (every? #(or (ugen? %) (number? %) (string? %)) (:args ugen))
+  (when-not (every? #(or (sc-ugen? %) (number? %) (string? %)) (:args ugen))
     (throw (IllegalArgumentException.
              (format "The %s ugen has an invalid argument: %s"
                      (:name ugen)
                      (first (filter
-                              #(not (or (ugen? %) (number? %)))
+                              #(not (or (sc-ugen? %) (number? %)))
                               (:args ugen)))))))
 
   (let [inputs (flatten
@@ -89,7 +90,7 @@
                             {:src src :index (:index arg)})
 
                           ; child ugen
-                          (ugen? arg)
+                          (sc-ugen? arg)
                           (let [src (ugen-index ugens arg)
                                 updated-ugen (nth ugens src)]
                             (inputs-from-outputs src updated-ugen))))
@@ -248,11 +249,11 @@
   (REVERSE-RATES (first (reverse (sort (map RATES rates))))))
 
 (defn- special-op-args? [args]
-  (some #(or (ugen? %1) (keyword? %1)) args))
+  (some #(or (sc-ugen? %1) (keyword? %1)) args))
 
 (defn- find-rate [args]
   (fastest-rate (map #(cond
-                        (ugen? %1) (REVERSE-RATES (:rate %1))
+                        (sc-ugen? %1) (REVERSE-RATES (:rate %1))
                         (keyword? %1) :kr)
                      args)))
 
@@ -399,7 +400,6 @@
          smap# (callable-map {:name sname#
                               :ugens ugens#
                               :sdef sdef#
-                              :doc "User defined synth..."
                               :player player#
                               :args arg-names#
                               :params params#
@@ -548,7 +548,7 @@
              (list 'out 0 body))]
     `(let [s# (synth "audition-synth" ~b2)
            note# (s#)]
-       (at (+ (now) ~demo-time) (node-free note#))
+       (at-at/at (+ (now) ~demo-time) #(node-free note#))
        note#)))
 
 (defn active-synths

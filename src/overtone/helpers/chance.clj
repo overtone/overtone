@@ -63,13 +63,6 @@
         n (if (> n 1) 1 n)]
     (< (rand) n)))
 
-
-;(defn shuffle
-;  "Shuffle a collection, returns a seq."
-;  [coll]
-;  (let [l (ArrayList. coll)]
-;    (Collections/shuffle l)
-                                        ;    (seq l)))
 (defn ranged-rand
   "Returns a random value within the specified range"
   [min max]

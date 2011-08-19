@@ -1,6 +1,6 @@
 (ns overtone.sc.bus
   (:use
-    [overtone.sc core allocator]))
+    [overtone.sc defaults core allocator]))
 
 ;; ## Busses
 ;;
@@ -47,12 +47,30 @@
     ::audio-bus   (free-id :audio-bus (:id b) (:n-channels b))
     ::control-bus (free-id :control-bus (:id b) (:n-channels b))))
 
-; Reserve the first 11 busses for audio I/O and mixer, forever.
-(dotimes [i 11]
-  (audio-bus))
+; Reserve busses for overtone
+(defonce ___reserve-overtone-busses____
+  (dotimes [i AUDIO-BUS-RESERVE-COUNT]
+    (audio-bus)))
 
 (defn reset-busses
   []
   nil)
 
 ;(on-sync-event :reset :reset-busses reset-busses)
+
+(defn bus-set!
+  "Takes a list of bus indices and values and sets the buses to those values.
+  Modifies bus(ses) in place on the server.
+
+  (bus-set! my-bus 3) ;=> Sets my-bus to the value 3"
+  [bus val]
+  (assert (bus? bus))
+
+  (send "/c_set" (:id bus) (double val)))
+
+(defn bus-set-range!
+  "Set a range of consecutive busses to the supplied vals"
+  [bus start len data]
+  (assert (bus? bus))
+
+  (apply snd "/c_setn" (:id bus) start len (map double data)))

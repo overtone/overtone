@@ -14,21 +14,12 @@
             [overtone.sc.osc :as osc])
   (:use
    [overtone event config log setup util time-utils deps]
-   [overtone.sc allocator]
+   [overtone.sc defaults allocator]
    [clojure.contrib.java-utils :only [file]]
    [clojure.contrib pprint]
    [clojure.contrib shell-out]
+   [osc.decode :only [osc-decode-packet]]
    osc))
-
-(def SERVER-HOST "127.0.0.1")
-(def SERVER-PORT nil) ; nil means a random port
-(def N-RETRIES 20)
-
-;; Max number of milliseconds to wait for a reply from the server
-(def REPLY-TIMEOUT 500)
-
-(def MAX-OSC-SAMPLES 8192)
-(def ROOT-GROUP 0)
 
 (defonce server*        (ref nil))
 (defonce server-thread* (ref nil))
@@ -187,11 +178,20 @@
   "Register your intent to wait for a message associated with given path to be
   received from the server. Returns a promise that will contain the message once
   it has been received. Does not block current thread (this only happens once
-  you try and look inside the promise and the reply has not yet been received)."
-  [path]
-  (let [p (promise)]
-    (on-sync-event path (uuid) #(do (deliver p %) :done))
-    p))
+  you try and look inside the promise and the reply has not yet been received).
+
+  If an optional matcher-fn is specified, will only deliver the promise when
+  the matcher-fn returns true. The matcher-fn should accept one arg which is
+  the incoming event info."
+  ([path] (recv path nil))
+  ([path matcher-fn]
+     (let [p (promise)]
+       (on-sync-event path (uuid) (fn [info]
+                                    (when (or (nil? matcher-fn)
+                                              (matcher-fn info))
+                                      (deliver p info)
+                                      :done)))
+    p)))
 
 (defn- parse-status [args]
   (let [[_ ugens synths groups loaded avg peak nominal actual] args]
@@ -221,31 +221,13 @@
   "Check the status of the audio server."
   []
   (if (connected?)
-    (let [p (promise)
-          handler (fn [event]
-                    (deliver p (parse-status (:args event)))
-                    (remove-handler "status.reply" ::status-check)
-                    (remove-handler "/status.reply" ::status-check))]
-      (on-event "/status.reply" ::status-check handler)
-      (on-event "status.reply" ::status-check handler)
-
+    (let [p (recv "/status.reply") ]
       (snd "/status")
       (try
-        (.get (future @p) STATUS-TIMEOUT TimeUnit/MILLISECONDS)
+        (parse-status (:args (await-promise! p)))
         (catch TimeoutException t
           :timeout)))
     @status*))
-
-(defn wait-sync
-  "Wait until the audio server has completed all asynchronous commands
-  currently in execution."
-  [& [timeout]]
-  (let [sync-id (rand-int 999999)
-        reply-p (recv "/synced")
-        _ (snd "/sync" sync-id)
-        reply (await-promise! reply-p (if timeout timeout REPLY-TIMEOUT))
-        reply-id (first (:args reply))]
-    (= sync-id reply-id)))
 
 (def SC-PATHS {:linux ["scsynth"]
                :windows ["C:/Program Files/SuperCollider/scsynth.exe"
@@ -370,21 +352,73 @@
   []
   (snd "/clearSched"))
 
-;; The /done message just has a single argument:
-;; "/done" "s" <completed-command>
-;;
-;; where the command would be /b_alloc and others.
-(defn on-done
-  "Runs a one shot handler that takes no arguments when an OSC /done
-  message from scsynth arrives with a matching path.  Look at load-sample
-  for an example of usage.
-  "
-  [path handler]
-  (on-event "/done" (uuid)
-            #(if (= path (first (:args %)))
-               (do
-                 (handler)
-                 :done))))
+(defonce server-sync-id* (atom 0))
+
+(defn- update-server-sync-id
+  "update osc-sync-id*. Increments by 1 unless it has maxed out
+  in which case it resets it to 0."
+  []
+  (swap! server-sync-id* (fn [cur] (if (= Integer/MAX_VALUE cur)
+                                    0
+                                    (inc cur)))))
+
+(defn on-server-sync
+  "Registers the handler to be executed when all the osc messages generated
+   by executing the action-fn have completed. Returns result of action-fn."
+  [action-fn handler-fn]
+  (let [id (update-server-sync-id)]
+    (on-event "/synced" (uuid)
+              (fn [msg] (when (= id (first (:args msg)))
+                         (do
+                           (handler-fn)
+                           :done))))
+
+    (let [res (action-fn)]
+      (snd "/sync" id)
+      res)))
+
+(defn server-sync
+  "Send a sync message to the server with the specified id. Server will reply
+  with a synced message when all incoming messages up to the sync message have
+  been handled. See with-server-sync and on-server-sync for more typical
+  usage."
+  [id]
+  (snd "/sync" id))
+
+(defn with-server-self-sync
+  "Blocks the current thread until the action-fn explicitly sends a server sync.
+  The action-fn is assumed to have one argument which will be the unique sync id.
+  This is useful when the action-fn is itself asynchronous yet you wish to
+  synchronise with its completion. The action-fn can sync using the fn server-sync.
+  Returns the result of action-fn."
+  [action-fn]
+  (let [id (update-server-sync-id)
+        prom (promise)]
+    (on-event "/synced" (uuid)
+              (fn [msg] (when (= id (first (:args msg)))
+                         (do
+                           (deliver prom true)
+                           :done))))
+    (let [res (action-fn id)]
+      (await-promise! prom)
+      res)))
+
+(defn with-server-sync
+  "Blocks current thread until all osc messages in action-fn have completed.
+  Returns result of action-fn."
+  [action-fn]
+  (let [id (update-server-sync-id)
+        prom (promise)]
+    (on-event "/synced" (uuid)
+              (fn [msg] (when (= id (first (:args msg)))
+                         (do
+                           (deliver prom true)
+                           :done))))
+    (let [res (action-fn)]
+      (snd "/sync" id)
+      (await-promise! prom)
+      res)))
+
 
 (defn stop
   "Stop all running synths and metronomes. This does not remove any synths/insts

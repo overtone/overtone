@@ -5,7 +5,7 @@
 (definst beep [note 60 vol 0.2]
   (let [freq (midicps note)
         src (sin-osc freq)
-        env (env-gen (perc 0.3 2) :action :free)]
+        env (env-gen (perc 0.3 2) :action FREE)]
     (* vol src env)))
 
 (defn play [synth pitch-classes & args]
@@ -31,9 +31,9 @@
           (play synth pitch :amp vel))
       (at (+ time (* 0.5 dur))
           (c-hat 0.5))
-      (apply-at n-time #'play-seq (mod (inc count) 4) 
-                synth 
-                (next notes) (next vels) (next durs) 
+      (apply-at n-time #'play-seq (mod (inc count) 4)
+                synth
+                (next notes) (next vels) (next durs)
                 n-time odds []))))
 
 ; TODO: Strum the chord
@@ -71,4 +71,3 @@
             (now)
             0.5))
 (bump)
-

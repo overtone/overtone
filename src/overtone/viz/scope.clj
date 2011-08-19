@@ -9,7 +9,7 @@
    (javax.swing JFrame JPanel JSlider))
   (:use
    [overtone event util time-utils deps]
-   [overtone.sc core synth ugen buffer node]
+   [overtone.sc defaults core synth ugen buffer node]
    [overtone.studio.util]
    clojure.stacktrace)
   (:require [overtone.log :as log]
@@ -202,9 +202,9 @@
                 xs (int-array w)
                 ya (int-array w)
                 yb (int-array w)]
-            (dosync 
+            (dosync
               (let [s (get (ensure scopes*) id)
-                    s (assoc s 
+                    s (assoc s
                              :width w
                              :height h
                              :x-array xs
@@ -346,4 +346,3 @@
 
 
   )
-

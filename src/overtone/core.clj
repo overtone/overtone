@@ -2,10 +2,14 @@
   (:use overtone.ns)
   (:require clojure.stacktrace
             midi osc byte-spec
+            [overtone.sc.ugen.constants]
             [overtone config time-utils log]
             [overtone.helpers chance scaling]
-            [overtone.sc allocator core ugen node synth synthdef
+            [overtone.sc allocator core ugen node synth synthdef cgen
              trigger buffer envelope bus sample sc-lang]
+            [overtone.sc.cgen oscillators demand]
+            [overtone.sc.example]
+            [overtone.sc.examples demand osc]
             [overtone.music rhythm pitch tuning]
             [overtone.studio core util fx]
             [overtone.viz scope]))
@@ -13,6 +17,7 @@
 (immigrate
   'osc
   'midi
+  'overtone.sc.ugen.constants
   'overtone.log
   'overtone.time-utils
   'overtone.util
@@ -30,6 +35,12 @@
   'overtone.sc.envelope
   'overtone.sc.sc-lang
   'overtone.sc.bus
+  'overtone.sc.cgen
+  'overtone.sc.cgen.oscillators
+  'overtone.sc.cgen.demand
+  'overtone.sc.example
+  'overtone.sc.examples.demand
+  'overtone.sc.examples.osc
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning
@@ -37,5 +48,3 @@
   'overtone.studio.fx
   'overtone.viz.scope
   )
-
-(print-ascii-art-overtone-logo)

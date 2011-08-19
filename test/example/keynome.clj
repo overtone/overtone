@@ -69,7 +69,7 @@
 ;; a basic instrument, sounds like a marimba in the lower freqs
 (definst marimba [freq 300]
   (let [src (sin-osc freq)
-        env (env-gen (perc 0.01 1.0) :action :free)]
+        env (env-gen (perc 0.01 1.0) :action FREE)]
     (* 0.9 src env)))
 
 ;; set up a mini-piano on the keyboard, with black keys on the

@@ -1,12 +1,12 @@
 (ns overtone.sc.ugen.osc
-  (:use (overtone.sc.ugen common)))
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
      [
       {:name "Osc",
-       :args [{:name "buffer" :doc "lookup buffer"}
-              {:name "freq", :default 440.0 :doc "frequency in Hertz"}
-              {:name "phase", :default 0.0 :doc "phase offset or modulator in radians"}],
+       :args [{:name "buffer" :doc "Lookup buffer"}
+              {:name "freq", :default 440.0 :doc "Frequency in Hertz"}
+              {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}],
        :doc "Linear interpolating wavetable lookup oscillator with frequency and phase modulation inputs.
 
 This oscillator requires a buffer to be filled with a wavetable format signal.  This preprocesses the Signal into a form which can be used efficiently by the Oscillator.  The buffer size must be a power of 2.
@@ -16,8 +16,8 @@ This can be acheived by creating a Buffer object and sending it one of the b_gen
 This can also be acheived by creating a Signal object and sending it the 'asWavetable' message, saving it to disk, and having the server load it from there."}
 
       {:name "SinOsc",
-       :args [{:name "freq", :default 440.0 :doc "frequency in Hertz"}
-              {:name "phase", :default 0.0 :doc "phase offset or modulator in radians"}],
+       :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz"}
+              {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}],
        :doc "sine table lookup oscillator
 
 Note: This is the same as Osc except that the table has already been fixed as a sine table of 8192 entries."}
@@ -28,27 +28,27 @@ Note: This is the same as Osc except that the table has already been fixed as a 
        :doc "very fast sine oscillator"}
 
       {:name "OscN",
-       :args [{:name "bufnum" :doc "buffer index.  The buffer size must be a power of 2.  The buffer should NOT be filled using Wavetable format (b_gen commands should set wavetable flag to false.  Raw signals (not converted with asWavetable) can be saved to disk and loaded into the buffer."}
-              {:name "freq", :default 440.0 :doc "frequency in Hertz"}
-              {:name "phase", :default 0.0 :doc "phase offset or modulator in radians"}],
+       :args [{:name "bufnum" :doc "Buffer index.  The buffer size must be a power of 2.  The buffer should NOT be filled using Wavetable format (b_gen commands should set wavetable flag to false.  Raw signals (not converted with asWavetable) can be saved to disk and loaded into the buffer."}
+              {:name "freq", :default 440.0 :doc "Frequency in Hertz"}
+              {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}],
        :doc "Noninterpolating wavetable lookup oscillator with frequency and phase modulation inputs.
 
 It is usually better to use the interpolating oscillator."}
 
       {:name "VOsc",
-       :args [{:name "bufpos" :doc " buffer index. Can be swept continuously among adjacent wavetable buffers of the same size."}
-              {:name "freq", :default 440.0 :doc "frequency in Hertz"}
-              {:name "phase", :default 0.0 :doc "phase offset of modulator in radians"}],
+       :args [{:name "bufpos" :doc "Buffer index. Can be swept continuously among adjacent wavetable buffers of the same size."}
+              {:name "freq", :default 440.0 :doc "Frequency in Hertz"}
+              {:name "phase", :default 0.0 :doc "Phase offset of modulator in radians"}],
        :doc "A wavetable lookup oscillator which can be swept smoothly across wavetables. All the wavetables must be allocated to the same size. Fractional values of table will interpolate between two adjacent tables.
 
 This oscillator requires at least two buffers to be filled with a wavetable format signal.  This preprocesses the Signal into a form which can be used efficiently by the Oscillator.  The buffer size must be a power of 2.
 "}
 
       {:name "VOsc3",
-       :args [{:name "bufpos" :doc "buffer index. Can be swept continuously among adjacent wavetable buffers of the same size."}
-              {:name "freq1", :default 110.0 :doc "frequency in Hertz of first oscillator"}
-              {:name "freq2", :default 220.0 :doc "frequency in Hertz of second oscillator"}
-              {:name "freq3", :default 440.0 :doc "frequency in Hertz of third oscillator"}],
+       :args [{:name "bufpos" :doc "Buffer index. Can be swept continuously among adjacent wavetable buffers of the same size."}
+              {:name "freq1", :default 110.0 :doc "Frequency in Hertz of first oscillator"}
+              {:name "freq2", :default 220.0 :doc "Frequency in Hertz of second oscillator"}
+              {:name "freq3", :default 440.0 :doc "Frequency in Hertz of third oscillator"}],
        :doc "Three variable wavetable oscillators.
 
 A wavetable lookup oscillator which can be swept smoothly across wavetables. All the wavetables must be allocated to the same size. Fractional values of table will interpolate between two adjacent tables. This unit generator contains three oscillators at different frequencies, mixed together.
@@ -56,15 +56,15 @@ A wavetable lookup oscillator which can be swept smoothly across wavetables. All
 This oscillator requires at least two buffers to be filled with a wavetable format signal.  This preprocesses the Signal into a form which can be used efficiently by the Oscillator.  The buffer size must be a power of 2. "}
 
       {:name "COsc",
-       :args [{:name "bufnum" :doc "the number of a buffer filled in wavetable format"}
-              {:name "freq", :default 440.0 :doc "frequency in Hertz"}
-              {:name "beats", :default 0.5 :doc "beat frequency in Hertz"}],
+       :args [{:name "bufnum" :doc "The number of a buffer filled in wavetable format"}
+              {:name "freq", :default 440.0 :doc "Frequency in Hertz"}
+              {:name "beats", :default 0.5 :doc "Beat frequency in Hertz"}],
        :doc "Chorusing wavetable lookup oscillator. Produces sum of two signals at  (freq +/- (beats / 2)). Due to summing, the peak amplitude is twice that of the wavetable."}
 
       {:name "Formant",
-       :args [{:name "fundfreq", :default 440.0 :doc "fundamental frequency in Hertz (control rate)"}
-              {:name "formfreq", :default 1760.0 :doc "formant frequency in Hertz (control rate)"}
-              {:name "bwfreq", :default 880.0 :doc "pulse width frequency in Hertz. Controls the bandwidth of the formant (control rate)"}],
+       :args [{:name "fundfreq", :default 440.0 :doc "Fundamental frequency in Hertz (control rate)"}
+              {:name "formfreq", :default 1760.0 :doc "Formant frequency in Hertz (control rate)"}
+              {:name "bwfreq", :default 880.0 :doc "Pulse width frequency in Hertz. Controls the bandwidth of the formant (control rate)"}],
        :rates #{:ar},
        :doc "Generates a set of harmonics around a formant frequency at a given fundamental frequency.
 
@@ -72,8 +72,8 @@ The frequency inputs are read at control rate only, so if you use an audio rate 
 "}
 
       {:name "LFSaw",
-       :args [{:name "freq", :default 440.0 :doc "frequency in Hertz"}
-              {:name "iphase", :default 0.0 :doc "initial phase offset. For efficiency reasons this is a value ranging from 0 to 2."}]
+       :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz"}
+              {:name "iphase", :default 0.0 :doc "Initial phase offset. For efficiency reasons this is a value ranging from 0 to 2."}]
        :doc "low freq (i.e. not band limited) sawtooth oscillator"}
 
       {:name "LFPar" :extends "LFSaw"
@@ -87,12 +87,12 @@ The frequency inputs are read at control rate only, so if you use an audio rate 
 
 
       {:name "LFGauss",
-       :args [{:name "duration", :default 1 :doc "duration of one full cycle ( for freq input: dur = 1 / freq )
+       :args [{:name "duration", :default 1 :doc "Duration of one full cycle ( for freq input: dur = 1 / freq )
 "}
-              {:name "width", :default 0.1 :doc "relative width of the bell. Best to keep below 0.25 when used as envelope."}
-              {:name "iphase", :default 0.0 :doc "initial offset "}
-              {:name "loop", :default 1 :doc "if loop is > 0, UGen oscillates. Otherwise it calls doneAction after one cycle"}
-              {:name "action", :default 0 :map DONE-ACTIONS :doc "doneAction, which is evaluated after cycle completes"}]
+              {:name "width", :default 0.1 :doc "Relative width of the bell. Best to keep below 0.25 when used as envelope."}
+              {:name "iphase", :default 0.0 :doc "Initial offset "}
+              {:name "loop", :default 1 :doc "If loop is > 0, UGen oscillates. Otherwise it calls doneAction after one cycle"}
+              {:name "action", :default NO-ACTION :doc "Action to be evaluated after cycle completes"}]
        :rates #{:ar :kr}
        :doc "A non-band-limited gaussian function oscillator. Output ranges from minval to 1.
 
@@ -101,34 +101,36 @@ where x is to vary in the range -1 to 1 over the period dur. minval is the initi
 "}
 
       {:name "LFPulse",
-       :args [{:name "freq", :default 440.0 :doc "frequency in Hertz"}
-              {:name "iphase", :default 0.0 :doc "initial phase offset in cycles ( 0..1 )"
+       :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz"}
+              {:name "iphase", :default 0.0 :doc "Initial phase offset in cycles ( 0..1 )"
                }
-              {:name "width", :default 0.5 :doc "pulse width duty cycle from zero to one"}]
+              {:name "width", :default 0.5 :doc "Pulse width duty cycle from zero to one"}]
        :signal-range :unipolar
        :rates #{:ar :kr}
+       :default-rate :kr
        :doc "A non-band-limited pulse oscillator. Outputs a high value of one and a low value of zero.
 "}
 
       {:name "VarSaw",
-       :args [{:name "freq", :default 440.0 :doc "frequency in Hertz"}
-              {:name "iphase", :default 0.0 :doc "initial phase offset in cycles ( 0..1 )"}
-              {:name "width", :default 0.5 :doc "duty cycle from zero to one."}]
+       :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz"}
+              {:name "iphase", :default 0.0 :doc "Initial phase offset in cycles ( 0..1 )"}
+              {:name "width", :default 0.5 :doc "Duty cycle from zero to one."}]
        :rates #{:ar :kr}
        :doc "a variable duty cycle saw wave oscillator"}
 
 
       {:name "Impulse",
-       :args [{:name "freq", :default 440.0 :doc "frequency in Hertz"}
-              {:name "phase", :default 0.0 :doc "phase offset in cycles ( 0..1 )"}]
+       :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz"}
+              {:name "phase", :default 0.0 :doc "Phase offset in cycles ( 0..1 )"}]
        :signal-range :unipolar
        :rates #{:ar :kr}
-       :doc "non band limited impulse oscillator"}
+       :default-rate :kr
+       :doc "non band limited impulse oscillator. Outputs a single 1 every freq cycles per second and 0 the rest of the time."}
 
 
       {:name "SyncSaw",
-       :args [{:name "syncFreq", :default 440.0 :doc "frequency of the fundamental."}
-              {:name "sawFreq", :default 440.0 :doc "frequency of the slave synched sawtooth wave. sawFreq should always be greater than syncFreq."}]
+       :args [{:name "syncFreq", :default 440.0 :doc "Frequency of the fundamental."}
+              {:name "sawFreq", :default 440.0 :doc "Frequency of the slave synched sawtooth wave. sawFreq should always be greater than syncFreq."}]
        :muladd true
        :rates #{:ar :kr}
        :doc "hard sync sawtooth wave oscillator
@@ -149,9 +151,9 @@ A sawtooth wave that is hard synched to a fundamental pitch. This produces an ef
        :doc "performs waveshaping on the input signal by indexing into a table"}
 
       {:name "DegreeToKey",
-       :args [{:name "bufnum" :doc "index of the buffer which contains the steps for each scale degree."}
-              {:name "in", :default 0.0 :doc "the input signal."}
-              {:name "octave", :default 12.0 :doc "the number of steps per octave in the scale. The default is 12."}]
+       :args [{:name "bufnum" :doc "Index of the buffer which contains the steps for each scale degree."}
+              {:name "in", :default 0.0 :doc "The input signal."}
+              {:name "octave", :default 12.0 :doc "The number of steps per octave in the scale. The default is 12."}]
 
        :rates #{:ar :kr}
        :doc "the input signal value is truncated to an integer value and used as an index into an octave repeating table of note values
@@ -159,8 +161,8 @@ A sawtooth wave that is hard synched to a fundamental pitch. This produces an ef
 
 
       {:name "Select",
-       :args [{:name "which" :doc "index of array to select"}
-              {:name "array", :array true :doc "list of ugens to choose from"}]
+       :args [{:name "which" :doc "Index of array to select"}
+              {:name "array", :array true :doc "List of ugens to choose from"}]
        :rates #{:ar :kr}
        :doc "select the output signal from an array of inputs"}
 

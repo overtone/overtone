@@ -3,7 +3,7 @@
     [overtone.log :as log])
   (:use
     [overtone util event deps]
-    [overtone.sc core allocator bus]))
+    [overtone.sc defaults core allocator bus]))
 
 ;; ## Node and Group Management
 
@@ -100,14 +100,12 @@
   "Remove a synth node."
   [& node-ids]
   {:pre [(connected?)]}
-  (apply snd "/n_free" node-ids)
-  (doseq [id node-ids] (free-id :node id)))
+  (doseq [id node-ids] (free-id :node id 1 #(snd "/n_free" id))))
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
   [id]
-  (log/debug (format "node-destroyed: %d" id))
-  (free-id :node id))
+  (free-id :node id 1 #(log/debug (format "node-destroyed: %d" id))))
 
 (defn- node-created
   "Called when a node is created on the synth."

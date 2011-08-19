@@ -1,4 +1,5 @@
-(ns overtone.sc.ugen.basicops)
+(ns overtone.sc.ugen.basicops
+  (:use [overtone.sc.ugen common constants]))
 
 ;; // These Unit Generators are instantiated by math operations on UGens
 

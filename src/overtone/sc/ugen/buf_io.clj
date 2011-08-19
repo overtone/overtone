@@ -1,5 +1,5 @@
 (ns overtone.sc.ugen.buf-io
-  (:use (overtone.sc.ugen common)))
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
      [
@@ -10,7 +10,7 @@
               {:name "trigger", :default 1.0 :doc "A trigger causes a jump to the startPos. A trigger occurs when a signal changes from <= 0 to > 0."}
               {:name "startPos", :default 0.0 :doc "Sample frame to start playback."}
               {:name "loop", :default 0.0 :doc "1 means true, 0 means false. This is modulateable."}
-              {:name "action", :default :none :map DONE-ACTIONS}]
+              {:name "action", :default NO-ACTION}]
        :doc "Plays back a sample resident in a buffer"}
 
 
@@ -63,7 +63,7 @@
               {:name "run", :default 1.0}
               {:name "loop", :default 1.0}
               {:name "trigger", :default 1.0}
-              {:name "action", :default 0 :map DONE-ACTIONS}]
+              {:name "action", :default NO-ACTION}]
        :doc "record a stream of values into a buffer. If recLevel is 1.0 and preLevel is 0.0 then the new input overwrites the old data. If they are both 1.0 then the new data is added to the existing data. (Any other settings are also valid.) Note that the number of channels must be fixed for the SynthDef, it cannot vary depending on which buffer you use."}
 
       {:name "ScopeOut",

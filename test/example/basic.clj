@@ -5,7 +5,7 @@
   (let [src (saw [freq (* freq 1.01) (* 0.99 freq)])
         low (sin-osc (/ freq 2))
         filt (lpf src (line:kr (* 10 freq) freq 10))
-        env (env-gen (perc 0.1 dur) :action :free)]
+        env (env-gen (perc 0.1 dur) :action FREE)]
     (out 0 (pan2 (* 0.1 low env filt)))))
 
 ;(dotimes [i 10]
@@ -20,7 +20,7 @@
 
 (definst overpad [out-bus 0 note 60 amp 0.7 a 0.001 rel 0.02]
   (let [freq (midicps note)
-        env (env-gen (perc a rel) 1 1 0 1 :free)
+        env (env-gen (perc a rel) 1 1 0 1 FREE)
         f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- rel 0.1)))))
         bfreq (/ freq 2)
         sig (apply +
@@ -35,7 +35,7 @@
 
 (definst kick []
   (let [src (sin-osc 80)
-        env (env-gen (perc 0.001 0.3) :action :free)]
+        env (env-gen (perc 0.001 0.3) :action FREE)]
     (* 0.7 src env)))
 
 (defn player [beat notes]
@@ -117,13 +117,22 @@
   (* 0.2
      (+ (sin-osc 200) (saw 200) (saw 203) (sin-osc 400))))
 
-;(trancy-waves)
-;(reset)
+;;(trancy-waves)
+;;(stop)
 
-(definst foo [gate 1]
-  (let [env (env-gen:kr (adsr 0.2 0.8 0.2) gate 1 0 1 :free)
-        mod (* 500 (sin-osc:kr 1))]
-    (out 0 (lpf (white-noise env) (+ 500 mod)))))
+
+(defsynth scratch-pendulum []
+  (let [kon (sin-osc:kr (* 10 (mouse-x)))
+        k2 (sin-osc:kr (* 5 (mouse-x)))
+        lpk (lin-lin:kr kon -1 1 0 1000)
+        foo (poll:kr (impulse:kr 20) lpk)
+        src (lpf (white-noise) lpk)
+        src (pan2 src k2)
+        bak (* 0.5 (lpf (white-noise 500)))]
+    (out 0 (+ src [bak bak]))))
+;;(scratch-pendulum)
+;;(stop)
+
 
 ; The functions representing UGens support what's called multi-channel
 ; expansion.  What this means is that if pass a collection of N arguments
@@ -133,7 +142,7 @@
   (apply + (* (sin-osc [freq-a freq-b]) 0.2)))
 
 ;(dial-tone)
-;(reset)
+;(stop)
 
 ; Takes an input signal coming in from a selectable bus, and plays it out
 ; through a series of filters..
@@ -154,7 +163,7 @@
   (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))
 
 (defsynth dtest []
-         (send-trig:kr (impulse:kr 2) 1 (demand:kr (impulse 0.5) 1 (dwhite))))
+         (send-trig:kr (impulse:kr 2) 1 (demand:kr (impulse:kr 0.5) 1 (dwhite))))
 
 ;(defsynth demander-tone [rate 3]
 ;  (let [trig (impulse:kr rate)
@@ -180,7 +189,9 @@
         sum (+ a b)
         product (* a b)]
     (send-trig:kr v1 201 sum)
-    (send-trig:kr v2 201 product)))
+    (send-trig:kr v2 202 product)))
+
+;;(adder)
 
 ; You can read audio data in from your sound card using the regular (in <bus-num>) ugen,
 ; but you need to know where your input buses start.  The output buses start at number 0,
@@ -193,20 +204,30 @@
   (with-ugens
     (* depth (sin-osc:kr freq))))
 
-(defsynth ticker [freq 2]
-  (* (sin-osc 440) (env-gen (perc 0.1 0.2) (sin-osc:kr freq))))
+(definst ticker [freq 2]
+  (* (sin-osc 440) (env-gen (perc 0.1 0.2) (sin-osc freq))))
 
-(defsynth sizzle [bus 0 amp 0.4 depth 10 freq 220 lfo 8]
+(definst sizzle [bus 0 amp 0.4 depth 10 freq 220 lfo 8]
   (out bus (* amp (saw (+ freq (wah-wah lfo depth))))))
+;;(sizzle)
+;;(ctl sizzle :depth 100 :lfo 0.5)
+;;(stop)
 
 ; It's typical to use a pulse as a sort of on off switch like this.
 (defsynth line-two [bus 0]
-  (out bus (* (sin-osc [480 440]) (lf-pulse 1/6 0 1/3))))
+  (let [sig (lf-pulse 1/6 0 0.25)]
+    (out 0 (* 0.5 (sin-osc [480 440]) (lag sig)))))
 
-(defsynth busy-signal []
-  (let [on-off (lpf (lf-pulse 2) 100)]
+;;(line-two)
+;;(stop)
+
+(definst busy-signal []
+  (let [on-off (lag (lf-pulse 2) 0.1)]
     (* 0.2
        (apply + (* (sin-osc [480 620]) on-off)))))
+
+;;(busy-signal)
+;;(stop)
 
 ; Need to make a call?
 (def DTMF-TONES {1 [697, 1209]
@@ -222,10 +243,10 @@
                  0 [770, 1633]
                  \# [852, 1633]})
 
-(defsynth dtmf [freq-a 770 freq-b 1633 gate 1]
+(definst dtmf [freq-a 770 freq-b 1633 gate 1]
   (let [sig (* 0.2 (+ (sin-osc freq-a) (sin-osc freq-b)))
-        env (env-gen (asr 0.001 1 0.001) gate 1 0 1 :free)]
-    (out 0 (pan2 (* sig env)))))
+        env (env-gen (asr 0.001 1 0.001) gate 1 0 1 FREE)]
+    (* sig env)))
 
 (defn dial-number [num-seq]
   (loop [t (now)
@@ -235,7 +256,7 @@
             t-off (+ t-on 160 (rand-int 80))
             [a b] (get DTMF-TONES (first nums))]
         (at t-on (dtmf a b))
-        (at t-off (dtmf :ctl :gate 0))
+        (at t-off (ctl dtmf :gate 0))
         (recur t-off (next nums))))))
 
 ; Try this:
@@ -243,9 +264,12 @@
 
 ; The done ugen can act as a flag for the completion of envelopes and other ugens that
 ; have a done action.  Listen to the noise come on after the 2 second sine wave.
-(defsynth done-trigger []
+(definst done-trigger []
   (let [line (line:kr 1 0 2)]
     (* 0.1 (+ (* line (sin-osc 440)) (* (done line) (white-noise))))))
+
+;;(done-trigger)
+;;(stop)
 
 ;(defsynth two-tone-alarm []
 ;  (let [t1 (sin-osc 600)
@@ -255,7 +279,10 @@
 ;           var control = LPF.kr(LFPulse.kr(2), 70);
 ;           var out = SelectX.ar(control, [tone1, tone2]);
 ;           Pan2.ar(out * 0.1)
-
+(demo 20
+      (let [side (mouse-x:kr -1 1)
+            foo (poll:kr (impulse:kr 15) side)]
+        (x-fade2 (sin-osc) (saw) side (mouse-y:kr))))
 ;(defsynth alarm []
 ;  (let [freq (duty:kr 0.05 0
 ;                freq = Duty.kr(0.05, 0, Dseq([723, 932, 1012], inf));
@@ -265,4 +292,3 @@
 ;                out = Select.ar(MouseX.kr(0,4).poll, operations);
 ;                Pan2.ar(out * 0.1)
 ;              }).play
-

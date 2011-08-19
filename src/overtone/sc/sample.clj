@@ -4,7 +4,10 @@
   overtone.sc.sample
   (:use
    [overtone event util deps]
-   [overtone.sc core synth ugen buffer allocator]))
+   [overtone.sc.ugen.constants]
+   [overtone.sc core synth ugen buffer allocator])
+  (:import [java.io File]
+           [javax.swing JFrame JFileChooser]))
 
 ; Define a default wav player synth
 (defsynth mono-player
@@ -13,38 +16,36 @@
   (out 0 (pan2
            (play-buf 1 buf rate
                      1 start-pos loop?
-                     :free))))
+                     FREE))))
 
 (defsynth stereo-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
   (out 0
        (play-buf 2 buf rate
                  1 start-pos loop?
-                 :free)))
+                 FREE)))
 
 (defonce loaded-samples* (ref {}))
 
 (defn- load-sample*
   [path & args]
-  (let [id (alloc-id :audio-buffer)
-        arg-map (apply hash-map args)
-        start (get arg-map :start 0)
-        n-frames (get arg-map :n-frames 0)
-        ready (atom :loading)
-        info (atom {})
-        sample (with-meta {:id id
-                           :path path
-                           :info info
-                           :ready? ready}
-                          {:type ::sample})]
-    (on-done "/b_allocRead" #(do
-                               (reset! ready true)
-                               (reset! info (buffer-info id))))
-    (snd "/b_allocRead" id path start n-frames)
-    (dosync (alter loaded-samples* assoc [path args] sample))
-    sample))
+  (let [id       (alloc-id :audio-buffer)
+        arg-map  (apply hash-map args)
+        start    (get arg-map :start 0)
+        n-frames (get arg-map :n-frames 0)]
+    (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
+    (let [info   (buffer-info id)
+          sample (with-meta {:allocated-on-server (atom true)
+                             :id id
+                             :path path
+                             :size (:n-frames info)
+                             :rate (:rate info)
+                             :n-channels (:n-channels info)}
+                   {:type ::sample})]
+      (dosync (alter loaded-samples* assoc [path args] sample))
+      sample)))
 
 (defn load-sample
-  "Load a wav file into a memory buffer.  Returns the buffer.
+  "Synchronously load a wav file into a memory buffer.  Returns the buffer.
 
     ; load a sample a
     (load-sample \"/home/rosejn/studio/samples/kit/boom.wav\")
@@ -53,9 +54,7 @@
   of file and number of samples requested (:size), or fewer if sound file is
   smaller than requested. Reads sound file data from the given starting frame
   in the file (:start). If the number of frames argument is less than or equal
-  to zero, the entire file is read.
-
-  "
+  to zero, the entire file is read."
   [path & args]
   (dosync (alter loaded-samples* assoc [path args] nil))
   (if (connected?)
@@ -70,22 +69,6 @@
 (defn sample?
   [s]
   (isa? (type s) ::sample))
-
-(defn sample-ready?
-  "Check whether a sample has completed allocating and/or loading data."
-  [sample]
-
-  @(:ready? sample))
-
-(defn sload-sample
-  "Loads a sample synchronously. Blocks the current thread until the server
-   has booted and the sample has been sucessfully loaded. See load-sample"
-  [path & args]
-  (wait-until-connected)
-  (let [sample (apply load-sample path args)]
-    (while (not (sample-ready? sample))
-      (Thread/sleep 50))
-    sample))
 
 ;; Samples are just audio files loaded into a buffer, so buffer
 ;; functions work on samples too.
@@ -113,3 +96,20 @@
 
 (defmacro defsample [s-name path]
   `(def ~s-name (sample ~path)))
+
+;;;; simple sample manager
+(def *samples-root* (atom "."))
+
+(defn samples-seq
+  ([] (seq (.list (java.io.File. @*samples-root*))))
+  ([regex] (filter #(re-find (re-pattern regex) %) (samples-seq))))
+
+(defn samples-load [name]
+  (sample (str @*samples-root* name)))
+
+(defn samples-choose []
+  (sample
+   (.. (doto (JFileChooser. (File. @*samples-root*))
+        (.showOpenDialog (JFrame.)))
+      getSelectedFile
+      getCanonicalPath)))
