@@ -28,11 +28,14 @@
      true)))
 
 (defn on-event
-  "Takes an event-type (name of the event) a key (to refer back to this handler
-  in the future) and a handler fn. Runs handler whenever events of type event-
-  type are fired.  The handler can optionally accept a single event argument,
-  which is a map containing the :event-type property and any other properties
-  specified when it was fired.
+  "Runs handler whenever events of event-type are fired asynchronously. This
+  asynchronous behaviour can be overridden if required - see sync-event for
+  more information. Events may be triggered with the fns event and sync-event.
+
+  Takes an event-type (name of the event), a handler fn and a key (to refer
+  back to this handler in the future). The handler can optionally accept a
+  single event argument, which is a map containing the :event-type property
+  and any other properties specified when it was fired.
 
   (on-event \"/tr\" handler ::status-check )
   (on-event :midi-note-down (fn [event]
@@ -44,18 +47,29 @@
   (on-event* event-handlers* event-type key handler))
 
 (defn on-sync-event
-  "Synchronously runs handler whenever events of type event-type are fired.
-  The handler can optionally accept a single event argument, which is a map
-  containing the :event-type property and any other properties specified when it
-  was fired. If handler returns :done it will automatically be removed and will
-  therefore no longer respond to future matching events."
+  "Runs handler whenever events of type event-type are fired synchronously on
+  the event handling thread i.e. causes the event handling thread to block until
+  all sync events have been handled. Events may be triggered with the fns event
+  and sync-event.
+
+  Takes an event-type (name of the event), a handler fn and a key (to refer
+  back to this handler in the future). The handler can optionally accept a
+  single event argument, which is a map containing the :event-type property
+  and any other properties specified when it was fired.
+
+  (on-event \"/tr\" handler ::status-check )
+  (on-event :midi-note-down (fn [event]
+                              (funky-bass (:note event)))
+                            ::midi-note-down-hdlr)
+
+  Handlers can return :done to be removed from the handler list after execution."
   [event-type handler key]
   (on-event* sync-event-handlers* event-type key handler))
 
 (defn remove-handler
   "Remove an event handler previously registered to handle events of event-type.
-   Removes both sync and async handlers with a given key for a particular event
-  type
+  Removes both sync and async handlers with a given key for a particular event
+  type.
 
   (defn my-foo-handler [event] (do-stuff (:val event))
 
@@ -63,8 +77,7 @@
   (event :foo :val 200) ; my-foo-handler gets called with:
                         ; {:event-type :foo :val 200}
   (remove-handler :foo ::bar-key)
-  (event :foo :val 200) ; my-foo-handler no longer called
-  "
+  (event :foo :val 200) ; my-foo-handler no longer called"
   [event-type key]
   (dosync
     (doseq [handler-ref* [event-handlers* sync-event-handlers*]]
@@ -72,7 +85,7 @@
         (alter handler-ref* assoc event-type (dissoc handlers key))))))
 
 (defn clear-handlers
-  "Remove all handlers for events of type event-type."
+  "Remove all handlers (both sync and async) for events of type event-type."
   [event-type]
   (dosync
     (alter event-handlers* dissoc event-type)
@@ -80,9 +93,10 @@
   nil)
 
 (defn- run-handler-with-known-arity [[f arity] & args]
-  "Expects a tuple of fn with arity and applies fn to the first  arity number of args. If arity
-   is -1 it assumes that the fn is a var and so calculates arity on the fly allowing for the
-   potential rebinding of the fn with a different arity."
+  "Expects a tuple of fn with arity and applies fn to the first  arity number of
+  args. If arity is -1 it assumes that the fn is a var and so calculates arity
+  on the fly allowing for the potential rebinding of the fn with a different
+  arity."
   (let [arity (if (= arity -1) (arg-count @f) arity)]
     (try
       (apply f (take arity args))
@@ -91,7 +105,8 @@
                    (with-out-str (.printStackTrace e)))))))
 
 (defn- handle-event
-  "Runs the event handlers for the given event, and removes any handler that returns :done."
+  "Runs the event handlers for the given event, and removes any handler that
+  returns :done."
   [handlers* event]
   (log/debug "handling event: " event)
   (let [event-type (:event-type event)
@@ -107,6 +122,7 @@
 
 (defn event
   "Fire an event of type event-type with any number of additional properties.
+
   NOTE: an event requires key/value pairs, and everything gets wrapped into an
   event map.  It will not work if you just pass values.
 
@@ -122,9 +138,10 @@
       (.execute thread-pool #(handle-event event-handlers* event)))))
 
 (defn sync-event
-  "Runs all event handlers synchronously regardless of whether they were declared as async or not.
-   If handlers create new threads which generate events, these will revert back to the default
-   behaviour of event (i.e. not forced sync). See event."
+  "Runs all event handlers synchronously regardless of whether they were
+  declared as async or not. If handlers create new threads which generate
+  events, these will revert back to the default behaviour of event (i.e. not
+  forced sync). See event."
   [& args]
   (binding [FORCE-SYNC? true]
     (apply event args)))
