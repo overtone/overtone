@@ -125,7 +125,7 @@
   (doseq [[name inst] @instruments*]
     (group-clear (:group inst))))
 
-(on-sync-event :reset :reset-instruments reset-inst-groups)
+(on-sync-event :reset reset-inst-groups ::reset-instruments)
 
 ; Add instruments to the session when defined
 (defn add-instrument [inst]

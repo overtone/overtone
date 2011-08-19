@@ -113,8 +113,8 @@
   (log/debug (format "node-created: %d" id)))
 
 ; Setup the feedback handlers with the audio server.
-(on-event "/n_end" ::node-destroyer #(node-destroyed (first (:args %))))
-(on-event "/n_go" ::node-creator #(node-created (first (:args %))))
+(on-event "/n_end" #(node-destroyed (first (:args %))) ::node-destroyer)
+(on-event "/n_go"  #(node-created (first (:args %))) ::node-creator)
 
 ;; ### Group
 ;;
@@ -324,10 +324,13 @@
 
 (on-deps :connected ::create-synth-group #(dosync (ref-set synth-group* (group :head ROOT-GROUP))))
 
-(on-sync-event :reset :reset-base
+(on-sync-event :reset
   (fn []
     (clear-msg-queue)
-    (group-clear @synth-group*))) ; clear the synth group
+    (group-clear @synth-group*)) ; clear the synth group
+  ::reset-base)
 
-(on-sync-event :shutdown ::free-all-nodes #(do (clear-msg-queue)
-                                               (group-clear ROOT-GROUP)))
+(on-sync-event :shutdown
+               #(do (clear-msg-queue)
+                    (group-clear ROOT-GROUP))
+               ::free-all-nodes)

@@ -73,7 +73,7 @@
   ([pool-ag now?]
      (send-off pool-ag stop-and-reset-pool* now?)))
 
-(on-sync-event :reset ::player-reset #(stop-and-reset-pool! player-pool* true ))
+(on-sync-event :reset #(stop-and-reset-pool! player-pool* true) ::player-reset)
 
 (defn stop-player [player & [now]]
   (.cancel player (or now false)))

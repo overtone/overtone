@@ -253,7 +253,7 @@
 
 
 (on-deps #{:synthdefs-loaded :scope-group-created} ::reset-scopes reset-scopes)
-(on-sync-event :shutdown ::stop-scopes scopes-stop)
+(on-sync-event :shutdown scopes-stop  ::stop-scopes)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Testing

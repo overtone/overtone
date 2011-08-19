@@ -157,7 +157,7 @@
 ; UGen, which sends a "/tr" trigger message every time it gets an
 ; input trigger.  The message includes an id number, and the current
 ; input value of its last input.
-(on-event "/tr" :trigger-test #(println "trigger: " %))
+(on-event "/tr" #(println "trigger: " %) ::trigger-test)
 
 (defsynth trigger-finger []
   (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))

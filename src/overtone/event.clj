@@ -34,12 +34,13 @@
   which is a map containing the :event-type property and any other properties
   specified when it was fired.
 
-  (on-event \"/tr\" ::status-check handler)
-  (on-event :midi-note-down ::midi-note-down-hdlr (fn [event]
-                                                    (funky-bass (:note event))))
+  (on-event \"/tr\" handler ::status-check )
+  (on-event :midi-note-down (fn [event]
+                              (funky-bass (:note event)))
+                            ::midi-note-down-hdlr)
 
   Handlers can return :done to be removed from the handler list after execution."
-  [event-type key handler]
+  [event-type handler key]
   (on-event* event-handlers* event-type key handler))
 
 (defn on-sync-event
@@ -48,7 +49,7 @@
   containing the :event-type property and any other properties specified when it
   was fired. If handler returns :done it will automatically be removed and will
   therefore no longer respond to future matching events."
-  [event-type key handler]
+  [event-type handler key]
   (on-event* sync-event-handlers* event-type key handler))
 
 (defn remove-handler
@@ -56,13 +57,13 @@
    Removes both sync and async handlers with a given key for a particular event
   type
 
-  (defn my-foo-handler [event] (do-stuff (:val event)))
+  (defn my-foo-handler [event] (do-stuff (:val event))
 
-  (on-event ::foo my-foo-handler)
-  (event ::foo :val 200) ; my-foo-handler gets called with:
-                         ; {:event-type ::foo :val 200}
-  (remove-handler ::foo my-foo-handler)
-  (event ::foo :val 200) ; my-foo-handler no longer called
+  (on-event :foo my-foo-handler ::bar-key)
+  (event :foo :val 200) ; my-foo-handler gets called with:
+                        ; {:event-type :foo :val 200}
+  (remove-handler :foo ::bar-key)
+  (event :foo :val 200) ; my-foo-handler no longer called
   "
   [event-type key]
   (dosync

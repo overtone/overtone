@@ -30,9 +30,10 @@
 
 ;; The base handler for receiving osc messages just forwards the message on
 ;; as an event using the osc path as the event key.
-(on-sync-event :osc-msg-received ::osc-receiver
+(on-sync-event :osc-msg-received
                (fn [{{path :path args :args} :msg}]
-                 (event path :path path :args args)))
+                 (event path :path path :args args))
+               ::osc-receiver)
 
 ;; ## Basic communication with the synth server
 
@@ -118,8 +119,8 @@
           (event :connected)
           (remove-handler "status.reply" ::connected-handler1)
           (remove-handler "/status.reply" ::connected-handler2))]
-    (on-sync-event "status.reply" ::connected-handler1 handler-fn)
-    (on-sync-event "/status.reply" ::connected-handler2 handler-fn)))
+    (on-sync-event "status.reply" handler-fn ::connected-handler1)
+    (on-sync-event "/status.reply" handler-fn ::connected-handler2)))
 
 (defn connect-internal
   []
@@ -185,12 +186,15 @@
   the incoming event info."
   ([path] (recv path nil))
   ([path matcher-fn]
-     (let [p (promise)]
-       (on-sync-event path (uuid) (fn [info]
-                                    (when (or (nil? matcher-fn)
-                                              (matcher-fn info))
-                                      (deliver p info)
-                                      :done)))
+     (let [p (promise)
+           key (uuid)]
+       (on-sync-event path
+                      (fn [info]
+                        (when (or (nil? matcher-fn)
+                                  (matcher-fn info))
+                          (deliver p info)
+                          :done))
+                      key)
     p)))
 
 (defn- parse-status [args]
@@ -366,12 +370,14 @@
   "Registers the handler to be executed when all the osc messages generated
    by executing the action-fn have completed. Returns result of action-fn."
   [action-fn handler-fn]
-  (let [id (update-server-sync-id)]
-    (on-event "/synced" (uuid)
+  (let [id (update-server-sync-id)
+        key (uuid)]
+    (on-event "/synced"
               (fn [msg] (when (= id (first (:args msg)))
                          (do
                            (handler-fn)
-                           :done))))
+                           :done)))
+              key)
 
     (let [res (action-fn)]
       (snd "/sync" id)
@@ -393,12 +399,14 @@
   Returns the result of action-fn."
   [action-fn]
   (let [id (update-server-sync-id)
-        prom (promise)]
-    (on-event "/synced" (uuid)
+        prom (promise)
+        key (uuid)]
+    (on-event "/synced"
               (fn [msg] (when (= id (first (:args msg)))
                          (do
                            (deliver prom true)
-                           :done))))
+                           :done)))
+              key)
     (let [res (action-fn id)]
       (await-promise! prom)
       res)))
@@ -408,12 +416,14 @@
   Returns result of action-fn."
   [action-fn]
   (let [id (update-server-sync-id)
-        prom (promise)]
-    (on-event "/synced" (uuid)
+        prom (promise)
+        key (uuid)]
+    (on-event "/synced"
               (fn [msg] (when (= id (first (:args msg)))
                          (do
                            (deliver prom true)
-                           :done))))
+                           :done)))
+              key)
     (let [res (action-fn)]
       (snd "/sync" id)
       (await-promise! prom)
@@ -431,9 +441,10 @@
 
 (defn osc-log [on?]
   (if on?
-    (on-sync-event :osc-msg-received ::osc-logger
+    (on-sync-event :osc-msg-received
                    (fn [{:keys [path args] :as msg}]
-                     (swap! osc-log* #(conj % msg))))
+                     (swap! osc-log* #(conj % msg)))
+                   ::osc-logger)
     (remove-handler :osc-msg-received ::osc-logger)))
 
 (defn sc-debug
