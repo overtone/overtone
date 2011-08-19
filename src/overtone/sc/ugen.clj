@@ -31,29 +31,6 @@
    :standard true
    })
 
-(defn normalize-ugen-name
-  "Normalizes both SuperCollider and overtone-style names to squeezed lower-case.
-
-  This produces strings that may be used to represent unique ugen keys that can be
-  generated from both SC and Overtone names.
-
-  (normalize-ugen-name \"SinOsc\")  ;=> \"sinosc\"
-  (normalize-ugen-name \"sin-osc\") ;=> \"sinosc\""
-  [n]
-  (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
-
-(defn overtone-ugen-name
-  "A basic camelCase to with-dash name converter tuned to convert SuperCollider
-  names to Overtone names. Most likely needs improvement.
-
-  (overtone-ugen-name \"SinOsc\") ;=> \"sin-osc\""
-  [n]
-  (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2")
-        n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2")
-        n (.replaceAll n "_" "-")
-        n (.toLowerCase n)]
-    n))
-
 (defn- derived?
   "Determines whether the supplied ugen spec is derived from another ugen spec.
 

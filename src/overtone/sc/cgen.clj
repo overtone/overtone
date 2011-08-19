@@ -86,9 +86,10 @@
 
 (defn generate-full-cgen-doc
   "Generate a full docstring from a the specified cgen information"
-  ([doc categories rate params rates] (generate-full-cgen-doc doc categories rate params rates nil nil))
-  ([doc categories rate params rates src-str contributor]
-     (let [spec {:doc          doc
+  ([c-name doc categories rate params rates] (generate-full-cgen-doc c-name doc categories rate params rates nil nil))
+  ([c-name doc categories rate params rates src-str contributor]
+     (let [spec {:name         c-name
+                 :doc          doc
                  :categories   categories
                  :default-rate rate
                  :args         (map stringify-map-vals params)
@@ -108,7 +109,7 @@
            defaults    (reduce (fn [s el] (assoc s (:name el) (:default el)))
                                {}
                                params)
-           full-doc    (generate-full-cgen-doc doc categories rate params rates)
+           full-doc    (generate-full-cgen-doc c-name doc categories rate params rates)
            cgen-fn     (mk-cgen-fn param-names defaults body)]
        `(callable-map {:params ~params
                        :doc ~doc
@@ -157,7 +158,7 @@
         arglists                         (list 'quote arglists)
         rates                            (into #{} (keys bodies))
         categories                       [["Composite Ugen"]]
-        full-doc                         (generate-full-cgen-doc doc categories default-rate params rates)
+        full-doc                         (generate-full-cgen-doc c-name doc categories default-rate params rates)
         metadata                         {:doc full-doc
                                           :arglists arglists
                                           :type ::cgen}

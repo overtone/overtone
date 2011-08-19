@@ -1,6 +1,6 @@
 (ns overtone.sc.sc-lang
   (:require [clojure.zip :as z])
-  (:use [overtone.sc.ugen :only [overtone-ugen-name]]
+  (:use [overtone util]
         [clojure.contrib.core :only [-?>]]))
 
 (defn- prepend-child

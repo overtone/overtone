@@ -14,7 +14,7 @@
   (let [args (:args spec)
         name-vals (map #(str (:name %) " " (:default %)) args)
         line (apply str (interpose ", " name-vals))]
-    (str "[" line "]")))
+    (str "  [" line "]")))
 
 (defn- categories-str
   "Returns a string representing the categories of a ugen spec"
@@ -34,11 +34,12 @@
         name:doc (fn [arg] [(or (:name arg) "NAME MISSING!")  (or (capitalize (:doc arg)) "DOC MISSING!")])
         doc-map (into {} (map name:doc args))
         arg-max-key-len (length-of-longest-key doc-map)
-        indentation (+ 3 arg-max-key-len)]
+        indentation (+ 5 arg-max-key-len)]
     (apply str (map (fn [[name docs]]
                       (str "  "
                            name
                            (gen-padding (inc (- arg-max-key-len (.length name))) " ")
+                           "- "
                            (indented-str-block docs 50 indentation)
                            "\n"))
                     doc-map))))
@@ -46,16 +47,24 @@
 (defn- full-doc-str
   "Returns a string representing the full documentation for the given ugen spec"
   [spec]
-  (let [doc (or (:doc spec) "No documentation has been defined for this ugen.")]
+  (let [doc (or (:doc spec) "No documentation has been defined for this ugen.")
+        g-name (overtone-ugen-name (name (:name spec)))]
     (str
-     (args-str spec)
      "\n"
+     (str "  " g-name "\n  " )
+     (apply str (repeat (count g-name) "-")) "\n"
+     (if (:summary spec)
+       (indented-str-block (:summary spec) (+ 10 DOC-WIDTH) 2))
+     "\n"
+     (args-str spec)
+     "\n\n"
+
      (arg-doc-str spec)
      "\n"
      (str "  " (indented-str-block doc  (+ 10 DOC-WIDTH) 2))
      "\n"
      (if (:src-str spec)
-       (:src-str spec)
+       (str "\n  Source:\n" (:src-str spec))
        "")
      "\n\n"
      (str "  Categories: " (categories-str spec))
