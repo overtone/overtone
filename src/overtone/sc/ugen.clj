@@ -546,14 +546,15 @@
   [spec rate special]
   (let [expand-flags (map #(:expands? %) (:args spec))
         ugen-fn (make-expanding (ugen-base-fn spec rate special) expand-flags)]
-    (callable-map {:name (overtone-ugen-name (:name spec))
-                   :doc (:doc spec)
-                   :full-doc (:full-doc spec)
+    (callable-map {:name       (overtone-ugen-name (:name spec))
+                   :summary    (:summary spec)
+                   :doc        (:doc spec)
+                   :full-doc   (:full-doc spec)
                    :categories (:categories spec)
-                   :rate rate
-                   :src "Implemented in C code"
-                   :type ::ugen
-                   :params (:args spec)}
+                   :rate       rate
+                   :src        "Implemented in C code"
+                   :type       ::ugen
+                   :params     (:args spec)}
                   ugen-fn)))
 
 ;; TODO: Figure out the complete list of control types

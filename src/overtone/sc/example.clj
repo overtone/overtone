@@ -14,28 +14,28 @@
   "Parse example form - pull out elements of form and return as list. Reads body-str to convert
   from nasty string to beautiful Clojure form. (The string is used to preserve formatting)."
   [form]
-  (let [[name short-doc long-doc rate-sym rate params body-str contributor-sym contributor] form
-        body (read-string body-str)
-        long-doc (str short-doc "\n\n" long-doc)]
-    [name short-doc long-doc params body-str body rate contributor]))
+  (let [[name summary long-doc rate-sym rate params body-str contributor-sym contributor] form
+        body (read-string body-str)]
+    [name summary long-doc params body-str body rate contributor]))
 
 (defn mk-swap-form
   "Create form required to append a new cgen to the examples* map."
   [gen-name form]
-  (let [[example-key short-doc long-doc params body-str body rate contributor] (parse-example-form form)
+  (let [[example-key summary long-doc params body-str body rate contributor] (parse-example-form form)
         categories [["Example cgen"]]
         params (parse-cgen-params params)
         cgen-name (str (name gen-name) ":" (name example-key))
-        cgen-fn (mk-cgen cgen-name long-doc params body categories rate)
-        full-doc `(generate-full-cgen-doc (:name ~gen-name) ~long-doc ~categories ~rate ~params #{~rate} ~body-str ~contributor)
+        cgen-desc (str (name gen-name) " " example-key)
+        cgen-fn (mk-cgen cgen-name summary long-doc params body categories rate)
+        full-doc `(str "-------------------------\nExample => " ~cgen-desc "\n"(generate-full-cgen-doc (:name ~gen-name) ~summary ~long-doc ~categories ~rate ~params #{~rate} ~body-str ~contributor))
         ]
     `(swap! examples* assoc-in
             [~(keyword (name gen-name))
              ~(keyword (name example-key))]
             (callable-map {:params ~params
-                           :doc ~short-doc
+                           :summary ~summary
+                           :doc ~long-doc
                            :full-doc ~full-doc
-                           :long-doc ~long-doc
                            :categories ~categories
                            :rate ~rate
                            :name ~cgen-name

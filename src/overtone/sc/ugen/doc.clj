@@ -50,11 +50,9 @@
   (let [doc (or (:doc spec) "No documentation has been defined for this ugen.")
         g-name (overtone-ugen-name (name (:name spec)))]
     (str
-     "\n"
-     (str "  " g-name "\n  " )
-     (apply str (repeat (count g-name) "-")) "\n"
-     (if (:summary spec)
-       (indented-str-block (:summary spec) (+ 10 DOC-WIDTH) 2))
+     (when (:summary spec)
+       (str "\n  " (indented-str-block (:summary spec) (+ 10 DOC-WIDTH) 2) "\n"))
+
      "\n"
      (args-str spec)
      "\n\n"
@@ -64,9 +62,8 @@
      (str "  " (indented-str-block doc  (+ 10 DOC-WIDTH) 2))
      "\n"
      (if (:src-str spec)
-       (str "\n  Source:\n" (:src-str spec))
-       "")
-     "\n\n"
+       (str "\n  Source:\n" (:src-str spec) "\n"))
+     "\n"
      (str "  Categories: " (categories-str spec))
      "\n"
      (str "  Rates: " (rates-str spec))

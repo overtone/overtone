@@ -18,9 +18,8 @@ This can also be acheived by creating a Signal object and sending it the 'asWave
       {:name "SinOsc",
        :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz"}
               {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}],
-       :doc "sine table lookup oscillator
-
-Note: This is the same as Osc except that the table has already been fixed as a sine table of 8192 entries."}
+       :summary "Sine table lookup oscillator"
+       :doc "Outputs a sine wave with values oscillating between -1 and 1 similar to osc except that the table has already been fixed as a sine table of 8192 entries."}
 
       {:name "SinOscFB",
        :args [{:name "freq", :default 440.0}

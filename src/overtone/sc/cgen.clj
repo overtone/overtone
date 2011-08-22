@@ -60,16 +60,23 @@
 (defn- cgen-form
   "Pull out various bits of cgen information from a defcgen form"
   [u-form]
-  (let [doc                         (if (string? (first u-form))
+  (let [summary                     (if (string? (first u-form))
+                                      (first u-form)
+                                      "Please add a summary!")
+        u-form                      (if (string? (first u-form))
+                                      (rest u-form)
+                                      u-form)
+        params                      (parse-cgen-params (first u-form))
+        u-form                      (rest u-form)
+        doc                         (if (string? (first u-form))
                                       (first u-form)
                                       "Please add some docs!")
         u-form                      (if (string? (first u-form))
                                       (rest u-form)
                                       u-form)
-        params                      (parse-cgen-params (first u-form))
-        [default-rate rated-bodies] (parse-cgen-bodies (rest u-form))]
+        [default-rate rated-bodies] (parse-cgen-bodies u-form)]
 
-    [doc params rated-bodies default-rate]))
+    [summary doc params rated-bodies default-rate]))
 
 (defn- mk-cgen-fn
   "Make the function which gets executed when a cgen is called."
@@ -86,9 +93,10 @@
 
 (defn generate-full-cgen-doc
   "Generate a full docstring from a the specified cgen information"
-  ([c-name doc categories rate params rates] (generate-full-cgen-doc c-name doc categories rate params rates nil nil))
-  ([c-name doc categories rate params rates src-str contributor]
+  ([c-name summary doc categories rate params rates] (generate-full-cgen-doc c-name summary doc categories rate params rates nil nil))
+  ([c-name summary doc categories rate params rates src-str contributor]
      (let [spec {:name         c-name
+                 :summary      summary
                  :doc          doc
                  :categories   categories
                  :default-rate rate
@@ -102,16 +110,17 @@
   "Generate the form represign a cgen - a callable map of associated information
   and the function that evaluates the body within the binding context of the
   params."
-  ([c-name doc params body categories rate] (mk-cgen c-name doc params body categories rate #{rate}))
-  ([c-name doc params body categories rate rates]
+  ([c-name summary doc params body categories rate] (mk-cgen c-name summary doc params body categories rate #{rate}))
+  ([c-name summary doc params body categories rate rates]
      (let [param-names (vec (map :name params))
            param-names (vec (map :name params))
            defaults    (reduce (fn [s el] (assoc s (:name el) (:default el)))
                                {}
                                params)
-           full-doc    (generate-full-cgen-doc c-name doc categories rate params rates)
+           full-doc    (generate-full-cgen-doc c-name summary doc categories rate params rates)
            cgen-fn     (mk-cgen-fn param-names defaults body)]
        `(callable-map {:params ~params
+                       :summary ~summary
                        :doc ~doc
                        :full-doc ~full-doc
                        :categories ~categories
@@ -127,10 +136,10 @@
   A cgen behaves similarly to a ugen - it has a default rate, named params, full
   docstring and may be mixed with both ugens and cgens in the construction of
   synths."
-  ([c-name doc params body rate] (cgen c-name doc params body rate [["Composite Ugen"]]))
-  ([c-name doc params body rate categories]
+  ([c-name summary doc params body rate] (cgen c-name doc params body rate [["Composite Ugen"]]))
+  ([c-name summary doc params body rate categories]
      (let [c-name (symbol (name c-name))]
-       (mk-cgen c-name doc params body categories rate))))
+       (mk-cgen c-name summary doc params body categories rate))))
 
 (defmacro defcgen
   "Define one or more related cgens (composite generators) with different rates.
@@ -149,28 +158,29 @@
      mod-freq {:default 0.0 :doc \"Modulation frequency\"}
      pm-index {:default 0.0 :doc \"Phase modulation index\"}
      mod-phase {:default 0.0 :doc \"Modulation phase\"}]
+    \"Longer more detailed documentation...\"
     (:ar (sin-osc:ar car-freq (* pm-index (sin-osc:ar mod-freq mod-phase))))
     (:kr (sin-osc:kr car-freq (* pm-index (sin-osc:kr mod-freq mod-phase))))
     (:default :ar))"
   [c-name & c-form]
-  (let [[doc params bodies default-rate] (cgen-form c-form)
-        arglists                         (vec (map #(symbol (name (:name %))) params))
-        arglists                         (list 'quote arglists)
-        rates                            (into #{} (keys bodies))
-        categories                       [["Composite Ugen"]]
-        full-doc                         (generate-full-cgen-doc c-name doc categories default-rate params rates)
-        metadata                         {:doc full-doc
-                                          :arglists arglists
-                                          :type ::cgen}
-        default-body                     (get bodies default-rate)
-        default-cgen                     (mk-cgen c-name doc params default-body categories default-rate)
-        default-c-name                   (with-meta c-name metadata)
-        cgen-defs                        [`(def ~default-c-name ~default-cgen)]]
+  (let [[summary doc params bodies default-rate] (cgen-form c-form)
+        arglists                                 (vec (map #(symbol (name (:name %))) params))
+        arglists                                 (list 'quote arglists)
+        rates                                    (into #{} (keys bodies))
+        categories                               [["Composite Ugen"]]
+        full-doc                                 (generate-full-cgen-doc c-name summary doc categories default-rate params rates)
+        metadata                                 {:doc full-doc
+                                                  :arglists arglists
+                                                  :type ::cgen}
+        default-body                             (get bodies default-rate)
+        default-cgen                             (mk-cgen c-name summary doc params default-body categories default-rate)
+        default-c-name                           (with-meta c-name metadata)
+        cgen-defs                                [`(def ~default-c-name ~default-cgen)]]
 
     (conj cgen-defs
      (for [rate rates]
        (let [body   (get bodies rate)
-             cgen   (mk-cgen c-name doc params body categories rate)
+             cgen   (mk-cgen c-name summary doc params body categories rate)
              c-name (symbol (str (name default-c-name) rate))
              c-name (with-meta c-name metadata)]
          `(def ~c-name ~cgen))))))
