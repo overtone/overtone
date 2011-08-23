@@ -2,13 +2,12 @@
   (:use overtone.ns)
   (:require clojure.stacktrace
             midi osc byte-spec
-            [overtone.sc.ugen.constants]
             [overtone config time-utils log]
             [overtone.helpers chance scaling]
+            [overtone.sc.ugen.constants]
             [overtone.sc allocator core ugen node synth synthdef cgen
-             trigger buffer envelope bus sample sc-lang]
+             trigger buffer envelope bus sample sc-lang example]
             [overtone.sc.cgen audio-in oscillators demand]
-            [overtone.sc.example]
             [overtone.sc.examples demand osc trig compander audio-in]
             [overtone.music rhythm pitch tuning]
             [overtone.studio core util fx]
