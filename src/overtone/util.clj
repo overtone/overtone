@@ -314,3 +314,10 @@ Hello " (user-name) ", may this be the start of a beautiful music hacking sessio
         n (.replaceAll n "_" "-")
         n (.toLowerCase n)]
     n))
+
+(defn consecutive-ints?
+  "Checks whether seq s consists of consecutive integers
+   (consecutive-ints? [1 2 3 4 5]) ;=> true
+   (consecutive-ints? [1 2 3 5 4]) ;=> false"
+  [s]
+  (apply = (map - (rest s) (seq s))))

@@ -3,20 +3,13 @@
 
 (def specs
      [
-      ;; Amplitude : UGen {
-      ;;   *ar { arg in = 0.0, attackTime = 0.01, releaseTime = 0.01, mul = 1.0, add = 0.0;
-      ;;     ^this.multiNew('audio', in, attackTime, releaseTime).madd(mul, add)
-      ;;   }
-      ;;   *kr { arg in = 0.0, attackTime = 0.01, releaseTime = 0.01, mul = 1.0, add = 0.0;
-      ;;     ^this.multiNew('control', in, attackTime, releaseTime).madd(mul, add)
-      ;;   }
-      ;;                   }
 
       {:name "Amplitude",
-       :args [{:name "in", :default 0.0 :doc "input signal"}
-              {:name "attackTime", :default 0.01 :doc "60dB convergence time for following attacks"}
-              {:name "releaseTime", :default 0.01 :doc "60dB convergence time for following decays"}]
-       :doc "amplitude follower. Tracks the peak amplitude of a signal."
+       :args [{:name "in", :default 0.0 :doc "input signal"  :modulatable true}
+              {:name "attack-time", :default 0.01 :doc "60dB convergence time for following attacks"  :modulatable true}
+              {:name "release-time", :default 0.01 :doc "60dB convergence time for following decays"  :modulatable true}]
+       :summary "Amplitude follower"
+       :doc "Tracks the peak amplitude of a signal."
        :auto-rate true}
 
       ;; Compander : UGen {

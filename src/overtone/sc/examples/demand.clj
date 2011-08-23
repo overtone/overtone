@@ -20,7 +20,7 @@
          poll (poll trig val \"dibrown val:\")
          freq (+ 340 (* 30 val))]
      (* 0.1 (sin-osc freq)))"
-   contributor "Sam Aaron"))
+   contributed-by "Sam Aaron"))
 
 (defexamples dbrown
   (:rand-walk
@@ -38,7 +38,7 @@
          poll (poll trig val \"dbrown val:\")
          freq (+ 340 (* 30 val))]
      (* 0.1 (sin-osc freq)))"
-   contributor "Sam Aaron"))
+   contributed-by "Sam Aaron"))
 
 (defexamples diwhite
   (:rand-seq
@@ -55,7 +55,7 @@
          poll (poll trig val \"diwhite val:\")
          freq (+ 340 (* 30 val))]
      (* 0.1 (sin-osc freq)))"
-   contributor "Sam Aaron"))
+   contributed-by "Sam Aaron"))
 
 (defexamples dwhite
   (:rand-seq
@@ -72,4 +72,4 @@
          poll (poll trig val \"dwhite val:\")
          freq (+ 340 (* 30 val))]
      (* 0.1 (sin-osc freq)))"
-   contributor "Sam Aaron"))
+   contributed-by "Sam Aaron"))
