@@ -120,7 +120,7 @@
        (println "Sorry, no examples for this generator have been contributed.\n Please consider submitting one.")
        (dorun
         (for [key (keys examples)]
-          (println (str indent key " (" (:rate (get examples key)) ")  - " (:doc (get examples key)))))))))
+          (println (str indent key " (" (:rate (get examples key)) ")  - " (:summary (get examples key)))))))))
 
 (defn examples
   "Print out examples for a specific gen. If passed a gen and a key will list

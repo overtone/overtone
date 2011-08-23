@@ -47,7 +47,8 @@
 (defn- full-doc-str
   "Returns a string representing the full documentation for the given ugen spec"
   [spec]
-  (let [doc (or (:doc spec) "No documentation has been defined for this ugen.")
+  (let [doc    (or (:doc spec) "No documentation has been defined for this ugen.")
+        doc    (capitalize doc)
         g-name (overtone-ugen-name (name (:name spec)))]
     (str
      (when (:summary spec)
