@@ -58,59 +58,59 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"
 
    {:name "Decay",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "decayTime", :default 1.0 :doc "60 dB decay time in seconds"}]
+           {:name "decay-time", :default 1.0 :doc "60 dB decay time in seconds"}]
     :doc "triggered exponential decay. This is essentially the same as integrator except that instead of supplying the coefficient directly, it is calculated from a 60 dB decay time. This is the time required for the integrator to lose 99.9 % of its value or -60dB. This is useful for exponential decaying envelopes triggered by impulses."
     :auto-rate true}
 
    {:name "Decay2",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "attackTime", :default 0.01 :doc "60 dB attack time in seconds."}
-           {:name "decayTime", :default 1.0 :doc "60 dB decay time in seconds."}]
+           {:name "attack-time", :default 0.01 :doc "60 dB attack time in seconds."}
+           {:name "decay-time", :default 1.0 :doc "60 dB decay time in seconds."}]
     :doc "triggered exponential attack and exponential decay. Decay has a very sharp attack and can produce clicks. Decay2 rounds off the attack by subtracting one Decay from another. (decay in attack-time decay-time) equivalent to: (- (decay in attack-time decay-time) (decay in attack-time decay-time))"
     :auto-rate true}
 
    {:name "Lag",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "lagTime", :default 0.1 :doc "60 dB lag time in seconds"}]
+           {:name "lag-time", :default 0.1 :doc "60 dB lag time in seconds"}]
     :doc "exponential lag, useful for smoothing out control signals. This is essentially the same as OnePole except that instead of supplying the coefficient directly, it is calculated from a 60 dB lag time. This is the time required for the filter to converge to within 0.01 % of a value."
     :auto-rate true}
 
    {:name "Lag2",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "lagTime", :default 0.1 :doc "60 dB lag time in seconds"} ]
+           {:name "lag-time", :default 0.1 :doc "60 dB lag time in seconds"} ]
     :doc "equivalent to Lag.kr(Lag.kr(in, time), time), resulting in a smoother transition. This saves on CPU as you only have to calculate the decay factor once instead of twice. See Lag for more details."
     :auto-rate true}
 
    {:name "Lag3",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "lagTime", :default 0.1 :doc "60 dB lag time in seconds"}]
+           {:name "lag-time", :default 0.1 :doc "60 dB lag time in seconds"}]
     :doc "Lag3 is equivalent to Lag.kr(Lag.kr(Lag.kr(in, time), time), time), thus resulting in a smoother transition. This saves on CPU as you only have to calculate the decay factor once instead of three times. See Lag for more details."
     :auto-rate true}
 
    {:name "Ramp",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "lagTime", :default 0.1 :doc "60 dB lag time in seconds"}]
+           {:name "lag-time", :default 0.1 :doc "60 dB lag time in seconds"}]
     :doc "similar to Lag but with a linear rather than exponential lag, useful for smoothing out control signals"
     :auto-rate true}
 
    {:name "LagUD",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "lagTimeU", :default 0.1 :doc "60 dB lag time in seconds for the upgoing signal"}
-           {:name "lagTimeD", :default 0.1 :doc "60 dB lag time in seconds for the downgoing signal"}]
+           {:name "lag-time-up", :default 0.1 :doc "60 dB lag time in seconds for the upgoing signal"}
+           {:name "lag-time-down", :default 0.1 :doc "60 dB lag time in seconds for the downgoing signal"}]
     :doc "the same as Lag except that you can supply a different 60 dB time for when the signal goes up, from when the signal goes down"
     :auto-rate true}
 
    {:name "Lag2UD",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "lagTimeU", :default 0.1 :doc "60 dB lag time in seconds for the upgoing signal"}
-           {:name "lagTimeD", :default 0.1 :doc "60 dB lag time in seconds for the downgoing signal"}]
+           {:name "lag-time-up", :default 0.1 :doc "60 dB lag time in seconds for the upgoing signal"}
+           {:name "lag-time-down", :default 0.1 :doc "60 dB lag time in seconds for the downgoing signal"}]
     :doc "Lag2 is equivalent to Lag.kr(Lag.kr(in, time), time)"
     :auto-rate true}
 
    {:name "Lag3UD",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "lagTimeU", :default 0.1 :doc "60 dB lag time in seconds for the upgoing signal"}
-           {:name "lagTimeD", :default 0.1 :doc "60 dB lag time in seconds for the downgoing signal"}]
+           {:name "lag-time-up", :default 0.1 :doc "60 dB lag time in seconds for the upgoing signal"}
+           {:name "lag-time-down", :default 0.1 :doc "60 dB lag time in seconds for the downgoing signal"}]
     :doc "Lag3UD is equivalent to LagUD.kr(LagUD.kr(LagUD.kr(in, timeU, timeD), timeU, timeD), timeU, timeD)"
     :auto-rate true}
 
@@ -246,15 +246,15 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"
    {:name "Ringz",
     :args [{:name "in", :default 0.0 :doc "input signal to be processed"}
            {:name "freq", :default 440.0 :doc "resonant frequency in Hertz"}
-           {:name "decaytime", :default 1.0 :doc "the 60 dB decay time of the filter"}]
+           {:name "decay-time", :default 1.0 :doc "the 60 dB decay time of the filter"}]
     :doc "Ringz is the same as Resonz, except that instead of a resonance parameter, the bandwidth is specified in a 60dB ring decay time. One Ringz is equivalent to one component of the Klank UGen"
     :auto-rate true}
 
    {:name "Formlet",
     :args [{:name "in", :default 0.0 :doc "input signal to be processed"}
            {:name "freq", :default 440.0 :doc "resonant frequency in Hertz"}
-           {:name "attacktime", :default 1.0 :doc "60 dB attack time in seconds"}
-           {:name "decaytime", :default 1.0 :doc "60 dB decay time in seconds"}]
+           {:name "attack-time", :default 1.0 :doc "60 dB attack time in seconds"}
+           {:name "decay-time", :default 1.0 :doc "60 dB decay time in seconds"}]
     :doc "a resonant filter whose impulse response is like that of a sine wave with a Decay2 envelope over it. The great advantage to this filter over FOF is that there is no limit to the number of overlapping
 grains since the grain is just the impulse response of the filter. Note that if attacktime == decaytime then the signal cancels out and if attacktime > decaytime then the impulse response is inverted."
     :auto-rate true}])
