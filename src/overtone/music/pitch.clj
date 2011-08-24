@@ -70,16 +70,6 @@
   (let [pivot (or pivot (first notes))]
     (for [n notes] (- pivot (- n pivot)))))
 
-(defn only
-  "Take only the specified notes from the given phrase."
-  ([phrase notes] (only phrase notes []))
-  ([phrase notes result]
-   (if notes
-     (recur phrase
-            (next notes)
-            (conj result (get phrase (first notes))))
-     result)))
-
 (defn octave-note
   "Convert an octave and note to a midi note."
   [octave note]
@@ -415,10 +405,6 @@
   [db]
   (java.lang.Math/exp (* (/ db 20) (java.lang.Math/log 10))))
 
-(defn chosen-from [notes]
-  (let [num-notes (count notes)]
-    (repeatedly #(get notes (rand-int num-notes)))))
-
 (defn nth-octave
   "Returns the freq n octaves from the supplied reference freq
 
@@ -442,9 +428,7 @@
      (case tuning
            :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
 
-(defn- log2 [x]
-  (/ (Math/log x)
-     (Math/log 2)))
+
 ;; * shufflers (randomize a sequence, or notes within a scale, etc.)
 ;; *
 ;;* Sequence generators

@@ -67,3 +67,17 @@
   "Returns a random value within the specified range"
   [min max]
   (scale-range (rand) 0 1 min max))
+
+(defn chosen-from [notes]
+  (let [num-notes (count notes)]
+    (repeatedly #(get notes (rand-int num-notes)))))
+
+(defn only
+  "Take only the specified notes from the given phrase."
+  ([phrase notes] (only phrase notes []))
+  ([phrase notes result]
+   (if notes
+     (recur phrase
+            (next notes)
+            (conj result (get phrase (first notes))))
+     result)))

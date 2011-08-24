@@ -310,6 +310,7 @@ Hello " (user-name) ", may this be the start of a beautiful music hacking sessio
   (overtone-ugen-name \"SinOsc\") ;=> \"sin-osc\""
   [n]
   (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2")
+        n (.replaceAll n "([a-z-])([0-9])([A-Z])" "$1$2-$3")
         n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2")
         n (.replaceAll n "_" "-")
         n (.toLowerCase n)]
@@ -321,3 +322,7 @@ Hello " (user-name) ", may this be the start of a beautiful music hacking sessio
    (consecutive-ints? [1 2 3 5 4]) ;=> false"
   [s]
   (apply = (map - (rest s) (seq s))))
+
+(defn log2 [x]
+  (/ (Math/log x)
+     (Math/log 2)))
