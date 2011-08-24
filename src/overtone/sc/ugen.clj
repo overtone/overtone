@@ -380,12 +380,9 @@
     (map decorate-ugen-spec derived)))
 
 (def UGEN-NAMESPACES
-  '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
+  '[buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
     ff-osc fft info noise pan trig line input filter random mda stk])
-
-
-
 
 (def UGEN-SPECS (let [specs (load-ugen-specs UGEN-NAMESPACES)]
                   (zipmap
