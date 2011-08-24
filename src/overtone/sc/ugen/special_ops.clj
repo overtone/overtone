@@ -115,9 +115,9 @@
 ;   "-" 1           ; subtraction
 ;   "*" 2           ; multiplication
 ;   "/" 4           ; floating point division
-   "mod" 5         ; modulus
-   "<=" 10         ; less than or equal
-   ">=" 11
+   "mod" 5          ; modulus
+   "<=" 10          ; less than or equal
+   ">=" 11          ; greater than or equal
    })
 
 (defn unary-op-num [name]
@@ -125,4 +125,3 @@
 
 (defn binary-op-num [name]
   (get BINARY-OPS (str name) false))
-
