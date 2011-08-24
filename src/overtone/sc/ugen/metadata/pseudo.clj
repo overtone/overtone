@@ -1,5 +1,6 @@
 (ns overtone.sc.ugen.metadata.pseudo
   (:use [overtone.sc.ugen common constants]))
+;;TODO - convert these to cgens
 
 (comment def specs
      [
