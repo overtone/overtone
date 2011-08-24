@@ -509,6 +509,7 @@
 (def *constants* nil)
 
 (defn ugen [spec rate special args]
+  "Create a SCUGen with the specified spec, rate, special and args"
   ;;(check-ugen-args spec rate special args)
   (let [rate (or (get RATES rate) rate)
         ug (SCUGen.
