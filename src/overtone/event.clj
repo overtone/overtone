@@ -84,7 +84,7 @@
       (let [handlers (get @handler-ref* event-type {})]
         (alter handler-ref* assoc event-type (dissoc handlers key))))))
 
-(defn clear-handlers
+(defn remove-all-handlers
   "Remove all handlers (both sync and async) for events of type event-type."
   [event-type]
   (dosync
