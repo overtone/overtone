@@ -113,11 +113,15 @@
         (pan2 (* 0.1 src))))
 
 ;;diwhite example
-(demo 5
-      (let [vals (diwhite 0 15 INF)
+(demo 10
+      (let [vals (dwhite 0 15 INF)
             trig (impulse:kr (mouse-x 1 40 1))
-            freq (+ 340 (* 30 (demand:kr trig 0 vals)))]
+            val (demand:kr trig 0 vals)
+            poll (poll trig val "diwhite val:")
+            freq (+ 340 (* 30 val))]
         (* 0.1 (sin-osc freq))))
+
+
 
 
 ;; write demand sequence into a buffer
@@ -131,17 +135,3 @@
             write (mouse-button)]
         (demand:kr write 0 (dbufwr val b pos 1))
         (* 0.1 (sin-osc (duty:kr (* 0.2 (dseq [0.5 0.75 0.5 1] INF)) 0 (dbufrd b (dseries 0 1 INF)))))))
-
-;;dbrown
-(demo 10
-      (let [vals (dbrown 0 15 1 INF)
-            trig (impulse:kr (mouse-x 1 40 1))
-            freq (+ 340 (* 30 (demand:kr trig 0 vals)))]
-        (* 0.1 (sin-osc freq))))
-
-;;dibrown
-(demo 10
-      (let [vals (dibrown 0 15 1 INF)
-            trig (impulse:kr (mouse-x 1 40 1))
-            freq (+ 340 (* 30 (demand:kr trig 0 vals)))]
-        (* 0.1 (sin-osc freq))))
