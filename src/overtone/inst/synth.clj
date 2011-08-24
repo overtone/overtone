@@ -82,7 +82,7 @@
         src (clip2 (* 1.3 src) 0.8)
         sub (sin-osc (/ freq 2))
         filt (resonz (rlpf src (* 4.4 freq) 0.09) (* 2.0 freq) 2.9)]
-    (* env amp (fold (distort (* 1.3 (+ filt sub))) 0.08))))
+    (* env amp (fold:ar (distort (* 1.3 (+ filt sub))) 0.08))))
 
 (definst grunge-bass [note 48 amp 0.5 dur 0.1 a 0.01 d 0.01 s 0.4 r 0.01]
   (let [freq (midicps note)
