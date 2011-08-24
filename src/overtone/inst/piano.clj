@@ -19,21 +19,19 @@
                 stretch 0.1
                 sustain 0.1]
   (let [snd (apply mda-piano [:freq (midicps note)
-                        :gate gate
-                        :vel vel
-                        :decay decay
-                        :release release
-                        :hard hard
-                        :velhard velhard
-                        :muffle muffle
-                        :velmuff velmuff
-                        :velcurve velcurve
-                        :stereo stereo
-                        :tune tune
-                        :random random
-                        :stretch stretch
-                       :sustain sustain])]
+                              :gate gate
+                              :vel vel
+                              :decay decay
+                              :release release
+                              :hard hard
+                              :velhard velhard
+                              :muffle muffle
+                              :velmuff velmuff
+                              :velcurve velcurve
+                              :stereo stereo
+                              :tune tune
+                              :random random
+                              :stretch stretch
+                              :sustain sustain])]
     (detect-silence snd 0.005 :action FREE)
     (* 1 snd))) ;;TODO: figure out why this mul is required
-
-(definst foo [] (mda-piano))
