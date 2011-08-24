@@ -255,31 +255,6 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "friction", :default 0.01, :doc "proximity from which on attraction to surface starts"}]
        :doc "models the impacts of a bouncing object that is reflected by a vibrating surface"}
 
-      ;; from CheckBadValues.sc
-      ;;  CheckBadValues : UGen {
-      ;;  *ar {arg in = 0.0, id = 0, post = 2;
-      ;;    ^this.multiNew('audio', in, id, post);
-      ;;  }
-
-      ;;  *kr {arg in = 0.0, id = 0, post = 2;
-      ;;    ^this.multiNew('control', in, id, post);
-      ;;  }
-
-      ;;  checkInputs {
-      ;;      if ((rate==\audio) and:{ inputs.at(0).rate != \audio}) {
-      ;;        ^("audio-rate, yet first input is not audio-rate");
-      ;;      };
-      ;;      ^this.checkValidInputs
-      ;;    }
-      ;; }
-
-      {:name "CheckBadValues",
-       :args [{:name "in", :default 0.0, :doc "the UGen whose output is to be tested"}
-              {:name "id", :default 0.0, :doc "an id number to identify this UGen. The default is 0."}
-              {:name "post", :default 2.0, :doc "One of three post modes: 0 = no posting, 1 = post a line for every bad value, 2 = post a line only when the floating-point classification changes (e.g., normal -> NaN and vice versa)"}]
-       :check (when-ar (same-rate-as-first-input))
-       :doc "tests for infinity, NaN (not a number), and denormals. If one of these is found, it posts a warning. Its output is as follows: 0 = a normal float, 1 = NaN, 2 = infinity, and 3 = a denormal."}
-
       ;; from Gendyn.sc
       ;;       //GENDYN by Iannis Xenakis implemented for SC3 by
       ;; sicklincoln with some refinements
