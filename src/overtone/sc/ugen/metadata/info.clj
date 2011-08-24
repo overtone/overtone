@@ -1,4 +1,5 @@
-(ns overtone.sc.ugen.info)
+(ns overtone.sc.ugen.metadata.info
+  (:use [overtone.sc.ugen common constants]))
 
 (def specs
   [

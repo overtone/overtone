@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.pseudo
+(ns overtone.sc.ugen.metadata.pseudo
   (:use [overtone.sc.ugen common constants]))
 
 (comment def specs

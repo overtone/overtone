@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.chaos
+(ns overtone.sc.ugen.metadata.chaos
   (:use [overtone.sc.ugen common constants]))
 
 ;; /*

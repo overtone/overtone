@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.buf-io
+(ns overtone.sc.ugen.metadata.buf-io
   (:use [overtone.sc.ugen common constants]))
 
 (def specs
@@ -55,14 +55,14 @@
        :doc "writes to a buffer at a given index. Note, buf-wr (in difference to buf-rd) does not do multichannel expansion, because input is an array."}
 
       {:name "RecordBuf",
-       :args [{:name "inputArray", :mode :append-sequence}
-              {:name "bufnum", :default 0}
-              {:name "offset", :default 0.0}
-              {:name "recLevel", :default 1.0}
-              {:name "preLevel", :default 0.0}
-              {:name "run", :default 1.0}
-              {:name "loop", :default 1.0}
-              {:name "trigger", :default 1.0}
+       :args [{:name "inputArray", :mode :append-sequence :doc "an Array of input channels"}
+              {:name "bufnum", :default 0 :doc "the index of the buffer to use"}
+              {:name "offset", :default 0.0 :doc "an offset into the buffer in frames,"}
+              {:name "rec-level", :default 1.0 :doc "value to multiply by input before mixing with existing data."}
+              {:name "pre-level", :default 0.0 :doc "value to multiply to existing data in buffer before mixing with input"}
+              {:name "run", :default 1.0 :doc "If zero, then recording stops, otherwise recording proceeds."}
+              {:name "loop", :default 1.0 :doc "If zero then don't loop, otherwise do.  This is modulate-able. "}
+              {:name "trigger", :default 1.0 :doc "a trigger causes a jump to the offset position in the Buffer. A trigger occurs when a signal changes from <= 0 to > 0."}
               {:name "action", :default NO-ACTION}]
        :doc "record a stream of values into a buffer. If recLevel is 1.0 and preLevel is 0.0 then the new input overwrites the old data. If they are both 1.0 then the new data is added to the existing data. (Any other settings are also valid.) Note that the number of channels must be fixed for the SynthDef, it cannot vary depending on which buffer you use."}
 

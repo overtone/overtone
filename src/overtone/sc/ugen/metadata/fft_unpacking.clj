@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.fft-unpacking
+(ns overtone.sc.ugen.metadata.fft-unpacking
   (:use [overtone.sc.ugen common constants]))
 
 ;; /**

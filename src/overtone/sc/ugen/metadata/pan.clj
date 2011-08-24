@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.pan
+(ns overtone.sc.ugen.metadata.pan
   (:use [overtone.sc.ugen common constants]))
 
 ;; Panner : MultiOutUGen {

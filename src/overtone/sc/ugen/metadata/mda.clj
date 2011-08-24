@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.mda
+(ns overtone.sc.ugen.metadata.mda
   (:use [overtone.sc.ugen common constants]))
 
 ; NOTE: You will need to have the sc3 plugins installed for this ugen to be available.

@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.trig
+(ns overtone.sc.ugen.metadata.trig
   (:use [overtone.sc.ugen common constants]))
 
 ;;TODO:

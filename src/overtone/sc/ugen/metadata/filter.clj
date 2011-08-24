@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.filter
+(ns overtone.sc.ugen.metadata.filter
   (:use [overtone.sc.ugen common constants]))
 
 ;; Filter : UGen {

@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.control
+(ns overtone.sc.ugen.metadata.control
   (:use [overtone.sc.ugen common constants]))
 
 ;; The control ugens are created as part of the synthdef machinery and

@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.delay
+(ns overtone.sc.ugen.metadata.delay
   (:use [overtone.sc.ugen common constants]))
 
 (def specs

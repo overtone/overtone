@@ -358,7 +358,7 @@
   of maps containing ugen metadata."
   [namespaces]
   (reduce (fn [mem ns]
-            (let [full-ns (symbol (str "overtone.sc.ugen." ns))
+            (let [full-ns (symbol (str "overtone.sc.ugen.metadata." ns))
                   _ (require [full-ns :only '[specs specs-collide]])
                   specs (var-get (ns-resolve full-ns 'specs))]
 

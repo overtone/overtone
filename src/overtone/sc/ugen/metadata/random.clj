@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.random
+(ns overtone.sc.ugen.metadata.random
   (:use [overtone.sc.ugen common constants]))
 
 (def specs

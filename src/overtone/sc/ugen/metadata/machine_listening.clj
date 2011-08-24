@@ -1,4 +1,4 @@
-(ns overtone.sc.ugen.machine-listening
+(ns overtone.sc.ugen.metadata.machine-listening
   (:use [overtone.sc.ugen common constants]))
 
 (def specs
