@@ -5,7 +5,9 @@
   (:use
    [overtone event util deps]
    [overtone.sc.ugen.constants]
-   [overtone.sc core synth ugen buffer allocator]))
+   [overtone.sc core synth ugen buffer allocator])
+  (:import [java.io File]
+           [javax.swing JFrame JFileChooser]))
 
 ; Define a default wav player synth
 (defsynth mono-player
@@ -94,3 +96,20 @@
 
 (defmacro defsample [s-name path]
   `(def ~s-name (sample ~path)))
+
+;;;; simple sample manager
+(def *samples-root* (atom "."))
+
+(defn samples-seq
+  ([] (seq (.list (java.io.File. @*samples-root*))))
+  ([regex] (filter #(re-find (re-pattern regex) %) (samples-seq))))
+
+(defn samples-load [name]
+  (sample (str @*samples-root* name)))
+
+(defn samples-choose []
+  (sample
+   (.. (doto (JFileChooser. (File. @*samples-root*))
+        (.showOpenDialog (JFrame.)))
+      getSelectedFile
+      getCanonicalPath)))
