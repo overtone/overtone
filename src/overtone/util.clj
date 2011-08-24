@@ -322,7 +322,3 @@ Hello " (user-name) ", may this be the start of a beautiful music hacking sessio
    (consecutive-ints? [1 2 3 5 4]) ;=> false"
   [s]
   (apply = (map - (rest s) (seq s))))
-
-(defn log2 [x]
-  (/ (Math/log x)
-     (Math/log 2)))
