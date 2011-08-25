@@ -1,5 +1,6 @@
 (ns example.one-bar-sequencer
-  (:use overtone.live))
+  (:use [overtone.live]
+        [overtone.inst drum]))
 
 (def metro (metronome 128))
 
@@ -13,14 +14,14 @@
           2.5 [c-hat]
           3   [kick snare]
           3.5 [c-hat]})
-         
+
 ; For every tick of the metronome, we loop through all our beats
 ; and find the apropriate one my taking the metronome tick mod 4.
 ; Then we play all the instruments for that beat.
 
-(defn player 
+(defn player
   [tick]
-  (dorun    
+  (dorun
     (for [k (keys bar)]
       (let [beat (Math/floor k)
             offset (- k beat)]
@@ -28,4 +29,19 @@
                (let [instruments (bar k)]
                     (dorun
                       (for [instrument instruments]
-                         (at (metro (+ offset tick)) (instrument))))))))))
+                        (at (metro (+ offset tick)) (instrument))))))))))
+
+;; define a run fn which will call our player fn for each beat and will schedule
+;; itself to be called just before the next beat
+
+(defn run
+  [m]
+  (let [beat (m)]
+    (player beat)
+    (apply-at (m (inc beat))  #'run [m])))
+
+;; make beats!
+(run metro)
+
+;; stop
+(stop)
