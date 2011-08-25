@@ -10,7 +10,7 @@ more UGens then you can probably just copy a similar type of UGen to get a sense
 for how the meta-data works, and then look here for details. Let us know if you
 run into any problems.
 
-The ugen metadata can be found in the overtone.sc.ugen.* namespaces.
+The ugen metadata can be found in the overtone.sc.ugen.metadata.* namespaces.
 
 ## Intializing the base specs.
 
@@ -46,7 +46,7 @@ unqualified version.
 
 when a ugen function is called. The args and the expansion-spec are passed to
 the expand function.  Which then calls the ugen function potentially multiple
-times. 
+times.
 
 ### Check
 
@@ -73,7 +73,7 @@ thrown.
                     defaults followed by args without them
           :map   a map that the arg will be looked up in
                  if a value exists for key arg then that
-                 is used, else the arg is used 
+                 is used, else the arg is used
           :mode     optional symbol;
                     :not-expanded stops multi channel expansion on
                                   thearg
@@ -103,7 +103,7 @@ thrown.
 :num-outs optional, the number of fixed outputs, defaults to 1 if
           unspecified. It is unneeded if there is a :mode :num-outs
           or if a :num-outs is defined in a map returned from :init
-:init     optional, a function which must take the args [rate args spec] 
+:init     optional, a function which must take the args [rate args spec]
           it should return a sequence of the new modified args or a
           map with keys :args and :num-outs if they need to be manually
           determined
