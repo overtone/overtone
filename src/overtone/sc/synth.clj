@@ -11,7 +11,7 @@
     [at-at])
   (:use
     [overtone util event time-utils]
-    [overtone.sc.ugen defaults]
+    [overtone.sc.ugen defaults common specs sc-ugen]
     [overtone.sc core ugen synthdef node buffer]
     [clojure.contrib [def :only [name-with-attributes]]]
     [clojure.contrib.seq-utils :only (indexed)]))
