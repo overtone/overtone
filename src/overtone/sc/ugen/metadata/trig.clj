@@ -32,7 +32,7 @@
               {:name "dur", :default 0.1 :doc "delay time in seconds."}]
        :signal-range :unipolar
        :default-rate :kr
-       :check [same-rate-as-first-input]
+       :check [(same-rate-as-first-input)]
        :doc "delays an input trigger by dur, ignoring other triggers in the meantime"}
 
       {:name "SendTrig"
@@ -41,7 +41,7 @@
               {:name "value", :default 0.0 :doc "a UGen or float that will be polled at the time of trigger, and its value passed with the trigger message"}]
        :default-rate :kr
        :num-outs 0
-       :check [same-rate-as-first-input]
+       :check [(same-rate-as-first-input)]
        :doc "on receiving a trigger sends a :trigger event with id and value. This command is the mechanism that synths can use to trigger events in clients.
 
 The trigger message sent back to the client is this:
@@ -84,7 +84,7 @@ cmdName
       {:name "PulseCount"
        :args [{:name "trig", :default 0.0 :doc "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive."}
               {:name "reset", :default 0.0 :doc "resets the counter to zero when triggered."}]
-       :check [same-rate-as-first-input]
+       :check (same-rate-as-first-input)
        :default-rate :kr
        :doc "each input trigger increments a counter value that is output."}
 
@@ -110,7 +110,7 @@ One use of this is to have some precipitating event cause something to happen un
               {:name "max", :default 7 :doc "maximum value of the counter."}
               {:name "step", :default 1 :doc "step value each trigger. May be negative."}
               {:name "resetval" :default 1 :doc "value to which the counter is reset when it receives a reset trigger."}] ; TODO MAYBE? allow :default :min
-       :check [same-rate-as-first-input]
+       :check (same-rate-as-first-input)
        :default-rate :kr
        :doc "triggers increment a counter which is output as a signal. The counter loops around from max to min by step increments"}
 
@@ -129,12 +129,12 @@ One use of this is to have some precipitating event cause something to happen un
       {:name "ZeroCrossing"
        :args [{:name "in", :default 0.0 :doc "input signal"}]
        :default-rate :kr
-       :check [same-rate-as-first-input]
+       :check (same-rate-as-first-input)
        :doc "Outputs a frequency based upon the distance between interceptions of the X axis. The X intercepts are determined via linear interpolation so this gives better than just integer wavelength resolution. This is a very crude pitch follower, but can be useful in some situations."}
 
       {:name "Timer"
        :args [{:name "trig", :default 0.0 :doc "trigger input"}]
-       :check [same-rate-as-first-input]
+       :check (same-rate-as-first-input)
        :default-rate :kr
        :doc "outputs time since last trigger"}
 

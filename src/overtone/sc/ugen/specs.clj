@@ -106,12 +106,29 @@
 
 (defn- with-ugen-checker-fn
   "Calls the checker fn. If checker fn returns a string, throws an exception
-  using the string as a message. Otherwise returns ugen unchanged."
+  using the string as a message. Otherwise returns ugen unchanged. If the
+  checker fn is a list, it will assume it's a list of fns and will call all of
+  them. If any of the results are strings it will concatanate them to produce
+  a list of errors separated with AND."
   [spec fun ugen]
   (let [rate (:rate ugen)
         args (:args ugen)
         num-outs (:n-outputs ugen)
-        result (fun rate num-outs args spec)]
+
+        result (if (sequential? fun)
+                 (let [results (map #(% rate num-outs args spec) fun)]
+                   (if (some string? results)
+                     (reduce (fn [s el]
+                               (if (string? el)
+                                 (if (empty? s)
+                                   el
+                                   (str s " AND " el))
+                                 s))
+                             ""
+                             results)
+                     nil))
+                 (fun rate num-outs args spec))]
+
     (if (string? result)
       (throw (Exception. (str "Error in checker for ugen " (:name spec) ". " result)))
       ugen)))
