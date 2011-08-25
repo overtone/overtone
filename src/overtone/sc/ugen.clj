@@ -29,13 +29,6 @@
 (defn- inf? [obj]
   (:infinite-sequence (meta obj)))
 
-;; Does it really make sense to cycle over the values of a collection when
-;; doing expansion?  I don't think maps should be allowed as arguments, unless
-;; this is a strategy at having named arguments, but then the ordering wouldn't
-;; make sense.
-;;(defn- cycle-vals [coll]
-;;  (cycle (if (map? coll) (vals coll) coll)))
-
 (defn- expandable? [arg]
   (and (coll? arg)
        (not (map? arg))))
