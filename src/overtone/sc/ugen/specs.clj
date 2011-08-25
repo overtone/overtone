@@ -99,6 +99,23 @@
   metadata). Simply returns the args unchanged."
   [rate args spec] args)
 
+(defn- placebo-ugen-checker-fn
+  "The default ugen checker n (used if a :check key is not present in the ugen
+  metadata). Simply returns nil."
+  [rate num-outs args spec] nil)
+
+(defn- with-ugen-checker-fn
+  "Calls the checker fn. If checker fn returns a string, throws an exception
+  using the string as a message. Otherwise returns ugen unchanged."
+  [spec fun ugen]
+  (let [rate (:rate ugen)
+        args (:args ugen)
+        num-outs (:n-outputs ugen)
+        result (fun rate num-outs args spec)]
+    (if (string? result)
+      (throw (Exception. (str "Error in checker for ugen " (:name spec) ". " result)))
+      ugen)))
+
 (defn- check-arg-rates [spec ugen]
   (let [cur-rate (REVERSE-RATES (:rate ugen))
         ugen-args (filter sc-ugen? (:args ugen))]
@@ -254,17 +271,21 @@
   If an init function is already present it will get called after doing the
   mapping and mode transformations."
   [spec]
-  (let [defaulter    (partial add-default-args spec)
-        mapper       (partial map-ugen-args spec)
-        init-fn      (if (contains? spec :init)
-                       (:init spec)
-                       placebo-ugen-init-fn)
-        initer       (partial with-ugen-metadata-init spec init-fn)
-        n-outputer   (partial with-num-outs-mode spec)
-        floater      (partial with-floated-args spec)
-        appender     (partial append-seq-args spec)
-        auto-rater   (partial auto-rate-setter spec)
-        rate-checker (partial check-arg-rates spec)]
+  (let [defaulter       (partial add-default-args spec)
+        mapper          (partial map-ugen-args spec)
+        init-fn         (if (contains? spec :init)
+                          (:init spec)
+                          placebo-ugen-init-fn)
+        initer          (partial with-ugen-metadata-init spec init-fn)
+        n-outputer      (partial with-num-outs-mode spec)
+        floater         (partial with-floated-args spec)
+        appender        (partial append-seq-args spec)
+        auto-rater      (partial auto-rate-setter spec)
+        rate-checker    (partial check-arg-rates spec)
+        checker-fn      (if (contains? spec :check)
+                          (:check spec)
+                          placebo-ugen-checker-fn)
+        bespoke-checker (partial with-ugen-checker-fn spec checker-fn)]
 
     (assoc spec :init
 
@@ -279,7 +300,8 @@
                  bus->id
                  appender
                  auto-rater
-                 rate-checker)))))
+                 rate-checker
+                 bespoke-checker)))))
 
 (defn- with-fn-names
   "Generates all the function names for this ugen and adds a :fn-names map
