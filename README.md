@@ -25,6 +25,12 @@ possible
 
   http://vimeo.com/22798433
 
+### Cheat Sheet
+
+For a quick glance at all the functionality Overtone puts at your musical fingertips check out the cheat sheet:
+
+  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet-a4.pdf
+
 ### Project Info:
 
 #### Lein, Cake and Maven support
