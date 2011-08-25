@@ -40,7 +40,7 @@
     (player beat)
     (apply-at (m (inc beat))  #'run [m])))
 
-;; make beats!
+;; make beats! Edit bar whilst the beat is playing to make live changes.
 (run metro)
 
 ;; stop
