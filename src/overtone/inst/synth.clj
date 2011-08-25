@@ -71,7 +71,8 @@
     (* amp dist (line:kr 1 0 t))))
 
 (definst buzz [pitch 40 cutoff 300 dur 200]
-  (let [a (lpf (saw (midicps pitch)) (* (lf-noise1 :control 10) 400))
+  (let [lpf-lev (* (+ 1 (lf-noise1:kr 10)) 400)
+        a (lpf (saw (midicps pitch)) lpf-lev)
         b (sin-osc (midicps (- pitch 12)))
         env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
     (* env (+ a b))))
