@@ -91,6 +91,7 @@
   "Create a SCUGen with the specified spec, rate, special and args"
   ;;(check-ugen-args spec rate special args)
   (let [rate (or (get RATES rate) rate)
+        args (if args args [])
         ug (sc-ugen
             (next-id :ugen)
             (:name spec)
