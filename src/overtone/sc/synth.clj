@@ -197,7 +197,9 @@
   [params]
   (for [[p-name p-val] (partition 2 params)]
     (let [[p-val p-rate] (if (vector? p-val)
-                           p-val
+                           (do (when-not (= 2 (count p-val))
+                                 (throw (IllegalArgumentException. (str "When specifiying the rate of a control, you need to use a vector of two args - default and rate i.e. [0.2 :ar]. Got: " p-val))))
+                               p-val)
                            [p-val DEFAULT-RATE])]
       {:name  (str p-name)
        :default (float p-val)
