@@ -44,5 +44,3 @@
    "loop" "A boolean switch to turn on looping"
    "in" "The input signal"
    })
-
-(def DOC-WIDTH 45)

@@ -3,8 +3,9 @@
       :author "Sam Aaron"}
   overtone.doc-util
   (:use
-   [clojure.contrib.string :only (split replace-re replace-str)])
-)
+   [clojure.contrib.string :only (split replace-re replace-str)]))
+
+(def DOC-WIDTH 50)
 
 (defn length-of-longest-key
   "Returns the length of the longest key of map m. Assumes m's keys are strings
@@ -15,6 +16,12 @@
   [m]
   (or (last (sort (map #(.length %) (keys m))))
       0))
+
+(defn length-of-longest-string
+  "Returns the length of the longest string/symbol/keyword in list l"
+  [l]
+  (let [longest (last (sort-by #(.length (name %)) l))]
+    (.length (name longest))))
 
 (defn gen-padding
   "Generates a padding string starting concatting s with len times pad:
@@ -52,5 +59,4 @@
              (indented-str-block (str s (first ls) (gen-padding indent)) (rest ls) 0 max-len indent))
            (if (> (+ cur-len f-len) max-len)
              (indented-str-block (str s "\n" (gen-padding indent)) ls 0 max-len indent)
-             (indented-str-block (str s (first ls) " ") (rest ls) (+ cur-len f-len) max-len indent))
-           )))))
+             (indented-str-block (str s (first ls) " ") (rest ls) (+ cur-len f-len) max-len indent)))))))

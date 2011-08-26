@@ -2,13 +2,12 @@
     ^{:doc "Examples are stored cgens which serve as explorable documentation. Users may search and query the available examples whilst also being able to easily demo them to immediately hear what they do."
       :author "Sam Aaron"}
   overtone.sc.example
-
-  (:use [overtone.util]
+  (:use [overtone util doc-util]
         [overtone.sc ugen]
         [overtone.sc.ugen defaults doc]
         [overtone.sc.cgen]))
 
-(def examples* (atom {}))
+(defonce examples* (atom {}))
 
 (defn parse-example-form
   "Parse example form - pull out elements of form and return as list. Reads body-str to convert
@@ -113,32 +112,53 @@
         gen-name (resolve-gen-name gen)]
     (get-in examples [gen-name key])))
 
-(defn- print-examples
-  ([examples] (print-examples examples ""))
-  ([examples indent]
-     (if (empty? examples)
+(defn- print-gen-examples
+  ([gen-examples] (print-gen-examples gen-examples "" 0))
+  ([gen-examples indent-str desc-indent-len]
+     (if (empty? gen-examples)
        (println "Sorry, no examples for this generator have been contributed.\n Please consider submitting one.")
        (dorun
-        (for [key (keys examples)]
-          (println (str indent key " (" (:rate (get examples key)) ")  - " (:summary (get examples key)))))))))
+        (for [orig-key (keys gen-examples)]
+          (let [key             (str indent-str orig-key)
+                key-len         (.length key)
+                desc-indent-len (+ desc-indent-len (.length indent-str))
+                key             (if (< key-len desc-indent-len)
+                                  (gen-padding key (- desc-indent-len key-len) " ")
+                                  key)
+                full-key        (str key " (" (:rate (get gen-examples orig-key)) ") - ")
+                full-key-len    (.length full-key)
+                indented-desc   (indented-str-block (:summary (get gen-examples orig-key)) DOC-WIDTH full-key-len)]
+            (println (str full-key indented-desc))))))))
+
+(defn- longest-example-key
+  [examples]
+  (let [example-keys (flatten (map (fn [[k v]] (keys v)) examples))]
+    (length-of-longest-string example-keys)))
+
+(defn- longest-gen-example-key
+  [gen-examples]
+  (let [example-keys (keys gen-examples)]
+    (length-of-longest-string example-keys)))
 
 (defn examples
   "Print out examples for a specific gen. If passed a gen and a key will list
   the full example documentation. If passed no arguments will list out all
   available examples"
   ([]
-     (let [all-examples @examples*]
+     (let [all-examples    @examples*
+           longest-key-len (inc (longest-example-key all-examples))]
        (dorun
         (for [[gen-name examples] all-examples]
           (do
             (println (name gen-name))
-            (print-examples examples "  ")
+            (print-gen-examples examples "  " longest-key-len)
             (println ""))))))
   ([gen]
      (let [all-examples @examples*
            gen-name (resolve-gen-name gen)
-           examples (get all-examples gen-name)]
-       (print-examples examples)))
+           examples (get all-examples gen-name)
+           longest-key-len (inc (longest-gen-example-key examples))]
+       (print-gen-examples examples "" longest-key-len)))
   ([gen key]
      (let [examples @examples*
            gen-name (resolve-gen-name gen)

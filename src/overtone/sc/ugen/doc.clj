@@ -40,7 +40,7 @@
                            name
                            (gen-padding (inc (- arg-max-key-len (.length name))) " ")
                            "- "
-                           (indented-str-block docs 50 indentation)
+                           (indented-str-block docs DOC-WIDTH indentation)
                            "\n"))
                     doc-map))))
 
