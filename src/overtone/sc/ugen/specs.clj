@@ -76,7 +76,7 @@
 (defn- auto-rate-setter [spec ugen]
   (if (= :auto (:rate ugen))
     (let [arg-rates (ugen-arg-rates ugen)
-          fastest-rate (first (reverse (sort-by RATES arg-rates)))
+          fastest-rate (first (reverse (sort-by UGEN-RATE-SPEED arg-rates)))
           new-rate (get RATES (or fastest-rate :ir))]
       (assoc ugen :rate new-rate :rate-name (REVERSE-RATES new-rate)))
     ugen))
@@ -138,8 +138,8 @@
         ugen-args (filter sc-ugen? (:args ugen))]
     (when-let [bad-input (some
                         (fn [ug]
-                          (if (< (RATES cur-rate)
-                                 (RATES (get REVERSE-RATES (:rate ug))))
+                          (if (< (UGEN-RATE-SPEED cur-rate)
+                                 (UGEN-RATE-SPEED (get REVERSE-RATES (:rate ug))))
                             ug false))
                         ugen-args)]
       ;;special cases

@@ -14,6 +14,11 @@
             :dr 3
             :auto :auto})
 
+(def UGEN-RATE-SPEED {:ir 0
+                      :dr 1
+                      :kr 2
+                      :ar 3})
+
 (def REVERSE-RATES (invert-map RATES))
 
 (def HUMAN-RATES {:ir "initial"
