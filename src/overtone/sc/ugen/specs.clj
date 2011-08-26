@@ -213,6 +213,7 @@
       (assoc ugen :n-outputs (count (flatten [(first n-outs-arg)])))
       ugen)))
 
+;;TODO check to see if this can be removed. Args can not take keywords as vals
 (defn- map-ugen-args
   "Perform argument mappings for ugen args that take a keyword but need to be
   looked up in a map supplied in the spec. (e.g. envelope actions)"
@@ -279,6 +280,13 @@
                   (assoc arg :expands? expands?)))
               (:args spec))))
 
+(defn- nil-arg-checker
+  [ugen]
+  (let [args (:args ugen)]
+    (when (some nil? args)
+      (throw (IllegalArgumentException. (str "Error - attempted to call the " (:name ugen) " ugen with one or more nil arguments. This usually happens when the ugen contains arguments without defaults which haven't been explicitly called. Got " (vec args))))))
+  ugen)
+
 (defn- with-init-fn
   "Creates the final argument initialization function which is applied to
   arguments at runtime to do things like re-ordering and automatic filling in
@@ -317,6 +325,7 @@
                  bus->id
                  appender
                  auto-rater
+                 nil-arg-checker
                  rate-checker
                  bespoke-checker)))))
 
