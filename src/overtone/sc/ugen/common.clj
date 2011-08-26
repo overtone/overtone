@@ -13,7 +13,7 @@
 ;; checks
 
 (defn rate-of [obj]
-  (:rate obj))
+  (:rate-name obj))
 
 (defn rate-of? [obj rate]
   (= (rate-of obj) rate))
@@ -45,15 +45,15 @@
   (= (rate-of (first inputs)) rate))
 
 (defcheck first-input-ar []
-  "the first input must be audio rate"
+  (str "The first input must be audio rate. Got " (:rate-name (first inputs)))
   (ar? (first inputs)))
 
 (defcheck all-inputs-ar []
-  "all inputs must be audio rate"
+  (str "All inputs must be audio rate. Got " (vec (map :rate-name inputs)))
   (every? ar? inputs))
 
 (defcheck first-n-inputs-ar [n]
-  (str "the first " n " inputs must be audio rate")
+  (str "The first " n " inputs must be audio rate. Got " (vec (map :rate-name (take n inputs))))
   (every? ar? (take n inputs)))
 
 (defcheck after-n-inputs-rest-ar [n]
