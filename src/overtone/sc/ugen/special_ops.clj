@@ -1,9 +1,10 @@
 (ns overtone.sc.ugen.special-ops)
 
 (def UNARY-OPS
-  {"neg" 0          ; inversion
-   "abs" 5          ; absolute value
-   "asFloat" 6
+  {"neg" 0         ; inversion
+   "abs" 5         ; absolute value
+   ;;"asFloat" 6   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"asInt"   7   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    "ceil" 8        ; next higher integer
    "floor" 9       ; next lower integer
    "frac" 10       ; fractional part
