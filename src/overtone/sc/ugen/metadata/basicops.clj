@@ -6,17 +6,16 @@
 (def specs
   [
    {:name "UnaryOpUGen",
-    :args [{:name "a" :doc "Single input"}],
-    :rates #{:auto}
+    :args [{:name "a" :doc "input"}],
+    :rates #{:dr :ir :ar :kr}
     :default-rate :auto
     :categories [["Unary Operations"]]
-    :doc "Multi-function ugen representing many operations (e.g. neg, abs, floor, sqrt, midicps, etc...)"}
+    :doc "Multi-function unary ugen representing many operations (e.g. neg, abs, floor, sqrt, midicps, etc...)"}
 
    {:name "BinaryOpUGen",
     :args [{:name "a" :doc "First input"}
            {:name "b" :doc "Second input"}],
     :rates #{:dr :ir :ar :kr}
     :default-rate :auto
-
-    :doc "Multi-function ugen representing many operations (e.g. +, *, <, min, max, etc...)"}
+    :doc "Multi-function binary ugen representing many operations (e.g. +, *, <, min, max, etc...)"}
    ])
