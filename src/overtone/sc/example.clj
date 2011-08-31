@@ -145,7 +145,10 @@
 (defn examples
   "Print out examples for a specific gen. If passed a gen and a key will list
   the full example documentation. If passed no arguments will list out all
-  available examples"
+  available examples.
+  (examples)          ;=> print out all examples
+  (examples foo)      ;=> print out examples for gen foo
+  (examples foo :bar) ;=> print out doc for example :bar for gen foo"
   ([]
      (let [all-examples    @examples*
            longest-key-len (inc (longest-example-key all-examples))]
