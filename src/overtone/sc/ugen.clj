@@ -5,10 +5,12 @@
   (:use
    [overtone util]
    [overtone.sc.ugen sc-ugen defaults specs special-ops]
-   [clojure.contrib.generic :only (root-type)])
+   [clojure.contrib.generic :only (root-type)]
+   [overtone.sc.ugen.metadata unaryopugen binaryopugen])
   (:require [clojure.contrib.generic.arithmetic :as ga]
             [clojure.contrib.generic.comparison :as gc]
-            [clojure.contrib.generic.math-functions :as gm]))
+            [clojure.contrib.generic.math-functions :as gm]
+            [overtone.sc.ugen.doc :as doc]))
 
 (defn- op-rate
   "Lookup the rate of an input ugen, otherwise use IR because the operand
@@ -114,22 +116,27 @@
   (fn [& args]
     (ugen spec rate special args)))
 
+(defn- make-ugen
+  "Create a callable map representing a ugen."
+  [spec rate ugen-fn]
+  (callable-map {:name       (overtone-ugen-name (:name spec))
+                 :summary    (:summary spec)
+                 :doc        (:doc spec)
+                 :full-doc   (:full-doc spec)
+                 :categories (:categories spec)
+                 :rate       rate
+                 :src        "Implemented in C code"
+                 :type       ::ugen
+                 :params     (:args spec)}
+                ugen-fn))
+
 (defn- make-ugen-fn
-  "Returns a function representing the given ugen that will fill in default
+  "Make a function representing the given ugen that will fill in default
   arguments, rates, etc."
   [spec rate special]
-  (let [expand-flags (map #(:expands? %) (:args spec))
-        ugen-fn (make-expanding (ugen-base-fn spec rate special) expand-flags)]
-    (callable-map {:name       (overtone-ugen-name (:name spec))
-                   :summary    (:summary spec)
-                   :doc        (:doc spec)
-                   :full-doc   (:full-doc spec)
-                   :categories (:categories spec)
-                   :rate       rate
-                   :src        "Implemented in C code"
-                   :type       ::ugen
-                   :params     (:args spec)}
-                  ugen-fn)))
+  (let [expand-flags (map #(:expands? %) (:args spec))]
+    (make-expanding
+     (ugen-base-fn spec rate special) expand-flags)))
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
@@ -197,34 +204,61 @@
                   :arglists (list (vec (map #(symbol (:name %))
                                             (:args spec))))}
         ugen-fns (map (fn [[uname rate]] [(with-meta (symbol uname) metadata)
-                                         (make-ugen-fn spec rate special)])
+                                         (make-ugen
+                                          spec
+                                          rate
+                                          (make-ugen-fn spec rate special))])
                       (:fn-names spec))]
     (doseq [[ugen-name ugen-fn] ugen-fns]
       (intern to-ns ugen-name ugen-fn))))
 
 (defn- def-unary-op
+  "def a unary op ugen (this is handled separately due to the fact that the
+  unaryopugen represents multiple functionality represented by multple fns
+  in overtone)."
   [to-ns op-name special]
-  (let [spec (get UGEN-SPECS "unaryopugen")
+  (let [orig-spec (get UGEN-SPECS "unaryopugen")
+        doc-spec  (get unaryopugen-docspecs op-name {})
+        full-spec (merge orig-spec doc-spec {:name op-name
+                                             :categories [["Unary Operations"]]})
+        full-spec (doc/with-full-doc full-spec)
+        metadata  {:doc (:full-doc full-spec)
+                   :arglists (list (vec (map #(symbol (:name %))
+                                             (:args full-spec))))}
         ugen-name (symbol (overtone-ugen-name op-name))
-        ugen-name (with-meta ugen-name {:doc (:full-doc spec)})
-        ugen-fn (fn [arg]
-                  (ugen spec (op-rate arg) special (list arg)))
-        ugen-fn (make-expanding ugen-fn [true])]
+        ugen-name (with-meta ugen-name metadata)
+        ugen-fn   (fn [arg]
+                    (ugen orig-spec (op-rate arg) special (list arg)))
+        ugen-fn   (make-expanding ugen-fn [true])
+        ugen      (make-ugen full-spec :auto ugen-fn)]
+
     (if (ns-resolve to-ns ugen-name)
-      (overload-ugen-op to-ns ugen-name ugen-fn)
-      (intern to-ns ugen-name ugen-fn))))
+      (overload-ugen-op to-ns ugen-name ugen)
+      (intern to-ns ugen-name ugen))))
 
 (defn- def-binary-op
+  "def a binary op ugen (this is handled separately due to the fact that the
+  binaryopugen represents multiple functionality represented by multple fns
+  in overtone)."
   [to-ns op-name special]
-  (let [spec (get UGEN-SPECS "binaryopugen")
+  (let [
+        orig-spec (get UGEN-SPECS "binaryopugen")
+        doc-spec  (get binaryopugen-docspecs op-name {})
+        full-spec (merge orig-spec doc-spec {:name op-name
+                                             :categories [["Binary Operations"]]})
+        full-spec (doc/with-full-doc full-spec)
+        metadata  {:doc (:full-doc full-spec)
+                   :arglists (list (vec (map #(symbol (:name %))
+                                             (:args full-spec))))}
         ugen-name (symbol (overtone-ugen-name op-name))
-        ugen-name (with-meta ugen-name {:doc (:full-doc spec)})
-        ugen-fn (fn [a b]
-                  (ugen spec (max (op-rate a) (op-rate b)) special (list a b)))
-        ugen-fn (make-expanding ugen-fn [true true])]
+        ugen-name (with-meta ugen-name metadata)
+        ugen-fn   (fn [a b]
+                    (ugen orig-spec (max (op-rate a) (op-rate b)) special (list a b)))
+        ugen-fn   (make-expanding ugen-fn [true true])
+        ugen (make-ugen full-spec :auto ugen-fn )]
     (if (ns-resolve to-ns ugen-name)
-      (overload-ugen-op to-ns ugen-name ugen-fn)
-      (intern to-ns ugen-name ugen-fn))))
+      (overload-ugen-op to-ns ugen-name ugen)
+      (intern to-ns ugen-name ugen))))
 
 ;; We define this uniquely because it has to be smart about its rate.
 ;; TODO: I think this should probably be handled by one of the ugen modes
