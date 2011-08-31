@@ -12,7 +12,7 @@
   "Returns a string representing the arguments of the ugen spec"
   [spec]
   (let [args (:args spec)
-        name-vals (map #(str (:name %) " " (:default %)) args)
+        name-vals (map #(str (:name %) " " (get % :default ":none")) args)
         line (apply str (interpose ", " name-vals))]
     (str "  [" line "]")))
 
