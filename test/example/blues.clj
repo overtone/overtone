@@ -10,7 +10,7 @@
 
 (def ps (atom []))
 
-(defn play [instr pitch-classes]
+(defn play-blues [instr pitch-classes]
   (doseq [pitch pitch-classes]
     (swap! ps conj pitch)
     (instr pitch)))
@@ -36,7 +36,7 @@
           (when (= 2 count)
             (kick))
 
-          (play instr pitch))
+          (play-blues instr pitch))
       (at (+ time (* 0.5 dur))
           (c-hat 0.1))
       (apply-at n-time #'play-seq
@@ -63,7 +63,7 @@
 
 (defn progression [chord-seq key-note octave scale]
   (for [[roman-numeral chord-type] (partition 2 chord-seq)]
-    (chord (+ (resolve-note (str (name key-note) octave))
+    (chord (+ (note (str (name key-note) octave))
               (degree->interval roman-numeral scale))
            chord-type)))
 
@@ -92,4 +92,6 @@
             (now)
             0.5))
 
-;(blue-ks1)
+;;(blue-ks1)
+;;(blue-ks1-demo)
+;;(stop)
