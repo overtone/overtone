@@ -84,11 +84,11 @@
 
 (defn- resolve-gen-name
   "If the gen is a cgen or ugen returns the :name otherwise returns name
-   unchanged"
+   unchanged assuming it's a keyword."
   [gen]
   (if (and (associative? gen)
-                          (or (= :overtone.sc.ugen/ugen (:type gen))
-                              (= :overtone.sc.cgen/cgen (:type gen))))
+           (or (= :overtone.sc.ugen/ugen (:type gen))
+               (= :overtone.sc.cgen/cgen (:type gen))))
     (keyword (:name gen))
     gen))
 
@@ -138,7 +138,9 @@
 (defn- longest-gen-example-key
   [gen-examples]
   (let [example-keys (keys gen-examples)]
-    (length-of-longest-string example-keys)))
+    (if example-keys
+      (length-of-longest-string example-keys)
+      0)))
 
 (defn examples
   "Print out examples for a specific gen. If passed a gen and a key will list
@@ -163,4 +165,6 @@
      (let [examples @examples*
            gen-name (resolve-gen-name gen)
            example (get-in examples [gen-name key])]
-       (println (:full-doc example)))))
+       (if example
+         (println (:full-doc example))
+         (println "Sorry, no example could be found for the" (name gen-name) "gen with key" key)))))
