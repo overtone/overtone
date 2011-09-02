@@ -34,19 +34,20 @@
    "sinh" 34       ; hyperbolic sine
    "cosh" 35       ; hyperbolic cosine
    "tanh" 36       ; hyperbolic tangent
-   "rand2" 38
-   "linrand" 39
-   "bilinrand" 40
-   "sum3rand" 41
+   ;;"rand2" 38    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"linrand" 39  ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"bilinrand" 40; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"sum3rand" 41 ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    "distort" 42    ; distortion
    "softclip" 43   ; distortion
-   "coin" 44
+   ;;"coin" 44     ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    "rectWindow" 48
    "hanWindow" 49
    "welWindow" 50
    "triWindow" 51
-   "ramp" 52
-   "scurve" 53})
+   ;;"ramp" 52     ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"scurve" 53   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   })
 
 ; The ops that collide with clojure built-ins.
 (def UNARY-OPS-COLLIDE

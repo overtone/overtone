@@ -98,7 +98,7 @@ i.e. 1 -> 32.7031 -4 -> 1.02197"}
 
    "cpsoct" {:args [{:name "cps" :doc "Cycles per second"}]
              :summary "Convert cycles per second to decimal octaves"
-             :doc "Outps the number of decimal octaves represented by cps
+             :doc "Outputs the number of decimal octaves represented by cps
 
 i.e. 32.7031 -> 0.99999 and 500 -> 4.93442"}
 
@@ -122,4 +122,72 @@ i.e. 10 -> 1 and 200 -> 2.30103"}
 
 i.e. 1.5707986 -> 1 and 3.14159265 -> ~0"}
 
-   })
+   "cos" {:summary "Cosine function"
+          :doc "Outputs the cosine of input a
+
+i.e. 0 -> 1 and 3.14159265 -> -1"}
+
+   "tan" {:summary "Tangent function"
+          :doc "Outputs the tangent of input a
+
+i.e. 0 -> 0 and 1.570 -> 1255.85"}
+
+   "asin" {:summary "Arcsine function"
+           :doc "Outputs the arcsine of input a
+
+i.e. 1 -> 1.5708 and 3.14159265 -> nan"}
+
+   "acos" {:summary "Arccosine function"
+           :doc "Outputs the arccosine of input a
+
+i.e. 1 -> 0 and 3.14159265 -> nan"}
+
+   "atan" {:summary "Arctangent function"
+           :doc "Outputs the arctangent of input a
+
+i.e. 0 -> 0 and 1 -> 0.785398"}
+
+   "sinh" {:summary "Hyperbolic sine function"
+           :doc "Outputs the hyperbolic sine of input a
+
+i.e. 0 -> 0 and 1 -> 1.1752"}
+
+   "cosh" {:summary "Hyperbolic cosine function"
+           :doc "Outputs the hyperbolic cosine of input a
+
+i.e. 0 -> 1 and 1 -> 1.54308"}
+
+   "tanh" {:summary "Hyperbolic tangent function"
+           :doc "Outputs the hyperbolic tangent of input a
+
+i.e. 0 -> 0 and 1 -> 0.761594"}
+
+   "distort" {:summary "Nonlinear distortion"
+              :doc "Maps input a to a value between 0 and 1 if a is positive and between 0 and -1 if a is negative. Slope of mapping is initially steep, then the gradient reduces as it tends towards 1. Negative part is a mirror image. Always returns a value between -1 and 1. See softclip if you require a linear region.
+
+i.e. 0 -> 0, 1 -> 0.5, 10 -> 0.909091, 1000 -> 0.999001 and -1 -> 0.5"}
+
+   "softclip" {:summary "Nonlinear distortion with linear region"
+               :doc "Maps input a to a value between 0 and 1 if a is positive and between 0 and -1 if a is negative. Gradient of mapping is linear between -0.5 and 0.5 and then gradually reduces as it tends towards 1. Negative part is a mirror image. Always returns a value between -1 and 1.
+
+i.e. 0 -> 0, 0.2 -> 0.2, 0.5 -> 0.5, 0.75 -> 0.666667, 10 -> 0.975 and 1000 -> 0.99975"}
+
+   "rect-window" {:summary "Rectangular window function"
+                  :doc "Maps input a onto a rectangular window which spans between 0 and 1 with height 1. If the input signal is between 0 and 1 inclusive, the output will be 1, otherwise the output will be 0. Always returns either 0 or 1.
+
+i.e. -0.1 -> 0, 0 -> 1, 0.5 -> 1, 0.99 -> 1, 1 -> 1, 1.01 -> 0 and 2000 -> 0"}
+
+   "han-window" {:summary "Hanning window function"
+                 :doc "Maps input a onto a hanning window which spans between 0 and 1 with a peak at 0.5. Any input between 0 and 1 is mapped to the corresponding val in hanning window (looks like a sharp tooth - gradient quickly increases and then decreases to the top of the tooth). All other input vals map to 0. Always returns a value between 0 and 1.
+
+i.e. 0.1 -> 0.0954915, 0.3 -> 0.654509, 0.5 -> 1, 0.7 -> 0.654509 and 0.9 -> 0.0954915"}
+
+   "wel-window" {:summary "Welch window function"
+                 :doc "Maps input a onto a welch window which spans between 0 and 1 with a peak at 0.5. Any input between 0 and 1 is mapped to the corresponding val in welch window (looks like a rhino horn - gradient starts off high and gradually degreases to the top of the horn). All other input vals map to 0. Always returns a value between 0 and 1.
+
+i.e. 0.1 -> 0.309017, 0.3 -> 0.809017, 0.5 -> 1, 0.7 -> 0.809017 and 0.9 -> 0.309017"}
+
+   "tri-window" {:summary "Triangle window function"
+                 :doc "MAps input a onto a triangle window which spance between 0 and 1 with a peak at 0.5. Any input between 0 and 1 is mapped to the corresponding val in the triangle window. All other input vals map to 0. Always returns a value between 0 and 1."}
+
+})
