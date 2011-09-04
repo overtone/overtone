@@ -263,16 +263,14 @@
 ;; We define this uniquely because it has to be smart about its rate.
 ;; TODO: I think this should probably be handled by one of the ugen modes
 ;; that is currently not yet implemented...
-(def mul-add
-  (make-expanding
-   (fn [in mul add]
-     (ugen {:name "MulAdd",
-            :args [{:name "in"}
-                   {:name "mul", :default 1.0}
-                   {:name "add", :default 0.0}]
-            :doc "Multiply and add, equivalent to (+ add (* mul in))"}
-           (op-rate in) 0 (list in mul add)))
-   [true true true]))
+(def mul-add-ugen
+  (fn [in mul add]
+    (ugen {:name "MulAdd",
+           :args [{:name "in"}
+                  {:name "mul", :default 1.0}
+                  {:name "add", :default 0.0}]
+           :doc "Multiply and add, equivalent to (+ add (* mul in))"}
+          (op-rate in) 0 (list in mul add))))
 
 (derive :overtone.sc.ugen.sc-ugen/sc-ugen root-type)
 
@@ -364,39 +362,38 @@
 (defn intern-ugens
   "Iterate over all UGen meta-data, generate the corresponding functions and
   intern them in the current or otherwise specified namespace."
-  [& [to-ns]]
-  (let [to-ns (or to-ns *ns*)]
-    (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %))
-                                   (= "BinaryOpUGen" (:name %))))
-                         (vals UGEN-SPECS))]
-      (def-ugen to-ns ugen 0))
-    (doseq [[op-name special] UNARY-OPS]
-      (def-unary-op to-ns op-name special))
-    (doseq [[op-name special] BINARY-OPS]
-      (def-binary-op to-ns op-name special))
-    ;;(intern to-ns 'mul-add (make-expanding mul-add [true true true]))
-    ;;(refer 'overtone.sc.ugen.extra)
-    ))
+  ([] (intern-ugens *ns*))
+  ([to-ns]
+     (doseq [ugen (filter #(not (or (= "UnaryOpUGen" (:name %))
+                                    (= "BinaryOpUGen" (:name %))))
+                          (vals UGEN-SPECS))]
+       (def-ugen to-ns ugen 0))
+     (doseq [[op-name special] UNARY-OPS]
+       (def-unary-op to-ns op-name special))
+     (doseq [[op-name special] BINARY-OPS]
+       (def-binary-op to-ns op-name special))
+     (intern to-ns 'mul-add (make-expanding mul-add-ugen [true true true]))))
 
 (defn intern-ugens-collide
-  "Intern the ugens that collide with built-in clojure functions."
-  [& [to-ns]]
-  (let [to-ns (or to-ns *ns*)]
-    (doseq [[op kind] generics]
-      (let [func (var-get (resolve (symbol (str "clojure.contrib.generic." (to-str kind)) op)))]
-        (ns-unmap to-ns (symbol op))
-        (intern to-ns (symbol op) (make-expanding func [true true]))))
+  "Intern the ugens that collide with built-in clojure functions to the current
+  or otherwise specified namespace"
+  ([] (intern-ugens-collide *ns*))
+  ([to-ns]
+     (doseq [[op kind] generics]
+       (let [func (var-get (resolve (symbol (str "clojure.contrib.generic." (to-str kind)) op)))]
+         (ns-unmap to-ns (symbol op))
+         (intern to-ns (symbol op) (make-expanding func [true true]))))
 
-    ;; intern div-meth so we can access the division operator since / is special cased
-    (intern to-ns 'div-meth
-            (make-expanding (var-get (resolve
-                                      (symbol "clojure.contrib.generic.arithmetic" "/")))
-                            [true true]))
+     ;; intern div-meth so we can access the division operator since / is special cased
+     (intern to-ns 'div-meth
+             (make-expanding (var-get (resolve
+                                       (symbol "clojure.contrib.generic.arithmetic" "/")))
+                             [true true]))
 
-    (doseq [[op-name special] UNARY-OPS-COLLIDE]
-      (def-unary-op to-ns op-name special))
-    (doseq [[op-name special] BINARY-OPS-COLLIDE]
-      (def-binary-op to-ns op-name special))))
+     (doseq [[op-name special] UNARY-OPS-COLLIDE]
+       (def-unary-op to-ns op-name special))
+     (doseq [[op-name special] BINARY-OPS-COLLIDE]
+       (def-binary-op to-ns op-name special))))
 
 
 ;; We refer all the ugen functions here so they can be access by other parts
