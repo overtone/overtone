@@ -21,6 +21,8 @@
    [osc.decode :only [osc-decode-packet]]
    osc))
 
+(def OVERTONE-VERSION 0.3)
+
 (defonce server*        (ref nil))
 (defonce server-thread* (ref nil))
 (defonce server-log*    (ref []))
