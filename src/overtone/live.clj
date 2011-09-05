@@ -1,7 +1,7 @@
 (ns overtone.live
   (:use overtone.ns)
   (:require clojure.stacktrace
-            midi osc byte-spec
+            midi overtone.osc byte-spec
             [overtone config time-utils log]
             [overtone.helpers chance scaling]
             [overtone.sc.ugen.constants]
@@ -14,7 +14,7 @@
             [overtone.viz scope]))
 
 (immigrate
-  'osc
+  'overtone.osc
   'midi
   'overtone.sc.ugen.constants
   'overtone.log

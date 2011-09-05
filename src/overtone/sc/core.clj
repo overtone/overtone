@@ -18,8 +18,8 @@
    [clojure.contrib.java-utils :only [file]]
    [clojure.contrib pprint]
    [clojure.contrib shell-out]
-   [osc.decode :only [osc-decode-packet]]
-   osc))
+   [overtone.osc.decode :only [osc-decode-packet]]
+   [overtone.osc]))
 
 (def OVERTONE-VERSION 0.3)
 

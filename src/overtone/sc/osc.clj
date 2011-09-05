@@ -6,7 +6,7 @@
       :author "Sam Aaron"}
   overtone.sc.osc
   (:require [overtone.log :as log])
-  (:use osc))
+  (:use overtone.osc))
 
 (def TYPES
   {
