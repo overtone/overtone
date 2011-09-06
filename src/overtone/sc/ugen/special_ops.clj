@@ -2,6 +2,7 @@
 
 (def UNARY-OPS
   {"neg" 0         ; inversion
+   ;;"bitNot" 4    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    "abs" 5         ; absolute value
    ;;"asFloat" 6   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"asInt"   7   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
@@ -34,6 +35,7 @@
    "sinh" 34       ; hyperbolic sine
    "cosh" 35       ; hyperbolic cosine
    "tanh" 36       ; hyperbolic tangent
+   ;;"rand" 37     ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"rand2" 38    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"linrand" 39  ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"bilinrand" 40; Defined in UnaryOpUGens.cpp enum but not implemented on the server
@@ -49,14 +51,7 @@
    ;;"scurve" 53   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    })
 
-; The ops that collide with clojure built-ins.
-(def UNARY-OPS-COLLIDE
-  {"bitNot" 4       ; reciprocal
-   "rand" 37})
-
-(def UNARY-OPS-FULL (merge UNARY-OPS UNARY-OPS-COLLIDE))
-
-(def REVERSE-UNARY-OPS (zipmap (vals UNARY-OPS-FULL) (keys UNARY-OPS-FULL)))
+(def REVERSE-UNARY-OPS (zipmap (vals UNARY-OPS) (keys UNARY-OPS)))
 
 ; Commented out ops are implemented with generics instead of generated
 ; see sc/ops.clj

@@ -389,8 +389,6 @@
                                        (symbol "clojure.contrib.generic.arithmetic" "/")))
                              [true true]))
 
-     (doseq [[op-name special] UNARY-OPS-COLLIDE]
-       (def-unary-op to-ns op-name special))
      (doseq [[op-name special] BINARY-OPS-COLLIDE]
        (def-binary-op to-ns op-name special))))
 
