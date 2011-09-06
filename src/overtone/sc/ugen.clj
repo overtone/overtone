@@ -232,7 +232,7 @@
         ugen      (make-ugen full-spec :auto ugen-fn)]
 
     (if (ns-resolve to-ns ugen-name)
-      (overload-ugen-op to-ns ugen-name ugen)
+      (throw (Exception. (str "Attempted to define a unary op with the same name as a function which already exists: " op-name)))
       (intern to-ns ugen-name ugen))))
 
 (defn- def-binary-op
@@ -410,9 +410,9 @@
          ~'>= overtone.ugen-collide/>=
          ~'<= overtone.ugen-collide/<=
 ;;TODO addme when available in gc  ~'!= overtone.ugen-collide/!=
-         ~'rand overtone.ugen-collide/rand
          ~'mod overtone.ugen-collide/mod
-         ~'bit-not overtone.ugen-collide/bit-not]
+         ~'min overtone.ugen-collide/min
+         ~'max overtone.ugen-collide/max]
      ~@body))
 
 (defn mix

@@ -35,7 +35,6 @@
 	 "latch"           [["Triggers"]]
 	 "delay-n"         [["Delays"]]
 	 "info-u-gen-base" [["Info"]]
-	 "rand"            [["Generators" "Stochastic"] ["Generators" "Single-value"]]
 	 "dyn-klang"       [["Generators" "Deterministic"]]
 	 "pulse-divider"   [["Triggers"]]
 	 "dwhite"          [["Demand"]]

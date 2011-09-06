@@ -1,4 +1,8 @@
-(ns overtone.sc.ugen.special-ops)
+(ns
+    ^{:doc "Metadata regarding the various functionalities of the unary and binary ugens. These ugens are different to typical ugens in that they receive an 'opcode' as a parameter which defines its behviour - ranging from addition to trig functions to midi->cps conversion."
+      :author "Jeff Rose & Sam Aaron"}
+
+  overtone.sc.ugen.special-ops)
 
 (def UNARY-OPS
   {"neg" 0         ; inversion
@@ -57,8 +61,6 @@
 ; see sc/ops.clj
 (def BINARY-OPS
   { "div" 3         ; integer division
-    "minimum" 12
-    "maximum" 13
     "lcm" 17
     "gcd" 18
     "round" 19
@@ -101,20 +103,18 @@
                      "<" 8
                      ">" 9
                      "<=" 10
-                     ">=" 11}))
+                     ">=" 11
+                     "min" 12
+                     "max" 13}))
 
 (def REVERSE-BINARY-OPS (zipmap (vals BINARY-OPS-FULL) (keys BINARY-OPS-FULL)))
 
-; Binary ops that collide with clojure built-ins."
+;; Binary ops that collide with clojure built-ins.
 (def BINARY-OPS-COLLIDE
   {
-;   "+" 0           ; addition
-;   "-" 1           ; subtraction
-;   "*" 2           ; multiplication
-;   "/" 4           ; floating point division
-   "mod" 5          ; modulus
-   "<=" 10          ; less than or equal
-   ">=" 11          ; greater than or equal
+   "mod" 5
+   "min" 12
+   "max" 13
    })
 
 (defn unary-op-num [name]
