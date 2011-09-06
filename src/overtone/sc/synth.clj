@@ -13,7 +13,7 @@
         [clojure.contrib [def :only [name-with-attributes]]]
         [clojure.contrib.seq-utils :only (indexed)])
   (:require [clojure.contrib.generic.arithmetic :as ga]
-            [at-at]
+            [overtone.at-at :as at-at]
             [overtone.util.log :as log]))
 
 ;;TODO replace this with clojure.core/keep-indexed or map-indexed))
