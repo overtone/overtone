@@ -4,22 +4,23 @@
           scsynth DSP engine."
       :author "Jeff Rose"}
   overtone.sc.core
-  (:import
-   [java.net InetSocketAddress]
-   [java.util.regex Pattern]
-   [java.util.concurrent TimeUnit TimeoutException]
-   [java.io BufferedInputStream]
-   [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
+  (:import [java.net InetSocketAddress]
+           [java.util.regex Pattern]
+           [java.util.concurrent TimeUnit TimeoutException]
+           [java.io BufferedInputStream]
+           [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
+  (:use [clojure.contrib.java-utils :only [file]]
+        [clojure.contrib pprint]
+        [clojure.contrib shell-out]
+        [overtone.music time]
+        [overtone.config store setup]
+        [overtone.util lib log]
+        [overtone.lib event deps]
+        [overtone.sc defaults allocator]
+        [overtone.osc.decode :only [osc-decode-packet]]
+        [overtone.osc])
   (:require [overtone.log :as log]
-            [overtone.sc.osc :as osc])
-  (:use
-   [overtone event config log setup util time-utils deps]
-   [overtone.sc defaults allocator]
-   [clojure.contrib.java-utils :only [file]]
-   [clojure.contrib pprint]
-   [clojure.contrib shell-out]
-   [overtone.osc.decode :only [osc-decode-packet]]
-   [overtone.osc]))
+            [overtone.sc.osc :as osc]))
 
 (def OVERTONE-VERSION 0.3)
 

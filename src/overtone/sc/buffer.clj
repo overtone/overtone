@@ -1,7 +1,7 @@
 (ns overtone.sc.buffer
-  (:use
-    [overtone util event]
-    [overtone.sc defaults core allocator]))
+  (:use [overtone.util lib]
+        [overtone.lib event]
+        [overtone.sc defaults core allocator]))
 
 (defn buffer-info
   "Fetch the information for buffer associated with buf-id. Synchronous."

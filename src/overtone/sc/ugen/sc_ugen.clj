@@ -1,5 +1,5 @@
 (ns overtone.sc.ugen.sc-ugen
-  (:use [overtone util]
+  (:use [overtone.util lib]
         [overtone.sc.ugen defaults]))
 
 (defrecord SCUGen [id name rate rate-name special args n-outputs])

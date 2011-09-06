@@ -1,5 +1,5 @@
-(ns overtone.console.viz
-  (:use vijual
+(ns overtone.repl.viz
+  (:use [vijual]
         [overtone.sc core node]
         [overtone.studio core]
         [overtone.viz scope]

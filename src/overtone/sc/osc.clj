@@ -5,8 +5,8 @@
             potentially crash the server."
       :author "Sam Aaron"}
   overtone.sc.osc
-  (:require [overtone.log :as log])
-  (:use overtone.osc))
+  (:use [overtone.osc])
+  (:require [overtone.util.log :as log]))
 
 (def TYPES
   {

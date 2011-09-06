@@ -2,18 +2,18 @@
     ^{:doc "An oscilloscope style waveform viewer"
       :author "Jeff Rose & Sam Aaron"}
   overtone.viz.scope
-  (:import
-   (java.awt Graphics Dimension Color BasicStroke BorderLayout RenderingHints)
-   (java.awt.event WindowListener ComponentListener)
-   (java.awt.geom Rectangle2D$Float Path2D$Float)
-   (javax.swing JFrame JPanel JSlider))
-  (:use
-   [overtone event util time-utils deps]
-   [overtone.sc defaults core synth ugen buffer node]
-   [overtone.studio.util]
-   clojure.stacktrace)
-  (:require [overtone.log :as log]
-            [clojure.set :as set]))
+  (:import [java.awt Graphics Dimension Color BasicStroke BorderLayout RenderingHints]
+           [java.awt.event WindowListener ComponentListener]
+           [java.awt.geom Rectangle2D$Float Path2D$Float]
+           [javax.swing JFrame JPanel JSlider])
+  (:use [clojure.stacktrace]
+        [overtone.util lib]
+        [overtone.music time]
+        [overtone.lib event deps]
+        [overtone.sc defaults core synth ugen buffer node]
+        [overtone.studio.util])
+  (:require [clojure.set :as set]
+            [overtone.util.log :as log]))
 
 (defonce SCOPE-BUF-SIZE 4096)
 (defonce FPS 10)

@@ -1,10 +1,10 @@
 (ns
   ^{:doc "Basic logging functionality."
      :author "Jeff Rose"}
-  overtone.log
-  (:import (java.util.logging Logger Level ConsoleHandler FileHandler
-                              StreamHandler SimpleFormatter))
-  (:use (overtone setup)))
+  overtone.util.log
+  (:import [java.util.logging Logger Level ConsoleHandler FileHandler
+                              StreamHandler SimpleFormatter])
+  (:use [overtone.config setup]))
 
 ; Sets up some basic logging infrastructure and helpers for the project.
 
@@ -59,4 +59,3 @@
 
 (defn error [& msg]
   (.log LOGGER Level/SEVERE (apply str msg)))
-

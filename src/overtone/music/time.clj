@@ -1,10 +1,11 @@
 (ns
   ^{:doc "Functions to help manage and structure computation in time."
-     :author "Jeff Rose"}
-  overtone.time-utils
+     :author "Jeff Rose and Sam Aaron"}
+  overtone.music.time
   (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit
                                  PriorityBlockingQueue))
-  (:use (overtone event util)))
+  (:use [overtone.lib event]
+        [overtone.util lib]))
 
 ; Time
 

@@ -2,7 +2,7 @@
     ^{:doc "Examples are stored cgens which serve as explorable documentation. Users may search and query the available examples whilst also being able to easily demo them to immediately hear what they do."
       :author "Sam Aaron"}
   overtone.sc.example
-  (:use [overtone util doc-util]
+  (:use [overtone.util lib doc]
         [overtone.sc ugen]
         [overtone.sc.ugen defaults doc]
         [overtone.sc.cgen]))

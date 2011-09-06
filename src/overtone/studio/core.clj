@@ -1,9 +1,9 @@
 (ns overtone.studio.core
-  (:use
-    [overtone util event time-utils deps]
-    [overtone.sc.ugen defaults sc-ugen]
-    [overtone.sc defaults core synth ugen envelope node synthdef bus]
-    [overtone.music rhythm]))
+  (:use [overtone.lib event deps]
+        [overtone.util lib]
+        [overtone.sc.ugen defaults sc-ugen]
+        [overtone.sc defaults core synth ugen envelope node synthdef bus]
+        [overtone.music rhythm time]))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
 ; SuperCollider.  Every instance of an instrument will be played within the same

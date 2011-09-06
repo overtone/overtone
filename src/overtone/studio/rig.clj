@@ -2,10 +2,9 @@
   ^{:doc "Higher level instrument and studio abstractions."
      :author "Jeff Rose"}
   overtone.studio.rig
-  (:use 
-    [overtone.sc core synth]
-    [overtone.music rhythm pitch])
-  (:require overtone.studio.fx))
+  (:require [overtone.studio fx])
+  (:use [overtone.sc core synth]
+        [overtone.music rhythm pitch]))
 
 ; The goal is to develop a standard "studio configuration" with
 ; an fx rack and a set of fx busses, an output bus, etc...

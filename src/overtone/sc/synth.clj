@@ -5,16 +5,17 @@
          serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.sc.synth
-  (:require
-    [overtone.log :as log]
-    [clojure.contrib.generic.arithmetic :as ga]
-    [at-at])
-  (:use
-    [overtone util event time-utils]
-    [overtone.sc.ugen defaults common specs sc-ugen]
-    [overtone.sc core ugen synthdef node buffer]
-    [clojure.contrib [def :only [name-with-attributes]]]
-    [clojure.contrib.seq-utils :only (indexed)]))
+  (:use [overtone.util lib]
+        [overtone.music time]
+        [overtone.lib event]
+        [overtone.sc.ugen defaults common specs sc-ugen]
+        [overtone.sc core ugen synthdef node buffer]
+        [clojure.contrib [def :only [name-with-attributes]]]
+        [clojure.contrib.seq-utils :only (indexed)])
+  (:require [clojure.contrib.generic.arithmetic :as ga]
+            [at-at]
+            [overtone.util.log :as log]))
+
 ;;TODO replace this with clojure.core/keep-indexed or map-indexed))
 
 ;; ### Synth

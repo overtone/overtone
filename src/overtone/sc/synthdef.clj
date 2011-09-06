@@ -5,10 +5,11 @@
      :author "Jeff Rose"}
   overtone.sc.synthdef
   (:import [java.net URL])
-  (:require [overtone.log :as log])
-  (:use byte-spec
-        [overtone util event deps]
-        [overtone.sc core]))
+  (:use [byte-spec]
+        [overtone.util lib]
+        [overtone.lib event deps]
+        [overtone.sc core])
+  (:require [overtone.util.log :as log]))
 
 ;; param-name is :
 ;;   pstring - the name of the parameter

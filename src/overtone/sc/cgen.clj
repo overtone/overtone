@@ -3,7 +3,7 @@
       :author "Sam Aaron"}
   overtone.sc.cgen
 
-  (:use [overtone util]
+  (:use [overtone.util lib]
         [overtone.sc ugen]
         [overtone.sc.ugen defaults doc]))
 

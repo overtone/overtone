@@ -1,17 +1,15 @@
 (ns
-  ^{:doc "General purpose utility functions."
-     :author "Jeff Rose"}
-  overtone.util
-  (:require [overtone.log :as log])
-
-  (:use clojure.contrib.def
-        clojure.stacktrace
-        overtone.doc-util
-        [clojure.pprint :as pprint]
-        [clojure.contrib.seq-utils :only (indexed)])
-
+  ^{:doc "Library of general purpose utility functions."
+     :author "Jeff Rose and Sam Aaron"}
+  overtone.util.lib
   (:import [java.util ArrayList Collections]
-           [java.util.concurrent TimeUnit TimeoutException]))
+           [java.util.concurrent TimeUnit TimeoutException])
+  (:use [clojure.contrib.def]
+        [clojure.stacktrace]
+        [clojure.pprint :as pprint]
+        [clojure.contrib.seq-utils :only (indexed)]
+        [overtone.util.doc])
+  (:require [overtone.util.log :as log]))
 
 ; Some generic counters
 (def id-counters* (ref {}))

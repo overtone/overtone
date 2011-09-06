@@ -2,7 +2,7 @@
   (:use [overtone.sc.ugen]
         [overtone.sc.ugen constants]
         [overtone.sc.cgen]
-        [overtone util]))
+        [overtone.util lib]))
 
 (defcgen sound-in
   "read audio from hardware inputs"

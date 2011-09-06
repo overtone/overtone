@@ -1,7 +1,7 @@
 (ns
     ^{:doc "Handy number scaling and rounding fns"
-      :authos "Sam Aaron"}
-  overtone.helpers.scaling)
+      :author "Sam Aaron"}
+  overtone.algo.scaling)
 
 (defn closest-to
   "Returns either low or hi depending on which is numerically closer to n.

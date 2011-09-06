@@ -23,6 +23,7 @@
        :doc "Tracks the peak amplitude of a signal."
        :scsynth-location "FilterUgens"
        :sclang-location "Compander"
+       :rates #{:ar :kr}
        :auto-rate true}
 
 ;;compander
@@ -80,17 +81,19 @@ For more information see: http://en.wikipedia.org/wiki/Audio_level_compression
 "}
 
 
-      ;; Normalizer : UGen {
-      ;;   var buffer;
-      ;;   *ar { arg in = 0.0, level = 1.0, dur = 0.01;
-      ;;     ^this.multiNew('audio', in, level, dur)
-      ;;   }
-      ;; }
+;;normalizer
+      {:name "Normalizer"
+       :args [{:name "in"
+               :doc "The input signal"}
 
-      {:name "Normalizer",
-       :args [{:name "in", :doc "The input signal"}
-              {:name "level", :default 1.0 :doc "The peak output amplitude level to which to normalize the input"}
-              {:name "dur", :default 0.01 :doc "The buffer delay time. Shorter times will produce smaller delays and quicker transient response times, but may introduce amplitude modulation artifacts. (AKA lookAheadTime)"}],
+              {:name "level"
+               :default 1.0
+               :doc "The peak output amplitude level to which to normalize the input"}
+
+              {:name "dur"
+               :default 0.01
+               :doc "The buffer delay time. Shorter times will produce smaller delays and quicker transient response times, but may introduce amplitude modulation artifacts. (AKA lookAheadTime)"}]
+       :summary ""
        :rates #{:ar}
        :doc "flattens dynamics. Normalizes the input amplitude to the given level. Normalize will not overshoot
 like Compander will, but it needs to look ahead in the audio. Thus there is a

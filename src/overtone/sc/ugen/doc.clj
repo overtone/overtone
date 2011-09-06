@@ -2,11 +2,9 @@
   ^{:doc "Functions used to manipulate and generate the documentation for ugens"
      :author "Sam Aaron & Jeff Rose"}
   overtone.sc.ugen.doc
-  (:use
-   [overtone.sc.ugen.defaults]
-   [overtone.doc-util]
-   [overtone.util]
-   [clojure.contrib.string :only (split)]))
+  (:use [clojure.contrib.string :only [split]]
+        [overtone.sc.ugen.defaults]
+        [overtone.util lib doc]))
 
 (defn- args-str
   "Returns a string representing the arguments of the ugen spec"

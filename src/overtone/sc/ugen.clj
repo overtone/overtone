@@ -2,11 +2,10 @@
     ^{:doc "UGens, or Unit Generators, are the functions that act as DSP nodes in the synthesizer definitions used by SuperCollider.  We generate the UGen functions based on hand written metadata about each ugen (ugen directory). (Eventually we hope to get this information dynamically from the server.)"
       :author "Jeff Rose & Christophe McKeon"}
   overtone.sc.ugen
-  (:use
-   [overtone util]
-   [overtone.sc.ugen sc-ugen defaults specs special-ops]
-   [clojure.contrib.generic :only (root-type)]
-   [overtone.sc.ugen.metadata unaryopugen binaryopugen])
+  (:use [overtone.util lib]
+        [overtone.sc.ugen sc-ugen defaults specs special-ops]
+        [clojure.contrib.generic :only [root-type]]
+        [overtone.sc.ugen.metadata unaryopugen binaryopugen])
   (:require [clojure.contrib.generic.arithmetic :as ga]
             [clojure.contrib.generic.comparison :as gc]
             [clojure.contrib.generic.math-functions :as gm]

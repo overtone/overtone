@@ -1,8 +1,9 @@
 (ns
     ^{:doc "Handy probability fns"
       :author "Sam Aaron"}
-  overtone.helpers.chance
-  (:use overtone.helpers.scaling))
+  overtone.algo.chance
+  (:use
+   [overtone.algo.scaling]))
 
 (defn choose
   "Choose a random element from a collection."

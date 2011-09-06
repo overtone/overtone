@@ -1,6 +1,6 @@
 (ns overtone.sc.allocator
-  (:require [overtone.log :as log])
-  (:use [overtone.sc defaults]))
+  (:use [overtone.sc defaults])
+  (:require [overtone.util.log :as log]))
 
 ;; ## Allocators
 ;;

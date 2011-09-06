@@ -1,8 +1,8 @@
 (ns
     ^{:doc "Read and decorate ugen metadata to create final UGEN-SPECS"
       :author "Jeff Rose"}
-    overtone.sc.ugen.specs
-  (:use [overtone util]
+  overtone.sc.ugen.specs
+  (:use [overtone.util lib]
         [overtone.sc.ugen defaults common special-ops categories sc-ugen])
   (:require [overtone.sc.ugen.doc :as doc]))
 

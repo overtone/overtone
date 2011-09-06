@@ -2,7 +2,7 @@
   ^{:doc "Code that is common to many ugens.  Includes validation and argument manipulation functions."
      :author "Jeff Rose & Christophe McKeon"}
   overtone.sc.ugen.common
-  (:use [overtone util]
+  (:use [overtone.util lib]
         [overtone.sc.ugen defaults special-ops]
         [overtone.sc buffer bus]))
 

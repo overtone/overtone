@@ -1,9 +1,9 @@
 (ns
   ^{:doc "Library initialization and configuration."
      :author "Jeff Rose"}
-  overtone.setup
+  overtone.config.setup
   (:import [java.io File])
-  (:use [overtone config]
+  (:use [overtone.config store]
         [clojure.contrib.io :only (delete-file)]))
 
 (defn- get-os []
@@ -34,4 +34,3 @@
 
 (if (not (contains? @config* :os))
   (dosync (alter config* assoc :os (get-os))))
-

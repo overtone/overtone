@@ -1,4 +1,4 @@
-(ns overtone.ns)
+(ns overtone.util.ns)
 
 (defn immigrate
  "Create a public var in this namespace for each public var in the
@@ -12,4 +12,3 @@
        (if (.isBound var)
          (intern *ns* sym (var-get var))
          (intern *ns* sym))))))
-
