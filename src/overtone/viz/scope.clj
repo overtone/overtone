@@ -8,17 +8,17 @@
            [javax.swing JFrame JPanel JSlider])
   (:use [clojure.stacktrace]
         [overtone.util lib]
-        [overtone.music time]
         [overtone.lib event deps]
         [overtone.sc defaults core synth ugen buffer node]
         [overtone.studio.util])
   (:require [clojure.set :as set]
-            [overtone.util.log :as log]))
+            [overtone.util.log :as log]
+            [overtone.at-at :as at-at]))
 
 (defonce SCOPE-BUF-SIZE 4096)
 (defonce FPS 10)
 (defonce scopes* (ref {}))
-(defonce scope-pool* (agent (make-pool)))
+(defonce scope-pool (at-at/mk-pool))
 (defonce scopes-running?* (ref false))
 (defonce WIDTH 600)
 (defonce HEIGHT 400)
@@ -26,14 +26,15 @@
 (defonce Y-PADDING 10)
 (defonce scope-group* (ref 0))
 
-(on-deps :studio-setup-completed ::create-scope-group #(dosync (ref-set scope-group* (group :tail ROOT-GROUP))
-                                                               (satisfy-deps :scope-group-created)))
+(on-deps :studio-setup-completed ::create-scope-group #(dosync
+                                                        (ref-set scope-group* (group :tail ROOT-GROUP))
+                                                        (satisfy-deps :scope-group-created)))
 
 (defn- update-scope-data [s]
   (let [{:keys [buf size width height panel y-arrays x-array panel]} s
-        frames (buffer-data buf)
-        step (int (/ (buffer-size buf) width))
-        y-scale (- height (* 2 Y-PADDING))
+        frames    (buffer-data buf)
+        step      (int (/ (buffer-size buf) width))
+        y-scale   (- height (* 2 Y-PADDING))
         [y-a y-b] @y-arrays]
     (if-not (empty? frames)
       (dotimes [x width]
@@ -89,15 +90,13 @@
          (.show)
          (.setAlwaysOnTop keep-on-top)))))
 
-(defn- start-scopes-runner
-  []
-  (periodic update-scopes (/ 1000 FPS) 0 @scope-pool*))
-
 (defn scopes-start
+  "Schedule the scope to be updated every (/ 1000 FPS) ms (unless the scopes are
+  already running in which case it does nothing."
   []
   (dosync
    (when-not @scopes-running?*
-     (start-scopes-runner)
+     (at-at/every (/ 1000 FPS) update-scopes scope-pool)
      (ref-set scopes-running?* true))))
 
 (defn- reset-data-arrays
@@ -120,10 +119,9 @@
 
 (defn scopes-stop
   []
-  (dosync
-   (stop-and-reset-pool! scope-pool*)
-   (empty-scope-data)
-   (ref-set scopes-running?* false)))
+  (at-at/stop-and-reset-pool! scope-pool)
+  (empty-scope-data)
+  (dosync (ref-set scopes-running?* false)))
 
 (defn- start-bus-synth
   [bus buf]
