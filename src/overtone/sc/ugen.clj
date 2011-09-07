@@ -83,10 +83,8 @@
     (doseq [check (:check spec)]
       (check rate special args))))
 
-
-
-(def *ugens* nil)
-(def *constants* nil)
+(def ^{:dynamic true} *ugens* nil)
+(def ^{:dynamic true} *constants* nil)
 
 (defn ugen [spec rate special args]
   "Create a SCUGen with the specified spec, rate, special and args"
