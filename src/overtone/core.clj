@@ -2,7 +2,7 @@
   (:use overtone.ns)
   (:require clojure.stacktrace
             midi overtone.osc byte-spec
-            [overtone.algo chance scaling]
+            [overtone.algo chance scaling position trig]
             [overtone.sc.ugen.constants]
             [overtone.sc allocator core ugen node synth synthdef cgen
              trigger buffer envelope bus sample sc-lang example]
@@ -18,6 +18,8 @@
  'overtone.sc.ugen.constants
  'overtone.algo.chance
  'overtone.algo.scaling
+ 'overtone.algo.position
+ 'overtone.algo.trig
  'overtone.sc.core
  'overtone.sc.node
  'overtone.sc.buffer
