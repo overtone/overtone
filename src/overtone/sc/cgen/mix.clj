@@ -23,7 +23,7 @@
   and spread width of the target field, and level compensation that lowers the volume
   for each additional input channel."
   (:ar (let [n         (count in-array)
-             level     (if level-comp
+             level     (if level-comp?
                          (* level (Math/sqrt (/ 1 (dec n))))
                          level)
              positions (splay-pan n center spread)
