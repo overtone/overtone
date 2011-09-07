@@ -259,18 +259,6 @@
       (overload-ugen-op to-ns ugen-name ugen)
       (intern to-ns ugen-name ugen))))
 
-;; We define this uniquely because it has to be smart about its rate.
-;; TODO: I think this should probably be handled by one of the ugen modes
-;; that is currently not yet implemented...
-(def mul-add-ugen
-  (fn [in mul add]
-    (ugen {:name "MulAdd",
-           :args [{:name "in"}
-                  {:name "mul", :default 1.0}
-                  {:name "add", :default 0.0}]
-           :doc "Multiply and add, equivalent to (+ add (* mul in))"}
-          (op-rate in) 0 (list in mul add))))
-
 (derive :overtone.sc.ugen.sc-ugen/sc-ugen root-type)
 
 (def generics
@@ -370,8 +358,7 @@
      (doseq [[op-name special] UNARY-OPS]
        (def-unary-op to-ns op-name special))
      (doseq [[op-name special] BINARY-OPS]
-       (def-binary-op to-ns op-name special))
-     (intern to-ns 'mul-add (make-expanding mul-add-ugen [true true true]))))
+       (def-binary-op to-ns op-name special))))
 
 (defn intern-ugens-collide
   "Intern the ugens that collide with built-in clojure functions to the current

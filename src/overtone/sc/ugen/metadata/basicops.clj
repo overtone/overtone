@@ -1,7 +1,7 @@
 (ns overtone.sc.ugen.metadata.basicops
   (:use [overtone.sc.ugen common constants]))
 
-;;see binaryopugen.clj and unaryopugen.clj for detailed docspecs for these two ugens
+;;see binaryopugen.clj and unaryopugen.clj for detailed docspecs for binary and unary opugens.
 
 (def specs
   [
@@ -18,4 +18,12 @@
     :rates #{:dr :ir :ar :kr}
     :default-rate :auto
     :doc "Multi-function binary ugen representing many operations (e.g. +, *, <, min, max, etc...)"}
+
+   {:name "MulAdd",
+    :args [{:name "in" :doc "Input to modify"}
+           {:name "mul" :doc "Multiplier Value"}
+           {:name "add" :doc "Addition Value"}],
+    :rates #{:dr :ir :ar :kr}
+    :default-rate :auto
+    :doc "Multiply the input source by mul then add the add value. Equivalent to, but more efficient than,  (+ add (* mul in))"}
    ])
