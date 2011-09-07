@@ -1,6 +1,5 @@
 (ns overtone.live
-  (:use [overtone.ns]
-        [overtone.util lib])
+  (:use [overtone.util lib ns])
   (:require clojure.stacktrace
             midi overtone.osc byte-spec
             [overtone.algo chance scaling position trig]
