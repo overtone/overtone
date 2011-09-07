@@ -14,12 +14,12 @@
         [clojure.contrib shell-out]
         [overtone.music time]
         [overtone.config store setup]
-        [overtone.util lib log]
+        [overtone.util lib]
         [overtone.libs event deps]
         [overtone.sc defaults allocator]
         [overtone.osc.decode :only [osc-decode-packet]]
         [overtone.osc])
-  (:require [overtone.log :as log]
+  (:require [overtone.util.log :as log]
             [overtone.sc.osc :as osc]))
 
 (def OVERTONE-VERSION 0.3)
