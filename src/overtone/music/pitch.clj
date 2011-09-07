@@ -4,7 +4,8 @@
           intervals, etc."
      :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
-  (:use [clojure.contrib.str-utils2 :only (chop)])
+  (:use [clojure.contrib.str-utils2 :only (chop)]
+        [overtone.algo chance])
   (:require [clojure.contrib.math :as math]))
 
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
