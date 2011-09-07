@@ -6,9 +6,14 @@
    [overtone.algo.scaling]))
 
 (defn choose
-  "Choose a random element from a collection."
+  "Choose a random element from col."
   [col]
   (nth col (rand-int (count col))))
+
+(defn choose-n
+  "Choose n random elements from col."
+  [n col]
+  (take n (shuffle col)))
 
 (defn weighted-choose
   "Returns an element from list vals based on the corresponding probabilities
