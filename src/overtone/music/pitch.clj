@@ -378,6 +378,19 @@
            chord (resolve-chord chord-name)]
        (set (map #(+ % root) chord)))))
 
+(defn rand-chord
+  "Generates a random list of MIDI notes with cardinality num-pitches bound
+  within the range of the specified root and pitch-range and only containing
+  pitches within the specified chord-name. Similar to Impromptu's pc:make-chord"
+  [root chord-name num-pitches pitch-range]
+  (let [chord (chord root chord-name)
+        root (note root)
+        max-pitch (+ pitch-range root)
+        roots (range 0 max-pitch 12)
+        notes (flatten (map (fn [root] (map #(+ root %) chord)) roots))
+        notes (take-while #(<= % max-pitch) notes)]
+    (sort (choose-n num-pitches notes))))
+
 ; midicps
 (defn midi->hz
   "Convert a midi note number to a frequency in hz."
