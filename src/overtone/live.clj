@@ -7,7 +7,7 @@
             [overtone.sc.ugen.constants]
             [overtone.sc allocator core ugen node synth synthdef cgen
              trigger buffer envelope bus sample sc-lang example]
-            [overtone.sc.cgen audio-in oscillators demand]
+            [overtone.sc.cgen audio-in oscillators demand mix]
             [overtone.sc.examples demand osc trig compander audio-in]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio core util fx]
@@ -34,6 +34,7 @@
   'overtone.sc.cgen.audio-in
   'overtone.sc.cgen.oscillators
   'overtone.sc.cgen.demand
+  'overtone.sc.cgen.mix
   'overtone.sc.example
   'overtone.sc.examples.demand
   'overtone.sc.examples.osc

@@ -1,7 +1,7 @@
 (ns overtone.sc.examples.compander
   (:use [overtone.sc.ugen]
         [overtone.sc.ugen constants]
-        [overtone.sc.cgen.audio-in]
+        [overtone.sc.cgen audio-in mix]
         [overtone.sc.example]))
 
 (defexamples amplitude
