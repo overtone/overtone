@@ -8,7 +8,7 @@
            [javax.swing JFrame JPanel JSlider])
   (:use [clojure.stacktrace]
         [overtone.util lib]
-        [overtone.lib event deps]
+        [overtone.libs event deps]
         [overtone.sc defaults core synth ugen buffer node]
         [overtone.studio.util])
   (:require [clojure.set :as set]

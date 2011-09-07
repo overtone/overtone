@@ -1,6 +1,6 @@
 (ns overtone.sc.buffer
   (:use [overtone.util lib]
-        [overtone.lib event]
+        [overtone.libs event]
         [overtone.sc defaults core allocator]))
 
 (defn buffer-info

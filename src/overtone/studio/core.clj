@@ -1,5 +1,5 @@
 (ns overtone.studio.core
-  (:use [overtone.lib event deps]
+  (:use [overtone.libs event deps]
         [overtone.util lib]
         [overtone.sc.ugen defaults sc-ugen]
         [overtone.sc defaults core synth ugen envelope node synthdef bus]

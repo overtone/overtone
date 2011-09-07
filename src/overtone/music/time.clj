@@ -4,7 +4,7 @@
   overtone.music.time
   (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit
                                  PriorityBlockingQueue))
-  (:use [overtone.lib event]
+  (:use [overtone.libs event]
         [overtone.util lib])
   (:require [overtone.at-at :as at-at]))
 

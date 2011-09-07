@@ -3,7 +3,7 @@
      :author "Jeff Rose"}
   overtone.sc.sample
   (:use [overtone.util lib]
-        [overtone.lib event deps]
+        [overtone.libs event deps]
         [overtone.sc.ugen.constants]
         [overtone.sc core synth ugen buffer allocator]))
 

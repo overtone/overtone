@@ -2,7 +2,7 @@
   ^{:doc "Audio effects library"
      :author "Jeff Rose"}
   overtone.studio.fx
-  (:use [overtone.lib event]
+  (:use [overtone.libs event]
         [overtone.sc synth ugen]))
 
 (defsynth fx-noise-gate

@@ -7,7 +7,7 @@
   (:import [java.net URL])
   (:use [byte-spec]
         [overtone.util lib]
-        [overtone.lib event deps]
+        [overtone.libs event deps]
         [overtone.sc core])
   (:require [overtone.util.log :as log]))
 

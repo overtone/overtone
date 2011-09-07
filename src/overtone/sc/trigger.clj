@@ -1,6 +1,6 @@
 (ns overtone.sc.trigger
   (:use [overtone.sc core]
-        [overtone.lib event]))
+        [overtone.libs event]))
 
 ; Trigger Notifications
 ;

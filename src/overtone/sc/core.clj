@@ -15,7 +15,7 @@
         [overtone.music time]
         [overtone.config store setup]
         [overtone.util lib log]
-        [overtone.lib event deps]
+        [overtone.libs event deps]
         [overtone.sc defaults allocator]
         [overtone.osc.decode :only [osc-decode-packet]]
         [overtone.osc])
