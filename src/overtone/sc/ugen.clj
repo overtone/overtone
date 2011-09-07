@@ -76,19 +76,11 @@
         (first expanded)
         expanded))))
 
-;; TODO: Finish me!
-;; Need to execute the check predicates to do things like verify argument rates, etc...
-(defn check-ugen-args [spec rate special args]
-  (if (vector? (:check spec))
-    (doseq [check (:check spec)]
-      (check rate special args))))
-
 (def ^{:dynamic true} *ugens* nil)
 (def ^{:dynamic true} *constants* nil)
 
 (defn ugen [spec rate special args]
   "Create a SCUGen with the specified spec, rate, special and args"
-  ;;(check-ugen-args spec rate special args)
   (let [rate (or (get RATES rate) rate)
         args (if args args [])
         ug (sc-ugen
