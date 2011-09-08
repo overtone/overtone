@@ -5,10 +5,11 @@
      :author "Jeff Rose"}
   overtone.sc.synthdef
   (:import [java.net URL])
-  (:require [overtone.log :as log])
-  (:use byte-spec
-        [overtone util event deps]
-        [overtone.sc core]))
+  (:use [byte-spec]
+        [overtone.util lib]
+        [overtone.libs event deps]
+        [overtone.sc core])
+  (:require [overtone.util.log :as log]))
 
 ;; param-name is :
 ;;   pstring - the name of the parameter
@@ -214,9 +215,8 @@
   (dosync (alter loaded-synthdefs* assoc (:name sdef) sdef))
 
   (when (connected?)
-    (let [res (recv "/done")]
-      (snd "/d_recv" (synthdef-bytes sdef))
-      (await-promise! res))))
+    (with-server-sync
+      #(snd "/d_recv" (synthdef-bytes sdef)))))
 
 (defn- load-all-synthdefs []
   (doseq [[sname sdef] @loaded-synthdefs*]

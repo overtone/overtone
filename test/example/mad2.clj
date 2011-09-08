@@ -4,7 +4,7 @@
 
 (definst tone [note 60 amp 0.3 dur 0.4]
   (let [snd (sin-osc (midicps note))
-        env (env-gen (perc 0.01 dur) :action :free)]
+        env (env-gen (perc 0.01 dur) :action FREE)]
     (* env snd amp)))
 
 (defn defpitch
@@ -83,14 +83,13 @@
 (play ks1-demo (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]] :diatonic f4) metro)
 
 (do
-(play grunge-bass 
-      (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]] 
-           :diatonic f2)) 
+(play grunge-bass
+      (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]]
+           :diatonic f2))
       metro)
 
 (play pad
-      (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]] 
-           :diatonic f3)) 
+      (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]]
+           :diatonic f3))
       metro)
 )
-

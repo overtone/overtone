@@ -1,8 +1,7 @@
 (ns ^{:doc "Default vals and fns required  to manipulate ugens."
       :author "Jeff Rose"}
   overtone.sc.ugen.defaults
-  (:use
-   [overtone util]))
+  (:use [overtone.util lib]))
 
 ;; Outputs have a specified calculation rate
 ;;   0 = scalar rate - one sample is computed at initialization time only.
@@ -13,6 +12,11 @@
             :ar 2
             :dr 3
             :auto :auto})
+
+(def UGEN-RATE-SPEED {:ir 0
+                      :dr 1
+                      :kr 2
+                      :ar 3})
 
 (def REVERSE-RATES (invert-map RATES))
 
@@ -27,6 +31,11 @@
 (def UGEN-RATE-SORT-FN
   (zipmap UGEN-DEFAULT-RATE-PRECEDENCE (range (count UGEN-DEFAULT-RATE-PRECEDENCE))))
 
+(defn default-ugen-rate
+  "Given a list of rates, returns the default rate based on UGEN-RATE-SORT-FN"
+  [rates]
+  (first (sort-by UGEN-RATE-SORT-FN rates)))
+
 (def NO-ARG-DOC-FOUND "-")
 
 (def DEFAULT-ARG-DOCS
@@ -39,6 +48,3 @@
    "loop" "A boolean switch to turn on looping"
    "in" "The input signal"
    })
-
-(def DOC-WIDTH 45)
-

@@ -2,9 +2,8 @@
   ^{:doc "Audio effects library"
      :author "Jeff Rose"}
   overtone.studio.fx
-  (:use
-    [overtone event]
-    [overtone.sc synth ugen]))
+  (:use [overtone.libs event]
+        [overtone.sc synth ugen]))
 
 (defsynth fx-noise-gate
   [in-bus 20 out-bus 10 threshold 0.4
@@ -60,7 +59,7 @@
     (out out-bus (pan2 (+ echo source) 0))))
 
 (defsynth fx-chorus
-  [in-bus 20 out-bus 10 
+  [in-bus 20 out-bus 10
    rate 0.002 depth 0.01]
   (let [src (in in-bus)
         dub-depth (* 2 depth)
@@ -71,7 +70,7 @@
     (out out-bus (* 0.3 sig))))
 
 (defsynth fx-distortion
-  [in-bus 20 out-bus 10 
+  [in-bus 20 out-bus 10
    boost 4 level 0.01]
   (let [src (in in-bus)]
     (out out-bus (distort (* boost (clip2 src level))))))

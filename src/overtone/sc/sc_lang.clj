@@ -1,7 +1,7 @@
 (ns overtone.sc.sc-lang
-  (:require [clojure.zip :as z])
-  (:use [overtone.sc.ugen :only [overtone-ugen-name]]
-        [clojure.contrib.core :only [-?>]]))
+  (:use [clojure.contrib.core :only [-?>]]
+        [overtone.util lib])
+  (:require [clojure.zip :as z]))
 
 (defn- prepend-child
   [loc item]

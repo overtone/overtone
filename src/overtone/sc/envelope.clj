@@ -11,7 +11,7 @@
           engine."
      :author "Jeff Rose"}
   overtone.sc.envelope
-  (:use [overtone util]
+  (:use [overtone.util lib]
         [overtone.sc ugen]))
 
 (def ENV-SHAPES

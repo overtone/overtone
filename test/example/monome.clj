@@ -5,7 +5,7 @@
 (refer-ugens)
 
 (defsynth plop [freq 440 len 0.4]
-  (* 0.4 (env-gen (perc 0.02 len) 1 1 0 1 :free)
+  (* 0.4 (env-gen (perc 0.02 len) 1 1 0 1 FREE)
      (sin-osc [(+ (* 3 (sin-osc 20)) freq) (/ freq 2)])))
 
 (def m (mono/open "/dev/ttyUSB0"))
@@ -107,7 +107,7 @@
 (def flute-buf (load-sample "/home/rosejn/studio/samples/flutes/flutey-echo-intro-blast.wav"))
 
 (defsynth buf-player [buf 0 rate 1 start 0 end 1 t 0.2]
-  (* (env-gen (perc 0.01 t) 1 1 0 1 :free)
+  (* (env-gen (perc 0.01 t) 1 1 0 1 FREE)
      (buf-rd 1 buf
              (phasor 0
                      (* rate (buf-rate-scale buf))

@@ -1,9 +1,9 @@
 (ns overtone.studio.core
-  (:use
-    [overtone util event time-utils deps]
-    [overtone.sc.ugen.defaults]
-    [overtone.sc core synth ugen envelope node synthdef bus]
-    [overtone.music rhythm]))
+  (:use [overtone.libs event deps]
+        [overtone.util lib]
+        [overtone.sc.ugen defaults sc-ugen]
+        [overtone.sc defaults core synth ugen envelope node synthdef bus]
+        [overtone.music rhythm time]))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
 ; SuperCollider.  Every instance of an instrument will be played within the same
@@ -102,7 +102,7 @@
 (on-deps :studio-setup-completed ::start-mixer start-mixer)
 
 (defn setup-studio []
-  (let [g (group :head ROOT-GROUP)
+  (let [g (with-server-sync #(group :head ROOT-GROUP))
         f (group :after g)
         m (group :tail ROOT-GROUP)
         r (group :tail ROOT-GROUP)]
@@ -125,7 +125,7 @@
   (doseq [[name inst] @instruments*]
     (group-clear (:group inst))))
 
-(on-sync-event :reset :reset-instruments reset-inst-groups)
+(on-sync-event :reset reset-inst-groups ::reset-instruments)
 
 ; Add instruments to the session when defined
 (defn add-instrument [inst]
@@ -190,7 +190,6 @@
                               :name sname#
                               :ugens ugens#
                               :sdef sdef#
-                              :doc "This is a test."
                               :group sgroup#
                               :out-bus MIXER-BUS
                               :fx-chain []
@@ -210,8 +209,8 @@
        (= ::instrument (:type o))))
 
 (defmacro definst [i-name & inst-form]
-  (let [i-name (with-meta i-name {:type ::instrument})
-        [i-name params ugen-form] (synth-form i-name inst-form)]
+  (let [[i-name params ugen-form] (synth-form i-name inst-form)
+        i-name (with-meta i-name {:type ::instrument})]
     `(def ~i-name (inst ~i-name ~params ~ugen-form))))
 
 (defmethod print-method ::instrument [ins w]

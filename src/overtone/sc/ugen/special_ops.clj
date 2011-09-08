@@ -1,9 +1,15 @@
-(ns overtone.sc.ugen.special-ops)
+(ns
+    ^{:doc "Metadata regarding the various functionalities of the unary and binary ugens. These ugens are different to typical ugens in that they receive an 'opcode' as a parameter which defines its behviour - ranging from addition to trig functions to midi->cps conversion."
+      :author "Jeff Rose & Sam Aaron"}
+
+  overtone.sc.ugen.special-ops)
 
 (def UNARY-OPS
-  {"neg" 0          ; inversion
-   "abs" 5          ; absolute value
-   "asFloat" 6
+  {"neg" 0         ; inversion
+   ;;"bitNot" 4    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   "abs" 5         ; absolute value
+   ;;"asFloat" 6   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"asInt"   7   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    "ceil" 8        ; next higher integer
    "floor" 9       ; next lower integer
    "frac" 10       ; fractional part
@@ -33,35 +39,28 @@
    "sinh" 34       ; hyperbolic sine
    "cosh" 35       ; hyperbolic cosine
    "tanh" 36       ; hyperbolic tangent
-   "rand2" 38
-   "linrand" 39
-   "bilinrand" 40
-   "sum3rand" 41
+   ;;"rand" 37     ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"rand2" 38    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"linrand" 39  ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"bilinrand" 40; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"sum3rand" 41 ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    "distort" 42    ; distortion
    "softclip" 43   ; distortion
-   "coin" 44
+   ;;"coin" 44     ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    "rectWindow" 48
    "hanWindow" 49
    "welWindow" 50
    "triWindow" 51
-   "ramp" 52
-   "scurve" 53})
+   ;;"ramp" 52     ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"scurve" 53   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   })
 
-; The ops that collide with clojure built-ins.
-(def UNARY-OPS-COLLIDE
-  {"bitNot" 4       ; reciprocal
-   "rand" 37})
-
-(def UNARY-OPS-FULL (merge UNARY-OPS UNARY-OPS-COLLIDE))
-
-(def REVERSE-UNARY-OPS (zipmap (vals UNARY-OPS-FULL) (keys UNARY-OPS-FULL)))
+(def REVERSE-UNARY-OPS (zipmap (vals UNARY-OPS) (keys UNARY-OPS)))
 
 ; Commented out ops are implemented with generics instead of generated
 ; see sc/ops.clj
 (def BINARY-OPS
   { "div" 3         ; integer division
-    "minimum" 12
-    "maximum" 13
     "lcm" 17
     "gcd" 18
     "round" 19
@@ -104,20 +103,18 @@
                      "<" 8
                      ">" 9
                      "<=" 10
-                     ">=" 11}))
+                     ">=" 11
+                     "min" 12
+                     "max" 13}))
 
 (def REVERSE-BINARY-OPS (zipmap (vals BINARY-OPS-FULL) (keys BINARY-OPS-FULL)))
 
-; Binary ops that collide with clojure built-ins."
+;; Binary ops that collide with clojure built-ins.
 (def BINARY-OPS-COLLIDE
   {
-;   "+" 0           ; addition
-;   "-" 1           ; subtraction
-;   "*" 2           ; multiplication
-;   "/" 4           ; floating point division
-   "mod" 5         ; modulus
-   "<=" 10         ; less than or equal
-   ">=" 11
+   "mod" 5
+   "min" 12
+   "max" 13
    })
 
 (defn unary-op-num [name]
@@ -125,4 +122,3 @@
 
 (defn binary-op-num [name]
   (get BINARY-OPS (str name) false))
-

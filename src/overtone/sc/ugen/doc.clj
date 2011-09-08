@@ -2,18 +2,17 @@
   ^{:doc "Functions used to manipulate and generate the documentation for ugens"
      :author "Sam Aaron & Jeff Rose"}
   overtone.sc.ugen.doc
-  (:use
-   overtone.sc.ugen.defaults
-   overtone.doc-util
-   [clojure.contrib.string :only (split)]))
+  (:use [clojure.contrib.string :only [split]]
+        [overtone.sc.ugen.defaults]
+        [overtone.util lib doc]))
 
 (defn- args-str
   "Returns a string representing the arguments of the ugen spec"
   [spec]
   (let [args (:args spec)
-        name-vals (map #(str (:name %) " " (:default %)) args)
+        name-vals (map #(str (:name %) " " (get % :default ":none")) args)
         line (apply str (interpose ", " name-vals))]
-    (str "[" line "]")))
+    (str "  [" line "]")))
 
 (defn- categories-str
   "Returns a string representing the categories of a ugen spec"
@@ -30,34 +29,48 @@
   "Returns a string representing the arg docs of a ugen spec"
   [spec]
   (let [args (:args spec)
-        name:doc (fn [arg] [(or (:name arg) "NAME MISSING!")  (or (:doc arg) "DOC MISSING!")])
+        name:doc (fn [arg] [(or (:name arg) "NAME MISSING!")  (or (capitalize (:doc arg)) "DOC MISSING!")])
         doc-map (into {} (map name:doc args))
         arg-max-key-len (length-of-longest-key doc-map)
-        indentation (+ 3 arg-max-key-len)]
+        indentation (+ 5 arg-max-key-len)]
     (apply str (map (fn [[name docs]]
                       (str "  "
                            name
                            (gen-padding (inc (- arg-max-key-len (.length name))) " ")
-                           (indented-str-block docs 50 indentation)
+                           "- "
+                           (indented-str-block docs DOC-WIDTH indentation)
                            "\n"))
                     doc-map))))
 
 (defn- full-doc-str
   "Returns a string representing the full documentation for the given ugen spec"
   [spec]
-  (let [doc (or (:doc spec) "No documentation has been defined for this ugen.")]
+  (let [doc    (or (:doc spec) "No documentation has been defined for this ugen.")
+        doc    (capitalize doc)
+        g-name (overtone-ugen-name (name (:name spec)))]
     (str
-     (args-str spec)
+     (when (:summary spec)
+       (str "\n  " (indented-str-block (:summary spec) (+ 10 DOC-WIDTH) 2) "\n"))
+
      "\n"
+     (args-str spec)
+     "\n\n"
+
      (arg-doc-str spec)
      "\n"
      (str "  " (indented-str-block doc  (+ 10 DOC-WIDTH) 2))
-     "\n\n"
+     "\n"
+     (if (:src-str spec)
+       (str "\n  Source:\n" (:src-str spec) "\n"))
+     "\n"
      (str "  Categories: " (categories-str spec))
      "\n"
      (str "  Rates: " (rates-str spec))
      "\n"
-     (str "  Default rate: " (:default-rate spec)))))
+     (str "  Default rate: " (:default-rate spec))
+     (if (:contributor spec)
+       (str "\n  Contributed by: " (:contributor spec))
+       ""))))
 
 (defn- merge-arg-doc-default
   "Adds default doc to arg if doc string isn't present."

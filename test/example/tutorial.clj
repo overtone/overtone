@@ -43,7 +43,7 @@
 ; Square wave, created by a pulse generator
 ; Adjust the width to create different harmonics
 (definst square [freq 220 width 0.5]
-  (* (env-gen (curve) 1 1 0 1 :free)
+  (* (env-gen (curve) 1 1 0 1 FREE)
      (pulse freq width)))
 (square 220 0.1)
 
@@ -51,31 +51,31 @@
 
 ; The classic saw wave, creates even and odd harmonics with a bright sound
 (definst sawzall [freq 440]
-  (* (env-gen (perc 0.1 0.8) 1 1 0 1 :free)
+  (* (env-gen (perc 0.1 0.8) 1 1 0 1 FREE)
      (saw freq)))
 
 (sawzall)
 
 ; Triangle wave
 (definst triangular [freq 120]
-   (* (env-gen (perc 0.1 4.8) 1 1 0 1 :free)
+   (* (env-gen (perc 0.1 4.8) 1 1 0 1 FREE)
      (lf-tri freq)))
 (triangular 320)
 
 ; White noise
 (definst noisey []
-     (* (env-gen (perc 0.1 1.8) 1 1 0 1 :free)
+     (* (env-gen (perc 0.1 1.8) 1 1 0 1 FREE)
      (white-noise)))
 (noisey)
 
 ; Pink noise
 (definst pink-noisey []
-     (* (env-gen (perc 0.1 1.8) 1 1 0 1 :free)
+     (* (env-gen (perc 0.1 1.8) 1 1 0 1 FREE)
      (pink-noise)))
 (pink-noisey)
 
 (definst lead [freq 440 R 0.5]
-  (* (env-gen (perc 0.02 2.5) 1 1 0 1 :free)
+  (* (env-gen (perc 0.02 2.5) 1 1 0 1 FREE)
      (rlpf (saw [freq (* 1.5 freq)])
            (* (env-gen (perc 0.03 0.2)) 2 freq) R)))
 (lead 660 0.5)

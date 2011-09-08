@@ -26,12 +26,12 @@
         amp  (/ 128.0 velocity)
         mx   (* amp (mix saw1 saw2 sqr))
         env-amp (+ 0.25 (* 0.55 amp))
-        env (* env-amp (env-gen (adsr) (sin-osc 0.5) 1 0 1 :free))
+        env (* env-amp (env-gen (adsr) (sin-osc 0.5) 1 0 1 FREE))
         filt (rlpf mx (* env (midicps note)) rq)]
     filt))
 
 (definst round-kick [amp 0.5 decay 0.6 freq 65]
-  (* (env-gen (perc 0.01 decay) 1 1 0 1 :free)
+  (* (env-gen (perc 0.01 decay) 1 1 0 1 FREE)
      (sin-osc freq (* java.lang.Math/PI 0.5)) amp))
 
 ; Creating pads
@@ -47,7 +47,7 @@
      (saw [freq (ugen-cents freq split)])))
 
 (definst rise-fall-pad [freq 440 split -5 t 4]
-  (let [f-env (env-gen (perc t t) 1 1 0 1 :free)]
+  (let [f-env (env-gen (perc t t) 1 1 0 1 FREE)]
     (rlpf (* 0.3 (saw [freq (ugen-cents freq split)]))
           (+ (* 0.6 freq) (* f-env 2 freq)) 0.2)))
 
@@ -57,7 +57,7 @@
 (rise-fall-pad 660 -3 2)
 
 (definst resonant-pad [freq 440 split -5 t 4 lfo 0.5 depth 10]
-  (let [f-env (env-gen (perc t t) 1 1 0 1 :free)
+  (let [f-env (env-gen (perc t t) 1 1 0 1 FREE)
         lfo (* depth (sin-osc:kr lfo))]
     (rlpf (* 0.3 (+ (square freq) (lf-tri (+ lfo (ugen-cents freq split)))))
           (+ (* 0.8 freq) (* f-env 2 freq)) 3/4)))

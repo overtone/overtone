@@ -1,9 +1,8 @@
 (ns overtone.sc.node
-  (:require
-    [overtone.log :as log])
-  (:use
-    [overtone util event deps]
-    [overtone.sc core allocator bus]))
+  (:use [overtone.util lib]
+        [overtone.libs event deps]
+        [overtone.sc defaults core allocator bus])
+  (:require [overtone.util.log :as log]))
 
 ;; ## Node and Group Management
 
@@ -100,15 +99,13 @@
   "Remove a synth node."
   [& node-ids]
   {:pre [(connected?)]}
-  (apply snd "/n_free" node-ids)
-  (doseq [id node-ids] (free-id :node id))
+  (doseq [id node-ids] (free-id :node id 1 #(snd "/n_free" id)))
   :free)
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
   [id]
-  (log/debug (format "node-destroyed: %d" id))
-  (free-id :node id))
+  (free-id :node id 1 #(log/debug (format "node-destroyed: %d" id))))
 
 (defn- node-created
   "Called when a node is created on the synth."
@@ -116,8 +113,8 @@
   (log/debug (format "node-created: %d" id)))
 
 ; Setup the feedback handlers with the audio server.
-(on-event "/n_end" ::node-destroyer #(node-destroyed (first (:args %))))
-(on-event "/n_go" ::node-creator #(node-created (first (:args %))))
+(on-event "/n_end" #(node-destroyed (first (:args %))) ::node-destroyer)
+(on-event "/n_go"  #(node-created (first (:args %))) ::node-creator)
 
 ;; ### Group
 ;;
@@ -329,10 +326,13 @@
 
 (on-deps :connected ::create-synth-group #(dosync (ref-set synth-group* (group :head ROOT-GROUP))))
 
-(on-sync-event :reset :reset-base
+(on-sync-event :reset
   (fn []
     (clear-msg-queue)
-    (group-clear @synth-group*))) ; clear the synth group
+    (group-clear @synth-group*)) ; clear the synth group
+  ::reset-base)
 
-(on-sync-event :shutdown ::free-all-nodes #(do (clear-msg-queue)
-                                               (group-clear ROOT-GROUP)))
+(on-sync-event :shutdown
+               #(do (clear-msg-queue)
+                    (group-clear ROOT-GROUP))
+               ::free-all-nodes)

@@ -2,7 +2,7 @@
   ^{:doc "Functions that define tuning systems from various musical traditions and theories."
      :author "Jeff Rose"}
   overtone.music.tuning
-  (:use (overtone.music pitch)))
+  (:use [overtone.music pitch]))
 
 ;; TODO: Not only should we pre-compute the frequency values for standard tunings,
 ;; but it would be cool to let people explore different tunings while creating

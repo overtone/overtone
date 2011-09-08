@@ -1,7 +1,6 @@
 (ns overtone.sc.trigger
-  (:use 
-    [overtone.sc core]
-    [overtone event]))
+  (:use [overtone.sc core]
+        [overtone.libs event]))
 
 ; Trigger Notifications
 ;
@@ -23,10 +22,10 @@
 (defn remove-trigger [node-id trig-id]
   (dosync (alter trigger-handlers* dissoc [node-id trig-id])))
 
-(on-event "/tr" ::trig-handler
-  (fn [msg]
-    (let [[node-id trig-id value] (:args msg)
-          handler (get @trigger-handlers* [node-id trig-id])]
-      (if handler
-        (handler node-id trig-id value)))))
-
+(on-event "/tr"
+          (fn [msg]
+            (let [[node-id trig-id value] (:args msg)
+                  handler (get @trigger-handlers* [node-id trig-id])]
+              (if handler
+                (handler node-id trig-id value))))
+          ::trig-handler)

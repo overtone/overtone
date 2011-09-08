@@ -5,15 +5,17 @@
          serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.sc.synth
-  (:require
-    [overtone.log :as log]
-    [clojure.contrib.generic.arithmetic :as ga])
-  (:use
-    [overtone util event time-utils]
-    [overtone.sc.ugen defaults]
-    [overtone.sc core ugen synthdef node buffer]
-    [clojure.contrib [def :only [name-with-attributes]]]
-    [clojure.contrib.seq-utils :only (indexed)]))
+  (:use [overtone.util lib]
+        [overtone.music time]
+        [overtone.libs event]
+        [overtone.sc.ugen defaults common specs sc-ugen]
+        [overtone.sc core ugen synthdef node buffer]
+        [clojure.contrib [def :only [name-with-attributes]]]
+        [clojure.contrib.seq-utils :only (indexed)])
+  (:require [clojure.contrib.generic.arithmetic :as ga]
+            [overtone.at-at :as at-at]
+            [overtone.util.log :as log]))
+
 ;;TODO replace this with clojure.core/keep-indexed or map-indexed))
 
 ;; ### Synth
@@ -64,12 +66,12 @@
     (throw (IllegalArgumentException.
              (format "The %s ugen does not have any arguments."
                      (:name ugen)))))
-  (when-not (every? #(or (ugen? %) (number? %) (string? %)) (:args ugen))
+  (when-not (every? #(or (sc-ugen? %) (number? %) (string? %)) (:args ugen))
     (throw (IllegalArgumentException.
              (format "The %s ugen has an invalid argument: %s"
                      (:name ugen)
                      (first (filter
-                              #(not (or (ugen? %) (number? %)))
+                              #(not (or (sc-ugen? %) (number? %)))
                               (:args ugen)))))))
 
   (let [inputs (flatten
@@ -89,7 +91,7 @@
                             {:src src :index (:index arg)})
 
                           ; child ugen
-                          (ugen? arg)
+                          (sc-ugen? arg)
                           (let [src (ugen-index ugens arg)
                                 updated-ugen (nth ugens src)]
                             (inputs-from-outputs src updated-ugen))))
@@ -196,7 +198,9 @@
   [params]
   (for [[p-name p-val] (partition 2 params)]
     (let [[p-val p-rate] (if (vector? p-val)
-                           p-val
+                           (do (when-not (= 2 (count p-val))
+                                 (throw (IllegalArgumentException. (str "When specifiying the rate of a control, you need to use a vector of two args - default and rate i.e. [0.2 :ar]. Got: " p-val))))
+                               p-val)
                            [p-val DEFAULT-RATE])]
       {:name  (str p-name)
        :default (float p-val)
@@ -248,11 +252,11 @@
   (REVERSE-RATES (first (reverse (sort (map RATES rates))))))
 
 (defn- special-op-args? [args]
-  (some #(or (ugen? %1) (keyword? %1)) args))
+  (some #(or (sc-ugen? %1) (keyword? %1)) args))
 
 (defn- find-rate [args]
   (fastest-rate (map #(cond
-                        (ugen? %1) (REVERSE-RATES (:rate %1))
+                        (sc-ugen? %1) (REVERSE-RATES (:rate %1))
                         (keyword? %1) :kr)
                      args)))
 
@@ -399,7 +403,6 @@
          smap# (callable-map {:name sname#
                               :ugens ugens#
                               :sdef sdef#
-                              :doc "User defined synth..."
                               :player player#
                               :args arg-names#
                               :params params#
@@ -548,7 +551,7 @@
              (list 'out 0 body))]
     `(let [s# (synth "audition-synth" ~b2)
            note# (s#)]
-       (at (+ (now) ~demo-time) (node-free note#))
+       (at-at/at (+ (now) ~demo-time) #(node-free note#))
        note#)))
 
 (defn active-synths

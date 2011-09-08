@@ -94,7 +94,7 @@
 
 (demo (* 0.5 (sin-osc 100 (* 10 (sin-osc 500 0)))))
 
-;;we can use the pm-osc pseudo ugen provided by overtone:
+;;we can use the pm-osc cgen provided by overtone:
 
 (demo (* 0.5 (pm-osc 100 500 10 0)))
 

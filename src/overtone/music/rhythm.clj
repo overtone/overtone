@@ -2,9 +2,8 @@
   ^{:doc "Functions to help work with musical time."
      :author "Jeff Rose"}
   overtone.music.rhythm
-  (:use
-    [overtone.sc core]
-    [overtone time-utils]))
+  (:use [overtone.sc core]
+        [overtone.music time]))
 
 ; Rhythm
 

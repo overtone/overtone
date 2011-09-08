@@ -28,7 +28,7 @@
 (doc play-buf)
 
 
-(synth (play-buf 1 flute-buf 1 1 0 0 :free))
+(synth (play-buf 1 flute-buf 1 1 0 0 FREE))
 
 ; Try layering these looped versions, eval each line
 (synth (play-buf 1 flute-buf 1 1 0 1))
@@ -86,5 +86,3 @@
 (buf-player (:id flute-buf) 3)
 (buf-player (:id flute-buf) 0.25)
 (reset)
-
-

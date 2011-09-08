@@ -25,6 +25,12 @@ possible
 
   http://vimeo.com/22798433
 
+### Cheat Sheet
+
+For a quick glance at all the functionality Overtone puts at your musical fingertips check out the cheat sheet:
+
+  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet-a4.pdf
+
 ### Project Info:
 
 #### Lein, Cake and Maven support
@@ -34,7 +40,7 @@ your project.clj is:
 
 [overtone "<version>"]
 
-The current version is 0.1.5 but search on Clojars to get the latest
+The current version is 0.2.1 but search on Clojars to get the latest
 release.
 
 #### Source Repository
@@ -132,9 +138,11 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 ### Contributors
 
 * Jeff Rose
-* Jon Rose
 * Sam Aaron
 * Fabian Aussems
 * Christophe McKeon
 * Pepijn de Vos
 * Marius Kempe
+* Nicolas Buduroi
+* Iain Wood
+* Marmaduke Woodman

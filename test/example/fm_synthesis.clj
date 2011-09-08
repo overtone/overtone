@@ -5,7 +5,7 @@
 
 (defsynth fm [carrier 440 modulator 440 depth 0.1]
   (let [mod-env (env-gen (perc 0.3 0.6))
-        amp-env (env-gen (perc 0.01 0.8) 1 1 0 1 :free)]
+        amp-env (env-gen (perc 0.01 0.8) 1 1 0 1 FREE)]
     (* amp-env
        (sin-osc (+ carrier
                  (* depth mod-env

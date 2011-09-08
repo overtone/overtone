@@ -1,5 +1,6 @@
 (ns overtone.studio.sequencer
-  (:use [overtone util time-utils]
+  (:use [overtone.util lib]
+        [overtone.music time]
         [overtone.sc core node]
         [overtone.studio core]))
 

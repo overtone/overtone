@@ -4,12 +4,17 @@
           intervals, etc."
      :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
-  (:use [clojure.contrib.str-utils2 :only (chop)])
+  (:use [clojure.contrib.str-utils2 :only (chop)]
+        [overtone.algo chance])
   (:require [clojure.contrib.math :as math]))
 
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
 ;; possible 7 note scales, the major scale has the highest number of consonant
 ;; intervals.
+
+(defn play
+  [s notes]
+  (doall (map #(s %) notes)))
 
 (defmacro defratio [rname ratio]
   `(defn ~rname [freq#] (* freq# ~ratio)))
@@ -66,22 +71,12 @@
   (let [pivot (or pivot (first notes))]
     (for [n notes] (- pivot (- n pivot)))))
 
-(defn only
-  "Take only the specified notes from the given phrase."
-  ([phrase notes] (only phrase notes []))
-  ([phrase notes result]
-   (if notes
-     (recur phrase
-            (next notes)
-            (conj result (get phrase (first notes))))
-     result)))
-
 (defn octave-note
   "Convert an octave and note to a midi note."
   [octave note]
   (+ (+ (* octave 12) note) 12))
 
-(def NOTE {:C  0  :c  0
+(def NOTES {:C  0  :c  0
            :C# 1  :c# 1  :Db 1  :db 1
            :D  2  :d  2
            :D# 3  :d# 3  :Eb 3  :eb 3
@@ -95,47 +90,47 @@
            :B  11 :b  11})
 
 
-(defn resolve-note
+(defn note
   "Resolves note to MIDI number format. Resolves upper and lower-case keywords
   and strings in MIDI note format. If given an integer or nil, returns them
   unmodified. All other inputs will raise an exception.
 
   Usage examples:
 
-  (resolve-note \"C4\")  ;=> 60
-  (resolve-note \"C#4\") ;=> 61
-  (resolve-note \"eb2\") ;=> 39
-  (resolve-note :F#7)    ;=> 102
-  (resolve-note :db5)    ;=> 73
-  (resolve-note 60)      ;=> 60
-  (resolve-note nil)     ;=> nil"
+  (note \"C4\")  ;=> 60
+  (note \"C#4\") ;=> 61
+  (note \"eb2\") ;=> 39
+  (note :F#7)    ;=> 102
+  (note :db5)    ;=> 73
+  (note 60)      ;=> 60
+  (note nil)     ;=> nil"
 
-  [note]
+  [n]
   (cond
-   (nil? note) nil
-   (integer? note) (if (>= note 0)
-                    note
+   (nil? n) nil
+   (integer? n) (if (>= n 0)
+                    n
                     (throw (IllegalArgumentException.
-                            (str "Unable to resolve note: " note ". Value is out of range. Lowest value is 0"))))
-   (keyword? note) (resolve-note (name note))
-   (string? note) (let [midi-note-re #"\A([a-gA-G][#b]?)([-0-9]+\Z)"
-                        separated (re-find midi-note-re note)
+                            (str "Unable to resolve note: " n ". Value is out of range. Lowest value is 0"))))
+   (keyword? n) (note (name n))
+   (string? n) (let [midi-note-re #"\A([a-gA-G][#b]?)([-0-9]+\Z)"
+                        separated (re-find midi-note-re n)
                         _ (when (nil? separated)
                             (throw (IllegalArgumentException.
-                                    (str "Unable to resolve note: " note ". Does not appear to be in MIDI format i.e. C#4"))))
+                                    (str "Unable to resolve note: " n ". Does not appear to be in MIDI format i.e. C#4"))))
 
                         [_ pitch-class octave] separated
                         octave (Integer. octave)
                         _ (when (< octave -1)
                             (throw (IllegalArgumentException.
-                                    (str "Unable to resolve note: " note ". Octave is out of range. Lowest octave value is -1"))))
-                        interval (NOTE (keyword pitch-class))
+                                    (str "Unable to resolve note: " n ". Octave is out of range. Lowest octave value is -1"))))
+                        interval (NOTES (keyword pitch-class))
 
                         _ (when (nil? interval)
                             (throw (IllegalArgumentException.
-                                    (str "Unable to resolve note: " note ". Not a valid pitch class such as C or Db"))))]
+                                    (str "Unable to resolve note: " n ". Not a valid pitch class such as C or Db"))))]
                     (+ interval 12 (* 12 octave)))
-   :else (throw (IllegalArgumentException. (str "Unable to resolve note: " note ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
+   :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
 
 ;; * Each note in a scale acts as either a generator or a collector of other notes,
 ;; depending on their relations in time within a sequence.
@@ -209,7 +204,7 @@
   representing the key and an optional scale name (defaulting to :major):
   (scale-field :g)
   (scale-field :g :minor)"
-  (let [base (NOTE skey)
+  (let [base (NOTES skey)
         sname (or sname :major)
         intervals (SCALE sname)]
     (reverse (next
@@ -270,7 +265,7 @@
 (defn degrees->pitches
   "Convert intervals to pitches in MIDI number format.  Supports nested collections."
   [degrees scale root]
-  (let [root (resolve-note root)]
+  (let [root (note root)]
     (when (nil? root)
       (throw (IllegalArgumentException. (str "root resolved to a nil value. degrees->pitches requires a non-nil root."))))
     (map (fn [degree]
@@ -296,7 +291,7 @@
 
   ([root scale-name] (scale root scale-name (range 1 8)))
   ([root scale-name degrees]
-     (let [root (resolve-note root)
+     (let [root (note root)
            degrees (resolve-degrees degrees)]
        (cons root (map #(+ root (nth-interval scale-name %)) degrees)))))
 
@@ -380,9 +375,22 @@
   (chord :Bb4 :dim)   ; b flat diminished -> #{70 73 76}
   "
   ([root chord-name]
-     (let [root (resolve-note root)
+     (let [root (note root)
            chord (resolve-chord chord-name)]
        (set (map #(+ % root) chord)))))
+
+(defn rand-chord
+  "Generates a random list of MIDI notes with cardinality num-pitches bound
+  within the range of the specified root and pitch-range and only containing
+  pitches within the specified chord-name. Similar to Impromptu's pc:make-chord"
+  [root chord-name num-pitches pitch-range]
+  (let [chord (chord root chord-name)
+        root (note root)
+        max-pitch (+ pitch-range root)
+        roots (range 0 max-pitch 12)
+        notes (flatten (map (fn [root] (map #(+ root %) chord)) roots))
+        notes (take-while #(<= % max-pitch) notes)]
+    (sort (choose-n num-pitches notes))))
 
 ; midicps
 (defn midi->hz
@@ -411,10 +419,6 @@
   [db]
   (java.lang.Math/exp (* (/ db 20) (java.lang.Math/log 10))))
 
-(defn chosen-from [notes]
-  (let [num-notes (count notes)]
-    (repeatedly #(get notes (rand-int num-notes)))))
-
 (defn nth-octave
   "Returns the freq n octaves from the supplied reference freq
 
@@ -438,9 +442,7 @@
      (case tuning
            :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
 
-(defn- log2 [x]
-  (/ (Math/log x)
-     (Math/log 2)))
+
 ;; * shufflers (randomize a sequence, or notes within a scale, etc.)
 ;; *
 ;;* Sequence generators

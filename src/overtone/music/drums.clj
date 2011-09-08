@@ -1,4 +1,4 @@
-(ns overtone.lib.drums
+(ns overtone.music.drums
   (:use overtone.core))
 
 ;* Pattern based rhythms
@@ -29,12 +29,11 @@
   (dosync (ref-set *drums [])))
 
 (defn play-drums [tempo beat-count]
-  (periodic (fn []
+  (periodic tempo
+            (fn []
               (let [num (rand)
                     i   @*drum-count]
                 (doseq [[voice pattern] @*drums]
                   (if (< num (nth pattern i))
                     (hit voice :pitch 50 :dur 200)))
-                (dosync (ref-set *drum-count (mod (inc @*drum-count) beat-count)))))
-            tempo))
-
+                (dosync (ref-set *drum-count (mod (inc @*drum-count) beat-count)))))))

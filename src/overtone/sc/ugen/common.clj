@@ -1,49 +1,19 @@
 (ns
   ^{:doc "Code that is common to many ugens.  Includes validation and argument manipulation functions."
      :author "Jeff Rose & Christophe McKeon"}
-  overtone.sc.ugen.common)
+  overtone.sc.ugen.common
+  (:use [overtone.util lib]
+        [overtone.sc.ugen defaults special-ops]
+        [overtone.sc buffer bus]))
 
-;; Done actions are typically executed when an envelope ends, or a sample ends
-;; 0	do nothing when the UGen is finished
-;; 1	pause the enclosing synth, but do not free it
-;; 2	free the enclosing synth
-;; 3	free both this synth and the preceding node
-;; 4	free both this synth and the following node
-;; 5	free this synth; if the preceding node is a group then do g_freeAll on it, else free it
-;; 6	free this synth; if the following node is a group then do g_freeAll on it, else free it
-;; 7	free this synth and all preceding nodes in this group
-;; 8	free this synth and all following nodes in this group
-;; 9	free this synth and pause the preceding node
-;; 10	free this synth and pause the following node
-;; 11	free this synth and if the preceding node is a group then do g_deepFree on it, else free it
-;; 12	free this synth and if the following node is a group then do g_deepFree on it, else free it
-;; 13	free this synth and all other nodes in this group (before and after)
-;; 14	free the enclosing group and all nodes within it (including this synth)
-(def DONE-ACTIONS
-  {:none                       0
-   :pause                      1
-   :free                       2
-   :free-and-before            3
-   :free-and-after             4
-   :free-and-group-before      5
-   :free-and-group-after       6
-   :free-upto-this             7
-   :free-from-this-on          8
-   :free-pause-before          9
-   :free-pause-after           10
-   :free-and-group-before-deep 11
-   :free-and-group-after-deep  12
-   :free-children              13
-   :free-group                 14})
 
-(def INFINITE Float/POSITIVE_INFINITY)
 
 (defn as-ar [a])
 
 ;; checks
 
 (defn rate-of [obj]
-  (:rate obj))
+  (:rate-name obj))
 
 (defn rate-of? [obj rate]
   (= (rate-of obj) rate))
@@ -75,15 +45,15 @@
   (= (rate-of (first inputs)) rate))
 
 (defcheck first-input-ar []
-  "the first input must be audio rate"
+  (str "The first input must be audio rate. Got " (:rate-name (first inputs)))
   (ar? (first inputs)))
 
 (defcheck all-inputs-ar []
-  "all inputs must be audio rate"
+  (str "All inputs must be audio rate. Got " (vec (map :rate-name inputs)))
   (every? ar? inputs))
 
 (defcheck first-n-inputs-ar [n]
-  (str "the first " n " inputs must be audio rate")
+  (str "The first " n " inputs must be audio rate. Got " (vec (map :rate-name (take n inputs))))
   (every? ar? (take n inputs)))
 
 (defcheck after-n-inputs-rest-ar [n]
@@ -122,3 +92,31 @@
     (if (= rate :ar)
       (apply check-all check-fns))))
 
+(defn buffer->id
+  "Returns a function that converts any buffer arguments to their :id property
+  value."
+  [ugen]
+  (update-in ugen [:args]
+             (fn [args]
+               (map #(if (buffer? %) (:id %) %) args))))
+
+(defn bus->id
+  "Returns a function that converts any bus arguments to their :id property
+  value."
+  [ugen]
+  (update-in ugen [:args]
+             (fn [args]
+               (map #(if (bus? %) (:id %) %) args))))
+
+
+(defn real-ugen-name
+  [ugen]
+  (overtone-ugen-name
+    (case (:name ugen)
+      "UnaryOpUGen"
+      (get REVERSE-UNARY-OPS (:special ugen))
+
+      "BinaryOpUGen"
+      (get REVERSE-BINARY-OPS (:special ugen))
+
+      (:name ugen))))
