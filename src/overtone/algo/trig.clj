@@ -4,7 +4,8 @@
   overtone.algo.trig)
 
 (defn cosr
-  "Scaled, shifted (i.e. mul-add) cosine fn with the frequency specified in terms of the idx (typically representing the beat).
+  "Scaled, shifted (i.e. mul-add) cosine fn with the frequency specified in
+  terms of the idx (typically representing the beat).
 
   Returns a value at idx along a scaled cosine fn with specified centre and
   range. The frequency is defined to be period idxs. Similar to Impromptu's
@@ -19,7 +20,8 @@
   (+ centre (* range (Math/cos (* 2 Math/PI idx (/ 1 period))))))
 
 (defn sinr
-  "Scaled, shifted (i.e. mul-add) sine fn with the frequency specified in terms of the idx (typically representing the beat).
+  "Scaled, shifted (i.e. mul-add) sine fn with the frequency specified in
+  terms of the idx (typically representing the beat).
 
   Returns a value at idx along a scaled sine fn with specified centre and
   range. The frequency is defined to be period idxs. Similar to Impromptu's
@@ -34,7 +36,8 @@
   (+ centre (* range (Math/sin (* 2 Math/PI idx (/ 1 period))))))
 
 (defn tanr
-  "Scaled, shifted (i.e. mul-add) tan fn with the frequency specified in terms of the idx (typically representing the beat).
+  "Scaled, shifted (i.e. mul-add) tan fn with the frequency specified in
+  terms of the idx (typically representing the beat).
 
   Returns a value at idx along a scaled tan fn with specified centre and
   range. The frequency is defined to be period idxs. Similar to Impromptu's
