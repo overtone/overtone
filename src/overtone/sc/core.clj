@@ -18,9 +18,9 @@
         [overtone.libs event deps]
         [overtone.sc defaults allocator]
         [overtone.osc.decode :only [osc-decode-packet]]
-        [overtone.osc])
-  (:require [overtone.util.log :as log]
-            [overtone.sc.osc :as osc]))
+        [overtone.osc]
+        [overtone.sc.osc-validator :only [validated-snd]])
+  (:require [overtone.util.log :as log]))
 
 (def OVERTONE-VERSION 0.3)
 
@@ -30,6 +30,7 @@
 (defonce sc-world*      (ref nil))
 (defonce status*        (ref :disconnected))
 (defonce synth-group*   (ref nil))
+(defonce osc-debug*     (atom false))
 
 ;; The base handler for receiving osc messages just forwards the message on
 ;; as an event using the osc path as the event key.
@@ -57,9 +58,23 @@
 
   (snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
-  (apply osc/snd @server* path args)
+  (when @osc-debug*
+    (println "Sending: " path [args])
+    (log/debug (str "Sending: " path [args])))
+  (apply validated-snd @server* path args)
+
   (if (not (connected?))
     (log/debug "### trying to snd while disconnected! ###")))
+
+(defn sc-osc-debug-on
+  "Log and print out all outgoing OSC messages"
+  []
+  (reset! osc-debug* true ))
+
+(defn sc-osc-debug-off
+  "Turns off OSC debug messages (see osc-debug-on)"
+  []
+  (reset! osc-debug* false))
 
 ;; ## Event notifications from the server
 ;;

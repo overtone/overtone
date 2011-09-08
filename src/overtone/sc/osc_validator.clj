@@ -4,7 +4,7 @@
             OSC messages to reduce the number of bogus messages that may
             potentially crash the server."
       :author "Sam Aaron"}
-  overtone.sc.osc
+  overtone.sc.osc-validator
   (:use [overtone.osc])
   (:require [overtone.util.log :as log]))
 
@@ -196,11 +196,11 @@
    "/c_get"              [:ctl-bus-idx]
    "/c_getn"             [:ctl-bus-idx :count]})
 
-(defn description
+(defn- description
   [type]
   (:desc (TYPES type)))
 
-(defn valid?
+(defn- valid?
   [type val]
   (if-let [type-info (TYPES type)]
     (apply (:validator type-info) [val])
@@ -208,53 +208,53 @@
       (log/error err-str)
       (throw (IllegalArgumentException. err-str)))))
 
-(defn many-type?
+(defn- many-type?
   [type]
   (.endsWith (name type) "*"))
 
-(defn many-type->type
+(defn- many-type->type
   [many-type]
   (let [n (name many-type)]
     (keyword (.substring n 0 (dec (.length n))))))
 
-(defn expand-many
+(defn- expand-many
   [many-type]
   (repeat (many-type->type many-type)))
 
-(defn expand-alternating
+(defn- expand-alternating
   [type]
   (let [[[_ a b]] (re-seq #"ALTERNATING-(.*)-THEN-(.*)?\*" (name type))]
     (cycle [(keyword a) (keyword b)])))
 
-(defn alternating?
+(defn- alternating?
   [type]
   (.startsWith (name type) "ALTERNATING"))
 
-(defn expand-type
+(defn- expand-type
   [type]
   (cond
    (alternating? type) (expand-alternating type)
    (many-type? type) (expand-many type)
    :else type))
 
-(defn expand-type-sig
+(defn- expand-type-sig
   [sig]
   (flatten (map #(expand-type %) sig)) )
 
-(defn sig-arity
+(defn- sig-arity
   [name]
   (let [sig (OSC-TYPE-SIGNATURES name)]
     (if (some many-type? sig)
       Float/POSITIVE_INFINITY
       (count sig))))
 
-(defn arity-mismatch?
+(defn- arity-mismatch?
   [s-arity a-arity]
 
   (and (not (= Float/POSITIVE_INFINITY s-arity))
        (not (= s-arity a-arity))))
 
-(defn error-args
+(defn- error-args
   [sig args]
 
   (some (fn [[type arg]] (if (not (valid? type arg))
@@ -262,7 +262,7 @@
                           false))
         (partition 2 (interleave (expand-type-sig sig) args))))
 
-(defn checked-snd
+(defn- checked-snd
   [sig host path & args]
   (let [s-arity (sig-arity path)
         a-arity (count args)]
@@ -280,8 +280,10 @@
     (apply osc-send host path args)))
 
 
-(defn snd
-  "Send an osc message using the osc library"
+(defn validated-snd
+  "Send an scsynth osc message. Validates message. Raises an exception if the
+  message is unknown or is not well formed according to the message's type
+OP  signature."
   [host path & args]
   (if-let [sig (OSC-TYPE-SIGNATURES path)]
     (apply checked-snd sig host path args)
