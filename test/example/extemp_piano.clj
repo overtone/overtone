@@ -23,28 +23,31 @@
 ;;                  (random '(2 7 10))
 ;;                  (random '(0 8))))))
 
-
-(def beat-offsets [0 0.1 1/3  0.7 0.9])
 (def instrument piano)
 (def metro (metronome 20))
+
+(def beat-offsets [0 0.1 1/3  0.7 0.9])
+(def chord-prog
+  [#{[2 :minor7] [7 :minor7] [10 :major7]}
+   #{[0 :minor7] [8 :major7]}])
+(def root 40)
+(def max-range 35)
+(def range-variation 10)
+(def range-period 8)
 
 ;;this assumes you have the mda-piano available. Feel fre to eplace piano with
 ;;a different synth which accepts a MIDI note as its first arg such as tb303.
 ;;(def instrument tb303)
-
 (defn beat-loop
-  [metro beat root]
-  (let [chord-name (if (some #{10 8} [root])
-                     :major7
-                     :minor7)
-        next-root  (if (some #{0 8} [root])
-                     (choose [2 7 10])
-                     (choose [0 8]))]
-    (dorun (map (fn [note offset]
-                  (at (metro (+ beat offset)) (instrument note)))
-                (rand-chord (+ 40 root) chord-name (count beat-offsets) (cosr beat 35 10 32) )
-                beat-offsets))
-    (apply-at (metro (inc beat)) #'beat-loop [metro (inc beat) next-root])))
+  [metro beat chord-idx]
+  (let [[tonic chord-name] (choose (seq (nth chord-prog chord-idx)))
+        nxt-chord-idx     (mod (inc chord-idx) (count chord-prog))]
+    (dorun
+     (map (fn [note offset]
+            (at (metro (+ beat offset)) (instrument note)))
+          (rand-chord (+ root tonic) chord-name (count beat-offsets) (cosr beat max-range range-variation range-period) )
+          beat-offsets))
+    (apply-at (metro (inc beat)) #'beat-loop [metro (inc beat) nxt-chord-idx])))
 
 ;;start the music:
 (beat-loop metro (metro) 0)
