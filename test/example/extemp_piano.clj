@@ -45,7 +45,7 @@
     (dorun
      (map (fn [note offset]
             (at (metro (+ beat offset)) (instrument note)))
-          (rand-chord (+ root tonic) chord-name (count beat-offsets) (cosr beat max-range range-variation range-period) )
+          (rand-chord (+ root tonic) chord-name (count beat-offsets) (cosr beat range-variation  max-range range-period) )
           beat-offsets))
     (apply-at (metro (inc beat)) #'beat-loop [metro (inc beat) nxt-chord-idx])))
 
@@ -55,7 +55,7 @@
 ;;try changing the beat-offsets on the fly
 ;;(def beat-offsets [0 0.2 1/3  0.5 0.8])
 ;;(def beat-offsets [0 0.2 0.4  0.6 0.8])
-;;(def beat-offsets [0 0.1 0.11 0.13 0.15 0.17 0.2 0.4 0.5 0.55 0.6 0.8 0.8 0.8])
+;;(def beat-offsets [0 0.1 0.11 0.13 0.15 0.17 0.2 0.4 0.5 0.55 0.6 0.8])
 
 ;;to stop, define beat-loop to not schedule another callback:
 ;;(defn beat-loop [m b r]nil)
