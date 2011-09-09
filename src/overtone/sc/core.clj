@@ -193,9 +193,9 @@
   (connect)                        ;=> connect to the internal server
   (connect 57710)                  ;=> connect to an external server on the
                                        localhost listening to port 57710
-  (connect \"192.168.1.23\" 57711) ;=> connect to an external server with ip
+  (connect \"192.168.1.23\" 57110) ;=> connect to an external server with ip
                                        address 192.168.1.23 listening to port
-                                       57711"
+                                       57110"
   ([] (connect-internal))
   ([port] (connect "127.0.0.1" port))
   ([host port]
