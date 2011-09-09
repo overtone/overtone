@@ -182,12 +182,20 @@
         (log/debug "sending status...")
         (snd "/status")
         (Thread/sleep 100)
-        (recur (inc cnt))))))
+        (recur (inc cnt)))))
+  (print-ascii-art-overtone-logo))
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
   "Connect to an running SC audio server. Either an external server if host and
-  port are passed or an internal server in the case of no args."
+  port are passed or an internal server in the case of no args.
+
+  (connect)                        ;=> connect to the internal server
+  (connect 57710)                  ;=> connect to an external server on the
+                                       localhost listening to port 57710
+  (connect \"192.168.1.23\" 57711) ;=> connect to an external server with ip
+                                       address 192.168.1.23 listening to port
+                                       57711"
   ([] (connect-internal))
   ([port] (connect "127.0.0.1" port))
   ([host port]
@@ -328,7 +336,8 @@
       (sc-log in-stream read-buf)
       (sc-log err-stream read-buf)
       (Thread/sleep 250))
-    (.destroy proc)))
+    (.destroy proc))
+  (print-ascii-art-overtone-logo))
 
 (defn- boot-external
   "Boot the audio server in an external process and tell it to listen on a
@@ -356,6 +365,7 @@
   "Boot either the internal or external audio server.
    (boot) ; uses the default settings defined in your config
    (boot :internal) ; boots the internal server
+   (boot :external) ; boots an external server on a random port
    (boot :external 57110) ; boots an external server listening on port 57110"
   ([]
      (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
