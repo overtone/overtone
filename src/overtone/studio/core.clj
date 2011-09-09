@@ -3,7 +3,8 @@
         [overtone.util lib]
         [overtone.sc.ugen defaults sc-ugen]
         [overtone.sc defaults core synth ugen envelope node synthdef bus]
-        [overtone.music rhythm time]))
+        [overtone.music rhythm time])
+  (:require [overtone.util.log :as log]))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
 ; SuperCollider.  Every instance of an instrument will be played within the same
@@ -102,6 +103,7 @@
 (on-deps :studio-setup-completed ::start-mixer start-mixer)
 
 (defn setup-studio []
+  (log/info (str "Creating studio group at head of: " ROOT-GROUP))
   (let [g (with-server-sync #(group :head ROOT-GROUP))
         f (group :after g)
         m (group :tail ROOT-GROUP)

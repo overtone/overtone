@@ -53,6 +53,4 @@
 
 (defonce _auto-boot_ (boot))
 
-(wait-until-connected)
-
 (print-ascii-art-overtone-logo)

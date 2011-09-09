@@ -49,7 +49,14 @@
   `(in-osc-bundle @server* ~time-ms (do ~@body)))
 
 (defn connected? []
-  (= :connected @status*))
+  (or
+   (= :connected @status*)
+   (= :fully-booted @status*)))
+
+(defn fully-booted? []
+  (= :fully-booted @status*))
+
+(on-deps [:connected :studio-setup-completed] ::fully-booted #(dosync (ref-set status* :fully-booted)))
 
 (defn snd
   "Sends an OSC message. If the message path is a known scsynth path, then the
@@ -333,6 +340,13 @@
          (connect "127.0.0.1" port)
          :booting))))
 
+(defn wait-until-fully-booted
+  "Makes the current thread sleep until scsynth has successfully connected and
+  the boot process has completed."
+  []
+  (while (not (fully-booted?))
+    (Thread/sleep 100)))
+
 (defn boot
   "Boot either the internal or external audio server.
    (boot) ; uses the default settings defined in your config
@@ -344,13 +358,8 @@
      (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
        (cond
         (= :internal which) (boot-internal port)
-        (= :external which) (boot-external port)))))
-
-(defn wait-until-connected
-  "Makes the current thread sleep until scsynth has successfully connected"
-  []
-  (while (not (connected?))
-    (Thread/sleep 100)))
+        (= :external which) (boot-external port))
+       (wait-until-fully-booted))))
 
 (defn quit
   "Quit the SuperCollider synth process."

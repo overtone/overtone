@@ -321,7 +321,9 @@
        (with-meta (parse-node-tree tree)
          {:type ::node-tree})))))
 
-(on-deps :connected ::create-synth-group #(dosync (ref-set synth-group* (group :head ROOT-GROUP))))
+(on-deps :connected ::create-synth-group #(dosync
+                                           (log/debug (str "Creating synth group at head of group with id: " ROOT-GROUP))
+                                           (ref-set synth-group* (group :head ROOT-GROUP))))
 
 (on-sync-event :reset
   (fn []
