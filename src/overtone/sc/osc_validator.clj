@@ -268,12 +268,12 @@
         a-arity (count args)]
 
     (when (arity-mismatch? s-arity a-arity)
-      (let [err-string (str "You didn't provide the correct number of arguments for OSC message " path ". Expected " s-arity ", got " a-arity " Type sig: " sig " Arg list: " args)]
+      (let [err-string (str "Failed attempting to send an OSC message to SuperCollider server. Reason: you didn't provide the correct number of arguments for OSC message " path ". Expected " s-arity ", got " a-arity " Type sig: " sig " Arg list: " args)]
         (log/error err-string)
         (throw (IllegalArgumentException. err-string))))
 
     (when-let [[err-type err-arg] (error-args sig args)]
-      (let [err-string (str "Incorrect arglist type in scsynth message. Expected " (description err-type) " found " (type err-arg) ". Message name: " path " Type sig: " sig " Arg list: " args)]
+      (let [err-string (str "Failed attempting to send an OSC message to SuperCollider server. Reason: incorrect arglist type in OSC message " path ". Expected " (description err-type) " found " (type err-arg) ". Message name: " path " Type sig: " sig " Arg list: " args)]
         (log/error err-string)
         (throw (IllegalArgumentException. err-string))))
 
