@@ -260,7 +260,12 @@
 
 (def SC-PATHS {:linux ["scsynth"]
                :windows ["C:/Program Files/SuperCollider/scsynth.exe"
-                         "C:/Program Files (x86)/SuperCollider/scsynth.exe"]
+                         "D:/Program Files/SuperCollider/scsynth.exe"
+                         "E:/Program Files/SuperCollider/scsynth.exe"
+                         "C:/Program Files (x86)/SuperCollider/scsynth.exe"
+                         "D:/Program Files (x86)/SuperCollider/scsynth.exe"
+                         "E:/Program Files (x86)/SuperCollider/scsynth.exe"]
+
                :mac  ["/Applications/SuperCollider/scsynth"] })
 
 (def SC-ARGS  {:linux []
