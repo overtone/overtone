@@ -348,7 +348,7 @@
              cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (@config* :os))))
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
-         (log/debug "Booting SuperCollider server (scsynth)...")
+         (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " cmd))
          (.start sc-thread)
          (dosync (ref-set server-thread* sc-thread))
          (connect "127.0.0.1" port)
