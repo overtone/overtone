@@ -23,7 +23,6 @@
   (if (or (not l) (empty? l))
     0
     (let [longest (last (sort-by #(.length (name %)) l))]
-      (println "longest: " longest ", len: " (.length (name longest)))
       (.length (name longest)))))
 
 (defn gen-padding
