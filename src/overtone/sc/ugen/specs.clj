@@ -382,9 +382,3 @@
 
 (defn get-ugen [word]
   (get UGEN-SPECS (normalize-ugen-name word)))
-
-(defn find-ugen [regexp]
-  (map #(second %)
-       (filter (fn [[k v]] (re-find (re-pattern (normalize-ugen-name regexp))
-                                   (str k)))
-               (vals UGEN-SPECS))))

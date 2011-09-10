@@ -10,6 +10,7 @@
             [overtone.sc.examples demand osc trig compander audio-in]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio core util fx]
+            [overtone.repl ugens examples]
             [overtone.viz scope]))
 
 (immigrate
@@ -48,6 +49,8 @@
  'overtone.music.time
  'overtone.studio.core
  'overtone.studio.fx
+ 'overtone.repl.ugens
+ 'overtone.repl.examples
  'overtone.viz.scope
  )
 

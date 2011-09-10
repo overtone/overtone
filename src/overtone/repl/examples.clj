@@ -1,4 +1,6 @@
-(ns overtone.repl.examples)
+(ns overtone.repl.examples
+  (:use [overtone.util doc lib]
+        [overtone.sc example]))
 
 (defn- print-gen-examples
   ([gen-examples] (print-gen-examples gen-examples "" 0))

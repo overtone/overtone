@@ -314,6 +314,16 @@ Hello " (user-name) ", may this be the start of a beautiful music hacking sessio
         n (.toLowerCase n)]
     n))
 
+(defn resolve-gen-name
+  "If the gen is a cgen or ugen returns the :name otherwise returns name
+   unchanged assuming it's a keyword."
+  [gen]
+  (if (and (associative? gen)
+           (or (= :overtone.sc.ugen/ugen (:type gen))
+               (= :overtone.sc.cgen/cgen (:type gen))))
+    (keyword (:name gen))
+    gen))
+
 (defn consecutive-ints?
   "Checks whether seq s consists of consecutive integers
    (consecutive-ints? [1 2 3 4 5]) ;=> true
