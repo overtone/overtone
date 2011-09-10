@@ -1,6 +1,7 @@
-(ns overtone.sc.ugen.metadata.unaryopugen)
+(ns overtone.sc.ugen.metadata.unaryopugen
+  (:use [overtone.util lib]))
 
-(def unaryopugen-docspecs
+(def unnormalized-unaryopugen-docspecs
   {"neg" {:summary "Signal inversion"
           :doc "Invert input signal a by changing its sign.
 
@@ -191,3 +192,8 @@ i.e. 0.1 -> 0.309017, 0.3 -> 0.809017, 0.5 -> 1, 0.7 -> 0.809017 and 0.9 -> 0.30
                  :doc "MAps input a onto a triangle window which spance between 0 and 1 with a peak at 0.5. Any input between 0 and 1 is mapped to the corresponding val in the triangle window. All other input vals map to 0. Always returns a value between 0 and 1."}
 
 })
+
+(def unaryopugen-docspecs
+  (into {} (map
+            (fn [[k v]] [(normalize-ugen-name k) v])
+            unnormalized-unaryopugen-docspecs)))

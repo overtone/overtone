@@ -4,12 +4,11 @@
   overtone.sc.ugen
   (:use [overtone.util lib]
         [overtone.sc.ugen sc-ugen defaults specs special-ops]
-        [clojure.contrib.generic :only [root-type]]
         [overtone.sc.ugen.metadata unaryopugen binaryopugen])
-  (:require [clojure.contrib.generic.arithmetic :as ga]
-            [clojure.contrib.generic.comparison :as gc]
-            [clojure.contrib.generic.math-functions :as gm]
-            [overtone.sc.ugen.doc :as doc]))
+  (:require [overtone.sc.ugen.doc :as doc]))
+
+;;Create a ns to store all ugens that collide with standard ugen fns
+(defonce ugen-collide-ns (create-ns 'overtone.ugen-collide))
 
 (defn- op-rate
   "Lookup the rate of an input ugen, otherwise use IR because the operand
@@ -173,13 +172,17 @@
 (defn control? [obj]
   (isa? (type obj) ::control))
 
+(defn- overload-binary-ugen-op [src-ns target-ns ugen-name ugen-fn]
+  (let [original-fn (ns-resolve src-ns ugen-name)
+        ugen-name   (if (= '/ ugen-name) 'binary-div-op ugen-name)]
 
-(defn- overload-ugen-op [ns ugen-name ugen-fn]
-  (let [original-fn (ns-resolve ns ugen-name)]
-    (ns-unmap ns ugen-name)
-    (intern ns ugen-name (fn [& args]
-                           (if (some #(or (sc-ugen? %) (not (number? %))) args)
-                             (apply ugen-fn args)
+    (ns-unmap target-ns ugen-name)
+    (intern target-ns ugen-name (fn [& args]
+                                  (if (some #(or (sc-ugen? %) (not (number? %))) args)
+                                    (let [x    (first args)
+                                          y    (second args)
+                                          more (drop 2 args)]
+                                      (reduce ugen-fn (ugen-fn x y) more))
                              (apply original-fn args))))))
 
 (defn- def-ugen
@@ -208,8 +211,9 @@
   unaryopugen represents multiple functionality represented by multple fns
   in overtone)."
   [to-ns op-name special]
-  (let [orig-spec (get UGEN-SPECS "unaryopugen")
-        doc-spec  (get unaryopugen-docspecs op-name {})
+  (let [normalized-n (normalize-ugen-name op-name)
+        orig-spec (get UGEN-SPECS "unaryopugen")
+        doc-spec  (get unaryopugen-docspecs normalized-n {})
         full-spec (merge orig-spec doc-spec {:name op-name
                                              :categories [["Unary Operations"]]})
         full-spec (doc/with-full-doc full-spec)
@@ -223,7 +227,7 @@
         ugen-fn   (make-expanding ugen-fn [true])
         ugen      (make-ugen full-spec :auto ugen-fn)]
 
-    (swap! special-op-specs* assoc op-name full-spec)
+    (swap! special-op-specs* assoc normalized-n full-spec)
     (if (ns-resolve to-ns ugen-name)
       (throw (Exception. (str "Attempted to define a unary op with the same name as a function which already exists: " op-name)))
       (intern to-ns ugen-name ugen))))
@@ -234,112 +238,25 @@
   in overtone)."
   [to-ns op-name special]
   (let [
-        orig-spec (get UGEN-SPECS "binaryopugen")
-        doc-spec  (get binaryopugen-docspecs op-name {})
-        full-spec (merge orig-spec doc-spec {:name op-name
-                                             :categories [["Binary Operations"]]})
-        full-spec (doc/with-full-doc full-spec)
-        metadata  {:doc (:full-doc full-spec)
-                   :arglists (list (vec (map #(symbol (:name %))
-                                             (:args full-spec))))}
-        ugen-name (symbol (overtone-ugen-name op-name))
-        ugen-name (with-meta ugen-name metadata)
-        ugen-fn   (fn [a b]
-                    (ugen orig-spec (max (op-rate a) (op-rate b)) special (list a b)))
-        ugen-fn   (make-expanding ugen-fn [true true])
-        ugen (make-ugen full-spec :auto ugen-fn )]
-
-    (swap! special-op-specs* assoc op-name full-spec)
+        normalized-n (normalize-ugen-name op-name)
+        orig-spec    (get UGEN-SPECS "binaryopugen")
+        doc-spec     (get binaryopugen-docspecs normalized-n {})
+        full-spec    (merge orig-spec doc-spec {:name op-name
+                                                :categories [["Binary Operations"]]})
+        full-spec    (doc/with-full-doc full-spec)
+        metadata     {:doc (:full-doc full-spec)
+                      :arglists (list (vec (map #(symbol (:name %))
+                                                (:args full-spec))))}
+        ugen-name    (symbol (overtone-ugen-name op-name))
+        ugen-name    (with-meta ugen-name metadata)
+        ugen-fn      (fn [a b]
+                       (ugen orig-spec (max (op-rate a) (op-rate b)) special (list a b)))
+        ugen-fn      (make-expanding ugen-fn [true true])
+        ugen         (make-ugen full-spec :auto ugen-fn )]
+    (swap! special-op-specs* assoc normalized-n full-spec)
     (if (ns-resolve to-ns ugen-name)
-      (overload-ugen-op to-ns ugen-name ugen)
+      (overload-binary-ugen-op to-ns ugen-collide-ns ugen-name ugen)
       (intern to-ns ugen-name ugen))))
-
-(derive :overtone.sc.ugen.sc-ugen/sc-ugen root-type)
-
-(def generics
-  { "+"  :arithmetic
-    "-"  :arithmetic
-    "*"  :arithmetic
-    "/"  :arithmetic
-    ">"  :comparison
-    "<"  :comparison
-    "="  :comparison
-    "<=" :comparison
-    ">=" :comparison
-;;TODO addme when available in gc    "!=" :comparison
-    })
-
-(def generic-namespaces
-  { :arithmetic "ga"
-    :comparison "gc"})
-
-(defmacro mk-binary-op-ugen [sym]
-  (let [generic-kind (get generics (to-str sym))
-        gen-nspace   (get generic-namespaces generic-kind)
-        sym (to-str sym)]
-    `(do
-      (defmethod ~(symbol gen-nspace sym) [:overtone.sc.ugen.sc-ugen/sc-ugen :overtone.sc.ugen.sc-ugen/sc-ugen]
-         [a# b#]
-         (ugen (get UGEN-SPECS "binaryopugen")
-               (max (op-rate a#) (op-rate b#))
-               ~(get BINARY-OPS-FULL sym)
-               (list a# b#)))
-
-      (defmethod ~(symbol gen-nspace sym) [root-type :overtone.sc.ugen.sc-ugen/sc-ugen]
-         [a# b#]
-         (ugen (get UGEN-SPECS "binaryopugen")
-               (op-rate b#)
-               ~(get BINARY-OPS-FULL sym)
-               (list a# b#)))
-
-      (defmethod ~(symbol gen-nspace sym) [:overtone.sc.ugen.sc-ugen/sc-ugen root-type]
-         [a# b#]
-         (ugen (get UGEN-SPECS "binaryopugen")
-               (op-rate a#)
-               ~(get BINARY-OPS-FULL sym)
-               (list a# b#))))))
-
-(mk-binary-op-ugen :+)
-(mk-binary-op-ugen :-)
-(mk-binary-op-ugen :*)
-(mk-binary-op-ugen :<)
-(mk-binary-op-ugen :>)
-(mk-binary-op-ugen :<=)
-(mk-binary-op-ugen :>=)
-(mk-binary-op-ugen :=)
-;; TODO addme when available in gc (mk-binary-op-ugen :!=)
-
-(def div-meth (var-get (resolve (symbol "clojure.contrib.generic.arithmetic" "/"))))
-
-(defmethod div-meth [:overtone.sc.ugen.sc-ugen/sc-ugen :overtone.sc.ugen.sc-ugen/sc-ugen]
-  [a b]
-  (ugen (get UGEN-SPECS "binaryopugen")
-        (max (op-rate a) (op-rate b))
-        4
-        (list a b)))
-
-(defmethod div-meth [:overtone.sc.ugen.sc-ugen/sc-ugen root-type]
-  [a b]
-  (ugen (get UGEN-SPECS "binaryopugen")
-        (op-rate a)
-        4
-        (list a b)))
-
-(defmethod div-meth [root-type :overtone.sc.ugen.sc-ugen/sc-ugen]
-  [a b]
-  (ugen (get UGEN-SPECS "binaryopugen")
-        (op-rate b)
-        4
-        (list a b)))
-
-
-(defmethod ga/- :overtone.sc.ugen.sc-ugen/sc-ugen
-  [a]
-  (ugen (get UGEN-SPECS "unaryopugen")
-        (op-rate a)
-        0
-        (list a)))
-
 
 (defn intern-ugens
   "Iterate over all UGen meta-data, generate the corresponding functions and
@@ -352,26 +269,7 @@
        (def-ugen to-ns ugen 0))
      (doseq [[op-name special] UNARY-OPS]
        (def-unary-op to-ns op-name special))
-     (doseq [[op-name special] BINARY-OPS]
-       (def-binary-op to-ns op-name special))))
-
-(defn intern-ugens-collide
-  "Intern the ugens that collide with built-in clojure functions to the current
-  or otherwise specified namespace"
-  ([] (intern-ugens-collide *ns*))
-  ([to-ns]
-     (doseq [[op kind] generics]
-       (let [func (var-get (resolve (symbol (str "clojure.contrib.generic." (to-str kind)) op)))]
-         (ns-unmap to-ns (symbol op))
-         (intern to-ns (symbol op) (make-expanding func [true true]))))
-
-     ;; intern div-meth so we can access the division operator since / is special cased
-     (intern to-ns 'div-meth
-             (make-expanding (var-get (resolve
-                                       (symbol "clojure.contrib.generic.arithmetic" "/")))
-                             [true true]))
-
-     (doseq [[op-name special] BINARY-OPS-COLLIDE]
+     (doseq [[op-name special] BINARY-OPS-FULL]
        (def-binary-op to-ns op-name special))))
 
 
@@ -379,7 +277,6 @@
 ;; of the Overtone system using a fixed namespace.  For example, to automatically
 ;; stick an Out ugen on synths that don't explicitly use one.
 (defonce _ugens (intern-ugens))
-(defonce _colliders (intern-ugens-collide (create-ns 'overtone.ugen-collide)))
 
 (defmacro with-ugens [& body]
   `(let [~'+ overtone.ugen-collide/+
@@ -388,7 +285,7 @@
          ~'< overtone.ugen-collide/<
          ~'> overtone.ugen-collide/>
          ~'= overtone.ugen-collide/=
-         ~'/ overtone.ugen-collide/div-meth
+         ~'/ overtone.ugen-collide/binary-div-op
          ~'>= overtone.ugen-collide/>=
          ~'<= overtone.ugen-collide/<=
 ;;TODO addme when available in gc  ~'!= overtone.ugen-collide/!=
