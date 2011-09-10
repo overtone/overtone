@@ -69,7 +69,7 @@
         longest-name-len (length-of-longest-string names)]
     (if (empty? specs)
       (println "Sorry, unable to find a matching ugen.")
-      (print-ug-summaries longest-name-len))))
+      (print-ug-summaries specs longest-name-len))))
 
 (defn find-ug-doc
   "Find a ugen containing the specified terms which may be either strings or
