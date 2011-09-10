@@ -1,5 +1,6 @@
 (ns overtone.repl.ugens
-  (:use [overtone.sc.ugen specs]
+  (:use [overtone.sc ugen]
+        [overtone.sc.ugen specs]
         [overtone.util lib doc]))
 
 (defn- map-terms-to-regexps
@@ -17,7 +18,8 @@
   "Find ugen specs by searching their :full-doc strings for occurances of all the
   terms. Terms can either be strings or regexp patterns."
   [terms]
-  (let [regexps (map-terms-to-regexps terms)]
+  (let [regexps (map-terms-to-regexps terms)
+        specs (merge UGEN-SPECS @special-op-specs*)]
     (sort-by
      #(:name %)
      (map #(second %)
@@ -25,7 +27,7 @@
                     (let [docstr  (get spec :full-doc)
                           matches (filter #(re-find % docstr) regexps)]
                       (= matches regexps)))
-                  (seq UGEN-SPECS))))))
+                  specs)))))
 
 (defn- print-ug-summaries
   "Pretty print out a list of ugen specs by printing their name and summary on

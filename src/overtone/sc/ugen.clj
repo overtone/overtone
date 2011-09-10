@@ -201,6 +201,8 @@
     (doseq [[ugen-name ugen-fn] ugen-fns]
       (intern to-ns ugen-name ugen-fn))))
 
+(defonce special-op-specs* (atom {}))
+
 (defn- def-unary-op
   "def a unary op ugen (this is handled separately due to the fact that the
   unaryopugen represents multiple functionality represented by multple fns
@@ -221,6 +223,7 @@
         ugen-fn   (make-expanding ugen-fn [true])
         ugen      (make-ugen full-spec :auto ugen-fn)]
 
+    (swap! special-op-specs* assoc op-name full-spec)
     (if (ns-resolve to-ns ugen-name)
       (throw (Exception. (str "Attempted to define a unary op with the same name as a function which already exists: " op-name)))
       (intern to-ns ugen-name ugen))))
@@ -245,6 +248,8 @@
                     (ugen orig-spec (max (op-rate a) (op-rate b)) special (list a b)))
         ugen-fn   (make-expanding ugen-fn [true true])
         ugen (make-ugen full-spec :auto ugen-fn )]
+
+    (swap! special-op-specs* assoc op-name full-spec)
     (if (ns-resolve to-ns ugen-name)
       (overload-ugen-op to-ns ugen-name ugen)
       (intern to-ns ugen-name ugen))))
