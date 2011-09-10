@@ -18,8 +18,7 @@
   "Find ugen specs by searching their :full-doc strings for occurances of all the
   terms. Terms can either be strings or regexp patterns."
   [terms]
-  (let [regexps (map-terms-to-regexps terms)
-        specs (merge UGEN-SPECS @special-op-specs*)]
+  (let [regexps (map-terms-to-regexps terms)]
     (sort-by
      #(:name %)
      (map #(second %)
@@ -27,7 +26,7 @@
                     (let [docstr  (get spec :full-doc)
                           matches (filter #(re-find % docstr) regexps)]
                       (= matches regexps)))
-                  specs)))))
+                  (combined-specs))))))
 
 (defn- print-ug-summaries
   "Pretty print out a list of ugen specs by printing their name and summary on
@@ -44,17 +43,18 @@
 
     specs)))
 
-(defn- print-ug-docs
+(defn print-ug-docs
   "Pretty print out a list of ugen specs by printing out their names and
   full-doc strings."
   [specs]
   (dorun
    (map
-    #(println (str "  "
+    #(println (str "-------------------------"
+                   "\n  "
                    (overtone-ugen-name (:name %))
                    "\n"
                    (:full-doc %)
-                   "\n\n  -------------"))
+                   "\n\n"))
     specs)))
 
 (defn find-ug
@@ -87,3 +87,11 @@
     (if (empty? specs)
       (println "Sorry, unable to find a matching ugen.")
       (print-ug-docs specs))))
+
+(defmacro ug-doc
+  [ug-name]
+  `(let [ug-name# (normalize-ugen-name (str '~ug-name ))
+         spec#    (get (combined-specs) ug-name#)]
+     (if spec#
+       (print-ug-docs [spec#])
+       (println "Sorry, unable to find ugen with name"))))

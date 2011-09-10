@@ -396,3 +396,7 @@
          ~'min overtone.ugen-collide/min
          ~'max overtone.ugen-collide/max]
      ~@body))
+
+(defn combined-specs
+  []
+  (merge UGEN-SPECS @special-op-specs*))
