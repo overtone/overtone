@@ -17,10 +17,14 @@
       0))
 
 (defn length-of-longest-string
-  "Returns the length of the longest string/symbol/keyword in list l"
+  "Returns the length of the longest string/symbol/keyword in list l. Returns 0
+  if l is nil or empty"
   [l]
-  (let [longest (last (sort-by #(.length (name %)) l))]
-    (.length (name longest))))
+  (if (or (not l) (empty? l))
+    0
+    (let [longest (last (sort-by #(.length (name %)) l))]
+      (println "longest: " longest ", len: " (.length (name longest)))
+      (.length (name longest)))))
 
 (defn gen-padding
   "Generates a padding string starting concatting s with len times pad:
