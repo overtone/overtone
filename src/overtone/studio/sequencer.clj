@@ -2,7 +2,7 @@
   (:use [overtone.util lib]
         [overtone.music time]
         [overtone.sc server node]
-        [overtone.studio core]))
+        [overtone.studio rig]))
 
 (defn hit-fn
   "A function that takes a ref (something dereferencable) and returns

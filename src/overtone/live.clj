@@ -9,7 +9,7 @@
             [overtone.sc.cgen audio-in oscillators demand mix]
             [overtone.sc.examples demand osc trig compander audio-in]
             [overtone.music rhythm pitch tuning time]
-            [overtone.studio core util fx]
+            [overtone.studio rig util fx]
             [overtone.repl ugens examples]
             [overtone.viz scope]))
 
@@ -47,7 +47,7 @@
  'overtone.music.pitch
  'overtone.music.tuning
  'overtone.music.time
- 'overtone.studio.core
+ 'overtone.studio.rig
  'overtone.studio.fx
  'overtone.repl.ugens
  'overtone.repl.examples
