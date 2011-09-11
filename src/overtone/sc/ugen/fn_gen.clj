@@ -1,7 +1,7 @@
 (ns
     ^{:doc "Code to generate the ugen fns"
       :author "Jeff Rose, Christophe McKeon and Sam Aaron"}
-  overtone.sc.ugen.core
+  overtone.sc.ugen.fn-gen
   (:use [overtone.util lib]
         [overtone.sc.ugen sc-ugen defaults specs special-ops]
         [overtone.sc.ugen.metadata unaryopugen binaryopugen])

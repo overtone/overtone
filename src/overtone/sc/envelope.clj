@@ -12,7 +12,7 @@
      :author "Jeff Rose"}
   overtone.sc.envelope
   (:use [overtone.util lib]
-        [overtone.sc.ugen core]))
+        [overtone.sc.ugen fn-gen]))
 
 (def ENV-SHAPES
   {:step        0

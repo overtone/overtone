@@ -1,7 +1,7 @@
 (ns overtone.studio.sequencer
   (:use [overtone.util lib]
         [overtone.music time]
-        [overtone.sc core node]
+        [overtone.sc server node]
         [overtone.studio core]))
 
 (defn hit-fn

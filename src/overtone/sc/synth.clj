@@ -8,8 +8,8 @@
   (:use [overtone.util lib]
         [overtone.music time]
         [overtone.libs event]
-        [overtone.sc.ugen core defaults common specs sc-ugen]
-        [overtone.sc core synthdef node buffer]
+        [overtone.sc.ugen fn-gen defaults common specs sc-ugen]
+        [overtone.sc server synthdef node buffer]
         [clojure.contrib [def :only [name-with-attributes]]]
         [clojure.contrib.seq-utils :only (indexed)])
   (:require [clojure.contrib.generic.arithmetic :as ga]

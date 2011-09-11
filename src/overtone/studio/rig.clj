@@ -3,7 +3,7 @@
      :author "Jeff Rose"}
   overtone.studio.rig
   (:require [overtone.studio fx])
-  (:use [overtone.sc core synth]
+  (:use [overtone.sc server synth]
         [overtone.music rhythm pitch]))
 
 ; The goal is to develop a standard "studio configuration" with

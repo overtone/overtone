@@ -3,7 +3,7 @@
           This is at heart an OSC client library for the SuperCollider
           scsynth DSP engine."
       :author "Jeff Rose"}
-  overtone.sc.core
+  overtone.sc.server
   (:import [java.net InetSocketAddress]
            [java.util.regex Pattern]
            [java.util.concurrent TimeUnit TimeoutException]

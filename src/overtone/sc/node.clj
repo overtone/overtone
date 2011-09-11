@@ -1,7 +1,7 @@
 (ns overtone.sc.node
   (:use [overtone.util lib]
         [overtone.libs event deps]
-        [overtone.sc defaults core allocator bus])
+        [overtone.sc defaults server allocator bus])
   (:require [overtone.util.log :as log]))
 
 ;; ## Node and Group Management
