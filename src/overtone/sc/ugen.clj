@@ -8,7 +8,7 @@
   (:require [overtone.sc.ugen.doc :as doc]))
 
 ;;Create a ns to store all ugens that collide with standard ugen fns
-(defonce ugen-collide-ns (create-ns 'overtone.ugen-collide))
+(defonce ugen-collide-ns (create-ns 'overtone.sc.ugen-collide))
 
 (defn- op-rate
   "Lookup the rate of an input ugen, otherwise use IR because the operand
@@ -279,19 +279,19 @@
 (defonce _ugens (intern-ugens))
 
 (defmacro with-ugens [& body]
-  `(let [~'+ overtone.ugen-collide/+
-         ~'- overtone.ugen-collide/-
-         ~'* overtone.ugen-collide/*
-         ~'< overtone.ugen-collide/<
-         ~'> overtone.ugen-collide/>
-         ~'= overtone.ugen-collide/=
-         ~'/ overtone.ugen-collide/binary-div-op
-         ~'>= overtone.ugen-collide/>=
-         ~'<= overtone.ugen-collide/<=
-;;TODO addme when available in gc  ~'!= overtone.ugen-collide/!=
-         ~'mod overtone.ugen-collide/mod
-         ~'min overtone.ugen-collide/min
-         ~'max overtone.ugen-collide/max]
+  `(let [~'+ overtone.sc.ugen-collide/+
+         ~'- overtone.sc.ugen-collide/-
+         ~'* overtone.sc.ugen-collide/*
+         ~'< overtone.sc.ugen-collide/<
+         ~'> overtone.sc.ugen-collide/>
+         ~'= overtone.sc.ugen-collide/=
+         ~'/ overtone.sc.ugen-collide/binary-div-op
+         ~'>= overtone.sc.ugen-collide/>=
+         ~'<= overtone.sc.ugen-collide/<=
+;;TODO addme when available in gc  ~'!= overtone.sc.ugen-collide/!=
+         ~'mod overtone.sc.ugen-collide/mod
+         ~'min overtone.sc.ugen-collide/min
+         ~'max overtone.sc.ugen-collide/max]
      ~@body))
 
 (defn combined-specs
