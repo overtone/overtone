@@ -269,7 +269,7 @@
        (def-ugen to-ns ugen 0))
      (doseq [[op-name special] UNARY-OPS]
        (def-unary-op to-ns op-name special))
-     (doseq [[op-name special] BINARY-OPS-FULL]
+     (doseq [[op-name special] BINARY-OPS]
        (def-binary-op to-ns op-name special))))
 
 

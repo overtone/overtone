@@ -60,62 +60,53 @@
 ; Commented out ops are implemented with generics instead of generated
 ; see sc/ops.clj
 (def BINARY-OPS
-  { "div" 3         ; integer division
-    "lcm" 17
-    "gcd" 18
-    "round" 19
-    "roundUp" 20
-    "trunc" 21
-    "atan2" 22
-    "hypot" 23
-    "hypotApx" 24
-    "pow" 25
-    "leftShift" 26
-    "rightShift" 27
-    "unsignedRightShift" 28
-    "ring1" 30
-    "ring2" 31
-    "ring3" 32
-    "ring4" 33
-    "difsqr" 34
-    "sumsqr" 35
-    "sqrsum" 36
-    "sqrdif" 37
-    "absdif" 38
-    "thresh" 39
-    "amclip" 40
-    "scaleneg" 41
-    "clip2" 42
-    "excess" 43
-    "fold2" 44
-    "wrap2" 45
-    "rrand" 47
-    "exprand" 48})
-
-(def BINARY-OPS-FULL
-  (merge BINARY-OPS {"+" 0
-                     "-" 1
-                     "*" 2
-                     "/" 4
-                     "mod" 5
-                     "=" 6
-                     "!=" 7
-                     "<" 8
-                     ">" 9
-                     "<=" 10
-                     ">=" 11
-                     "min" 12
-                     "max" 13}))
-
-(def REVERSE-BINARY-OPS (zipmap (vals BINARY-OPS-FULL) (keys BINARY-OPS-FULL)))
-
-;; Binary ops that collide with clojure built-ins.
-(def BINARY-OPS-COLLIDE
   {
+   "+" 0
+   "-" 1
+   "*" 2
+   "div" 3         ; integer division
+   "/" 4
    "mod" 5
+   "=" 6
+   "!=" 7
+   "<" 8
+   ">" 9
+   "<=" 10
+   ">=" 11
    "min" 12
    "max" 13
-   })
+   "lcm" 17
+   "gcd" 18
+   "round" 19
+   "roundUp" 20
+   "trunc" 21
+   "atan2" 22
+   "hypot" 23
+   "hypotApx" 24
+   "pow" 25
+   "leftShift" 26
+   "rightShift" 27
+   "unsignedRightShift" 28
+   "ring1" 30
+   "ring2" 31
+   "ring3" 32
+   "ring4" 33
+   "difsqr" 34
+   "sumsqr" 35
+   "sqrsum" 36
+   "sqrdif" 37
+   "absdif" 38
+   "thresh" 39
+   "amclip" 40
+   "scaleneg" 41
+   "clip2" 42
+   "excess" 43
+   "fold2" 44
+   "wrap2" 45
+   "rrand" 47
+   "exprand" 48})
+
+(def REVERSE-BINARY-OPS (zipmap (vals BINARY-OPS) (keys BINARY-OPS)))
 
 (defn unary-op-num [name]
   (get UNARY-OPS (str name) false))
