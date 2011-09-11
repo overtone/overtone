@@ -106,6 +106,9 @@
    "rrand" 47
    "exprand" 48})
 
+(def FOLDABLE-BINARY-OPS
+  #{"+" "-" "*" "/"})
+
 (def REVERSE-BINARY-OPS (zipmap (vals BINARY-OPS) (keys BINARY-OPS)))
 
 (defn unary-op-num [name]

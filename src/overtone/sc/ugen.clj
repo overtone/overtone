@@ -78,8 +78,9 @@
 (def ^{:dynamic true} *ugens* nil)
 (def ^{:dynamic true} *constants* nil)
 
-(defn ugen [spec rate special args]
+(defn mk-scugen
   "Create a SCUGen with the specified spec, rate, special and args"
+  [spec rate special args]
   (let [rate (or (get RATES rate) rate)
         args (if args args [])
         ug (sc-ugen
@@ -102,7 +103,7 @@
 
 (defn- ugen-base-fn [spec rate special]
   (fn [& args]
-    (ugen spec rate special args)))
+    (mk-scugen spec rate special args)))
 
 (defn- make-ugen
   "Create a callable map representing a ugen."
@@ -172,25 +173,80 @@
 (defn control? [obj]
   (isa? (type obj) ::control))
 
-(defn- overload-binary-ugen-op [src-ns target-ns ugen-name ugen-fn]
-  (let [original-fn (ns-resolve src-ns ugen-name)
-        ugen-name   (if (= '/ ugen-name) 'binary-div-op ugen-name)]
+(defn- args-list-is-a-map?
+  "Returns true if args list contains one element which is a map"
+  [args]
+  (and (= (count args) 1)
+       (map? (first args))))
+
+(defn- foldable-binary-ugen?
+  "Is this binary ugen foldable? i.e. should it be allowed to take more than
+  two arguments, resulting in a folded nesting of linked ugens. Ugen must be
+  defined as being foldable and the args must not be a map or a combination of
+  ordered params keyword args"
+  [ug-name args]
+  (and
+   (FOLDABLE-BINARY-OPS (str ug-name))
+   (not (args-list-is-a-map? args))
+   (not (some keyword? args)))  )
+
+(defn- treat-as-binary-ugen?
+  "Checks the arglist to see whether the args contain other ugens or
+  non-numerical elements (binary ugen fns may only be called with numbers,
+  ugens sequences and keywords or simply passed an arg map). Used to determine
+  whether the ugen fn should be called or the original fn it collided with."
+  [args]
+  (or
+   (and (some sc-ugen? args)
+        (every? #(or (sc-ugen? %) (number? %) (sequential? %) (keyword? %)) args))
+   (args-list-is-a-map? args)))
+
+
+(defn- foldable-binary-ugen
+  "Create a foldable binary ugen - a binary ugen which may accept more than two
+  args - each additional arg will result in an extra ugen added/folded into the
+  chain of ugens."
+  [ugen-fn args]
+  (when (< (count args) 2)
+    (throw (IllegalArgumentException. (str "Attempted to call foldable binary op ugen with fewer than 2 args (" (count args) "). You passed: " [args] ))))
+
+  (let [x    (first args)
+        y    (second args)
+        more (drop 2 args)]
+    (reduce ugen-fn (ugen-fn x y) more)))
+
+(defn- mk-overloaded-binary-ugen-fn
+  "Returns a fn which implements an overloaded binary ugen. Checks whether the
+  ugen is foldable and the returning fn either implements folding or ensures
+  that there are only 2 params."
+  [ugen-name ugen-fn]
+  (fn [& args]
+    (if (foldable-binary-ugen? ugen-name args)
+        (foldable-binary-ugen ugen-fn args)
+        (apply ugen-fn args))))
+
+(defn- overload-binary-ugen-op
+  "Overload the binary op by placing the overloaded fn definition in a separate
+  namespace. This overloaded fn will check incoming args on application to
+  determine whether the original fn or overloaded fn should be called. The
+  overloaded fns are then made available through the use of the macro with-ugens"
+  [src-ns target-ns ugen-name ugen-fn]
+  (let [original-fn   (ns-resolve src-ns ugen-name)
+        ugen-name     (if (= '/ ugen-name) 'binary-div-op ugen-name)
+        ugen-name-str (str ugen-name)
+        overloaded-fn (mk-overloaded-binary-ugen-fn ugen-name-str ugen-fn)]
 
     (ns-unmap target-ns ugen-name)
     (intern target-ns ugen-name (fn [& args]
-                                  (if (some #(or (sc-ugen? %) (not (number? %))) args)
-                                    (let [x    (first args)
-                                          y    (second args)
-                                          more (drop 2 args)]
-                                      (reduce ugen-fn (ugen-fn x y) more))
-                             (apply original-fn args))))))
+                                  (if (treat-as-binary-ugen? args)
+                                    (apply overloaded-fn args)
+                                    (apply original-fn args))))))
 
 (defn- def-ugen
   "Create and intern a set of functions for a given ugen-spec.
     * base name function using default rate and no suffix (e.g. env-gen )
     * base-name plus rate suffix functions for each rate (e.g. env-gen:ar,
-      env-gen:kr)
-  "
+      env-gen:kr)"
   [to-ns spec special]
   (let [metadata {:doc (:full-doc spec)
                   :arglists (list (vec (map #(symbol (:name %))
@@ -222,9 +278,7 @@
                                              (:args full-spec))))}
         ugen-name (symbol (overtone-ugen-name op-name))
         ugen-name (with-meta ugen-name metadata)
-        ugen-fn   (fn [arg]
-                    (ugen orig-spec (op-rate arg) special (list arg)))
-        ugen-fn   (make-expanding ugen-fn [true])
+        ugen-fn   (make-ugen-fn orig-spec :auto special)
         ugen      (make-ugen full-spec :auto ugen-fn)]
 
     (swap! special-op-specs* assoc normalized-n full-spec)
@@ -249,10 +303,8 @@
                                                 (:args full-spec))))}
         ugen-name    (symbol (overtone-ugen-name op-name))
         ugen-name    (with-meta ugen-name metadata)
-        ugen-fn      (fn [a b]
-                       (ugen orig-spec (max (op-rate a) (op-rate b)) special (list a b)))
-        ugen-fn      (make-expanding ugen-fn [true true])
-        ugen         (make-ugen full-spec :auto ugen-fn )]
+        ugen-fn      (make-ugen-fn orig-spec :auto special)
+        ugen         (make-ugen full-spec :auto ugen-fn)]
     (swap! special-op-specs* assoc normalized-n full-spec)
     (if (ns-resolve to-ns ugen-name)
       (overload-binary-ugen-op to-ns ugen-collide-ns ugen-name ugen)
