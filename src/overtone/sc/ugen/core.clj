@@ -12,7 +12,7 @@
 (def ugen-collide-ns-str "overtone.sc.ugen-collide")
 (defonce ugen-collide-ns (create-ns (symbol ugen-collide-ns-str)))
 (defonce overloaded-ugens* (atom {}))
-
+(defonce special-op-specs* (atom {}))
 
 (defn- op-rate
   "Lookup the rate of an input ugen, otherwise use IR because the operand
@@ -265,8 +265,6 @@
     (doseq [[ugen-name ugen-fn] ugen-fns]
       (intern to-ns ugen-name ugen-fn))))
 
-(defonce special-op-specs* (atom {}))
-
 (defn- def-unary-op
   "def a unary op ugen (this is handled separately due to the fact that the
   unaryopugen represents multiple functionality represented by multple fns
@@ -330,6 +328,9 @@
        (def-binary-op to-ns op-name special))))
 
 (defmacro with-overloaded-ugens
+  "Bind symbols for all overloaded ugens (i.e. + - / etc.) to the overloaded fn
+  in the ns overtone.sc.ugen-colliders. These fns will revert back to original
+  (Clojure) semantics if not passed with ugen args."
   [& body]
   (let [bindings (flatten (map (fn [[orig overload]]
                                  [orig (symbol ugen-collide-ns-str (str overload))])
@@ -338,5 +339,6 @@
       ~@body)))
 
 (defn combined-specs
+  "Return a combination of ugen specs and the auto-generated special-op specs."
   []
   (merge UGEN-SPECS @special-op-specs*))
