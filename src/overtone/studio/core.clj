@@ -157,8 +157,8 @@
   (let [root (last ugens)
         out-bus (control-proxy "out-bus" MIXER-BUS)
         volume (control-proxy "volume" DEFAULT-INST-VOLUME)
-        vol-ugen (with-ugens (* volume root))
-        out-ugen (with-ugens (out out-bus vol-ugen))]
+        vol-ugen (with-overloaded-ugens (* volume root))
+        out-ugen (with-overloaded-ugens (out out-bus vol-ugen))]
     [(concat params
              [{:name "out-bus" :default MIXER-BUS :rate DEFAULT-RATE}
               {:name "volume" :default DEFAULT-INST-VOLUME :rate DEFAULT-RATE}])

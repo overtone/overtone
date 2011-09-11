@@ -88,7 +88,7 @@
                          param-names)]
     `(fn [& ~args]
        (let [~@bindings]
-         (with-ugens
+         (with-overloaded-ugens
            ~body)))))
 
 (defn generate-full-cgen-doc

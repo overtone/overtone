@@ -110,14 +110,14 @@
   "Create a triangle envelope description array suitable for use with the
   env-gen ugen"
   [dur 1 level 1]
-  (with-ugens
+  (with-overloaded-ugens
     (let [dur (* dur 0.5)]
       (envelope [0 level 0] [dur dur]))))
 
 (defunk sine
   "Create a sine envelope description suitable for use with the env-gen ugen"
   [dur 1 level 1]
-  (with-ugens
+  (with-overloaded-ugens
     (let [dur (* dur 0.5)]
       (envelope [0 level 0] [dur dur] :sine))))
 
@@ -125,20 +125,20 @@
   "Create a percussive envelope description suitable for use with the env-gen
   ugen"
   [attack 0.01 release 1 level 1 curve -4]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope [0 level 0] [attack release] curve)))
 
 (defunk lin-env
   "Create a trapezoidal envelope description suitable for use with the env-gen
   ugen"
   [attack 0.01 sustain 1 release 1 level 1 curve :linear]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope [0 level level 0] [attack sustain release] curve)))
 
 (defunk cutoff
   "Create a cutoff envelope description suitable for use with the env-gen ugen"
   [release 0.1 level 1 curve :linear]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope [level 0] [release] curve 0)))
 
 (defunk dadsr
@@ -147,7 +147,7 @@
   [delay-t 0.1
                attack 0.01 decay 0.3 sustain 0.5 release 1
                level 1 curve -4 bias 0]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope
       (map #(+ %1 bias) [0 0 level (* level sustain) 0])
       [delay-t attack decay release] curve)))
@@ -157,7 +157,7 @@
   env-gen ugen"
   [attack 0.01 decay 0.3 sustain 1 release 1
               level 1 curve -4 bias 0]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope
       (map #(+ %1 bias) [0 level (* level sustain) 0])
       [attack decay release] curve 2)))
@@ -166,7 +166,7 @@
   "Create an attack sustain release envelope sutable for use with the env-gen
   ugen"
   [attack 0.01 sustain 1 release 1 curve -4]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope [0 sustain 0] [attack release] curve 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

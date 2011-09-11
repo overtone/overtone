@@ -8,7 +8,10 @@
   (:require [overtone.sc.ugen.doc :as doc]))
 
 ;;Create a ns to store all ugens that collide with standard ugen fns
-(defonce ugen-collide-ns (create-ns 'overtone.sc.ugen-collide))
+(def ugen-collide-ns-str "overtone.sc.ugen-collide")
+(defonce ugen-collide-ns (create-ns (symbol ugen-collide-ns-str)))
+(defonce overloaded-ugens* (atom {}))
+
 
 (defn- op-rate
   "Lookup the rate of an input ugen, otherwise use IR because the operand
@@ -229,18 +232,19 @@
   "Overload the binary op by placing the overloaded fn definition in a separate
   namespace. This overloaded fn will check incoming args on application to
   determine whether the original fn or overloaded fn should be called. The
-  overloaded fns are then made available through the use of the macro with-ugens"
+  overloaded fns are then made available through the use of the macro
+  with-overloaded-ugens"
   [src-ns target-ns ugen-name ugen-fn]
   (let [original-fn   (ns-resolve src-ns ugen-name)
-        ugen-name     (if (= '/ ugen-name) 'binary-div-op ugen-name)
+        overload-name (if (= '/ ugen-name) 'binary-div-op ugen-name)
         ugen-name-str (str ugen-name)
         overloaded-fn (mk-overloaded-binary-ugen-fn ugen-name-str ugen-fn)]
-
-    (ns-unmap target-ns ugen-name)
-    (intern target-ns ugen-name (fn [& args]
-                                  (if (treat-as-binary-ugen? args)
-                                    (apply overloaded-fn args)
-                                    (apply original-fn args))))))
+    (swap! overloaded-ugens* assoc ugen-name overload-name)
+    (ns-unmap target-ns overload-name)
+    (intern target-ns overload-name (fn [& args]
+                                      (if (treat-as-binary-ugen? args)
+                                        (apply overloaded-fn args)
+                                        (apply original-fn args))))))
 
 (defn- def-ugen
   "Create and intern a set of functions for a given ugen-spec.
@@ -330,21 +334,13 @@
 ;; stick an Out ugen on synths that don't explicitly use one.
 (defonce _ugens (intern-ugens))
 
-(defmacro with-ugens [& body]
-  `(let [~'+ overtone.sc.ugen-collide/+
-         ~'- overtone.sc.ugen-collide/-
-         ~'* overtone.sc.ugen-collide/*
-         ~'< overtone.sc.ugen-collide/<
-         ~'> overtone.sc.ugen-collide/>
-         ~'= overtone.sc.ugen-collide/=
-         ~'/ overtone.sc.ugen-collide/binary-div-op
-         ~'>= overtone.sc.ugen-collide/>=
-         ~'<= overtone.sc.ugen-collide/<=
-         ~'not= overtone.sc.ugen-collide/not=
-         ~'mod overtone.sc.ugen-collide/mod
-         ~'min overtone.sc.ugen-collide/min
-         ~'max overtone.sc.ugen-collide/max]
-     ~@body))
+(defmacro with-overloaded-ugens
+  [& body]
+  (let [bindings (flatten (map (fn [[orig overload]]
+                                 [orig (symbol ugen-collide-ns-str (str overload))])
+                               @overloaded-ugens*))]
+    `(let [~@bindings]
+      ~@body)))
 
 (defn combined-specs
   []

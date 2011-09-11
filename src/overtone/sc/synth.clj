@@ -385,7 +385,7 @@
     `(let [~@param-proxies]
        (binding [*ugens* []
                  *constants* #{}]
-         (with-ugens
+         (with-overloaded-ugens
            (do
              ~@ugen-form)
            [~sname ~params *ugens* (into [] *constants*)])))))

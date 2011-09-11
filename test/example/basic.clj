@@ -201,7 +201,7 @@
   (out out-bus (in (num-output-buses:ir))))
 
 (defn wah-wah [freq depth]
-  (with-ugens
+  (with-overloaded-ugens
     (* depth (sin-osc:kr freq))))
 
 (definst ticker [freq 2]

@@ -11,11 +11,11 @@
   (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 10) sound)))
 
 (defn square [freq]
-  (with-ugens
+  (with-overloaded-ugens
     (pulse freq 0.5)))
 
 (defn mix [& args]
-  (with-ugens
+  (with-overloaded-ugens
     (reduce + args)))
 
 ; Beware!!! Playing this synth might make you crash :~)
@@ -39,7 +39,7 @@
   "Returns a frequency computed by adding n-cents to freq.  A cent is a
   logarithmic measurement of pitch, where 1-octave equals 1200 cents."
   [freq n-cents]
-  (with-ugens
+  (with-overloaded-ugens
     (* freq (pow 2 (/ n-cents 1200)))))
 
 (definst pad [freq 440 split -5]
