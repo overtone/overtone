@@ -64,7 +64,7 @@
    "+" 0
    "-" 1
    "*" 2
-   "div" 3         ; integer division
+   ;;"div" 3      ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
    "/" 4
    "mod" 5
    "=" 6
