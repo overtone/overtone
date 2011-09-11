@@ -298,6 +298,10 @@
         normalized-n (normalize-ugen-name op-name)
         orig-spec    (get UGEN-SPECS "binaryopugen")
         doc-spec     (get binaryopugen-docspecs normalized-n {})
+        doc-spec     (if (FOLDABLE-BINARY-OPS (str op-name))
+                       (assoc doc-spec :doc
+                              (str (:doc doc-spec) "\n\nThis binary op ugen is foldable. i.e. may take multiple args and fold them into a tree of ugens."))
+                       doc-spec)
         full-spec    (merge orig-spec doc-spec {:name op-name
                                                 :categories [["Binary Operations"]]})
         full-spec    (doc/with-full-doc full-spec)
