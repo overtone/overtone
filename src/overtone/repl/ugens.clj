@@ -1,6 +1,5 @@
 (ns overtone.repl.ugens
-  (:use [overtone.sc ugen]
-        [overtone.sc.ugen specs]
+  (:use [overtone.sc.ugen core specs]
         [overtone.util lib doc]))
 
 (defn- map-terms-to-regexps

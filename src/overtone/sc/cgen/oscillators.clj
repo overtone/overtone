@@ -1,5 +1,5 @@
 (ns overtone.sc.cgen.oscillators
-  (:use [overtone.sc.ugen]
+  (:use [overtone.sc.ugens]
         [overtone.sc.cgen]))
 
 (defcgen pm-osc

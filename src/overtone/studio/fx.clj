@@ -3,7 +3,7 @@
      :author "Jeff Rose"}
   overtone.studio.fx
   (:use [overtone.libs event]
-        [overtone.sc synth ugen]))
+        [overtone.sc synth ugens]))
 
 (defsynth fx-noise-gate
   [in-bus 20 out-bus 10 threshold 0.4

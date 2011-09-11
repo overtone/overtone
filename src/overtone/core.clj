@@ -4,7 +4,7 @@
             midi overtone.osc byte-spec
             [overtone.algo chance scaling position trig]
             [overtone.sc.ugen.constants]
-            [overtone.sc allocator core ugen node synth synthdef cgen
+            [overtone.sc allocator core ugens node synth synthdef cgen
              trigger buffer envelope bus sample sc-lang example]
             [overtone.sc.cgen audio-in oscillators demand mix]
             [overtone.sc.examples demand osc trig compander audio-in]
@@ -25,7 +25,7 @@
  'overtone.sc.node
  'overtone.sc.buffer
  'overtone.sc.trigger
- 'overtone.sc.ugen
+ 'overtone.sc.ugens
  'overtone.sc.synth
  'overtone.sc.sample
  'overtone.sc.synthdef

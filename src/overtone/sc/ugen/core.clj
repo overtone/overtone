@@ -1,11 +1,12 @@
 (ns
-    ^{:doc "UGens, or Unit Generators, are the functions that act as DSP nodes in the synthesizer definitions used by SuperCollider.  We generate the UGen functions based on hand written metadata about each ugen (ugen directory). (Eventually we hope to get this information dynamically from the server.)"
-      :author "Jeff Rose & Christophe McKeon"}
-  overtone.sc.ugen
+    ^{:doc "Code to generate the ugen fns"
+      :author "Jeff Rose, Christophe McKeon and Sam Aaron"}
+  overtone.sc.ugen.core
   (:use [overtone.util lib]
         [overtone.sc.ugen sc-ugen defaults specs special-ops]
         [overtone.sc.ugen.metadata unaryopugen binaryopugen])
   (:require [overtone.sc.ugen.doc :as doc]))
+
 
 ;;Create a ns to store all ugens that collide with standard ugen fns
 (def ugen-collide-ns-str "overtone.sc.ugen-collide")
@@ -327,12 +328,6 @@
        (def-unary-op to-ns op-name special))
      (doseq [[op-name special] BINARY-OPS]
        (def-binary-op to-ns op-name special))))
-
-
-;; We refer all the ugen functions here so they can be access by other parts
-;; of the Overtone system using a fixed namespace.  For example, to automatically
-;; stick an Out ugen on synths that don't explicitly use one.
-(defonce _ugens (intern-ugens))
 
 (defmacro with-overloaded-ugens
   [& body]

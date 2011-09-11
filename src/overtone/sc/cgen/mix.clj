@@ -1,5 +1,5 @@
 (ns overtone.sc.cgen.mix
-  (:use [overtone.sc.ugen]
+  (:use [overtone.sc.ugens]
         [overtone.sc.ugen constants]
         [overtone.sc.cgen]
         [overtone.util lib]

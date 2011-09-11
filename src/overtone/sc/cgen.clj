@@ -4,8 +4,7 @@
   overtone.sc.cgen
 
   (:use [overtone.util lib]
-        [overtone.sc ugen]
-        [overtone.sc.ugen defaults doc]))
+        [overtone.sc.ugen core defaults doc]))
 
 (defn parse-cgen-params
   "Parse a defcgen's param list throwing exceptions where it isn't well-formed

@@ -1,8 +1,8 @@
 (ns overtone.studio.core
   (:use [overtone.libs event deps]
         [overtone.util lib]
-        [overtone.sc.ugen defaults sc-ugen]
-        [overtone.sc defaults core synth ugen envelope node synthdef bus]
+        [overtone.sc.ugen core defaults sc-ugen]
+        [overtone.sc defaults core synth ugens envelope node synthdef bus]
         [overtone.music rhythm time])
   (:require [overtone.util.log :as log]))
 

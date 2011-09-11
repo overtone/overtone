@@ -1,5 +1,5 @@
 (ns overtone.sc.examples.audio-in
-  (:use [overtone.sc.ugen]
+  (:use [overtone.sc.ugens]
         [overtone.sc.ugen constants]
         [overtone.sc.cgen.audio-in]
         [overtone.sc.example]))

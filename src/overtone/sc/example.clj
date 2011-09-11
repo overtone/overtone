@@ -3,8 +3,7 @@
       :author "Sam Aaron"}
   overtone.sc.example
   (:use [overtone.util lib doc]
-        [overtone.sc ugen]
-        [overtone.sc.ugen defaults doc]
+        [overtone.sc.ugen core defaults doc]
         [overtone.sc.cgen]))
 
 (defonce examples* (atom {}))
