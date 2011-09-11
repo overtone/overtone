@@ -288,7 +288,7 @@
          ~'/ overtone.sc.ugen-collide/binary-div-op
          ~'>= overtone.sc.ugen-collide/>=
          ~'<= overtone.sc.ugen-collide/<=
-;;TODO addme when available in gc  ~'!= overtone.sc.ugen-collide/!=
+         ~'not= overtone.sc.ugen-collide/not=
          ~'mod overtone.sc.ugen-collide/mod
          ~'min overtone.sc.ugen-collide/min
          ~'max overtone.sc.ugen-collide/max]
