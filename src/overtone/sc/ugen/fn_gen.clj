@@ -69,16 +69,6 @@
           [greatest-count seqs] (reduce gc-seqs [1 [] expand-flags] args)]
       (take greatest-count (parallel-seqs seqs)))))
 
-(defn make-expanding
-  "Takes a function and returns a multi-channel-expanding version of the
-  function."
-  [f expand-flags]
-  (fn [& args]
-    (let [expanded (mapply f (multichannel-expand expand-flags args))]
-      (if (= (count expanded) 1)
-        (first expanded)
-        expanded))))
-
 (def ^{:dynamic true} *ugens* nil)
 (def ^{:dynamic true} *constants* nil)
 
@@ -123,13 +113,37 @@
                  :params     (:args spec)}
                 ugen-fn))
 
+(defn make-expanding
+  "Takes a function and returns a multi-channel-expanding version of the
+  function."
+  [f expand-flags]
+  (fn [& args]
+    (let [expanded (mapply f (multichannel-expand expand-flags args))]
+      (if (= (count expanded) 1)
+        (first expanded)
+        expanded))))
+
+(defn unwrap-map-arg
+  "Returns a fn which checks to see if its args is a list containing a map,
+  and if so unwraps it.# Otherwise applies f directly with args"
+  [f]
+  (fn [& args]
+    (println "unwrapper: " args)
+    (if (and
+         (= 1 (count args))
+         (not (sc-ugen? (first args)))
+         (map? (first args)))
+      (apply f (flatten (seq (first args))))
+      (apply f args))))
+
 (defn- make-ugen-fn
   "Make a function representing the given ugen that will fill in default
   arguments, rates, etc."
   [spec rate special]
   (let [expand-flags (map #(:expands? %) (:args spec))]
-    (make-expanding
-     (ugen-base-fn spec rate special) expand-flags)))
+    (unwrap-map-arg
+     (make-expanding
+      (ugen-base-fn spec rate special) expand-flags))))
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need
