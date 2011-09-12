@@ -1,6 +1,6 @@
 # Overtone Change Log
 
-## Version 0.3
+## Version 0.3 (12th Sept 2011)
 
 ### New
 

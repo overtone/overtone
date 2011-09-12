@@ -38,9 +38,9 @@ For a quick glance at all the functionality Overtone puts at your musical finger
 Overtone and its dependencies are on http://clojars.org, and the dependency for
 your project.clj is:
 
-[overtone "<version>"]
+    [overtone "<version>"]
 
-The current version is 0.2.1 but search on Clojars to get the latest
+The current version is 0.3.0 but search on Clojars to get the latest
 release.
 
 #### Source Repository
