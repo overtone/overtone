@@ -128,7 +128,6 @@
   and if so unwraps it.# Otherwise applies f directly with args"
   [f]
   (fn [& args]
-    (println "unwrapper: " args)
     (if (and
          (= 1 (count args))
          (not (sc-ugen? (first args)))
