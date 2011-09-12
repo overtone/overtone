@@ -212,11 +212,13 @@
   non-numerical elements (ugen fns may only be called with numbers,
   ugens sequences and keywords or simply passed an arg map). Used to determine
   whether the ugen fn should be called or the original fn it collided with."
-  [args]
-  (or
-   (and (some sc-ugen? args)
-        (every? #(or (sc-ugen? %) (number? %) (sequential? %) (keyword? %)) args))
-   (args-list-is-a-map? args)))
+  [ugen-name args]
+  (if (NUMERICAL-CLOJURE-FNS ugen-name)
+    (not (every? number? args))
+    (or
+     (and (some sc-ugen? args)
+          (every? #(or (sc-ugen? %) (number? %) (sequential? %) (keyword? %)) args))
+     (args-list-is-a-map? args))))
 
 
 (defn- foldable-binary-ugen
@@ -246,14 +248,14 @@
   "Create a fn which representing an overloaded ugen which checks its args to
   see which fn to call - the original or the ugen. As a convenience, if the
   final arg is :force-ugen then the ugen fn is always called."
-  [overloaded-fn original-fn]
+  [ugen-name overloaded-fn original-fn]
   (fn [& args]
     (let [force-ugen? (and (sequential? args)
                            (= :force-ugen (last args)))
           args        (if force-ugen?
                         (drop-last args)
                         args)]
-      (if (or (treat-as-ugen? args)
+      (if (or (treat-as-ugen? ugen-name args)
               force-ugen?)
         (apply overloaded-fn args)
         (apply original-fn args)))))
@@ -273,7 +275,7 @@
                         :binary (mk-overloaded-ugen-fn ugen-name-str ugen-fn))]
     (swap! overloaded-ugens* assoc ugen-name overload-name)
     (ns-unmap target-ns overload-name)
-    (intern target-ns overload-name (mk-multi-ugen-fn overloaded-fn original-fn))))
+    (intern target-ns overload-name (mk-multi-ugen-fn ugen-name-str overloaded-fn original-fn))))
 
 (defn- def-ugen
   "Create and intern a set of functions for a given ugen-spec.
