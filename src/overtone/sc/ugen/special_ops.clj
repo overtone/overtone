@@ -81,18 +81,18 @@
    ">=" 11        ; Greater than or equal to
    "min" 12       ; minimum
    "max" 13       ; maximum
-   "sig-and" 14   ; and (where pos sig is true)
-   "sig-or" 15    ; or (where pos sig is true
-   "sig-xor" 16   ; xor (where pos sig is true)
+   "and" 14       ; and (where pos sig is true)
+   "or" 15        ; or (where pos sig is true
+   "xor" 16       ; xor (where pos sig is true)
    ;;"lcm" 17     ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
    ;;"gcd" 18     ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   "round" 19     ; Rount
-   "round-up" 20  ; Round up
-   "trunc" 21     ; trunc
-   "atan2" 22     ; atan2n
-   "hypot" 23     ; hypot
-   "hypotApx" 24  ; hypotx
-   "pow" 25       ; pow
+   "round" 19     ; Round to nearest multiple
+   "round-up" 20  ; Round up to next multiple
+   "round-down" 21; Round down to previous multiple
+   "atan2" 22     ; arctangent of a/b
+   "hypot" 23     ; length of hypotenuse via Pythag
+   "hypot-aprox" 24  ; approximation of length of hypotenuse
+   "pow" 25       ; exponentiation
    ;;"leftShift" 26 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
    ;;"rightShift" 27; Defined in BinaryOpUGens.cpp enum but not implemented on the server
    ;;"un-sig-r-shift" 28 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
@@ -106,13 +106,13 @@
    "sqrsum" 36    ; (a + b)^2
    "sqrdif" 37    ; (a - b)^2
    "absdif" 38    ; |a - b|
-   "thresh" 39    ;
-   "amclip" 40    ;
-   "scaleneg" 41  ;
-   "clip2" 42     ;
-   "excess" 43    ;
-   "fold2" 44     ;
-   "wrap2" 45     ;
+   "thresh" 39    ; Signal thresholding
+   "amclip" 40    ; Two quadrant multiply
+   "scale-neg" 41  ; scale negative part of input wave
+   "clip2" 42     ; bilateral clipping
+   "excess" 43    ; clipping residual
+   "fold2" 44     ; bilateral folding
+   "wrap2" 45     ; bilateral wrapping
    ;;"first-arg" 46 ; Returns the first arg unchanged - not useful.
    ;;"rrand" 47   ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
    ;;"exprand" 48 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
