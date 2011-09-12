@@ -9,7 +9,7 @@
 * Make ugens store their Overtone name
 * Add Examples mechanism - defexamples - to store executable example documentation for ugens
 * Make all trig fns :kr by default
-* Update osc-clj to 0.6.1
+* Update osc-clj to 0.6.2
 * Teach callable maps to identify themselves when printing
 * Make ugens print themselves nicely
 * Rename ugen type to sc-ugen to help differentiate between the low-level maps representing supercollider ugens and the ugen fns which generate those maps
@@ -75,7 +75,7 @@
 * Fix missed references to :free (keywords are no longer allowed as param vals)
 * Fix ugen rate checker
 * Fix blues example
-* Paulse thread booting Overtone until the boot has full completed
+* Pause thread booting Overtone until the boot has fully completed
 
 ## Version 0.2.1 (4th August 2011)
 
