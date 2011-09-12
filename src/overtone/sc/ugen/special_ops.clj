@@ -6,6 +6,9 @@
 
 (def UNARY-OPS
   {"neg" 0         ; inversion
+   "neg?" 1        ;* 0 when a < 0, +1 when a > 0, 1 when a is 0
+   ;;"is-nil" 2    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"not-nil" 3   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"bitNot" 4    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    "abs" 5         ; absolute value
    ;;"asFloat" 6   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
@@ -47,6 +50,9 @@
    "distort" 42    ; distortion
    "softclip" 43   ; distortion
    ;;"coin" 44     ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"digit-value" 45 ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"silence" 46  ; outputs 0 - no need to include it as we already have the silent ugen
+   ;;"thru" 47     ; outputs what was received - not useful
    "rectWindow" 48
    "hanWindow" 49
    "welWindow" 50
@@ -75,7 +81,10 @@
    ">=" 11
    "min" 12
    "max" 13
-   "lcm" 17
+   "bit-and" 14
+   "bit-or" 15
+   "bit-xor" 16
+   ;;"lcm" 17     ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
    "gcd" 18
    "round" 19
    "roundUp" 20
@@ -87,6 +96,7 @@
    "leftShift" 26
    "rightShift" 27
    "unsignedRightShift" 28
+   "fill" 29
    "ring1" 30
    "ring2" 31
    "ring3" 32
@@ -103,6 +113,7 @@
    "excess" 43
    "fold2" 44
    "wrap2" 45
+   "first-arg" 46
    "rrand" 47
    "exprand" 48})
 

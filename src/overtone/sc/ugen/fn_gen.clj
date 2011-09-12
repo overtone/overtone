@@ -194,9 +194,9 @@
    (not (args-list-is-a-map? args))
    (not (some keyword? args)))  )
 
-(defn- treat-as-binary-ugen?
+(defn- treat-as-ugen?
   "Checks the arglist to see whether the args contain other ugens or
-  non-numerical elements (binary ugen fns may only be called with numbers,
+  non-numerical elements (ugen fns may only be called with numbers,
   ugens sequences and keywords or simply passed an arg map). Used to determine
   whether the ugen fn should be called or the original fn it collided with."
   [args]
@@ -219,7 +219,7 @@
         more (drop 2 args)]
     (reduce ugen-fn (ugen-fn x y) more)))
 
-(defn- mk-overloaded-binary-ugen-fn
+(defn- mk-overloaded-ugen-fn
   "Returns a fn which implements an overloaded binary ugen. Checks whether the
   ugen is foldable and the returning fn either implements folding or ensures
   that there are only 2 params."
@@ -229,23 +229,38 @@
         (foldable-binary-ugen ugen-fn args)
         (apply ugen-fn args))))
 
-(defn- overload-binary-ugen-op
+(defn- mk-multi-ugen-fn
+  "Create a fn which representing an overloaded ugen which checks its args to
+  see which fn to call - the original or the ugen. As a convenience, if the
+  final arg is :force-ugen then the ugen fn is always called."
+  [overloaded-fn original-fn]
+  (fn [& args]
+    (let [force-ugen? (and (sequential? args)
+                           (= :force-ugen (last args)))
+          args        (if force-ugen?
+                        (drop-last args)
+                        args)]
+      (if (or (treat-as-ugen? args)
+              force-ugen?)
+        (apply overloaded-fn args)
+        (apply original-fn args)))))
+
+(defn- overload-ugen-op
   "Overload the binary op by placing the overloaded fn definition in a separate
   namespace. This overloaded fn will check incoming args on application to
   determine whether the original fn or overloaded fn should be called. The
   overloaded fns are then made available through the use of the macro
   with-overloaded-ugens"
-  [src-ns target-ns ugen-name ugen-fn]
+  [src-ns target-ns ugen-name ugen-fn kind]
   (let [original-fn   (ns-resolve src-ns ugen-name)
         overload-name (if (= '/ ugen-name) 'binary-div-op ugen-name)
         ugen-name-str (str ugen-name)
-        overloaded-fn (mk-overloaded-binary-ugen-fn ugen-name-str ugen-fn)]
+        overloaded-fn (case kind
+                        :unary (mk-overloaded-ugen-fn ugen-name-str ugen-fn)
+                        :binary (mk-overloaded-ugen-fn ugen-name-str ugen-fn))]
     (swap! overloaded-ugens* assoc ugen-name overload-name)
     (ns-unmap target-ns overload-name)
-    (intern target-ns overload-name (fn [& args]
-                                      (if (treat-as-binary-ugen? args)
-                                        (apply overloaded-fn args)
-                                        (apply original-fn args))))))
+    (intern target-ns overload-name (mk-multi-ugen-fn overloaded-fn original-fn))))
 
 (defn- def-ugen
   "Create and intern a set of functions for a given ugen-spec.
@@ -286,7 +301,7 @@
 
     (swap! special-op-specs* assoc normalized-n full-spec)
     (if (ns-resolve to-ns ugen-name)
-      (throw (Exception. (str "Attempted to define a unary op with the same name as a function which already exists: " op-name)))
+      (overload-ugen-op to-ns ugen-collide-ns ugen-name ugen :unary)
       (intern to-ns ugen-name ugen))))
 
 (defn- def-binary-op
@@ -314,7 +329,7 @@
         ugen         (make-ugen full-spec :auto ugen-fn)]
     (swap! special-op-specs* assoc normalized-n full-spec)
     (if (ns-resolve to-ns ugen-name)
-      (overload-binary-ugen-op to-ns ugen-collide-ns ugen-name ugen)
+      (overload-ugen-op to-ns ugen-collide-ns ugen-name ugen :binary)
       (intern to-ns ugen-name ugen))))
 
 (defn intern-ugens

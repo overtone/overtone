@@ -3,7 +3,7 @@
 
 (def unnormalized-binaryopugen-docspecs
 
-  {"+" {:summary "Addition summing"
+  {"+" {:summary "Signal summing"
         :doc "Merges two signals by adding them together."}
 
    "-" {:summary "Signal subtraction"
