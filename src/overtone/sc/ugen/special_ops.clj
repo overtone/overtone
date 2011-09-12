@@ -6,7 +6,7 @@
 
 (def UNARY-OPS
   {"neg" 0         ; inversion
-   "neg?" 1        ;* 0 when a < 0, +1 when a > 0, 1 when a is 0
+   "not-pos?" 1    ;* 0 when a < 0, +1 when a > 0, 1 when a is 0
    ;;"is-nil" 2    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"not-nil" 3   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"bitNot" 4    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
@@ -50,13 +50,13 @@
    "distort" 42    ; distortion
    "softclip" 43   ; distortion
    ;;"coin" 44     ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
-   ;;"digit-value" 45 ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"digit-val" 45; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"silence" 46  ; outputs 0 - no need to include it as we already have the silent ugen
    ;;"thru" 47     ; outputs what was received - not useful
-   "rectWindow" 48
-   "hanWindow" 49
-   "welWindow" 50
-   "triWindow" 51
+   "rectWindow" 48 ; rectangular window
+   "hanWindow" 49  ; hanning window
+   "welWindow" 50  ; welch window
+   "triWindow" 51  ; triangle window
    ;;"ramp" 52     ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"scurve" 53   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    })
@@ -67,55 +67,56 @@
 ; see sc/ops.clj
 (def BINARY-OPS
   {
-   "+" 0
-   "-" 1
-   "*" 2
+   "+" 0          ; Addition
+   "-" 1          ; Subtraction
+   "*" 2          ; Multiplication
    ;;"div" 3      ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   "/" 4
-   "mod" 5
-   "=" 6
-   "not=" 7
-   "<" 8
-   ">" 9
-   "<=" 10
-   ">=" 11
-   "min" 12
-   "max" 13
-   "bit-and" 14
-   "bit-or" 15
-   "bit-xor" 16
+   "/" 4          ; Division
+   "mod" 5        ; Modulus
+   "=" 6          ; Equality
+   "not=" 7       ; Inequality
+   "<" 8          ; Less than
+   ">" 9          ; Greater than
+   "<=" 10        ; Less than or equal to
+   ">=" 11        ; Greater than or equal to
+   "min" 12       ; minimum
+   "max" 13       ; maximum
+   "sig-and" 14   ; and (where pos sig is true)
+   "sig-or" 15    ; or (where pos sig is true
+   "sig-xor" 16   ; xor (where pos sig is true)
    ;;"lcm" 17     ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   "gcd" 18
-   "round" 19
-   "roundUp" 20
-   "trunc" 21
-   "atan2" 22
-   "hypot" 23
-   "hypotApx" 24
-   "pow" 25
-   "leftShift" 26
-   "rightShift" 27
-   "unsignedRightShift" 28
-   "fill" 29
-   "ring1" 30
-   "ring2" 31
-   "ring3" 32
-   "ring4" 33
-   "difsqr" 34
-   "sumsqr" 35
-   "sqrsum" 36
-   "sqrdif" 37
-   "absdif" 38
-   "thresh" 39
-   "amclip" 40
-   "scaleneg" 41
-   "clip2" 42
-   "excess" 43
-   "fold2" 44
-   "wrap2" 45
-   "first-arg" 46
-   "rrand" 47
-   "exprand" 48})
+   ;;"gcd" 18     ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   "round" 19     ; Rount
+   "round-up" 20  ; Round up
+   "trunc" 21     ; trunc
+   "atan2" 22     ; atan2n
+   "hypot" 23     ; hypot
+   "hypotApx" 24  ; hypotx
+   "pow" 25       ; pow
+   ;;"leftShift" 26 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   ;;"rightShift" 27; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   ;;"un-sig-r-shift" 28 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   ;;"fill" 29    ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   "ring1" 30     ; a * (b + 1) == a * b + a
+   "ring2" 31     ; a * b + a + b
+   "ring3" 32     ; a*a*b
+   "ring4" 33     ; a*a*b - a*b*b
+   "difsqr" 34    ; a*a - b*b
+   "sumsqr" 35    ; a*a + b*b
+   "sqrsum" 36    ; (a + b)^2
+   "sqrdif" 37    ; (a - b)^2
+   "absdif" 38    ; |a - b|
+   "thresh" 39    ;
+   "amclip" 40    ;
+   "scaleneg" 41  ;
+   "clip2" 42     ;
+   "excess" 43    ;
+   "fold2" 44     ;
+   "wrap2" 45     ;
+   ;;"first-arg" 46 ; Returns the first arg unchanged - not useful.
+   ;;"rrand" 47   ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   ;;"exprand" 48 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   })
 
 (def FOLDABLE-BINARY-OPS
   #{"+" "-" "*" "/"})

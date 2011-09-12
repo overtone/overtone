@@ -7,6 +7,11 @@
 
 i.e. 1 -> -1 and -0.5 -> 0.5"}
 
+   "not-pos?" {:summary "Check for non positive signal"
+               :doc "Determines whether the signal is negative or not. If it is less than or equal to 0 then outputs 1, otherwise outputs 0
+
+i.e. 1 -> 0,  -0.5 -> 1, 0 -> 1"}
+
    "abs" {:summary "Absolute value"
           :doc "Outputs the value of input a without regard to its sign.
 
