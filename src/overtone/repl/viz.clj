@@ -1,7 +1,7 @@
 (ns overtone.repl.viz
   (:use [vijual]
         [overtone.sc server node]
-        [overtone.studio core]
+        [overtone.studio rig]
         [overtone.viz scope]
         [overtone.sc.ugen categories]))
 

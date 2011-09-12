@@ -225,12 +225,12 @@
   (let [info (meta ins)]
     (.write w (format "#<instrument: %s>" (:name info)))))
 
-(defmethod overtone.sc.node/kill :overtone.studio.core/instrument
+(defmethod overtone.sc.node/kill :overtone.studio.rig/instrument
   [& args]
   (doseq [inst args]
     (group-clear (:group inst))))
 
-(defmethod overtone.sc.node/ctl :overtone.studio.core/instrument
+(defmethod overtone.sc.node/ctl :overtone.studio.rig/instrument
   [inst & ctls]
   (apply node-control (:group inst) ctls))
 
