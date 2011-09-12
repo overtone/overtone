@@ -6,7 +6,7 @@
 
 (def UNARY-OPS
   {"neg" 0         ; inversion
-   "not-pos?" 1    ;* 0 when a < 0, +1 when a > 0, 1 when a is 0
+   "not-pos?" 1    ; 0 when a < 0, +1 when a > 0, 1 when a is 0
    ;;"is-nil" 2    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"not-nil" 3   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"bitNot" 4    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
@@ -67,55 +67,55 @@
 ; see sc/ops.clj
 (def BINARY-OPS
   {
-   "+" 0          ; Addition
-   "-" 1          ; Subtraction
-   "*" 2          ; Multiplication
-   ;;"div" 3      ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   "/" 4          ; Division
-   "mod" 5        ; Modulus
-   "=" 6          ; Equality
-   "not=" 7       ; Inequality
-   "<" 8          ; Less than
-   ">" 9          ; Greater than
-   "<=" 10        ; Less than or equal to
-   ">=" 11        ; Greater than or equal to
-   "min" 12       ; minimum
-   "max" 13       ; maximum
-   "and" 14       ; and (where pos sig is true)
-   "or" 15        ; or (where pos sig is true
-   "xor" 16       ; xor (where pos sig is true)
-   ;;"lcm" 17     ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   ;;"gcd" 18     ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   "round" 19     ; Round to nearest multiple
-   "round-up" 20  ; Round up to next multiple
-   "round-down" 21; Round down to previous multiple
-   "atan2" 22     ; arctangent of a/b
-   "hypot" 23     ; length of hypotenuse via Pythag
+   "+" 0             ; Addition
+   "-" 1             ; Subtraction
+   "*" 2             ; Multiplication
+   ;;"div" 3         ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   "/" 4             ; Division
+   "mod" 5           ; Modulus
+   "=" 6             ; Equality
+   "not=" 7          ; Inequality
+   "<" 8             ; Less than
+   ">" 9             ; Greater than
+   "<=" 10           ; Less than or equal to
+   ">=" 11           ; Greater than or equal to
+   "min" 12          ; minimum
+   "max" 13          ; maximum
+   "and" 14          ; and (where pos sig is true)
+   "or" 15           ; or (where pos sig is true
+   "xor" 16          ; xor (where pos sig is true)
+   ;;"lcm" 17        ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   ;;"gcd" 18        ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   "round" 19        ; Round to nearest multiple
+   "round-up" 20     ; Round up to next multiple
+   "round-down" 21   ; Round down to previous multiple
+   "atan2" 22        ; arctangent of a/b
+   "hypot" 23        ; length of hypotenuse via Pythag
    "hypot-aprox" 24  ; approximation of length of hypotenuse
-   "pow" 25       ; exponentiation
-   ;;"leftShift" 26 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   ;;"rightShift" 27; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   ;;"un-sig-r-shift" 28 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   ;;"fill" 29    ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   "ring1" 30     ; a * (b + 1) == a * b + a
-   "ring2" 31     ; a * b + a + b
-   "ring3" 32     ; a*a*b
-   "ring4" 33     ; a*a*b - a*b*b
-   "difsqr" 34    ; a*a - b*b
-   "sumsqr" 35    ; a*a + b*b
-   "sqrsum" 36    ; (a + b)^2
-   "sqrdif" 37    ; (a - b)^2
-   "absdif" 38    ; |a - b|
-   "thresh" 39    ; Signal thresholding
-   "amclip" 40    ; Two quadrant multiply
-   "scale-neg" 41  ; scale negative part of input wave
-   "clip2" 42     ; bilateral clipping
-   "excess" 43    ; clipping residual
-   "fold2" 44     ; bilateral folding
-   "wrap2" 45     ; bilateral wrapping
-   ;;"first-arg" 46 ; Returns the first arg unchanged - not useful.
-   ;;"rrand" 47   ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
-   ;;"exprand" 48 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   "pow" 25          ; exponentiation
+   ;;"leftShift" 26  ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   ;;"rightShift" 27 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   ;;"un-r-shift" 28 ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   ;;"fill" 29       ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   "ring1" 30        ; a * (b + 1) == a * b + a
+   "ring2" 31        ; a * b + a + b
+   "ring3" 32        ; a*a*b
+   "ring4" 33        ; a*a*b - a*b*b
+   "difsqr" 34       ; a*a - b*b
+   "sumsqr" 35       ; a*a + b*b
+   "sqrsum" 36       ; (a + b)^2
+   "sqrdif" 37       ; (a - b)^2
+   "absdif" 38       ; |a - b|
+   "thresh" 39       ; Signal thresholding
+   "amclip" 40       ; Two quadrant multiply
+   "scale-neg" 41    ; scale negative part of input wave
+   "clip2" 42        ; bilateral clipping
+   "excess" 43       ; clipping residual
+   "fold2" 44        ; bilateral folding
+   "wrap2" 45        ; bilateral wrapping
+   ;;"first-arg" 46  ; Returns the first arg unchanged - not useful.
+   ;;"rrand" 47      ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
+   ;;"exprand" 48    ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
    })
 
 (def FOLDABLE-BINARY-OPS
