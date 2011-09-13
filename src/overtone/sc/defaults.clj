@@ -1,4 +1,5 @@
-(ns overtone.sc.defaults)
+(ns overtone.sc.defaults
+  (:require [overtone.at-at :as at-at]))
 
 ;; ## SCSynth limits
 (def MAX-NODES 4000)
@@ -24,3 +25,6 @@
 
 ;id of root group in node tree on server
 (def ROOT-GROUP 0)
+
+;;make an at-at pool for all default scheduling
+(def SC-POOL (at-at/mk-pool))
