@@ -11,13 +11,13 @@
 ;; free a synth.)
 
 (defn mk-bitset [size]
-  (ref (vec (repeat size false))))
+  (vec (repeat size false)))
 
 (defonce allocator-bits
-  {:node         (mk-bitset MAX-NODES)
-   :audio-buffer (mk-bitset MAX-BUFFERS)
-   :audio-bus    (mk-bitset MAX-NODES)
-   :control-bus  (mk-bitset MAX-NODES)})
+  {:node         (ref (mk-bitset MAX-NODES))
+   :audio-buffer (ref (mk-bitset MAX-BUFFERS))
+   :audio-bus    (ref (mk-bitset MAX-NODES))
+   :control-bus  (ref (mk-bitset MAX-NODES))})
 
 (defonce allocator-limits
   {:node         MAX-NODES
@@ -85,11 +85,13 @@
 (defonce _root-group_ (alloc-id :node))
 
 (defn free-id
-  "Free the id of type key. Takes an optional action-fn which it will evaluate
-  in transaction with the freeing of the id. Therefore there is no possibility
-  of interleaving concurrent freeing of ids and execution of associated
-  action-fns. Execution of action-fn is also synchronised with the execution of
-  alloc-id action-fns."
+  "Free the ID of type key. Takes an optional action-fn which it will evaluate
+  in transaction with the freeing of the id. (Evaluation happens within an agent
+  so there's no need to worry about the transaction retrying multiple times).
+  Therefore there is no possibility of interleaving concurrent freeing of ids
+  and execution of associated action-fns. Execution of action-fn is also
+  synchronised with the execution of alloc-id action-fns (they all use the same
+  agent)."
   ([k id] (free-id k id 1 nil))
   ([k id size] (free-id k id size nil))
   ([k id size action-fn]
@@ -102,7 +104,7 @@
 (defn clear-ids
   "Clear all ids allocated for key."
   [k]
-  (let [bits (get allocator-bits k)
+  (let [bits  (get allocator-bits k)
         limit (get allocator-limits k)]
     (dosync
      (ref-set bits (mk-bitset limit)))))
