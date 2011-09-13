@@ -96,10 +96,11 @@
 ;; n_end event when a synth node is destroyed.
 
 (defn node-free
-  "Remove a synth node."
+  "Free the specified node-ids on the server."
   [& node-ids]
   {:pre [(connected?)]}
-  (doseq [id node-ids] (free-id :node id 1 #(snd "/n_free" id))))
+  (doseq [id node-ids]
+    (snd "/n_free" id)))
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
