@@ -4,9 +4,8 @@
           intervals, etc."
      :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
-  (:use [clojure.contrib.str-utils2 :only (chop)]
-        [overtone.algo chance])
-  (:require [clojure.contrib.math :as math]))
+  (:use [overtone.util old-contrib]
+        [overtone.algo chance]))
 
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
 ;; possible 7 note scales, the major scale has the highest number of consonant
@@ -425,14 +424,14 @@
    i.e. (nth-ocatve 440 1) will return 880 which is the freq of the next octave
    from 440."
   [freq n]
-  (* freq (math/expt 2 n)))
+  (* freq (java.lang.Math/pow 2 n)))
 
 (defn nth-equal-tempered-freq
   "Returns the frequency of a given scale interval using an equal-tempered
   tuning i.e. dividing all 12 semi-tones equally across an octave. This is
   currently the standard tuning."
   [base-freq interval]
-  (* base-freq (math/expt 2 (/ interval 12))))
+  (* base-freq (java.lang.Math/pow 2 (/ interval 12))))
 
 (defn interval-freq
   "Returns the frequency of the given interval using the specified mode and

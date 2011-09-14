@@ -4,12 +4,16 @@
   overtone.util.lib
   (:import [java.util ArrayList Collections]
            [java.util.concurrent TimeUnit TimeoutException])
-  (:use [clojure.contrib.def]
-        [clojure.stacktrace]
-        [clojure.pprint :as pprint]
-        [clojure.contrib.seq-utils :only (indexed)]
-        [overtone.util.doc])
+  (:use [clojure.stacktrace]
+        [clojure.pprint]
+        [overtone.util doc])
   (:require [overtone.util.log :as log]))
+
+(defn indexed
+  "Takes col and returns a list of index val pairs for each successive val in
+  col. O(n) complexity. Prefer map-indexed or filter-indexed where possible."
+  [col]
+  (map-indexed (fn [i v] [i v]) col))
 
 ; Some generic counters
 (def id-counters* (ref {}))
@@ -30,7 +34,7 @@
   []
   (let [paths (map (memfn getPath)
                    (seq (.getURLs (.getClassLoader clojure.lang.RT))))]
-    (pprint/pprint paths)))
+    (pprint paths)))
 
 (defn to-str
   "If val is a keyword, return its name sans :, otherwise return val"
@@ -217,13 +221,6 @@
                           (cycle [1 2 3]))) => ([5 1] [5 2] [5 3] [5 1])"
   [seqs]
   (apply map vector seqs))
-
-; Example:
-;       (dissoc-in { :who { :me { 1 2 3 4 } } } [ :who :me ] 3 )
-(defn dissoc-in
-  "Dissociates the element [keys val] from map."
-  [m keys val]
-        (assoc-in m keys (dissoc (get-in m keys) val)))
 
 (defn index-of
   "Return the index of item in col."

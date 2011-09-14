@@ -4,7 +4,7 @@
   overtone.config.setup
   (:import [java.io File])
   (:use [overtone.config store]
-        [clojure.contrib.io :only (delete-file)]))
+        [clojure.java.io :only (delete-file)]))
 
 (defn- get-os []
   (let [os (System/getProperty "os.name")]

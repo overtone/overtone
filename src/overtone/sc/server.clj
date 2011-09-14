@@ -9,12 +9,10 @@
            [java.util.concurrent TimeUnit TimeoutException]
            [java.io BufferedInputStream]
            [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
-  (:use [clojure.contrib.java-utils :only [file]]
-        [clojure.contrib pprint]
-        [clojure.contrib shell-out]
+  (:use [clojure.pprint]
         [overtone.music time]
         [overtone.config store setup]
-        [overtone.util lib]
+        [overtone.util lib old-contrib]
         [overtone.libs event deps]
         [overtone.sc defaults allocator]
         [overtone.osc.decode :only [osc-decode-packet]]
@@ -279,6 +277,7 @@
 (def SC-ARGS  {:linux []
                :windows []
                :mac   ["-U" "/Applications/SuperCollider/plugins"] })
+
 
 (if (= :linux (@config* :os))
   (on-deps :connected ::connect-jack-ports #(connect-jack-ports)))

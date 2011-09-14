@@ -2,9 +2,7 @@
     ^{:doc "Provides a simple key/value configuration system with support for automatically persisting to a file on disk.  The config file is serialized clojure code which is easily editable as a text file."
       :author "Jeff Rose"}
   overtone.config.store
-  (:import [java.io FileOutputStream FileInputStream])
-  (:use [clojure.contrib.io :only (slurp*)])
-  (:require [clojure.contrib.duck-streams :as ds]))
+  (:import [java.io FileOutputStream FileInputStream]))
 
 
 
@@ -24,12 +22,12 @@
 (defmethod save-config :file
   [path data]
   (locking F-LOCK
-      (ds/spit path data)))
+    (spit path data)))
 
 (defmethod restore-config :file
   [path]
   (with-open [file (FileInputStream. path)]
-    (read-string (slurp* file))))
+    (read-string (slurp file))))
 
 (defn config-watcher [k r old-conf new-conf]
   (save-config @store-path* @config*))

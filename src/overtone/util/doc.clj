@@ -2,7 +2,7 @@
     ^{:doc "Utility functions for the generation of docstrings"
       :author "Sam Aaron"}
   overtone.util.doc
-  (:use [clojure.contrib.string :only [split replace-re replace-str]]))
+  (:use [overtone.util.old-contrib :only [split replace-re replace-str]]))
 
 (def DOC-WIDTH 50)
 

@@ -2,8 +2,7 @@
   ^{:doc "Functions used to manipulate and generate the documentation for ugens"
      :author "Sam Aaron & Jeff Rose"}
   overtone.sc.ugen.doc
-  (:use [clojure.contrib.string :only [split]]
-        [overtone.sc.ugen.defaults]
+  (:use [overtone.sc.ugen.defaults]
         [overtone.util lib doc]))
 
 (defn- args-str

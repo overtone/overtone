@@ -2,7 +2,8 @@
   ^{:doc "Higher level instrument and studio abstractions."
      :author "Jeff Rose"}
   overtone.studio.rig
-  (:use [overtone.music rhythm pitch]
+  (:use [clojure.core.incubator :only [dissoc-in]]
+        [overtone.music rhythm pitch]
         [overtone.libs event deps]
         [overtone.util lib]
         [overtone.sc.ugen fn-gen defaults sc-ugen]
@@ -252,13 +253,13 @@
 
 (defn remove-track
   [tname]
-  (dosync (alter session* dissoc-in [:tracks] tname)))
+  (dosync (alter session* dissoc-in [:tracks tname])))
 
 (defn track-fn [tname f]
   (dosync (alter session* assoc-in [:tracks tname :note-fn] f)))
 
 (defn remove-track-fn [tname]
-  (dosync (alter session* dissoc-in [:tracks tname] :note-fn)))
+  (dosync (alter session* dissoc-in [:tracks tname :note-fn])))
 
 (defn session-metro [m]
   (dosync (alter session* assoc :metro m)))

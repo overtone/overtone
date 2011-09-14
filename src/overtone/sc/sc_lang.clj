@@ -1,5 +1,5 @@
 (ns overtone.sc.sc-lang
-  (:use [clojure.contrib.core :only [-?>]]
+  (:use [clojure.core incubator]
         [overtone.util lib])
   (:require [clojure.zip :as z]))
 
