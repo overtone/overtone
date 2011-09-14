@@ -5,7 +5,7 @@
      :author "Jeff Rose"}
   overtone.sc.synthdef
   (:import [java.net URL])
-  (:use [byte-spec]
+  (:use [overtone.byte-spec]
         [overtone.util lib]
         [overtone.libs event deps]
         [overtone.sc server])

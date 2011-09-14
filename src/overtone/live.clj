@@ -1,7 +1,9 @@
 (ns overtone.live
   (:use [overtone.util lib ns])
   (:require clojure.stacktrace
-            midi overtone.osc byte-spec
+            [overtone.midi]
+            [overtone.osc]
+            [overtone.byte-spec]
             [overtone.algo chance scaling position trig]
             [overtone.sc.ugen.constants]
             [overtone.sc allocator server ugens node synth synthdef cgen
@@ -15,7 +17,7 @@
 
 (immigrate
  'overtone.osc
- 'midi
+ 'overtone.midi
  'overtone.sc.ugen.constants
  'overtone.algo.chance
  'overtone.algo.scaling

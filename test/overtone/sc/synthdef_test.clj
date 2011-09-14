@@ -4,7 +4,7 @@
                     BufferedInputStream BufferedOutputStream
                     ByteArrayOutputStream ByteArrayInputStream))
   (:use overtone.core
-        byte-spec
+        overtone.byte-spec
         test-utils
         clojure.test)
   (:require [overtone.log :as log]))

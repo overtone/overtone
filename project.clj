@@ -10,7 +10,7 @@
                  [overtone/scsynth-jna "0.1.2-SNAPSHOT"]
                  [overtone/at-at "0.1.1"]
                  [overtone/osc-clj "0.6.2"]
-                 [overtone/byte-spec "0.2.0-SNAPSHOT"]
-                 [overtone/midi-clj "0.2.0-SNAPSHOT"]]
+                 [overtone/byte-spec "0.3.0"]
+                 [overtone/midi-clj "0.2.0"]]
   :dev-dependencies [[marginalia "0.2.0"]]
   :jvm-opts ["-Xms256m" "-Xmx1g" "-XX:+UseConcMarkSweepGC"])

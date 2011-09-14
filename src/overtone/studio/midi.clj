@@ -1,5 +1,5 @@
 (ns overtone.studio.midi
-  (:use [midi]
+  (:use [overtone.midi]
         [overtone.studio rig]))
 
 (defn midi-inst-player [inst event ts]
