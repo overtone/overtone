@@ -23,7 +23,6 @@
 ;; input and write output to global audio and control buses. Synths can have
 ;; their own local controls that are set via commands to the server.
 
-(def *params* nil)
 
 (defn- ugen-index [ugens ugen]
   (first (first (filter (fn [[i v]]
@@ -530,7 +529,7 @@
         (println "       " uname uform))
       (println (str "       ]\n   " (first (last ugen-forms)) ")"))))
 
-(def *demo-time* 2000)
+(def ^{:dynamic true} *demo-time* 2000)
 
 (defmacro demo
   "Try out an anonymous synth definition.  Useful for experimentation.  If the
