@@ -316,7 +316,7 @@ Hello " (user-name) ", may this be the start of a beautiful music hacking sessio
    unchanged assuming it's a keyword."
   [gen]
   (if (and (associative? gen)
-           (or (= :overtone.sc.ugen/ugen (:type gen))
+           (or (= :overtone.sc.ugen.fn-gen/ugen (:type gen))
                (= :overtone.sc.cgen/cgen (:type gen))))
     (keyword (:name gen))
     gen))
