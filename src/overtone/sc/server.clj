@@ -51,17 +51,28 @@
   (or
    (= :connected @server-status*)))
 
+(defn- massage-numerical-args
+  "Massage numerical args to the form SC would like them. Currently this just
+  casts all Longs to Integers."
+  [args]
+  (map (fn [arg]
+         (if (instance? Long arg)
+           (Integer. arg)
+           arg))
+       args))
+
 (defn snd
-  "Sends an OSC message. If the message path is a known scsynth path, then the
-   types of the arguments will be checked according to what scsynth is
-   expecting.
+  "Sends an OSC message to the server. If the message path is a known scsynth
+  path, then the types of the arguments will be checked according to what
+  scsynth is expecting. Automatically converts any args which are longs to ints.
 
   (snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
-  (when @osc-debug*
-    (println "Sending: " path [args])
-    (log/debug (str "Sending: " path [args])))
-  (apply validated-snd @server* path args)
+  (let [args (massage-numerical-args args)]
+    (when @osc-debug*
+      (println "Sending: " path [args])
+      (log/debug (str "Sending: " path [args])))
+    (apply validated-snd @server* path args))
 
   (if (not (connected?))
     (log/debug "### trying to snd while disconnected! ###")))
