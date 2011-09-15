@@ -34,9 +34,10 @@ This can also be acheived by creating a Signal object and sending it the 'asWave
        :doc "Outputs a sine wave with values oscillating between -1 and 1 similar to osc except that the table has already been fixed as a sine table of 8192 entries."}
 
       {:name "SinOscFB",
-       :args [{:name "freq", :default 440.0}
-              {:name "feedback", :default 0.0}],
-       :doc "very fast sine oscillator"}
+       :args [{:name "freq", :default 440.0 :doc "Frequency of oscillator"}
+              {:name "feedback", :default 0.0 :doc "amplitude of phase feedback in radians"}]
+       :summary "Sine oscillator with phase modulation feedback"
+       :doc "Different feedback values results in a modulation between a sine wave and a sawtooth like wave. Overmodulation causes chaotic oscillation."}
 
       {:name "OscN",
        :args [{:name "bufnum" :doc "Buffer index.  The buffer size must be a power of 2.  The buffer should NOT be filled using Wavetable format (b_gen commands should set wavetable flag to false.  Raw signals (not converted with asWavetable) can be saved to disk and loaded into the buffer."}
