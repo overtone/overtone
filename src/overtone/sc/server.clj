@@ -110,7 +110,7 @@
   a better strategy to auto-connect."
   ([] (connect-jack-ports 2))
   ([n-channels]
-     (let [port-list (sh "jack_lsp")
+     (let [port-list (:out (sh "jack_lsp"))
            sc-ins         (re-seq #"SuperCollider.*:in_[0-9]*" port-list)
            sc-outs        (re-seq #"SuperCollider.*:out_[0-9]*" port-list)
            system-ins     (re-seq #"system:capture_[0-9]*" port-list)
