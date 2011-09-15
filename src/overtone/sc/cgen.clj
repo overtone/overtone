@@ -135,10 +135,9 @@
   A cgen behaves similarly to a ugen - it has a default rate, named params, full
   docstring and may be mixed with both ugens and cgens in the construction of
   synths."
-  ([c-name summary doc params body rate] (cgen c-name doc params body rate [["Composite Ugen"]]))
-  ([c-name summary doc params body rate categories]
-     (let [c-name (symbol (name c-name))]
-       (mk-cgen c-name summary doc params body categories rate))))
+  [c-name summary doc params body rate categories]
+  (let [c-name (symbol (name c-name))]
+    (mk-cgen c-name summary doc params body categories rate)))
 
 (defmacro defcgen
   "Define one or more related cgens (composite generators) with different rates.
@@ -174,15 +173,20 @@
         default-body                             (get bodies default-rate)
         default-cgen                             (mk-cgen c-name summary doc params default-body categories default-rate)
         default-c-name                           (with-meta c-name metadata)
-        cgen-defs                                [`(def ~default-c-name ~default-cgen)]]
+        default-def                              `(def ~default-c-name ~default-cgen)
+        cgen-defs (list* default-def
+                         (for [rate rates]
+                           (let [body   (get bodies rate)
+                                 cgen   (mk-cgen c-name summary doc params body categories rate)
+                                 c-name (symbol (str (name c-name) rate))
+                                 c-name (with-meta c-name metadata)
+                                 ]
+                             `(def ~c-name ~cgen))))]
 
-    (conj cgen-defs
-     (for [rate rates]
-       (let [body   (get bodies rate)
-             cgen   (mk-cgen c-name summary doc params body categories rate)
-             c-name (symbol (str (name default-c-name) rate))
-             c-name (with-meta c-name metadata)]
-         `(def ~c-name ~cgen))))))
+    `(do ~@cgen-defs)
+
+
+))
 
 (defmethod print-method ::cgen [cgen w]
   (let [info (meta cgen)]
