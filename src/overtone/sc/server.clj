@@ -10,9 +10,10 @@
            [java.io BufferedInputStream]
            [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
   (:use [clojure.pprint]
+        [clojure.java.shell]
         [overtone.music time]
         [overtone.config store setup]
-        [overtone.util lib old-contrib]
+        [overtone.util lib]
         [overtone.libs event deps]
         [overtone.sc defaults allocator]
         [overtone.osc.decode :only [osc-decode-packet]]
