@@ -24,8 +24,27 @@
 (defonce mixer-id*     (ref nil))
 (defonce fx-group*     (ref nil))
 (defonce record-group* (ref nil))
-
+(defonce studio-status* (ref nil))
 (defonce MIXER-BUS 10)
+
+
+(defn rig-booted? []
+  (= :rig-booted @studio-status*))
+
+(on-deps [:connected :studio-setup-completed] ::fully-booted #(dosync (ref-set studio-status* :rig-booted)))
+
+(defn wait-until-rig-booted
+  "Makes the current thread sleep until the rig completed its boot process."
+  []
+  (while (not (connected?))
+    (Thread/sleep 100)))
+
+(defn boot-rig
+  "Boots the server and waits until the studio rig has complete set up"
+  []
+  (when-not (rig-booted?)
+    (boot)
+    (wait-until-rig-booted)))
 
 ; A mixer synth for volume, pan, and limiting
 ; TODO: Add basic EQ

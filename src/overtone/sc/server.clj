@@ -26,7 +26,7 @@
 (defonce server-thread* (ref nil))
 (defonce server-log*    (ref []))
 (defonce sc-world*      (ref nil))
-(defonce status*        (ref :disconnected))
+(defonce server-status* (ref :disconnected))
 (defonce synth-group*   (ref nil))
 (defonce osc-debug*     (atom false))
 
@@ -48,13 +48,7 @@
 
 (defn connected? []
   (or
-   (= :connected @status*)
-   (= :fully-booted @status*)))
-
-(defn fully-booted? []
-  (= :fully-booted @status*))
-
-(on-deps [:connected :studio-setup-completed] ::fully-booted #(dosync (ref-set status* :fully-booted)))
+   (= :connected @server-status*)))
 
 (defn snd
   "Sends an OSC message. If the message path is a known scsynth path, then the
@@ -136,7 +130,7 @@
 (defn- setup-connect-handlers []
   (let [handler-fn
         (fn []
-          (dosync (ref-set status* :connected))
+          (dosync (ref-set server-status* :connected))
           (notify true) ; turn on notifications now that we can communicate
           (satisfy-deps :connected)
           (event :connected)
@@ -176,7 +170,7 @@
     (loop [cnt 0]
       (log/debug "connect loop...")
       (when (and (< cnt N-RETRIES)
-                 (= @status* :connecting))
+                 (= @server-status* :connecting))
         (log/debug "sending status...")
         (snd "/status")
         (Thread/sleep 100)
@@ -197,7 +191,7 @@
   ([] (connect-internal))
   ([port] (connect "127.0.0.1" port))
   ([host port]
-   (dosync (ref-set status* :connecting))
+   (dosync (ref-set server-status* :connecting))
    (.run (Thread. #(connect-external host port)))))
 
 (defn server-log
@@ -262,7 +256,7 @@
         (parse-status (:args (await-promise! p)))
         (catch TimeoutException t
           :timeout)))
-    @status*))
+    @server-status*))
 
 (def SC-PATHS {:linux ["scsynth"]
                :windows ["C:/Program Files/SuperCollider/scsynth.exe"
@@ -303,7 +297,7 @@
   ([] (boot-internal (+ (rand-int 50000) 2000)))
   ([port]
      (log/info "boot-internal: " port)
-     (when (not (connected?))
+     (when-not (connected?)
        (on-deps :booted ::connect-internal connect)
        (let [sc-thread (Thread. #(internal-booter port))]
          (.setDaemon sc-thread true)
@@ -331,7 +325,7 @@
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
         read-buf (make-array Byte/TYPE 256)]
-    (while (not (= :disconnected @status*))
+    (while (not (= :disconnected @server-status*))
       (sc-log in-stream read-buf)
       (sc-log err-stream read-buf)
       (Thread/sleep 250))
@@ -342,7 +336,7 @@
   "Boot the audio server in an external process and tell it to listen on a
   specific port."
   ([port]
-     (if (not (connected?))
+     (when-not (connected?)
        (let [sc-path (first (filter #(.exists (java.io.File. %)) (SC-PATHS (@config* :os))))
              cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (@config* :os))))
              sc-thread (Thread. #(external-booter cmd))]
@@ -353,11 +347,11 @@
          (connect "127.0.0.1" port)
          :booting))))
 
-(defn wait-until-fully-booted
+(defn wait-until-connected
   "Makes the current thread sleep until scsynth has successfully connected and
   the boot process has completed."
   []
-  (while (not (fully-booted?))
+  (while (not (connected?))
     (Thread/sleep 100)))
 
 (defn boot
@@ -369,11 +363,12 @@
   ([]
      (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [port]]
-     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
-       (cond
-        (= :internal which) (boot-internal port)
-        (= :external which) (boot-external port))
-       (wait-until-fully-booted))))
+     (when-not (connected?)
+       (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
+         (cond
+          (= :internal which) (boot-internal port)
+          (= :external which) (boot-external port))
+         (wait-until-connected)))))
 
 (defn quit
   "Quit the SuperCollider synth process."
@@ -385,7 +380,7 @@
     (osc-close @server* true))
   (dosync
    (ref-set server* nil)
-   (ref-set status* :disconnected)
+   (ref-set server-status* :disconnected)
    (unsatisfy-all-dependencies)))
 
 (defonce _shutdown-hook

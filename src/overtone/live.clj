@@ -56,6 +56,6 @@
  'overtone.viz.scope
  )
 
-(defonce _auto-boot_ (boot))
+(defonce _auto-boot_ (boot-rig))
 
 (print-ascii-art-overtone-logo)
