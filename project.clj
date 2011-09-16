@@ -5,7 +5,7 @@
             :namespaces-to-document ["overtone.core" "overtone.gui"
                                      "overtone.music" "overtone.studio"]
             :trim-prefix "overtone.",}
-  :dependencies [[org.clojure/clojure "1.2.0"]
+  :dependencies [[org.clojure/clojure "1.3.0-RC0"]
                  [org.clojure/core.incubator "0.1.0"]
                  [overtone/scsynth-jna "0.1.2-SNAPSHOT"]
                  [overtone/at-at "0.2.0"]
