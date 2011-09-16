@@ -162,7 +162,7 @@
     (:default :ar))"
   [c-name & c-form]
   (let [[summary doc params bodies default-rate] (cgen-form c-form)
-        arglists                                 (vec (map #(symbol (name (:name %))) params))
+        arglists                                 (list (vec (map #(symbol (name (:name %))) params)))
         arglists                                 (list 'quote arglists)
         rates                                    (into #{} (keys bodies))
         categories                               [["Composite Ugen"]]
@@ -170,6 +170,7 @@
         metadata                                 {:doc full-doc
                                                   :arglists arglists
                                                   :type ::cgen}
+
         default-body                             (get bodies default-rate)
         default-cgen                             (mk-cgen c-name summary doc params default-body categories default-rate)
         default-c-name                           (with-meta c-name metadata)
@@ -183,10 +184,7 @@
                                  ]
                              `(def ~c-name ~cgen))))]
 
-    `(do ~@cgen-defs)
-
-
-))
+    `(do ~@cgen-defs)))
 
 (defmethod print-method ::cgen [cgen w]
   (let [info (meta cgen)]
