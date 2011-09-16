@@ -14,51 +14,51 @@
                       :validator (fn [val] true)}
 
    :int              {:desc "an integer"
-                      :validator (fn [val] (integer? val))}
+                      :validator (fn [val] (instance? Integer val))}
 
    :sample-idx       {:desc "an integer 0 or greater representing the index of a sample"
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>= val 0)))}
 
    :sample-val       {:desc "a float representing the value of a sample"
-                      :validator (fn [val] (float? val))}
+                      :validator (fn [val] (instance? Float val))}
 
    :frame-start      {:desc "an integer 0 or greater representing the starting frame"
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>=  val 0)))}
 
    :chan-idx         {:desc "an integer 0 or greater representing a channel index"
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>=  val 0)))}
 
    :num-frames       {:desc "an integer -1 or greater representing the number of frames"
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>=  val -1)))}
 
    :buf-num          {:desc "an integer representing a buffer number"
-                      :validator (fn [val] (integer? val))}
+                      :validator (fn [val] (instance? Integer val))}
 
    :ugen-idx         {:desc "an integer representing the index of a ugen"
-                      :validator (fn [val] (integer? val))}
+                      :validator (fn [val] (instance? Integer val))}
 
    :count            {:desc "a positive integer representing the cardinality of elements"
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (> val 0)))}
 
    :node-id          {:desc "an integer (-1 upwards) representing a node id."
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>= val -1)))}
 
    :group-id          {:desc "an integer (-1 upwards) representing a group id."
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>= val -1)))}
 
    :synth-id         {:desc "an integer (-1 upwards) representing a synth id."
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>= val -1)))}
 
    :ctl-val          {:desc "a float representing a control value"
-                      :validator (fn [val] (float? val ))}
+                      :validator (fn [val] (instance? Float val ))}
 
    :string           {:desc "a string"
                       :validator (fn [val] (string? val))}
@@ -67,11 +67,11 @@
                       :validator (fn [val] (string? val))}
 
    :ctl-handle       {:desc "an integer or a string representing a control"
-                      :validator (fn [val] (or (integer? val)
+                      :validator (fn [val] (or (instance? Integer val)
                                               (string? val)))}
 
    :ctl-bus-idx      {:desc "an integer (-1 or greater) representing a control bus index"
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>= val -1)))}
 
    :pathname         {:desc "a string representing a pathname"
@@ -84,17 +84,17 @@
                       :validator (fn [val] (= (type (byte-array 0)) (type val)))}
 
    :zero-to-three    {:desc "an integer in the range 0 -> 3 inclusive"
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>= val 0)
                                                (<= val 3)))}
 
    :zero-to-four     {:desc "an integer in the range 0 -> 4 inclusive"
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>= val 0)
                                                (<= val 4)))}
 
    :minus-two-to-one {:desc "an integer in the range -2 -> 1 inclusive"
-                      :validator (fn [val] (and (integer? val)
+                      :validator (fn [val] (and (instance? Integer val)
                                                (>= val -2)
                                                (<= val 1)))}
 
