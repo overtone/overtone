@@ -70,7 +70,7 @@
         filtered (* (env-gen (perc 0.005 sustain) :action FREE)
                     (brf filtered 2000 0.0001))
         crackle (* (resonz filtered tightness) crackle-amp)]
-    (* amp (* (+ drum crackle)))))
+    (* amp (+ drum crackle))))
 
 (definst snare2 [amp 0.5 decay 0.1 freq 1000]
   (let [env (env-gen (perc 0 decay) :action FREE)
