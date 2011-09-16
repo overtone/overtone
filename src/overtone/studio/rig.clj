@@ -43,7 +43,7 @@
   "Boots the server and waits until the studio rig has complete set up"
   []
   (when-not (rig-booted?)
-    (boot)
+    (boot-server)
     (wait-until-rig-booted)))
 
 ; A mixer synth for volume, pan, and limiting

@@ -286,7 +286,7 @@
   (defn test-scope []
     (if (not (connected?))
       (do
-        (boot)
+        (boot-server)
         (on :examples-ready go-go-scope))
       (go-go-scope))
     (.show test-frame))

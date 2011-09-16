@@ -305,10 +305,10 @@
     (dosync (ref-set sc-world* server))
     (.run server)))
 
-(defn- boot-internal
-  ([] (boot-internal (+ (rand-int 50000) 2000)))
+(defn- boot-internal-server
+  ([] (boot-internal-server (+ (rand-int 50000) 2000)))
   ([port]
-     (log/info "boot-internal: " port)
+     (log/info "boot-internal-server: " port)
      (when-not (connected?)
        (on-deps :booted ::connect-internal connect)
        (let [sc-thread (Thread. #(internal-booter port))]
@@ -344,7 +344,7 @@
     (.destroy proc))
   (print-ascii-art-overtone-logo))
 
-(defn- boot-external
+(defn- boot-external-server
   "Boot the audio server in an external process and tell it to listen on a
   specific port."
   ([port]
@@ -366,20 +366,20 @@
   (while (not (connected?))
     (Thread/sleep 100)))
 
-(defn boot
+(defn boot-server
   "Boot either the internal or external audio server.
-   (boot) ; uses the default settings defined in your config
-   (boot :internal) ; boots the internal server
-   (boot :external) ; boots an external server on a random port
-   (boot :external 57110) ; boots an external server listening on port 57110"
+   (boot-server) ; uses the default settings defined in your config
+   (boot-server :internal) ; boots the internal server
+   (boot-server :external) ; boots an external server on a random port
+   (boot-server :external 57110) ; boots an external server listening on port 57110"
   ([]
-     (boot (get @config* :server :internal) SERVER-HOST SERVER-PORT))
+     (boot-server (get @config* :server :internal) SERVER-HOST SERVER-PORT))
   ([which & [port]]
      (when-not (connected?)
        (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
          (cond
-          (= :internal which) (boot-internal port)
-          (= :external which) (boot-external port))
+          (= :internal which) (boot-internal-server port)
+          (= :external which) (boot-external-server port))
          (wait-until-connected)))))
 
 (defn quit
