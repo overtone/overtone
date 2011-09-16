@@ -96,7 +96,9 @@
 ;; n_end event when a synth node is destroyed.
 
 (defn node-free
-  "Free the specified node-ids on the server."
+  "Free the specified node-ids on the server. The allocated id is subsequently
+  freed from the allocator via a callback fn listening for /n_end which will
+  call node-destroyed."
   [& node-ids]
   {:pre [(connected?)]}
   (doseq [id node-ids]
