@@ -295,27 +295,42 @@
     (doseq [[ugen-name ugen-fn] ugen-fns]
       (intern to-ns ugen-name ugen-fn))))
 
+(defn- add-extra-collider-info
+  "Add information about colliding ugens to a spec's documentation"
+  [doc-spec collider op-name]
+  (assoc doc-spec :doc
+         (str
+          (:doc doc-spec)
+          "\n\nThis ugen's name collides with the existing fn " collider ". When calling this fn within a synth definition, " collider " will be called unless the argument list suggests that this is a ugen call. " ugen-collide-ns-str  "/" (str op-name) " will therefore only be called if the arg list is a single map or at least one of the args is a ugen and the rest consist only of numbers, sequentials, keywords and other ugens. "
+          (when (NUMERICAL-CLOJURE-FNS (str op-name))
+            "Also, as this fn has been labelled as numerical, it will also be treated as a ugen if any of the args are not numbers."))))
+
 (defn- def-unary-op
   "def a unary op ugen (this is handled separately due to the fact that the
   unaryopugen represents multiple functionality represented by multple fns
   in overtone)."
   [to-ns op-name special]
-  (let [normalized-n (normalize-ugen-name op-name)
+  (let [ugen-name (symbol (overtone-ugen-name op-name))
+        collider?    (ns-resolve to-ns ugen-name)
+        normalized-n (normalize-ugen-name op-name)
         orig-spec (get UGEN-SPECS "unaryopugen")
         doc-spec  (get unaryopugen-docspecs normalized-n {})
+        doc-spec     (if collider?
+                       (add-extra-collider-info doc-spec collider? op-name)
+                       doc-spec)
         full-spec (merge orig-spec doc-spec {:name op-name
                                              :categories [["Unary Operations"]]})
         full-spec (doc/with-full-doc full-spec)
         metadata  {:doc (:full-doc full-spec)
                    :arglists (list (vec (map #(symbol (:name %))
                                              (:args full-spec))))}
-        ugen-name (symbol (overtone-ugen-name op-name))
+
         ugen-name (with-meta ugen-name metadata)
         ugen-fn   (make-ugen-fn orig-spec :auto special)
         ugen      (make-ugen full-spec :auto ugen-fn)]
 
     (swap! special-op-specs* assoc normalized-n full-spec)
-    (if (ns-resolve to-ns ugen-name)
+    (if collider?
       (overload-ugen-op to-ns ugen-collide-ns ugen-name ugen :unary)
       (intern to-ns ugen-name ugen))))
 
@@ -325,6 +340,8 @@
   in overtone)."
   [to-ns op-name special]
   (let [
+        ugen-name    (symbol (overtone-ugen-name op-name))
+        collider?    (ns-resolve to-ns ugen-name)
         normalized-n (normalize-ugen-name op-name)
         orig-spec    (get UGEN-SPECS "binaryopugen")
         doc-spec     (get binaryopugen-docspecs normalized-n {})
@@ -332,18 +349,21 @@
                        (assoc doc-spec :doc
                               (str (:doc doc-spec) "\n\nThis binary op ugen is foldable. i.e. may take multiple args and fold them into a tree of ugens."))
                        doc-spec)
+        doc-spec     (if collider?
+                       (add-extra-collider-info doc-spec collider? op-name)
+                       doc-spec)
         full-spec    (merge orig-spec doc-spec {:name op-name
                                                 :categories [["Binary Operations"]]})
         full-spec    (doc/with-full-doc full-spec)
         metadata     {:doc (:full-doc full-spec)
                       :arglists (list (vec (map #(symbol (:name %))
                                                 (:args full-spec))))}
-        ugen-name    (symbol (overtone-ugen-name op-name))
+
         ugen-name    (with-meta ugen-name metadata)
         ugen-fn      (make-ugen-fn orig-spec :auto special)
         ugen         (make-ugen full-spec :auto ugen-fn)]
     (swap! special-op-specs* assoc normalized-n full-spec)
-    (if (ns-resolve to-ns ugen-name)
+    (if collider?
       (overload-ugen-op to-ns ugen-collide-ns ugen-name ugen :binary)
       (intern to-ns ugen-name ugen))))
 
@@ -376,3 +396,9 @@
   "Return a combination of ugen specs and the auto-generated special-op specs."
   []
   (merge UGEN-SPECS @special-op-specs*))
+
+(defn fetch-collider-ugen-spec
+  "Returns the spec corresponding to a colliding ug-name or nil if none found."
+  [ug-name]
+  (let [ug-name (normalize-ugen-name (str ug-name ))]
+    (get @special-op-specs* ug-name)))

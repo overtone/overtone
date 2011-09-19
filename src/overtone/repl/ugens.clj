@@ -1,6 +1,7 @@
 (ns overtone.repl.ugens
-  (:use [overtone.sc.ugen fn-gen specs]
-        [overtone.util lib doc]))
+  (:use [clojure.repl]
+        [overtone.sc.ugen fn-gen specs]
+        [overtone.util lib doc old-contrib]))
 
 (defn- map-terms-to-regexps
   "convert a list of patterns/objects to a list of patterns by not modifying
@@ -42,18 +43,30 @@
 
     specs)))
 
+(defn pretty-ugen-doc-string
+  "Returns a prettified string representing the documentation of a ugen
+  collider. Matches default Clojure documentation format."
+  ([ug-spec] (pretty-ugen-doc-string ug-spec ""))
+  ([ug-spec ns-str]
+     (let [ns-str (if (or
+                       (empty? ns-str)
+                       (.endsWith ns-str "/"))
+                    ns-str
+                    (str ns-str "/"))]
+       (str "-------------------------"
+            "\n"
+            ns-str (overtone-ugen-name (:name ug-spec))
+            "\n"
+            (:full-doc ug-spec)
+            "\n\n"))))
+
 (defn print-ug-docs
   "Pretty print out a list of ugen specs by printing out their names and
   full-doc strings."
   [specs]
   (dorun
    (map
-    #(println (str "-------------------------"
-                   "\n  "
-                   (overtone-ugen-name (:name %))
-                   "\n"
-                   (:full-doc %)
-                   "\n\n"))
+    #(println (pretty-ugen-doc-string %))
     specs)))
 
 (defn find-ug
@@ -87,10 +100,30 @@
       (println "Sorry, unable to find a matching ugen.")
       (print-ug-docs specs))))
 
+
 (defmacro ug-doc
   [ug-name]
-  `(let [ug-name# (normalize-ugen-name (str '~ug-name ))
-         spec#    (get (combined-specs) ug-name#)]
-     (if spec#
-       (print-ug-docs [spec#])
-       (println "Sorry, unable to find ugen with name"))))
+  `(if-let [spec# (fetch-ugen-spec '~ug-name)]
+     (print-ug-docs [spec#])
+     (println "Sorry, unable to find ugen with name")))
+
+(defmacro odoc
+  "Prints Overtone documentation for a var or special form given its name.
+  Accounts for colliding ugens"
+  [name]
+
+  `(let [std-doc#        (with-out-str (doc ~name))
+         ug-spec#        (fetch-collider-ugen-spec ~(str name))
+         nothing-found?# (and (empty? std-doc#)
+                              (nil? ug-spec#))
+         same?#          (and ug-spec#
+                              (.contains std-doc# (:full-doc ug-spec#)))]
+
+     (if nothing-found?#
+       (println "Sorry, no documentation found for" '~name)
+       (do
+         (when-not (empty? std-doc#)
+           (println std-doc#))
+         (when (and (not same?#)
+                    ug-spec#)
+           (println (pretty-ugen-doc-string ug-spec# ugen-collide-ns-str)))))))
