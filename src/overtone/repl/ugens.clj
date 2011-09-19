@@ -103,6 +103,7 @@
       (print-ug-docs specs))))
 
 (defmacro ug-doc
+  "Print documentation for ugen with name ug-name"
   [ug-name]
   `(if-let [spec# (fetch-ugen-spec '~ug-name)]
      (print-ug-docs [spec#])
