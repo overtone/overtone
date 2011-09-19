@@ -21,3 +21,5 @@ src/external
 .DS_Store
 pom.xml
 *.jar
+*.aux
+*.dvi
