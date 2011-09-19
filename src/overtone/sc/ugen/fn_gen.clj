@@ -402,3 +402,9 @@
   [ug-name]
   (let [ug-name (normalize-ugen-name (str ug-name ))]
     (get @special-op-specs* ug-name)))
+
+(defn fetch-ugen-spec
+  "Returns the spec corresponding to a ug-name or nil if none found."
+  [ug-name]
+  (let [ug-name (normalize-ugen-name (str ug-name ))]
+    (get (combined-specs) ug-name)))
