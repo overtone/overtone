@@ -233,33 +233,55 @@
              :vii   7
              :_     nil})
 
-(defn resolve-degree
+(defn degree->int
   [degree]
   (if (some #{degree} (keys DEGREE))
     (degree DEGREE)
     (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
 
+(defn resolve-degree
+  "returns a map representing the degree, and the octave semitone
+  shift (i.e. sharp flat)"
+  ([degree] (resolve-degree degree 0 0))
+  ([degree octave-shift semitone-shift]
+     (cond
+      (.endsWith (name degree) "-")
+      (resolve-degree (keyword (chop (name degree))) (dec octave-shift) semitone-shift)
+
+      (.endsWith (name degree) "+")
+      (resolve-degree (keyword (chop (name degree))) (inc octave-shift) semitone-shift)
+
+      (.endsWith (name degree) "b")
+      (resolve-degree (keyword (chop (name degree))) octave-shift (dec semitone-shift))
+
+      (.endsWith (name degree) "#")
+      (resolve-degree (keyword (chop (name degree))) octave-shift (inc semitone-shift))
+
+      :default
+      (let [degree (degree->int degree)]
+        {:degree degree
+         :octave-shift octave-shift
+         :semitone-shift semitone-shift}))))
+
 (defn degree->interval
   "Converts the degree of a scale given as a roman numeral keyword and converts
   it to the number of intervals (semitones) from the tonic of the specified
-  scale."
-  ([degree scale] (degree->interval degree scale 0))
-  ([degree scale shift]
+  scale.
+
+  Trailing #, b, + - represent sharps, flats, octaves up and down respectively.
+  An arbitrary number may be added in any order."
+  ([degree scale]
      (cond
       (nil? degree) nil
       (= :_ degree) nil
 
-      (number? degree) (+ shift (nth-interval scale (dec degree)))
+      (number? degree) (nth-interval scale (dec degree))
 
-      (keyword? degree) (cond
-                         (.endsWith (name degree) "-")
-                         (degree->interval (keyword (chop (name degree))) scale (- shift 12))
-
-                         (.endsWith (name degree) "+")
-                         (degree->interval (keyword (chop (name degree))) scale (+ shift 12))
-
-                         :default
-                         (+ shift (nth-interval scale (dec (resolve-degree degree))))))))
+      (keyword? degree) (let [degree     (resolve-degree degree)
+                              interval   (nth-interval scale (dec (:degree degree)))
+                              oct-shift  (* 12 (:octave-shift degree))
+                              semi-shift (:semitone-shift degree)]
+                          (+ interval oct-shift semi-shift)))))
 
 (defn degrees->pitches
   "Convert intervals to pitches in MIDI number format.  Supports nested collections."
