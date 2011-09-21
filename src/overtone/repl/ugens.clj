@@ -73,7 +73,8 @@
 (defmacro find-ug
   "Find a ugen containing the specified terms which may be either strings or
   regexp patterns. Will search the ugen's docstrings for occurrances of all the
-  specified terms. Prints out a list of summaries of each matching ugen
+  specified terms. Prints out a list of summaries of each matching ugen.
+  If only one matching ugen is found, prints out full docstring.
 
   (find-ug foo)         ;=> finds all ugens containing the word foo
   (find-ug foo \"bar\") ;=> finds all ugens containing the words foo AND bar
@@ -83,9 +84,15 @@
         specs            (find-matching-ugen-specs search-terms)
         names            (map #(overtone-ugen-name (:name %)) specs)
         longest-name-len (length-of-longest-string names)]
-    (if (empty? specs)
-      (println "Sorry, unable to find a matching ugen.")
-      (print-ug-summaries specs longest-name-len))))
+    (cond
+     (empty? specs)
+     (println "Sorry, unable to find a matching ugen.")
+
+     (= 1 (count specs))
+     (print-ug-docs specs)
+
+     :default
+     (print-ug-summaries specs longest-name-len))))
 
 (defmacro find-ug-doc
   "Find a ugen containing the specified terms which may be either strings or
