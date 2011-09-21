@@ -32,11 +32,11 @@
        :doc "toggles between two values when the left mouse button is up or down"}
 
       {:name "KeyState",
-       :args [{:name "keycode", :default 0.0 :doc "The keycode value of the key to check. This corresponds to the keycode values passed into the keyDownActions of SCViews."}
+       :args [{:name "keycode", :default 0.0 :doc "The keycode value of the key to check."}
               {:name "minval", :default 0.0 :doc "The value to output when the key is not pressed."}
-              {:name "maxval", :default 1.0 :doc "The value to output  when the key is pressed."}
+              {:name "maxval", :default 1.0 :doc "The value to output when the key is pressed."}
               {:name "lag", :default 0.2 :doc "lag factor"
                }],
        :rates #{:kr}
-       :doc "Toggles between two values when a key on the keyboard is up or down. Note that this UGen does not prevent normal typing. "}
+       :doc "Toggles between two values when a key on the keyboard is up or down. Note that this ugen does not prevent normal typing. "}
       ])

@@ -64,7 +64,7 @@ The trigger message sent back to the client is this:
        :default-rate :kr
        :doc "send an array of values from the server to all notified clients
 
-cmdName
+cmd-name
 
 	int - node ID
 
