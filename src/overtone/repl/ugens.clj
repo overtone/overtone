@@ -15,15 +15,16 @@
        terms))
 
 (defn- find-matching-ugen-specs
-  "Find ugen specs by searching their :full-doc strings for occurances of all the
-  terms. Terms can either be strings or regexp patterns."
+  "Find ugen specs by searching their :full-doc and :name strings for occurances
+   of all the terms. Terms can either be strings or regexp patterns."
   [terms]
   (let [regexps (map-terms-to-regexps terms)]
     (sort-by
      #(:name %)
      (map #(second %)
           (filter (fn [[key spec]]
-                    (let [docstr  (get spec :full-doc)
+                    (let [docstr  (:full-doc spec)
+                          docstr  (str docstr " " (overtone-ugen-name (:name spec)))
                           matches (filter #(re-find % docstr) regexps)]
                       (= matches regexps)))
                   (combined-specs))))))
