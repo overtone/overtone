@@ -31,26 +31,6 @@
                  attr)]
     [(with-meta name attr) macro-args]))
 
-
-;;String util fns from:
-;;https://github.com/richhickey/clojure-contrib/blob/bacf49256673242bb7ce09b9f5983c27163e5bfc/src/main/clojure/clojure/contrib/string.clj
-(defn split
-  "Splits string on a regular expression.  Optional argument limit is
-  the maximum number of splits."
-  ([#^Pattern re #^String s] (seq (.split re s)))
-  ([#^Pattern re limit #^String s] (seq (.split re s limit))))
-
-(defn replace-str
-  "Replaces all instances of substring a with b in s."
-  [#^String a #^String b #^String s]
-  (.replace s a b))
-
-(defn replace-re
-  "Replaces all matches of re with replacement in s."
-  [re replacement #^String s]
-  (.replaceAll (re-matcher re s) replacement))
-
-
 ;;from str-utils2
 ;;https://github.com/richhickey/clojure-contrib/blob/a1c66df5287776b4397cf3929a5f498fbb34ea32/src/main/clojure/clojure/contrib/str_utils2.clj
 (defn #^String chop
