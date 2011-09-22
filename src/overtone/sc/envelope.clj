@@ -12,7 +12,7 @@
      :author "Jeff Rose"}
   overtone.sc.envelope
   (:use [overtone.util lib]
-        [overtone.sc.ugen fn-gen]))
+        [overtone.sc.machinery.ugen fn-gen]))
 
 (def ENV-SHAPES
   {:step        0
@@ -29,6 +29,7 @@
    :cub         7
    :cubed       7
    })
+
 
 (defn- shape->id
   "Create a repeating shapes list corresponding to a specific shape type.

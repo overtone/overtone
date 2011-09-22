@@ -1,8 +1,7 @@
 (ns overtone.sc.examples.audio-in
-  (:use [overtone.sc.ugens]
-        [overtone.sc.ugen constants]
-        [overtone.sc.cgen.audio-in]
-        [overtone.sc.example]))
+  (:use [overtone.sc.machinery defexample]
+        [overtone.sc ugens]
+        [overtone.sc.cgens audio-in]))
 
 (defexamples sound-in
   (:mono-patch

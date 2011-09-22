@@ -86,7 +86,10 @@
            :G# 8  :g# 8  :Ab 8  :ab 8
            :A  9  :a  9
            :A# 10 :a# 10 :Bb 10 :bb 10
-           :B  11 :b  11})
+            :B  11 :b  11})
+
+(def REVERSE-NOTES
+  (into {} (map (fn [[k v]] [v k]) NOTES)))
 
 
 (defn note

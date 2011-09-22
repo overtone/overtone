@@ -1,5 +1,8 @@
 (ns overtone.inst.synth
-  (:use overtone.core))
+  (:use [overtone.sc ugens envelope]
+        [overtone.sc.machinery.ugen.fn-gen]
+        [overtone.studio rig]))
+
 
 (definst tick [freq 880]
   (* (env-gen (perc 0.001 0.01) :action FREE)

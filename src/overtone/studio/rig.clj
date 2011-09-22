@@ -6,8 +6,9 @@
         [overtone.music rhythm pitch]
         [overtone.libs event deps]
         [overtone.util lib]
-        [overtone.sc.ugen fn-gen defaults sc-ugen]
-        [overtone.sc defaults server synth ugens envelope node synthdef bus]
+        [overtone.sc.machinery defaults synthdef]
+        [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
+        [overtone.sc server synth ugens envelope node bus]
         [overtone.music rhythm time])
   (:require [overtone.studio fx]
             [overtone.util.log :as log]))

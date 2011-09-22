@@ -1,7 +1,7 @@
 (ns overtone.repl.ugens
   (:use [clojure.repl]
-        [overtone.sc.ugen fn-gen specs]
-        [overtone.util lib doc old-contrib]))
+        [overtone.sc.machinery.ugen fn-gen specs]
+        [overtone.util lib doc]))
 
 (defn- map-terms-to-regexps
   "convert a list of patterns/objects to a list of patterns by not modifying

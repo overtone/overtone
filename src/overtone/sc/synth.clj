@@ -6,10 +6,10 @@
     :author "Jeff Rose"}
   overtone.sc.synth
   (:use [overtone.util lib old-contrib]
-        [overtone.music time]
         [overtone.libs event]
-        [overtone.sc.ugen fn-gen defaults common specs sc-ugen]
-        [overtone.sc server synthdef node buffer])
+        [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
+        [overtone.sc.machinery synthdef]
+        [overtone.sc server node buffer])
   (:require [overtone.at-at :as at-at]
             [overtone.util.log :as log]))
 
@@ -179,7 +179,7 @@
   "throws an error if list l does not contain an even number of elements"
   [l]
   (when-not (even? (count l))
-    (throw (IllegalArgumentException. (str "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5] or a list of maps. You passed " (count l) " args:" l)))))
+    (throw (IllegalArgumentException. (str "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5] or a list of maps. You passed " (count l) " args: " l)))))
 
 (defn- ensure-vec!
   "throws an error if list l is not a vector"
@@ -292,7 +292,7 @@
                 :params params
                 :pnames pnames
                 :ugens detailed}
-               {:type :overtone.sc.synthdef/synthdef})))
+               {:type :overtone.sc.machinery.synthdef/synthdef})))
 
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
@@ -548,7 +548,7 @@
              (list 'out 0 body))]
     `(let [s# (synth "audition-synth" ~b2)
            note# (s#)]
-       (at-at/at (+ (now) ~demo-time) #(node-free note#))
+       (at-at/at (+ (at-at/now) ~demo-time) #(node-free note#))
        note#)))
 
 (defn active-synths

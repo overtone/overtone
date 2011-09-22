@@ -4,8 +4,8 @@
   overtone.sc.sample
   (:use [overtone.util lib]
         [overtone.libs event deps]
-        [overtone.sc.ugen.constants]
-        [overtone.sc server synth ugens buffer allocator]))
+        [overtone.sc.machinery allocator]
+        [overtone.sc server synth ugens buffer]))
 
 ; Define a default wav player synth
 (defsynth mono-player

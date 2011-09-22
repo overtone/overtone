@@ -1,5 +1,6 @@
 (ns overtone.inst.piano
-  (:use overtone.core))
+  (:use [overtone.sc ugens envelope]
+        [overtone.studio rig]))
 
 ;; IMPORTANT: requires the mda-piano ugen to be available on your system
 

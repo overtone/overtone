@@ -3,25 +3,23 @@
   (:require clojure.stacktrace
             [overtone.midi]
             [overtone.osc]
-            [overtone.byte-spec]
-            [overtone.algo chance scaling position trig]
-            [overtone.sc.ugen.constants]
-            [overtone.sc allocator server ugens node synth synthdef cgen
-             trigger buffer envelope bus sample sc-lang example]
-            [overtone.sc.cgen audio-in oscillators demand mix]
+            [overtone.algo chance scaling trig]
+            [overtone.sc buffer bus envelope node example
+                         sample server synth trigger ugens]
+            [overtone.sc.cgens audio-in oscillators demand mix]
             [overtone.sc.examples demand osc trig compander audio-in]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
             [overtone.repl ugens examples]
+            [overtone.util position]
             [overtone.viz scope]))
 
 (immigrate
  'overtone.osc
  'overtone.midi
- 'overtone.sc.ugen.constants
  'overtone.algo.chance
  'overtone.algo.scaling
- 'overtone.algo.position
+ 'overtone.util.position
  'overtone.algo.trig
  'overtone.sc.server
  'overtone.sc.node
@@ -30,15 +28,12 @@
  'overtone.sc.ugens
  'overtone.sc.synth
  'overtone.sc.sample
- 'overtone.sc.synthdef
  'overtone.sc.envelope
- 'overtone.sc.sc-lang
  'overtone.sc.bus
- 'overtone.sc.cgen
- 'overtone.sc.cgen.audio-in
- 'overtone.sc.cgen.oscillators
- 'overtone.sc.cgen.demand
- 'overtone.sc.cgen.mix
+ 'overtone.sc.cgens.audio-in
+ 'overtone.sc.cgens.oscillators
+ 'overtone.sc.cgens.demand
+ 'overtone.sc.cgens.mix
  'overtone.sc.example
  'overtone.sc.examples.demand
  'overtone.sc.examples.osc

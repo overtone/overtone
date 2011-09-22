@@ -1,6 +1,6 @@
 (ns
-  ^{:doc "Library of general purpose utility functions."
-     :author "Jeff Rose and Sam Aaron"}
+  ^{:doc "Library of general purpose utility functions for Overtone internals."
+    :author "Jeff Rose and Sam Aaron"}
   overtone.util.lib
   (:import [java.util ArrayList Collections]
            [java.util.concurrent TimeUnit TimeoutException])
@@ -316,8 +316,8 @@ Hello " (user-name) ", may this be the start of a beautiful music hacking sessio
    unchanged assuming it's a keyword."
   [gen]
   (if (and (associative? gen)
-           (or (= :overtone.sc.ugen.fn-gen/ugen (:type gen))
-               (= :overtone.sc.cgen/cgen (:type gen))))
+           (or (= :overtone.sc.machinery.ugen.fn-gen/ugen (:type gen))
+               (= :overtone.sc.machinery.defcgen/cgen (:type gen))))
     (keyword (:name gen))
     gen))
 
