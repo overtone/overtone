@@ -16,7 +16,10 @@
         [overtone.osc])
   (:require [overtone.util.log :as log]))
 
-(def OVERTONE-VERSION 0.3)
+(def OVERTONE-VERSION {:major 0
+                       :minor 4
+                       :patch 0
+                       :snapshot true})
 
 (defonce server*        (ref nil))
 (defonce server-thread* (ref nil))
