@@ -5,12 +5,12 @@
             :namespaces-to-document ["overtone.core" "overtone.gui"
                                      "overtone.music" "overtone.studio"]
             :trim-prefix "overtone.",}
-  :dependencies [[org.clojure/clojure "1.3.0-RC0"]
+  :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/core.incubator "0.1.0"]
                  [overtone/scsynth-jna "0.1.2-SNAPSHOT"]
-                 [overtone/at-at "0.2.0"]
-                 [overtone/osc-clj "0.7.0"]
-                 [overtone/byte-spec "0.3.0"]
-                 [overtone/midi-clj "0.2.0"]]
+                 [overtone/at-at "0.2.1"]
+                 [overtone/osc-clj "0.7.1"]
+                 [overtone/byte-spec "0.3.1"]
+                 [overtone/midi-clj "0.2.1"]]
   :dev-dependencies [[marginalia "0.2.0"]]
   :jvm-opts ["-Xms256m" "-Xmx1g" "-XX:+UseConcMarkSweepGC"])
