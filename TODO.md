@@ -37,6 +37,8 @@ volume and per synth-track control
 
 * implement a portamento helper on top of slew
 
+* Instrument groups are nil if they're created before the server is booted
+
 ## General
 
 * create a function that prints out the currently running synths
@@ -66,5 +68,3 @@ to ugens as arguments and their :id property will be used
  (currently there is just :append-seq)
 
 ## Ugens
-
-* complete ugen checker machinery (see check-ugen-args)
