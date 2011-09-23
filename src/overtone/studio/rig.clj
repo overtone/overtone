@@ -37,7 +37,7 @@
 (defn wait-until-rig-booted
   "Makes the current thread sleep until the rig completed its boot process."
   []
-  (while (not (connected?))
+  (while (not (rig-booted?))
     (Thread/sleep 100)))
 
 (defn boot-rig
