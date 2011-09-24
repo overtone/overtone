@@ -1,14 +1,14 @@
 (ns overtone.sc.cgens.mix
   (:use [overtone.sc.machinery defcgen]
         [overtone.sc ugens]
-        [overtone.util lib position]))
+        [overtone.util lib]
+        [overtone.helpers stereo]))
 
 (defcgen mix
   "Mix down (sum) a list of input channels into a single channel."
   [ins {:default [] :doc "list of input channels to mix"}]
   "Mixes down the list of input channels by summing them together. Be careful about mixing too many channels together as the resulting signal will be progressively amplified."
   (:ar (apply + ins)))
-
 
 (defcgen splay
   "Spread input channels across a stereo field"
