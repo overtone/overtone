@@ -19,6 +19,7 @@
 (defonce osc-log*       (atom []))
 
 (defn server-status
+  "Returns a keyword representing the current status of the server."
   []
   @server-status*)
 
@@ -69,28 +70,34 @@
   "Connect to an externally running SC audio server listening to port on host.
   Host defaults to localhost.
 
-  (connect 57710)                  ;=> connect to an external server on the
-                                       localhost listening to port 57710
-  (connect \"192.168.1.23\" 57110) ;=> connect to an external server with ip
-                                       address 192.168.1.23 listening to port
-                                       57110"
+  (connect-external-server 57710)                  ;=> Connect to an external
+                                                       server on the localhost
+                                                       listening to port 57710
+  (connect-external-server \"192.168.1.23\" 57110) ;=> Connect to an external
+                                                       server with ip address
+                                                       192.168.1.23 listening to
+                                                       port 57110"
   ([port] (connect-external-server "127.0.0.1" port))
   ([host port] (connect host port)))
 
 (defn boot-external-server
+  "Boot an external server by starting up an external process and connecting to
+  it."
   ([] (boot :external (+ (rand-int 50000) 2000)))
   ([port] (boot :external port)))
 
 (defn boot-server
+  "Boot an internal server."
   []
   (boot :internal))
 
 (defn kill-server
+  "Shutdown the running server"
   []
   (shutdown-server))
 
 (defn external-server-log
-  "Print the server log."
+  "Print the external server log."
   []
   (doseq [msg @external-server-log*]
     (print msg)))
