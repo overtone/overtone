@@ -11,7 +11,6 @@
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
             [overtone.repl ugens examples]
-            [overtone.util position]
             [overtone.viz scope]))
 
 (immigrate
@@ -19,7 +18,6 @@
  'overtone.midi
  'overtone.algo.chance
  'overtone.algo.scaling
- 'overtone.util.position
  'overtone.algo.trig
  'overtone.sc.server
  'overtone.sc.node
