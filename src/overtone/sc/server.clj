@@ -5,12 +5,9 @@
       :author "Jeff Rose"}
   overtone.sc.server
   (:import [java.util.concurrent TimeoutException])
-  (:use [overtone.sc.machinery.server connection comms ]
-   [overtone.util.lib :only [await-promise!]]
-        [overtone.libs event]
-;;        [overtone.sc.machinery defaults allocator]
-;;
-        )
+  (:use [overtone.libs event]
+        [overtone.sc.machinery.server connection comms ]
+        [overtone.util.lib :only [await-promise!]])
   (:require [overtone.util.log :as log]))
 
 (def OVERTONE-VERSION {:major 0
@@ -25,10 +22,14 @@
   []
   @server-status*)
 
-(defn connected? []
+(defn connected?
+  "Returns true if the server is currently connected"
+  []
   (= :connected (server-status)))
 
-(defn disconnected? []
+(defn disconnected?
+  "Returns true if the server is currently disconnected"
+  []
   (= :disconnected (server-status)))
 
 (defmacro at
@@ -46,7 +47,7 @@
   (snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
   (when-not (connected?)
-    (throw (Exception. "Unable to send messages to an disconnected server. Please boot or connect to a server.")))
+    (throw (Exception. "Unable to send messages to a disconnected server. Please boot or connect to a server.")))
   (apply server-snd path args))
 
 (defn recv
@@ -60,6 +61,8 @@
   the incoming event info."
   ([path] (recv path nil))
   ([path matcher-fn]
+     (when-not (connected?)
+       (throw (Exception. "Unable to receive messages from a disconnected server. Please boot or connect to a server.")))
      (server-recv path matcher-fn)))
 
 (defn connect-external-server
