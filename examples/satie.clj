@@ -3,6 +3,7 @@
         [overtone.inst piano])
   (:require [polynome.core :as poly]))
 
+;;Erik Satie Gnossienne No. 1
 
 (def phrase1a [:iii :v :iv# :iii :iii :ii# :iii :ii#])
 (def phrase1b [:iii :v :iv# :iii :v# :vi :v# :vi])
@@ -15,41 +16,95 @@
 (def phrase1a-reprise [:iii :v :iv# :iii :iii :ii#])
 (def phrase1b-reprise [:iii :v :iv# :iii :v# :vi])
 
+(def phrase1-bass [:vi--- [:vi- :iii- :i-] [:vi- :iii- :i-]])
+(def phrase2-bass [:iii-- [:iii- :vii-- :v--] [:iii- :vii-- :v--]])
 
-(def degrees (concat phrase1a phrase1b phrase1c
-                     phrase1a phrase1b phrase1c
-                     phrase2
-                     phrase2
-                     phrase3
-                     phrase3
-                     phrase2
-                     phrase2
-                     phrase1a-reprise
-                     phrase1b-reprise
-                     phrase1a-reprise
-                     phrase1b-reprise
-                     phrase2
-                     phrase2
-                     phrase3
-                     phrase3
-                     phrase2
-                     phrase2))
+(def phrase3-bass [:ii--- [:vi-- :ii- :iv-] [:vi-- :ii- :iv-]])
 
-(def pitches (degrees->pitches degrees :major :Ab4))
 
-(def cur-pitch (atom -1))
+(def right-hand-degrees (concat phrase1a phrase1b phrase1c
+                                phrase1a phrase1b phrase1c
+                                phrase2
+                                phrase2
+                                phrase3
+                                phrase3
+                                phrase2
+                                phrase2
+                                phrase1a-reprise
+                                phrase1b-reprise
+                                phrase1a-reprise
+                                phrase1b-reprise
+                                phrase2
+                                phrase2
+                                phrase3
+                                phrase3
+                                phrase2
+                                phrase2))
 
-(defn play-next
+
+(def left-hand-degrees (concat (apply concat (repeat 6 phrase1-bass))  ;;A
+                               phrase2-bass                            ;;B
+                               (apply concat (repeat 8 phrase1-bass))  ;;C
+                               phrase2-bass                            ;;D
+                               (apply concat (repeat 2 phrase1-bass))  ;;E
+                               (apply concat (repeat 2 phrase3-bass))  ;;F
+                               (apply concat (repeat 2 phrase1-bass))  ;;G
+                               (apply concat (repeat 2 phrase3-bass))  ;;H
+                               (apply concat (repeat 14 phrase1-bass)) ;;I
+                               (apply concat (repeat 2 phrase3-bass))  ;;J
+                               (apply concat (repeat 2 phrase1-bass))  ;;K
+                               (apply concat (repeat 2 phrase3-bass))  ;;L
+                               (apply concat (repeat 10 phrase1-bass)) ;;M
+                               (apply concat (repeat 2 phrase3-bass))  ;;N
+                               (apply concat (repeat 2 phrase1-bass))  ;;O
+                               (apply concat (repeat 2 phrase3-bass))  ;;P
+                               (apply concat (repeat 14 phrase1-bass)) ;;Q
+                               (apply concat (repeat 2 phrase3-bass))  ;;R
+                               (apply concat (repeat 2 phrase1-bass))  ;;S
+                               (apply concat (repeat 2 phrase3-bass))  ;;T
+                               phrase1-bass                            ;;U
+                               ))
+
+(def lh-pitches (degrees->pitches left-hand-degrees :major :Ab4))
+(def rh-pitches (degrees->pitches right-hand-degrees :major :Ab4))
+
+(def cur-pitch-rh (atom -1))
+(def cur-pitch-lh (atom -1))
+
+(defn reset-pos
+  []
+  (reset! cur-pitch-rh -1)
+  (reset! cur-pitch-lh -1))
+
+(defn play-next-rh
   [vol]
-  (let [idx (swap! cur-pitch inc)
-        pitch (nth (cycle pitches) idx)]
+  (let [idx (swap! cur-pitch-rh inc)
+        pitch (nth (cycle rh-pitches) idx)]
     (piano :note pitch :vel vol)))
 
-(play-next)
+(defn play-next-lh
+  [vol]
+  (let [idx (swap! cur-pitch-lh inc)
+        pitch (nth (cycle lh-pitches) idx)]
+    (if (sequential? pitch)
+      (doseq [p pitch]
+        (piano :note p :vel vol))
+      (piano :note pitch :vel vol))))
 
 (def m (poly/init "/dev/tty.usbserial-m64-0790"))
 
-(poly/on-press m (fn [x y s] (play-next (* 10 (+ x 4)))))
-(poly/remove-all-callbacks m)
+(poly/on-press m (fn [x y s]
+                   (if (= 7 x)
+                     (reset-pos)
+                     (do
+                       (if (< 5 y)
+                         (play-next-rh (* 10 (+ x 4)))
+                         (play-next-lh (* 10 (+ x 4))))
+                       (poly/led-on m x y)))
 
-(nth (cycle pitches) 10)
+                   (println [x y])))
+
+(poly/on-release m (fn [x y s]
+                     (poly/led-off m x y)))
+
+;;(poly/remove-all-callbacks m)
