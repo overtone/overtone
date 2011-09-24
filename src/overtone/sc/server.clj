@@ -380,7 +380,7 @@
           (= :external which) (boot-external-server port))
          (wait-until-connected)))))
 
-(defn quit
+(defn quit-server
   "Quit the SuperCollider synth process."
   []
   (log/info "quiting...")
