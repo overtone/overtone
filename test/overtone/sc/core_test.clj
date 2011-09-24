@@ -27,7 +27,7 @@
     (play-seqs "sin" ditty-notes ditty-durs)
     (Thread/sleep 3000)
     (finally
-      (quit))))
+      (quit-server))))
 
 (def DEFAULT-GROUP 1)
 
@@ -63,4 +63,4 @@
     (node-tree-test)
     (reset)
     (finally
-      (quit))))
+      (quit-server))))

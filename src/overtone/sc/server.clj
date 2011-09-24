@@ -395,7 +395,7 @@
 
 (defonce _shutdown-hook
   (.addShutdownHook (Runtime/getRuntime)
-                    (Thread. quit)))
+                    (Thread. quit-server)))
 
 (defn clear-msg-queue
   "Remove any scheduled OSC messages from the run queue."
