@@ -5,6 +5,7 @@
   (:use [overtone.util lib]
         [overtone.libs event deps]
         [overtone.sc.machinery allocator]
+        [overtone.sc.machinery.server comms]
         [overtone.sc server synth ugens buffer]))
 
 ; Define a default wav player synth

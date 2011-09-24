@@ -28,3 +28,17 @@
 
 ;;make an at-at pool for all default scheduling
 (def SC-POOL (at-at/mk-pool))
+
+(def SC-PATHS {:linux ["scsynth"]
+               :windows ["C:/Program Files/SuperCollider/scsynth.exe"
+                         "D:/Program Files/SuperCollider/scsynth.exe"
+                         "E:/Program Files/SuperCollider/scsynth.exe"
+                         "C:/Program Files (x86)/SuperCollider/scsynth.exe"
+                         "D:/Program Files (x86)/SuperCollider/scsynth.exe"
+                         "E:/Program Files (x86)/SuperCollider/scsynth.exe"]
+
+               :mac  ["/Applications/SuperCollider/scsynth"] })
+
+(def SC-ARGS  {:linux []
+               :windows []
+               :mac   ["-U" "/Applications/SuperCollider/plugins"] })

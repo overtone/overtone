@@ -8,6 +8,7 @@
         [overtone.util lib]
         [overtone.sc.machinery defaults synthdef]
         [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
+        [overtone.sc.machinery.server comms]
         [overtone.sc server synth ugens envelope node bus]
         [overtone.music rhythm time])
   (:require [overtone.studio fx]

@@ -4,16 +4,13 @@
           scsynth DSP engine."
       :author "Jeff Rose"}
   overtone.sc.server
-  (:import [java.util.concurrent TimeoutException]
-           [java.io BufferedInputStream]
-           [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
-  (:use [clojure.java.shell]
-        [overtone.config store setup]
-        [overtone.util lib]
-        [overtone.libs event deps]
-        [overtone.sc.machinery defaults allocator osc-validator]
-        [overtone.osc.decode :only [osc-decode-packet]]
-        [overtone.osc])
+  (:import [java.util.concurrent TimeoutException])
+  (:use [overtone.sc.machinery.server connection comms ]
+   [overtone.util.lib :only [await-promise!]]
+        [overtone.libs event]
+;;        [overtone.sc.machinery defaults allocator]
+;;
+        )
   (:require [overtone.util.log :as log]))
 
 (def OVERTONE-VERSION {:major 0
@@ -21,43 +18,25 @@
                        :patch 0
                        :snapshot true})
 
-(defonce server*        (ref nil))
-(defonce server-thread* (ref nil))
-(defonce server-log*    (ref []))
-(defonce sc-world*      (ref nil))
-(defonce server-status* (ref :disconnected))
 (defonce synth-group*   (ref nil))
-(defonce osc-debug*     (atom false))
+(defonce osc-log*       (atom []))
 
-;; The base handler for receiving osc messages just forwards the message on
-;; as an event using the osc path as the event key.
-(on-sync-event :osc-msg-received
-               (fn [{{path :path args :args} :msg}]
-                 (event path :path path :args args))
-               ::osc-receiver)
+(defn server-status
+  []
+  @server-status*)
 
-;; ## Basic communication with the synth server
+(defn connected? []
+  (= :connected (server-status)))
+
+(defn disconnected? []
+  (= :disconnected (server-status)))
 
 (defmacro at
   "All messages sent within the body will be sent in the same timestamped OSC
   bundle.  This bundling is thread-local, so you don't have to worry about
   accidentally scheduling packets into a bundle started on another thread."
   [time-ms & body]
-  `(in-osc-bundle @server* ~time-ms (do ~@body)))
-
-(defn connected? []
-  (or
-   (= :connected @server-status*)))
-
-(defn- massage-numerical-args
-  "Massage numerical args to the form SC would like them. Currently this just
-  casts all Longs to Integers."
-  [args]
-  (map (fn [arg]
-         (if (instance? Long arg)
-           (Integer. arg)
-           arg))
-       args))
+  `(in-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))
 
 (defn snd
   "Sends an OSC message to the server. If the message path is a known scsynth
@@ -66,149 +45,9 @@
 
   (snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
-  (let [args (massage-numerical-args args)]
-    (when @osc-debug*
-      (println "Sending: " path [args])
-      (log/debug (str "Sending: " path [args])))
-    (apply validated-snd @server* path args))
-
-  (if (not (connected?))
-    (log/debug "### trying to snd while disconnected! ###")))
-
-(defn sc-osc-debug-on
-  "Log and print out all outgoing OSC messages"
-  []
-  (reset! osc-debug* true ))
-
-(defn sc-osc-debug-off
-  "Turns off OSC debug messages (see osc-debug-on)"
-  []
-  (reset! osc-debug* false))
-
-;; ## Event notifications from the server
-;;
-;; These messages are sent as notification of some event to all clients who have registered via the /notify command .
-;; All of these have the same arguments:
-;;   int - node ID
-;;   int - the node's parent group ID
-;;   int - previous node ID, -1 if no previous node.
-;;   int - next node ID, -1 if no next node.
-;;   int - 1 if the node is a group, 0 if it is a synth
-;;
-;; The following two arguments are only sent if the node is a group:
-;;   int - the ID of the head node, -1 if there is no head node.
-;;   int - the ID of the tail node, -1 if there is no tail node.
-;;
-;;   /n_go   - a node was created
-;;   /n_end  - a node was destroyed
-;;   /n_on   - a node was turned on
-;;   /n_off  - a node was turned off
-;;   /n_move - a node was moved
-;;   /n_info - in reply to /n_query
-
-(defn notify
-  "Turn on notification messages from the audio server.  This lets us free
-  synth IDs when they are automatically freed with envelope triggers.  It also
-  lets us receive custom messages from various trigger ugens."
-  [notify?]
-  (snd "/notify" (if (false? notify?) 0 1)))
-
-(defn connect-jack-ports
-  "Connect the jack input and output ports as best we can.  If jack ports are
-  always different names with different drivers or hardware then we need to find
-  a better strategy to auto-connect."
-  ([] (connect-jack-ports 2))
-  ([n-channels]
-     (let [port-list (:out (sh "jack_lsp"))
-           sc-ins         (re-seq #"SuperCollider.*:in_[0-9]*" port-list)
-           sc-outs        (re-seq #"SuperCollider.*:out_[0-9]*" port-list)
-           system-ins     (re-seq #"system:capture_[0-9]*" port-list)
-           system-outs    (re-seq #"system:playback_[0-9]*" port-list)
-           interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
-           interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
-           connections (partition 2 (concat
-                                     (interleave sc-outs system-outs)
-                                     (interleave sc-outs interface-outs)
-                                     (interleave system-ins sc-ins)
-                                     (interleave interface-ins sc-ins)))]
-       (doseq [[src dest] connections]
-         (sh "jack_connect" src dest)
-         (log/info "jack_connect " src dest)))))
-
-;; We have to do this to handle the change in SC, where they added a "/" to the
-;; status.reply messsage, which it should have had in the first place.
-(defn- setup-connect-handlers []
-  (let [handler-fn
-        (fn []
-          (dosync (ref-set server-status* :connected))
-          (notify true) ; turn on notifications now that we can communicate
-          (satisfy-deps :connected)
-          (event :connected)
-          (remove-handler "status.reply" ::connected-handler1)
-          (remove-handler "/status.reply" ::connected-handler2))]
-    (on-sync-event "status.reply" handler-fn ::connected-handler1)
-    (on-sync-event "/status.reply" handler-fn ::connected-handler2)))
-
-(defn connect-internal
-  []
-  (log/debug "Connecting to internal SuperCollider server")
-  (let [send-fn (fn [peer-obj buffer]
-                  (.send @sc-world* buffer))
-        peer (assoc (osc-peer) :send-fn send-fn)]
-    (.addMessageReceivedListener @sc-world*
-                                 (proxy [MessageReceivedListener] []
-                                   (messageReceived [buf size]
-                                     (event :osc-msg-received
-                                            :msg (osc-decode-packet buf)))))
-    (dosync (ref-set server* peer))
-    (setup-connect-handlers)
-    (snd "/status")))
-
-
-(defn connect-external
-  [host port]
-  (log/debug "Connecting to external SuperCollider server: " host ":" port)
-  (let [sc-server (osc-client host port)]
-    (osc-listen sc-server #(event :osc-msg-received :msg %))
-    (dosync
-     (ref-set server* sc-server))
-
-    (setup-connect-handlers)
-    (snd "/status")
-
-;; Send /status in a loop until we get a reply
-    (loop [cnt 0]
-      (log/debug "connect loop...")
-      (when (and (< cnt N-RETRIES)
-                 (= @server-status* :connecting))
-        (log/debug "sending status...")
-        (snd "/status")
-        (Thread/sleep 100)
-        (recur (inc cnt)))))
-  (print-ascii-art-overtone-logo))
-
-;; TODO: setup an error-handler in the case that we can't connect to the server
-(defn connect
-  "Connect to an running SC audio server. Either an external server if host and
-  port are passed or an internal server in the case of no args.
-
-  (connect)                        ;=> connect to the internal server
-  (connect 57710)                  ;=> connect to an external server on the
-                                       localhost listening to port 57710
-  (connect \"192.168.1.23\" 57110) ;=> connect to an external server with ip
-                                       address 192.168.1.23 listening to port
-                                       57110"
-  ([] (connect-internal))
-  ([port] (connect "127.0.0.1" port))
-  ([host port]
-   (dosync (ref-set server-status* :connecting))
-   (.run (Thread. #(connect-external host port)))))
-
-(defn server-log
-  "Print the server log."
-  []
-  (doseq [msg @server-log*]
-    (print msg)))
+  (when-not (connected?)
+    (throw (Exception. "Unable to send messages to an disconnected server. Please boot or connect to a server.")))
+  (apply server-snd path args))
 
 (defn recv
   "Register your intent to wait for a message associated with given path to be
@@ -221,19 +60,41 @@
   the incoming event info."
   ([path] (recv path nil))
   ([path matcher-fn]
-     (let [p (promise)
-           key (uuid)]
-       (on-sync-event path
-                      (fn [info]
-                        (when (or (nil? matcher-fn)
-                                  (matcher-fn info))
-                          (deliver p info)
-                          :done))
-                      key)
-    p)))
+     (server-recv path matcher-fn)))
 
-(defn- parse-status [args]
-  (let [[_ ugens synths groups loaded avg peak nominal actual] args]
+(defn connect-external-server
+  "Connect to an externally running SC audio server listening to port on host.
+  Host defaults to localhost.
+
+  (connect 57710)                  ;=> connect to an external server on the
+                                       localhost listening to port 57710
+  (connect \"192.168.1.23\" 57110) ;=> connect to an external server with ip
+                                       address 192.168.1.23 listening to port
+                                       57110"
+  ([port] (connect-external-server "127.0.0.1" port))
+  ([host port] (connect host port)))
+
+(defn boot-external-server
+  ([] (boot :external (+ (rand-int 50000) 2000)))
+  ([port] (boot :external port)))
+
+(defn boot-server
+  []
+  (boot :internal))
+
+(defn kill-server
+  []
+  (shutdown-server))
+
+(defn external-server-log
+  "Print the server log."
+  []
+  (doseq [msg @external-server-log*]
+    (print msg)))
+
+(defn- parse-status
+  "Returns a map representing the server status"
+  [_ ugens synths groups loaded avg peak nominal actual]
     {:n-ugens ugens
      :n-synths synths
      :n-groups groups
@@ -241,240 +102,24 @@
      :avg-cpu avg
      :peak-cpu peak
      :nominal-sample-rate nominal
-     :actual-sample-rate actual}))
+     :actual-sample-rate actual})
 
-(def STATUS-TIMEOUT 500)
-
-;;Replies to sender with the following message.
-;;status.reply
-;;      int - 1. unused.
-;;      int - number of unit generators.
-;;      int - number of synths.
-;;      int - number of groups.
-;;      int - number of loaded synth definitions.
-;;      float - average percent CPU usage for signal processing
-;;      float - peak percent CPU usage for signal processing
-;;      double - nominal sample rate
-;;      double - actual sample rate
 (defn status
   "Check the status of the audio server."
   []
   (if (connected?)
-    (let [p (recv "/status.reply") ]
+    (let [p (server-recv "/status.reply")]
       (snd "/status")
       (try
-        (parse-status (:args (await-promise! p)))
+        (apply parse-status (:args (await-promise! p)))
         (catch TimeoutException t
           :timeout)))
     @server-status*))
-
-(def SC-PATHS {:linux ["scsynth"]
-               :windows ["C:/Program Files/SuperCollider/scsynth.exe"
-                         "D:/Program Files/SuperCollider/scsynth.exe"
-                         "E:/Program Files/SuperCollider/scsynth.exe"
-                         "C:/Program Files (x86)/SuperCollider/scsynth.exe"
-                         "D:/Program Files (x86)/SuperCollider/scsynth.exe"
-                         "E:/Program Files (x86)/SuperCollider/scsynth.exe"]
-
-               :mac  ["/Applications/SuperCollider/scsynth"] })
-
-(def SC-ARGS  {:linux []
-               :windows []
-               :mac   ["-U" "/Applications/SuperCollider/plugins"] })
-
-
-(if (= :linux (@config* :os))
-  (on-deps :connected ::connect-jack-ports #(connect-jack-ports)))
-
-(defonce scsynth-server* (ref nil))
-
-
-;;TODO: make use of the port or remove it as a param.
-;;      should we be able to get the internal server to listen
-;;      for external processes on a given port?
-(defn- internal-booter [port]
-  (log/info "booting internal audio server listening on port: " port)
-  (let [server (ScSynth.)
-        listener (reify ScSynthStartedListener
-                   (started [this]
-                     (log/info "Boot listener...")
-                     (satisfy-deps :booted)))]
-    (.addScSynthStartedListener server listener)
-    (dosync (ref-set sc-world* server))
-    (.run server)))
-
-(defn- boot-internal-server
-  ([] (boot-internal-server (+ (rand-int 50000) 2000)))
-  ([port]
-     (log/info "boot-internal-server: " port)
-     (when-not (connected?)
-       (on-deps :booted ::connect-internal connect)
-       (let [sc-thread (Thread. #(internal-booter port))]
-         (.setDaemon sc-thread true)
-         (log/debug "Booting SuperCollider internal server (scsynth)...")
-         (.start sc-thread)
-         (dosync (ref-set server-thread* sc-thread))
-         :booting))))
-
-(defn- sc-log
-  "Pull audio server log data from a pipe and store for later printing."
-  [stream read-buf]
-  (while (pos? (.available stream))
-    (let [n (min (count read-buf) (.available stream))
-          _ (.read stream read-buf 0 n)
-          msg (String. read-buf 0 n)]
-      (dosync (alter server-log* conj msg))
-      (log/info (String. read-buf 0 n)))))
-
-(defn- external-booter
-  "Boot thread to start the external audio server process and hook up to
-  STDOUT for log messages."
-  [cmd]
-  (log/debug "booting external audio server...")
-  (let [proc (.exec (Runtime/getRuntime) cmd)
-        in-stream (BufferedInputStream. (.getInputStream proc))
-        err-stream (BufferedInputStream. (.getErrorStream proc))
-        read-buf (make-array Byte/TYPE 256)]
-    (while (not (= :disconnected @server-status*))
-      (sc-log in-stream read-buf)
-      (sc-log err-stream read-buf)
-      (Thread/sleep 250))
-    (.destroy proc))
-  (print-ascii-art-overtone-logo))
-
-(defn- boot-external-server
-  "Boot the audio server in an external process and tell it to listen on a
-  specific port."
-  ([port]
-     (when-not (connected?)
-       (let [sc-path (first (filter #(.exists (java.io.File. %)) (SC-PATHS (@config* :os))))
-             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (@config* :os))))
-             sc-thread (Thread. #(external-booter cmd))]
-         (.setDaemon sc-thread true)
-         (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " cmd))
-         (.start sc-thread)
-         (dosync (ref-set server-thread* sc-thread))
-         (connect "127.0.0.1" port)
-         :booting))))
-
-(defn wait-until-connected
-  "Makes the current thread sleep until scsynth has successfully connected and
-  the boot process has completed."
-  []
-  (while (not (connected?))
-    (Thread/sleep 100)))
-
-(defn boot-server
-  "Boot either the internal or external audio server.
-   (boot-server) ; uses the default settings defined in your config
-   (boot-server :internal) ; boots the internal server
-   (boot-server :external) ; boots an external server on a random port
-   (boot-server :external 57110) ; boots an external server listening on port 57110"
-  ([]
-     (boot-server (get @config* :server :internal) SERVER-HOST SERVER-PORT))
-  ([which & [port]]
-     (when-not (connected?)
-       (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
-         (cond
-          (= :internal which) (boot-internal-server port)
-          (= :external which) (boot-external-server port))
-         (wait-until-connected)))))
-
-(defn quit-server
-  "Quit the SuperCollider synth process."
-  []
-  (log/info "quiting...")
-  (sync-event :shutdown)
-  (snd "/quit")
-  (if @server*
-    (osc-close @server* true))
-  (dosync
-   (ref-set server* nil)
-   (ref-set server-status* :disconnected)
-   (unsatisfy-all-dependencies)))
-
-(defonce _shutdown-hook
-  (.addShutdownHook (Runtime/getRuntime)
-                    (Thread. quit-server)))
 
 (defn clear-msg-queue
   "Remove any scheduled OSC messages from the run queue."
   []
   (snd "/clearSched"))
-
-(defonce server-sync-id* (atom 0))
-
-(defn- update-server-sync-id
-  "update osc-sync-id*. Increments by 1 unless it has maxed out
-  in which case it resets it to 0."
-  []
-  (swap! server-sync-id* (fn [cur] (if (= Integer/MAX_VALUE cur)
-                                    0
-                                    (inc cur)))))
-
-(defn on-server-sync
-  "Registers the handler to be executed when all the osc messages generated
-   by executing the action-fn have completed. Returns result of action-fn."
-  [action-fn handler-fn]
-  (let [id (update-server-sync-id)
-        key (uuid)]
-    (on-event "/synced"
-              (fn [msg] (when (= id (first (:args msg)))
-                         (do
-                           (handler-fn)
-                           :done)))
-              key)
-
-    (let [res (action-fn)]
-      (snd "/sync" id)
-      res)))
-
-(defn server-sync
-  "Send a sync message to the server with the specified id. Server will reply
-  with a synced message when all incoming messages up to the sync message have
-  been handled. See with-server-sync and on-server-sync for more typical
-  usage."
-  [id]
-  (snd "/sync" id))
-
-(defn with-server-self-sync
-  "Blocks the current thread until the action-fn explicitly sends a server sync.
-  The action-fn is assumed to have one argument which will be the unique sync id.
-  This is useful when the action-fn is itself asynchronous yet you wish to
-  synchronise with its completion. The action-fn can sync using the fn server-sync.
-  Returns the result of action-fn."
-  [action-fn]
-  (let [id (update-server-sync-id)
-        prom (promise)
-        key (uuid)]
-    (on-event "/synced"
-              (fn [msg] (when (= id (first (:args msg)))
-                         (do
-                           (deliver prom true)
-                           :done)))
-              key)
-    (let [res (action-fn id)]
-      (await-promise! prom)
-      res)))
-
-(defn with-server-sync
-  "Blocks current thread until all osc messages in action-fn have completed.
-  Returns result of action-fn."
-  [action-fn]
-  (let [id (update-server-sync-id)
-        prom (promise)
-        key (uuid)]
-    (on-event "/synced"
-              (fn [msg] (when (= id (first (:args msg)))
-                         (do
-                           (deliver prom true)
-                           :done)))
-              key)
-    (let [res (action-fn)]
-      (snd "/sync" id)
-      (await-promise! prom)
-      res)))
-
 
 (defn stop
   "Stop all running synths and metronomes. This does not remove any synths/insts
@@ -483,25 +128,34 @@
   []
   (event :reset))
 
-(def osc-log* (atom []))
+(defn sc-osc-log-on
+  "Turn osc logging on"
+  []
+  (on-sync-event :osc-msg-received
+                 (fn [{:keys [path args] :as msg}]
+                   (swap! osc-log* #(conj % msg)))
+                 ::osc-logger))
 
-(defn osc-log [on?]
-  (if on?
-    (on-sync-event :osc-msg-received
-                   (fn [{:keys [path args] :as msg}]
-                     (swap! osc-log* #(conj % msg)))
-                   ::osc-logger)
-    (remove-handler :osc-msg-received ::osc-logger)))
+(defn sc-osc-log-off
+  "Turn osc logging off"
+  []
+  (remove-handler :osc-msg-received ::osc-logger))
 
-(defn sc-debug
-  "Control debug output from both the Overtone and the audio server."
-  [on?]
-  (if on?
-    (do
-      (log/level :debug)
-      (osc-debug true)
-      (snd "/dumpOSC" 1))
-    (do
-      (log/level :error)
-      (osc-debug false)
-      (snd "/dumpOSC" 0))))
+(defn sc-osc-log
+  "Return the current status of the osc log"
+  []
+  @osc-log*)
+
+(defn sc-debug-on
+  "Turn on output from both the Overtone and the audio server."
+  []
+  (log/level :debug)
+  (sc-osc-debug-on)
+  (snd "/dumpOSC" 1))
+
+(defn sc-debug-off
+  "Turn off debug output from both the Overtone and the audio server."
+  []
+  (log/level :error)
+  (sc-osc-debug-off)
+  (snd "/dumpOSC" 0))

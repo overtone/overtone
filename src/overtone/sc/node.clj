@@ -82,7 +82,7 @@
   ([synth-name arg-map] (node synth-name arg-map {:position :tail, :target 0}))
   ([synth-name arg-map location]
      (if (not (connected?))
-       (throw (Exception. "Not connected to synthesis engine.  Please boot or connect.")))
+       (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
      (let [id       (alloc-id :node)
            position (or ((get location :position :tail) POSITION) 1)
            target   (get location :target 0)

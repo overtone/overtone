@@ -2,7 +2,8 @@
   (:use [overtone.util lib]
         [overtone.libs event]
         [overtone.sc server]
-        [overtone.sc.machinery defaults allocator]))
+        [overtone.sc.machinery defaults allocator]
+        [overtone.sc.machinery.server comms connection]))
 
 (defn buffer-info
   "Fetch the information for buffer associated with buf-id. Synchronous."

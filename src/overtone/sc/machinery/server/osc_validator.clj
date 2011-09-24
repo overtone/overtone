@@ -4,7 +4,7 @@
             OSC messages to reduce the number of bogus messages that may
             potentially crash the server."
       :author "Sam Aaron"}
-  overtone.sc.machinery.osc-validator
+  overtone.sc.machinery.server.osc-validator
   (:use [overtone.osc])
   (:require [overtone.util.log :as log]))
 

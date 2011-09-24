@@ -8,7 +8,8 @@
   (:use [overtone.byte-spec]
         [overtone.util lib]
         [overtone.libs event deps]
-        [overtone.sc server])
+        [overtone.sc server]
+        [overtone.sc.machinery.server comms])
   (:require [overtone.util.log :as log]))
 
 ;; param-name is :
