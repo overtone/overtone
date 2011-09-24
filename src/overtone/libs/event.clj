@@ -9,7 +9,7 @@
   (:require [overtone.util.log :as log]))
 
 (def NUM-THREADS (cpu-count))
-(def FORCE-SYNC? false)
+(def ^{:dynamic true} *FORCE-SYNC?* false)
 (defonce thread-pool (Executors/newFixedThreadPool NUM-THREADS))
 (defonce event-handlers* (ref {}))
 (defonce sync-event-handlers* (ref {}))
@@ -133,7 +133,7 @@
   (log/debug "event: " event-type args)
   (let [event (apply hash-map :event-type event-type args)]
     (handle-event sync-event-handlers* event)
-    (if FORCE-SYNC?
+    (if *FORCE-SYNC?*
       (handle-event event-handlers* event)
       (.execute thread-pool #(handle-event event-handlers* event)))))
 
@@ -143,5 +143,5 @@
   events, these will revert back to the default behaviour of event (i.e. not
   forced sync). See event."
   [& args]
-  (binding [FORCE-SYNC? true]
+  (binding [*FORCE-SYNC?* true]
     (apply event args)))
