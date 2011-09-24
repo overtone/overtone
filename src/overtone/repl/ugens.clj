@@ -1,7 +1,8 @@
 (ns overtone.repl.ugens
   (:use [clojure.repl]
         [overtone.sc.machinery.ugen fn-gen specs]
-        [overtone.util lib doc]))
+        [overtone.util lib doc]
+        [overtone.helpers.string]))
 
 (defn- map-terms-to-regexps
   "convert a list of patterns/objects to a list of patterns by not modifying
@@ -9,9 +10,7 @@
   to regex patterns. Typically the other obects will be standard strings."
   [terms]
   (map (fn [term]
-         (if (= java.util.regex.Pattern (type term))
-           term
-           (re-pattern (str term))))
+         (str->regex term))
        terms))
 
 (defn- find-matching-ugen-specs
