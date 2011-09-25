@@ -82,7 +82,8 @@
 
 (defn boot-external-server
   "Boot an external server by starting up an external process and connecting to
-  it."
+  it. Requires SuperCollider to be installed in the standard location for your
+  OS."
   ([] (boot :external (+ (rand-int 50000) 2000)))
   ([port] (boot :external port)))
 
