@@ -1,5 +1,55 @@
 # Overtone Change Log
 
+## Version 0.4 (25th Sept 2011)
+
+### New
+
+* Support for Clojure 1.3
+* Provide more separation between 'public' and 'private' APIs by moving non-public aspects of overtone.sc into overtone.sc.machinery
+* Similarly pull out 'private' machinery from overtone.sc.server into overtone.sc.machinery.server - overtone.sc.server now contains only public fns.
+* Create new helpers namespace for useful 'public' fns. overtone.util is now meant for internal/private util fns.
+* Define and use default Overtone at-at pool
+* Remove server dependence on studio.rig. Use #'boot-rig to boot and wait for rig to complete its initialisation
+* Improve doc for sin-osc-fb ugen
+* Improve doc for node-free
+* Clean up implementation of cgen macro
+* Rename boot to boot-server
+* Rename quit to kill-server
+* Make osc-validator check for actual types not the 'fuzzy' types Clojure uses
+* Add information about resolving collider ugen fns to collider docstrings
+* Teach resolve-degree about sharps and flats
+* Stop users from attempting to receive osc messages from the server when it's not connected
+* Various ugen metadata fixes
+* Various docstring improvements
+
+### Examples
+* Add piano piece - Gnossienne No. 1 by Erik Satie
+
+### Helpers
+* Add some useful string manipulation fns
+* Add some file helper fns
+* Move splay-pan into helpers ns
+* Move sc-lang converter here
+
+### REPL
+* Add odoc - Overtone version of doc which gives information about ugen colliders
+* Add super rudimentary (but still pretty fun) shell fns ls and grep
+* Make find-ug and find-ug-doc macros so you can pass unquoted symbols as args
+* Allow ugen searches to also match the ugen name in addition to its full doc string
+* Teach find-ug to print the full docstring of the match if only one is returned
+
+### Deprecated
+* Support for vijual representation of node tree
+
+### Bugfixes
+
+* Fix clear-ids in allocator
+* Don't explicitly free node id when freeing node as this is already handled by a callback
+* Fix resolve-gen-name
+* Fix cgen bug in arglist generation
+* Fix snare drum inst
+
+
 ## Version 0.3 (12th Sept 2011)
 
 ### New
