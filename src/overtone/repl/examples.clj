@@ -1,6 +1,7 @@
 (ns overtone.repl.examples
   (:use [overtone.util doc lib]
-        [overtone.sc.machinery defexample]))
+        [overtone.sc.machinery defexample])
+  (:require [overtone.sc.examples demand osc trig compander audio-in]))
 
 (defn- print-gen-examples
   ([gen-examples] (print-gen-examples gen-examples "" 0))

@@ -7,7 +7,6 @@
             [overtone.sc buffer bus envelope node example
                          sample server synth trigger ugens]
             [overtone.sc.cgens audio-in oscillators demand mix]
-            [overtone.sc.examples demand osc trig compander audio-in]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
             [overtone.repl ugens examples]
@@ -33,11 +32,6 @@
  'overtone.sc.cgens.demand
  'overtone.sc.cgens.mix
  'overtone.sc.example
- 'overtone.sc.examples.demand
- 'overtone.sc.examples.osc
- 'overtone.sc.examples.trig
- 'overtone.sc.examples.compander
- 'overtone.sc.examples.audio-in
  'overtone.music.rhythm
  'overtone.music.pitch
  'overtone.music.tuning
