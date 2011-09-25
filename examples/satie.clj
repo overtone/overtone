@@ -98,8 +98,8 @@
                      (reset-pos)
                      (do
                        (if (< 5 y)
-                         (play-next-rh (* 10 (+ x 4)))
-                         (play-next-lh (* 10 (+ x 4))))
+                         (play-next-rh (+ (rand-int 5) (* 12 (+ x 4))))
+                         (play-next-lh (+ (rand-int 5) (* 12 (+ x 4)))))
                        (poly/led-on m x y)))
 
                    (println [x y])))
