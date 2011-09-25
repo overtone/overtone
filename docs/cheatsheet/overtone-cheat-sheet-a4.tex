@@ -71,13 +71,14 @@
 
 \begin{document}
 
-{\Large{\textbf{Overtone Cheat Sheet (Overtone 0.3.0)}}}
+{\Large{\textbf{Overtone Cheat Sheet (Overtone 0.4.0)}}}
 
 \colouredbox{pink}{
 \section{REPL helpers}
 \begin{tabularx}{\hsize}{lX}
-  Documentation&\cmd{ug-doc find-ug find-ug-doc}\\
-Examples& \cmd{example examples get-example}
+Documentation&\cmd{odoc ug-doc find-ug find-ug-doc}\\
+Examples& \cmd{examples example get-example}\\
+Shell& \cmd{ls grep}\\
 \end{tabularx}
 }
 
@@ -88,6 +89,18 @@ Design&\cmd{definst defsynth}\\
 Examples& \cmd{defexamples}\\
 CGens& \cmd{defcgen}\\
 Control& \cmd{ctl kill}
+\end{tabularx}
+}
+
+\colouredbox{grey}{
+\section{Server}
+\begin{tabularx}{\hsize}{lX}
+Startup&\cmd{boot-server boot-external-server connect-external-server}\\
+Shutdown&\cmd{kill-server}\\
+Control& \cmd{stopl}\\
+OSC Communication& \cmd{snd recv clear-msg-queue}\\
+Diagnostic& \cmd{status connected? disconnected? server-status}\\
+Debug& \cmd{sc-osc-log-on sc-osc-log-off sc-osc-log sc-debug-on sc-debug-off external-server-log}\\
 \end{tabularx}
 }
 
@@ -150,14 +163,9 @@ Rounding& \cmd{closest-to round-to}
 \begin{tabularx}{\hsize}{lX}
 Scaled& \cmd{cosr sinr tanr}\\
 \end{tabularx}
-
-\subsection{Audio}
-\begin{tabularx}{\hsize}{lX}
-Positino& \cmd{splay-pan}\\
-\end{tabularx}
 }
 
-\colouredbox{grey}{
+\colouredbox{purple}{
 \section{Music}
 \subsection{Pitch}
 \begin{tabularx}{\hsize}{lX}
@@ -207,6 +215,18 @@ Create \& Reset&\cmd{scope pscope reset-scopes } \\
 Audio In & \cmd{sound-in}\\
 Oscillators & \cmd{pm-osc square}\\
 Mix & \cmd{mix splay}\\
+\end{tabularx}
+}
+
+
+\colouredbox{blue}{
+\section{UGen Helper Constants}
+\begin{tabularx}{\hsize}{lX}
+Done Actions& \cmd{NO-ACTION PAUSE FREE FREE-AND-BEFORE FREE-AND-AFTER FREE-AND-GROUP-BEFORE FREE-AND-GROUP-AFTER FREE-UPTO-THIS FREE-FROM-THIS-ON FREE-PAUSE-BEFORE FREE-PAUSE-AFTER FREE-AND-GROUP-BEFORE-DEEP FREE-AND-GROUP-AFTER-DEEP FREE-CHILDREN FREE-GROUP}\\
+FFT Windows& \cmd{SINE HANN RECT}\\
+Lines& \cmd{LINEAR LIN EXPONENTIAL EXP}\\
+Onset Analysis& \cmd{POWER MAGSUM COMPLEX RCOMPLEX PHASE WPHASE MKL}\\
+Infinity& \cmd{INFINITE INF}\\
 \end{tabularx}
 }
 
@@ -413,7 +433,7 @@ Mix & \cmd{mix splay}\\
 \begin{flushright}
 \footnotesize
 \rule{0.7\linewidth}{0.25pt}
-\verb!$Revision: 0.3.0.1, $Date: 13th September, 2011!\\
+\verb!$Revision: 0.4.0.0, $Date: 25th September, 2011!\\
 \verb!Sam Aaron (sam.aaron gmail com)!
 \end{flushright}
 
