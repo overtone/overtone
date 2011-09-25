@@ -10,6 +10,7 @@
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
             [overtone.repl ugens examples]
+            [overtone.libs.event]
             [overtone.viz scope]))
 
 (immigrate
@@ -40,6 +41,7 @@
  'overtone.studio.fx
  'overtone.repl.ugens
  'overtone.repl.examples
+ 'overtone.libs.event
  'overtone.viz.scope
  )
 
