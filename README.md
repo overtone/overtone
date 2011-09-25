@@ -40,7 +40,7 @@ your project.clj is:
 
     [overtone "<version>"]
 
-The current version is 0.3.0 but search on Clojars to get the latest
+The current version is 0.4.0 but search on Clojars to get the latest
 release.
 
 #### Source Repository
@@ -146,3 +146,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Nicolas Buduroi
 * Iain Wood
 * Marmaduke Woodman
+* Thomas Karolski
