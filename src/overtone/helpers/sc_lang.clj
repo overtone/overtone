@@ -1,4 +1,4 @@
-(ns overtone.sc.machinery.sc-lang
+(ns overtone.helpers.sc-lang
   (:use [clojure.core incubator]
         [overtone.util lib])
   (:require [clojure.zip :as z]))
@@ -24,7 +24,7 @@
                   true (z/edit %1 str %2))
                   (z/down (z/seq-zip (list ""))) code)))
 
-(defn despace [tokens]
+(defn- despace [tokens]
   (z/root (zip-map #(if (= "" (z/node %)) (z/remove %) %) (z/seq-zip tokens))))
 
 (defn- infix [tokens]
@@ -87,7 +87,7 @@
                 (z/replace % (read-string (z/node %))))
              (z/seq-zip tokens))))
 
-(defmacro sc [code]
+(defmacro sc-lang [code]
     (-> code
       tokenize
       despace
