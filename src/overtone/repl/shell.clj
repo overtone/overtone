@@ -1,5 +1,6 @@
 (ns overtone.repl.shell
-  (:use [overtone.helpers file])
+  (:use [overtone.helpers.file :only [ls-names]]
+        [overtone.helpers.string :only [str->regex]])
   (:require [clojure.string :as str]))
 
 (deftype ShellStringList [strlist]
@@ -26,7 +27,7 @@
 (defn ls
   "Returns a listing of contents for the supplied path."
   [path]
-  (let [names (ls-names ~(str path))]
+  (let [names (ls-names (str path))]
     (ShellStringList. names)))
 
 (defn grep
