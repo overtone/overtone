@@ -3,7 +3,8 @@
       :author "Sam Aaron"}
   overtone.helpers.file
   (:use [clojure.java.io]
-        [overtone.helpers.string]))
+        [overtone.helpers.string])
+  (:require [org.satta.glob :as satta-glob]))
 
 (defn- files->abs-paths
   "Given a seq of java.io.File objects, returns a seq of absolute paths for each
@@ -49,7 +50,11 @@
   "Given a path to a directory, returns a seq of java.io.File objects
   representing the directory contents"
   [path]
-  (seq (.listFiles (file (resolve-abs-path path)))))
+  (let [path (resolve-abs-path path)
+        f    (file path)]
+    (if (.isDirectory f)
+      (seq (.listFiles f))
+      (satta-glob/glob path))))
 
 (defn ls-paths
   "Given a path to a directory, returns a seq of strings representing the full
@@ -90,3 +95,11 @@
   [path]
   (let [files (filter #(.isDirectory %) (ls* path))]
     (files->names files)))
+
+(defn glob
+  "Given a glob pattern returns a seq of java.io.File instances which match.
+  Ignores dot files unless explicitly included.
+
+  Examples: (glob \"*.{jpg,gif}\") (glob \".*\") (glob \"/usr/*/se*\")"
+  [pattern]
+  (satta-glob/glob pattern))

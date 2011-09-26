@@ -11,6 +11,7 @@
                  [overtone/at-at "0.2.1"]
                  [overtone/osc-clj "0.7.1"]
                  [overtone/byte-spec "0.3.1"]
-                 [overtone/midi-clj "0.2.1"]]
+                 [overtone/midi-clj "0.2.1"]
+                 [clj-glob "1.0.0"]]
   :dev-dependencies [[marginalia "0.2.0"]]
   :jvm-opts ["-Xms256m" "-Xmx1g" "-XX:+UseConcMarkSweepGC"])
