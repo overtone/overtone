@@ -34,7 +34,7 @@
   [parts]
   (apply str (interpose (file-separator) parts)))
 
-(defn resolve-abs-path
+(defn resolve-tilde-path
   [path]
   (cond
    (= "~" path)
@@ -50,7 +50,7 @@
   "Given a path to a directory, returns a seq of java.io.File objects
   representing the directory contents"
   [path]
-  (let [path (resolve-abs-path path)
+  (let [path (resolve-tilde-path path)
         f    (file path)]
     (if (.isDirectory f)
       (seq (.listFiles f))
@@ -102,4 +102,5 @@
 
   Examples: (glob \"*.{jpg,gif}\") (glob \".*\") (glob \"/usr/*/se*\")"
   [pattern]
-  (satta-glob/glob pattern))
+  (let [pattern (resolve-tilde-path pattern)]
+    (satta-glob/glob pattern)))
