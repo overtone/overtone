@@ -41,6 +41,11 @@
           n-frames (get arg-map :n-frames 0)]
       (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
       (let [info   (buffer-info id)
+            _      (when (and (= 0 (:n-frames info))
+                              (= 0.0 (:rate info))
+                              (= 0 (:n-channels info)))
+                     (free-id :audio-buffer id)
+                     (throw (Exception. (str "Unable to load sample - file does not appear to be a valid audio file: " path))))
             sample (with-meta {:allocated-on-server (atom true)
                                :id id
                                :path path
