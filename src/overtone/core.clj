@@ -9,7 +9,7 @@
             [overtone.sc.cgens audio-in oscillators demand mix]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
-            [overtone.repl ugens examples]
+            [overtone.repl ugens examples shell]
             [overtone.libs.event]
             [overtone.viz scope]))
 
@@ -41,6 +41,7 @@
  'overtone.studio.fx
  'overtone.repl.ugens
  'overtone.repl.examples
+ 'overtone.repl.shell
  'overtone.libs.event
  'overtone.viz.scope
  )
