@@ -4,7 +4,8 @@
           intervals, etc."
      :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
-  (:use [overtone.util old-contrib]
+  (:use [clojure.string :only [capitalize]]
+        [overtone.util old-contrib]
         [overtone.algo chance])
   (:require [clojure.string :as string]))
 
@@ -87,16 +88,44 @@
             :G# 8  :g# 8  :Ab 8  :ab 8  :AB 8  :aB 8
             :A  9  :a  9
             :A# 10 :a# 10 :Bb 10 :bb 10 :BB 10 :bB 10
-            :B  11 :b  11 :Cb 11 :cb 11 :CB 11 :cB 11
-})
+            :B  11 :b  11 :Cb 11 :cb 11 :CB 11 :cB 11})
 
 (def REVERSE-NOTES
-  (into {} (map (fn [[k v]] [v k]) NOTES)))
+  {0 :C
+   1 :C#
+   2 :D
+   3 :Eb
+   4 :E
+   5 :F
+   6 :F#
+   7 :G
+   8 :Ab
+   9 :A
+   10 :Bb
+   11 :B})
+
+(defn canonical-pitch-class-name
+  "Returns the canonical version of the specified pitch class pc."
+  [pc]
+  (let [pc (keyword (name pc))]
+      (REVERSE-NOTES (NOTES pc))))
 
 (def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)" )
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
 (def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
 
+(defn- parse-note-match
+  "Takes a match array returned by a regexp match and returns a map of note info"
+  [match]
+  (let [[match pitch-class octave] match
+        pitch-class                (canonical-pitch-class-name pitch-class)
+        octave                     (Integer. octave)
+        interval                   (NOTES (keyword pitch-class))]
+    {:match       match
+     :pitch-class pitch-class
+     :octave      (Integer. octave)
+     :interval    interval
+     :midi-note   (octave-note octave interval)}))
 
 (defn note
   "Resolves note to MIDI number format. Resolves upper and lower-case keywords
@@ -119,25 +148,38 @@
    (integer? n) (if (>= n 0)
                     n
                     (throw (IllegalArgumentException.
-                            (str "Unable to resolve note: " n ". Value is out of range. Lowest value is 0"))))
+                            (str "Unable to resolve note: "
+                                 n
+                                 ". Value is out of range. Lowest value is 0"))))
    (keyword? n) (note (name n))
-   (string? n) (let [separated (re-find ONLY-MIDI-NOTE-RE n)
-                        _ (when (nil? separated)
-                            (throw (IllegalArgumentException.
-                                    (str "Unable to resolve note: " n ". Does not appear to be in MIDI format i.e. C#4"))))
-
-                        [_ pitch-class octave] separated
-                        octave (Integer. octave)
-                        _ (when (< octave -1)
-                            (throw (IllegalArgumentException.
-                                    (str "Unable to resolve note: " n ". Octave is out of range. Lowest octave value is -1"))))
-                        interval (NOTES (keyword (string/lower-case pitch-class)))
-
-                        _ (when (nil? interval)
-                            (throw (IllegalArgumentException.
-                                    (str "Unable to resolve note: " n ". Not a valid pitch class such as C or Db"))))]
-                    (+ interval 12 (* 12 octave)))
+   (string? n) (let [match (re-find ONLY-MIDI-NOTE-RE n)
+                     _ (when (nil? match)
+                         (throw (IllegalArgumentException.
+                                 (str "Unable to resolve note: "
+                                      n
+                                      ". Does not appear to be in MIDI format i.e. C#4"))))
+                     note-match (parse-note-match match)
+                     _ (when (< (:octave note-match) -1)
+                         (throw (IllegalArgumentException.
+                                 (str "Unable to resolve note: "
+                                      n
+                                      ". Octave is out of range. Lowest octave value is -1"))))]
+                 (:midi-note note-match))
    :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
+
+(defn match-note
+  "Returns the first midi-note formatted substring in s. If passed optional prev
+   and pos strings will use them to generate positive look ahead and behind
+   matchers. "
+  ([s] (match-note s "" ""))
+  ([s prev-str post-str]
+     (let [look-behind (if prev-str (str "(?<=" prev-str ")") "")
+           look-ahead (if post-str (str "(?=" post-str ")") "")
+           match (re-find (re-pattern (str look-behind MIDI-NOTE-RE-STR look-ahead)) s)]
+       (when match
+         (parse-note-match match)))))
+
+
 
 ;; * Each note in a scale acts as either a generator or a collector of other notes,
 ;; depending on their relations in time within a sequence.
