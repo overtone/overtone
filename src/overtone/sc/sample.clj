@@ -9,19 +9,21 @@
         [overtone.sc server synth ugens buffer]))
 
 ; Define a default wav player synth
-(defsynth mono-player
-  "Plays a single channel audio buffer."
-  [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-  (out 0 (pan2
-           (play-buf 1 buf rate
-                     1 start-pos loop?
-                     FREE))))
+(defonce __DEFINE-PLAYERS__
+  (do
+    (defsynth mono-player
+      "Plays a single channel audio buffer."
+      [buf 0 rate 1.0 start-pos 0.0 loop? 0]
+      (out 0 (pan2
+              (play-buf 1 buf rate
+                        1 start-pos loop?
+                        FREE))))
 
-(defsynth stereo-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
-  (out 0
-       (play-buf 2 buf rate
-                 1 start-pos loop?
-                 FREE)))
+    (defsynth stereo-player [buf 0 rate 1.0 start-pos 0.0 loop? 0]
+      (out 0
+           (play-buf 2 buf rate
+                     1 start-pos loop?
+                     FREE)))))
 
 (defonce loaded-samples* (ref {}))
 

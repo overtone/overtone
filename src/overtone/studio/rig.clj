@@ -50,16 +50,17 @@
 
 ; A mixer synth for volume, pan, and limiting
 ; TODO: Add basic EQ
-(defsynth mixer [in-bus 10 out-bus 0
-                 volume 0.5 pan 0.0
-                 threshold 0.7
-                 slope-below 1 slope-above 0.1
-                 clamp-time 0.005 relax-time 0.005]
-  (let [source  (in in-bus)
-        limited (compander source source threshold
-                           slope-below slope-above
-                           clamp-time relax-time)]
-    (out out-bus (pan2 limited pan volume))))
+(defonce __MIXER-SYNTH__
+  (defsynth mixer [in-bus 10 out-bus 0
+                   volume 0.5 pan 0.0
+                   threshold 0.7
+                   slope-below 1 slope-above 0.1
+                   clamp-time 0.005 relax-time 0.005]
+    (let [source  (in in-bus)
+          limited (compander source source threshold
+                             slope-below slope-above
+                             clamp-time relax-time)]
+      (out out-bus (pan2 limited pan volume)))))
 
 (defn volume
   "Master volume control on the mixer."
