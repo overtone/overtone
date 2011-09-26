@@ -321,7 +321,7 @@
    (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
      (let [reply-p (recv "/g_queryTree.reply")
            _ (snd "/g_queryTree" id ctls?)
-          tree (:args (await-promise! reply-p))]
+          tree (:args (deref! reply-p))]
        (with-meta (parse-node-tree tree)
          {:type ::node-tree})))))
 

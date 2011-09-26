@@ -7,7 +7,7 @@
   (:import [java.util.concurrent TimeoutException])
   (:use [overtone.libs event]
         [overtone.sc.machinery.server connection comms ]
-        [overtone.util.lib :only [await-promise!]])
+        [overtone.util.lib :only [deref!]])
   (:require [overtone.util.log :as log]))
 
 (def OVERTONE-VERSION {:major 0
@@ -122,7 +122,7 @@
     (let [p (server-recv "/status.reply")]
       (snd "/status")
       (try
-        (apply parse-status (:args (await-promise! p)))
+        (apply parse-status (:args (deref! p)))
         (catch TimeoutException t
           :timeout)))
     @server-status*))

@@ -231,22 +231,16 @@
 
 (def DEFAULT-PROMISE-TIMEOUT 1000)
 
-(defn await-promise
-  "Read a promise waiting for timeout ms for the promise to be delivered.
-  Returns :timeout if a timeout occurs."
-  ([prom] (await-promise prom DEFAULT-PROMISE-TIMEOUT))
-  ([prom timeout]
-     (try
-       (.get (future @prom) timeout TimeUnit/MILLISECONDS)
-       (catch TimeoutException t
-         :timeout))))
-
-(defn await-promise!
-  "Read a promise waiting for timeout ms for the promise to be delivered.
-  Raises an exception if a timeout occurs"
-  ([prom] (await-promise! prom DEFAULT-PROMISE-TIMEOUT))
-  ([prom timeout]
-     (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
+(defn deref!
+  "Read a future or promise waiting for timeout ms for it to be successfully
+  dereferenced. Raises an exception if a timeout occurs"
+  ([ref] (deref! ref DEFAULT-PROMISE-TIMEOUT))
+  ([ref timeout]
+     (let [timeout-indicator (gensym "deref-timeout")
+           res               (deref ref timeout timeout-indicator)]
+       (if (= timeout-indicator res)
+         (throw (Exception. (str "deref! timeout error. Dereference took longer than " timeout " ms")))
+         res))))
 
 (defn user-name
   "returns the name of the current user"

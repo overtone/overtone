@@ -11,7 +11,7 @@
   (let [prom   (recv "/b_info" (fn [msg]
                                  (= buf-id (first (:args msg)))))]
     (with-server-sync #(snd "/b_query" buf-id))
-    (let [msg                               (await-promise! prom)
+    (let [msg                               (deref! prom)
           [buf-id n-frames n-channels rate] (:args msg)]
       (with-meta     {:n-frames n-frames
                       :n-channels n-channels
@@ -78,7 +78,7 @@
                                                (= msg-start offset)
                                                (= n-to-read (count m-args))))))]
              (with-server-sync #(snd "/b_getn" buf-id offset n-to-read))
-             (let [m (await-promise! prom)
+             (let [m (deref! prom)
                    [buf-id bstart blen & samps] (:args m)]
                (dorun
                 (map-indexed (fn [idx el]
@@ -135,7 +135,7 @@
                                           (= msg-start index)))))]
 
        (with-server-sync #(snd "/b_get" buf-id index))
-       (last (:args (await-promise! prom))))))
+       (last (:args (deref! prom))))))
 
 (defn buffer-save
   "Save the float audio data in an audio buffer to a wav file."

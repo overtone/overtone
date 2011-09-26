@@ -1,7 +1,7 @@
 (ns overtone.sc.machinery.server.comms
   (:use [overtone.sc.machinery.server osc-validator]
         [overtone.libs.event]
-        [overtone.util.lib :only [uuid await-promise!]])
+        [overtone.util.lib :only [uuid deref!]])
   (:require [overtone.util.log :as log]))
 
 (defonce server-sync-id* (atom 0))
@@ -89,7 +89,7 @@
                            :done)))
               key)
     (let [res (action-fn id)]
-<      (await-promise! prom)
+      (deref! prom)
       res)))
 
 (defn with-server-sync
@@ -107,7 +107,7 @@
               key)
     (let [res (action-fn)]
       (server-snd "/sync" id)
-      (await-promise! prom)
+      (deref! prom)
       res)))
 
 (defn server-recv
