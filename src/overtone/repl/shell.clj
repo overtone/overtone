@@ -9,9 +9,9 @@
   (cons [self o] (ShellStringList. (conj strlist o)))
   (empty [self] (ShellStringList. []))
   (equiv
-   [self o]
-   (and (instance? ShellStringList o)
-        (= strlist (.strlist o))))
+    [self o]
+    (and (instance? ShellStringList o)
+         (= strlist (.strlist o))))
   clojure.lang.ISeq
   (first [self] (first strlist))
   (next [self] (next strlist))
