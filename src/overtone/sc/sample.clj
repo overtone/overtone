@@ -2,11 +2,13 @@
   ^{:doc "Making it easy to load and play audio samples (wav or aif files)."
      :author "Jeff Rose"}
   overtone.sc.sample
-  (:use [overtone.util lib]
+  (:use [clojure.java.io :only [file]]
+        [overtone.util lib]
         [overtone.libs event deps]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
-        [overtone.sc server synth ugens buffer]))
+        [overtone.sc server synth ugens buffer]
+        [overtone.helpers.file :only [glob]]))
 
 ; Define a default wav player synth
 (defonce __DEFINE-PLAYERS__
@@ -29,21 +31,26 @@
 
 (defn- load-sample*
   [path & args]
-  (let [id       (alloc-id :audio-buffer)
-        arg-map  (apply hash-map args)
-        start    (get arg-map :start 0)
-        n-frames (get arg-map :n-frames 0)]
-    (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
-    (let [info   (buffer-info id)
-          sample (with-meta {:allocated-on-server (atom true)
-                             :id id
-                             :path path
-                             :size (:n-frames info)
-                             :rate (:rate info)
-                             :n-channels (:n-channels info)}
-                   {:type ::sample})]
-      (dosync (alter loaded-samples* assoc [path args] sample))
-      sample)))
+  (let [f (file path)]
+    (when-not (.exists f)
+      (throw (Exception. (str "Unable to load sample - file does not exist: " path))))
+    (let [f-name (.getName f)
+          id       (alloc-id :audio-buffer)
+          arg-map  (apply hash-map args)
+          start    (get arg-map :start 0)
+          n-frames (get arg-map :n-frames 0)]
+      (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
+      (let [info   (buffer-info id)
+            sample (with-meta {:allocated-on-server (atom true)
+                               :id id
+                               :path path
+                               :name f-name
+                               :size (:n-frames info)
+                               :rate (:rate info)
+                               :n-channels (:n-channels info)}
+                     {:type ::sample})]
+        (dosync (alter loaded-samples* assoc [path args] sample))
+        sample))))
 
 (defn load-sample
   "Synchronously load a wav file into a memory buffer.  Returns the buffer.
@@ -60,6 +67,18 @@
   (dosync (alter loaded-samples* assoc [path args] nil))
   (if (connected?)
     (apply load-sample* path args)))
+
+(defn load-samples
+  "Takes a directoy path or glob path (see #'overtone.helpers.file/glob) and
+  loads up all matching samples and returns a seq of maps representing
+  information for each loaded sample (see load-sample)"
+  [path-glob]
+  (let [files (glob path-glob)]
+    (doall
+     (map (fn [file]
+            (let [path (.getAbsolutePath file)]
+              (load-sample path)))
+          files))))
 
 (defn- load-all-samples []
   (doseq [[[path args] buf] @loaded-samples*]
