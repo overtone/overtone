@@ -5,7 +5,8 @@
      :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
   (:use [overtone.util old-contrib]
-        [overtone.algo chance]))
+        [overtone.algo chance])
+  (:require [clojure.string :as string]))
 
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
 ;; possible 7 note scales, the major scale has the highest number of consonant
@@ -91,6 +92,10 @@
 (def REVERSE-NOTES
   (into {} (map (fn [[k v]] [v k]) NOTES)))
 
+(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)" )
+(def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
+(def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
+
 
 (defn note
   "Resolves note to MIDI number format. Resolves upper and lower-case keywords
@@ -115,8 +120,7 @@
                     (throw (IllegalArgumentException.
                             (str "Unable to resolve note: " n ". Value is out of range. Lowest value is 0"))))
    (keyword? n) (note (name n))
-   (string? n) (let [midi-note-re #"\A([a-gA-G][#b]?)([-0-9]+\Z)"
-                        separated (re-find midi-note-re n)
+   (string? n) (let [separated (re-find ONLY-MIDI-NOTE-RE n)
                         _ (when (nil? separated)
                             (throw (IllegalArgumentException.
                                     (str "Unable to resolve note: " n ". Does not appear to be in MIDI format i.e. C#4"))))
@@ -126,7 +130,7 @@
                         _ (when (< octave -1)
                             (throw (IllegalArgumentException.
                                     (str "Unable to resolve note: " n ". Octave is out of range. Lowest octave value is -1"))))
-                        interval (NOTES (keyword pitch-class))
+                        interval (NOTES (keyword (string/lower-case pitch-class)))
 
                         _ (when (nil? interval)
                             (throw (IllegalArgumentException.
