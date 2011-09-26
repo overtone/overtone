@@ -72,9 +72,9 @@
     (for [n notes] (- pivot (- n pivot)))))
 
 (defn octave-note
-  "Convert an octave and note to a midi note."
-  [octave note]
-  (+ (+ (* octave 12) note) 12))
+  "Convert an octave and interval to a midi note."
+  [octave interval]
+  (+ (* octave 12) interval 12))
 
 (def NOTES {:C  0  :c  0  :b# 0  :B# 0
             :C# 1  :c# 1  :Db 1  :db 1  :DB 1  :dB 1
