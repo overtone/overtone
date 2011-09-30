@@ -72,7 +72,7 @@
               {:name "run", :default 1.0 :doc "If zero, then recording stops, otherwise recording proceeds."}
               {:name "loop", :default 1.0 :doc "If zero then don't loop, otherwise do.  This is modulate-able. "}
               {:name "trigger", :default 1.0 :doc "a trigger causes a jump to the offset position in the Buffer. A trigger occurs when a signal changes from <= 0 to > 0."}
-              {:name "action", :default 0}]
+              {:name "action", :default 0 :doc "an integer representing an action to be executed when the buffer is finished playing. This can be used to free the enclosing synth. Action is only evaluated if loop"}]
        :doc "record a stream of values into a buffer. If recLevel is 1.0 and preLevel is 0.0 then the new input overwrites the old data. If they are both 1.0 then the new data is added to the existing data. (Any other settings are also valid.) Note that the number of channels must be fixed for the SynthDef, it cannot vary depending on which buffer you use."}
 
       {:name "ScopeOut",
