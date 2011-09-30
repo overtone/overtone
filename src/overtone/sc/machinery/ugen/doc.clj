@@ -29,7 +29,8 @@
   [spec]
   (let [args (:args spec)
         name:doc (fn [arg] [(or (:name arg) "NAME MISSING!")  (or (capitalize (:doc arg)) "DOC MISSING!")])
-        doc-map (into {} (map name:doc args))
+        arg-doc (map name:doc args)
+        doc-map (into {} arg-doc)
         arg-max-key-len (length-of-longest-key doc-map)
         indentation (+ 5 arg-max-key-len)]
     (apply str (map (fn [[name docs]]
@@ -39,7 +40,7 @@
                            "- "
                            (indented-str-block docs DOC-WIDTH indentation)
                            "\n"))
-                    doc-map))))
+                    arg-doc))))
 
 (defn- full-doc-str
   "Returns a string representing the full documentation for the given ugen spec"
