@@ -2,12 +2,12 @@
   ^{:doc "Functions to help manage and structure computation in time."
      :author "Jeff Rose and Sam Aaron"}
   overtone.music.time
-  (:import (java.util.concurrent ScheduledThreadPoolExecutor TimeUnit
-                                 PriorityBlockingQueue))
   (:use [overtone.libs event]
         [overtone.util lib])
   (:require [overtone.at-at :as at-at]))
 
+;;Scheduled thread pool (created by at-at) which is to be used by default for
+;;all scheduled musical functions (players).
 (defonce player-pool* (at-at/mk-pool))
 
 (defn now
@@ -27,6 +27,8 @@
   ([ms-period fun initial-delay]
      (at-at/every ms-period fun initial-delay player-pool*)))
 
+;;Ensure all scheduled player fns are stopped when Overtone is reset
+;;(typically triggered by a call to stop)
 (on-sync-event :reset #(at-at/stop-and-reset-pool! player-pool* true) ::player-reset)
 
 (defn stop-player
@@ -34,7 +36,12 @@
   ([sched-fn] (at-at/cancel sched-fn))
   ([sched-fn cancel-immediately?] (at-at/cancel sched-fn cancel-immediately?)))
 
-(def ^{:dynamic true} *apply-ahead* 300)
+(def ^{:dynamic true} *apply-ahead*
+  "Amount of time apply-at is scheduled to execute *before* it was scheduled
+  by the user. This is to give room for any computation/gc cycles and to allow
+  the executing fn to schedule actions on scsynth ahead of time using the at
+  macro."
+  300)
 
 (defn apply-at
   "Recursion in Time. Calls (apply f args argseq) *apply-ahead* ms before
