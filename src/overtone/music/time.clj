@@ -8,7 +8,7 @@
         [overtone.util lib])
   (:require [overtone.at-at :as at-at]))
 
-(defonce player-pool (at-at/mk-pool))
+(defonce player-pool* (at-at/mk-pool))
 
 (defn now
   "Returns the current time in ms"
@@ -17,15 +17,15 @@
 
 (defn after-delay
   "Schedules fun to be executed after ms-delay milliseconds. Pool defaults to the player-pool."
-  [ms-delay fun] (at-at/at (+ (now) ms-delay) fun) player-pool)
+  [ms-delay fun] (at-at/at (+ (now) ms-delay) fun player-pool*))
 
 (defn periodic
   "Calls fun every ms-period, and takes an optional initial-delay for the first call in ms. Pool defaults to the player-pool."
   ([ms-period fun] (periodic ms-period fun 0))
   ([ms-period fun initial-delay]
-     (at-at/every ms-period fun initial-delay player-pool)))
+     (at-at/every ms-period fun initial-delay player-pool*)))
 
-(on-sync-event :reset #(at-at/stop-and-reset-pool! player-pool true) ::player-reset)
+(on-sync-event :reset #(do (println "resetting player pool") (at-at/stop-and-reset-pool! player-pool* true)) ::player-reset)
 
 (defn stop-player
   "Stop scheduled fn if it hasn't already executed."
