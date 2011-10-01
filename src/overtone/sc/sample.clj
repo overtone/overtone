@@ -8,7 +8,7 @@
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc server synth ugens buffer]
-        [overtone.helpers.file :only [glob]]))
+        [overtone.helpers.file :only [glob resolve-tilde-path]]))
 
 ; Define a default wav player synth
 (defonce __DEFINE-PLAYERS__
@@ -31,7 +31,8 @@
 
 (defn- load-sample*
   [path & args]
-  (let [f (file path)]
+  (let [path (resolve-tilde-path path)
+        f    (file path)]
     (when-not (.exists f)
       (throw (Exception. (str "Unable to load sample - file does not exist: " path))))
     (let [f-name (.getName f)
@@ -69,9 +70,10 @@
   in the file (:start). If the number of frames argument is less than or equal
   to zero, the entire file is read."
   [path & args]
-  (dosync (alter loaded-samples* assoc [path args] nil))
-  (if (connected?)
-    (apply load-sample* path args)))
+  (let [path (resolve-tilde-path path)]
+    (dosync (alter loaded-samples* assoc [path args] nil))
+    (if (connected?)
+      (apply load-sample* path args))))
 
 (defn load-samples
   "Takes a directoy path or glob path (see #'overtone.helpers.file/glob) and
