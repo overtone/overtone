@@ -113,7 +113,7 @@
         filt (rlpf dist (* 12 freq) 0.6)
         clp (clip2 filt 0.8)
         reverb (free-verb clp 0.4 0.8 0.2)]
-    (* amp (env-gen (perc 0.0001 dur) :action FREE))))
+    (* amp (env-gen (perc 0.0001 dur) :action FREE) reverb)))
 
 (definst ks1-demo [note 60 amp 0.8 gate 1]
   (let [freq (midicps note)
@@ -125,7 +125,7 @@
         dist (distort plk)
         filt (rlpf dist (* 12 freq) 0.6)
         reverb (free-verb filt 0.4 0.8 0.2)]
-    (* amp (env-gen (perc 0.0001 2) :action FREE))))
+    (* amp (env-gen (perc 0.0001 2) :action FREE) reverb)))
 
 (definst ks-stringer [freq 440 rate 6]
   (let [noize (* 0.8 (white-noise))
@@ -169,7 +169,7 @@
                       (x-line 10000 10 25)
                       (line 1 0.05 25))
         sound (apply + sound)]
-  (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 dur FREE))))
+  (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 dur FREE) sound)))
 
 (definst bubbles [bass-freq 80]
   (let [bub (+ bass-freq (* 3 (lf-saw:kr [8 7.23])))
