@@ -8,7 +8,7 @@
   (:use [overtone.libs event]
         [overtone.sc.machinery.server connection comms ]
         [overtone.util.lib :only [deref!]]
-        [overtone.osc])
+        [overtone.osc :only [in-osc-bundle]])
   (:require [overtone.util.log :as log]))
 
 (def OVERTONE-VERSION {:major 0
