@@ -418,7 +418,7 @@
         params          (first s-form)
         params          (parse-params params)
         ugen-form       (second s-form)
-        param-names     (list (vec (map :name params)))
+        param-names     (list (vec (map #(symbol (:name %)) params)))
         md              (assoc (meta s-name)
                           :name s-name
                           :type ::synth
