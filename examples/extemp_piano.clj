@@ -23,7 +23,16 @@
 ;;                  (random '(2 7 10))
 ;;                  (random '(0 8))))))
 
-(def instrument piano)
+(def piano-samples (load-samples "~/Desktop/samples/MIS_Stereo_Piano/Piano/*LOUD*"))
+(defn sampled-piano
+  ([note] (sampled-piano note 1))
+  ([note vol]
+     (if-let [sample (first
+                      (filter #(if-let [n (match-note (:name %))] (= note (:midi-note n)))
+                              piano-samples))]
+       (stereo-player sample :vol vol))))
+
+(def instrument sampled-piano)
 (def metro (metronome 20))
 
 (def beat-offsets [0 0.1 1/3  0.7 0.9])

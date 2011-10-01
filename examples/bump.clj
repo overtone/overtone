@@ -1,6 +1,6 @@
 (ns examples.bump
   (:use overtone.live)
-  (:use [overtone.music.instrument synth drum]))
+  (:use [overtone.inst synth drum]))
 
 (definst beep [note 60 vol 0.2]
   (let [freq (midicps note)
@@ -38,7 +38,7 @@
 
 ; TODO: Strum the chord
 
-(def bump-chords
+(def blues-chords
   [:i  :major
    :i  :major
    :i  :major7
@@ -57,7 +57,7 @@
 
 (defn progression [chord-seq key-note octave scale]
   (for [[roman-numeral chord-type] (partition 2 chord-seq)]
-    (chord (+ (key-note NOTE)
+    (chord (+ (key-note NOTES)
               (degree->interval scale roman-numeral))
            chord-type
            octave)))

@@ -18,12 +18,12 @@
     (doseq [n (range 7)]
       (let [n-char (char (+ 97 n))
             p-sym (symbol (str n-char octave))
-            note (octave-note octave (get NOTE (keyword (str n-char))))]
+            note (octave-note octave (get NOTES (keyword (str n-char))))]
         (defpitch p-sym note)
-        (when-let [sharp (get NOTE (keyword (str n-char "#")))]
+        (when-let [sharp (get NOTES (keyword (str n-char "#")))]
           (defpitch (symbol (str n-char "#" octave))
                     (octave-note octave sharp)))
-        (when-let [flat (get NOTE (keyword (str n-char "b")))]
+        (when-let [flat (get NOTES (keyword (str n-char "b")))]
           (defpitch (symbol (str n-char "b" octave))
                     (octave-note octave flat)))))))
 

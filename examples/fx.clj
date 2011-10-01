@@ -33,7 +33,7 @@
 
 (bizzle)
 (compressor-demo)
-(reset)
+(stop)
 
 (defsynth limiter-demo [in-bus 10]
   (let [source (in in-bus)]

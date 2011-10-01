@@ -24,7 +24,7 @@
 (stop)
 
 (definst grunge-bass [freq 120 a 0.1 d 0.01 s 0.4 r 0.4 amp 0.8 gate 1]
-  (let [env (env-gen (adsr a d s r) gate :action :free)
+  (let [env (env-gen (adsr a d s r) gate :action FREE)
         src (saw [freq (* 0.98 freq) (* 2.015 freq)])
         src (clip2 (* 1.3 src) 0.9)
         sub (sin-osc (/ freq 2))
@@ -33,3 +33,6 @@
         sliced (rlpf meat (* 2 freq) 0.1)
         bounced (free-verb sliced 0.8 0.9 0.2)]
     (* env bounced)))
+
+(grunge-bass)
+(ctl grunge-bass :gate 0)

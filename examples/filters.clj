@@ -48,7 +48,7 @@
 ; Clip
 ; - limit the amplitude with hi and low thresholds
 (demo 10
-  (clip (* (sin-osc 440) 0.4)
+  (clip:ar (* (sin-osc 440) 0.4)
         -0.01
         0.01))
 
@@ -93,13 +93,11 @@
                      (mouse-x 80 10000) ; frequency value
                      3))))             ; lag time
 
-(comment
-; This isn't quite working yet... Not sure how to use klank.
 (demo 10
   (klank [(repeatedly 12 #(+ 200.0 (rand 4000)))
           (repeat 12 0.8)
           (repeatedly 12 #(+ 0.1 (rand 2)))]
-         (* (clip-noise) 0.01 (decay (impulse 4) 0.03)))))
+         (* (clip-noise) 0.01 (decay (impulse 4) 0.03))))
 
 ; Amplitude compensation
 ; - to account for higher pitches seeming louder

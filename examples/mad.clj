@@ -10,9 +10,6 @@
         env (env-gen (perc 0.01 dur) :action FREE)]
     (* env snd amp)))
 
-(defrecord note
-  [synth vol pitch dur data])
-
 (defn p
   ([elements]
    (p elements (now)))
@@ -54,12 +51,12 @@
     (doseq [n (range 7)]
       (let [n-char (char (+ 65 n))
             n-sym (symbol (str n-char octave))
-            note (octave-note octave (get NOTE (keyword (str n-char))))]
+            note (octave-note octave (get NOTES (keyword (str n-char))))]
         (defnote n-sym note)
-        (when-let [sharp (get NOTE (keyword (str n-char "#")))]
+        (when-let [sharp (get NOTES (keyword (str n-char "#")))]
           (defnote (symbol (str n-char "#" octave))
                    (octave-note octave sharp)))
-        (when-let [flat (get NOTE (keyword (str n-char "b")))]
+        (when-let [flat (get NOTES (keyword (str n-char "b")))]
           (defnote (symbol (str n-char "b" octave))
                    (octave-note octave flat)))))))
 
@@ -86,12 +83,14 @@
 ; clear the fx for this instrument like so
 ;(clear-fx tone)
 
-;(stop)
+;;(stop)
+
 
 ; uncomment this one and move the mouse around
-(comment p (cycle (map
+(comment (p (cycle (map
             #(assoc % :synth ks1-demo)
             (pattern derezzed 2))))
+         )
 
 ; throw some distortion on there
 ; (inst-fx ks1-demo fx-distortion)
@@ -114,7 +113,8 @@
        #(assoc % :pitch (- (:pitch %) 24))
      (map
        #(assoc % :synth grunge-bass)
-       (pattern derezzed 2))))))
+       (pattern derezzed 2)))))
+  )
 
 ;(stop)
 
@@ -174,7 +174,8 @@
                         [D3 D3 D2]
                         [G3]])
 
-(comment do
+(comment
+  (do
   (p (map
        #(assoc % :synth ks1-demo)
        (pattern g-minuet-left-hand 25)))
@@ -182,6 +183,8 @@
   (p (map
        #(assoc % :synth ks1-demo)
        (pattern g-minuet-right-hand 25))))
+  )
+
 
 ; Grrrrrrr! ;-)
 ;(inst-fx ks1-demo fx-distortion)
