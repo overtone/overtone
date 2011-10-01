@@ -149,10 +149,7 @@
   [s]
   (log/info (str "Closing scope: \n" s))
   (let [{:keys [id bus-synth buf]} s]
-    (if bus-synth
-      (kill bus-synth))
-    (if buf
-      (buffer-free buf))
+    (when bus-synth (kill bus-synth))
     (dosync (alter scopes* dissoc id))))
 
 (defn- mk-scope
