@@ -46,5 +46,5 @@
   [#^clojure.lang.IFn ms-time f & args]
   (let [delay-time (- ms-time *apply-ahead* (now))]
     (if (<= delay-time 0)
-      (apply f (#'clojure.core/spread args))
+      (.execute @player-pool* #(apply f (#'clojure.core/spread args)))
       (after-delay delay-time #(apply f (#'clojure.core/spread args))))))
