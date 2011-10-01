@@ -240,8 +240,20 @@
        (= ::instrument (:type o))))
 
 (defmacro definst [i-name & inst-form]
+  "Define an instrument and return a player function. The instrument definition
+  will be loaded immediately. Instruments differ from basic synths in that they
+  will automatically add pan2 and out ugens when necessary to create a stereo
+  synth. Also, each instrument is assigned its own group which all instances
+  will automatically be placed in. This allows you to control all of an
+  instrument's running synths with one command:
+
+  (ctrl inst-name :param val)
+
+  You may also kill an all of an instrument's running synths:
+
+  (kill inst-name)"
   (let [[i-name params ugen-form] (synth-form i-name inst-form)
-        i-name (with-meta i-name {:type ::instrument})]
+        i-name (with-meta i-name (merge (meta i-name) {:type ::instrument}))]
     `(def ~i-name (inst ~i-name ~params ~ugen-form))))
 
 (defmethod print-method ::instrument [ins w]
