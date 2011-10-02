@@ -63,8 +63,8 @@
   "Read a section of an audio buffer. Defaults to reading the full buffer if no
   start and len vals are specified. Returns a float array of vals.
 
-  For more efficient reading of buffer data with the internal server, see
-  buffer-data."
+  This is extremely slow for large portions of data. For more efficient reading
+  of buffer data with the internal server, see buffer-data."
   ([buf] (buffer-read buf 0 (:size buf)))
   ([buf start len]
      (assert (buffer? buf))
@@ -81,7 +81,7 @@
                                           (and (= msg-buf-id buf-id)
                                                (= msg-start offset)
                                                (= n-to-read (count m-args))))))]
-             (with-server-sync #(snd "/b_getn" buf-id offset n-to-read))
+             (snd "/b_getn" buf-id offset n-to-read)
              (let [m (deref! prom)
                    [buf-id bstart blen & samps] (:args m)]
                (dorun
