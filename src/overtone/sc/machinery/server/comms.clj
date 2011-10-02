@@ -18,18 +18,24 @@
 
 (defn- massage-numerical-args
   "Massage numerical args to the form SC would like them. Currently this just
-  casts all Longs to Integers."
+  casts all Longs to Integers and Doubles to Floats."
   [args]
   (map (fn [arg]
-         (if (instance? Long arg)
-           (Integer. arg)
-           arg))
+         (cond (instance? Long arg)
+               (Integer. arg)
+
+               (instance? Double arg)
+               (Float. arg)
+
+               :else
+               arg))
        args))
 
 (defn server-snd
   "Sends an OSC message to the server. If the message path is a known scsynth
   path, then the types of the arguments will be checked according to what
-  scsynth is expecting. Automatically converts any args which are longs to ints.
+  scsynth is expecting. Automatically converts any args which are longs to ints
+  and doubles to floats.
 
   (server-snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
