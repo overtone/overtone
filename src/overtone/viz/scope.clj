@@ -31,9 +31,15 @@
                                                         (ref-set scope-group* (group :tail ROOT-GROUP))
                                                         (satisfy-deps :scope-group-created)))
 
-(defn- update-scope-data [s]
+(defn- update-scope-data
+  "Updates the scope by reading the current status of the buffer and repainting.
+  Currently only updates bus scope as there's a bug in scsynth-jna which crashes
+  the server after too many calls to buffer-data for a large buffer. As buffers
+  tend to be large, updating the scope frequently will cause the crash to happen
+  sooner. Need to remove this limitation when scsynth-jna is fixed."
+  [s]
   (let [{:keys [buf size width height panel y-arrays x-array panel]} s
-        frames    (buffer-data buf)
+        frames    (if @(:update? s) (buffer-data buf) @(:frames s))
         step      (int (/ (buffer-size buf) width))
         y-scale   (- height (* 2 Y-PADDING))
         [y-a y-b] @y-arrays]
@@ -44,10 +50,15 @@
                       (aget ^floats frames (unchecked-multiply x step)))))))
 
     (reset! y-arrays [y-b y-a])
-    (.repaint panel)))
+    (.repaint panel)
+
+    (when (and (not (:bus-synth s))
+               @(:update? s))
+      (reset! (:frames s) frames)
+      (reset! (:update? s) false))))
 
 (defn- update-scopes []
-  (doall (map update-scope-data (vals @scopes*))))
+  (dorun (map update-scope-data (vals @scopes*))))
 
 (defn- paint-scope [^Graphics g id]
   (if-let [scope (get @scopes* id)]
@@ -176,7 +187,9 @@
                :width width
                :height height
                :x-array x-array
-               :y-arrays (atom [y-a y-b])}
+               :y-arrays (atom [y-a y-b])
+               :update? (atom true)
+               :frames (atom [])}
 
         _ (reset-data-arrays scope)]
     (.addWindowListener frame
