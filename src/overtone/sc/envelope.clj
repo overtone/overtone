@@ -9,7 +9,7 @@
           These are the typical envelope functions found in SuperCollider, and
           they output a series of numbers that is understood by the SC synth
           engine."
-     :author "Jeff Rose"}
+     :author "Jeff Rose, Sam Aaron"}
   overtone.sc.envelope
   (:use [overtone.util lib]
         [overtone.sc.machinery.ugen fn-gen]))
@@ -36,7 +36,7 @@
   Looks shape s up in ENV-SHAPES if it's a keyword. If not, it assumes the
   val represents the bespoke curve vals for a generic curve shape (shape
   type 5). the bespoke curve vals aren't used here, but are picked up in
-  curve-vale.
+  curve-value.
   Mirrors *shapeNumber in supercollider/SCClassLibrary/Common/Audio/Env.sc"
   [s]
   (if (keyword? s)
@@ -69,25 +69,26 @@
 ;;    <segment-N...> ]
 
 (defn envelope
-  "Create an envelope curve description array suitable for the EnvGen ugen.
+  "Create an envelope curve description array suitable for the env-gen ugen.
    Requires a list of levels (the points that the envelope will pass through
    and a list of durations (the duration in time of the lines between each
    point).
 
    Optionally a curve may be specified. This may be one of:
    * :step              - flat segments
-   * :linear'           - linear segments, the default
+   * :linear            - linear segments, the default
    * :exponential       - natural exponential growth and decay. In this case,
                           the levels must all be nonzero and the have the same
                           sign.
    * :sine              - sinusoidal S shaped segments.
    * :welch             - sinusoidal segments shaped like the sides of a Welch
                           window.
-   * a Float            - a curvature value for all segments.
-   * an Array of Floats - curvature values for each segments.
+   * a Float            - a curvature value to be repeated for all segments.
+   * an Array of Floats - individual curvature values for each segment.
 
    If a release-node is specified (an integer index) the envelope will sustain
-   at the release node until released.
+   at the release node until released which occurs when the gate input of the
+   env-gen is set to zero.
 
    If a loop-node is specified (an integer index) the output will loop through
    those nodes starting at the loop node to the node immediately preceeding the
