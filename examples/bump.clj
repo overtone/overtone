@@ -55,19 +55,20 @@
 ; Bass note on the one
 (def bass-line (map first (partition 4 blues-chords)))
 
-(defn progression [chord-seq key-note octave scale]
-  (for [[roman-numeral chord-type] (partition 2 chord-seq)]
-    (chord (+ (key-note NOTES)
-              (degree->interval scale roman-numeral))
-           chord-type
-           octave)))
+(defn progression [chord-seq n scale]
+  (for [[degree chord-type] (partition 2 chord-seq)]
+    (let [root (note n)
+          num-intervals (degree->interval degree scale)]
+      (chord (+ root num-intervals)
+             chord-type))))
 
 ; Be sure to try moving the mouse around...
 (defn bump []
   (play-seq 0 ks1-demo
-            (cycle (map sort (progression bump-chords :a 2 :ionian)))
+            (cycle (map sort (progression blues-chords :a2 :ionian)))
             (cycle [0.6])
             (cycle [1000])
             (now)
             0.5))
 (bump)
+;;(stop)

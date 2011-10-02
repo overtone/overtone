@@ -74,7 +74,7 @@
             (now)
             0.2))
 
-                                        ;(blue-beep)
+;;(blue-beep)
 (stop)
 
 ; Be sure to try moving the mouse around...

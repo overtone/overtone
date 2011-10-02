@@ -67,5 +67,5 @@
 ;;(def beat-offsets [0 0.2 0.4  0.6 0.8])
 ;;(def beat-offsets [0 0.1 0.11 0.13 0.15 0.17 0.2 0.4 0.5 0.55 0.6 0.8])
 
-;;to stop, define beat-loop to not schedule another callback:
-;;(defn beat-loop [m b r]nil)
+;;to stop call (stop)
+;;(stop)
