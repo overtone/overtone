@@ -69,7 +69,7 @@
       {:name "LFNoise2"
        :args [{:name "freq", :default 500.0 :doc "approximate rate at which to generate random values."}]
        :rates #{:ar :kr}
-       :doc "Generates quadratically interpolated random values at the suplied rate (the rate is not guaranteed but approximate).
+       :doc "Generates quadratically interpolated random values at the supplied rate (the rate is not guaranteed but approximate).
 
   Note: quadratic interpolation means that the noise values can occasionally extend beyond the normal range
   of +-1, if the freq varies in certain ways. If this is undesirable then you might like to clip2 the values
