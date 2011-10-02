@@ -66,7 +66,7 @@
         (.drawRect 0 0 width height)
         (.setColor ^Color color)
         (.translate 0 y-shift)
-        (.scale 1 y-zoom)
+        (.scale 1 (* -1 y-zoom))
         (.drawPolyline ^ints x-array ^ints y-a width)))))
 
 (defn scope-panel [id width height]
