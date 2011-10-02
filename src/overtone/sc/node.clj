@@ -3,7 +3,7 @@
         [overtone.libs event deps]
         [overtone.sc bus server]
         [overtone.sc.machinery defaults allocator]
-        [overtone.sc.util :only [map-to-ids]])
+        [overtone.sc.util :only [id-mapper]])
   (:require [overtone.util.log :as log]))
 
 ;; ## Node and Group Management
@@ -225,7 +225,7 @@
 
 (defmethod ctl :number
   [synth-id & ctls]
-  (apply node-control synth-id (map-to-ids ctls)))
+  (apply node-control synth-id (id-mapper ctls)))
 
 (defmulti kill
   "Free one or more synth nodes.

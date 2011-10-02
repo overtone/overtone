@@ -10,7 +10,7 @@
         [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
         [overtone.sc.machinery.server comms]
         [overtone.sc server synth ugens envelope node bus]
-        [overtone.sc.util :only [map-to-ids]]
+        [overtone.sc.util :only [id-mapper]]
         [overtone.music rhythm time])
   (:require [overtone.studio fx]
             [overtone.util.log :as log]))
@@ -268,7 +268,7 @@
 
 (defmethod overtone.sc.node/ctl :overtone.studio.rig/instrument
   [inst & ctls]
-  (apply node-control (:group inst) (map-to-ids ctls)))
+  (apply node-control (:group inst) (id-mapper ctls)))
 
 (if (and (nil? @inst-group*)
          (connected?))
