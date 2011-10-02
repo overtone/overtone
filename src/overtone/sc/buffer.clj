@@ -3,12 +3,15 @@
         [overtone.libs event]
         [overtone.sc server]
         [overtone.sc.machinery defaults allocator]
-        [overtone.sc.machinery.server comms connection]))
+        [overtone.sc.machinery.server comms connection]
+        [overtone.sc.util :only [id-mapper]]))
 
 (defn buffer-info
-  "Fetch the information for buffer associated with buf-id. Synchronous."
+  "Fetch the information for buffer associated with buf-id (either an integer or
+  an associative with an :id key). Synchronous."
   [buf-id]
-  (let [prom   (recv "/b_info" (fn [msg]
+  (let [buf-id (id-mapper buf-id)
+        prom   (recv "/b_info" (fn [msg]
                                  (= buf-id (first (:args msg)))))]
     (with-server-sync #(snd "/b_query" buf-id))
     (let [msg                               (deref! prom)
