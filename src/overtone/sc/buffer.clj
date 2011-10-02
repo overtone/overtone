@@ -16,14 +16,15 @@
     (with-server-sync #(snd "/b_query" buf-id))
     (let [msg                               (deref! prom)
           [buf-id n-frames n-channels rate] (:args msg)]
-      (with-meta     {:n-frames n-frames
+      (with-meta     {:size n-frames
                       :n-channels n-channels
                       :rate rate
                       :id buf-id}
         {:type ::buffer-info}))))
 
 (defn buffer
-  "Synchronously allocate a new zero filled buffer for storing audio data with the specified size and num-channels."
+  "Synchronously allocate a new zero filled buffer for storing audio data with
+  the specified size and num-channels."
   ([size] (buffer size 1))
   ([size num-channels]
      (let [id   (with-server-self-sync (fn [uid]
@@ -35,7 +36,7 @@
            info (buffer-info id)]
        (with-meta
          {:allocated-on-server (atom true)
-          :size (:n-frames info)
+          :size (:size info)
           :n-channels (:n-channels info)
           :rate (:rate info)
           :id (:id info)}
@@ -148,7 +149,7 @@
   (let [arg-map (merge (apply hash-map args)
                        {:header "wav"
                         :samples "float"
-                        :n-frames -1
+                        :size -1
                         :start-frame 0
                         :leave-open 0})
         {:keys [header samples n-frames start-frame leave-open]} arg-map]
@@ -165,7 +166,7 @@
 
 (defmulti buffer-size type)
 (defmethod buffer-size ::buffer [buf] (:size buf))
-(defmethod buffer-size ::buffer-info [buf-info] (:n-frames buf-info))
+(defmethod buffer-size ::buffer-info [buf-info] (:size buf-info))
 
 (defn buffer-data
   "Get the floating point data for a buffer on the internal server."

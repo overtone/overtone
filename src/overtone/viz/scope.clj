@@ -141,9 +141,10 @@
 (defn- scope-buf
   "Set a buffer to view in the scope."
   [s]
-  (assoc s
-    :size (:n-frames (buffer-info (:num s)))
-    :buf (buffer-info (:num s))))
+  (let [info (buffer-info (:num s))]
+    (assoc s
+      :size (:size info)
+      :buf  info)))
 
 (defn scope-close
   [s]

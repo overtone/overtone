@@ -39,10 +39,10 @@
           id       (alloc-id :audio-buffer)
           arg-map  (apply hash-map args)
           start    (get arg-map :start 0)
-          n-frames (get arg-map :n-frames 0)]
+          n-frames (get arg-map :size 0)]
       (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
       (let [info   (buffer-info id)
-            _      (when (and (= 0 (:n-frames info))
+            _      (when (and (= 0 (:size info))
                               (= 0.0 (:rate info))
                               (= 0 (:n-channels info)))
                      (free-id :audio-buffer id)
@@ -51,7 +51,7 @@
                                :id id
                                :path path
                                :name f-name
-                               :size (:n-frames info)
+                               :size (:size info)
                                :rate (:rate info)
                                :n-channels (:n-channels info)}
                      {:type ::sample})]
