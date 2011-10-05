@@ -122,8 +122,10 @@ i.e. (pow 2 4) => 16, (pow 5 3) => 125"}
    "scale-neg" {:summary "Scale negative part of input wave"
                 :doc "a*b when a < 0, otherwise a."}
 
-   "clip2" {:summary "Bilateral clipping"
-            :doc "clips input wave a to +/- b"}
+   "clip2" {:args [{:name "input" :doc "Input signal"}
+                   {:name "clip-val" :doc "Max/min val of input signal before clipping is applied"}]
+            :summary "Bilateral clipping"
+            :doc "clips input wave to +/- clip-val"}
 
    "excess" {:summary "Clipping residual"
              :doc "Returns the difference of the original signal and its clipped form: (a - clip2(a,b))."}
@@ -135,7 +137,7 @@ i.e. (pow 2 4) => 16, (pow 5 3) => 125"}
             :doc "wraps input wave to +/- b"}
    })
 
-  (def binaryopugen-docspecs
-    (into {} (map
-              (fn [[k v]] [(normalize-ugen-name k) v])
-              unnormalized-binaryopugen-docspecs)))
+(def binaryopugen-docspecs
+  (into {} (map
+            (fn [[k v]] [(normalize-ugen-name k) v])
+            unnormalized-binaryopugen-docspecs)))
