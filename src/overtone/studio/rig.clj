@@ -60,8 +60,9 @@
     (let [source  (in in-bus)
           limited (compander source source threshold
                              slope-below slope-above
-                             clamp-time relax-time)]
-      (out out-bus (pan2 limited pan volume)))))
+                             clamp-time relax-time)
+          clipped (clip2 limited 5)]
+      (out out-bus (pan2 clipped pan volume)))))
 
 (defn volume
   "Master volume control on the mixer."
