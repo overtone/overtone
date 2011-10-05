@@ -59,7 +59,7 @@ Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list
 
 ### Ubuntu Quick Setup:
 
-    sudo apt-get install jack-tools ant sun-java6-jdk fftw3 qjackctl
+    sudo apt-get install jack-tools ant openjdk-6-jdk fftw3 qjackctl
 
 You'll need to get the jack audio daemon running, and we recommend qjackctl to
 figure out what command will be best to use.  Then once you have it dialed in you can
