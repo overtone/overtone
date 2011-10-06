@@ -2,9 +2,11 @@
     ^{:doc "Useful file manipulation fns"
       :author "Sam Aaron"}
   overtone.helpers.file
+  (:import [java.net URL])
   (:use [clojure.java.io]
         [overtone.helpers.string])
-  (:require [org.satta.glob :as satta-glob]))
+  (:require [org.satta.glob :as satta-glob]
+            [clojure.java.io :as io]))
 
 (defn- files->abs-paths
   "Given a seq of java.io.File objects, returns a seq of absolute paths for each
@@ -104,3 +106,40 @@
   [pattern]
   (let [pattern (resolve-tilde-path pattern)]
     (satta-glob/glob pattern)))
+
+(defn- download-file-without-timeout
+  "Downloads remote file at url to local file specified by target path. Has
+  potential to block current thread whilst reading data from remote host. See
+  download-file-with-timeout for a non-blocking version."
+  [url target-path]
+  (let [target-path (resolve-tilde-path target-path)]
+    (with-open [in  (io/input-stream url)
+                out (io/output-stream target-path)]
+      (io/copy in out))))
+
+(defn- download-file-with-timeout
+  "Downloads remote file at url to local file specified by target path. If data
+  transfer stalls for more than timeout ms, throws a
+  java.net.SocketTimeoutException"
+  [url target-path timeout]
+  (let [target-path (resolve-tilde-path target-path)
+        url (URL. url)
+        con  (.openConnection url)]
+    (.setReadTimeout con timeout)
+    (with-open [in (.getInputStream con)
+                out (io/output-stream target-path)]
+      (io/copy in out))))
+
+(defn download-file
+  "Downloads the file pointed to by URI to local path target-path. If no timeout
+  is specified will use blocking io to transfer data. If timeout is specified,
+  transfer will block for at most timeout ms before throwing a
+  java.net.SocketTimeoutException if data transfer has stalled."
+  ([url target-path] (download-file-without-timeout url target-path))
+  ([url target-path timeout] (download-file-with-timeout url target-path timeout)))
+
+(defn file-size
+  "Returns the size of the file pointed to by path in bytes"
+  [path]
+  (let [path (resolve-tilde-path path)]
+    (.length (file path))))
