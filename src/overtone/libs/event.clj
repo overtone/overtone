@@ -47,7 +47,7 @@
   (on-event* event-handlers* event-type key handler))
 
 (defn on-sync-event
-  "Runs handler whenever events of type event-type are fired synchronously on
+  "Synchronously runs handler whenever events of type event-type are fired on
   the event handling thread i.e. causes the event handling thread to block until
   all sync events have been handled. Events may be triggered with the fns event
   and sync-event.
