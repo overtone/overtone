@@ -80,7 +80,7 @@
   of only the files within."
   [path]
   (let [files (filter #(.isFile %) (ls* path))]
-    (files->abs-paths files)))
+    (files->names files)))
 
 (defn ls-dir-paths
   "Given a path to a directory, returns a seq of strings representing the full
