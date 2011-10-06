@@ -69,7 +69,9 @@
   already been satisfied, otherwise it will run as soon as they are.
 
   If a dep handler has already been registered with the same key, a second
-  registration with just replace the first."
+  registration with just replace the first.
+
+  Uses an agent so it's safe to call this from within a transaction."
   [deps key handler]
   (let [deps (if (coll? deps)
                (set deps)
@@ -77,12 +79,14 @@
     (send-off dep-state* on-deps* key deps handler)))
 
 (defn satisfy-deps
-  "Specifies that a given dependency has been satisfied."
+  "Specifies that a given dependency has been satisfied. Uses an agent so it's
+  safe to call this from within a transaction."
   [& deps]
   (send-off dep-state* satisfy* (set deps)))
 
 (defn reset-deps
-  "Reset the dependency system."
+  "Reset the dependency system. Uses an agent so it's safe to call this from
+  within a transaction."
   []
   (send dep-state* (fn [& args]
                      {:satisfied #{}
@@ -90,7 +94,8 @@
                       :done []})))
 
 (defn unsatisfy-all-dependencies
-  "Unsatisfy all deps and reset completed tasks as todo tasks"
+  "Unsatisfy all deps and reset completed tasks as todo tasks. Uses an agent so
+  it's safe to call this from within a transaction."
   []
   (send dep-state* (fn [deps]
                      {:satisfied #{}
