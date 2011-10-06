@@ -30,6 +30,9 @@
 (defonce studio-status* (ref nil))
 (defonce MIXER-BUS 10)
 
+(on-event "/server-audio-clipping" (fn [msg]
+                                     (println "TOO LOUD!! (audio clipped)"))
+          ::server-audio-clipping-warner)
 
 (defn rig-booted? []
   (= :rig-booted @studio-status*))
@@ -62,6 +65,7 @@
                              slope-below slope-above
                              clamp-time relax-time)
           clipped (clip2 limited 5)]
+      (send-reply (trig1 (> (a2k source) 5) 0.25) "/server-audio-clipping")
       (out out-bus (pan2 clipped pan volume)))))
 
 (defn volume
