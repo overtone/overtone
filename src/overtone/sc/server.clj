@@ -19,10 +19,16 @@
 (defonce synth-group*   (ref nil))
 (defonce osc-log*       (atom []))
 
-(defn server-status
-  "Returns a keyword representing the current status of the server."
+(defn server-info
+  "Returns connection information regarding the currently connected server"
   []
-  @server-status*)
+  @server-info*)
+
+(defn server-status
+  "Returns a keyword representing the current status of the server.
+  i.e. :disconnected, :connected or some connecting status."
+  []
+  (:status @server-info*))
 
 (defn connected?
   "Returns true if the server is currently connected"
@@ -33,6 +39,16 @@
   "Returns true if the server is currently disconnected"
   []
   (= :disconnected (server-status)))
+
+(defn internal-server?
+  "Returns true if the server is internal"
+  []
+  (= :internal (:connection (server-info))))
+
+(defn external-server?
+  "Returns true if the server is external"
+  []
+  (= :external (:connection (server-info))))
 
 (defmacro at
   "All messages sent within the body will be sent in the same timestamped OSC
@@ -79,14 +95,16 @@
                                                        192.168.1.23 listening to
                                                        port 57110"
   ([port] (connect-external-server "127.0.0.1" port))
-  ([host port] (connect host port)))
+  ([host port]
+     (connect host port)))
 
 (defn boot-external-server
   "Boot an external server by starting up an external process and connecting to
   it. Requires SuperCollider to be installed in the standard location for your
   OS."
-  ([] (boot :external (+ (rand-int 50000) 2000)))
-  ([port] (boot :external port)))
+  ([] (boot-external-server (+ (rand-int 50000) 2000)))
+  ([port]
+     (boot :external port)))
 
 (defn boot-server
   "Boot an internal server."
@@ -126,7 +144,7 @@
         (apply parse-status (:args (deref! p)))
         (catch TimeoutException t
           :timeout)))
-    @server-status*))
+    (server-status)))
 
 (defn clear-msg-queue
   "Remove any scheduled OSC messages from the run queue."
