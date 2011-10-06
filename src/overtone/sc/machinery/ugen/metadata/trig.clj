@@ -19,7 +19,7 @@
 
       {:name "Trig1"
        :args [{:name "trig", :default 0.0 :doc "trigger. Trigger can be any signal. A trigger happens when the signal changes from non-positive to positive."}
-              {:name "dur", :default 0.1 :doc "duration of the trigger output."}]
+              {:name "dur", :default 0.1 :doc "duration of the trigger output in seconds."}]
        :signal-range :unipolar
        :default-rate :kr
        :doc "outputs one for dur seconds whenever the input goes from negative to positive"}
