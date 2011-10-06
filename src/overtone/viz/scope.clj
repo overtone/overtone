@@ -31,6 +31,17 @@
                                                         (ref-set scope-group* (group :tail ROOT-GROUP))
                                                         (satisfy-deps :scope-group-created)))
 
+
+(defn- ensure-internal-server!
+  "Throws an exception if the server isn't internal - scope relies on fast
+  access to shared buffers with the server which is currently only available
+  with the internal server. Also ensures server is connected."
+  []
+  (when (disconnected?)
+    (throw (Exception. "Cannot use scopes until a server has been booted or connected")))
+  (when (external-server?)
+    (throw (Exception. (str "Sorry, it's  only possible to use scopes with an internal server. Your server info is as follows: " (server-info))))))
+
 (defn- update-scope-data
   "Updates the scope by reading the current status of the buffer and repainting.
   Currently only updates bus scope as there's a bug in scsynth-jna which crashes
@@ -80,7 +91,7 @@
         (.scale 1 (* -1 y-zoom))
         (.drawPolyline ^ints x-array ^ints y-a width)))))
 
-(defn scope-panel [id width height]
+(defn- scope-panel [id width height]
   (let [panel (proxy [JPanel] [true]
                 (paint [g] (paint-scope g id)))
         _ (.setPreferredSize panel (Dimension. width height))]
@@ -106,6 +117,7 @@
   "Schedule the scope to be updated every (/ 1000 FPS) ms (unless the scopes are
   already running in which case it does nothing."
   []
+  (ensure-internal-server!)
   (dosync
    (when-not @scopes-running?*
      (at-at/every (/ 1000 FPS) update-scopes scope-pool)
@@ -130,7 +142,9 @@
   (doall (map reset-data-arrays (vals @scopes*))))
 
 (defn scopes-stop
+  "Stop all scopes from running."
   []
+  (ensure-internal-server!)
   (at-at/stop-and-reset-pool! scope-pool)
   (empty-scope-data)
   (dosync (ref-set scopes-running?* false)))
@@ -161,7 +175,9 @@
   [s]
   (log/info (str "Closing scope: \n" s))
   (let [{:keys [id bus-synth buf]} s]
-    (when bus-synth (kill bus-synth))
+    (when (and bus-synth
+               (connected?))
+      (kill bus-synth))
     (dosync (alter scopes* dissoc id))))
 
 (defn- mk-scope
@@ -235,6 +251,7 @@
       :or {bus 0
            buf -1
            keep-on-top false}}]
+     (ensure-internal-server!)
      (let [buf (if (buffer? buf) (:id buf) buf)
            kind (if (= -1 buf) :bus :buf)
            num  (if (= -1 buf) bus buf)
@@ -245,11 +262,13 @@
 (defn pscope
   "Creates a 'perminent' scope, i.e. one where the window is always kept on top of other OS windows. See scope."
   ([& args]
+     (ensure-internal-server!)
      (apply scope (concat args [:keep-on-top true]))))
 
 (defn- reset-scopes
   "Restart scopes if they have already been running"
   []
+  (ensure-internal-server!)
   (dosync
    (ref-set scopes*
             (reduce (fn [new-scopes [k v]]
@@ -262,8 +281,13 @@
    (scopes-start)))
 
 
-(on-deps #{:synthdefs-loaded :scope-group-created} ::reset-scopes reset-scopes)
-(on-sync-event :shutdown scopes-stop  ::stop-scopes)
+(on-deps #{:synthdefs-loaded :scope-group-created} ::reset-scopes #(when (internal-server?)
+                                                                     (reset-scopes)))
+(on-sync-event :shutdown #(when (internal-server?)
+                            (scopes-stop)
+                            (dorun
+                             (map (fn [s] scope-close s) @scopes*)))
+               ::stop-scopes)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Testing
