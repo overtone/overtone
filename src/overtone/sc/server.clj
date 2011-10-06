@@ -96,7 +96,8 @@
                                                        port 57110"
   ([port] (connect-external-server "127.0.0.1" port))
   ([host port]
-     (connect host port)))
+     (connect host port)
+     (server-status)))
 
 (defn boot-external-server
   "Boot an external server by starting up an external process and connecting to
@@ -104,17 +105,20 @@
   OS."
   ([] (boot-external-server (+ (rand-int 50000) 2000)))
   ([port]
-     (boot :external port)))
+     (boot :external port)
+     (server-status)))
 
 (defn boot-server
   "Boot an internal server."
   []
-  (boot :internal))
+  (boot :internal)
+  (server-status))
 
 (defn kill-server
   "Shutdown the running server"
   []
-  (shutdown-server))
+  (shutdown-server)
+  (server-status))
 
 (defn external-server-log
   "Print the external server log."
