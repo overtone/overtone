@@ -171,6 +171,8 @@
 (defn buffer-data
   "Get the floating point data for a buffer on the internal server."
   [buf]
+  (when-not (internal-server?)
+    (throw (Exception. (str "Only able to fetch buffer data directly from an internal server. Try #'buffer-read instead."))))
   (let [buf-id (buffer-id buf)
         snd-buf (.getSndBufAsFloatArray @sc-world* buf-id)]
     snd-buf))
