@@ -5,6 +5,11 @@
         [overtone.sc synth gens node server]
         [overtone.util lib]))
 
+(defonce output-bus-count* (ref nil))
+(defonce input-bus-count* (ref nil))
+(defonce audio-bus-count* (ref nil))
+(defonce buffer-count* (ref nil))
+
 (defonce __SERVER-INFO__
   (defsynth snd-server-info
     []
@@ -24,7 +29,7 @@
 (defn server-info
   []
   (when (disconnected?)
-    (throw (Exception. "Please connect to a server before attempting to ask for server-info.o")))
+    (throw (Exception. "Please connect to a server before attempting to ask for server-info.")))
   (let [prom (promise)]
     (on-event "/server-info"
               (fn [msg]
@@ -48,3 +53,46 @@
           res (deref! prom)]
       (kill synth-id)
       res)))
+
+(defn server-num-output-buses
+  "Returns the number of output buses accessible by the server. This number may change depending on host architecture but is static for a given running server for the duration of boot."
+  []
+  (if-let [cnt @output-bus-count*]
+    cnt
+    (let [info (server-info)]
+      (dosync
+       (ref-set output-bus-count*  (:num-output-buses info))))))
+
+(defn server-num-input-buses
+  "Returns the number of input buses accessible by the server. This number may change depending on host architecture but is static for a given running server for the duration of boot."
+  []
+  (if-let [cnt @input-bus-count*]
+    cnt
+    (let [info (server-info)]
+      (dosync
+       (ref-set input-bus-count*  (:num-input-buses info))))))
+
+(defn server-num-audio-buses
+  "Returns the number of audio buses accessible by the server. This number may change depending on host architecture but is static for a given running server for the duration of boot."
+  []
+  (if-let [cnt @audio-bus-count*]
+    cnt
+    (let [info (server-info)]
+      (dosync
+       (ref-set audio-bus-count*  (:num-audio-buses info))))))
+
+(defn server-num-buffers
+  "Returns the number of buffers accessible by the server. This number may change depending on host architecture but is static for a given running server for the duration of boot."
+  []
+  (if-let [cnt @buffer-count*]
+    cnt
+    (let [info (server-info)]
+      (dosync
+       (ref-set buffer-count*  (:num-buffers info))))))
+
+(on-sync-event :shutdown #(dosync
+                           (ref-set output-bus-count* nil)
+                           (ref-set input-bus-count* nil)
+                           (ref-set audio-bus-count* nil)
+                           (ref-set buffer-count* nil))
+               ::reset-cached-server-info)
