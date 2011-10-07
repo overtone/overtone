@@ -29,15 +29,15 @@
 
    {:name "NumOutputBuses"
     :rates #{:ir}
-    :doc "returns the number of output buses allocated on the server"}
+    :doc "returns the number of output buses allocated on the server.  This is the number of hardware outputs provided by the host machine such as left and right speakers."}
 
    {:name "NumInputBuses"
     :rates #{:ir}
-    :doc "returns the number of output buses allocated on the server"}
+    :doc "returns the number of input buses allocated on the server. This is the number of hardware inputs provided by the host machine such as a mic."}
 
    {:name "NumAudioBuses"
     :rates #{:ir}
-    :doc "returns the number of audio buses allocated on the server"}
+    :doc "returns the number of audio buses allocated on the server."}
 
    {:name "NumControlBuses"
     :rates #{:ir}
