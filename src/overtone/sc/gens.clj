@@ -3,12 +3,12 @@
       :author "Sam Aaron"}
   overtone.sc.gens
   (:use [overtone.util.ns :only [immigrate]])
-  (:require [overtone.sc.cgens audio-in oscillators demand mix]
-            [overtone.sc ugens]))
+  (:require [overtone.sc.machinery.cgens audio-in oscillators demand mix]
+            [overtone.sc.machinery ugens]))
 
 (immigrate
- 'overtone.sc.ugens
- 'overtone.sc.cgens.audio-in
- 'overtone.sc.cgens.oscillators
- 'overtone.sc.cgens.demand
- 'overtone.sc.cgens.mix)
+ 'overtone.sc.machinery.ugens
+ 'overtone.sc.machinery.cgens.audio-in
+ 'overtone.sc.machinery.cgens.oscillators
+ 'overtone.sc.machinery.cgens.demand
+ 'overtone.sc.machinery.cgens.mix)

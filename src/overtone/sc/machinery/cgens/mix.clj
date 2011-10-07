@@ -1,6 +1,5 @@
-(ns overtone.sc.cgens.mix
-  (:use [overtone.sc.machinery defcgen]
-        [overtone.sc ugens]
+(ns overtone.sc.machinery.cgens.mix
+  (:use [overtone.sc.machinery defcgen ugens]
         [overtone.util lib]
         [overtone.helpers stereo]))
 
