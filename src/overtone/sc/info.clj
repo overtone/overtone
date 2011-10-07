@@ -27,6 +27,10 @@
                                             (num-running-synths)])))
 
 (defn server-info
+  "Fetches a bunch of useful server info. Has to trigger and poll a synth to
+  fetch data. See #'server-num-output-buses, #'server-num-input-buses,
+  #'server-num-audio-buses and #'sever-num-buffers for fast cached versions
+  of the static values in this info map."
   []
   (when (disconnected?)
     (throw (Exception. "Please connect to a server before attempting to ask for server-info.")))
@@ -55,7 +59,9 @@
       res)))
 
 (defn server-num-output-buses
-  "Returns the number of output buses accessible by the server. This number may change depending on host architecture but is static for a given running server for the duration of boot."
+  "Returns the number of output buses accessible by the server. This number may
+  change depending on host architecture but is static for a given running server
+  for the duration of boot."
   []
   (if-let [cnt @output-bus-count*]
     cnt
@@ -64,7 +70,9 @@
        (ref-set output-bus-count*  (:num-output-buses info))))))
 
 (defn server-num-input-buses
-  "Returns the number of input buses accessible by the server. This number may change depending on host architecture but is static for a given running server for the duration of boot."
+  "Returns the number of input buses accessible by the server. This number may
+  change depending on host architecture but is static for a given running
+  server for the duration of boot."
   []
   (if-let [cnt @input-bus-count*]
     cnt
@@ -73,7 +81,9 @@
        (ref-set input-bus-count*  (:num-input-buses info))))))
 
 (defn server-num-audio-buses
-  "Returns the number of audio buses accessible by the server. This number may change depending on host architecture but is static for a given running server for the duration of boot."
+  "Returns the number of audio buses accessible by the server. This number may
+  change depending on host architecture but is static for a given running server
+  for the duration of boot."
   []
   (if-let [cnt @audio-bus-count*]
     cnt
@@ -82,7 +92,9 @@
        (ref-set audio-bus-count*  (:num-audio-buses info))))))
 
 (defn server-num-buffers
-  "Returns the number of buffers accessible by the server. This number may change depending on host architecture but is static for a given running server for the duration of boot."
+  "Returns the number of buffers accessible by the server. This number may
+  change depending on host architecture but is static for a given running server
+  for the duration of boot."
   []
   (if-let [cnt @buffer-count*]
     cnt
