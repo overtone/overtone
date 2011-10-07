@@ -7,7 +7,7 @@
         [overtone.libs event deps]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
-        [overtone.sc server synth ugens buffer]
+        [overtone.sc server synth gens buffer]
         [overtone.helpers.file :only [glob resolve-tilde-path]]))
 
 ; Define a default wav player synth

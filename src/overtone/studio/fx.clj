@@ -3,7 +3,7 @@
       :author "Jeff Rose"}
   overtone.studio.fx
   (:use [overtone.libs event]
-        [overtone.sc synth ugens]))
+        [overtone.sc synth gens]))
 
 (defonce __FX-SYNTHS__
   (do

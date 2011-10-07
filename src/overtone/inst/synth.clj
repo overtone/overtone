@@ -1,5 +1,5 @@
 (ns overtone.inst.synth
-  (:use [overtone.sc ugens envelope]
+  (:use [overtone.sc gens envelope]
         [overtone.sc.machinery.ugen.fn-gen]
         [overtone.studio rig]))
 

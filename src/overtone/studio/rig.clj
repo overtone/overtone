@@ -9,7 +9,7 @@
         [overtone.sc.machinery defaults synthdef]
         [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
         [overtone.sc.machinery.server comms]
-        [overtone.sc server synth ugens envelope node bus]
+        [overtone.sc server synth gens envelope node bus]
         [overtone.sc.util :only [id-mapper]]
         [overtone.music rhythm time])
   (:require [overtone.studio fx]

@@ -1,7 +1,6 @@
 (ns overtone.sc.examples.osc
   (:use [overtone.sc.machinery defexample]
-        [overtone.sc ugens]
-        [overtone.sc.cgens demand]))
+        [overtone.sc gens]))
 
 (defexamples impulse
   (:poll

@@ -1,5 +1,5 @@
 (ns overtone.inst.drum
-  (:use [overtone.sc ugens envelope synth]
+  (:use [overtone.sc gens envelope synth]
         [overtone.studio rig]))
 
 (definst kick [freq 80 mod-freq 5 mod-index 5

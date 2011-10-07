@@ -1,5 +1,5 @@
 (ns overtone.inst.io
-  (:use [overtone.sc ugens envelope]
+  (:use [overtone.sc gens envelope]
         [overtone.studio rig]))
 
 (definst mic [amp 1]
