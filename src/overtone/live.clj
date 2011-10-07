@@ -5,7 +5,7 @@
             [overtone.osc]
             [overtone.algo chance scaling trig]
             [overtone.sc buffer bus envelope node example
-                         sample server synth trigger gens]
+                         sample server synth trigger gens info]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
             [overtone.repl ugens examples shell]
@@ -28,6 +28,7 @@
  'overtone.sc.envelope
  'overtone.sc.bus
  'overtone.sc.example
+ 'overtone.sc.info
  'overtone.music.rhythm
  'overtone.music.pitch
  'overtone.music.tuning
