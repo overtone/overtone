@@ -15,7 +15,7 @@
 (defonce server-thread*       (ref nil))
 (defonce sc-world*            (ref nil))
 (defonce external-server-log* (ref []))
-(defonce server-info*         (ref {:status :disconnected}))
+(defonce connection-info*         (ref {:status :disconnected}))
 
 (defn server-notifications-on
   "Turn on notification messages from the audio server.  This lets us free
@@ -75,7 +75,7 @@
 (defn- setup-connect-handlers []
   (let [handler-fn
         (fn []
-          (dosync (alter server-info* assoc :status :connected))
+          (dosync (alter connection-info* assoc :status :connected))
           (server-notifications-on) ; turn on notifications now that we can communicate
           (satisfy-deps :connected)
           (event :connected)
@@ -113,7 +113,7 @@
     ;; Send /status in a loop until we get a reply
     (loop [cnt 0]
       (log/debug "connect loop...")
-      (when (= :connecting (:status @server-info*))
+      (when (= :connecting (:status @connection-info*))
         (if (< cnt N-RETRIES)
           (do
             (log/debug (str "sending status... (" cnt ")"  ))
@@ -137,7 +137,7 @@
   ([] (connect-internal))
   ([port] (connect "127.0.0.1" port))
   ([host port]
-   (dosync (alter server-info* assoc :status :connecting))
+   (dosync (alter connection-info* assoc :status :connecting))
    (.run (Thread. #(connect-external host port)))))
 
 (defn- internal-booter
@@ -145,7 +145,7 @@
   []
   (log/info "booting internal audio server")
   (on-deps :booted ::connect-internal connect)
-  (dosync (alter server-info* assoc :status :booting-internal))
+  (dosync (alter connection-info* assoc :status :booting-internal))
   (let [server (ScSynth.)
         listener (reify ScSynthStartedListener
                    (started [this]
@@ -184,7 +184,7 @@
         in-stream (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
         read-buf (make-array Byte/TYPE 256)]
-    (while (not (= :disconnected (:status @server-info*)))
+    (while (not (= :disconnected (:status @connection-info*)))
       (sc-log-external in-stream read-buf)
       (sc-log-external err-stream read-buf)
       (Thread/sleep 250))
@@ -195,7 +195,7 @@
   "Boot the audio server in an external process and tell it to listen on a
   specific port."
   ([port]
-     (when-not (= :connected (:status @server-info*))
+     (when-not (= :connected (:status @connection-info*))
        (let [sc-path (first (filter #(.exists (java.io.File. %)) (SC-PATHS (@config* :os))))
              cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (@config* :os))))
              sc-thread (Thread. #(external-booter cmd))]
@@ -210,7 +210,7 @@
   "Makes the current thread sleep until scsynth has successfully connected and
   the boot process has completed."
   []
-  (while (not (= :connected (:status @server-info*)))
+  (while (not (= :connected (:status @connection-info*)))
     (Thread/sleep 100)))
 
 (defn boot
@@ -224,8 +224,8 @@
   ([]                (boot (get @config* :server :internal) SERVER-PORT))
   ([connection-type] (boot connection-type SERVER-PORT))
   ([connection-type port]
-     (locking server-info*
-       (when (= :connected (:status @server-info*))
+     (locking connection-info*
+       (when (= :connected (:status @connection-info*))
          (throw (Exception. "Can't boot non-disconnected server.")))
 
        (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
@@ -237,20 +237,20 @@
          (dosync
           (cond
            (= :internal connection-type)
-           (ref-set server-info* {:status :connected
-                                  :connection connection-type})
+           (ref-set connection-info* {:status :connected
+                                      :connection connection-type})
 
            (= :external connection-type)
-           (ref-set server-info* {:status :connected
-                                  :connection connection-type
-                                  :port port
-                                  :host "127.0.0.1"})))))))
+           (ref-set connection-info* {:status :connected
+                                      :connection connection-type
+                                      :port port
+                                      :host "127.0.0.1"})))))))
 
 (defn shutdown-server
   "Quit the SuperCollider synth process."
   []
-  (locking server-info*
-    (when (= :disconnected (:status @server-info*))
+  (locking connection-info*
+    (when (= :disconnected (:status @connection-info*))
       (throw (Exception. "Can't kill unconnected server.")))
 
     (log/info "quiting...")
@@ -262,7 +262,7 @@
 
     (dosync
      (ref-set server-osc-peer* nil)
-     (ref-set server-info* {:status :disconnected})
+     (ref-set connection-info* {:status :disconnected})
      (unsatisfy-all-dependencies))))
 
 (defonce _shutdown-hook

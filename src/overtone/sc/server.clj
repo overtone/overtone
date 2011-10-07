@@ -19,16 +19,16 @@
 (defonce synth-group*   (ref nil))
 (defonce osc-log*       (atom []))
 
-(defn server-info
+(defn connection-info
   "Returns connection information regarding the currently connected server"
   []
-  @server-info*)
+  @connection-info*)
 
 (defn server-status
   "Returns a keyword representing the current status of the server.
   i.e. :disconnected, :connected or some connecting status."
   []
-  (:status @server-info*))
+  (:status @connection-info*))
 
 (defn connected?
   "Returns true if the server is currently connected"
@@ -43,12 +43,12 @@
 (defn internal-server?
   "Returns true if the server is internal"
   []
-  (= :internal (:connection (server-info))))
+  (= :internal (:connection (connection-info))))
 
 (defn external-server?
   "Returns true if the server is external"
   []
-  (= :external (:connection (server-info))))
+  (= :external (:connection (connection-info))))
 
 (defmacro at
   "All messages sent within the body will be sent in the same timestamped OSC
