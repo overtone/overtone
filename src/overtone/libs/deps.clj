@@ -5,6 +5,13 @@
   overtone.libs.deps
   (:require [clojure.set :as set]))
 
+;; A representation of the state of the dependencies:
+;; :satisified - a set of keywords representing ids for each of the satisfied
+;;               dependencies
+;; :todo       - a list of functions with associated dependencies which need
+;;               to be executed when those dependencies are met
+;; :done       - a list of functions with associated dependencies which have
+;;               already been executed as their dependencies have been met
 (defonce dep-state* (agent {:satisfied #{}
                             :todo []
                             :done []}))
@@ -63,6 +70,13 @@
      :done t-done
      :todo t-todo}))
 
+(defn- deps->set
+  "Converts deps to a deps-set. Deals with single elements or collections."
+  [deps]
+  (if (coll? deps)
+    (set deps)
+    (set [deps])))
+
 (defn on-deps
   "Specify that a function should be called once one or more dependencies
   have been satisfied. The function is run immediately if the deps have
@@ -73,9 +87,7 @@
 
   Uses an agent so it's safe to call this from within a transaction."
   [deps key handler]
-  (let [deps (if (coll? deps)
-               (set deps)
-               (set [deps]))]
+  (let [deps (deps->set deps)]
     (send-off dep-state* on-deps* key deps handler)))
 
 (defn satisfy-deps
@@ -101,3 +113,16 @@
                      {:satisfied #{}
                       :todo (deps :done)
                       :done []})))
+
+(defn satisfied?
+  "Returns true if all the deps (specified either as a single dep or a
+  collection of deps) have been satisfied."
+  [deps]
+  (let [deps (deps->set deps)
+        satisfied (:satisfied @dep-state*)]
+    (set/superset? satisfied deps)))
+
+(defn satisfied-deps
+  "Returns a set of all satisfied deps"
+  []
+  (:satisfied @dep-state*))
