@@ -197,3 +197,9 @@
   (log/level :error)
   (sc-osc-debug-off)
   (snd "/dumpOSC" 0))
+
+(defn ensure-connected!
+  "Throws an exception if the server isn't currently connected"
+  []
+  (when-not (connected?)
+    (throw (Exception. "Server needs to be connected before you can perform this action."))))
