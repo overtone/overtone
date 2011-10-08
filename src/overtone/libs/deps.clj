@@ -91,8 +91,8 @@
     (send-off dep-state* on-deps* key deps handler)))
 
 (defn satisfy-deps
-  "Specifies that a given dependency has been satisfied. Uses an agent so it's
-  safe to call this from within a transaction."
+  "Specifies that a list of dependencies have been satisfied. Uses an agent so
+  it's safe to call this from within a transaction."
   [& deps]
   (send-off dep-state* satisfy* (set deps)))
 
@@ -114,15 +114,33 @@
                       :todo (deps :done)
                       :done []})))
 
-(defn satisfied?
-  "Returns true if all the deps (specified either as a single dep or a
-  collection of deps) have been satisfied."
-  [deps]
-  (let [deps (deps->set deps)
-        satisfied (:satisfied @dep-state*)]
-    (set/superset? satisfied deps)))
-
 (defn satisfied-deps
   "Returns a set of all satisfied deps"
   []
   (:satisfied @dep-state*))
+
+(defn deps-satisfied?
+  "Returns true if all the deps (specified either as a single dep or a
+  collection of deps) have been satisfied."
+  [deps]
+  (let [deps (deps->set deps)]
+    (set/superset? (satisfied-deps) deps)))
+
+(defn wait-until-deps-satisfied
+  "Makes the current thread sleep until specified deps have been satisfied.
+  Thread enters a sleep cycle sleeping for wait-time ms before each dep check.
+  If timeout is a positive value throws timeout exception if deps haven't been
+  satisfied by timeout ms. Default wait-time is 100ms and default timeout is
+  10000 ms"
+  ([deps] (wait-until-deps-satisfied deps 10000 100))
+  ([deps timeout] (wait-until-deps-satisfied deps timeout 100))
+  ([deps timeout wait-time]
+     (if (<= timeout 0)
+       (while (not (deps-satisfied? deps))
+         (Thread/sleep wait-time))
+       (loop [sleep-time 0]
+         (when (> sleep-time timeout)
+           (throw (Exception. (str "The following deps took too long to be satisfied: " deps))))
+         (when-not (deps-satisfied? deps)
+           (Thread/sleep wait-time)
+           (recur (+ sleep-time wait-time)))))))
