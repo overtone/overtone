@@ -5,7 +5,7 @@
       :author "Jeff Rose"}
   overtone.sc.server
   (:import [java.util.concurrent TimeoutException])
-  (:use [overtone.libs event]
+  (:use [overtone.libs event deps]
         [overtone.sc.machinery.server connection comms ]
         [overtone.util.lib :only [deref!]]
         [overtone.osc :only [in-osc-bundle]])
@@ -24,21 +24,15 @@
   []
   @connection-info*)
 
-(defn server-status
-  "Returns a keyword representing the current status of the server.
-  i.e. :disconnected, :connected or some connecting status."
-  []
-  (:status @connection-info*))
-
 (defn connected?
   "Returns true if the server is currently connected"
   []
-  (= :connected (server-status)))
+  (= :connected @connection-status*))
 
 (defn disconnected?
   "Returns true if the server is currently disconnected"
   []
-  (= :disconnected (server-status)))
+  (not (connected?)))
 
 (defn internal-server?
   "Returns true if the server is internal"
@@ -64,7 +58,7 @@
 
   (snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
-  (when-not (connected?)
+  (when (disconnected?)
     (throw (Exception. "Unable to send messages to a disconnected server. Please boot or connect to a server.")))
   (apply server-snd path args))
 
@@ -97,7 +91,7 @@
   ([port] (connect-external-server "127.0.0.1" port))
   ([host port]
      (connect host port)
-     (server-status)))
+     :connected-to-external-server))
 
 (defn boot-external-server
   "Boot an external server by starting up an external process and connecting to
@@ -106,19 +100,19 @@
   ([] (boot-external-server (+ (rand-int 50000) 2000)))
   ([port]
      (boot :external port)
-     (server-status)))
+     :booted-external-server))
 
 (defn boot-server
   "Boot an internal server."
   []
   (boot :internal)
-  (server-status))
+  :booted-internal-server)
 
 (defn kill-server
   "Shutdown the running server"
   []
   (shutdown-server)
-  (server-status))
+  :server-killed)
 
 (defn external-server-log
   "Print the external server log."
@@ -148,7 +142,7 @@
         (apply parse-status (:args (deref! p)))
         (catch TimeoutException t
           :timeout)))
-    (server-status)))
+    :disconnected))
 
 (defn clear-msg-queue
   "Remove any scheduled OSC messages from the run queue."
