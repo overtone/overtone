@@ -27,23 +27,21 @@
 (defonce mixer-id*     (ref nil))
 (defonce fx-group*     (ref nil))
 (defonce record-group* (ref nil))
-(defonce studio-status* (ref nil))
 (defonce MIXER-BUS 10)
 
 (on-event "/server-audio-clipping" (fn [msg]
                                      (println "TOO LOUD!! (audio clipped)"))
           ::server-audio-clipping-warner)
 
-(defn rig-booted? []
-  (= :rig-booted @studio-status*))
+(def RIG-BOOT-DEPS [:server-connected :studio-setup-completed])
 
-(on-deps [:connected :studio-setup-completed] ::fully-booted #(dosync (ref-set studio-status* :rig-booted)))
+(defn rig-booted? []
+  (deps-satisfied? RIG-BOOT-DEPS))
 
 (defn wait-until-rig-booted
   "Makes the current thread sleep until the rig completed its boot process."
   []
-  (while (not (rig-booted?))
-    (Thread/sleep 100)))
+  (wait-until-deps-satisfied RIG-BOOT-DEPS))
 
 (defn boot-rig
   "Boots the server and waits until the studio rig has complete set up"
@@ -152,7 +150,7 @@
                                       @instruments*)))
     (satisfy-deps :studio-setup-completed)))
 
-(on-deps :connected ::setup-studio setup-studio)
+(on-deps :server-connected ::setup-studio setup-studio)
 
 ;; Clear and re-create the instrument groups after a reset
 ;; TODO: re-create the instrument groups
