@@ -8,8 +8,7 @@
         [overtone.sc.machinery defaults]
         [overtone.sc.machinery.server comms]
         [overtone.osc]
-        [overtone.osc.decode :only [osc-decode-packet]]
-)
+        [overtone.osc.decode :only [osc-decode-packet]])
   (:require [overtone.util.log :as log]))
 
 (defonce server-thread*       (ref nil))
