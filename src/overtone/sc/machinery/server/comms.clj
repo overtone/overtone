@@ -137,13 +137,3 @@
                           :done))
                       key)
     p)))
-
-(defn sc-osc-debug-on
-  "Log and print out all outgoing OSC messages"
-  []
-  (reset! osc-debug* true ))
-
-(defn sc-osc-debug-off
-  "Turns off OSC debug messages (see sc-osc-debug-on)"
-  []
-  (reset! osc-debug* false))
