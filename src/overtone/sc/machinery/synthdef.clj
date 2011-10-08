@@ -9,7 +9,8 @@
         [overtone.util lib]
         [overtone.libs event deps]
         [overtone.sc server]
-        [overtone.sc.machinery.server comms])
+        [overtone.sc.machinery.server comms]
+        [overtone.helpers.file :only [resolve-tilde-path]])
   (:require [overtone.util.log :as log]))
 
 ;; param-name is :
@@ -139,7 +140,7 @@
   (first (:synths
           (cond
            (keyword? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" (supercollider-synthdef-path (to-str data)))) )
-           (string? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" data)))
+           (string? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" (resolve-tilde-path data))))
            (instance? java.net.URL data) (spec-read-url synthdef-file-spec data)
            (byte-array? data) (spec-read-bytes synthdef-file-spec data)
            :default (throw (IllegalArgumentException. (str "synthdef-read expects either a string, a URL, or a byte-array argument.")))))))
@@ -231,4 +232,5 @@
 (defn load-synth-file
   "Load a synth definition file onto the audio server."
   [path]
-  (snd "/d_recv" (synthdef-bytes (synthdef-read path))))
+  (let [path (resolve-tilde-path path)]
+    (snd "/d_recv" (synthdef-bytes (synthdef-read path)))))
