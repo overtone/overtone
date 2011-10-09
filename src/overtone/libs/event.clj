@@ -28,7 +28,7 @@
      true)))
 
 (defn on-event
-  "Runs handler whenever events of event-type are fired asynchronously. This
+  "Asynchronously runs handler whenever events of event-type are fired. This
   asynchronous behaviour can be overridden if required - see sync-event for
   more information. Events may be triggered with the fns event and sync-event.
 
