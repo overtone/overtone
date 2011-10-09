@@ -29,9 +29,6 @@
 (defonce record-group* (ref nil))
 (defonce MIXER-BUS 10)
 
-(on-event "/server-audio-clipping" (fn [msg]
-                                     (println "TOO LOUD!! (audio clipped)"))
-          ::server-audio-clipping-warner)
 
 (def RIG-BOOT-DEPS [:server-ready :studio-setup-completed])
 
