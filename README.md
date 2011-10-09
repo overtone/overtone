@@ -29,7 +29,7 @@ possible
 
 For a quick glance at all the functionality Overtone puts at your musical fingertips check out the cheat sheet:
 
-  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet-a4.pdf
+  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
 
 ### Project Info:
 
@@ -101,7 +101,7 @@ Now get Overtone:
     ; and pan2 makes the signal stereo
     ; demo simply plays the synth for the specified time in seconds:
 
-    user=> (demo 5 (pan2 (sin-osc 440))))
+    user=> (demo 5 (pan2 (sin-osc 440)))
 
 
     ; Defining a new synthesizer instrument with the definst macro will return a function which
