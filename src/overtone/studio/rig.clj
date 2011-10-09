@@ -50,17 +50,9 @@
 ; TODO: Add basic EQ
 (defonce __MIXER-SYNTH__
   (defsynth mixer [in-bus 49 out-bus 0
-                   volume 0.5 pan 0.0
-                   threshold 0.7
-                   slope-below 1 slope-above 0.1
-                   clamp-time 0.005 relax-time 0.005]
-    (let [source  (in in-bus)
-          limited (compander source source threshold
-                             slope-below slope-above
-                             clamp-time relax-time)
-          clipped (clip2 limited 5)]
-      (send-reply (trig1 (> (a2k source) 5) 0.25) "/server-audio-clipping")
-      (out out-bus (pan2 clipped pan volume)))))
+                   volume 0.5 pan 0.0]
+    (let [source  (in in-bus)]
+      (out out-bus (pan2 source pan volume)))))
 
 (defn volume
   "Master volume control on the mixer."
@@ -171,31 +163,22 @@
 (defn clear-instruments []
   (dosync (ref-set instruments* {})))
 
-(def DEFAULT-INST-VOLUME 0.6)
-
-(defn inst-prefix
-  "Wraps the patch with an out ugen and a volume control, routing it to the master mixer.
-  (inst (sin-osc 440))
-  becomes:
-  (out MIXER-BUS (pan2 (sin-osc 440)))
-  "
-  [params ugens constants]
-  (let [root (last ugens)
-        out-bus (control-proxy "out-bus" MIXER-BUS)
-        volume (control-proxy "volume" DEFAULT-INST-VOLUME)
-        vol-ugen (with-overloaded-ugens (* volume root))
-        out-ugen (with-overloaded-ugens (out out-bus vol-ugen))]
-    [(concat params
-             [{:name "out-bus" :default MIXER-BUS :rate DEFAULT-RATE}
-              {:name "volume" :default DEFAULT-INST-VOLUME :rate DEFAULT-RATE}])
-     (concat ugens
-             [vol-ugen out-ugen])
-     (set (floatify (conj constants MIXER-BUS 1 0)))]))
+(defmacro pre-inst
+  [& args]
+  (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
+    `(let [~@param-proxies]
+       (binding [*ugens* []
+                 *constants* #{}]
+         (with-overloaded-ugens
+           (out MIXER-BUS ~@ugen-form)
+           [~sname
+            ~params
+            *ugens*
+            (into [] *constants*)])))))
 
 (defmacro inst
   [sname & args]
-  `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)
-         [params# ugens# constants#] (inst-prefix params# ugens# constants#)
+  `(let [[sname# params# ugens# constants#] (pre-inst ~sname ~@args)
          sdef# (synthdef sname# params# ugens# constants#)
          sgroup# (or (:group (get @instruments* sname#))
                      (if (connected?)

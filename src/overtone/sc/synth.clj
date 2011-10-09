@@ -356,7 +356,7 @@
 ]
       (player arg-map))))
 
-(defn- normalize-synth-args
+(defn normalize-synth-args
   "Pull out and normalize the synth name, parameters, control proxies and the ugen form
    from the supplied arglist resorting to defaults if necessary."
   [args]
