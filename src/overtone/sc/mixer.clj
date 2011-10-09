@@ -41,7 +41,6 @@
         out-mixers      (doall
                          (map
                           (fn [out-bus]
-                            (println "in: " (+ safe-out-offset out-bus) ", out: " out-bus)
                             (out-bus-mixer :pos :head
                                            :target (main-mixer-group)
                                            :in-bus (+ safe-out-offset out-bus)
@@ -50,7 +49,6 @@
         in-mixers       (doall
                          (map
                           (fn [in-bus]
-                            (println "in: " (+ out-cnt in-bus) ", out: " (+ safe-in-offset in-bus))
                             (in-bus-mixer :pos :head
                                           :target (main-input-group)
                                           :in-bus (+ out-cnt in-bus)
