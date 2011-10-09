@@ -29,7 +29,7 @@ possible
 
 For a quick glance at all the functionality Overtone puts at your musical fingertips check out the cheat sheet:
 
-  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet-a4.pdf
+  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
 
 ### Project Info:
 
