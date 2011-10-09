@@ -28,7 +28,7 @@
 (defonce scope-group* (ref 0))
 
 (on-deps :studio-setup-completed ::create-scope-group #(dosync
-                                                        (ref-set scope-group* (group :tail ROOT-GROUP))
+                                                        (ref-set scope-group* (group :tail (main-monitor-group)))
                                                         (satisfy-deps :scope-group-created)))
 
 

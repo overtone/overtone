@@ -6,7 +6,8 @@
   overtone.sc.server
   (:import [java.util.concurrent TimeoutException])
   (:use [overtone.libs event deps]
-        [overtone.sc.machinery.server connection comms ]
+        [overtone.sc.machinery allocator]
+        [overtone.sc.machinery.server connection comms]
         [overtone.util.lib :only [deref!]]
         [overtone.osc :only [in-osc-bundle]])
   (:require [overtone.util.log :as log]))
@@ -16,8 +17,10 @@
                        :patch 0
                        :snapshot true})
 
-(defonce synth-group*   (ref nil))
-(defonce osc-log*       (atom []))
+(defonce synth-group* (ref nil))
+(defonce osc-log*     (atom []))
+(defonce core-groups* (ref {}))
+
 
 (defn connection-info
   "Returns connection information regarding the currently connected server"
@@ -203,3 +206,46 @@
   []
   (when-not (connected?)
     (throw (Exception. "Server needs to be connected before you can perform this action."))))
+
+(defn root-group
+  []
+  (ensure-connected!)
+  (:root @core-groups*))
+
+(defn main-mixer-group
+  []
+  (ensure-connected!)
+  (:mixer @core-groups*))
+
+(defn main-monitor-group
+  []
+  (ensure-connected!)
+  (:monitor @core-groups*))
+
+(defn main-input-group
+  []
+  (ensure-connected!)
+  (:input @core-groups*))
+
+(defn- setup-core-groups
+  []
+  (let [inpt-id (alloc-id :node)
+        root-id (alloc-id :node)
+        mixr-id (alloc-id :node)
+        mont-id (alloc-id :node)]
+    (with-server-sync #(snd "/g_new" inpt-id 0 0))
+    (with-server-sync #(snd "/g_new" root-id 3 inpt-id))
+    (with-server-sync #(snd "/g_new" mixr-id 3 root-id))
+    (with-server-sync #(snd "/g_new" mont-id 3 mixr-id))
+    (dosync
+     (alter core-groups* assoc :input inpt-id
+                               :root root-id
+                               :mixer mixr-id
+                               :monitor mont-id))
+    (satisfy-deps :core-groups-created)))
+
+(on-deps :server-connected ::setup-core-groups setup-core-groups)
+(on-sync-event :shutdown ::reset-core-groups #(dosync
+                                               (ref-set core-groups* {})))
+
+(on-deps [:server-connected :core-groups-created] ::signal-server-ready #(satisfy-deps :server-ready))

@@ -38,10 +38,8 @@ Continuously play a longer soundfile from disk.  This requires a buffer to be pr
        :args [{:name "bus", :default 0 :doc "the index of the bus to read in from"}
               {:name "numChannels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef."}]
        :rates #{:ar :kr}
-       :doc "read from a bus
-
-
-in:kr is functionally similar to in-feedback. That is it reads all data on the bus whether it is from the current cycle or not. This allows for it to receive data from later in the node order. in:ar reads only data from the current cycle, and will zero data from earlier cycles (for use within that synth; the data remains on the bus). Because of this and the fact that the various out ugens mix their output with data from the current cycle but overwrite data from an earlier cycle it may be necessary to use a private control bus when this type of feedback is desired. There is an example below which demonstrates the problem."}
+       :internal-name true
+       :doc "Internalised see the in cgen for public version of this gen."}
 
       {:name "LocalIn",
        :args [{:name "numChannels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef."}]
@@ -109,18 +107,15 @@ Any time the bus is 'touched' ie. has its value set (using \"/c_set\" etc.), a s
 Reads from a control bus shared between the internal server and the SC client. Control rate only. Writing to a shared control bus from the client is synchronous. When not using the internal server use node arguments or the set method of Bus (or /c_set in messaging style). "}
 
       {:name "Out",
-       :args [{:name "bus" :doc "the index, or array of indexes, of busses to write to. The lowest index numbers are written to the audio hardware."}
-              {:name "channelsArray" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
+       :args [{:name "bus" :doc "the index of the buss to write to. The lowest index numbers are written to the audio hardware."}
+              {:name "signals" :mode :append-sequence :doc "a list of signals or single output to write out. You cannot change the size of this once a synth has been defined."}],
        :num-outs 0
        :rates #{:ar :kr}
        :auto-rate true
        :check (when-ar
-               (all-but-first-input-ar "channelsArray must all be audio rate"))
-       :doc "write a signal to a bus, adding to any existing contents
-
-N.B. Out is subject to control rate jitter. Where sample accurate output is needed, use OffsetOut.
-
-When using an array of bus indexes, the channel array will just be copied to each bus index in the array. So (out:ar [bus1 bus2] channels-array) will be the same as (+ (out:ar bus1 channelsArray)  (out:ar bus2 channelsArray))."}
+               (all-but-first-input-ar "signals must all be audio rate"))
+       :internal-name true
+       :doc ""}
 
       {:name "ReplaceOut", :extends "Out"
        :doc "write signal to a bus, replacing the contents rather than adding to it."

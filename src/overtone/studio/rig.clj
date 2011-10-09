@@ -33,7 +33,7 @@
                                      (println "TOO LOUD!! (audio clipped)"))
           ::server-audio-clipping-warner)
 
-(def RIG-BOOT-DEPS [:server-connected :studio-setup-completed])
+(def RIG-BOOT-DEPS [:server-ready :studio-setup-completed])
 
 (defn rig-booted? []
   (deps-satisfied? RIG-BOOT-DEPS))
@@ -136,21 +136,21 @@
 (on-deps :studio-setup-completed ::start-mixer start-mixer)
 
 (defn setup-studio []
-  (log/info (str "Creating studio group at head of: " ROOT-GROUP))
-  (let [g (with-server-sync #(group :head ROOT-GROUP))
-        f (group :after g)
-        m (group :tail ROOT-GROUP)
-        r (group :tail ROOT-GROUP)]
+  (log/info (str "Creating studio group at head of: " (root-group)))
+  (let [g (with-server-sync #(group :head (root-group)))
+        f (with-server-sync #(group :after g))
+        m (group :tail (root-group))
+        r (group :tail (root-group))]
     (dosync
       (ref-set inst-group* g)
-      (ref-set fx-group* g)
+      (ref-set fx-group* f)
       (ref-set mixer-group* m)
       (ref-set record-group* r)
       (ref-set instruments* (map-vals #(assoc % :group (group :tail g))
                                       @instruments*)))
     (satisfy-deps :studio-setup-completed)))
 
-(on-deps :server-connected ::setup-studio setup-studio)
+(on-deps :server-ready ::setup-studio setup-studio)
 
 ;; Clear and re-create the instrument groups after a reset
 ;; TODO: re-create the instrument groups
@@ -275,7 +275,7 @@
 
 (if (and (nil? @inst-group*)
          (connected?))
-  (dosync (ref-set inst-group* (group :head ROOT-GROUP))))
+  (dosync (ref-set inst-group* (group :head (root-group)))))
 
 (defonce session* (ref
                     {:metro (metronome 120)

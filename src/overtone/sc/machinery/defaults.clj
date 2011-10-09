@@ -42,10 +42,6 @@
   "Max number of samples supported in a UDP OSC message"
   8192)
 
-(def ROOT-GROUP
-  "ID of root group in node tree on server"
-  0)
-
 (def SC-POOL
   "make an at-at pool for all default scheduling"
   (at-at/mk-pool))

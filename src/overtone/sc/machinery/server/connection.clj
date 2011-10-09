@@ -224,7 +224,7 @@
          (cond
           (= :internal connection-type) (boot-internal-server)
           (= :external connection-type) (boot-external-server port))
-         (wait-until-deps-satisfied :server-connected)
+         (wait-until-deps-satisfied :server-ready)
 
          (dosync
           (cond
