@@ -174,10 +174,6 @@
 (defn clear-instruments []
   (dosync (ref-set instruments* {})))
 
-; When there is a single channel audio output add pan2 and out ugens
-; to make all instruments stereo by default.
-(def OUTPUT-UGENS #{"Out" "RecordBuf" "DiskOut" "LocalOut" "OffsetOut" "ReplaceOut" "SharedOut" "XOut"})
-
 (def DEFAULT-INST-VOLUME 0.6)
 
 (defn inst-prefix
