@@ -101,7 +101,7 @@ Now get Overtone:
     ; and pan2 makes the signal stereo
     ; demo simply plays the synth for the specified time in seconds:
 
-    user=> (demo 5 (pan2 (sin-osc 440))))
+    user=> (demo 5 (pan2 (sin-osc 440)))
 
 
     ; Defining a new synthesizer instrument with the definst macro will return a function which
