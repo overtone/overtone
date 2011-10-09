@@ -266,10 +266,6 @@
   [inst & ctls]
   (apply node-control (:group inst) (id-mapper ctls)))
 
-(if (and (nil? @inst-group*)
-         (connected?))
-  (dosync (ref-set inst-group* (group :head (root-group)))))
-
 (defonce session* (ref
                     {:metro (metronome 120)
                      :tracks {}
