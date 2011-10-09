@@ -27,8 +27,7 @@
 (defonce mixer-id*     (ref nil))
 (defonce fx-group*     (ref nil))
 (defonce record-group* (ref nil))
-(defonce MIXER-BUS 10)
-
+(defonce MIXER-BUS 49)
 
 (def RIG-BOOT-DEPS [:server-ready :studio-setup-completed])
 
@@ -50,7 +49,7 @@
 ; A mixer synth for volume, pan, and limiting
 ; TODO: Add basic EQ
 (defonce __MIXER-SYNTH__
-  (defsynth mixer [in-bus 10 out-bus 0
+  (defsynth mixer [in-bus 49 out-bus 0
                    volume 0.5 pan 0.0
                    threshold 0.7
                    slope-below 1 slope-above 0.1
@@ -138,6 +137,7 @@
         f (with-server-sync #(group :after g))
         m (group :tail (root-group))
         r (group :tail (root-group))]
+
     (dosync
       (ref-set inst-group* g)
       (ref-set fx-group* f)
@@ -192,7 +192,8 @@
              [vol-ugen out-ugen])
      (set (floatify (conj constants MIXER-BUS 1 0)))]))
 
-(defmacro inst [sname & args]
+(defmacro inst
+  [sname & args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~sname ~@args)
          [params# ugens# constants#] (inst-prefix params# ugens# constants#)
          sdef# (synthdef sname# params# ugens# constants#)
@@ -236,7 +237,7 @@
   (and (associative? o)
        (= ::instrument (:type o))))
 
-(defmacro definst [i-name & inst-form]
+(defmacro definst
   "Define an instrument and return a player function. The instrument definition
   will be loaded immediately. Instruments differ from basic synths in that they
   will automatically add pan2 and out ugens when necessary to create a stereo
@@ -249,6 +250,7 @@
   You may also kill an all of an instrument's running synths:
 
   (kill inst-name)"
+  [i-name & inst-form]
   (let [[i-name params ugen-form] (synth-form i-name inst-form)
         i-name (with-meta i-name (merge (meta i-name) {:type ::instrument}))]
     `(def ~i-name (inst ~i-name ~params ~ugen-form))))
