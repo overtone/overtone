@@ -21,8 +21,8 @@
                                1 0.1
                                0.05 0.05)
             clipped (clip2 limited 1)]
-        (send-reply (trig1 (> (a2k source) 2) 0.25) "/server-audio-clipping" out-bus)
-        (internal:out out-bus limited)))
+        (send-reply (trig1 (> (a2k source) 1) 0.25) "/server-audio-clipping" out-bus)
+        (internal:out out-bus clipped)))
 
     (defsynth in-bus-mixer [in-bus 10 out-bus 0
                             gain 1 master-gain 1]
