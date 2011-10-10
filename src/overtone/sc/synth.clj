@@ -7,6 +7,7 @@
   overtone.sc.synth
   (:use [overtone.util lib old-contrib]
         [overtone.libs event]
+        [overtone.music time]
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]
         [overtone.sc server node buffer])
@@ -531,14 +532,31 @@
 
 (def ^{:dynamic true} *demo-time* 2000)
 
+(defmacro run
+  "Run an anonymous synth definition.  Useful for experimentation. Does NOT add
+  an out ugen.
+  You can specify a timeout in seconds as the first argument otherwise it
+  defaults to *demo-time* ms.
+
+  (run (send-reply (impulse 1) \"/foo\" [1] 43)) ;=> send OSC messages out
+"
+  [& body]
+  (let [[demo-time body] (if (number? (first body))
+                           [(* 1000 (first body)) (second body)]
+                           [*demo-time* (first body)])]
+    `(let [s# (synth "audition-synth" ~body)
+           note# (s#)]
+       (after-delay ~demo-time #(node-free note#))
+       note#)))
+
 (defmacro demo
   "Try out an anonymous synth definition.  Useful for experimentation.  If the
   root node is not an out ugen, then it will add one automatically.
   You can specify a timeout in seconds as the first argument otherwise it
   defaults to *demo-time* ms.
 
-  (demo (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
-  (demo 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
+  (play (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
+  (play 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
   [& body]
   (let [[demo-time body] (if (number? (first body))
                            [(* 1000 (first body)) (second body)]
@@ -548,7 +566,7 @@
              (list 'out 0 body))]
     `(let [s# (synth "audition-synth" ~b2)
            note# (s#)]
-       (at-at/at (+ (at-at/now) ~demo-time) #(node-free note#))
+       (after-delay ~demo-time #(node-free note#))
        note#)))
 
 (defn active-synths
