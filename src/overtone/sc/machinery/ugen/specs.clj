@@ -130,7 +130,7 @@
                  (fun rate num-outs args spec))]
 
     (if (string? result)
-      (throw (Exception. (str "Error in checker for ugen " (:name spec) ". " result)))
+      (throw (Exception. (str "Error in checker for ugen " (overtone-ugen-name (:name spec)) ". " result)))
       ugen)))
 
 (defn- check-arg-rates [spec ugen]
@@ -287,6 +287,14 @@
       (throw (IllegalArgumentException. (str "Error - attempted to call the " (:name ugen) " ugen with one or more nil arguments. This usually happens when the ugen contains arguments without defaults which haven't been explicitly called. Got " (vec args))))))
   ugen)
 
+(defn- sanity-checker-fn
+  "Ensure all inputs are either a number or a gen. Return an error string if not"
+  [rate num-outs inputs spec]
+  (when (some #(and (not (number? %))
+                    (not (sc-ugen? %)))
+              inputs)
+    (str "Error: after initialisation, not all inputs to this ugen were numbers or other ugens (inputs which are explicitly allowed to be other data types (i.e strings) will have been converted to numbers at this point): " (vec inputs))))
+
 (defn- with-init-fn
   "Creates the final argument initialization function which is applied to
   arguments at runtime to do things like re-ordering and automatic filling in
@@ -310,7 +318,8 @@
         checker-fn      (if (contains? spec :check)
                           (:check spec)
                           placebo-ugen-checker-fn)
-        bespoke-checker (partial with-ugen-checker-fn spec checker-fn)]
+        bespoke-checker (partial with-ugen-checker-fn spec checker-fn)
+        sanity-checker  (partial with-ugen-checker-fn spec sanity-checker-fn)]
 
     (assoc spec :init
 
@@ -327,7 +336,8 @@
                  auto-rater
                  nil-arg-checker
                  rate-checker
-                 bespoke-checker)))))
+                 bespoke-checker
+                 sanity-checker)))))
 
 (defn- with-fn-names
   "Generates all the function names for this ugen and adds a :fn-names map
