@@ -23,12 +23,13 @@
                                  FREE))))))
     
     (defsynth stereo-player
+      "Plays a dual channel audio buffer."
       [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
       (let [rate (* rate (buf-rate-scale:kr buf))]
-       (out 0
-           (* vol (play-buf 2 buf rate
-                            1 start-pos loop?
-                            FREE)))))))
+        (out 0
+             (* vol (play-buf 2 buf rate
+                              1 start-pos loop?
+                              FREE)))))))
 
 (defonce loaded-samples* (ref {}))
 
