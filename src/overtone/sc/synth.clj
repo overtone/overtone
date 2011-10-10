@@ -533,8 +533,8 @@
 (def ^{:dynamic true} *demo-time* 2000)
 
 (defmacro run
-  "Run an anonymous synth definition.  Useful for experimentation. Does NOT add
-  an out ugen.
+  "Run an anonymous synth definition for a fixed period of time.  Useful for
+  experimentation. Does NOT add  an out ugen - see #'demo for that..
   You can specify a timeout in seconds as the first argument otherwise it
   defaults to *demo-time* ms.
 
@@ -550,10 +550,10 @@
        note#)))
 
 (defmacro demo
-  "Try out an anonymous synth definition.  Useful for experimentation.  If the
-  root node is not an out ugen, then it will add one automatically.
-  You can specify a timeout in seconds as the first argument otherwise it
-  defaults to *demo-time* ms.
+  "Listen to an anonymous synth definition for a fixed period of time.  Useful
+  for experimentation.  If the root node is not an out ugen, then it will add
+  one automatically.  You can specify a timeout in seconds as the first argument
+  otherwise it defaults to *demo-time* ms.
 
   (play (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
   (play 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
