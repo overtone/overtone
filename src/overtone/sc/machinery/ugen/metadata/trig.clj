@@ -60,17 +60,21 @@ The trigger message sent back to the client is this:
        :args [{:name "trig", :default 0.0 :doc "input trigger signal"}
               {:name "cmd-name", :default "/reply" :doc "a string or symbol, as a message name." :mode :append-string}
               {:name "values", :default 0.0 :mode :append-sequence :doc "array of ugens, or valid ugen inputs"}
-              {:name "reply-id", :default -1 :doc "integer id (similar to send-trig)"}]
+              {:name "reply-id", :default -1 :doc "integer id (similar to that used by send-trig)"}]
        :default-rate :kr
-       :doc "send an array of values from the server to all notified clients
+       :doc "send an array of values from the server via an OSC message. The OSC message is formed with cmd-name as the path, followed by two compulsary args: node-id (the id of the node that sent the message) and reply-id (the value specified in the params). These args are then followed by the list of values specified in the params.
 
-cmd-name
+For example, if the ugen is used as follows:
 
-	int - node ID
+ (send-reply tr  \"/foobar\" [1 2 3] 42)
 
-	int - reply ID
+When the trig tr triggers, Overtone will receive an event that looks like the following (where 32 represents the node-id of the synth that sent the message):
 
-	... floats - values."}
+ {:path \"/foobar\" :args (32 42 1 2 3)}
+
+You can register to respond to this event as follows:
+
+ (on-event \"/foobar\" (fn [msg] (println msg)) ::handle-foobar)"}
 
       {:name "Latch"
        :args [{:name "in", :default 0.0 :doc "input signal."}
