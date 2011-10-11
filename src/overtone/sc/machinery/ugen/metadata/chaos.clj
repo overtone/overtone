@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.chaos
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 ;; /*
 ;; Non-linear Dynamic Sound Generators

@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.basicops
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 ;;see binaryopugen.clj and unaryopugen.clj for detailed docspecs for binary and unary opugens.
 

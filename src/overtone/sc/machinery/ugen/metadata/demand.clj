@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.demand
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 (def specs
      [

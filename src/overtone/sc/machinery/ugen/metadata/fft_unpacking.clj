@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.fft-unpacking
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 ;; /**
 ;; "Unpack FFT" UGens (c) 2007 Dan Stowell.

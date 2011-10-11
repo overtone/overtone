@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.io
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 (def specs
      [
@@ -87,8 +87,7 @@ Reads from a control bus shared between the internal server and the SC client. C
        :num-outs 0
        :rates #{:ar :kr}
        :auto-rate true
-       :check (when-ar
-               (all-but-first-input-ar "signals must all be audio rate"))
+       :check (when-ar (all-but-first-input-ar "out:ar requires that all incoming signals be audio rate"))
        :internal-name true
        :doc ""}
 

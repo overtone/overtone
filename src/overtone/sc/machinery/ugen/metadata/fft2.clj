@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.fft2
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 ;; //third party FFT UGens
 

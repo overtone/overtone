@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.mda
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 ; NOTE: You will need to have the sc3 plugins installed for this ugen to be available.
 

@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.pan
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 ;; Panner : MultiOutUGen {
 ;;  checkNInputs { arg n;

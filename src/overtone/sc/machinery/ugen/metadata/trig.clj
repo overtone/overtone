@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.trig
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 ;;TODO:
 ;;* figure out what the signal-range is about
