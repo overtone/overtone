@@ -311,6 +311,13 @@
   []
   (str "anon-" (next-id :anonymous-synth)))
 
+(defn- id-able-type?
+  [o]
+  (or (isa? (type o) :overtone.sc.buffer/buffer)
+      (isa? (type o) :overtone.sc.sample/sample)
+      (isa? (type o) :overtone.sc.bus/audio-bus)
+      (isa? (type o) :overtone.sc.bus/control-bus)))
+
 (defn synth-player
   "Returns a player function for a named synth.  Used by (synth ...)
   internally, but can be used to generate a player for a pre-compiled
@@ -331,8 +338,11 @@
   "
   [sname arg-names]
   (fn [& args]
-    (let [args (if (map? args)
-                 (flatten (seq args))
+    (let [args (if (and (= 1 (count args))
+                        (map? (first args))
+                        (not (id-able-type? (first args))))
+                 (flatten (seq (first args)))
+
                  args)
           [args sgroup] (if (or (= :target (first args))
                                 (= :tgt    (first args)))
@@ -347,10 +357,7 @@
                           [(drop 2 args) (second args)]
                           [args sgroup])
           player        #(node sname % {:position pos :target sgroup })
-          args          (map #(if (or (isa? (type %) :overtone.sc.buffer/buffer)
-                                      (isa? (type %) :overtone.sc.sample/sample)
-                                      (isa? (type %) :overtone.sc.bus/audio-bus)
-                                      (isa? (type %) :overtone.sc.bus/control-bus))
+          args          (map #(if (id-able-type? %)
                                 (:id %) %) args)
 
           arg-map       (arg-mapper args arg-names {})

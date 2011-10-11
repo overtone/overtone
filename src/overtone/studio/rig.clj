@@ -187,16 +187,10 @@
          arg-names# (map :name params#)
          s-player# (synth-player sname# arg-names#)
          player# (fn [& play-args#]
-                   (let [ins# (get @instruments* sname#)
-                         play-args# (if (and
-                                          (= 1 (count play-args#))
-                                          (map? (first play-args#)))
-                                      (flatten (seq (first play-args#)))
-                                      play-args#)
-                         pargs# (concat play-args# [:out-bus (:out-bus ins#)])]
+                   (let [ins# (get @instruments* sname#)]
                      (apply s-player#
                             :tgt (:group ins#)
-                            pargs#)))
+                            play-args#)))
          inst# (callable-map {:type ::instrument
                               :params params#
                               :name sname#
