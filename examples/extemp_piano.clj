@@ -35,7 +35,7 @@
 (def instrument sampled-piano)
 (def metro (metronome 20))
 
-(def beat-offsets [0 0.1 1/3  0.7 0.9])
+(def beat-offsets [0 0.1 0.2 1/3  0.7 0.9])
 (def chord-prog
   [#{[2 :minor7] [7 :minor7] [10 :major7]}
    #{[0 :minor7] [8 :major7]}])
