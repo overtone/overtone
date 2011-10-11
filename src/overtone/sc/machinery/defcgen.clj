@@ -106,7 +106,7 @@
        (:full-doc (with-full-doc spec)))))
 
 (defn mk-cgen
-  "Generate the form represign a cgen - a callable map of associated information
+  "Generate the form representing a cgen - a callable map of associated information
   and the function that evaluates the body within the binding context of the
   params."
   ([c-name summary doc params body categories rate] (mk-cgen c-name summary doc params body categories rate #{rate}))
@@ -139,6 +139,12 @@
   (let [c-name (symbol (name c-name))]
     (mk-cgen c-name summary doc params body categories rate)))
 
+(defn- mk-default-cgen
+  [rated-defs rate]
+  (if (= :auto rate)
+    (throw (Exception. "Auto-rated cgens not supported (yet)"))
+    (get rated-defs rate)))
+
 (defmacro defcgen
   "Define one or more related cgens (composite generators) with different rates.
 
@@ -161,30 +167,36 @@
     (:kr (sin-osc:kr car-freq (* pm-index (sin-osc:kr mod-freq mod-phase))))
     (:default :ar))"
   [c-name & c-form]
-  (let [[summary doc params bodies default-rate] (cgen-form c-form)
-        arglists                                 (list (vec (map #(symbol (name (:name %))) params)))
-        arglists                                 (list 'quote arglists)
-        rates                                    (into #{} (keys bodies))
-        categories                               [["Composite Ugen"]]
-        full-doc                                 (generate-full-cgen-doc c-name summary doc categories default-rate params rates)
-        metadata                                 {:doc full-doc
-                                                  :arglists arglists
-                                                  :type ::cgen}
+  (let [[summary doc params bodies default-rate] (cgen-form c-form)]
+    (let [arglists       (list (vec (map #(symbol (name (:name %))) params)))
+          arglists       (list 'quote arglists)
+          rates          (into #{} (keys bodies))
+          categories     [["Composite Ugen"]]
+          full-doc       (generate-full-cgen-doc c-name summary doc categories default-rate params rates)
+          metadata       {:doc full-doc
+                          :arglists arglists
+                          :type ::cgen}
 
-        default-body                             (get bodies default-rate)
-        default-cgen                             (mk-cgen c-name summary doc params default-body categories default-rate)
-        default-c-name                           (with-meta c-name metadata)
-        default-def                              `(def ~default-c-name ~default-cgen)
-        cgen-defs (list* default-def
-                         (for [rate rates]
-                           (let [body   (get bodies rate)
-                                 cgen   (mk-cgen c-name summary doc params body categories rate)
-                                 c-name (symbol (str (name c-name) rate))
-                                 c-name (with-meta c-name metadata)
-                                 ]
-                             `(def ~c-name ~cgen))))]
+          default-c-name (with-meta c-name metadata)
+          rated-defs     (reduce (fn [defs rate]
+                                   (let [body (get bodies rate)
+                                         cgen (mk-cgen c-name summary doc params body categories rate)]
+                                     (assoc defs rate cgen)))
+                                 {}
+                                 rates)
+
+          default-cgen   (mk-default-cgen rated-defs default-rate)
+
+          default-def    `(def ~default-c-name ~default-cgen)
+          cgen-defs      (list* default-def
+                                (for [rate rates]
+                                  (let [cgen   (get rated-defs rate)
+                                        c-name (symbol (str (name c-name) rate))
+                                        c-name (with-meta c-name metadata)]
+                                    `(def ~c-name ~cgen))))]
 
     `(do ~@cgen-defs)))
+  )
 
 (defmethod print-method ::cgen [cgen w]
   (let [info (meta cgen)]
