@@ -29,7 +29,7 @@
                                (lf-tri (second freqs))])]
         selector   (select wave (apply + waves))
         filt       (rlpf selector fil-cutoff r)]
-    filter))
+    filt))
 
 (definst mooger
   [note 60 amp 0.8
