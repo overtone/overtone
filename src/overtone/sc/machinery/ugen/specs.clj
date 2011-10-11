@@ -295,6 +295,18 @@
               inputs)
     (str "Error: after initialisation, not all inputs to this ugen were numbers or other ugens (inputs which are explicitly allowed to be other data types (i.e strings) will have been converted to numbers at this point): " (vec inputs))))
 
+(defn associative->id
+  "Returns a function that converts any non sc-ugen associative arguments that
+  contain an :id key to the the value of that key or leaves the args untouched."
+  [ugen]
+  (update-in ugen [:args]
+             (fn [args]
+               (map #(if (and (not (sc-ugen? %))
+                              (:id %))
+                       (:id %)
+                       %)
+                    args))))
+
 (defn- with-init-fn
   "Creates the final argument initialization function which is applied to
   arguments at runtime to do things like re-ordering and automatic filling in
@@ -330,8 +342,7 @@
                  initer
                  n-outputer
                  floater
-                 buffer->id
-                 bus->id
+                 associative->id
                  appender
                  auto-rater
                  nil-arg-checker

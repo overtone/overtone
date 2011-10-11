@@ -6,22 +6,6 @@
         [overtone.sc.machinery.ugen special-ops]
         [overtone.sc buffer bus]))
 
-(defn buffer->id
-  "Returns a function that converts any buffer arguments to their :id property
-  value."
-  [ugen]
-  (update-in ugen [:args]
-             (fn [args]
-               (map #(if (buffer? %) (:id %) %) args))))
-
-(defn bus->id
-  "Returns a function that converts any bus arguments to their :id property
-  value."
-  [ugen]
-  (update-in ugen [:args]
-             (fn [args]
-               (map #(if (bus? %) (:id %) %) args))))
-
 
 (defn real-ugen-name
   [ugen]
