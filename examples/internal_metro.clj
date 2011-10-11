@@ -19,7 +19,7 @@
 (def c-bus (control-bus))
 
 (defsynth root-trig [rate 100]
- (out c-bus (impulse:kr rate)))
+ (out:kr c-bus (impulse:kr rate)))
 
 (definst pingr [freq 440 div 20]
  (let [src1 (sin-osc freq)
