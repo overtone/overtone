@@ -14,10 +14,6 @@
 (defonce event-handlers* (ref {}))
 (defonce sync-event-handlers* (ref {}))
 
-; * Need to add a handler key for events
-
-(log/level :debug)
-
 (defn- on-event*
   [handler-ref* event-type key handler]
   (log/debug "adding-handler for " event-type)
