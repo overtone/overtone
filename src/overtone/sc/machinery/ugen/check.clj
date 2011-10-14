@@ -2,24 +2,25 @@
   ^{:doc "UGen argument validation functions."
      :author "Jeff Rose & Christophe McKeon"}
   overtone.sc.machinery.ugen.check
-  (:use [overtone.sc.machinery.ugen defaults]))
+  (:use [overtone.sc.machinery.ugen defaults]
+        [overtone.util.lib :only [overtone-ugen-name]]))
 
-(defn rate-of [obj]
-  (:rate-name obj))
+(defn rate-name= [obj rate]
+  (= (:rate-name obj) rate))
 
-(defn rate-of? [obj rate]
-  (= (rate-of obj) rate))
+(defn rate= [ug rate-int]
+  (= (:rate ug) rate-int))
 
 (defn name-of [obj]
-  (:name obj))
+  (overtone-ugen-name (:name obj)))
 
 (defn name-of? [obj name]
   (= (name-of obj) name))
 
-(defn ar? [obj] (= (rate-of obj) :ar))
-(defn kr? [obj] (= (rate-of obj) :kr))
-(defn ir? [obj] (= (rate-of obj) :ir))
-(defn dr? [obj] (= (rate-of obj) :dr))
+(defn ar? [obj] (= (:rate-name obj) :ar))
+(defn kr? [obj] (= (:rate-name obj) :kr))
+(defn ir? [obj] (= (:rate-name obj) :ir))
+(defn dr? [obj] (= (:rate-name obj) :dr))
 
 (defmacro defcheck [name params default-message expr]
   (let [message (gensym "message")
@@ -33,8 +34,8 @@
           (when-not ~expr ~message))))))
 
 (defcheck same-rate-as-first-input []
-  (str (name-of (first inputs)) "must be same rate as called ugen, i.e. " rate)
-  (= (rate-of (first inputs)) rate))
+  (str "Rate mismatch: "(name-of (first inputs)) " is at rate " (:rate-name (first inputs))  " yet the containing ugen is at " (REVERSE-RATES rate))
+  (= (:rate (first inputs)) rate))
 
 (defcheck first-input-ar []
   (str "The first input must be audio rate. Got " (:rate-name (first inputs)))
@@ -49,7 +50,7 @@
   (every? ar? (take n inputs)))
 
 (defcheck after-n-inputs-rest-ar [n]
-  (str "all but the first " n " inputs must be audio rate")
+  (str "All but the first " n " inputs must be audio rate")
   (every? ar? (drop n inputs)))
 
 (defcheck all-but-first-input-ar []
@@ -61,7 +62,7 @@
   (ar? (nth inputs index)))
 
 (defcheck num-outs-greater-than [n]
-  (str "must have " (+ n 1) " or more output channels")
+  (str "Must have " (+ n 1) " or more output channels")
           true)
 
 (defn- mk-check-all
