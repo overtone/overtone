@@ -132,7 +132,7 @@
   If timeout is a positive value throws timeout exception if deps haven't been
   satisfied by timeout ms. Default wait-time is 100ms and default timeout is
   10000 ms"
-  ([deps] (wait-until-deps-satisfied deps 10000 100))
+  ([deps] (wait-until-deps-satisfied deps 20000 100))
   ([deps timeout] (wait-until-deps-satisfied deps timeout 100))
   ([deps timeout wait-time]
      (if (<= timeout 0)

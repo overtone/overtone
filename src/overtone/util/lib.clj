@@ -229,7 +229,7 @@
                           (= v item))
                         (indexed col)))))
 
-(def DEFAULT-PROMISE-TIMEOUT 1000)
+(def DEFAULT-PROMISE-TIMEOUT 5000)
 
 (defn deref!
   "Read a future or promise waiting for timeout ms for it to be successfully
