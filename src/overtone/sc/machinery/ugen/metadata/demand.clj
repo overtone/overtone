@@ -22,7 +22,7 @@ By design, a reset trigger only resets the demand ugens; it does not reset the v
                 (if (and (dr? dur)
                          (not (or (dr? reset)
                                   (ir? reset)
-                                  (rate-of? reset rate))))
+                                  (rate= reset rate))))
                   "TODO write error string. and understad why this is an error"))
        :internal-name true
        :doc "This ugen has been internalised for scserver compatibility. Please use the duty cgen instead."}
