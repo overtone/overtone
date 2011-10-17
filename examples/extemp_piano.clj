@@ -23,13 +23,19 @@
 ;;                  (random '(2 7 10))
 ;;                  (random '(0 8))))))
 
+;;Piano samples downloaded from: http://blackhole12.newgrounds.com/news/post/92464
 (def piano-samples (load-samples "~/Desktop/samples/MIS_Stereo_Piano/Piano/*LOUD*"))
+
+(defn matching-notes
+  [note]
+  (filter #(if-let [n (match-note (:name %))]
+             (= note (:midi-note n)))
+          piano-samples))
+
 (defn sampled-piano
   ([note] (sampled-piano note 1))
   ([note vol]
-     (if-let [sample (first
-                      (filter #(if-let [n (match-note (:name %))] (= note (:midi-note n)))
-                              piano-samples))]
+     (if-let [sample (first (matching-notes note))]
        (stereo-player sample :vol vol))))
 
 (def instrument sampled-piano)
@@ -44,9 +50,10 @@
 (def range-variation 10)
 (def range-period 8)
 
-;;this assumes you have the mda-piano available. Feel fre to eplace piano with
-;;a different synth which accepts a MIDI note as its first arg such as tb303.
-;;(def instrument tb303)
+;;this assumes you have the mda-piano or the piano samples available. Feel free
+;;to eplace piano with a different synth which accepts a MIDI note as its first
+;;arg such as tb303.
+;; (def instrument tb303)
 
 (defn beat-loop
   [metro beat chord-idx]
@@ -58,6 +65,7 @@
           (rand-chord (+ root tonic) chord-name (count beat-offsets) (cosr beat range-variation  max-range range-period) )
           beat-offsets))
     (apply-at (metro (inc beat)) #'beat-loop [metro (inc beat) nxt-chord-idx])))
+(stop)
 
 ;;start the music:
 (beat-loop metro (metro) 0)
