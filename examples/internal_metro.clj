@@ -58,7 +58,7 @@
   (let [trigger (impulse:kr rate)
         count (stepper:kr trigger :min 1 :max 4)]
     (send-trig:kr trigger count)
-    (out c-bus trigger)))
+    (out:kr c-bus trigger)))
 
 (on-event "/tr" #(println "trigger: " %) ::metro-synth)
 

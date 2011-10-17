@@ -8,28 +8,27 @@
         env (env-gen (perc 0.1 dur) :action FREE)]
     (out 0 (pan2 (* 0.1 low env filt)))))
 
-;(dotimes [i 10]
-;  (foo (* i 220) 2)
-;  (Thread/sleep 800))
-;
-;(reset)
+(dotimes [i 10]
+  (foo (* i 220) 2)
+  (Thread/sleep 800))
+
 
 ; Some of the example gathered here were found on this page:
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
 ; which come originally from the book Designing Sound by Andy Farnell.
 
-(definst overpad [out-bus 0 note 60 amp 0.7 a 0.001 rel 0.02]
-  (let [freq (midicps note)
-        env (env-gen (perc a rel) 1 1 0 1 FREE)
-        f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- rel 0.1)))))
+(definst overpad [note 60 amp 0.7 attack 0.001 release 2]
+  (let [freq  (midicps note)
+        env   (env-gen (perc attack release) :action FREE)
+        f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- release 0.1)))))
         bfreq (/ freq 2)
-        sig (apply +
-                   (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
-                           (lpf (saw [freq (* freq 1.01)]) f-env)))
+        sig   (apply +
+                     (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
+                             (lpf (saw [freq (* freq 1.01)]) f-env)))
         audio (* amp env sig)]
     audio))
 
-;(overpad 0 62 0.5 5)
+;(overpad 64 :attack 2 :release 10)
 
 (def metro (metronome 128))
 
@@ -46,32 +45,34 @@
         (kick))
     (at (metro beat)
         (if (zero? (mod beat 5))
-          (overpad 0 (+ 24 (choose notes)) 0.2 0.75 0.005)))
+          (overpad (+ 24 (choose notes)) 0.2 0.75 0.005)))
     (at (metro (+ 0.5 beat))
         (if (zero? (mod beat 6))
-          (overpad 0 (+ 12 (choose notes)) 0.5 0.15)
-          (overpad 0 (choose notes) 0.5 0.15)))
+          (overpad (+ 12 (choose notes)) 0.5 0.15 0.1)
+          (overpad (choose notes) 0.5 0.15 0.1)))
   (apply-at (metro (inc beat)) #'player (inc beat) [(next notes)])))
 
 (player (metro) [])
 
+;; (overpad 60 0.5 5)
+;; (stop)
 
-;(overpad 0 60 0.5 5)
-
-(def BEAT 425) ; ms per beat
-(def TICK (- BEAT 100))
-
-(defn play-notes [t notes durs]
+(defn play-notes [t beat-dur notes attacks]
   (when notes
-    (at t (overpad 0 (first notes) 0.5 (first durs)))
-    (apply-at #'play-notes (+ t TICK) (+ t BEAT) (next notes) durs)))
+    (let [note      (first notes)
+          attack    (first attacks)
+          amp       0.5
+          release   0.1
+          next-beat (+ t beat-dur)]
+      (at t (overpad note amp attack release))
+      (apply-at next-beat #'play-notes next-beat beat-dur (next notes) (next attacks) []))))
 
-;(play-notes (now) [40 42 44 45 47 49 51 52] (repeat 0.4))
-;(play-notes (now) (scale :c :major) (repeat 0.05))
+;(play-notes (now) 425 [40 42 44 45 47 49 51 52] (repeat 0.4))
+;(play-notes (now) 300 (scale :c4 :major) (repeat 0.05))
 
-;(play-notes (now) (take 50 (cycle [40 42 44 45 47 49 51 52])) (repeat 0.3))
+;(play-notes (now) 300 (take 15 (cycle [40 42 44 45 47 49 51 52])) (repeat 0.3))
 
-;(play-notes (now) (take 24 (drop 36 (scale :a :minor))) (repeat 0.4))
+;(play-notes (now) 100 (take 50 (cycle (scale :a4 :minor))) (repeat 0.4))
 
 ; Inspired by "How do I play a chord" from Impromptu website
 (defn chord-notes []
@@ -84,19 +85,21 @@
 (defn play-chords [t]
   (let [tick (* 2 (choose [125 500 250 250 500 250 500 250]))]
     (at t (doseq [note (map #(- %  12) (chord-notes))]
-            (overpad 0 note 0.3 (/ tick 1020))))
-    (apply-at #'play-chords (+ t (- tick 50)) (+ t BEAT))))
+            (overpad note 0.3 (/ tick 1020))))
+    (apply-at (+ t 800 )#'play-chords (+ t 800) [])))
 
-;(play-chords (now))
+;; (play-chords (now))
+;; (stop)
+
 
 (def kick (sample "/home/rosejn/studio/samples/kit/boom.wav"))
 ;(kick)
 
 (defn looper [t dur notes]
   (at t (kick))
-  (at (+ t 350) (doseq [note (chord-notes)] (overpad 0 (first notes) 0.3 0.1)))
+  (at (+ t 350) (doseq [note (chord-notes)] (overpad (first notes) 0.3 0.1)))
   (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
-  (apply-at #'looper (+ t (* 0.5 dur)) (+ t dur) dur (next notes)))
+  (apply-at (+ t dur) #'looper (+ t dur) dur (next notes)))
 
 ;(looper (now) 500 (cycle [60 67 65 72 75 70]))
 
@@ -108,7 +111,8 @@
   []
   (* 0.2 (sin-osc 2500) (lf-pulse 5)))
 
-;(pedestrian-crossing)
+;; (pedestrian-crossing)
+;; (stop)
 
 ; You can mix signals by adding them together.  The soundcard can take audio
 ; data between -1 and 1, so if you add up signals remember to multiply
@@ -144,26 +148,24 @@
 ;(dial-tone)
 ;(stop)
 
-; Takes an input signal coming in from a selectable bus, and plays it out
-; through a series of filters..
-(definst transmission-interference [in-bus 10]
-  (let [sig (clip2 (in in-bus) 0.9)
-        sig (bpf sig 2000 1/12)
-        sig (+ (bpf (* 0.5 sig) 400 1/3)
-               (* (clip2 sig 0.4) 0.15))]
-    (* (hpf (hpf sig 90) 90) 100)))
+;; Synths can also communicate back to us.  Here we use the send-trig
+;; UGen, which sends a "/tr" trigger message every time it gets an
+;; input trigger.  The message includes an id number, and the current
+;; input value of its last input.
 
-; Synths can also communicate back to us.  Here we use the send-trig
-; UGen, which sends a "/tr" trigger message every time it gets an
-; input trigger.  The message includes an id number, and the current
-; input value of its last input.
 (on-event "/tr" #(println "trigger: " %) ::trigger-test)
 
 (defsynth trigger-finger []
   (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))
 
+;;(trigger-finger)
+;;(stop)
+
 (defsynth dtest []
-         (send-trig:kr (impulse:kr 2) 1 (demand:kr (impulse:kr 0.5) 1 (dwhite))))
+  (send-trig:kr (impulse:kr 2) 1 (demand:kr (impulse:kr 0.5) 1 (dwhite))))
+
+;; (dtest)
+;; (stop)
 
 ;(defsynth demander-tone [rate 3]
 ;  (let [trig (impulse:kr rate)
@@ -200,15 +202,11 @@
 (defsynth external-input [out-bus 0]
   (out out-bus (in (num-output-buses:ir))))
 
-(defn wah-wah [freq depth]
-  (with-overloaded-ugens
-    (* depth (sin-osc:kr freq))))
-
 (definst ticker [freq 2]
   (* (sin-osc 440) (env-gen (perc 0.1 0.2) (sin-osc freq))))
 
 (definst sizzle [bus 0 amp 0.4 depth 10 freq 220 lfo 8]
-  (out bus (* amp (saw (+ freq (wah-wah lfo depth))))))
+  (out bus (* amp (saw (+ freq (* depth (sin-osc:kr lfo)))))))
 ;;(sizzle)
 ;;(ctl sizzle :depth 100 :lfo 0.5)
 ;;(stop)

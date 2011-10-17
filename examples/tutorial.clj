@@ -40,45 +40,36 @@
 ; all the current synths, call stop to clear all the live synths.
 (stop)
 
-; Square wave, created by a pulse generator
-; Adjust the width to create different harmonics
-(definst square [freq 220 width 0.5]
-  (* (env-gen (curve) 1 1 0 1 FREE)
-     (pulse freq width)))
-(square 220 0.1)
-
-(dotimes [i 100] (at (+ (now) (* i 400)) (square (+ 100 (rand-int 1000)) (* 0.01 i))))
-
 ; The classic saw wave, creates even and odd harmonics with a bright sound
 (definst sawzall [freq 440]
-  (* (env-gen (perc 0.1 0.8) 1 1 0 1 FREE)
+  (* (env-gen (perc 0.1 0.8) :action FREE)
      (saw freq)))
 
 (sawzall)
 
 ; Triangle wave
 (definst triangular [freq 120]
-   (* (env-gen (perc 0.1 4.8) 1 1 0 1 FREE)
+   (* (env-gen (perc 0.1 4.8) :action FREE)
      (lf-tri freq)))
 (triangular 320)
 
+; Square wave
+(definst sq [freq 120]
+   (* (env-gen (perc 0.1 4.8) :action FREE)
+     (square freq)))
+(sq 320)
+
 ; White noise
 (definst noisey []
-     (* (env-gen (perc 0.1 1.8) 1 1 0 1 FREE)
+     (* (env-gen (perc 0.1 1.8) :action FREE)
      (white-noise)))
 (noisey)
 
 ; Pink noise
 (definst pink-noisey []
-     (* (env-gen (perc 0.1 1.8) 1 1 0 1 FREE)
+     (* (env-gen (perc 0.1 1.8) :action FREE)
      (pink-noise)))
 (pink-noisey)
-
-(definst lead [freq 440 R 0.5]
-  (* (env-gen (perc 0.02 2.5) 1 1 0 1 FREE)
-     (rlpf (saw [freq (* 1.5 freq)])
-           (* (env-gen (perc 0.03 0.2)) 2 freq) R)))
-(lead 660 0.5)
 
 ; A shortcut for doing the same thing, just like def and defn.
 (definst foo [] (sin-osc 440))

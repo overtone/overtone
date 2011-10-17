@@ -6,7 +6,8 @@
 ; FM synthesis
 (definst fma [freq-a 440 amp-a 0.7 freq-b 150 amp-b 0.7]
   (let [osc-a (* amp-a (sin-osc freq-a))
-        osc-b (sin-osc (+ freq-b osc-a))]))
+        osc-b (sin-osc (+ freq-b osc-a))]
+    osc-b))
 (fma)
 (stop)
 
