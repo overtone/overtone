@@ -150,3 +150,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Nick Orton
 * Kevin Neaton
 * Chris Ford
+* Philip Potter
