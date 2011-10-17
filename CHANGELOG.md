@@ -1,5 +1,80 @@
 # Overtone Change Log
 
+## Version 0.5 (17th Oct 2011)
+
+### New Committers
+* Nick Orton
+* Kevin Neaton
+* Jowl Gluth
+* Chris Ford
+* Philip Potter
+
+### New
+* Add new anti-ear-bleeding (TM) safety harness
+* Add noise TOO LOUD!!! warnings when output is above a safe threshold
+* Add repl.shell fns to core and live
+* Rename await-promise! to deref!
+* Pull all Oertone synthdefs into a defonce statement so they don't get reloaded multiple times
+* Add glob capability to file manip fns
+* Teach file manip fns to resolve ~
+* Add #'load-samples to allow the loading of multiple samples via a globbing string
+* Allow uppercase B to be usable as a flat notation for notes.
+* Add volumes to mono and stereo sample players
+* Add canonical-pitch-class-name to return the canonical version of the specified pitch class
+* Free allocated id and throw exception if a sample isn't loaded correctly
+* Add docstrings for ugen done-action constants and default vars
+* sc-ugens can now take any map (such as buffer and bus) args and automagically map them to their :id vals.
+* ctl can now take buffer and bus args
+* Rename :n-frames to :size for buffer-info map to make the keys consistent with buffer maps
+* Massage Doubles to Floats in outgoing OSC messages
+* Ensure multiple shutdowns/boots can't happen simultaneously.
+* Teach scopes to only work with an internal server
+* Only allow #'buffer-data to work with an internal server
+* Clean up REPL output when starting/stopping servers
+* Add handy file downloading fns (for downloading samples)
+* Create gens namespace containing all ugens and cgens
+* Move more internals into overtone.sc.machinery
+* Rename #'server-info to connection-info
+* Add #'server-info which polls information directly from the server
+* Add individually cached server info fns (server-num-output-buses, server-num-audio-buses etc.)
+* Add #'deps-satisfied? and #'satisfied-deps query fns to examine the state of satisfied deps
+* Add wait-until-deps-satisfied fn which blocks the current thread till all specified deps have been satisfied
+* Allow longs as buffer ids
+* Make sc-osc-debug-on public (some users were reporting issues with /dumpOSC)
+* Add #'ensure-connected!
+* Make samples play at normal rate even when sample-rates differ
+* Add #'run - like #'demo but for testing non-audio synths
+* Ensure sc-ugens and numbers are allowed as ugen args
+* Ensure inst and synth player fns have similar calling semantics
+
+### Examples
+* Add Pepijn's vocoder example
+
+### Deprecated
+* Remove await-promise as deref in Clojure 1.3 now accepts a timeout val.
+* #'server-status (see #'server-info and #'connection-info)
+* out cgen doesn't support auto-rating so need to explicitly specify when we're outputting to a control bus
+
+### Bugfixes
+* Fix minor niggling bugs in shell fns
+* Ensure osc lib fns are in scope withing server (fixes #'at macro)
+* (use :reload-all 'overtone.live) now works again
+* Ensure ugen arg docstrings don't lose their order
+* Fix THX example and make it sound more beefy
+* Fix drum loading
+* Fix ks1, ks1-demo, tb303 and whoahaha synths
+* Ensure #apply-at uses the playeor thread pool (fixes use of #'stop with temporal recursion)
+* Make sure a synth's param list consists of symbols not strings
+* Preserve an instrument's metadata - instrument docstrings are now honoured
+* Fix closing buffer scopes
+* Make scope draw with the correct orientation
+* Don't consistently redraw scope buffers (short-term fix for the scsynth-jna memory leak)
+* Various example fixes
+* Fix ls-file-names to only return the file names, not the full path
+* Only satisfy :synthdefs-loaded dep when *all* synthdefs have been loaded
+* Fix FAILURE /n_free Node not found warning after stopping a currently running demo
+* Fix ugen arg checking fns
+
 ## Version 0.4 (25th Sept 2011)
 
 ### New
