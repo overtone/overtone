@@ -74,8 +74,10 @@ release.
 
 ### Quick Setup:
 
+    # Install cake (or lein)
+    # Start jackd (if you're running Linux)
 
-    $ cake new foo # (you can alse swap cake for lein in the following commands)
+    $ cake new foo
     $ cd foo
 
     # edit project.clj to include the following dependencies:
@@ -83,12 +85,6 @@ release.
     # [overtone "0.5.0"]
 
     $ cake deps
-
-    # In Linux you can create a .jackdrc file with this command
-    # to automatically start the jack server on boot, or you will need
-    # to run it manually to start the Jack audio server.
-    $ jackd -r -d alsa -r 44100 ; or use qjackctl for a gui
-
     $ cake repl
 
     user=> (use 'overtone.live)
