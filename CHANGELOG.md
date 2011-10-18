@@ -14,7 +14,7 @@
 * Add noise TOO LOUD!!! warnings when output is above a safe threshold
 * Add repl.shell fns to core and live
 * Rename await-promise! to deref!
-* Pull all Oertone synthdefs into a defonce statement so they don't get reloaded multiple times
+* Pull all Overtone synthdefs into a defonce statement so they don't get reloaded multiple times
 * Add glob capability to file manip fns
 * Teach file manip fns to resolve ~
 * Add #'load-samples to allow the loading of multiple samples via a globbing string
@@ -46,13 +46,14 @@
 * Add #'run - like #'demo but for testing non-audio synths
 * Ensure sc-ugens and numbers are allowed as ugen args
 * Ensure inst and synth player fns have similar calling semantics
+* Rename #'status ->  #'server-status
+* Rename #'connected? and #'disconnected? -> #'server-connected? and #'server-disconnected? respectively
 
 ### Examples
 * Add Pepijn's vocoder example
 
 ### Deprecated
 * Remove await-promise as deref in Clojure 1.3 now accepts a timeout val.
-* #'server-status (see #'server-info and #'connection-info)
 * out cgen doesn't support auto-rating so need to explicitly specify when we're outputting to a control bus
 
 ### Bugfixes
