@@ -18,9 +18,13 @@ Overtone is a toolkit for creating synthesizers and making music.  It provides:
 
 ### Live-Coding Video Introduction
 
-<a href="http://vimeo.com/22798433">
-  <img src="https://github.com/downloads/overtone/live-coding-emacs/live-coding-config-in-use-2.png" alt="Live-Coding with Overtone" title="Live-Coding Video Introduction" />
-</a>
+    ;; ___|)_______________|\________________|\______________|\_______________|\________
+    ;;|___/___||___________|_________________|_______________|________________|_________||
+    ;;|__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
+    ;;|_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
+    ;;|_\_|_/_||____|__________|______________________|__________|______________________||
+    ;;    |         |          |/                     |/         |
+    ;;  (_|         |/                                           |/
 
 Head over to vimeo for a fast-paced 4 minute introduction to live-coding with Overtone to see what's
 possible
