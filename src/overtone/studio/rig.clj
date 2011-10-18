@@ -181,7 +181,7 @@
   `(let [[sname# params# ugens# constants#] (pre-inst ~sname ~@args)
          sdef# (synthdef sname# params# ugens# constants#)
          sgroup# (or (:group (get @instruments* sname#))
-                     (if (connected?)
+                     (if (server-connected?)
                        (group :tail @inst-group*)
                        nil))
          arg-names# (map :name params#)

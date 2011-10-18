@@ -21,7 +21,7 @@
                        (play-buf 1 buf rate
                                  1 start-pos loop?
                                  FREE))))))
-    
+
     (defsynth stereo-player
       "Plays a dual channel audio buffer."
       [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
@@ -76,7 +76,7 @@
   [path & args]
   (let [path (resolve-tilde-path path)]
     (dosync (alter loaded-samples* assoc [path args] nil))
-    (if (connected?)
+    (if (server-connected?)
       (apply load-sample* path args))))
 
 (defn load-samples

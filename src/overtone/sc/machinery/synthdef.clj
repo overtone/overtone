@@ -218,7 +218,7 @@
   (assert (synthdef? sdef))
   (dosync (alter loaded-synthdefs* assoc (:name sdef) sdef))
 
-  (when (connected?)
+  (when (server-connected?)
     (with-server-sync
       #(snd "/d_recv" (synthdef-bytes sdef)))))
 
