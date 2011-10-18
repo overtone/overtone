@@ -39,7 +39,18 @@ For a quick glance at all the functionality Overtone puts at your musical finger
 
 ### Project Info:
 
-#### Lein, Cake and Maven support
+#### Requirements
+
+* Clojure 1.3
+* scsynth-jna (for the internal server)
+* SuperCollider (for an external server)
+* at-at
+* osc-clj
+* byte-spec
+* midi-clj
+* clj-glob
+
+#### Cake & Lein Support
 
 Overtone and its dependencies are on http://clojars.org, and the dependency for
 your project.clj is:
