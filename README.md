@@ -1,8 +1,10 @@
-<img src="https://github.com/downloads/overtone/overtone/overtone-logo.png" alt="Overtone Logo" title="Overtone" />
+          _____                 __
+         / __  /_  _____  _____/ /_____  ____  ___
+        / / / / | / / _ \/ ___/ __/ __ \/ __ \/ _ \
+       / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
+       \____/ |___/\___/_/   \__/\____/_/ /_/\___/
 
-
-## Programmable Music
-
+                          Programmable Music.
 
 ### Live-coding and musical exploration
 
@@ -40,7 +42,7 @@ your project.clj is:
 
     [overtone "<version>"]
 
-The current version is 0.4.0 but search on Clojars to get the latest
+The current version is 0.5.0 but search on Clojars to get the latest
 release.
 
 #### Source Repository

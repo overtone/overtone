@@ -15,7 +15,7 @@
 (def OVERTONE-VERSION {:major 0
                        :minor 5
                        :patch 0
-                       :snapshot true})
+                       :snapshot false})
 
 (defonce synth-group* (ref nil))
 (defonce osc-log*     (atom []))
