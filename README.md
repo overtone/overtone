@@ -8,7 +8,7 @@
 
 ### Live-coding and musical exploration
 
-Overtone is a toolkit for creating synthesizers and making music.  It provides:
+Overtone is an Open Source toolkit for creating synthesizers and making music.  It provides:
 
 * a Clojure API to the SuperCollider synthesis engine
 * a growing library of musical functions (scales, chords, rhythms, arpeggiators, etc.)
@@ -18,16 +18,15 @@ Overtone is a toolkit for creating synthesizers and making music.  It provides:
 
 ### Live-Coding Video Introduction
 
-    ;; ___|)_______________|\________________|\______________|\_______________|\________
-    ;;|___/___||___________|_________________|_______________|________________|_________||
-    ;;|__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
-    ;;|_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
-    ;;|_\_|_/_||____|__________|______________________|__________|______________________||
-    ;;    |         |          |/                     |/         |
-    ;;  (_|         |/                                           |/
+     ___|)_______________|\________________|\______________|\_______________|\________
+    |___/___||___________|_________________|_______________|________________|_________||
+    |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
+    |_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
+    |_\_|_/_||____|__________|______________________|__________|______________________||
+        |         |          |/                     |/         |
+      (_|         |/                                           |/
 
-Head over to vimeo for a fast-paced 4 minute introduction to live-coding with Overtone to see what's
-possible
+Head over to vimeo for a fast-paced 4 minute introduction to live-coding with Overtone to see what's possible
 
   http://vimeo.com/22798433
 
@@ -37,7 +36,7 @@ For a quick glance at all the functionality Overtone puts at your musical finger
 
   https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
 
-### Project Info:
+### Project Info
 
 #### Requirements
 
@@ -50,6 +49,19 @@ For a quick glance at all the functionality Overtone puts at your musical finger
 * midi-clj
 * clj-glob
 
+#### Mailing List
+
+Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list</a>.
+
+#### Source Repository
+
+Downloads and the source repository can be found on GitHub:
+
+  http://github.com/overtone/overtone
+
+Clone the repository on GitHub to get started developing, and if you are ready
+to submit a patch then fork your own copy and do a pull request.
+
 #### Cake & Lein Support
 
 Overtone and its dependencies are on http://clojars.org, and the dependency for
@@ -60,57 +72,24 @@ your project.clj is:
 The current version is 0.5.0 but search on Clojars to get the latest
 release.
 
-#### Source Repository
+### Quick Setup:
 
-Downloads and the source repository can be found on GitHub:
 
-  http://github.com/overtone/overtone
+    $ cake new foo # (you can alse swap cake for lein in the following commands)
+    $ cd foo
 
-The project is free and open source.  Clone the repository on GitHub to get
-started developing, and if you are ready to submit a patch then fork your own
-copy and do a pull request.
+    # edit project.clj to include the following dependencies:
+    # [org.clojure/clojure "1.3.0"]
+    # [overtone "0.5.0"]
 
-#### Mailing List
+    $ cake deps
 
-Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list</a>.
-
-### Ubuntu Quick Setup:
-
-    sudo apt-get install jack-tools ant openjdk-6-jdk fftw3 qjackctl
-
-You'll need to get the jack audio daemon running, and we recommend qjackctl to
-figure out what command will be best to use.  Then once you have it dialed in you can
-switch to using the terminal.  For best performance you need to install a
-realtime enabled kernel, which allows the audio system to get high scheduled
-immediately when there is data to process.  With purely generative music this
-isn't such a big deal, but if you want to jam with other instruments or process
-external sound in realtime then you'll want to invest the effort in setting up
-an rt-kernel.  Ubuntu studio makes it pretty easy, especially if you aren't
-experienced in compiling the kernel.  In the meantime, just turn-off the
-realtime support in the qjacktl options, and the audio server should boot.
-
-Future versions will also support ALSA audio.
-
-Download and install leiningen wherever you local executables go:
-
-    wget http://github.com/technomancy/leiningen/raw/stable/bin/lein
-    chmod u+x lein
-    mv lein ~/bin
-    lein self-install
-
-Now get Overtone:
-
-    $ git clone git://github.com/overtone/overtone.git
-
-    $ cd overtone
-    $ lein deps
-
-    ; In Linux you can create a .jackdrc file with this command
-    ; to automatically start the jack server on boot, or you will need
-    ; to run it manually to start the Jack audio server.
+    # In Linux you can create a .jackdrc file with this command
+    # to automatically start the jack server on boot, or you will need
+    # to run it manually to start the Jack audio server.
     $ jackd -r -d alsa -r 44100 ; or use qjackctl for a gui
 
-    $ lein repl
+    $ cake repl
 
     user=> (use 'overtone.live)
 
@@ -120,20 +99,19 @@ Now get Overtone:
 
     user=> (demo 5 (pan2 (sin-osc 440)))
 
-
-    ; Defining a new synthesizer instrument with the definst macro will return a function which
-    ; can be used to trigger the inst.
+    ; Defining a new synthesizer instrument with the definst macro will return a
+    ; function which can be used to trigger the inst.
 
     user=> (definst beep [freq 440] (sin-osc freq))
     user=> (beep)
     user=> (stop)
 
-    ; Call the ctl function to modulate any params and to eventually kill that instrumetn:
+    ; Call the ctl function to modulate any params and to eventually kill that instrument:
 
     user=> (beep)
     user=> (ctl beep :freq 880)
     user=> (kill beep)
-    user=> (quit)
+    user=> (stop) # (this command will kill all running synths)
 
 
 ### Getting Started Videos
