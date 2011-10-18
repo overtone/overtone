@@ -71,7 +71,7 @@
 
 \begin{document}
 
-{\Large{\textbf{Overtone Cheat Sheet (Overtone 0.4.0)}}}
+{\Large{\textbf{Overtone Cheat Sheet (Overtone 0.5.0)}}}
 
 \colouredbox{pink}{
 \section{REPL helpers}
@@ -88,7 +88,8 @@ Shell& \cmd{ls grep}\\
 Design&\cmd{definst defsynth}\\
 Examples& \cmd{defexamples}\\
 CGens& \cmd{defcgen}\\
-Control& \cmd{ctl kill}
+Control& \cmd{ctl kill}\\
+Auditioning& \cmd{demo run}\\
 \end{tabularx}
 }
 
@@ -97,10 +98,10 @@ Control& \cmd{ctl kill}
 \begin{tabularx}{\hsize}{lX}
 Startup&\cmd{boot-server boot-external-server connect-external-server}\\
 Shutdown&\cmd{kill-server}\\
-Control& \cmd{stopl}\\
+Control& \cmd{stop}\\
 OSC Communication& \cmd{snd recv clear-msg-queue}\\
-Diagnostic& \cmd{status connected? disconnected? server-status}\\
-Debug& \cmd{sc-osc-log-on sc-osc-log-off sc-osc-log sc-debug-on sc-debug-off external-server-log}\\
+Diagnostic& \cmd{server-status server-info server-connected? server-disconnected? connection-info}\\
+Debug& \cmd{sc-osc-log-on sc-osc-log-off sc-osc-log sc-debug-on sc-debug-off external-server-log sc-osc-debug-on sc-osc-debug-off}\\
 \end{tabularx}
 }
 
@@ -124,8 +125,8 @@ Info & \cmd{buffer-info num-frames buffer-id}
 \end{tabularx}
 \subsection{Samples}
 \begin{tabularx}{\hsize}{lX}
-Create  & \cmd{load-sample sample defsample} \\
-Playback& \cmd{mono-player stereo-player }\\
+Create  & \cmd{load-sample load-samples sample defsample} \\
+Playback& \cmd{mono-player stereo-player}\\
 \end{tabularx}
 
 \subsection{Busses}
@@ -171,7 +172,7 @@ Scaled& \cmd{cosr sinr tanr}\\
 \begin{tabularx}{\hsize}{lX}
 Ratios& \cmd{unison octave fifth sixth third fourth min-third min-sixth}\\
 Note Shifting& \cmd{shift flat sharp invert}\\
-Notes, Scales \& Chords& \cmd{note octave-note resolve-scale scale-field nth-interval resolve-degree degree->interval degrees->pitches resolve-degrees scale resolve-chord chord nth-octave nth-equal-tempered-freq interval-freq }\\
+Notes, Scales \& Chords& \cmd{note octave-note resolve-scale scale-field nth-interval resolve-degree degree->interval degrees->pitches resolve-degrees scale resolve-chord chord nth-octave nth-equal-tempered-freq interval-freq canonical-pitch-class-name}\\
 Frequencies& \cmd{cent midi->hz hz->midi }\\
 Amplitude& \cmd{db->amp}
 \end{tabularx}
@@ -433,7 +434,7 @@ Infinity& \cmd{INFINITE INF}\\
 \begin{flushright}
 \footnotesize
 \rule{0.7\linewidth}{0.25pt}
-\verb!$Revision: 0.4.0.0, $Date: 25th September, 2011!\\
+\verb!$Revision: 0.5.0.0, $Date: 18th October, 2011!\\
 \verb!Sam Aaron (sam.aaron gmail com)!
 \end{flushright}
 
