@@ -1,15 +1,19 @@
 (ns
-  ^{:doc "Library of general purpose utility functions."
-     :author "Jeff Rose and Sam Aaron"}
+  ^{:doc "Library of general purpose utility functions for Overtone internals."
+    :author "Jeff Rose and Sam Aaron"}
   overtone.util.lib
   (:import [java.util ArrayList Collections]
            [java.util.concurrent TimeUnit TimeoutException])
-  (:use [clojure.contrib.def]
-        [clojure.stacktrace]
-        [clojure.pprint :as pprint]
-        [clojure.contrib.seq-utils :only (indexed)]
-        [overtone.util.doc])
+  (:use [clojure.stacktrace]
+        [clojure.pprint]
+        [overtone.util doc])
   (:require [overtone.util.log :as log]))
+
+(defn indexed
+  "Takes col and returns a list of index val pairs for each successive val in
+  col. O(n) complexity. Prefer map-indexed or filter-indexed where possible."
+  [col]
+  (map-indexed (fn [i v] [i v]) col))
 
 ; Some generic counters
 (def id-counters* (ref {}))
@@ -30,7 +34,7 @@
   []
   (let [paths (map (memfn getPath)
                    (seq (.getURLs (.getClassLoader clojure.lang.RT))))]
-    (pprint/pprint paths)))
+    (pprint paths)))
 
 (defn to-str
   "If val is a keyword, return its name sans :, otherwise return val"
@@ -218,13 +222,6 @@
   [seqs]
   (apply map vector seqs))
 
-; Example:
-;       (dissoc-in { :who { :me { 1 2 3 4 } } } [ :who :me ] 3 )
-(defn dissoc-in
-  "Dissociates the element [keys val] from map."
-  [m keys val]
-        (assoc-in m keys (dissoc (get-in m keys) val)))
-
 (defn index-of
   "Return the index of item in col."
   [col item]
@@ -232,24 +229,18 @@
                           (= v item))
                         (indexed col)))))
 
-(def DEFAULT-PROMISE-TIMEOUT 1000)
+(def DEFAULT-PROMISE-TIMEOUT 5000)
 
-(defn await-promise
-  "Read a promise waiting for timeout ms for the promise to be delivered.
-  Returns :timeout if a timeout occurs."
-  ([prom] (await-promise prom DEFAULT-PROMISE-TIMEOUT))
-  ([prom timeout]
-     (try
-       (.get (future @prom) timeout TimeUnit/MILLISECONDS)
-       (catch TimeoutException t
-         :timeout))))
-
-(defn await-promise!
-  "Read a promise waiting for timeout ms for the promise to be delivered.
-  Raises an exception if a timeout occurs"
-  ([prom] (await-promise! prom DEFAULT-PROMISE-TIMEOUT))
-  ([prom timeout]
-     (.get (future @prom) timeout TimeUnit/MILLISECONDS)))
+(defn deref!
+  "Read a future or promise waiting for timeout ms for it to be successfully
+  dereferenced. Raises an exception if a timeout occurs"
+  ([ref] (deref! ref DEFAULT-PROMISE-TIMEOUT))
+  ([ref timeout]
+     (let [timeout-indicator (gensym "deref-timeout")
+           res               (deref ref timeout timeout-indicator)]
+       (if (= timeout-indicator res)
+         (throw (Exception. (str "deref! timeout error. Dereference took longer than " timeout " ms")))
+         res))))
 
 (defn user-name
   "returns the name of the current user"
@@ -313,6 +304,16 @@ Hello " (user-name) ", may this be the start of a beautiful music hacking sessio
         n (.replaceAll n "_" "-")
         n (.toLowerCase n)]
     n))
+
+(defn resolve-gen-name
+  "If the gen is a cgen or ugen returns the :name otherwise returns name
+   unchanged assuming it's a keyword."
+  [gen]
+  (if (and (associative? gen)
+           (or (= :overtone.sc.machinery.ugen.fn-gen/ugen (:type gen))
+               (= :overtone.sc.machinery.defcgen/cgen (:type gen))))
+    (keyword (:name gen))
+    gen))
 
 (defn consecutive-ints?
   "Checks whether seq s consists of consecutive integers

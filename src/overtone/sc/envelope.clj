@@ -9,10 +9,10 @@
           These are the typical envelope functions found in SuperCollider, and
           they output a series of numbers that is understood by the SC synth
           engine."
-     :author "Jeff Rose"}
+     :author "Jeff Rose, Sam Aaron"}
   overtone.sc.envelope
   (:use [overtone.util lib]
-        [overtone.sc ugen]))
+        [overtone.sc.machinery.ugen fn-gen]))
 
 (def ENV-SHAPES
   {:step        0
@@ -30,12 +30,13 @@
    :cubed       7
    })
 
+
 (defn- shape->id
   "Create a repeating shapes list corresponding to a specific shape type.
   Looks shape s up in ENV-SHAPES if it's a keyword. If not, it assumes the
   val represents the bespoke curve vals for a generic curve shape (shape
   type 5). the bespoke curve vals aren't used here, but are picked up in
-  curve-vale.
+  curve-value.
   Mirrors *shapeNumber in supercollider/SCClassLibrary/Common/Audio/Env.sc"
   [s]
   (if (keyword? s)
@@ -68,25 +69,26 @@
 ;;    <segment-N...> ]
 
 (defn envelope
-  "Create an envelope curve description array suitable for the EnvGen ugen.
+  "Create an envelope curve description array suitable for the env-gen ugen.
    Requires a list of levels (the points that the envelope will pass through
    and a list of durations (the duration in time of the lines between each
    point).
 
    Optionally a curve may be specified. This may be one of:
    * :step              - flat segments
-   * :linear'           - linear segments, the default
+   * :linear            - linear segments, the default
    * :exponential       - natural exponential growth and decay. In this case,
                           the levels must all be nonzero and the have the same
                           sign.
    * :sine              - sinusoidal S shaped segments.
    * :welch             - sinusoidal segments shaped like the sides of a Welch
                           window.
-   * a Float            - a curvature value for all segments.
-   * an Array of Floats - curvature values for each segments.
+   * a Float            - a curvature value to be repeated for all segments.
+   * an Array of Floats - individual curvature values for each segment.
 
    If a release-node is specified (an integer index) the envelope will sustain
-   at the release node until released.
+   at the release node until released which occurs when the gate input of the
+   env-gen is set to zero.
 
    If a loop-node is specified (an integer index) the output will loop through
    those nodes starting at the loop node to the node immediately preceeding the
@@ -110,14 +112,14 @@
   "Create a triangle envelope description array suitable for use with the
   env-gen ugen"
   [dur 1 level 1]
-  (with-ugens
+  (with-overloaded-ugens
     (let [dur (* dur 0.5)]
       (envelope [0 level 0] [dur dur]))))
 
 (defunk sine
   "Create a sine envelope description suitable for use with the env-gen ugen"
   [dur 1 level 1]
-  (with-ugens
+  (with-overloaded-ugens
     (let [dur (* dur 0.5)]
       (envelope [0 level 0] [dur dur] :sine))))
 
@@ -125,20 +127,20 @@
   "Create a percussive envelope description suitable for use with the env-gen
   ugen"
   [attack 0.01 release 1 level 1 curve -4]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope [0 level 0] [attack release] curve)))
 
 (defunk lin-env
   "Create a trapezoidal envelope description suitable for use with the env-gen
   ugen"
   [attack 0.01 sustain 1 release 1 level 1 curve :linear]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope [0 level level 0] [attack sustain release] curve)))
 
 (defunk cutoff
   "Create a cutoff envelope description suitable for use with the env-gen ugen"
   [release 0.1 level 1 curve :linear]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope [level 0] [release] curve 0)))
 
 (defunk dadsr
@@ -147,7 +149,7 @@
   [delay-t 0.1
                attack 0.01 decay 0.3 sustain 0.5 release 1
                level 1 curve -4 bias 0]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope
       (map #(+ %1 bias) [0 0 level (* level sustain) 0])
       [delay-t attack decay release] curve)))
@@ -157,7 +159,7 @@
   env-gen ugen"
   [attack 0.01 decay 0.3 sustain 1 release 1
               level 1 curve -4 bias 0]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope
       (map #(+ %1 bias) [0 level (* level sustain) 0])
       [attack decay release] curve 2)))
@@ -166,7 +168,7 @@
   "Create an attack sustain release envelope sutable for use with the env-gen
   ugen"
   [attack 0.01 sustain 1 release 1 curve -4]
-  (with-ugens
+  (with-overloaded-ugens
     (envelope [0 sustain 0] [attack release] curve 1)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

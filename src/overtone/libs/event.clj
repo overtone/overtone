@@ -9,14 +9,10 @@
   (:require [overtone.util.log :as log]))
 
 (def NUM-THREADS (cpu-count))
-(def FORCE-SYNC? false)
+(def ^{:dynamic true} *FORCE-SYNC?* false)
 (defonce thread-pool (Executors/newFixedThreadPool NUM-THREADS))
 (defonce event-handlers* (ref {}))
 (defonce sync-event-handlers* (ref {}))
-
-; * Need to add a handler key for events
-
-(log/level :debug)
 
 (defn- on-event*
   [handler-ref* event-type key handler]
@@ -28,7 +24,7 @@
      true)))
 
 (defn on-event
-  "Runs handler whenever events of event-type are fired asynchronously. This
+  "Asynchronously runs handler whenever events of event-type are fired. This
   asynchronous behaviour can be overridden if required - see sync-event for
   more information. Events may be triggered with the fns event and sync-event.
 
@@ -47,7 +43,7 @@
   (on-event* event-handlers* event-type key handler))
 
 (defn on-sync-event
-  "Runs handler whenever events of type event-type are fired synchronously on
+  "Synchronously runs handler whenever events of type event-type are fired on
   the event handling thread i.e. causes the event handling thread to block until
   all sync events have been handled. Events may be triggered with the fns event
   and sync-event.
@@ -133,7 +129,7 @@
   (log/debug "event: " event-type args)
   (let [event (apply hash-map :event-type event-type args)]
     (handle-event sync-event-handlers* event)
-    (if FORCE-SYNC?
+    (if *FORCE-SYNC?*
       (handle-event event-handlers* event)
       (.execute thread-pool #(handle-event event-handlers* event)))))
 
@@ -143,5 +139,5 @@
   events, these will revert back to the default behaviour of event (i.e. not
   forced sync). See event."
   [& args]
-  (binding [FORCE-SYNC? true]
+  (binding [*FORCE-SYNC?* true]
     (apply event args)))

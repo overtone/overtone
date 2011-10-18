@@ -1,7 +1,9 @@
 (ns overtone.sc.node
   (:use [overtone.util lib]
         [overtone.libs event deps]
-        [overtone.sc defaults core allocator bus])
+        [overtone.sc bus server]
+        [overtone.sc.machinery defaults allocator]
+        [overtone.sc.util :only [id-mapper]])
   (:require [overtone.util.log :as log]))
 
 ;; ## Node and Group Management
@@ -81,7 +83,7 @@
   ([synth-name arg-map] (node synth-name arg-map {:position :tail, :target 0}))
   ([synth-name arg-map location]
      (if (not (connected?))
-       (throw (Exception. "Not connected to synthesis engine.  Please boot or connect.")))
+       (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
      (let [id       (alloc-id :node)
            position (or ((get location :position :tail) POSITION) 1)
            target   (get location :target 0)
@@ -96,7 +98,9 @@
 ;; n_end event when a synth node is destroyed.
 
 (defn node-free
-  "Remove a synth node."
+  "Free the specified node-ids on the server. The allocated id is subsequently
+  freed from the allocator via a callback fn listening for /n_end which will
+  call node-destroyed."
   [& node-ids]
   {:pre [(connected?)]}
   (doseq [id node-ids] (free-id :node id 1 #(snd "/n_free" id)))
@@ -223,7 +227,7 @@
 
 (defmethod ctl :number
   [synth-id & ctls]
-  (apply node-control synth-id ctls))
+  (apply node-control synth-id (id-mapper ctls)))
 
 (defmulti kill
   "Free one or more synth nodes.
@@ -276,7 +280,7 @@
 ;		] * M
 ;	] * the number of nodes in the subtree
 
-(def *node-tree-data* nil)
+(def ^{:dynamic true} *node-tree-data* nil)
 
 (defn- parse-synth-tree
   [id ctls?]
@@ -320,11 +324,13 @@
    (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
      (let [reply-p (recv "/g_queryTree.reply")
            _ (snd "/g_queryTree" id ctls?)
-          tree (:args (await-promise! reply-p))]
+          tree (:args (deref! reply-p))]
        (with-meta (parse-node-tree tree)
          {:type ::node-tree})))))
 
-(on-deps :connected ::create-synth-group #(dosync (ref-set synth-group* (group :head ROOT-GROUP))))
+(on-deps :core-groups-created ::create-synth-group #(dosync
+                                                     (log/debug (str "Creating synth group at head of group with id: " (root-group)))
+                                                     (ref-set synth-group* (group :head (root-group)))))
 
 (on-sync-event :reset
   (fn []
@@ -334,5 +340,5 @@
 
 (on-sync-event :shutdown
                #(do (clear-msg-queue)
-                    (group-clear ROOT-GROUP))
+                    (group-clear 0))
                ::free-all-nodes)

@@ -4,9 +4,10 @@
           intervals, etc."
      :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
-  (:use [clojure.contrib.str-utils2 :only (chop)]
+  (:use [clojure.string :only [capitalize]]
+        [overtone.util old-contrib]
         [overtone.algo chance])
-  (:require [clojure.contrib.math :as math]))
+  (:require [clojure.string :as string]))
 
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
 ;; possible 7 note scales, the major scale has the highest number of consonant
@@ -72,23 +73,59 @@
     (for [n notes] (- pivot (- n pivot)))))
 
 (defn octave-note
-  "Convert an octave and note to a midi note."
-  [octave note]
-  (+ (+ (* octave 12) note) 12))
+  "Convert an octave and interval to a midi note."
+  [octave interval]
+  (+ (* octave 12) interval 12))
 
-(def NOTES {:C  0  :c  0
-           :C# 1  :c# 1  :Db 1  :db 1
-           :D  2  :d  2
-           :D# 3  :d# 3  :Eb 3  :eb 3
-           :E  4  :e  4
-           :F  5  :f  5
-           :F# 6  :f# 6  :Gb 6  :gb 6
-           :G  7  :g  7
-           :G# 8  :g# 8  :Ab 8  :ab 8
-           :A  9  :a  9
-           :A# 10 :a# 10 :Bb 10 :bb 10
-           :B  11 :b  11})
+(def NOTES {:C  0  :c  0  :b# 0  :B# 0
+            :C# 1  :c# 1  :Db 1  :db 1  :DB 1  :dB 1
+            :D  2  :d  2
+            :D# 3  :d# 3  :Eb 3  :eb 3  :EB 3  :eB 3
+            :E  4  :e  4
+            :E# 5  :e# 5  :F  5  :f  5
+            :F# 6  :f# 6  :Gb 6  :gb 6  :GB 6  :gB 6
+            :G  7  :g  7
+            :G# 8  :g# 8  :Ab 8  :ab 8  :AB 8  :aB 8
+            :A  9  :a  9
+            :A# 10 :a# 10 :Bb 10 :bb 10 :BB 10 :bB 10
+            :B  11 :b  11 :Cb 11 :cb 11 :CB 11 :cB 11})
 
+(def REVERSE-NOTES
+  {0 :C
+   1 :C#
+   2 :D
+   3 :Eb
+   4 :E
+   5 :F
+   6 :F#
+   7 :G
+   8 :Ab
+   9 :A
+   10 :Bb
+   11 :B})
+
+(defn canonical-pitch-class-name
+  "Returns the canonical version of the specified pitch class pc."
+  [pc]
+  (let [pc (keyword (name pc))]
+      (REVERSE-NOTES (NOTES pc))))
+
+(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)" )
+(def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
+(def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
+
+(defn- parse-note-match
+  "Takes a match array returned by a regexp match and returns a map of note info"
+  [match]
+  (let [[match pitch-class octave] match
+        pitch-class                (canonical-pitch-class-name pitch-class)
+        octave                     (Integer. octave)
+        interval                   (NOTES (keyword pitch-class))]
+    {:match       match
+     :pitch-class pitch-class
+     :octave      (Integer. octave)
+     :interval    interval
+     :midi-note   (octave-note octave interval)}))
 
 (defn note
   "Resolves note to MIDI number format. Resolves upper and lower-case keywords
@@ -111,26 +148,38 @@
    (integer? n) (if (>= n 0)
                     n
                     (throw (IllegalArgumentException.
-                            (str "Unable to resolve note: " n ". Value is out of range. Lowest value is 0"))))
+                            (str "Unable to resolve note: "
+                                 n
+                                 ". Value is out of range. Lowest value is 0"))))
    (keyword? n) (note (name n))
-   (string? n) (let [midi-note-re #"\A([a-gA-G][#b]?)([-0-9]+\Z)"
-                        separated (re-find midi-note-re n)
-                        _ (when (nil? separated)
-                            (throw (IllegalArgumentException.
-                                    (str "Unable to resolve note: " n ". Does not appear to be in MIDI format i.e. C#4"))))
-
-                        [_ pitch-class octave] separated
-                        octave (Integer. octave)
-                        _ (when (< octave -1)
-                            (throw (IllegalArgumentException.
-                                    (str "Unable to resolve note: " n ". Octave is out of range. Lowest octave value is -1"))))
-                        interval (NOTES (keyword pitch-class))
-
-                        _ (when (nil? interval)
-                            (throw (IllegalArgumentException.
-                                    (str "Unable to resolve note: " n ". Not a valid pitch class such as C or Db"))))]
-                    (+ interval 12 (* 12 octave)))
+   (string? n) (let [match (re-find ONLY-MIDI-NOTE-RE n)
+                     _ (when (nil? match)
+                         (throw (IllegalArgumentException.
+                                 (str "Unable to resolve note: "
+                                      n
+                                      ". Does not appear to be in MIDI format i.e. C#4"))))
+                     note-match (parse-note-match match)
+                     _ (when (< (:octave note-match) -1)
+                         (throw (IllegalArgumentException.
+                                 (str "Unable to resolve note: "
+                                      n
+                                      ". Octave is out of range. Lowest octave value is -1"))))]
+                 (:midi-note note-match))
    :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
+
+(defn match-note
+  "Returns the first midi-note formatted substring in s. If passed optional prev
+   and pos strings will use them to generate positive look ahead and behind
+   matchers. "
+  ([s] (match-note s "" ""))
+  ([s prev-str post-str]
+     (let [look-behind (if prev-str (str "(?<=" prev-str ")") "")
+           look-ahead (if post-str (str "(?=" post-str ")") "")
+           match (re-find (re-pattern (str look-behind MIDI-NOTE-RE-STR look-ahead)) s)]
+       (when match
+         (parse-note-match match)))))
+
+
 
 ;; * Each note in a scale acts as either a generator or a collector of other notes,
 ;; depending on their relations in time within a sequence.
@@ -234,33 +283,55 @@
              :vii   7
              :_     nil})
 
-(defn resolve-degree
+(defn degree->int
   [degree]
   (if (some #{degree} (keys DEGREE))
     (degree DEGREE)
     (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
 
+(defn resolve-degree
+  "returns a map representing the degree, and the octave semitone
+  shift (i.e. sharp flat)"
+  ([degree] (resolve-degree degree 0 0))
+  ([degree octave-shift semitone-shift]
+     (cond
+      (.endsWith (name degree) "-")
+      (resolve-degree (keyword (chop (name degree))) (dec octave-shift) semitone-shift)
+
+      (.endsWith (name degree) "+")
+      (resolve-degree (keyword (chop (name degree))) (inc octave-shift) semitone-shift)
+
+      (.endsWith (name degree) "b")
+      (resolve-degree (keyword (chop (name degree))) octave-shift (dec semitone-shift))
+
+      (.endsWith (name degree) "#")
+      (resolve-degree (keyword (chop (name degree))) octave-shift (inc semitone-shift))
+
+      :default
+      (let [degree (degree->int degree)]
+        {:degree degree
+         :octave-shift octave-shift
+         :semitone-shift semitone-shift}))))
+
 (defn degree->interval
   "Converts the degree of a scale given as a roman numeral keyword and converts
   it to the number of intervals (semitones) from the tonic of the specified
-  scale."
-  ([degree scale] (degree->interval degree scale 0))
-  ([degree scale shift]
+  scale.
+
+  Trailing #, b, + - represent sharps, flats, octaves up and down respectively.
+  An arbitrary number may be added in any order."
+  ([degree scale]
      (cond
       (nil? degree) nil
       (= :_ degree) nil
 
-      (number? degree) (+ shift (nth-interval scale (dec degree)))
+      (number? degree) (nth-interval scale (dec degree))
 
-      (keyword? degree) (cond
-                         (.endsWith (name degree) "-")
-                         (degree->interval (keyword (chop (name degree))) scale (- shift 12))
-
-                         (.endsWith (name degree) "+")
-                         (degree->interval (keyword (chop (name degree))) scale (+ shift 12))
-
-                         :default
-                         (+ shift (nth-interval scale (dec (resolve-degree degree))))))))
+      (keyword? degree) (let [degree     (resolve-degree degree)
+                              interval   (nth-interval scale (dec (:degree degree)))
+                              oct-shift  (* 12 (:octave-shift degree))
+                              semi-shift (:semitone-shift degree)]
+                          (+ interval oct-shift semi-shift)))))
 
 (defn degrees->pitches
   "Convert intervals to pitches in MIDI number format.  Supports nested collections."
@@ -425,14 +496,14 @@
    i.e. (nth-ocatve 440 1) will return 880 which is the freq of the next octave
    from 440."
   [freq n]
-  (* freq (math/expt 2 n)))
+  (* freq (java.lang.Math/pow 2 n)))
 
 (defn nth-equal-tempered-freq
   "Returns the frequency of a given scale interval using an equal-tempered
   tuning i.e. dividing all 12 semi-tones equally across an octave. This is
   currently the standard tuning."
   [base-freq interval]
-  (* base-freq (math/expt 2 (/ interval 12))))
+  (* base-freq (java.lang.Math/pow 2 (/ interval 12))))
 
 (defn interval-freq
   "Returns the frequency of the given interval using the specified mode and

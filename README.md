@@ -29,7 +29,7 @@ possible
 
 For a quick glance at all the functionality Overtone puts at your musical fingertips check out the cheat sheet:
 
-  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet-a4.pdf
+  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
 
 ### Project Info:
 
@@ -38,9 +38,9 @@ For a quick glance at all the functionality Overtone puts at your musical finger
 Overtone and its dependencies are on http://clojars.org, and the dependency for
 your project.clj is:
 
-[overtone "<version>"]
+    [overtone "<version>"]
 
-The current version is 0.2.1 but search on Clojars to get the latest
+The current version is 0.4.0 but search on Clojars to get the latest
 release.
 
 #### Source Repository
@@ -59,7 +59,7 @@ Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list
 
 ### Ubuntu Quick Setup:
 
-    sudo apt-get install jack-tools ant sun-java6-jdk fftw3 qjackctl
+    sudo apt-get install jack-tools ant openjdk-6-jdk fftw3 qjackctl
 
 You'll need to get the jack audio daemon running, and we recommend qjackctl to
 figure out what command will be best to use.  Then once you have it dialed in you can
@@ -101,7 +101,7 @@ Now get Overtone:
     ; and pan2 makes the signal stereo
     ; demo simply plays the synth for the specified time in seconds:
 
-    user=> (demo 5 (pan2 (sin-osc 440))))
+    user=> (demo 5 (pan2 (sin-osc 440)))
 
 
     ; Defining a new synthesizer instrument with the definst macro will return a function which
@@ -146,3 +146,8 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Nicolas Buduroi
 * Iain Wood
 * Marmaduke Woodman
+* Thomas Karolski
+* Nick Orton
+* Kevin Neaton
+* Chris Ford
+* Philip Potter

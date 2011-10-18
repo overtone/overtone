@@ -1,8 +1,6 @@
 (ns overtone.sc.examples.trig
-  (:use [overtone.sc.ugen]
-        [overtone.sc.ugen constants]
-        [overtone.sc.cgen.demand]
-        [overtone.sc.example]))
+  (:use [overtone.sc.machinery defexample]
+        [overtone.sc gens]))
 
 (defexamples send-reply
   (:count

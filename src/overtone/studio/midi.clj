@@ -1,6 +1,6 @@
 (ns overtone.studio.midi
-  (:use [midi]
-        [overtone.studio core]))
+  (:use [overtone.midi]
+        [overtone.studio rig]))
 
 (defn midi-inst-player [inst event ts]
   (let [notes* (atom {})]

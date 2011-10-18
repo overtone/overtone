@@ -5,18 +5,17 @@
          serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.sc.synth
-  (:use [overtone.util lib]
-        [overtone.music time]
+  (:use [overtone.util lib old-contrib]
         [overtone.libs event]
-        [overtone.sc.ugen defaults common specs sc-ugen]
-        [overtone.sc core ugen synthdef node buffer]
-        [clojure.contrib [def :only [name-with-attributes]]]
-        [clojure.contrib.seq-utils :only (indexed)])
-  (:require [clojure.contrib.generic.arithmetic :as ga]
-            [overtone.at-at :as at-at]
+        [overtone.music time]
+        [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
+        [overtone.sc.machinery synthdef]
+        [overtone.sc server node buffer])
+  (:require [overtone.at-at :as at-at]
             [overtone.util.log :as log]))
 
-;;TODO replace this with clojure.core/keep-indexed or map-indexed))
+;;TODO replace occruences of indexed with clojure.core/keep-indexed or
+;;     map-indexed where possible
 
 ;; ### Synth
 ;;
@@ -25,7 +24,6 @@
 ;; input and write output to global audio and control buses. Synths can have
 ;; their own local controls that are set via commands to the server.
 
-(def *params* nil)
 
 (defn- ugen-index [ugens ugen]
   (first (first (filter (fn [[i v]]
@@ -182,7 +180,7 @@
   "throws an error if list l does not contain an even number of elements"
   [l]
   (when-not (even? (count l))
-    (throw (IllegalArgumentException. (str "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5] or a list of maps. You passed " (count l) " args:" l)))))
+    (throw (IllegalArgumentException. (str "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5] or a list of maps. You passed " (count l) " args: " l)))))
 
 (defn- ensure-vec!
   "throws an error if list l is not a vector"
@@ -295,7 +293,7 @@
                 :params params
                 :pnames pnames
                 :ugens detailed}
-               {:type :overtone.sc.synthdef/synthdef})))
+               {:type :overtone.sc.machinery.synthdef/synthdef})))
 
 ; TODO: This should eventually handle optional rate specifiers, and possibly
 ; be extended with support for defining ranges of values, etc...
@@ -312,6 +310,13 @@
    integer across all anonymous synths."
   []
   (str "anon-" (next-id :anonymous-synth)))
+
+(defn- id-able-type?
+  [o]
+  (or (isa? (type o) :overtone.sc.buffer/buffer)
+      (isa? (type o) :overtone.sc.sample/sample)
+      (isa? (type o) :overtone.sc.bus/audio-bus)
+      (isa? (type o) :overtone.sc.bus/control-bus)))
 
 (defn synth-player
   "Returns a player function for a named synth.  Used by (synth ...)
@@ -333,8 +338,11 @@
   "
   [sname arg-names]
   (fn [& args]
-    (let [args (if (map? args)
-                 (flatten (seq args))
+    (let [args (if (and (= 1 (count args))
+                        (map? (first args))
+                        (not (id-able-type? (first args))))
+                 (flatten (seq (first args)))
+
                  args)
           [args sgroup] (if (or (= :target (first args))
                                 (= :tgt    (first args)))
@@ -349,17 +357,14 @@
                           [(drop 2 args) (second args)]
                           [args sgroup])
           player        #(node sname % {:position pos :target sgroup })
-          args          (map #(if (or (isa? (type %) :overtone.sc.buffer/buffer)
-                                      (isa? (type %) :overtone.sc.sample/sample)
-                                      (isa? (type %) :overtone.sc.bus/audio-bus)
-                                      (isa? (type %) :overtone.sc.bus/control-bus))
+          args          (map #(if (id-able-type? %)
                                 (:id %) %) args)
 
           arg-map       (arg-mapper args arg-names {})
 ]
       (player arg-map))))
 
-(defn- normalize-synth-args
+(defn normalize-synth-args
   "Pull out and normalize the synth name, parameters, control proxies and the ugen form
    from the supplied arglist resorting to defaults if necessary."
   [args]
@@ -385,7 +390,7 @@
     `(let [~@param-proxies]
        (binding [*ugens* []
                  *constants* #{}]
-         (with-ugens
+         (with-overloaded-ugens
            (do
              ~@ugen-form)
            [~sname ~params *ugens* (into [] *constants*)])))))
@@ -421,7 +426,7 @@
         params          (first s-form)
         params          (parse-params params)
         ugen-form       (second s-form)
-        param-names     (list (vec (map :name params)))
+        param-names     (list (vec (map #(symbol (:name %)) params)))
         md              (assoc (meta s-name)
                           :name s-name
                           :type ::synth
@@ -532,16 +537,33 @@
         (println "       " uname uform))
       (println (str "       ]\n   " (first (last ugen-forms)) ")"))))
 
-(def *demo-time* 2000)
+(def ^{:dynamic true} *demo-time* 2000)
 
-(defmacro demo
-  "Try out an anonymous synth definition.  Useful for experimentation.  If the
-  root node is not an out ugen, then it will add one automatically.
+(defmacro run
+  "Run an anonymous synth definition for a fixed period of time.  Useful for
+  experimentation. Does NOT add  an out ugen - see #'demo for that..
   You can specify a timeout in seconds as the first argument otherwise it
   defaults to *demo-time* ms.
 
-  (demo (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
-  (demo 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
+  (run (send-reply (impulse 1) \"/foo\" [1] 43)) ;=> send OSC messages out
+"
+  [& body]
+  (let [[demo-time body] (if (number? (first body))
+                           [(* 1000 (first body)) (second body)]
+                           [*demo-time* (first body)])]
+    `(let [s# (synth "audition-synth" ~body)
+           note# (s#)]
+       (after-delay ~demo-time #(node-free note#))
+       note#)))
+
+(defmacro demo
+  "Listen to an anonymous synth definition for a fixed period of time.  Useful
+  for experimentation.  If the root node is not an out ugen, then it will add
+  one automatically.  You can specify a timeout in seconds as the first argument
+  otherwise it defaults to *demo-time* ms.
+
+  (play (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
+  (play 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
   [& body]
   (let [[demo-time body] (if (number? (first body))
                            [(* 1000 (first body)) (second body)]
@@ -551,7 +573,7 @@
              (list 'out 0 body))]
     `(let [s# (synth "audition-synth" ~b2)
            note# (s#)]
-       (at-at/at (+ (now) ~demo-time) #(node-free note#))
+       (after-delay ~demo-time #(node-free note#))
        note#)))
 
 (defn active-synths

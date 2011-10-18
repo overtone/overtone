@@ -19,7 +19,7 @@
 
 (deftest boot-test
   (try
-    (boot)
+    (boot-server)
     (Thread/sleep 500)
     (is (not (nil? @server*)))
     (is (= 1 (:n-groups (status))))
@@ -27,7 +27,7 @@
     (play-seqs "sin" ditty-notes ditty-durs)
     (Thread/sleep 3000)
     (finally
-      (quit))))
+      (kill-server))))
 
 (def DEFAULT-GROUP 1)
 
@@ -57,11 +57,10 @@
 (defn test-ns-hook []
   (try
     (boot-test)
-    (boot)
+    (boot-server)
     (Thread/sleep 500)
     (groups-test)
     (node-tree-test)
     (reset)
     (finally
-      (quit))))
-
+      (kill-server))))

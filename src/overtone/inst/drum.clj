@@ -1,5 +1,6 @@
 (ns overtone.inst.drum
-  (:use overtone.core))
+  (:use [overtone.sc gens envelope synth]
+        [overtone.studio rig]))
 
 (definst kick [freq 80 mod-freq 5 mod-index 5
                 sustain 0.4 amp 0.8 noise 0.025]
@@ -70,7 +71,7 @@
         filtered (* (env-gen (perc 0.005 sustain) :action FREE)
                     (brf filtered 2000 0.0001))
         crackle (* (resonz filtered tightness) crackle-amp)]
-    (* amp (* (+ drum crackle)))))
+    (* amp (+ drum crackle))))
 
 (definst snare2 [amp 0.5 decay 0.1 freq 1000]
   (let [env (env-gen (perc 0 decay) :action FREE)

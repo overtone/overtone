@@ -1,24 +1,30 @@
 (ns overtone.sc.buffer
   (:use [overtone.util lib]
         [overtone.libs event]
-        [overtone.sc defaults core allocator]))
+        [overtone.sc server]
+        [overtone.sc.machinery defaults allocator]
+        [overtone.sc.machinery.server comms connection]
+        [overtone.sc.util :only [id-mapper]]))
 
 (defn buffer-info
-  "Fetch the information for buffer associated with buf-id. Synchronous."
+  "Fetch the information for buffer associated with buf-id (either an integer or
+  an associative with an :id key). Synchronous."
   [buf-id]
-  (let [prom   (recv "/b_info" (fn [msg]
+  (let [buf-id (id-mapper buf-id)
+        prom   (recv "/b_info" (fn [msg]
                                  (= buf-id (first (:args msg)))))]
     (with-server-sync #(snd "/b_query" buf-id))
-    (let [msg                               (await-promise! prom)
+    (let [msg                               (deref! prom)
           [buf-id n-frames n-channels rate] (:args msg)]
-      (with-meta     {:n-frames n-frames
+      (with-meta     {:size n-frames
                       :n-channels n-channels
                       :rate rate
                       :id buf-id}
         {:type ::buffer-info}))))
 
 (defn buffer
-  "Synchronously allocate a new zero filled buffer for storing audio data with the specified size and num-channels."
+  "Synchronously allocate a new zero filled buffer for storing audio data with
+  the specified size and num-channels."
   ([size] (buffer size 1))
   ([size num-channels]
      (let [id   (with-server-self-sync (fn [uid]
@@ -30,7 +36,7 @@
            info (buffer-info id)]
        (with-meta
          {:allocated-on-server (atom true)
-          :size (:n-frames info)
+          :size (:size info)
           :n-channels (:n-channels info)
           :rate (:rate info)
           :id (:id info)}
@@ -57,8 +63,8 @@
   "Read a section of an audio buffer. Defaults to reading the full buffer if no
   start and len vals are specified. Returns a float array of vals.
 
-  For more efficient reading of buffer data with the internal server, see
-  buffer-data."
+  This is extremely slow for large portions of data. For more efficient reading
+  of buffer data with the internal server, see buffer-data."
   ([buf] (buffer-read buf 0 (:size buf)))
   ([buf start len]
      (assert (buffer? buf))
@@ -75,8 +81,8 @@
                                           (and (= msg-buf-id buf-id)
                                                (= msg-start offset)
                                                (= n-to-read (count m-args))))))]
-             (with-server-sync #(snd "/b_getn" buf-id offset n-to-read))
-             (let [m (await-promise! prom)
+             (snd "/b_getn" buf-id offset n-to-read)
+             (let [m (deref! prom)
                    [buf-id bstart blen & samps] (:args m)]
                (dorun
                 (map-indexed (fn [idx el]
@@ -133,7 +139,7 @@
                                           (= msg-start index)))))]
 
        (with-server-sync #(snd "/b_get" buf-id index))
-       (last (:args (await-promise! prom))))))
+       (last (:args (deref! prom))))))
 
 (defn buffer-save
   "Save the float audio data in an audio buffer to a wav file."
@@ -143,7 +149,7 @@
   (let [arg-map (merge (apply hash-map args)
                        {:header "wav"
                         :samples "float"
-                        :n-frames -1
+                        :size -1
                         :start-frame 0
                         :leave-open 0})
         {:keys [header samples n-frames start-frame leave-open]} arg-map]
@@ -155,16 +161,19 @@
 
 (defmulti buffer-id type)
 (defmethod buffer-id java.lang.Integer [id] id)
+(defmethod buffer-id java.lang.Long [id] id)
 (defmethod buffer-id ::buffer [buf] (:id buf))
 (defmethod buffer-id ::buffer-info [buf-info] (:id buf-info))
 
 (defmulti buffer-size type)
 (defmethod buffer-size ::buffer [buf] (:size buf))
-(defmethod buffer-size ::buffer-info [buf-info] (:n-frames buf-info))
+(defmethod buffer-size ::buffer-info [buf-info] (:size buf-info))
 
 (defn buffer-data
   "Get the floating point data for a buffer on the internal server."
   [buf]
+  (when-not (internal-server?)
+    (throw (Exception. (str "Only able to fetch buffer data directly from an internal server. Try #'buffer-read instead."))))
   (let [buf-id (buffer-id buf)
         snd-buf (.getSndBufAsFloatArray @sc-world* buf-id)]
     snd-buf))

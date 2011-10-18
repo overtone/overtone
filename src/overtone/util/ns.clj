@@ -8,7 +8,7 @@
  [& ns-names]
  (doseq [ns ns-names]
    (doseq [[sym var] (ns-publics ns)]
-     (let [sym (with-meta sym (assoc (meta var) :ns *ns*))]
+     (let [sym (with-meta sym (assoc (meta var) :orig-ns ns))]
        (if (.isBound var)
          (intern *ns* sym (var-get var))
          (intern *ns* sym))))))

@@ -25,7 +25,7 @@
 \setlength{\columnsep}{0.25em}
 
 % Define colours
-\definecolorset{hsb}{}{}{red,0,.4,0.95;orange,.1,.4,0.95;green,.25,.4,0.95;yellow,.15,.4,0.95}
+\definecolorset{hsb}{}{}{red,0,.4,0.95;orange,.1,.4,0.95;green,.25,.4,0.95;grey,0.0,0.0,0.1;yellow,.15,.4,0.95}
 
 \definecolorset{hsb}{}{}{blue,.55,.4,0.95;purple,.7,.4,0.95;pink,.8,.4,0.95;blue2,.58,.4,0.95}
 
@@ -71,23 +71,36 @@
 
 \begin{document}
 
-{\Large{\textbf{Overtone Cheat Sheet (Overtone 0.2.1)}}}
+{\Large{\textbf{Overtone Cheat Sheet (Overtone 0.4.0)}}}
 
-\colouredbox{green}{
-\section{Documentation \& Examples}
+\colouredbox{pink}{
+\section{REPL helpers}
 \begin{tabularx}{\hsize}{lX}
-Clojure&\cmd{doc find-doc}\\
-Overtone& \cmd{example examples get-example}
+Documentation&\cmd{odoc ug-doc find-ug find-ug-doc}\\
+Examples& \cmd{examples example get-example}\\
+Shell& \cmd{ls grep}\\
 \end{tabularx}
 }
 
-\colouredbox{red}{
+\colouredbox{blue2}{
 \section{Synths}
 \begin{tabularx}{\hsize}{lX}
 Design&\cmd{definst defsynth}\\
 Examples& \cmd{defexamples}\\
 CGens& \cmd{defcgen}\\
 Control& \cmd{ctl kill}
+\end{tabularx}
+}
+
+\colouredbox{grey}{
+\section{Server}
+\begin{tabularx}{\hsize}{lX}
+Startup&\cmd{boot-server boot-external-server connect-external-server}\\
+Shutdown&\cmd{kill-server}\\
+Control& \cmd{stopl}\\
+OSC Communication& \cmd{snd recv clear-msg-queue}\\
+Diagnostic& \cmd{status connected? disconnected? server-status}\\
+Debug& \cmd{sc-osc-log-on sc-osc-log-off sc-osc-log sc-debug-on sc-debug-off external-server-log}\\
 \end{tabularx}
 }
 
@@ -136,7 +149,7 @@ Info & \cmd{node-tree}
 \section{Algorithmic Composition}
 \subsection{Chance}
 \begin{tabularx}{\hsize}{lX}
-Choice  & \cmd{choose weighted-choose} \\
+Choice  & \cmd{choose choose-n weighted-choose} \\
 Dice & \cmd{weighted-coin ranged-rand}\\
 \end{tabularx}
 
@@ -146,6 +159,14 @@ Range& \cmd{scale-range}\\
 Rounding& \cmd{closest-to round-to}
 \end{tabularx}
 
+\subsection{Trig}
+\begin{tabularx}{\hsize}{lX}
+Scaled& \cmd{cosr sinr tanr}\\
+\end{tabularx}
+}
+
+\colouredbox{purple}{
+\section{Music}
 \subsection{Pitch}
 \begin{tabularx}{\hsize}{lX}
 Ratios& \cmd{unison octave fifth sixth third fourth min-third min-sixth}\\
@@ -155,8 +176,7 @@ Frequencies& \cmd{cent midi->hz hz->midi }\\
 Amplitude& \cmd{db->amp}
 \end{tabularx}
 }
-
-\colouredbox{orange}{
+\colouredbox{green}{
 \section{Studio}
 \subsection{Instruments}
 \begin{tabularx}{\hsize}{lX}
@@ -186,6 +206,41 @@ bps & \cmd{beat-ms}\\
 \subsection{Scope}
 \begin{tabularx}{\hsize}{lX}
 Create \& Reset&\cmd{scope pscope reset-scopes } \\
+\end{tabularx}
+}
+
+\colouredbox{blue2}{
+\section{CGens}
+\begin{tabularx}{\hsize}{lX}
+Audio In & \cmd{sound-in}\\
+Oscillators & \cmd{pm-osc square}\\
+Mix & \cmd{mix splay}\\
+\end{tabularx}
+}
+
+
+\colouredbox{blue}{
+\section{UGen Helper Constants}
+\begin{tabularx}{\hsize}{lX}
+Done Actions& \cmd{NO-ACTION PAUSE FREE FREE-AND-BEFORE FREE-AND-AFTER FREE-AND-GROUP-BEFORE FREE-AND-GROUP-AFTER FREE-UPTO-THIS FREE-FROM-THIS-ON FREE-PAUSE-BEFORE FREE-PAUSE-AFTER FREE-AND-GROUP-BEFORE-DEEP FREE-AND-GROUP-AFTER-DEEP FREE-CHILDREN FREE-GROUP}\\
+FFT Windows& \cmd{SINE HANN RECT}\\
+Lines& \cmd{LINEAR LIN EXPONENTIAL EXP}\\
+Onset Analysis& \cmd{POWER MAGSUM COMPLEX RCOMPLEX PHASE WPHASE MKL}\\
+Infinity& \cmd{INFINITE INF}\\
+\end{tabularx}
+}
+
+\colouredbox{blue}{
+\section{Unary UGens}
+\begin{tabularx}{\hsize}{lX}
+& \cmd{neg not-pos? abs ceil floor frac sign squared cubed sqrt exp reciprocal midicps cpsmidi midiratio ratiomidi dbamp ampdb octcps cpsoct log log2 log10 sin cos tan asin acos atan sinh cosh tanh distort softclip rect-window han-window wel-window tri-window}\\
+\end{tabularx}
+}
+
+\colouredbox{blue}{
+\section{Binary UGens}
+\begin{tabularx}{\hsize}{lX}
+& \cmd{+ - * / mod = not= < > <= >= min max and or xor round round-up round-down atan2 hypot hypot-aprox pow ring1 ring2 ring3 ring4 difsqr sumsqr sqrsum sqrdif absdif thesh amclip scale-neg clip2 excess fold2 wrap2}\\
 \end{tabularx}
 }
 
@@ -256,7 +311,7 @@ Create \& Reset&\cmd{scope pscope reset-scopes } \\
 \colouredbox{blue}{
 \section{Extra FFT UGens}
 \begin{tabularx}{\hsize}{lX}
-& \cmd{pv-conformal-map convolution convolution2 convolution2-l stero-convolution2-l convolution3 pv-jenson-andersen pv-hainsworth-foote running-sum}\\
+& \cmd{pv-conformal-map convolution convolution2 convolution2-l stereo-convolution2-l convolution3 pv-jenson-andersen pv-hainsworth-foote running-sum}\\
 \end{tabularx}
 }
 
@@ -378,7 +433,7 @@ Create \& Reset&\cmd{scope pscope reset-scopes } \\
 \begin{flushright}
 \footnotesize
 \rule{0.7\linewidth}{0.25pt}
-\verb!$Revision: 0.01, $Date: 24th August, 2011!\\
+\verb!$Revision: 0.4.0.0, $Date: 25th September, 2011!\\
 \verb!Sam Aaron (sam.aaron gmail com)!
 \end{flushright}
 

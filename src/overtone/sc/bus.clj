@@ -1,5 +1,6 @@
 (ns overtone.sc.bus
-  (:use [overtone.sc defaults core allocator]))
+  (:use [overtone.sc.machinery defaults allocator]
+        [overtone.sc server]))
 
 ;; ## Busses
 ;;

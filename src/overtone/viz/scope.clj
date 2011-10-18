@@ -9,7 +9,8 @@
   (:use [clojure.stacktrace]
         [overtone.util lib]
         [overtone.libs event deps]
-        [overtone.sc defaults core synth ugen buffer node]
+        [overtone.sc.machinery defaults]
+        [overtone.sc server synth gens buffer node]
         [overtone.studio.util])
   (:require [clojure.set :as set]
             [overtone.util.log :as log]
@@ -27,12 +28,29 @@
 (defonce scope-group* (ref 0))
 
 (on-deps :studio-setup-completed ::create-scope-group #(dosync
-                                                        (ref-set scope-group* (group :tail ROOT-GROUP))
+                                                        (ref-set scope-group* (group :tail (main-monitor-group)))
                                                         (satisfy-deps :scope-group-created)))
 
-(defn- update-scope-data [s]
+
+(defn- ensure-internal-server!
+  "Throws an exception if the server isn't internal - scope relies on fast
+  access to shared buffers with the server which is currently only available
+  with the internal server. Also ensures server is connected."
+  []
+  (when (disconnected?)
+    (throw (Exception. "Cannot use scopes until a server has been booted or connected")))
+  (when (external-server?)
+    (throw (Exception. (str "Sorry, it's  only possible to use scopes with an internal server. Your server connection info is as follows: " (connection-info))))))
+
+(defn- update-scope-data
+  "Updates the scope by reading the current status of the buffer and repainting.
+  Currently only updates bus scope as there's a bug in scsynth-jna which crashes
+  the server after too many calls to buffer-data for a large buffer. As buffers
+  tend to be large, updating the scope frequently will cause the crash to happen
+  sooner. Need to remove this limitation when scsynth-jna is fixed."
+  [s]
   (let [{:keys [buf size width height panel y-arrays x-array panel]} s
-        frames    (buffer-data buf)
+        frames    (if @(:update? s) (buffer-data buf) @(:frames s))
         step      (int (/ (buffer-size buf) width))
         y-scale   (- height (* 2 Y-PADDING))
         [y-a y-b] @y-arrays]
@@ -43,10 +61,15 @@
                       (aget ^floats frames (unchecked-multiply x step)))))))
 
     (reset! y-arrays [y-b y-a])
-    (.repaint panel)))
+    (.repaint panel)
+
+    (when (and (not (:bus-synth s))
+               @(:update? s))
+      (reset! (:frames s) frames)
+      (reset! (:update? s) false))))
 
 (defn- update-scopes []
-  (doall (map update-scope-data (vals @scopes*))))
+  (dorun (map update-scope-data (vals @scopes*))))
 
 (defn- paint-scope [^Graphics g id]
   (if-let [scope (get @scopes* id)]
@@ -65,10 +88,10 @@
         (.drawRect 0 0 width height)
         (.setColor ^Color color)
         (.translate 0 y-shift)
-        (.scale 1 y-zoom)
+        (.scale 1 (* -1 y-zoom))
         (.drawPolyline ^ints x-array ^ints y-a width)))))
 
-(defn scope-panel [id width height]
+(defn- scope-panel [id width height]
   (let [panel (proxy [JPanel] [true]
                 (paint [g] (paint-scope g id)))
         _ (.setPreferredSize panel (Dimension. width height))]
@@ -94,6 +117,7 @@
   "Schedule the scope to be updated every (/ 1000 FPS) ms (unless the scopes are
   already running in which case it does nothing."
   []
+  (ensure-internal-server!)
   (dosync
    (when-not @scopes-running?*
      (at-at/every (/ 1000 FPS) update-scopes scope-pool)
@@ -118,7 +142,9 @@
   (doall (map reset-data-arrays (vals @scopes*))))
 
 (defn scopes-stop
+  "Stop all scopes from running."
   []
+  (ensure-internal-server!)
   (at-at/stop-and-reset-pool! scope-pool)
   (empty-scope-data)
   (dosync (ref-set scopes-running?* false)))
@@ -140,18 +166,18 @@
 (defn- scope-buf
   "Set a buffer to view in the scope."
   [s]
-  (assoc s
-    :size (:n-frames (buffer-info (:num s)))
-    :buf (buffer-info (:num s))))
+  (let [info (buffer-info (:num s))]
+    (assoc s
+      :size (:size info)
+      :buf  info)))
 
 (defn scope-close
   [s]
   (log/info (str "Closing scope: \n" s))
   (let [{:keys [id bus-synth buf]} s]
-    (if bus-synth
+    (when (and bus-synth
+               (connected?))
       (kill bus-synth))
-    (if buf
-      (buffer-free buf))
     (dosync (alter scopes* dissoc id))))
 
 (defn- mk-scope
@@ -177,7 +203,9 @@
                :width width
                :height height
                :x-array x-array
-               :y-arrays (atom [y-a y-b])}
+               :y-arrays (atom [y-a y-b])
+               :update? (atom true)
+               :frames (atom [])}
 
         _ (reset-data-arrays scope)]
     (.addWindowListener frame
@@ -223,6 +251,7 @@
       :or {bus 0
            buf -1
            keep-on-top false}}]
+     (ensure-internal-server!)
      (let [buf (if (buffer? buf) (:id buf) buf)
            kind (if (= -1 buf) :bus :buf)
            num  (if (= -1 buf) bus buf)
@@ -233,11 +262,13 @@
 (defn pscope
   "Creates a 'perminent' scope, i.e. one where the window is always kept on top of other OS windows. See scope."
   ([& args]
+     (ensure-internal-server!)
      (apply scope (concat args [:keep-on-top true]))))
 
 (defn- reset-scopes
   "Restart scopes if they have already been running"
   []
+  (ensure-internal-server!)
   (dosync
    (ref-set scopes*
             (reduce (fn [new-scopes [k v]]
@@ -250,8 +281,13 @@
    (scopes-start)))
 
 
-(on-deps #{:synthdefs-loaded :scope-group-created} ::reset-scopes reset-scopes)
-(on-sync-event :shutdown scopes-stop  ::stop-scopes)
+(on-deps #{:synthdefs-loaded :scope-group-created} ::reset-scopes #(when (internal-server?)
+                                                                     (reset-scopes)))
+(on-sync-event :shutdown #(when (internal-server?)
+                            (scopes-stop)
+                            (dorun
+                             (map (fn [s] scope-close s) @scopes*)))
+               ::stop-scopes)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Testing
@@ -286,7 +322,7 @@
   (defn test-scope []
     (if (not (connected?))
       (do
-        (boot)
+        (boot-server)
         (on :examples-ready go-go-scope))
       (go-go-scope))
     (.show test-frame))

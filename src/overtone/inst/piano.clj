@@ -1,5 +1,6 @@
 (ns overtone.inst.piano
-  (:use overtone.core))
+  (:use [overtone.sc gens envelope]
+        [overtone.studio rig]))
 
 ;; IMPORTANT: requires the mda-piano ugen to be available on your system
 
@@ -18,20 +19,20 @@
                 random 0.1
                 stretch 0.1
                 sustain 0.1]
-  (let [snd (apply mda-piano [:freq (midicps note)
-                              :gate gate
-                              :vel vel
-                              :decay decay
-                              :release release
-                              :hard hard
-                              :velhard velhard
-                              :muffle muffle
-                              :velmuff velmuff
-                              :velcurve velcurve
-                              :stereo stereo
-                              :tune tune
-                              :random random
-                              :stretch stretch
-                              :sustain sustain])]
+  (let [snd (mda-piano {:freq (midicps note)
+                        :gate gate
+                        :vel vel
+                        :decay decay
+                        :release release
+                        :hard hard
+                        :velhard velhard
+                        :muffle muffle
+                        :velmuff velmuff
+                        :velcurve velcurve
+                        :stereo stereo
+                        :tune tune
+                        :random random
+                        :stretch stretch
+                        :sustain sustain})]
     (detect-silence snd 0.005 :action FREE)
     (* 1 snd))) ;;TODO: figure out why this mul is required
