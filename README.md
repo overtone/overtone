@@ -1,10 +1,29 @@
-          _____                 __
-         / __  /_  _____  _____/ /_____  ____  ___
-        / / / / | / / _ \/ ___/ __/ __ \/ __ \/ _ \
-       / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
-       \____/ |___/\___/_/   \__/\____/_/ /_/\___/
 
-                          Programmable Music.
+                                    ,,ggddY""""Ybbgg,,
+                              ,agd""'              `""bg,
+                            ,gdP"                       "Ybg,
+                          ,dP"                             "Yb
+                         ,dP"                                 .gPPRg,
+                        ,8"                                  dP'   `Yb
+                       ,8'                                   8)     (8
+                      ,8'                                    Yb     dP
+                      d'                                      "8ggg8"
+                      8
+                      8                                            8
+                      8                                            8
+                      8                                            8
+                      Y,                                          ,P
+                      `8,                                        ,8'
+                       `8,                                      ,8'
+                        `8a                                    a8'
+                         `Yba                                 adP'
+                           "Yba                             adY"
+                             `"Yba,                     ,adP"'
+                                `"Y8ba,             ,ad8P"'
+                                     ``""YYbaaadPP""''
+
+
+# Overtone -- Programmable Music.
 
 ## Live-coding & musical exploration
 
