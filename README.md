@@ -62,13 +62,13 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
     user=> (definst beep [freq 440] (sin-osc freq))
     user=> (beep)
-    user=> (stop) # (this command will kill all running synths)
+    user=> (stop) ; (this command will kill all running synths)
 
     ; Call the ctl function to modulate any params and to eventually kill that instrument:
 
     user=> (beep)
     user=> (ctl beep :freq 880)
-    user=> (kill beep) # (this will just kill the specific instrument)
+    user=> (kill beep) ; (this will just kill the specific instrument)
 
 ## External & Internal Servers
 
