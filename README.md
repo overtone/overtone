@@ -105,16 +105,16 @@ For a quick glance at all the exciting functionality Overtone puts at your music
 
 ### Requirements
 
-* Clojure 1.3
-* clojure/core.incubator
-* clojure/data.json
-* overtone/scsynth-jna (for the internal server)
-* SuperCollider (for an external server)
-* overtone/at-at
-* overtone/osc-clj
-* overtone/byte-spec
-* overtone/midi-clj
-* clj-glob
+* [Clojure 1.3](http://clojure.org/)
+* [clojure/core.incubator](https://github.com/clojure/core.incubator)
+* [clojure/data.json](https://github.com/clojure/data.json)
+* [overtone/scsynth-jna](http://clojars.org/overtone/scsynth-jna) (for the internal server)
+* [SuperCollider](http://supercollider.sourceforge.net/) (for an external server)
+* [overtone/at-at](http://github.com/overtone/at-at/)
+* [overtone/osc-clj](http://github.com/overtone/osc-clj)
+* [overtone/byte-spec](http://github.com/overtone/byte-spec)
+* [overtone/midi-clj](http://github.com/overtone/midi-clj)
+* [clj-glob](https://github.com/jkk/clj-glob)
 
 ### Mailing List
 
