@@ -37,7 +37,7 @@
   access to shared buffers with the server which is currently only available
   with the internal server. Also ensures server is connected."
   []
-  (when (disconnected?)
+  (when (server-disconnected?)
     (throw (Exception. "Cannot use scopes until a server has been booted or connected")))
   (when (external-server?)
     (throw (Exception. (str "Sorry, it's  only possible to use scopes with an internal server. Your server connection info is as follows: " (connection-info))))))
@@ -176,7 +176,7 @@
   (log/info (str "Closing scope: \n" s))
   (let [{:keys [id bus-synth buf]} s]
     (when (and bus-synth
-               (connected?))
+               (server-connected?))
       (kill bus-synth))
     (dosync (alter scopes* dissoc id))))
 
@@ -320,7 +320,7 @@
       (freq-scope-zero in-bus fft-buf buf)))
 
   (defn test-scope []
-    (if (not (connected?))
+    (if (not (server-connected?))
       (do
         (boot-server)
         (on :examples-ready go-go-scope))

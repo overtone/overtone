@@ -1,101 +1,55 @@
-<img src="https://github.com/downloads/overtone/overtone/overtone-logo.png" alt="Overtone Logo" title="Overtone" />
+          _____                 __
+         / __  /_  _____  _____/ /_____  ____  ___
+        / / / / | / / _ \/ ___/ __/ __ \/ __ \/ _ \
+       / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
+       \____/ |___/\___/_/   \__/\____/_/ /_/\___/
+
+                          Programmable Music.
+
+## Live-coding & musical exploration
+
+Overtone is an Open Source toolkit for creating synthesizers and making music.  It provides:
+
+* A Clojure API to the SuperCollider synthesis engine
+* A growing library of musical functions (scales, chords, rhythms, arpeggiators, etc.)
+* Metronome and timing system to support live-coding and sequencing
+* Plug and play midi device I/O
+* Simple Open Sound Control (OSC) message handling
+
+## Quick Setup
+
+### Installation
+
+    # Install cake (or lein)
+    # http://clojure-cake.org/
+
+    $ cake new insane-noises
+
+    # add the following dependencies to insane-noises/project.clj
+    # [org.clojure/clojure "1.3.0"]
+    # [overtone "0.5.0"]
+
+    $ cd insane-noises
+    $ cake deps
 
 
-## Programmable Music
+### Server Option A: Internal
+    # Linux users - start jackd
 
-
-### Live-coding and musical exploration
-
-Overtone is a toolkit for creating synthesizers and making music.  It provides:
-
-* a Clojure API to the SuperCollider synthesis engine
-* a growing library of musical functions (scales, chords, rhythms, arpeggiators, etc.)
-* metronome and timing system to support live-coding and sequencing
-* plug and play midi device I/O
-* simple Open Sound Control (OSC) message handling
-
-### Live-Coding Video Introduction
-
-<a href="http://vimeo.com/22798433">
-  <img src="https://github.com/downloads/overtone/live-coding-emacs/live-coding-config-in-use-2.png" alt="Live-Coding with Overtone" title="Live-Coding Video Introduction" />
-</a>
-
-Head over to vimeo for a fast-paced 4 minute introduction to live-coding with Overtone to see what's
-possible
-
-  http://vimeo.com/22798433
-
-### Cheat Sheet
-
-For a quick glance at all the functionality Overtone puts at your musical fingertips check out the cheat sheet:
-
-  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
-
-### Project Info:
-
-#### Lein, Cake and Maven support
-
-Overtone and its dependencies are on http://clojars.org, and the dependency for
-your project.clj is:
-
-    [overtone "<version>"]
-
-The current version is 0.4.0 but search on Clojars to get the latest
-release.
-
-#### Source Repository
-
-Downloads and the source repository can be found on GitHub:
-
-  http://github.com/overtone/overtone
-
-The project is free and open source.  Clone the repository on GitHub to get
-started developing, and if you are ready to submit a patch then fork your own
-copy and do a pull request.
-
-#### Mailing List
-
-Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list</a>.
-
-### Ubuntu Quick Setup:
-
-    sudo apt-get install jack-tools ant openjdk-6-jdk fftw3 qjackctl
-
-You'll need to get the jack audio daemon running, and we recommend qjackctl to
-figure out what command will be best to use.  Then once you have it dialed in you can
-switch to using the terminal.  For best performance you need to install a
-realtime enabled kernel, which allows the audio system to get high scheduled
-immediately when there is data to process.  With purely generative music this
-isn't such a big deal, but if you want to jam with other instruments or process
-external sound in realtime then you'll want to invest the effort in setting up
-an rt-kernel.  Ubuntu studio makes it pretty easy, especially if you aren't
-experienced in compiling the kernel.  In the meantime, just turn-off the
-realtime support in the qjacktl options, and the audio server should boot.
-
-Future versions will also support ALSA audio.
-
-Download and install leiningen wherever you local executables go:
-
-    wget http://github.com/technomancy/leiningen/raw/stable/bin/lein
-    chmod u+x lein
-    mv lein ~/bin
-    lein self-install
-
-Now get Overtone:
-
-    $ git clone git://github.com/overtone/overtone.git
-
-    $ cd overtone
-    $ lein deps
-
-    ; In Linux you can create a .jackdrc file with this command
-    ; to automatically start the jack server on boot, or you will need
-    ; to run it manually to start the Jack audio server.
-    $ jackd -r -d alsa -r 44100 ; or use qjackctl for a gui
-
-    $ lein repl
-
+    $ cake repl
     user=> (use 'overtone.live)
+
+
+### Server Option B: External
+    # Download and install SuperCollider:
+    # http://supercollider.sourceforge.net/downloads/
+
+    $ cake repl
+    user=> (use 'overtone.core)
+    user=> (boot-external-server)
+
+
+### Your First Sounds
 
     ; sin-osc creates a sine wave at the specified Hz (440 in this case)
     ; and pan2 makes the signal stereo
@@ -103,28 +57,86 @@ Now get Overtone:
 
     user=> (demo 5 (pan2 (sin-osc 440)))
 
-
-    ; Defining a new synthesizer instrument with the definst macro will return a function which
-    ; can be used to trigger the inst.
+    ; Defining a new synthesizer instrument with the definst macro will return a
+    ; function which can be used to trigger the inst.
 
     user=> (definst beep [freq 440] (sin-osc freq))
     user=> (beep)
-    user=> (stop)
+    user=> (stop) ; (this command will kill all running synths)
 
-    ; Call the ctl function to modulate any params and to eventually kill that instrumetn:
+    ; Call the ctl function to modulate any params and to eventually kill that instrument:
 
     user=> (beep)
     user=> (ctl beep :freq 880)
-    user=> (kill beep)
-    user=> (quit)
+    user=> (kill beep) ; (this will just kill the specific instrument)
 
+## External & Internal Servers
 
-### Getting Started Videos
+Overtone supports both internal and external instances of `scsynth` - the SuperCollider server. The internal server is good for quick setup (there are no external dependencies to install and allows fast access to server buffers for transferring sound data and using the scopes). The external server requires a separate installation of SuperCollider itself but is more robust in that crashes in the server (through malformed synth designs etc.) don't also crash the JVM (which is the case for the internal server). It is also possible to connect multiple separate clients to an already running external scsynth instance.
+
+Note - the internal server is not currently supported for all architecture/operating system combinations. However, the external server should work everywhere.
+
+## Getting Started Videos
+
+     ___|)_______________|\________________|\______________|\_______________|\________
+    |___/___||___________|_________________|_______________|________________|_________||
+    |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
+    |_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
+    |_\_|_/_||____|__________|______________________|__________|______________________||
+        |         |          |/                     |/         |
+      (_|         |/                                           |/
+
+Head over to Vimeo for a fast-paced 4 minute introduction to live-coding with Overtone to see what's possible
+
+  http://vimeo.com/22798433
+
+There are also the following tutorials:
 
 * Setting up an Overtone Development Environment - Running on Edge http://vimeo.com/25102399
 * How to Hack Overtone with Emacs http://vimeo.com/25190186
 
-### Acknowledgements
+## Cheat Sheet
+
+For a quick glance at all the exciting functionality Overtone puts at your musical fingertips check out the cheat sheet:
+
+  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
+
+## Project Info
+
+### Requirements
+
+* [Clojure 1.3](http://clojure.org/)
+* [clojure/core.incubator](https://github.com/clojure/core.incubator)
+* [clojure/data.json](https://github.com/clojure/data.json)
+* [overtone/scsynth-jna](http://clojars.org/overtone/scsynth-jna) (for the internal server)
+* [SuperCollider](http://supercollider.sourceforge.net/) (for an external server)
+* [overtone/at-at](http://github.com/overtone/at-at/)
+* [overtone/osc-clj](http://github.com/overtone/osc-clj)
+* [overtone/byte-spec](http://github.com/overtone/byte-spec)
+* [overtone/midi-clj](http://github.com/overtone/midi-clj)
+* [clj-glob](https://github.com/jkk/clj-glob)
+
+### Mailing List
+
+Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list</a>.
+
+### Source Repository
+
+Downloads and the source repository can be found on GitHub:
+
+  http://github.com/overtone/overtone
+
+Clone the repository on GitHub to get started developing, and if you are ready
+to submit a patch then fork your own copy and do a pull request.
+
+### Cake & Lein Support
+
+Overtone and its dependencies are on http://clojars.org, and the dependency for
+your project.clj is:
+
+    [overtone "0.5.0"]
+
+## Acknowledgements
 
 To help us tune the JVM for realtime performance, we use YourKit.
 
@@ -135,7 +147,7 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 [YourKit Java Profiler](http://www.yourkit.com/java/profiler/index.jsp) and
 [YourKit .NET Profiler](http://www.yourkit.com/.net/profiler/index.jsp)
 
-### Contributors
+## Contributors
 
 * Jeff Rose
 * Sam Aaron

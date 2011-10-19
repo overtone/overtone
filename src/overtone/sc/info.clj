@@ -32,7 +32,7 @@
   #'server-num-audio-buses and #'sever-num-buffers for fast cached versions
   of the static values in this info map."
   []
-  (when (disconnected?)
+  (when (server-disconnected?)
     (throw (Exception. "Please connect to a server before attempting to ask for server-info.")))
   (let [prom (promise)]
     (on-event "/server-info"

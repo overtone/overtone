@@ -15,7 +15,7 @@
 (def OVERTONE-VERSION {:major 0
                        :minor 5
                        :patch 0
-                       :snapshot true})
+                       :snapshot false})
 
 (defonce synth-group* (ref nil))
 (defonce osc-log*     (atom []))
@@ -27,15 +27,15 @@
   []
   @connection-info*)
 
-(defn connected?
+(defn server-connected?
   "Returns true if the server is currently connected"
   []
   (= :connected @connection-status*))
 
-(defn disconnected?
+(defn server-disconnected?
   "Returns true if the server is currently disconnected"
   []
-  (not (connected?)))
+  (not (server-connected?)))
 
 (defn internal-server?
   "Returns true if the server is internal"
@@ -61,7 +61,7 @@
 
   (snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
-  (when (disconnected?)
+  (when (server-disconnected?)
     (throw (Exception. "Unable to send messages to a disconnected server. Please boot or connect to a server.")))
   (apply server-snd path args))
 
@@ -76,7 +76,7 @@
   the incoming event info."
   ([path] (recv path nil))
   ([path matcher-fn]
-     (when-not (connected?)
+     (when-not (server-connected?)
        (throw (Exception. "Unable to receive messages from a disconnected server. Please boot or connect to a server.")))
      (server-recv path matcher-fn)))
 
@@ -135,10 +135,10 @@
      :nominal-sample-rate nominal
      :actual-sample-rate actual})
 
-(defn status
+(defn server-status
   "Check the status of the audio server."
   []
-  (if (connected?)
+  (if (server-connected?)
     (let [p (server-recv "/status.reply")]
       (snd "/status")
       (try
@@ -204,7 +204,7 @@
 (defn ensure-connected!
   "Throws an exception if the server isn't currently connected"
   []
-  (when-not (connected?)
+  (when-not (server-connected?)
     (throw (Exception. "Server needs to be connected before you can perform this action."))))
 
 (defn root-group

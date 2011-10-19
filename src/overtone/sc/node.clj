@@ -82,7 +82,7 @@
   "
   ([synth-name arg-map] (node synth-name arg-map {:position :tail, :target 0}))
   ([synth-name arg-map location]
-     (if (not (connected?))
+     (if (not (server-connected?))
        (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
      (let [id       (alloc-id :node)
            position (or ((get location :position :tail) POSITION) 1)
@@ -102,9 +102,9 @@
   freed from the allocator via a callback fn listening for /n_end which will
   call node-destroyed."
   [& node-ids]
-  {:pre [(connected?)]}
-  (doseq [id node-ids] (free-id :node id 1 #(snd "/n_free" id)))
-  :free)
+  {:pre [(server-connected?)]}
+  (doseq [id node-ids]
+    (snd "/n_free" id)))
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
@@ -134,7 +134,7 @@
 (defn group
   "Create a new synth group as a child of the target group."
   [position target-id]
-  {:pre [(connected?)]}
+  {:pre [(server-connected?)]}
   (let [id (alloc-id :node)
         pos (if (keyword? position) (get POSITION position) position)
         pos (or pos 1)]
@@ -144,26 +144,31 @@
 (defn group-free
   "Free synth groups, releasing their resources."
   [& group-ids]
+<<<<<<< HEAD
   {:pre [(connected?)]}
   (apply node-free group-ids)
   :free)
+=======
+  {:pre [(server-connected?)]}
+  (apply node-free group-ids))
+>>>>>>> 10a6172a2f2dfc06defee0e1b8a7fd68e73cf924
 
 (defn node-run
   "Start a stopped synth node."
   [node-id]
-  {:pre [(connected?)]}
+  {:pre [(server-connected?)]}
   (snd "/n_run" node-id 1))
 
 (defn node-stop
   "Stop a running synth node."
-  {:pre [(connected?)]}
+  {:pre [(server-connected?)]}
   [node-id]
   (snd "/n_run" node-id 0))
 
 (defn node-place
   "Place a node :before or :after another node."
   [node-id position target-id]
-  {:pre [(connected?)]}
+  {:pre [(server-connected?)]}
   (cond
     (= :before position) (snd "/n_before" node-id target-id)
     (= :after  position) (snd "/n_after" node-id target-id)))
@@ -171,7 +176,7 @@
 (defn node-control
   "Set control values for a node."
   [node-id & name-values]
-  {:pre [(connected?)]}
+  {:pre [(server-connected?)]}
   (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
   node-id)
 
@@ -180,13 +185,13 @@
   "Set a range of controls all at once, or if node-id is a group control
   all nodes in the group."
   [node-id ctl-start & ctl-vals]
-  {:pre [(connected?)]}
+  {:pre [(server-connected?)]}
   (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
 
 (defn node-map-controls
   "Connect a node's controls to a control bus."
   [node-id & names-busses]
-  {:pre [(connected?)]}
+  {:pre [(server-connected?)]}
   (apply snd "/n_map" node-id names-busses))
 
 (defn post-tree
@@ -194,7 +199,7 @@
   synths contained within it, optionally including the current control values
   for synths."
   [id & [with-args?]]
-  {:pre [(connected?)]}
+  {:pre [(server-connected?)]}
   (snd "/g_dumpTree" id with-args?))
 
 (defn prepend-node
