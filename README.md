@@ -6,7 +6,7 @@
 
                           Programmable Music.
 
-### Live-coding and musical exploration
+## Live-coding & musical exploration
 
 Overtone is an Open Source toolkit for creating synthesizers and making music.  It provides:
 
@@ -16,78 +16,39 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 * plug and play midi device I/O
 * simple Open Sound Control (OSC) message handling
 
-### Live-Coding Video Introduction
+## Quick Setup
 
-     ___|)_______________|\________________|\______________|\_______________|\________
-    |___/___||___________|_________________|_______________|________________|_________||
-    |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
-    |_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
-    |_\_|_/_||____|__________|______________________|__________|______________________||
-        |         |          |/                     |/         |
-      (_|         |/                                           |/
-
-Head over to vimeo for a fast-paced 4 minute introduction to live-coding with Overtone to see what's possible
-
-  http://vimeo.com/22798433
-
-### Cheat Sheet
-
-For a quick glance at all the functionality Overtone puts at your musical fingertips check out the cheat sheet:
-
-  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
-
-### Project Info
-
-#### Requirements
-
-* Clojure 1.3
-* scsynth-jna (for the internal server)
-* SuperCollider (for an external server)
-* at-at
-* osc-clj
-* byte-spec
-* midi-clj
-* clj-glob
-
-#### Mailing List
-
-Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list</a>.
-
-#### Source Repository
-
-Downloads and the source repository can be found on GitHub:
-
-  http://github.com/overtone/overtone
-
-Clone the repository on GitHub to get started developing, and if you are ready
-to submit a patch then fork your own copy and do a pull request.
-
-#### Cake & Lein Support
-
-Overtone and its dependencies are on http://clojars.org, and the dependency for
-your project.clj is:
-
-    [overtone "<version>"]
-
-The current version is 0.5.0 but search on Clojars to get the latest
-release.
-
-### Quick Setup:
+### Installation
 
     # Install cake (or lein)
-    # Start jackd (if you're running Linux)
 
-    $ cake new foo
-    $ cd foo
+    $ cake new insane-noises
 
-    # edit project.clj to include the following dependencies:
+    # add the following dependencies to insane-noises/project.clj
     # [org.clojure/clojure "1.3.0"]
     # [overtone "0.5.0"]
 
+    $ cd insane-noises
     $ cake deps
-    $ cake repl
 
+
+### Server Option A: Internal
+    # Linux users - start jackd
+
+    $ cake repl
     user=> (use 'overtone.live)
+
+
+### Server Option B: External
+    # Download and install SuperCollider:
+    # http://supercollider.sourceforge.net/downloads/
+
+    $ cake repl
+    user=> (use 'overtone.core)
+    user=> (boot-external-server)
+
+
+### Your first sounds
 
     ; sin-osc creates a sine wave at the specified Hz (440 in this case)
     ; and pan2 makes the signal stereo
@@ -108,12 +69,75 @@ release.
     user=> (ctl beep :freq 880)
     user=> (kill beep) # (this will just kill the specific instrument)
 
-### Getting Started Videos
+## External & Internal Servers
+
+Overtone supports both internal and external instances of `scsynth` - the SuperCollider server. The internal server is good for quick setup (there are no external dependencies to install and allows fast access to server buffers for transferring sound data and using the scopes. The external server requires a separate installation of SuperCollider itself but is more robust in that crashes in the server (through malformed synth designs etc.) don't also crash the JVM (which is the case for the internal server). It is also possible to connect multiple separate clients to an already running external scsynth instance.
+
+Note - the internal server is not currently supported for all architecture/operating system combinations. However, the external server should work everywhere.
+
+## Getting Started Videos
+
+     ___|)_______________|\________________|\______________|\_______________|\________
+    |___/___||___________|_________________|_______________|________________|_________||
+    |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
+    |_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
+    |_\_|_/_||____|__________|______________________|__________|______________________||
+        |         |          |/                     |/         |
+      (_|         |/                                           |/
+
+Head over to Vimeo for a fast-paced 4 minute introduction to live-coding with Overtone to see what's possible
+
+  http://vimeo.com/22798433
+
+There are also the following tutorials:
 
 * Setting up an Overtone Development Environment - Running on Edge http://vimeo.com/25102399
 * How to Hack Overtone with Emacs http://vimeo.com/25190186
 
-### Acknowledgements
+## Cheat Sheet
+
+For a quick glance at all the functionality Overtone puts at your musical fingertips check out the cheat sheet:
+
+  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
+
+## Project Info
+
+### Requirements
+
+* Clojure 1.3
+* scsynth-jna (for the internal server)
+* SuperCollider (for an external server)
+* at-at
+* osc-clj
+* byte-spec
+* midi-clj
+* clj-glob
+
+### Mailing List
+
+Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list</a>.
+
+### Source Repository
+
+Downloads and the source repository can be found on GitHub:
+
+  http://github.com/overtone/overtone
+
+Clone the repository on GitHub to get started developing, and if you are ready
+to submit a patch then fork your own copy and do a pull request.
+
+### Cake & Lein Support
+
+Overtone and its dependencies are on http://clojars.org, and the dependency for
+your project.clj is:
+
+    [overtone "<version>"]
+
+The current version is 0.5.0 but search on Clojars to get the latest
+release.
+
+
+## Acknowledgements
 
 To help us tune the JVM for realtime performance, we use YourKit.
 
@@ -124,7 +148,7 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 [YourKit Java Profiler](http://www.yourkit.com/java/profiler/index.jsp) and
 [YourKit .NET Profiler](http://www.yourkit.com/.net/profiler/index.jsp)
 
-### Contributors
+## Contributors
 
 * Jeff Rose
 * Sam Aaron
