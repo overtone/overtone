@@ -1,29 +1,21 @@
 
-                                    ,,ggddY""""Ybbgg,,
-                              ,agd""'              `""bg,
-                            ,gdP"                       "Ybg,
-                          ,dP"                             "Yb
-                         ,dP"                                 .gPPRg,
-                        ,8"                                  dP'   `Yb
-                       ,8'                                   8)     (8
-                      ,8'                                    Yb     dP
-                      d'                                      "8ggg8"
-                      8
-                      8                                            8
-                      8                                            8
-                      8                                            8
-                      Y,                                          ,P
-                      `8,                                        ,8'
-                       `8,                                      ,8'
-                        `8a                                    a8'
-                         `Yba                                 adP'
-                           "Yba                             adY"
-                             `"Yba,                     ,adP"'
-                                `"Y8ba,             ,ad8P"'
-                                     ``""YYbaaadPP""''
+               _,,ddP"""Ybb,,_
+             ,dP"'         `"Yb
+           ,d"                 .gPPRg,
+          d"                  dP'   `Yb
+         d'                   8)     (8
+         8                    Yb     dP                        888
+         8                     "8ggg8"                         888
+         8                                                     888
+         Y,                       ,P 888  888  .d88b.  888d888 888888 .d88b.  88888b.   .d88b.
+          Ya                     aP  888  888 d8P  Y8b 888P"   888   d88""88b 888 "88b d8P  Y8b
+           "Ya                 aP"   Y88  88P 88888888 888     888   888  888 888  888 88888888
+             "Yb,_         _,dP"      Y8bd8P  Y8b.     888     Y88b. Y88..88P 888  888 Y8b.
+               `""YbbgggddP""'         Y88P    "Y8888  888      "Y888 "Y88P"  888  888  "Y8888
 
 
-# Overtone -- Programmable Music.
+
+# Programmable Music.
 
 ## Live-coding & musical exploration
 
