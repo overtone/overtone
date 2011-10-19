@@ -81,6 +81,16 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
     user=> (ctl beep :freq 880)
     user=> (kill beep) ; (this will just kill the specific instrument)
 
+## Documentation
+
+### Detailed Setup Instructions
+
+For a more detailed set of setup instructions (including details specific to Windows and Linux) head over to the [Overtone wiki installation page](https://github.com/overtone/overtone/wiki/Installing-Overtone)
+
+### Getting Started
+
+We will try to maintain documentation for all aspects of the system in the [project wiki](https://github.com/overtone/overtone/wiki/Home), you'll find tutorials and examples on topics such as synthesizing new sounds from scratch, live-coding and generating musical scores on the fly. If you see anything missing, please feel free to add it yourself, or hit us up on the [mailing list](http://groups.google.com/group/overtone) and we'll sort somethign out.
+
 ## External & Internal Servers
 
 Overtone supports both internal and external instances of `scsynth` - the SuperCollider server. The internal server is good for quick setup (there are no external dependencies to install and allows fast access to server buffers for transferring sound data and using the scopes). The external server requires a separate installation of SuperCollider itself but is more robust in that crashes in the server (through malformed synth designs etc.) don't also crash the JVM (which is the case for the internal server). It is also possible to connect multiple separate clients to an already running external scsynth instance.
@@ -129,7 +139,7 @@ For a quick glance at all the exciting functionality Overtone puts at your music
 
 ### Mailing List
 
-Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list</a>.
+We encourage you to oin the [mailing list](http://groups.google.com/group/overtone) to see what other people are getting up to with Overtone. Use it to ask questions, show off what you've made and even meet fellow Overtoners in your area so you can meet up for impromptu jam sessions. All we ask is that you be considerate, courteous and respectful and that you share as much of your code as possible so we can all learn how to make crazy cool sounds together.
 
 ### Source Repository
 
