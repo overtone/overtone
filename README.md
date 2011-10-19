@@ -10,17 +10,18 @@
 
 Overtone is an Open Source toolkit for creating synthesizers and making music.  It provides:
 
-* a Clojure API to the SuperCollider synthesis engine
-* a growing library of musical functions (scales, chords, rhythms, arpeggiators, etc.)
-* metronome and timing system to support live-coding and sequencing
-* plug and play midi device I/O
-* simple Open Sound Control (OSC) message handling
+* A Clojure API to the SuperCollider synthesis engine
+* A growing library of musical functions (scales, chords, rhythms, arpeggiators, etc.)
+* Metronome and timing system to support live-coding and sequencing
+* Plug and play midi device I/O
+* Simple Open Sound Control (OSC) message handling
 
 ## Quick Setup
 
 ### Installation
 
     # Install cake (or lein)
+    # http://clojure-cake.org/
 
     $ cake new insane-noises
 
@@ -48,7 +49,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
     user=> (boot-external-server)
 
 
-### Your first sounds
+### Your First Sounds
 
     ; sin-osc creates a sine wave at the specified Hz (440 in this case)
     ; and pan2 makes the signal stereo
@@ -71,7 +72,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 ## External & Internal Servers
 
-Overtone supports both internal and external instances of `scsynth` - the SuperCollider server. The internal server is good for quick setup (there are no external dependencies to install and allows fast access to server buffers for transferring sound data and using the scopes. The external server requires a separate installation of SuperCollider itself but is more robust in that crashes in the server (through malformed synth designs etc.) don't also crash the JVM (which is the case for the internal server). It is also possible to connect multiple separate clients to an already running external scsynth instance.
+Overtone supports both internal and external instances of `scsynth` - the SuperCollider server. The internal server is good for quick setup (there are no external dependencies to install and allows fast access to server buffers for transferring sound data and using the scopes). The external server requires a separate installation of SuperCollider itself but is more robust in that crashes in the server (through malformed synth designs etc.) don't also crash the JVM (which is the case for the internal server). It is also possible to connect multiple separate clients to an already running external scsynth instance.
 
 Note - the internal server is not currently supported for all architecture/operating system combinations. However, the external server should work everywhere.
 
@@ -96,7 +97,7 @@ There are also the following tutorials:
 
 ## Cheat Sheet
 
-For a quick glance at all the functionality Overtone puts at your musical fingertips check out the cheat sheet:
+For a quick glance at all the exciting functionality Overtone puts at your musical fingertips check out the cheat sheet:
 
   https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
 
@@ -105,12 +106,14 @@ For a quick glance at all the functionality Overtone puts at your musical finger
 ### Requirements
 
 * Clojure 1.3
-* scsynth-jna (for the internal server)
+* clojure/core.incubator
+* clojure/data.json
+* overtone/scsynth-jna (for the internal server)
 * SuperCollider (for an external server)
-* at-at
-* osc-clj
-* byte-spec
-* midi-clj
+* overtone/at-at
+* overtone/osc-clj
+* overtone/byte-spec
+* overtone/midi-clj
 * clj-glob
 
 ### Mailing List
@@ -131,11 +134,7 @@ to submit a patch then fork your own copy and do a pull request.
 Overtone and its dependencies are on http://clojars.org, and the dependency for
 your project.clj is:
 
-    [overtone "<version>"]
-
-The current version is 0.5.0 but search on Clojars to get the latest
-release.
-
+    [overtone "0.5.0"]
 
 ## Acknowledgements
 
