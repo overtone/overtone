@@ -541,12 +541,11 @@
 
 (defmacro run
   "Run an anonymous synth definition for a fixed period of time.  Useful for
-  experimentation. Does NOT add  an out ugen - see #'demo for that..
-  You can specify a timeout in seconds as the first argument otherwise it
-  defaults to *demo-time* ms.
+  experimentation. Does NOT add  an out ugen - see #'demo for that. You can
+  specify a timeout in seconds as the first argument otherwise it defaults to
+  *demo-time* ms.
 
-  (run (send-reply (impulse 1) \"/foo\" [1] 43)) ;=> send OSC messages out
-"
+  (run (send-reply (impulse 1) \"/foo\" [1] 43)) ;=> send OSC messages out"
   [& body]
   (let [[demo-time body] (if (number? (first body))
                            [(* 1000 (first body)) (second body)]
@@ -562,8 +561,8 @@
   one automatically.  You can specify a timeout in seconds as the first argument
   otherwise it defaults to *demo-time* ms.
 
-  (play (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
-  (play 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
+  (demo (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
+  (demo 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
   [& body]
   (let [[demo-time body] (if (number? (first body))
                            [(* 1000 (first body)) (second body)]
