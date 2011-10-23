@@ -205,7 +205,7 @@
   specific port."
   ([port]
      (when-not (= :connected @connection-status*)
-       (println "booting external")
+       (log/debug "booting external server")
        (let [sc-path (find-sc-path)
              cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (@config* :os))))
              sc-thread (Thread. #(external-booter cmd))]
