@@ -186,13 +186,27 @@
       (Thread/sleep 250))
     (.destroy proc)))
 
+(defn- find-sc-path
+  "Find the path for SuperCollider. If linux don't check for a file as it should
+  be in the PATH list."
+  []
+  (let [os    (@config* :os)
+        paths (SC-PATHS os)
+        path  (if (= :linux os)
+                (first paths)
+                (first (filter #(.exists (java.io.File. %)) paths)))]
+    (when-not path
+      (throw (Exception. (str "Unable to locate a valid scsynth executable on your system. I looked in the following places: " paths))))
+
+    path))
+
 (defn- boot-external-server
   "Boot the audio server in an external process and tell it to listen on a
   specific port."
   ([port]
      (when-not (= :connected @connection-status*)
        (println "booting external")
-       (let [sc-path (first (filter #(.exists (java.io.File. %)) (SC-PATHS (@config* :os))))
+       (let [sc-path (find-sc-path)
              cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (@config* :os))))
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
