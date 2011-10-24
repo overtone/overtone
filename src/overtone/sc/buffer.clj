@@ -91,8 +91,6 @@
                (recur (+ n-vals-read blen))))
            samples)))))
 
-
-
 (defn buffer-write!
   "Write into a section of an audio buffer which modifies the buffer in place on
   the server. Data can either be a single number or a collection of numbers.
