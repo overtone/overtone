@@ -27,10 +27,11 @@
 (defonce Y-PADDING 10)
 (defonce scope-group* (ref 0))
 
-(on-deps :studio-setup-completed ::create-scope-group #(dosync
-                                                        (ref-set scope-group* (group :tail (main-monitor-group)))
-                                                        (satisfy-deps :scope-group-created)))
-
+(on-deps :studio-setup-completed
+         ::create-scope-group #(dosync
+                                (ref-set scope-group*
+                                         (group :tail (main-monitor-group)))
+                                (satisfy-deps :scope-group-created)))
 
 (defn- ensure-internal-server!
   "Throws an exception if the server isn't internal - scope relies on fast
@@ -51,17 +52,17 @@
   [s]
   (let [{:keys [buf size width height panel y-arrays x-array panel]} s
         frames    (if @(:update? s) (buffer-data buf) @(:frames s))
-        step      (int (/ (buffer-size buf) width))
+        step      (/ (buffer-size buf) width)
         y-scale   (- height (* 2 Y-PADDING))
         [y-a y-b] @y-arrays]
-    (if-not (empty? frames)
+
+    (when-not (empty? frames)
       (dotimes [x width]
         (aset ^ints y-b x
               (int (* y-scale
-                      (aget ^floats frames (unchecked-multiply x step)))))))
-
-    (reset! y-arrays [y-b y-a])
-    (.repaint panel)
+                      (aget ^floats frames (unchecked-multiply x step))))))
+      (reset! y-arrays [y-b y-a])
+      (.repaint panel))
 
     (when (and (not (:bus-synth s))
                @(:update? s))
