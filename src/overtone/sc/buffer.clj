@@ -101,6 +101,8 @@
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
      (assert (buffer? buf))
+     (when (> (count data) MAX-OSC-SAMPLES)
+       (throw (Exception. (str "Error - the data you attempted to write to the buffer was too large to be sent via UDP."))))
      (let [data (if (number? data) [data] data)
            size (count data)
            doubles (map double data)]
