@@ -72,6 +72,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 ### Your First Sounds
 
+```clj
     ;  ___|)_______________|\________________|\______________|\_______________|\________
     ; |___/___||___________|_________________|_______________|________________|_________||
     ; |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
@@ -99,6 +100,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
     user=> (beep)
     user=> (ctl beep :freq 880)
     user=> (kill beep) ; (this will just kill the specific instrument)
+```
 
 ## Documentation
 
