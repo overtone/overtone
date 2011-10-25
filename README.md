@@ -46,20 +46,28 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 ```
 
 ### Server Option A: Internal
+
+```sh
     # Linux users - start jackd
     # (see https://github.com/overtone/overtone/wiki/Installing-and-starting-jack)
 
     $ cake repl
+```
+```clj
     user=> (use 'overtone.live)
-
+```
 
 ### Server Option B: External
+```sh
     # Download and install SuperCollider:
     # http://supercollider.sourceforge.net/downloads/
 
     $ cake repl
+```
+```clj
     user=> (use 'overtone.core)
     user=> (boot-external-server)
+```
 
 
 ### Your First Sounds
