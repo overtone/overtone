@@ -2,7 +2,8 @@
     ^{:doc "Audio file encoding functions"
       :author "Sam Aaron"}
   overtone.helpers.audio-file
-  (:use [overtone.sc.buffer :only [buffer-data]])
+  (:use [overtone.sc.buffer :only [buffer-data]]
+        [overtone.helpers.file :only [resolve-tilde-path]])
   (:import [javax.sound.sampled AudioFormat AudioFileFormat AudioFormat$Encoding
                                 AudioFileFormat$Type AudioInputStream AudioSystem]
            [java.io File ByteArrayInputStream]
@@ -26,7 +27,8 @@
   [data path frame-rate n-channels]
   (when (some #(or (< % -1) (> % 1)) data)
     (throw (Exception. (str "Unable to write audio file with this data as it contains sample points either less than -1 or greater than 1."))))
-  (let [frame-rate   (float frame-rate)
+  (let [path         (resolve-tilde-path)
+        frame-rate   (float frame-rate)
         n-channels   (int n-channels)
         sample-bytes (/ Short/SIZE 8)
         frame-bytes  (* sample-bytes n-channels)
