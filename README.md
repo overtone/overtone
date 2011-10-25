@@ -1,4 +1,3 @@
-
           _,,ddP"""Ybb,,_
         ,dP"'         `"Yb
       ,d"                 .gPPRg,
@@ -32,6 +31,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 ### Installation
 
+```sh
     # Install cake (or lein)
     # http://clojure-cake.org/
 
@@ -43,7 +43,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
     $ cd insane-noises
     $ cake deps
-
+```
 
 ### Server Option A: Internal
     # Linux users - start jackd
