@@ -29,6 +29,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 ## Quick Setup
 
+
 ### Installation
 
     # Install cake (or lein)
@@ -46,6 +47,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 ### Server Option A: Internal
     # Linux users - start jackd
+    # (see https://github.com/overtone/overtone/wiki/Installing-and-starting-jack)
 
     $ cake repl
     user=> (use 'overtone.live)
@@ -61,6 +63,15 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 
 ### Your First Sounds
+
+    ;  ___|)_______________|\________________|\______________|\_______________|\________
+    ; |___/___||___________|_________________|_______________|________________|_________||
+    ; |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
+    ; |_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
+    ; |_\_|_/_||____|__________|______________________|__________|______________________||
+    ;     |         |          |/                     |/         |
+    ;   (_|         |/                                           |/
+
 
     ; sin-osc creates a sine wave at the specified Hz (440 in this case)
     ; and pan2 makes the signal stereo
@@ -99,13 +110,28 @@ Note - the internal server is not currently supported for all architecture/opera
 
 ## Getting Started Videos
 
-     ___|)_______________|\________________|\______________|\_______________|\________
-    |___/___||___________|_________________|_______________|________________|_________||
-    |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
-    |_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
-    |_\_|_/_||____|__________|______________________|__________|______________________||
-        |         |          |/                     |/         |
-      (_|         |/                                           |/
+                           .-.`
+                           +hhhhh+`
+                          +hhysyhhs
+                          hs.   -sh/
+                          :`     `yh.
+                                  +ho
+                                  `sh:
+                                   /hs
+                                  .hhh:
+                                 /yhhhy/
+                                `shhhyh/
+                                +hhhh:oh`
+                               :hhhh+ .ho
+                              +yhhhs/  sh+
+                             `yhhhy`   .hs
+                             ohhhh-     +h:
+                            /hhhh+      -hy.   oso
+                           +hhhhs        ohy  shhhy
+                          .yhhhy`        `yhs  +yhs
+                         `shhhh-          -hhhhhhh/
+                         ohhhho            /yhhhhs
+
 
 Head over to Vimeo for a fast-paced 4 minute introduction to live-coding with Overtone to see what's possible
 
