@@ -72,7 +72,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 ### Your First Sounds
 
-```clj
+```
     ;  ___|)_______________|\________________|\______________|\_______________|\________
     ; |___/___||___________|_________________|_______________|________________|_________||
     ; |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
@@ -80,8 +80,8 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
     ; |_\_|_/_||____|__________|______________________|__________|______________________||
     ;     |         |          |/                     |/         |
     ;   (_|         |/                                           |/
-
-
+```
+```clj
     ; sin-osc creates a sine wave at the specified Hz (440 in this case)
     ; and pan2 makes the signal stereo
     ; demo simply plays the synth for the specified time in seconds:
