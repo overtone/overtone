@@ -58,6 +58,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 ```
 
 ### Server Option B: External
+
 ```sh
     # Download and install SuperCollider:
     # http://supercollider.sourceforge.net/downloads/
@@ -72,7 +73,6 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 ### Your First Sounds
 
-```
      ___|)_______________|\________________|\______________|\_______________|\________
     |___/___||___________|_________________|_______________|________________|_________||
     |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
@@ -80,7 +80,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
     |_\_|_/_||____|__________|______________________|__________|______________________||
         |         |          |/                     |/         |
       (_|         |/                                           |/
-```
+
 ```clj
     ; sin-osc creates a sine wave at the specified Hz (440 in this case)
     ; and pan2 makes the signal stereo
@@ -175,7 +175,7 @@ For a quick glance at all the exciting functionality Overtone puts at your music
 
 ### Mailing List
 
-We encourage you to oin the [mailing list](http://groups.google.com/group/overtone) to see what other people are getting up to with Overtone. Use it to ask questions, show off what you've made and even meet fellow Overtoners in your area so you can meet up for impromptu jam sessions. All we ask is that you be considerate, courteous and respectful and that you share as much of your code as possible so we can all learn how to make crazy cool sounds together.
+We encourage you to join the [mailing list](http://groups.google.com/group/overtone) to see what other people are getting up to with Overtone. Use it to ask questions, show off what you've made and even meet fellow Overtoners in your area so you can meet up for impromptu jam sessions. All we ask is that you be considerate, courteous and respectful and that you share as much of your code as possible so we can all learn how to make crazy cool sounds together.
 
 ### Source Repository
 
