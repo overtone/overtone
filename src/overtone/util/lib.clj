@@ -261,7 +261,7 @@
   (into {} (map (fn [[k v]] [k (if (keyword? v) (name v) (str v))]) m)))
 
 (defn print-ascii-art-overtone-logo
-  []
+  [version-str]
   (println (str "
           _____                 __
          / __  /_  _____  _____/ /_____  ____  ___
@@ -269,7 +269,7 @@
        / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
        \\____/ |___/\\___/_/   \\__/\\____/_/ /_/\\___/
 
-                          Programmable Music.
+                          Programmable Music. "version-str"
 
 
 Hello " (user-name) ", may this be the start of a beautiful music hacking session...")))

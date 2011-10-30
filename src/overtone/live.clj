@@ -5,7 +5,8 @@
             [overtone.osc]
             [overtone.algo chance scaling trig]
             [overtone.sc buffer bus envelope example gens info
-                         mixer node sample server synth trigger]
+                         mixer node sample server synth trigger
+                         version]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
             [overtone.repl ugens examples shell]
@@ -30,6 +31,7 @@
  'overtone.sc.server
  'overtone.sc.synth
  'overtone.sc.trigger
+ 'overtone.sc.version
  'overtone.music.rhythm
  'overtone.music.pitch
  'overtone.music.tuning
@@ -45,4 +47,4 @@
 
 (defonce _auto-boot_ (boot-rig))
 
-(print-ascii-art-overtone-logo)
+(print-ascii-art-overtone-logo OVERTONE-VERSION-STR)

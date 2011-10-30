@@ -12,11 +12,6 @@
         [overtone.osc :only [in-osc-bundle]])
   (:require [overtone.util.log :as log]))
 
-(def OVERTONE-VERSION {:major 0
-                       :minor 5
-                       :patch 0
-                       :snapshot false})
-
 (defonce synth-group* (ref nil))
 (defonce osc-log*     (atom []))
 (defonce core-groups* (ref {}))

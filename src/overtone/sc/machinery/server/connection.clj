@@ -4,6 +4,7 @@
   (:use [clojure.java shell]
         [overtone.config.store]
         [overtone.libs event deps]
+        [overtone.sc version]
         [overtone.util.lib :only [print-ascii-art-overtone-logo]]
         [overtone.sc.machinery defaults]
         [overtone.sc.machinery.server comms]
@@ -122,7 +123,7 @@
             (Thread/sleep 100)
             (recur (inc cnt)))
           (throw (Exception. (str "Error: unable to connect to externally booted server after " N-RETRIES " attempts.")))))))
-  (print-ascii-art-overtone-logo))
+  (print-ascii-art-overtone-logo OVERTONE-VERSION-STR))
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
