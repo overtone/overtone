@@ -185,3 +185,25 @@
 (defn num-frames
   [buf]
   (:size  buf))
+
+(defn data->wavetable
+  "Convert a sequence of floats into wavetable format. Result will be twice the
+  size of source data. Length of ource data must be a power of 2 for SC
+  compatability."
+  [data]
+  (let [v   (vec data)
+        cnt (count v)
+        res (float-array (* 2 cnt))]
+    (dorun
+     (map (fn [idx]
+           (let [a (get v idx)
+                 b (get v (inc idx))
+                 r-idx (* 2 idx)]
+             (aset-float res r-idx (-  (* 2 a) b))
+             (aset-float res (inc r-idx) (- b a))))
+         (range (dec cnt))))
+    (let [a (get v (dec cnt))
+          b (get v 0)]
+      (aset-float res (* 2 (dec cnt)) (- (* 2 a) b))
+      (aset-float res (inc (* 2 (dec cnt))) (- b a)))
+    (seq res)))
