@@ -257,13 +257,6 @@
 
 Hello " user-name ", may this be the start of a beautiful music hacking session...")))
 
-(defn capitalize
-  "Make the first char of the text uppercase and leave the rest unmodified"
-  [text]
-  (let [first-char (.toUpperCase (str (first text)))
-        rest-chars (apply str (rest text))]
-    (str first-char rest-chars)))
-
 (defn normalize-ugen-name
   "Normalizes both SuperCollider and overtone-style names to squeezed lower-case.
 
