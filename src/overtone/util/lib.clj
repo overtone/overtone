@@ -83,22 +83,6 @@
   []
   (.availableProcessors (Runtime/getRuntime)))
 
-(defn arg-count
-  "Get the arity of a function."
-  [f]
-  (let [m (first (filter #(= "invoke" (.getName %)) (.getDeclaredMethods (class f))))
-        p (.getParameterTypes m)]
-    (alength p)))
-
-(defn run-handler [handler & args]
-  ;;deref vars so arg-count works correctly
-  (let [handler (if (var? handler) @handler handler)]
-    (try
-      (apply handler (take (arg-count handler) args))
-      (catch Exception e
-        (log/debug "Handler Exception - got args:" args"\n"
-                   (with-out-str (.printStackTrace e)))))))
-
 (defn map-vals
   "Takes a map m and returns a new map with all of m's values mapped through f"
   [f m]
