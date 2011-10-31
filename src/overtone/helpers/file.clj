@@ -152,6 +152,15 @@
     (when-not (.exists f)
       (.mkdir f))))
 
+(defn mv!
+  "Moves a file from source to dest path"
+  [src dest]
+  (let [src    (resolve-tilde-path src)
+        dest   (resolve-tilde-path dest)
+        f-src  (File. src)
+        f-dest (File. dest)]
+    (.renameTo f-src f-dest)))
+
 (defn file-exists?
   "Returns true if the file specified by path exists"
   [path]
