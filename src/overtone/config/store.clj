@@ -4,7 +4,7 @@
   overtone.config.store
   (:use [overtone.config file-store]
         [overtone.util.lib :only [get-os system-user-name]]
-        [overtone.helpers.file :only [mkdir! file-exists?]]
+        [overtone.helpers.file :only [mkdir! file-exists? mv!]]
         [clojure.java.io :only [delete-file]]))
 
 (def CONFIG-DEFAULTS
@@ -57,6 +57,12 @@
            (when-not (contains? @config* k)
              (alter config* assoc k v)))
          CONFIG-DEFAULTS))))
+
+(defonce __MOVE-OLD-ROOT-DIR__
+  (let [root (:root OVERTONE-DIRS)]
+      (when (file-exists? (str root "/config"))
+        (println "Warning - old config directory detected. Moved to ~/.overtone-old and replaced with new, empty config.")
+        (mv! root (str root "-old")))))
 
 (defonce __ENSIRE-DIRS___
   (ensure-dir-structure))
