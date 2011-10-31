@@ -9,7 +9,7 @@
 
 (def CONFIG-DEFAULTS
   {:os (get-os)
-   :user-name "fred"})
+   :user-name (system-user-name)})
 
 (defn config-get
   "Get config value"
