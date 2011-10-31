@@ -188,7 +188,7 @@
 
 (defn data->wavetable
   "Convert a sequence of floats into wavetable format. Result will be twice the
-  size of source data. Length of ource data must be a power of 2 for SC
+  size of source data. Length of source data must be a power of 2 for SC
   compatability."
   [data]
   (let [v   (vec data)
