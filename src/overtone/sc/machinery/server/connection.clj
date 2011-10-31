@@ -2,7 +2,7 @@
   (:import [java.io BufferedInputStream]
            [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
   (:use [clojure.java shell]
-        [overtone.config.store]
+        [overtone.config store]
         [overtone.libs event deps]
         [overtone.sc version]
         [overtone.util.lib :only [print-ascii-art-overtone-logo]]
@@ -68,7 +68,7 @@
          (sh "jack_connect" src dest)
          (log/info "jack_connect " src dest)))))
 
-(if (= :linux (@config* :os))
+(if (= :linux (config-get :os))
   (on-deps :server-connected ::connect-jack-ports #(connect-jack-ports)))
 
 ;; We have to do this to handle the change in SC, where they added a "/" to the
@@ -123,7 +123,7 @@
             (Thread/sleep 100)
             (recur (inc cnt)))
           (throw (Exception. (str "Error: unable to connect to externally booted server after " N-RETRIES " attempts.")))))))
-  (print-ascii-art-overtone-logo OVERTONE-VERSION-STR))
+  (print-ascii-art-overtone-logo (config-get :user-name) OVERTONE-VERSION-STR))
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
@@ -191,7 +191,7 @@
   "Find the path for SuperCollider. If linux don't check for a file as it should
   be in the PATH list."
   []
-  (let [os    (@config* :os)
+  (let [os    (config-get :os)
         paths (SC-PATHS os)
         path  (if (= :linux os)
                 (first paths)
@@ -208,7 +208,7 @@
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
        (let [sc-path (find-sc-path)
-             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (@config* :os))))
+             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (config-get :os))))
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
          (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " cmd))
@@ -225,7 +225,7 @@
    (boot :internal) ; boots the internal server
    (boot :external) ; boots an external server on a random port
    (boot :external 57110) ; boots an external server listening on port 57110"
-  ([]                (boot (get @config* :server :internal) SERVER-PORT))
+  ([]                (boot (or (config-get :server) :internal) SERVER-PORT))
   ([connection-type] (boot connection-type SERVER-PORT))
   ([connection-type port]
      (locking connection-info*

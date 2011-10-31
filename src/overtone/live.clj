@@ -1,6 +1,7 @@
 (ns overtone.live
   (:use [overtone.util lib ns])
   (:require clojure.stacktrace
+            [overtone.config store]
             [overtone.midi]
             [overtone.osc]
             [overtone.algo chance scaling trig]
@@ -19,6 +20,7 @@
  'overtone.algo.chance
  'overtone.algo.scaling
  'overtone.algo.trig
+ 'overtone.config.store
  'overtone.sc.buffer
  'overtone.sc.bus
  'overtone.sc.envelope
@@ -47,4 +49,4 @@
 
 (defonce _auto-boot_ (boot-rig))
 
-(print-ascii-art-overtone-logo OVERTONE-VERSION-STR)
+(print-ascii-art-overtone-logo (overtone.config.store/config-get :user-name) OVERTONE-VERSION-STR)

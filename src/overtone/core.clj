@@ -1,6 +1,7 @@
 (ns overtone.core
   (:use [overtone.util ns])
   (:require clojure.stacktrace
+            [overtone.config store]
             [overtone.midi]
             [overtone.osc]
             [overtone.algo chance scaling trig]
@@ -19,6 +20,7 @@
  'overtone.algo.chance
  'overtone.algo.scaling
  'overtone.algo.trig
+ 'overtone.config.store
  'overtone.sc.buffer
  'overtone.sc.bus
  'overtone.sc.envelope
