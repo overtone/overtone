@@ -6,8 +6,7 @@
            [java.util.concurrent TimeUnit TimeoutException])
   (:use [clojure.stacktrace]
         [clojure.pprint]
-        [overtone.util doc])
-  (:require [overtone.util.log :as log]))
+        [overtone.util doc]))
 
 (defn indexed
   "Takes col and returns a list of index val pairs for each successive val in
@@ -226,7 +225,7 @@
          (throw (Exception. (str "deref! timeout error. Dereference took longer than " timeout " ms")))
          res))))
 
-(defn user-name
+(defn system-user-name
   "returns the name of the current user"
   []
   (System/getProperty "user.name"))
@@ -245,7 +244,7 @@
   (into {} (map (fn [[k v]] [k (if (keyword? v) (name v) (str v))]) m)))
 
 (defn print-ascii-art-overtone-logo
-  [version-str]
+  [user-name version-str]
   (println (str "
           _____                 __
          / __  /_  _____  _____/ /_____  ____  ___
@@ -256,7 +255,7 @@
                           Programmable Music. "version-str"
 
 
-Hello " (user-name) ", may this be the start of a beautiful music hacking session...")))
+Hello " user-name ", may this be the start of a beautiful music hacking session...")))
 
 (defn capitalize
   "Make the first char of the text uppercase and leave the rest unmodified"
