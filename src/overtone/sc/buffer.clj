@@ -207,3 +207,31 @@
       (aset-float res (* 2 (dec cnt)) (- (* 2 a) b))
       (aset-float res (inc (* 2 (dec cnt))) (- b a)))
     (seq res)))
+
+(def two-pi (* 2 Math/PI))
+
+(defn create-buffer-data
+  "Create a sequence of floats for use as a buffer.  Result will contain
+   values obtained by calling f with values linearly interpolated between
+   range-min (inclusive) and range-max (exclusive).  For most purposes size
+   must be a power of 2.
+
+   Examples:
+
+   Just a line from -1 to 1:
+    (create-buffer-data 32 identity -1 1)
+
+   Sine-wave for (osc) ugen:
+    (create-buffer-data 512 #(Math/sin %) 0 two-pi)
+
+   Chebyshev polynomial for wave-shaping:
+    (create-buffer-data 1024 #(- (* 2 % %) 1) -1 1)"
+  [size f range-min range-max]
+  (let [range-size (- range-max range-min)
+	rangemap  #(+ range-min (/ (* % range-size) size))]
+    (map #(float (f (rangemap %))) (range 0 size))))
+	
+
+
+
+	
