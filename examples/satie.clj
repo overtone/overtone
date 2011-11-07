@@ -1,9 +1,24 @@
 (ns examples.satie
-  (:use [overtone.live]
-        [overtone.inst piano])
+  (:use [overtone.live])
   (:require [polynome.core :as poly]))
 
 ;;Erik Satie Gnossienne No. 1
+
+;;Piano samples downloaded from: http://blackhole12.newgrounds.com/news/post/92464
+(defonce piano-samples (load-samples "~/Desktop/samples/MIS_Stereo_Piano/Piano/*LOUD*"))
+
+
+(defn matching-notes
+  [note]
+  (filter #(if-let [n (match-note (:name %))]
+             (= note (:midi-note n)))
+          piano-samples))
+
+(defn sampled-piano
+  ([note] (sampled-piano note 1))
+  ([note vol]
+     (if-let [sample (first (matching-notes note))]
+       (stereo-player sample :vol (* 0.01 vol)))))
 
 (def phrase1a [:iii :v :iv# :iii :iii :ii# :iii :ii#])
 (def phrase1b [:iii :v :iv# :iii :v# :vi :v# :vi])
@@ -30,7 +45,7 @@
                                 phrase3
                                 phrase2
                                 phrase2
-                                phrase1a-reprise
+                                 phrase1a-reprise
                                 phrase1b-reprise
                                 phrase1a-reprise
                                 phrase1b-reprise
@@ -65,8 +80,8 @@
                                phrase1-bass                            ;;U
                                ))
 
-(def lh-pitches (degrees->pitches left-hand-degrees :major :Ab4))
-(def rh-pitches (degrees->pitches right-hand-degrees :major :Ab4))
+(def lh-pitches (degrees->pitches left-hand-degrees :major :Bb3))
+(def rh-pitches (degrees->pitches right-hand-degrees :major :Bb3))
 
 (def cur-pitch-rh (atom -1))
 (def cur-pitch-lh (atom -1))
@@ -80,7 +95,7 @@
   [vol]
   (let [idx (swap! cur-pitch-rh inc)
         pitch (nth (cycle rh-pitches) idx)]
-    (piano :note pitch :vel vol)))
+    (sampled-piano pitch vol)))
 
 (defn play-next-lh
   [vol]
@@ -88,10 +103,11 @@
         pitch (nth (cycle lh-pitches) idx)]
     (if (sequential? pitch)
       (doseq [p pitch]
-        (piano :note p :vel vol))
-      (piano :note pitch :vel vol))))
+        (sampled-piano p vol))
+      (sampled-piano pitch vol))))
 
-(def m (poly/init "/dev/tty.usbserial-m64-0790"))
+(defonce m (poly/init "/dev/tty.usbserial-m64-0790"))
+
 
 (poly/on-press m (fn [x y s]
                    (if (= 7 x)
@@ -108,3 +124,4 @@
                      (poly/led-off m x y)))
 
 ;;(poly/remove-all-callbacks m)
+;;(poly/disconnect OCOC)m

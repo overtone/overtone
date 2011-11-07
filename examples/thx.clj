@@ -14,8 +14,8 @@
 ;;}.play
 
 (definst thx [gate 1]
-  (let [target-pitches (map midi->hz [77 74 72 70 65 62 60 58 53 50 46 34 26 22 14 10 ])
-        r-freq         (env-gen:kr (envelope [1 1 0.007 10] [8 4 2] [0 -4 1] 2) gate )
+  (let [target-pitches (map midi->hz [77 74 72 70 65 62 60 58 53 50 46 34 26 22 14 10])
+        r-freq         (env-gen:kr (envelope [1 1 0.007 10] [8 4 2] [0 -4 1] 2) gate)
         amp-env        (env-gen:kr (envelope [0 0.07 0.21 0] [8 4 2] [0 1 1] 2) gate :action FREE)
         mk-noise       (fn [ug-osc]
                          (mix (map #(pan2 (ug-osc (+ (* r-freq (+ 230 (* 100 (lf-noise2:kr 1.3))))
@@ -24,7 +24,7 @@
                                    target-pitches)))
         saws           (mk-noise saw)
         sins           (mk-noise sin-osc)
-        snd (+ (* saws amp-env) (* sins amp-env))]
+        snd            (+ (* saws amp-env) (* sins amp-env))]
     (g-verb snd 9 0.7 0)))
 
 ;;play the instrument:
