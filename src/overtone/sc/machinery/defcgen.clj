@@ -112,7 +112,6 @@
   ([c-name summary doc params body categories rate] (mk-cgen c-name summary doc params body categories rate #{rate}))
   ([c-name summary doc params body categories rate rates]
      (let [param-names (vec (map :name params))
-           param-names (vec (map :name params))
            defaults    (reduce (fn [s el] (assoc s (:name el) (:default el)))
                                {}
                                params)
