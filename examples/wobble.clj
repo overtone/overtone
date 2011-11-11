@@ -8,10 +8,10 @@
    min {:doc "minimum freq to always let through" :default 40}
    max {:doc "maximum freq to let through the wobble" :default 3000}]
   (:ar
-   (let [scaled-wob (lin-exp wobble-amount -1 1 min max)
-         wob   (lpf src scaled-wob)
-         wob   (* 0.8 (normalizer wob))
-         wob   (+ wob (bpf wob 1500 2))]
+   (let [scaled-wob (lin-exp (lf-tri wobble-amount) -1 1 min max)
+         wob        (lpf src scaled-wob)
+         wob        (* 0.8 (normalizer wob))
+         wob        (+ wob (bpf wob 1500 2))]
      (+ wob (* 0.2 (g-verb wob 9 0.7 0.7))))))
 
 (defcgen auto-wobble
