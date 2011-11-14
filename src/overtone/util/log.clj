@@ -3,8 +3,8 @@
      :author "Jeff Rose"}
   overtone.util.log
   (:import [java.util.logging Logger Level ConsoleHandler FileHandler
-                              StreamHandler SimpleFormatter])
-  (:use [overtone.config setup]))
+            StreamHandler SimpleFormatter])
+  (:use [overtone.config store]))
 
 ; Sets up some basic logging infrastructure and helpers for the project.
 

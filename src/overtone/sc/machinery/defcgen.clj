@@ -3,7 +3,8 @@
       :author "Sam Aaron"}
   overtone.sc.machinery.defcgen
 
-  (:use [overtone.util lib]
+  (:use [clojure.walk :as walk]
+        [overtone.util lib]
         [overtone.sc.machinery.ugen fn-gen doc defaults]))
 
 (defn parse-cgen-params
@@ -77,15 +78,22 @@
 
     [summary doc params rated-bodies default-rate]))
 
+(defn- syms->sym-gensym-pairs
+  "Given a seq of symbols, creates a new seq of symbol gensym pairs"
+  [syms]
+  (into {} (doall (map (fn [sym] [(symbol (name sym)) (gensym (name sym))]) syms))))
+
 (defn- mk-cgen-fn
   "Make the function which gets executed when a cgen is called."
   [param-names defaults body]
-  (let [args     (gensym 'args)
-        bindings (reduce (fn [final param]
-                           (conj final (symbol (name param)) `(get (arg-mapper ~args ~param-names ~defaults) ~param)))
-                         []
-                         param-names)]
-    `(fn [& ~args]
+  (let [arg-sym     (gensym 'arg-sym)
+        sym-gensyms (syms->sym-gensym-pairs param-names)
+        bindings    (reduce (fn [final param]
+                              (conj final (get sym-gensyms (symbol (name param))) `(get (arg-mapper ~arg-sym ~param-names ~defaults) ~param)))
+                            []
+                            param-names)
+        body        (walk/prewalk-replace sym-gensyms body )]
+    `(fn [& ~arg-sym]
        (let [~@bindings]
          (with-overloaded-ugens
            ~body)))))
@@ -112,7 +120,6 @@
   ([c-name summary doc params body categories rate] (mk-cgen c-name summary doc params body categories rate #{rate}))
   ([c-name summary doc params body categories rate rates]
      (let [param-names (vec (map :name params))
-           param-names (vec (map :name params))
            defaults    (reduce (fn [s el] (assoc s (:name el) (:default el)))
                                {}
                                params)

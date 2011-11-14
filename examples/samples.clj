@@ -21,7 +21,7 @@
 
 ; Now the audio data for the sample is loaded into a buffer.  You can view the buffer in the
 ; scope window too.  Click in the scope tab on the right, and evaluate this.
-(scope-buf flute-buf)
+(scope :buf flute-buf)
 
 ; If you just want to play a buffer and adjust the speed or looping
 ; play-buf is probably the easiest way.

@@ -143,3 +143,27 @@
   [path]
   (let [path (resolve-tilde-path path)]
     (.length (file path))))
+
+(defn mkdir!
+  "Makes a dir at path if it doesn't already exist"
+  [path]
+  (let [path (resolve-tilde-path path)
+        f (File. path)]
+    (when-not (.exists f)
+      (.mkdir f))))
+
+(defn mv!
+  "Moves a file from source to dest path"
+  [src dest]
+  (let [src    (resolve-tilde-path src)
+        dest   (resolve-tilde-path dest)
+        f-src  (File. src)
+        f-dest (File. dest)]
+    (.renameTo f-src f-dest)))
+
+(defn file-exists?
+  "Returns true if the file specified by path exists"
+  [path]
+  (let [path (resolve-tilde-path path)
+        f (File. path)]
+    (.exists f)))

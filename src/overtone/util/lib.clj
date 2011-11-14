@@ -6,8 +6,7 @@
            [java.util.concurrent TimeUnit TimeoutException])
   (:use [clojure.stacktrace]
         [clojure.pprint]
-        [overtone.util doc])
-  (:require [overtone.util.log :as log]))
+        [overtone.util doc]))
 
 (defn indexed
   "Takes col and returns a list of index val pairs for each successive val in
@@ -82,22 +81,6 @@
   "Get the number of CPUs on this machine."
   []
   (.availableProcessors (Runtime/getRuntime)))
-
-(defn arg-count
-  "Get the arity of a function."
-  [f]
-  (let [m (first (filter #(= "invoke" (.getName %)) (.getDeclaredMethods (class f))))
-        p (.getParameterTypes m)]
-    (alength p)))
-
-(defn run-handler [handler & args]
-  ;;deref vars so arg-count works correctly
-  (let [handler (if (var? handler) @handler handler)]
-    (try
-      (apply handler (take (arg-count handler) args))
-      (catch Exception e
-        (log/debug "Handler Exception - got args:" args"\n"
-                   (with-out-str (.printStackTrace e)))))))
 
 (defn map-vals
   "Takes a map m and returns a new map with all of m's values mapped through f"
@@ -242,7 +225,7 @@
          (throw (Exception. (str "deref! timeout error. Dereference took longer than " timeout " ms")))
          res))))
 
-(defn user-name
+(defn system-user-name
   "returns the name of the current user"
   []
   (System/getProperty "user.name"))
@@ -261,7 +244,7 @@
   (into {} (map (fn [[k v]] [k (if (keyword? v) (name v) (str v))]) m)))
 
 (defn print-ascii-art-overtone-logo
-  []
+  [user-name version-str]
   (println (str "
           _____                 __
          / __  /_  _____  _____/ /_____  ____  ___
@@ -269,17 +252,10 @@
        / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
        \\____/ |___/\\___/_/   \\__/\\____/_/ /_/\\___/
 
-                          Programmable Music.
+                          Programmable Music. "version-str"
 
 
-Hello " (user-name) ", may this be the start of a beautiful music hacking session...")))
-
-(defn capitalize
-  "Make the first char of the text uppercase and leave the rest unmodified"
-  [text]
-  (let [first-char (.toUpperCase (str (first text)))
-        rest-chars (apply str (rest text))]
-    (str first-char rest-chars)))
+Hello " user-name ", may this be the start of a beautiful music hacking session...")))
 
 (defn normalize-ugen-name
   "Normalizes both SuperCollider and overtone-style names to squeezed lower-case.

@@ -1,10 +1,20 @@
-          _____                 __
-         / __  /_  _____  _____/ /_____  ____  ___
-        / / / / | / / _ \/ ___/ __/ __ \/ __ \/ _ \
-       / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
-       \____/ |___/\___/_/   \__/\____/_/ /_/\___/
+          _,,ddP"""Ybb,,_
+        ,dP"'         `"Yb
+      ,d"                 .gPPRg,
+     d"                  dP'   `Yb
+    d'                   8)     (8
+    8                    Yb     dP                        888
+    8                     "8ggg8"                         888
+    8                                                     888
+    Y,                       ,P 888  888  .d88b.  888d888 888888 .d88b.  88888b.   .d88b.
+     Ya                     aP  888  888 d8P  Y8b 888P"   888   d88""88b 888 "88b d8P  Y8b
+      "Ya                 aP"   Y88  88P 88888888 888     888   888  888 888  888 88888888
+        "Yb,_         _,dP"      Y8bd8P  Y8b.     888     Y88b. Y88..88P 888  888 Y8b.
+          `""YbbgggddP""'         Y88P    "Y8888  888      "Y888 "Y88P"  888  888  "Y8888
 
-                          Programmable Music.
+
+
+# Programmable Music.
 
 ## Live-coding & musical exploration
 
@@ -18,8 +28,10 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 ## Quick Setup
 
+
 ### Installation
 
+```sh
     # Install cake (or lein)
     # http://clojure-cake.org/
 
@@ -31,26 +43,45 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
     $ cd insane-noises
     $ cake deps
-
+```
 
 ### Server Option A: Internal
+
+```sh
     # Linux users - start jackd
+    # (see https://github.com/overtone/overtone/wiki/Installing-and-starting-jack)
 
     $ cake repl
+```
+```clj
     user=> (use 'overtone.live)
-
+```
 
 ### Server Option B: External
+
+```sh
     # Download and install SuperCollider:
     # http://supercollider.sourceforge.net/downloads/
 
     $ cake repl
+```
+```clj
     user=> (use 'overtone.core)
     user=> (boot-external-server)
+```
 
 
 ### Your First Sounds
 
+     ___|)_______________|\________________|\______________|\_______________|\________
+    |___/___||___________|_________________|_______________|________________|_________||
+    |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
+    |_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
+    |_\_|_/_||____|__________|______________________|__________|______________________||
+        |         |          |/                     |/         |
+      (_|         |/                                           |/
+
+```clj
     ; sin-osc creates a sine wave at the specified Hz (440 in this case)
     ; and pan2 makes the signal stereo
     ; demo simply plays the synth for the specified time in seconds:
@@ -69,6 +100,17 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
     user=> (beep)
     user=> (ctl beep :freq 880)
     user=> (kill beep) ; (this will just kill the specific instrument)
+```
+
+## Documentation
+
+### Detailed Setup Instructions
+
+For a more detailed set of setup instructions (including details specific to Windows and Linux) head over to the [Overtone wiki installation page](https://github.com/overtone/overtone/wiki/Installing-Overtone)
+
+### Getting Started
+
+We will try to maintain documentation for all aspects of the system in the [project wiki](https://github.com/overtone/overtone/wiki/Home), you'll find tutorials and examples on topics such as synthesizing new sounds from scratch, live-coding and generating musical scores on the fly. If you see anything missing, please feel free to add it yourself, or hit us up on the [mailing list](http://groups.google.com/group/overtone) and we'll sort somethign out.
 
 ## External & Internal Servers
 
@@ -78,13 +120,28 @@ Note - the internal server is not currently supported for all architecture/opera
 
 ## Getting Started Videos
 
-     ___|)_______________|\________________|\______________|\_______________|\________
-    |___/___||___________|_________________|_______________|________________|_________||
-    |__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
-    |_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
-    |_\_|_/_||____|__________|______________________|__________|______________________||
-        |         |          |/                     |/         |
-      (_|         |/                                           |/
+                           .-.`
+                           +hhhhh+`
+                          +hhysyhhs
+                          hs.   -sh/
+                          :`     `yh.
+                                  +ho
+                                  `sh:
+                                   /hs
+                                  .hhh:
+                                 /yhhhy/
+                                `shhhyh/
+                                +hhhh:oh`
+                               :hhhh+ .ho
+                              +yhhhs/  sh+
+                             `yhhhy`   .hs
+                             ohhhh-     +h:
+                            /hhhh+      -hy.   oso
+                           +hhhhs        ohy  shhhy
+                          .yhhhy`        `yhs  +yhs
+                         `shhhh-          -hhhhhhh/
+                         ohhhho            /yhhhhs
+
 
 Head over to Vimeo for a fast-paced 4 minute introduction to live-coding with Overtone to see what's possible
 
@@ -118,7 +175,7 @@ For a quick glance at all the exciting functionality Overtone puts at your music
 
 ### Mailing List
 
-Join the Overtone <a href="http://groups.google.com/group/overtone">mailing list</a>.
+We encourage you to join the [mailing list](http://groups.google.com/group/overtone) to see what other people are getting up to with Overtone. Use it to ask questions, show off what you've made and even meet fellow Overtoners in your area so you can meet up for impromptu jam sessions. All we ask is that you be considerate, courteous and respectful and that you share as much of your code as possible so we can all learn how to make crazy cool sounds together.
 
 ### Source Repository
 
@@ -163,3 +220,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Kevin Neaton
 * Chris Ford
 * Philip Potter
+* Matthew Gilliard

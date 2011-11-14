@@ -41,3 +41,10 @@
   (if (= java.util.regex.Pattern (type term))
     term
     (re-pattern (str term))))
+
+(defn capitalize
+  "Make the first char of the text uppercase and leave the rest unmodified"
+  [text]
+  (let [first-char (.toUpperCase (str (first text)))
+        rest-chars (apply str (rest text))]
+    (str first-char rest-chars)))

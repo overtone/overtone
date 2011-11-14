@@ -1,11 +1,13 @@
 (ns overtone.core
   (:use [overtone.util ns])
   (:require clojure.stacktrace
+            [overtone.config store]
             [overtone.midi]
             [overtone.osc]
             [overtone.algo chance scaling trig]
             [overtone.sc buffer bus envelope example gens info
-                         mixer node sample server synth trigger]
+                         mixer node sample server synth trigger
+                         version]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
             [overtone.repl ugens examples shell]
@@ -18,6 +20,7 @@
  'overtone.algo.chance
  'overtone.algo.scaling
  'overtone.algo.trig
+ 'overtone.config.store
  'overtone.sc.buffer
  'overtone.sc.bus
  'overtone.sc.envelope
@@ -30,6 +33,7 @@
  'overtone.sc.server
  'overtone.sc.synth
  'overtone.sc.trigger
+ 'overtone.sc.version
  'overtone.music.rhythm
  'overtone.music.pitch
  'overtone.music.tuning

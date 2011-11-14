@@ -14,6 +14,13 @@
 (defonce event-handlers* (ref {}))
 (defonce sync-event-handlers* (ref {}))
 
+(defn- arg-count
+  "Get the arity of a function."
+  [f]
+  (let [m (first (filter #(= "invoke" (.getName %)) (.getDeclaredMethods (class f))))
+        p (.getParameterTypes m)]
+    (alength p)))
+
 (defn- on-event*
   [handler-ref* event-type key handler]
   (log/debug "adding-handler for " event-type)
@@ -22,6 +29,17 @@
          arity (if (var? handler) -1 (arg-count handler))]
      (alter handler-ref* assoc event-type (assoc handlers key [handler arity]))
      true)))
+
+(defn- run-handler
+  "Apply the handler to the args - handling exceptions gracefully."
+  [handler & args]
+  ;;deref vars so arg-count works correctly
+  (let [handler (if (var? handler) @handler handler)]
+    (try
+      (apply handler (take (arg-count handler) args))
+      (catch Exception e
+        (log/debug "Handler Exception - got args:" args"\n"
+                   (with-out-str (.printStackTrace e)))))))
 
 (defn on-event
   "Asynchronously runs handler whenever events of event-type are fired. This

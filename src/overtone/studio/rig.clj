@@ -54,16 +54,6 @@
     (let [source  (in in-bus)]
       (out out-bus (pan2 source pan volume)))))
 
-(defn volume
-  "Master volume control on the mixer."
-  [vol]
-  (ctl @mixer-id* :volume vol))
-
-(defn pan
-  "Master pan control on the mixer."
-  [pan]
-  (ctl @mixer-id* :pan pan))
-
 (defn inst-volume
   "Control the volume for a single instrument."
   [inst vol]

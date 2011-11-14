@@ -91,8 +91,6 @@
                (recur (+ n-vals-read blen))))
            samples)))))
 
-
-
 (defn buffer-write!
   "Write into a section of an audio buffer which modifies the buffer in place on
   the server. Data can either be a single number or a collection of numbers.
@@ -101,6 +99,8 @@
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
      (assert (buffer? buf))
+     (when (> (count data) MAX-OSC-SAMPLES)
+       (throw (Exception. (str "Error - the data you attempted to write to the buffer was too large to be sent via UDP."))))
      (let [data (if (number? data) [data] data)
            size (count data)
            doubles (map double data)]
@@ -185,3 +185,53 @@
 (defn num-frames
   [buf]
   (:size  buf))
+
+(defn data->wavetable
+  "Convert a sequence of floats into wavetable format. Result will be twice the
+  size of source data. Length of source data must be a power of 2 for SC
+  compatability."
+  [data]
+  (let [v   (vec data)
+        cnt (count v)
+        res (float-array (* 2 cnt))]
+    (dorun
+     (map (fn [idx]
+           (let [a (get v idx)
+                 b (get v (inc idx))
+                 r-idx (* 2 idx)]
+             (aset-float res r-idx (-  (* 2 a) b))
+             (aset-float res (inc r-idx) (- b a))))
+         (range (dec cnt))))
+    (let [a (get v (dec cnt))
+          b (get v 0)]
+      (aset-float res (* 2 (dec cnt)) (- (* 2 a) b))
+      (aset-float res (inc (* 2 (dec cnt))) (- b a)))
+    (seq res)))
+
+(def two-pi (* 2 Math/PI))
+
+(defn create-buffer-data
+  "Create a sequence of floats for use as a buffer.  Result will contain
+   values obtained by calling f with values linearly interpolated between
+   range-min (inclusive) and range-max (exclusive).  For most purposes size
+   must be a power of 2.
+
+   Examples:
+
+   Just a line from -1 to 1:
+    (create-buffer-data 32 identity -1 1)
+
+   Sine-wave for (osc) ugen:
+    (create-buffer-data 512 #(Math/sin %) 0 two-pi)
+
+   Chebyshev polynomial for wave-shaping:
+    (create-buffer-data 1024 #(- (* 2 % %) 1) -1 1)"
+  [size f range-min range-max]
+  (let [range-size (- range-max range-min)
+	rangemap  #(+ range-min (/ (* % range-size) size))]
+    (map #(float (f (rangemap %))) (range 0 size))))
+	
+
+
+
+	
