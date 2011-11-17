@@ -1,57 +1,79 @@
 (ns examples.monomestep
   (:use [overtone.live]
-        [polynome.core]))
+        [clojure.core.match :only [match]]
+        [polynome.core :as poly]))
 
-(definst dubstep [note 40 wob 3 hi-man 0 sweep-man 0 deci-man 0 tan-man 0 shape 0 max-freq 3000]
-  (let [shape (select shape [(lf-saw wob) (lf-tri wob)])
-        sweep (lin-exp shape -1 1 40 max-freq)
-        snd   (mix (saw (* note [0.99 1.01])))
+(definst dubstep [note 40 wob 2 hi-man 0 lo-man 0 sweep-man 0 deci-man 0 tan-man 0 shape 0 sweep-max-freq 3000 hi-man-max 1000 lo-man-max 500 beat-vol 0]
+  (let [bpm 300
+        shape (select shape [(lf-tri wob) (lf-saw wob)])
+        sweep (lin-exp shape -1 1 40 sweep-max-freq)
+        snd   (mix (saw (* (midicps note) [0.99 1.01])))
         snd   (lpf snd sweep)
         snd   (normalizer snd)
+
         snd   (+ snd (bpf snd 1500 2))
-        ;; ;;special flavours
-        ;; ;;hi manster
-        ;; snd   (select (> hi-man 0.05) [snd (* 4 (hpf snd 1000))])
+        ;;special flavours
+        ;;hi manster
+        snd   (select (> hi-man 0.05) [snd (* 4 (hpf snd hi-man-max))])
 
-        ;; ;;sweep manster
-        ;; snd   (select (> sweep-man 0.05) [snd (* 4 (hpf snd sweep))])
+        ;;sweep manster
+        snd   (select (> sweep-man 0.05) [snd (* 4 (hpf snd sweep))])
 
-        ;; ;;decimate
-        ;; snd   (select (> deci-man 0.05) [snd (round snd 0.1)])
+        ;;lo manster
+        snd   (select (> lo-man 0.05) [snd (lpf snd lo-man-max)])
 
-        ;; ;;crunch
-        ;; snd   (select (> tan-man 0.05) [snd (tanh (* snd 5))])
-        snd   (+ snd (* 0.3 (g-verb snd 10 0.7 0.7)))]
+        ;;decimate
+        snd   (select (> deci-man 0.05) [snd (round snd 0.1)])
 
-    snd))
+        ;;crunch
+        snd   (select (> tan-man 0.05) [snd (tanh (* snd 5))])
 
+        snd   (* 0.5 (+ (* 0.8 snd) (* 0.3 (g-verb snd 100 0.7 0.7))))
+
+               kickenv (decay (t2a (demand (impulse:kr (/ bpm 30)) 0 (dseq [1 0 0 0 0 0 1 0 1 0 0 1 0 0 0 0] INF))) 0.7)
+       kick (* (* kickenv 7) (sin-osc (+ 40 (* kickenv kickenv kickenv 200))))
+       kick (clip2 kick 1)
+
+       snare (* 3 (pink-noise [1 1]) (apply + (* (decay (impulse (/ bpm 240) 0.5) [0.4 2]) [1 0.05])))
+       snare (+ snare (bpf (* 4 snare) 2000))
+        snare (clip2 snare 1)
+       beat (* beat-vol (+ kick snare))
+        ]
+    (+ snd beat)))
+
+;;(defonce m (poly/init "/dev/tty.usbserial-m64-0790"))
+(def m beatbox.core/m)
+(poly/remove-all-callbacks m)
+
+(def id->dub-ctl {0 :hi-man
+                  1 :lo-man
+                  2 :deci-man
+                  3 :tan-man
+                  4 :beat-vol})
+
+(defn toggle-fx
+  [x y]
+  (when-let [ctl-name (get id->dub-ctl y)]
+    (poly/toggle-led m x y #(ctl dubstep ctl-name %))))
+
+(defn modulate-pitch-wob
+  [x y]
+  (let [wob x
+        note (nth (scale :g1 :minor-pentatonic) y)]
+    (ctl dubstep :note note :wob wob)))
+
+(poly/on-press m ::foo (fn [x y s]
+                   (match [x y]
+                          [0 _] (toggle-fx x y)
+                          [_ _] (modulate-pitch-wob x y))))
 
 (dubstep)
 (stop)
+(comment
 
-(ctl dubstep :wob 2)
-(ctl dubstep :shape 1)
-
-
-
-
-(defcgen wobble
-  "wobble an input src"
-  [src {:doc "input source"}
-   wobble-factor {:doc "num wobbles per second"}]
-  (:ar
-   (let [sweep (lin-exp (lf-tri wobble-factor) -1 1 40 3000)
-         wob   (lpf src sweep)
-         wob   (* 0.8 (normalizer wob))
-         wob   (+ wob (bpf wob 1500 2))]
-     (+ wob (* 0.2 (g-verb wob 9 0.7 0.7))))))
-
-(demo 5 (wobble (lf-saw (* 80 [0.99 1.01])) 2))
-
-(demo 0.1 (dubstep))
-(demo (sin-osc))
-(boot-server)
-
-(stop)
-
-(do (dubstep) (Thread/sleep 200) (kill dubstep))
+  (ctl dubstep :lo-man-max 1000)
+  (ctl dubstep :hi-man-max 400)
+  (ctl dubstep :sweep-max-freq 3000)
+  (ctl dubstep :note 30)
+  (stop)
+  )
