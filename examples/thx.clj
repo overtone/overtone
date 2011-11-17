@@ -25,7 +25,7 @@
         saws           (mk-noise saw)
         sins           (mk-noise sin-osc)
         snd            (+ (* saws amp-env) (* sins amp-env))]
-    (g-verb snd 9 0.7 0)))
+    (* 0.5 (g-verb snd 9 0.7 0))))
 
 ;;play the instrument:
 ;;(thx)
