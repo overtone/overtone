@@ -39,8 +39,6 @@
           (poly/clear m)
           (start-samples))))
 
-(reset-samples!)
-
 (defn toggle
   "Invert the vol from 1 to 0 or 0 to 1"
   [vol]
@@ -55,19 +53,6 @@
                                  new-samp (assoc samp :vol new-vol)]
                              (ctl id :vol new-vol)
                              (assoc playing-samples n new-samp)))))
-
-(defn change-vol
-  "Update vol with update-fn and change led state and loop vol accordingly"
-  [vol update-fn looper x y]
-  (let [new-vol (update-fn vol)
-        synth   (looper :synth)
-        path    (looper :path)]
-    (ctl synth :vol new-vol)
-    (poly/led m x y new-vol)
-    (if (= 1 new-vol)
-      (println "Playing " path)
-      (println "Stopping" path))
-    new-vol))
 
 (defn trigger
   "Invert the volume for the loop corresponding to the given x y coords. Also
@@ -88,4 +73,4 @@
     (dorun (map #(do (ctl loop-synth :rate (reset! rate* %)) (Thread/sleep 35)) vals))))
 
 
-;;(tempo-slide 1.5)
+;;(tempo-slide 1)
