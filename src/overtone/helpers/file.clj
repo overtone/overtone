@@ -30,11 +30,7 @@
   []
   (System/getProperty "user.home"))
 
-(defn mk-path
-  "Takes a seq of strings and returns a string which is a concatanation of all
-  the input strings separated by the system's default file separator."
-  [parts]
-  (apply str (interpose (file-separator) parts)))
+(declare mk-path)
 
 (defn resolve-tilde-path
   [path]
@@ -47,6 +43,13 @@
 
    :default
    path))
+
+(defn mk-path
+  "Takes a seq of strings and returns a string which is a concatanation of all
+  the input strings separated by the system's default file separator."
+  [parts]
+  (let [path (apply str (interpose (file-separator) parts))]
+    (resolve-tilde-path path)))
 
 (defn ls*
   "Given a path to a directory, returns a seq of java.io.File objects
