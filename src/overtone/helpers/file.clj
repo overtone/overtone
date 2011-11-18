@@ -2,7 +2,8 @@
     ^{:doc "Useful file manipulation fns"
       :author "Sam Aaron"}
   overtone.helpers.file
-  (:import [java.net URL])
+  (:import [java.net URL]
+           [java.io File])
   (:use [clojure.java.io]
         [overtone.helpers.string])
   (:require [org.satta.glob :as satta-glob]
