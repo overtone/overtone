@@ -144,14 +144,8 @@
 (defn group-free
   "Free synth groups, releasing their resources."
   [& group-ids]
-<<<<<<< HEAD
-  {:pre [(connected?)]}
-  (apply node-free group-ids)
-  :free)
-=======
   {:pre [(server-connected?)]}
   (apply node-free group-ids))
->>>>>>> 10a6172a2f2dfc06defee0e1b8a7fd68e73cf924
 
 (defn node-run
   "Start a stopped synth node."
