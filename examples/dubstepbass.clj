@@ -52,6 +52,7 @@
             son (select (< (t-rand:kr :trig trig) 0.05) [son (round son 0.1)])
 
             son (tanh (* son 5))
-            son (+ son (* 0.3 (g-verb son 10 0.1 0.7)))]
+            son (+ son (* 0.3 (g-verb son 10 0.1 0.7)))
+            son (* 0.3 son)]
 
         [son son]))
