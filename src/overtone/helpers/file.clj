@@ -195,7 +195,7 @@
         f (File. path)]
     (.exists f)))
 
-(defn mk-tmp-dir
+(defn mk-tmp-dir!
   "Creates a unique temporary directory on the filesystem. Typically in /tmp on
   *NIX systems. Returns a File object pointing to the new directory. Raises an
   exception if the directory couldn't be created after 10000 tries."
