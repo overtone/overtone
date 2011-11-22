@@ -10,4 +10,5 @@
                  [overtone/byte-spec "0.3.1"]
                  [overtone/midi-clj "0.2.1"]
                  [clj-glob "1.0.0"]]
+  :classpath "examples"
   :jvm-opts ["-Xms256m" "-Xmx1g" "-XX:+UseConcMarkSweepGC"])
