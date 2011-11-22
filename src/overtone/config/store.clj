@@ -29,12 +29,12 @@
   @config*)
 
 (def OVERTONE-DIRS
-  (let [root    (str (System/getProperty "user.home") "/.overtone")
-        log     (str root "/log")
-        samples (str root "/samples")]
+  (let [root   (str (System/getProperty "user.home") "/.overtone")
+        log    (str root "/log")
+        assets (str root "/assets")]
       {:root root
        :log log
-       :samples samples}))
+       :assets assets}))
 
 (def OVERTONE-CONFIG-FILE (str (:root OVERTONE-DIRS) "/config.clj"))
 (def OVERTONE-LOG-FILE (str (:log OVERTONE-DIRS) "/log.log"))

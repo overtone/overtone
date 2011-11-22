@@ -1,8 +1,8 @@
 (ns
-  ^{:doc "Functions to help generate and manipulate frequencies and sets of related frequencies.
-          This is the place for functions representing general musical knowledge, like scales, chords,
-          intervals, etc."
-     :author "Jeff Rose, Sam Aaron & Marius Kempe"}
+    ^{:doc "Functions to help generate and manipulate frequencies and sets of
+           related frequencies. This is the place for functions representing
+           general musical knowledge, like scales, chords, intervals, etc."
+      :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
   (:use [overtone.util old-contrib]
         [overtone.algo chance])
@@ -207,10 +207,10 @@
 
 (def SCALE
   (let [ionian-sequence [2 2 1 2 2 2 1]
-        ionian-len    (count ionian-sequence)
-        rotate-ionian (fn [offset]
-                        (drop offset (take (+ ionian-len offset)
-                                           (cycle ionian-sequence))))]
+        ionian-len      (count ionian-sequence)
+        rotate-ionian   (fn [offset]
+                          (take ionian-len
+                                (drop offset (cycle ionian-sequence))))]
   {:diatonic          ionian-sequence
    :ionian            (rotate-ionian 0)
    :major             (rotate-ionian 0)

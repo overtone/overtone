@@ -27,7 +27,7 @@
   [data path frame-rate n-channels]
   (when (some #(or (< % -1) (> % 1)) data)
     (throw (Exception. (str "Unable to write audio file with this data as it contains sample points either less than -1 or greater than 1."))))
-  (let [path         (resolve-tilde-path)
+  (let [path         (resolve-tilde-path path)
         frame-rate   (float frame-rate)
         n-channels   (int n-channels)
         sample-bytes (/ Short/SIZE 8)
@@ -74,4 +74,4 @@
 
 (defmethod write-wav ::sequence
   [data path frame-rate n-channels]
-  (write-audio-file-from-seq (buffer-data data) path frame-rate n-channels))
+  (write-audio-file-from-seq data path frame-rate n-channels))

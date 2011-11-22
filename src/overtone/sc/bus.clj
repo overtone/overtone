@@ -67,7 +67,7 @@
   [bus val]
   (assert (bus? bus))
 
-  (send "/c_set" (:id bus) (double val)))
+  (snd "/c_set" (:id bus) (double val)))
 
 (defn bus-set-range!
   "Set a range of consecutive busses to the supplied vals"
