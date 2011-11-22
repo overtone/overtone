@@ -79,13 +79,18 @@
   "Connect to an externally running SC audio server listening to port on host.
   Host defaults to localhost.
 
-  (connect-external-server 57710)                  ;=> Connect to an external
+  (connect-external-server)                        ;=> Connect to an external
                                                        server on the localhost
-                                                       listening to port 57710
+                                                       at the default scsynth
+                                                       port 57110
+  (connect-external-server 5555)                   ;=> Connect to an external
+                                                       server on the localhost
+                                                       listening to port 5555
   (connect-external-server \"192.168.1.23\" 57110) ;=> Connect to an external
                                                        server with ip address
                                                        192.168.1.23 listening to
                                                        port 57110"
+  ([] (connect-external-server 57110))
   ([port] (connect-external-server "127.0.0.1" port))
   ([host port]
      (connect host port)
