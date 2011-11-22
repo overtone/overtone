@@ -2,11 +2,17 @@
     ^{:doc "Useful file manipulation fns"
       :author "Sam Aaron"}
   overtone.helpers.file
-  (:import [java.net URL])
+  (:import [java.net URL]
+           [java.io StringWriter File])
   (:use [clojure.java.io]
         [overtone.helpers.string])
   (:require [org.satta.glob :as satta-glob]
             [clojure.java.io :as io]))
+
+(defn file?
+  "Returns true if f is of type java.io.File"
+  [f]
+  (= java.io.File (type f)))
 
 (defn- files->abs-paths
   "Given a seq of java.io.File objects, returns a seq of absolute paths for each
@@ -33,21 +39,25 @@
 (declare mk-path)
 
 (defn resolve-tilde-path
+  "Resolves path names starting with ~ to point to home directory. If path is a
+  java.io.File object, returns it unchanged."
   [path]
-  (cond
-   (= "~" path)
-   (home-dir)
+  (if (file? path)
+    path
+    (cond
+     (= "~" path)
+     (home-dir)
 
-   (.startsWith path (str "~" (file-separator)))
-   (mk-path [(home-dir) (chop-first-n 2 path)])
+     (.startsWith path (str "~" (file-separator)))
+     (mk-path (home-dir) (chop-first-n 2 path))
 
-   :default
-   path))
+     :default
+     path)))
 
 (defn mk-path
   "Takes a seq of strings and returns a string which is a concatanation of all
   the input strings separated by the system's default file separator."
-  [parts]
+  [& parts]
   (let [path (apply str (interpose (file-separator) parts))]
     (resolve-tilde-path path)))
 
@@ -118,7 +128,8 @@
   (let [target-path (resolve-tilde-path target-path)]
     (with-open [in  (io/input-stream url)
                 out (io/output-stream target-path)]
-      (io/copy in out))))
+      (io/copy in out))
+    target-path))
 
 (defn- download-file-with-timeout
   "Downloads remote file at url to local file specified by target path. If data
@@ -131,7 +142,20 @@
     (.setReadTimeout con timeout)
     (with-open [in (.getInputStream con)
                 out (io/output-stream target-path)]
-      (io/copy in out))))
+      (io/copy in out))
+    target-path))
+
+(defn get-file-with-timeout
+  "Returns a stringified version of the file pointed to by url. If download
+  stalls for more than timeout ms an exception is thrown."
+  [url timeout]
+  (let [url (URL. url)
+        con  (.openConnection url)]
+    (.setReadTimeout con timeout)
+    (with-open [in (.getInputStream con)
+                out (StringWriter.)]
+      (io/copy in out)
+      (.toString out))))
 
 (defn download-file
   "Downloads the file pointed to by URI to local path target-path. If no timeout
@@ -170,3 +194,20 @@
   (let [path (resolve-tilde-path path)
         f (File. path)]
     (.exists f)))
+
+(defn mk-tmp-dir
+  "Creates a unique temporary directory on the filesystem. Typically in /tmp on
+  *NIX systems. Returns a File object pointing to the new directory. Raises an
+  exception if the directory couldn't be created after 10000 tries."
+  []
+  (let [base-dir (File. (System/getProperty "java.io.tmpdir"))
+        base-name (str (System/currentTimeMillis) "-" (long (rand 1000000000)) "-")
+        max-attempts 10000]
+    (loop [num-attempts 1]
+      (if (= num-attempts max-attempts)
+        (throw (Exception. (str "Failed to create temporary directory after " max-attempts "attempts.")))
+        (let [tmp-dir-name (str base-dir base-name num-attempts)
+              tmp-dir (File. tmp-dir-name)]
+          (if (.mkdir tmp-dir)
+            tmp-dir
+            (recur (inc num-attempts))))))))
