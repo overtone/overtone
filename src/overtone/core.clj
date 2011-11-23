@@ -1,6 +1,7 @@
 (ns overtone.core
   (:use [overtone.util ns])
   (:require clojure.stacktrace
+            [overtone.util lib]
             [overtone.config store]
             [overtone.midi]
             [overtone.osc]
@@ -15,6 +16,7 @@
             [overtone.viz scope]))
 
 (immigrate
+ 'overtone.util.lib
  'overtone.osc
  'overtone.midi
  'overtone.algo.chance

@@ -198,6 +198,37 @@
   [f coll-coll]
   (map #(apply f %) coll-coll))
 
+(defn update-all
+  "Update a value retrieved with the key k in each element of a seq of
+  maps by applying f to the current value.
+
+  (update-all [{:a 1} {:a 2}] :a inc) ;=> ({:a 2} {:a 3})
+  "
+  [maps k f]
+  (map (fn [elem]
+         (assoc elem k (f (get elem k))))
+       maps))
+
+(defn update-every-n
+  "Update every nth element in a seq of maps, optionally offset from the start, by
+  applying f to the current value.
+
+  (update-every-n [{:a 1} {:a 2} {:a 3} {:a 4} {:a 5}] 2 1 :a #(* 10 %))
+
+  ;=> ({:a 1} {:a 20} {:a 3} {:a 40} {:a 5})
+  "
+  ([maps n k f]
+   (update-every-n maps n 0 k f))
+  ([maps n offset k f]
+   (concat
+     (take offset maps)
+     (map-indexed
+       (fn [i elem]
+         (if (zero? (mod i n))
+           (assoc elem k (f (get elem k)))
+           elem))
+       maps))))
+
 (defn parallel-seqs
   "takes n seqs and returns a seq of vectors of length n, lazily
    (take 4 (parallel-seqs (repeat 5)
