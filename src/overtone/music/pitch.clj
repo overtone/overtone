@@ -12,10 +12,6 @@
 ;; possible 7 note scales, the major scale has the highest number of consonant
 ;; intervals.
 
-(defn play
-  [s notes]
-  (doall (map #(s %) notes)))
-
 (defmacro defratio [rname ratio]
   `(defn ~rname [freq#] (* freq# ~ratio)))
 
@@ -436,6 +432,31 @@
     (CHORD chord)
     chord))
 
+(defn- inc-first
+  "Remove the first element, increment it by n, and append to seq."
+  [elems n]
+  (concat (next elems) [(+ n (first elems))]))
+
+(defn- dec-last
+  "Remove the last element, decrement it by n, and prepend to seq."
+  [elems n]
+  (concat [(- (last elems) n)] (next elems)))
+
+(defn invert-chord
+  "Move a chord voicing up or down.
+
+    ;first inversion
+    (invert-chord [60 64 67] 1) ;=> (64 67 72)
+
+    ; second inversion
+    (invert-chord [60 64 67] 1) ;=> (67 72 76)
+  "
+  [notes shift]
+  (cond
+    (pos? shift) (recur (inc-first notes 12) (dec shift))
+    (neg? shift) (recur (dec-last notes 12) (inc shift))
+    (zero? shift) notes))
+
 (defn chord
   "Returns a set of notes for the specified chord. The root must be in midi note
   format i.e. :C3.
@@ -445,9 +466,12 @@
   (chord :Bb4 :dim)   ; b flat diminished -> #{70 73 76}
   "
   ([root chord-name]
+   (chord root chord-name 0))
+  ([root chord-name inversion]
      (let [root (note root)
-           chord (resolve-chord chord-name)]
-       (set (map #(+ % root) chord)))))
+           chord (resolve-chord chord-name)
+           notes (map #(+ % root) chord)]
+       (invert-chord notes inversion))))
 
 (defn rand-chord
   "Generates a random list of MIDI notes with cardinality num-pitches bound
