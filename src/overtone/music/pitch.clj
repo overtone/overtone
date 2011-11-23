@@ -265,7 +265,7 @@
   i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
        therefore the 4th degree is (+ 2 2 1 2) semitones from the start of the
        scale."
-  ([n] (nth-interval :scale n))
+  ([n] (nth-interval :diatonic n))
   ([scale n]
      (reduce + (take n (cycle (scale SCALE))))))
 
