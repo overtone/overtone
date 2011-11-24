@@ -4,10 +4,11 @@
   overtone.helpers.file
   (:import [java.net URL]
            [java.io StringWriter File])
-  (:use [clojure.java.io]
-        [overtone.helpers.string])
+  (:use  [clojure.java.io]
+         [overtone.helpers.string])
   (:require [org.satta.glob :as satta-glob]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.string :as str]))
 
 (defn file?
   "Returns true if f is of type java.io.File"
@@ -171,13 +172,30 @@
   (let [path (resolve-tilde-path path)]
     (.length (file path))))
 
+(defn contains-parent-shortcut?
+  [path]
+  (let [re (re-pattern (file-separator))
+        split (str/split path re)]
+    (some #(= ".." (str/trim %)) split)))
+
 (defn mkdir!
-  "Makes a dir at path if it doesn't already exist"
+  "Makes a dir at path if it doesn't already exist."
   [path]
   (let [path (resolve-tilde-path path)
-        f (File. path)]
+        f    (File. path)]
     (when-not (.exists f)
       (.mkdir f))))
+
+(defn rm-rf!
+  "Removes a file or dir and all its subdirectories. Similar to rm -rf on *NIX"
+  [path]
+  (let [path (resolve-tilde-path path)
+        file (File. path)]
+    (if (.isDirectory file)
+      (let [children (.list file)]
+        (doall (map #(rm-rf! (mk-path path %)) children))
+        (.delete file))
+      (.delete file))))
 
 (defn mv!
   "Moves a file from source to dest path"
@@ -205,7 +223,7 @@
         max-attempts 10000]
     (loop [num-attempts 1]
       (if (= num-attempts max-attempts)
-        (throw (Exception. (str "Failed to create temporary directory after " max-attempts "attempts.")))
+        (throw (Exception. (str "Failed to create temporary directory after " max-attempts " attempts.")))
         (let [tmp-dir-name (str base-dir base-name num-attempts)
               tmp-dir (File. tmp-dir-name)]
           (if (.mkdir tmp-dir)
