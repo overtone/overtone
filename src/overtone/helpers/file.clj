@@ -201,13 +201,8 @@
   subdirectories if necessary"
   [path]
   (let [path  (resolve-tilde-path path)
-        root  (absolute-path? path)
-        split (split-on-char path (file-separator))]
-    (loop [sub-path (str root (first split))
-           to-do    (next split)]
-      (mkdir! sub-path)
-      (when to-do
-        (recur (mk-path sub-path (first to-do)) (next to-do))))))
+        f  (File. path)]
+    (.mkdirs f)))
 
 (defn rm-rf!
   "Removes a file or dir and all its subdirectories. Similar to rm -rf on *NIX"
