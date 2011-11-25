@@ -3,7 +3,7 @@
       :author "Sam Aaron"}
   overtone.helpers.file
   (:import [java.net URL]
-           [java.io StringWriter File])
+           [java.io StringWriter])
   (:use  [clojure.java.io]
          [overtone.helpers.string]
          [overtone.helpers.system :only [windows-os?]])
@@ -208,7 +208,7 @@
   "Makes a dir at path if it doesn't already exist."
   [path]
   (let [path (resolve-tilde-path path)
-        f    (File. path)]
+        f    (file path)]
     (when-not (.exists f)
       (.mkdir f))))
 
@@ -216,7 +216,7 @@
   "Returns true if the path is absolute. false otherwise."
   [path]
   (let [path (resolve-tilde-path path)
-        f    (File. path)]
+        f    (file path)]
     (.isAbsolute f)))
 
 (defn mkdir-p!
@@ -224,14 +224,14 @@
   subdirectories if necessary"
   [path]
   (let [path (resolve-tilde-path path)
-        f    (File. path)]
+        f    (file path)]
     (.mkdirs f)))
 
 (defn rm-rf!
   "Removes a file or dir and all its subdirectories. Similar to rm -rf on *NIX"
   [path]
   (let [path (resolve-tilde-path path)
-        file (File. path)]
+        file (file path)]
     (if (.isDirectory file)
       (let [children (.list file)]
         (doall (map #(rm-rf! (mk-path path %)) children))
@@ -243,29 +243,29 @@
   [src dest]
   (let [src    (resolve-tilde-path src)
         dest   (resolve-tilde-path dest)
-        f-src  (File. src)
-        f-dest (File. dest)]
+        f-src  (file src)
+        f-dest (file dest)]
     (.renameTo f-src f-dest)))
 
 (defn path-exists?
   "Returns true if file or dir specified by path exists"
   [path]
   (let [path (resolve-tilde-path path)
-        f (File. path)]
+        f (file path)]
     (.exists f)))
 
 (defn file-exists?
   "Returns true if a file specified by path exists"
   [path]
   (let [path (resolve-tilde-path path)
-        f (File. path)]
+        f (file path)]
     (and (.exists f) (.isFile f))))
 
 (defn dir-exists?
   "Returns true if a directory specified by path exists"
   [path]
   (let [path (resolve-tilde-path path)
-        f (File. path)]
+        f (file path)]
     (and (.exists f) (.isDirectory f))))
 
 (defn mk-tmp-dir!
@@ -273,14 +273,14 @@
   *NIX systems. Returns a File object pointing to the new directory. Raises an
   exception if the directory couldn't be created after 10000 tries."
   []
-  (let [base-dir (File. (System/getProperty "java.io.tmpdir"))
+  (let [base-dir (file (System/getProperty "java.io.tmpdir"))
         base-name (str (System/currentTimeMillis) "-" (long (rand 1000000000)) "-")
         max-attempts 10000]
     (loop [num-attempts 1]
       (if (= num-attempts max-attempts)
         (throw (Exception. (str "Failed to create temporary directory after " max-attempts " attempts.")))
         (let [tmp-dir-name (str base-dir base-name num-attempts)
-              tmp-dir (File. tmp-dir-name)]
+              tmp-dir (file tmp-dir-name)]
           (if (.mkdir tmp-dir)
             tmp-dir
             (recur (inc num-attempts))))))))

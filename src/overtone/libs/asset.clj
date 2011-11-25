@@ -6,8 +6,8 @@
            duplicate them"
       :author "Sam Aaron"}
   overtone.libs.asset
-  (:import [java.io File])
-  (:use [clojure.string :only [split]]
+  (:use [clojure.java.io :only [file]]
+   [clojure.string :only [split]]
         [overtone.helpers.file]
         [overtone.config.store :only [OVERTONE-DIRS]]))
 
@@ -66,7 +66,7 @@
   "Returns a seq of asset names for a specific url"
   [url]
   (let [dir (cache-dir url)
-        dir (File. dir)]
+        dir (file dir)]
     (ls-names dir)))
 
 (defn asset

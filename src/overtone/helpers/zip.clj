@@ -3,8 +3,9 @@
       :author "Sam Aaron"}
   overtone.helpers.zip
   (:import [java.util.zip ZipFile ZipEntry ZipInputStream]
-           [java.io StringWriter File FileInputStream FileOutputStream])
-  (:use [overtone.helpers file])
+           [java.io StringWriter  FileInputStream FileOutputStream])
+  (:use [clojure.java.io :only [file]]
+        [overtone.helpers file])
   (:require [org.satta.glob :as satta-glob]
             [clojure.java.io :as io]))
 
@@ -13,7 +14,7 @@
   pointed to by path."
   [path]
   (let [path (resolve-tilde-path path)
-        file (File. path)]
+        file (file path)]
     (ZipFile. file)))
 
 (defn zip-entry
