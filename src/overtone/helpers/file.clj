@@ -4,11 +4,10 @@
   overtone.helpers.file
   (:import [java.net URL]
            [java.io StringWriter])
-  (:use  [clojure.java.io]
-         [overtone.helpers.string]
-         [overtone.helpers.system :only [windows-os?]])
+  (:use [overtone.helpers.string]
+        [clojure.java.io]
+        [overtone.helpers.system :only [windows-os?]])
   (:require [org.satta.glob :as satta-glob]
-            [clojure.java.io :as io]
             [clojure.string :as str]))
 
 (defn file?
@@ -154,9 +153,9 @@
   download-file-with-timeout for a non-blocking version."
   [url target-path]
   (let [target-path (resolve-tilde-path target-path)]
-    (with-open [in  (io/input-stream url)
-                out (io/output-stream target-path)]
-      (io/copy in out))
+    (with-open [in  (input-stream url)
+                out (output-stream target-path)]
+      (copy in out))
     target-path))
 
 (defn- download-file-with-timeout
@@ -169,8 +168,8 @@
         con  (.openConnection url)]
     (.setReadTimeout con timeout)
     (with-open [in (.getInputStream con)
-                out (io/output-stream target-path)]
-      (io/copy in out))
+                out (output-stream target-path)]
+      (copy in out))
     target-path))
 
 (defn get-file-with-timeout
@@ -182,7 +181,7 @@
     (.setReadTimeout con timeout)
     (with-open [in (.getInputStream con)
                 out (StringWriter.)]
-      (io/copy in out)
+      (copy in out)
       (.toString out))))
 
 (defn download-file
