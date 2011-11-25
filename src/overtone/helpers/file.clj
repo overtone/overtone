@@ -173,10 +173,9 @@
   (let [path (resolve-tilde-path path)]
     (.length (file path))))
 
-(defn contains-parent-shortcut?
+(defn contains-parent-dir-shortcut?
   [path]
-  (let [re (re-pattern (file-separator))
-        split (str/split path re)]
+  (let [split (split-on-char path (file-separator))]
     (some #(= ".." (str/trim %)) split)))
 
 (defn mkdir!
