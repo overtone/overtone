@@ -229,12 +229,26 @@
         f-dest (File. dest)]
     (.renameTo f-src f-dest)))
 
-(defn file-exists?
-  "Returns true if the file specified by path exists"
+(defn path-exists?
+  "Returns true if file or dir specified by path exists"
   [path]
   (let [path (resolve-tilde-path path)
         f (File. path)]
     (.exists f)))
+
+(defn file-exists?
+  "Returns true if a file specified by path exists"
+  [path]
+  (let [path (resolve-tilde-path path)
+        f (File. path)]
+    (and (.exists f) (.isFile f))))
+
+(defn dir-exists?
+  "Returns true if a directory specified by path exists"
+  [path]
+  (let [path (resolve-tilde-path path)
+        f (File. path)]
+    (and (.exists f) (.isDirectory f))))
 
 (defn mk-tmp-dir!
   "Creates a unique temporary directory on the filesystem. Typically in /tmp on
