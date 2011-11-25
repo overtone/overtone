@@ -48,3 +48,13 @@
   (let [first-char (.toUpperCase (str (first text)))
         rest-chars (apply str (rest text))]
     (str first-char rest-chars)))
+
+(defn split-on-char
+  "Splits a string on a char or single character string.
+  (split-char \"foo/bar/baz\" \"/\") ;=> (\"foo\" \"bar\" \"baz\")"
+  [s c]
+  (let [c           (if (char? c) c (first (str c)))
+        s-seq       (seq s)
+        partitioned (partition-by #(= c %) s-seq)
+        filtered    (filter #(not= [c] %) partitioned)]
+    (map #(apply str %) filtered)))
