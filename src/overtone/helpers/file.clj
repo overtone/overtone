@@ -6,7 +6,7 @@
            [java.io StringWriter File])
   (:use  [clojure.java.io]
          [overtone.helpers.string]
-         [overtone.helpers.system :only [get-os]])
+         [overtone.helpers.system :only [windows-os?]])
   (:require [org.satta.glob :as satta-glob]
             [clojure.java.io :as io]
             [clojure.string :as str]))
@@ -186,6 +186,29 @@
         f    (File. path)]
     (when-not (.exists f)
       (.mkdir f))))
+
+(defn absolute-path?
+  "Returns the OS specific identifier for the root of the path if it is absolute
+  i.e. / for *NIX and C:\\ for Windows. Returns nil if not an absolute path."
+  [path]
+  (if (windows-os?)
+    (when-let [root (re-matches #"[A-Z]:" (first (split-on-char path (file-separator))))]
+      (str root (file-separator)))
+    (when (.startsWith path (file-separator))
+      (file-separator))))
+
+(defn mkdir-p!
+  "Makes a dir at path if it doesn't already exist. Also creates all
+  subdirectories if necessary"
+  [path]
+  (let [path  (resolve-tilde-path path)
+        root  (absolute-path? path)
+        split (split-on-char path (file-separator))]
+    (loop [sub-path (str root (first split))
+           to-do    (next split)]
+      (mkdir! sub-path)
+      (when to-do
+        (recur (mk-path sub-path (first to-do)) (next to-do))))))
 
 (defn rm-rf!
   "Removes a file or dir and all its subdirectories. Similar to rm -rf on *NIX"
