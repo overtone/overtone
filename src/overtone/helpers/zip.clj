@@ -60,7 +60,8 @@
   compressed subdirectories, these will be created too."
   [zip-path dest-path]
   (let [zip-path  (resolve-tilde-path zip-path)
-        dest-path (resolve-tilde-path dest-path)]
+        dest-path (resolve-tilde-path dest-path)
+        dest-path (canonical-path dest-path)]
     (when-not (dir-exists? dest-path)
       (throw (Exception. (str "Destination directory does not exist: " dest-path))))
     (when-not (file-exists? zip-path)
@@ -73,9 +74,10 @@
        (map
         (fn [entry]
           (let [name           (.getName entry)
-                full-dest-path (mk-path dest-path name)]
-            (when (contains-parent-shortcut? full-dest-path)
-              (throw (Exception. "Security warning - attempted to specify a path which contains the .. previous dir shortcut. Aborting operation.")))
+                full-dest-path (mk-path dest-path name)
+                full-dest-path (canonical-path full-dest-path)]
+            (when-not (subdir? full-dest-path dest-path)
+              (throw (Exception. "Security warning - unzip was requested to create a path which is not within original dest-path. Aborting operation.")))
             (if (.isDirectory entry)
               (mkdir-p! full-dest-path)
               (let [is (.getInputStream zip entry)
