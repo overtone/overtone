@@ -41,17 +41,18 @@
 (declare mk-path)
 
 (defn resolve-tilde-path
-  "Resolves path names starting with ~ to point to home directory. If path is a
-  java.io.File object, returns it unchanged."
+  "Returns a string which represents the resolution of paths starting with
+   ~ to point to home directory."
   [path]
-  (if (file? path)
-    path
+  (let [path (if (file? path)
+               (.getCanonicalPath path)
+               (str path))]
     (cond
      (= "~" path)
      (home-dir)
 
      (.startsWith path (str "~" (file-separator)))
-     (mk-path (home-dir) (chop-first-n 2 path))
+     (mk-path (home-dir) (chop-first-n (inc (count (file-separator))) path))
 
      :default
      path)))
