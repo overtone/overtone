@@ -69,16 +69,16 @@
     (let [zip     (zip-file zip-path)
           entries (.entries zip)
           entries (doall (enumeration-seq entries))]
-          (dorun
-     (map
-      (fn [entry]
-        (let [name           (.getName entry)
-              full-dest-path (mk-path dest-path name)]
-          (when (contains-parent-shortcut? full-dest-path)
-            (throw (Exception. "Security warning - attempted to specify a path which contains the .. previous dir shortcut. Aborting operation.")))
-          (if (.isDirectory entry)
-            (mkdir-p! full-dest-path)
-            (let [is (.getInputStream zip entry)
-                  fs (FileOutputStream. full-dest-path)]
-              (io/copy is fs)))))
-      entries)))))
+      (dorun
+       (map
+        (fn [entry]
+          (let [name           (.getName entry)
+                full-dest-path (mk-path dest-path name)]
+            (when (contains-parent-shortcut? full-dest-path)
+              (throw (Exception. "Security warning - attempted to specify a path which contains the .. previous dir shortcut. Aborting operation.")))
+            (if (.isDirectory entry)
+              (mkdir-p! full-dest-path)
+              (let [is (.getInputStream zip entry)
+                    fs (FileOutputStream. full-dest-path)]
+                (io/copy is fs)))))
+        entries)))))
