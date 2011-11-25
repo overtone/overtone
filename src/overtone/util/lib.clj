@@ -112,9 +112,6 @@
       (applyTo    ([args] (apply fun args)))
       (toString   [] "Callable Map")))
 
-(defn file-exists? [path]
-  (.exists (java.io.File. path)))
-
 (defn- syms-to-keywords [coll]
   (map #(if (symbol? %)
           (keyword %)
