@@ -188,14 +188,11 @@
       (.mkdir f))))
 
 (defn absolute-path?
-  "Returns the OS specific identifier for the root of the path if it is absolute
-  i.e. / for *NIX and C:\\ for Windows. Returns nil if not an absolute path."
+  "Returns true if the path is absolute. false otherwise."
   [path]
-  (if (windows-os?)
-    (when-let [root (re-matches #"[A-Z]:" (first (split-on-char path (file-separator))))]
-      (str root (file-separator)))
-    (when (.startsWith path (file-separator))
-      (file-separator))))
+  (let [path (resolve-tilde-path path)
+        f    (File. path)]
+    (.isAbsolute f)))
 
 (defn mkdir-p!
   "Makes a dir at path if it doesn't already exist. Also creates all
