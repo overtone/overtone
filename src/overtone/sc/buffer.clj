@@ -230,8 +230,3 @@
   (let [range-size (- range-max range-min)
 	rangemap  #(+ range-min (/ (* % range-size) size))]
     (map #(float (f (rangemap %))) (range 0 size))))
-	
-
-
-
-	
