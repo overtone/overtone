@@ -22,3 +22,18 @@
   []
   (map (memfn getPath)
        (seq (.getURLs (.getClassLoader clojure.lang.RT)))))
+
+(defn windows-os?
+  "Returns true if the current os is windows based"
+  []
+  (= :windows (get-os)))
+
+(defn linux-os?
+  "Returns true if the current os is mac based"
+  []
+  (= :linux (get-os)))
+
+(defn mac-os?
+  "Returns true if the current os is bac based"
+  []
+  (= :mac (get-os)))
