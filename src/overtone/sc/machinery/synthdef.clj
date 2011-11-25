@@ -130,7 +130,9 @@
   "Returns a constructed path to a named synthdef on the current platform"
   [synth-name]
   (case (get-os)
-    :mac   (str (resolve-tilde-path "~/Library/Application Support/SuperCollider/synthdefs/") synth-name ".scsyndef")))
+    :mac   (str (resolve-tilde-path "~/Library/Application Support/SuperCollider/synthdefs/")
+                synth-name
+                ".scsyndef")))
 
 ; TODO: byte array shouldn't really be the default here, but I don't
 ; know how to test for one correctly... (byte-array? data) please?
