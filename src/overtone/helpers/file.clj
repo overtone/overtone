@@ -200,8 +200,8 @@
   "Makes a dir at path if it doesn't already exist. Also creates all
   subdirectories if necessary"
   [path]
-  (let [path  (resolve-tilde-path path)
-        f  (File. path)]
+  (let [path (resolve-tilde-path path)
+        f    (File. path)]
     (.mkdirs f)))
 
 (defn rm-rf!
