@@ -28,13 +28,6 @@
 (defn reset-counters []
   (dosync (ref-set id-counters* {})))
 
-(defn print-classpath
-  "Pretty print the classpath"
-  []
-  (let [paths (map (memfn getPath)
-                   (seq (.getURLs (.getClassLoader clojure.lang.RT))))]
-    (pprint paths)))
-
 (defn to-str
   "If val is a keyword, return its name sans :, otherwise return val"
   [val]
@@ -252,18 +245,6 @@
        (if (= timeout-indicator res)
          (throw (Exception. (str "deref! timeout error. Dereference took longer than " timeout " ms")))
          res))))
-
-(defn system-user-name
-  "returns the name of the current user"
-  []
-  (System/getProperty "user.name"))
-
-(defn get-os []
-  (let [os (System/getProperty "os.name")]
-    (cond
-      (re-find #"[Ww]indows" os) :windows
-      (re-find #"[Ll]inux" os)   :linux
-      (re-find #"[Mm]ac" os)     :mac)))
 
 (defn stringify-map-vals
   "converts a map by running all its vals through str

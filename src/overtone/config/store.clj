@@ -4,7 +4,7 @@
   overtone.config.store
   (:use [overtone.config file-store]
         [overtone.helpers.string :only [capitalize]]
-        [overtone.util.lib :only [get-os system-user-name]]
+        [overtone.helpers.system :only [get-os system-user-name]]
         [overtone.helpers.file :only [mkdir! file-exists? mv!]]
         [clojure.java.io :only [delete-file]]))
 

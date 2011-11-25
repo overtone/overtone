@@ -5,7 +5,8 @@
   (:import [java.net URL]
            [java.io StringWriter File])
   (:use  [clojure.java.io]
-         [overtone.helpers.string])
+         [overtone.helpers.string]
+         [overtone.helpers.system :only [get-os]])
   (:require [org.satta.glob :as satta-glob]
             [clojure.java.io :as io]
             [clojure.string :as str]))

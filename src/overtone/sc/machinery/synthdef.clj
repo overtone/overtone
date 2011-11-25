@@ -10,7 +10,8 @@
         [overtone.libs event deps]
         [overtone.sc server]
         [overtone.sc.machinery.server comms]
-        [overtone.helpers.file :only [resolve-tilde-path]])
+        [overtone.helpers.file :only [resolve-tilde-path]]
+        [overtone.helpers.system :only [get-os]])
   (:require [overtone.util.log :as log]))
 
 ;; param-name is :
