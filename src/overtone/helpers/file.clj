@@ -57,12 +57,37 @@
      :default
      path)))
 
+(defn ensure-trailing-file-separator
+  "Returns a string representing the supplied path that ends with the
+  appropriate file separator."
+  [path]
+  (let [path (resolve-tilde-path path)]
+    (if (.endsWith path (file-separator))
+      path
+      (str path (file-separator)))))
+
+(defn subdir?
+  "Returns true if sdir is a subdirectory of dir"
+  [sdir dir]
+  (let [sdir (resolve-tilde-path sdir)
+        sdir (ensure-trailing-file-separator sdir)
+        dir  (resolve-tilde-path dir)
+        dir  (ensure-trailing-file-separator dir)]
+    (.startsWith sdir dir)))
+
 (defn mk-path
   "Takes a seq of strings and returns a string which is a concatanation of all
   the input strings separated by the system's default file separator."
   [& parts]
   (let [path (apply str (interpose (file-separator) parts))]
     (resolve-tilde-path path)))
+
+(defn canonical-path
+  "Returns a string representing the canonical version of this path"
+  [path]
+  (let [path (resolve-tilde-path path)
+        f    (file path)]
+    (.getCanonicalPath f)))
 
 (defn ls*
   "Given a path to a directory, returns a seq of java.io.File objects
