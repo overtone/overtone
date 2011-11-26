@@ -147,6 +147,13 @@
   (let [pattern (resolve-tilde-path pattern)]
     (satta-glob/glob pattern)))
 
+(defn remote-file-size
+  "Returns the size of the file referenced by url in bytes."
+  [url]
+  (let [url (URL. url)
+        con (.openConnection url)]
+    (.getContentLength con)))
+
 (defn- download-file-without-timeout
   "Downloads remote file at url to local file specified by target path. Has
   potential to block current thread whilst reading data from remote host. See
@@ -282,6 +289,12 @@
   (let [path (resolve-tilde-path path)
         f (file path)]
     (and (.exists f) (.isDirectory f))))
+
+(defn dir-empty?
+  "Returns true if the directory specified by path is empty or doesn't exist"
+  [path]
+  (let [contents (ls-names path)]
+    (empty? contents)))
 
 (defn mk-tmp-dir!
   "Creates a unique temporary directory on the filesystem. Typically in /tmp on
