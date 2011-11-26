@@ -2,13 +2,13 @@
     ^{:doc "A simple local file system-cached asset management system. Assets
            are specified as URLs which are then cached by being copied to a
            centralised place in the file system if not already there. This
-           allows assets to be shared by multiple projects without needing to
-           duplicate them"
+           allows assets to be shared by multiple projects on the same system
+           without needing to duplicate them"
       :author "Sam Aaron"}
   overtone.libs.asset
   (:use [clojure.java.io :only [file]]
    [clojure.string :only [split]]
-        [overtone.helpers.file]
+        [overtone.helpers file zip string]
         [overtone.config.store :only [OVERTONE-DIRS]]))
 
 (def ^{:dynamic true} *cache-root* (:assets OVERTONE-DIRS))
@@ -56,11 +56,17 @@
         tmp-file  (mk-path tmp-dir name)
         dest-dir  (cache-dir url)
         dest-file (mk-path dest-dir name)]
-    (mk-cache-dir! url)
-    (download-file url tmp-file)
-    (mv! tmp-file dest-file )
-    (rm-rf! tmp-dir)
-    dest-file))
+    (try
+      (mk-cache-dir! url)
+      (download-file url tmp-file 10000 100 5000)
+      (mv! tmp-file dest-file )
+      (rm-rf! tmp-dir)
+      dest-file
+
+      (catch Exception e
+        (rm-rf! tmp-dir)
+        (rm-rf! dest-dir)
+        (throw e)))))
 
 (defn asset-seq
   "Returns a seq of asset names for a specific url"
@@ -77,3 +83,49 @@
      (if-let [path (fetch-cached-path url name)]
        path
        (download-and-cache-asset url name))))
+
+(defn- download-unzip-and-cache-bundled-asset
+  "Downloads zip file referenced by url, unzips it safely, and then moves all
+  contents to cache dir."
+  [url]
+  (let [tmp-dir         (str (mk-tmp-dir!))
+        tmp-file        (mk-path tmp-dir "bundled-asset")
+        tmp-extract-dir (mk-path tmp-dir "extraction")
+        dest-dir        (cache-dir url)]
+    (try
+      (mkdir! tmp-extract-dir)
+      (download-file url tmp-file 10000 100 5000)
+      (unzip tmp-file tmp-extract-dir)
+      (mk-cache-dir! url)
+      (let [asset-names (ls-names tmp-extract-dir)]
+        (dorun
+         (map #(mv! (mk-path tmp-extract-dir %) (mk-path dest-dir %))
+              asset-names)))
+      (rm-rf! tmp-dir)
+      tmp-extract-dir
+
+      (catch Exception e
+        (rm-rf! tmp-dir)
+        (rm-rf! dest-dir)
+        (throw e)))))
+
+(defn bundled-asset
+  "Given a url to a remote zipfile and either a / separated internal path or seq
+  of strings will return a path to a copy of the internal extracted asset on the
+  local file system. Will download, extract and persist all the assets of the
+  zipfile if necessary.
+
+  usage:
+  (bundled-asset \"http://foo.com/a.zip\" \"internal/asset.wav\")       ;=> path
+  (bundled-asset \"http://foo.com/a.zip\" [\"internal\" \"asset.wav\"]) ;=> path"
+  [url name]
+  (let [name          (if (string? name)
+                        (split-on-char name "/")
+                        name)
+        internal-path (apply mk-path name)]
+    (if-let [path (fetch-cached-path url internal-path)]
+      path
+      (do
+        (when (dir-empty? (cache-dir url))
+          (download-unzip-and-cache-bundled-asset url))
+        (fetch-cached-path url internal-path)))))
