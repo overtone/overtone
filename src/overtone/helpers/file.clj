@@ -191,35 +191,6 @@
       (copy in out)
       (.toString out))))
 
-(defn download-file
-  "Downloads the file pointed to by url to local path. If no timeout
-  is specified will use blocking io to transfer data. If timeout is specified,
-  transfer will block for at most timeout ms before throwing a
-  java.net.SocketTimeoutException if data transfer has stalled.
-
-  It's also possible to specify n-retries to determine how many attempts to
-  make to download the file and also the wait-t between attempts in ms (defaults
-  to 5000 ms)"
-  ([url path]                          (download-file-without-timeout url path))
-  ([url path timeout]                  (download-file-with-timeout url path timeout))
-  ([url path timeout n-retries]        (download-file url path timeout n-retries 5000))
-  ([url path timeout n-retries wait-t] (download-file url path timeout n-retries wait-t 0))
-  ([url path timeout n-retries wait-t attempts-made]
-     (when (>= attempts-made n-retries)
-       (throw (Exception. (str "Aborting! Download failed after "
-                               n-retries
-                               " attempts. URL attempted to download: "
-                               url ))))
-
-     (let [path (resolve-tilde-path path)]
-       (try
-         (download-file-with-timeout url path timeout)
-         (catch java.io.IOException e
-           (rm-rf! path)
-           (Thread/sleep wait-t)
-           (download-file url path timeout n-retries wait-t (inc attempts-made)))))))
-
-
 (defn file-size
   "Returns the size of the file pointed to by path in bytes"
   [path]
@@ -312,3 +283,31 @@
           (if (.mkdir tmp-dir)
             tmp-dir
             (recur (inc num-attempts))))))))
+
+(defn download-file
+  "Downloads the file pointed to by url to local path. If no timeout
+  is specified will use blocking io to transfer data. If timeout is specified,
+  transfer will block for at most timeout ms before throwing a
+  java.net.SocketTimeoutException if data transfer has stalled.
+
+  It's also possible to specify n-retries to determine how many attempts to
+  make to download the file and also the wait-t between attempts in ms (defaults
+  to 5000 ms)"
+  ([url path]                          (download-file-without-timeout url path))
+  ([url path timeout]                  (download-file-with-timeout url path timeout))
+  ([url path timeout n-retries]        (download-file url path timeout n-retries 5000))
+  ([url path timeout n-retries wait-t] (download-file url path timeout n-retries wait-t 0))
+  ([url path timeout n-retries wait-t attempts-made]
+     (when (>= attempts-made n-retries)
+       (throw (Exception. (str "Aborting! Download failed after "
+                               n-retries
+                               " attempts. URL attempted to download: "
+                               url ))))
+
+     (let [path (resolve-tilde-path path)]
+       (try
+         (download-file-with-timeout url path timeout)
+         (catch java.io.IOException e
+           (rm-rf! path)
+           (Thread/sleep wait-t)
+           (download-file url path timeout n-retries wait-t (inc attempts-made)))))))
