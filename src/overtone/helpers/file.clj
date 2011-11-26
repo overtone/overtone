@@ -185,14 +185,14 @@
       (.toString out))))
 
 (defn download-file
-  "Downloads the file pointed to by URI to local path target-path. If no timeout
+  "Downloads the file pointed to by url to local path. If no timeout
   is specified will use blocking io to transfer data. If timeout is specified,
   transfer will block for at most timeout ms before throwing a
   java.net.SocketTimeoutException if data transfer has stalled.
 
-  It's also possible to specify num-retries to determine how many attempts to
-  make to download the file and also the time-between-retries in ms (defaults to
-  5000 ms)"
+  It's also possible to specify n-retries to determine how many attempts to
+  make to download the file and also the wait-t between attempts in ms (defaults
+  to 5000 ms)"
   ([url path]                          (download-file-without-timeout url path))
   ([url path timeout]                  (download-file-with-timeout url path timeout))
   ([url path timeout n-retries]        (download-file url path timeout n-retries 5000))
