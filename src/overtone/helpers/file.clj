@@ -219,11 +219,6 @@
   (let [path (resolve-tilde-path path)]
     (.length (file path))))
 
-(defn contains-parent-dir-shortcut?
-  [path]
-  (let [split (split-on-char path (file-separator))]
-    (some #(= ".." (str/trim %)) split)))
-
 (defn mkdir!
   "Makes a dir at path if it doesn't already exist."
   [path]
