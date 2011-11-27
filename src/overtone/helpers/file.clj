@@ -19,9 +19,9 @@
   (let [n-kb (int (/ n-bytes 1024))
         n-mb (int (/ n-kb 1024))]
     (cond
-     (< n-bytes 1024) (str n-bytes " b")
-     (< n-kb 1024)    (str n-kb " kb")
-     :else            (str n-mb " mb"))))
+     (< n-bytes 1024) (str n-bytes " B")
+     (< n-kb 1024)    (str n-kb " KB")
+     :else            (str n-mb " MB"))))
 
 (defn file?
   "Returns true if f is of type java.io.File"
@@ -191,7 +191,7 @@
                                         (< (:val slice) max))
                                slice))
                            slices)]
-      (println (str (:perc slice) "% completed")))))
+      (println (str (:perc slice) "% (" (pretty-file-size num-copied-bytes)  ") completed")))))
 
 (defn- remote-file-copy [in-stream out-stream file-size]
   "Similar to  the corresponding implementation of #'do-copy in 'clojure.java.io
@@ -206,7 +206,9 @@
           (print-file-copy-status bytes-copied size file-size slices))
         (when (pos? size)
           (do (.write out-stream buffer 0 size)
-              (recur (+ size bytes-copied))))))))
+              (recur (+ size bytes-copied))))))
+    (when *verbose-overtone-file-helpers*
+      (println "Download successful"))))
 
 (defn- download-file-without-timeout
   "Downloads remote file at url to local file specified by target path. Has
@@ -360,7 +362,7 @@
            (rm-rf! path)
            (Thread/sleep wait-t)
            (when *verbose-overtone-file-helpers*
-             (println (str "Download timed out. Retry " attempts-made ": " url )))
+             (println (str "Download timed out. Retry " (inc attempts-made) ": " url )))
            (download-file* url path timeout n-retries wait-t (inc attempts-made)))))))
 
 (defn- print-download-file

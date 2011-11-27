@@ -16,6 +16,7 @@
 (defn- download-asset-file
   "Download file at url to local filesystem at tmp-file verbosely."
   [url tmp-file]
+  (println "Asset not cached - starting download...")
   (binding [*verbose-overtone-file-helpers* true]
     (download-file url tmp-file 20000 100 5000)))
 
