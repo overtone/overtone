@@ -194,6 +194,9 @@
       (println (str (:perc slice) "% completed")))))
 
 (defn- remote-file-copy [in-stream out-stream file-size]
+  "Similar to  the corresponding implementation of #'do-copy in 'clojure.java.io
+  but also tracks how many bytes have been downloaded and prints percentage
+  statements when *verbose-overtone-file-helpers* is bound to true."
   (let [buf-size 2048
         buffer   (make-array Byte/TYPE buf-size)
         slices   (percentage-slices file-size 100)]
