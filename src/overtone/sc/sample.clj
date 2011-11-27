@@ -8,7 +8,7 @@
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc server synth gens buffer]
-        [overtone.helpers.file :only [glob resolve-tilde-path]]))
+        [overtone.helpers.file :only [glob resolve-tilde-path mk-path]]))
 
 ; Define a default wav player synth
 (defonce __DEFINE-PLAYERS__
@@ -83,8 +83,10 @@
   "Takes a directoy path or glob path (see #'overtone.helpers.file/glob) and
   loads up all matching samples and returns a seq of maps representing
   information for each loaded sample (see load-sample)"
-  [path-glob]
-  (let [files (glob path-glob)]
+  [& path-glob]
+  (let [path  (apply mk-path path-glob)
+        path  (resolve-tilde-path path)
+        files (glob path)]
     (doall
      (map (fn [file]
             (let [path (.getAbsolutePath file)]
