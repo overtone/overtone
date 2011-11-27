@@ -10,6 +10,19 @@
   (:require [org.satta.glob :as satta-glob]
             [clojure.string :as str]))
 
+(def ^{:dynamic true} *verbose-overtone-file-helpers* false)
+
+(defn pretty-file-size
+  "Takes number of bytes and returns a prettied string with an appropriate unit:
+  b, kb or mb."
+  [n-bytes]
+  (let [n-kb (int (/ n-bytes 1024))
+        n-mb (int (/ n-kb 1024))]
+    (cond
+     (< n-bytes 1024) (str n-bytes " b")
+     (< n-kb 1024)    (str n-kb " kb")
+     :else            (str n-mb " mb"))))
+
 (defn file?
   "Returns true if f is of type java.io.File"
   [f]
@@ -162,6 +175,7 @@
   (let [target-path (resolve-tilde-path target-path)]
     (with-open [in  (input-stream url)
                 out (output-stream target-path)]
+
       (copy in out))
     target-path))
 
@@ -284,19 +298,11 @@
             tmp-dir
             (recur (inc num-attempts))))))))
 
-(defn download-file
-  "Downloads the file pointed to by url to local path. If no timeout
-  is specified will use blocking io to transfer data. If timeout is specified,
-  transfer will block for at most timeout ms before throwing a
-  java.net.SocketTimeoutException if data transfer has stalled.
-
-  It's also possible to specify n-retries to determine how many attempts to
-  make to download the file and also the wait-t between attempts in ms (defaults
-  to 5000 ms)"
+(defn- download-file*
   ([url path]                          (download-file-without-timeout url path))
   ([url path timeout]                  (download-file-with-timeout url path timeout))
-  ([url path timeout n-retries]        (download-file url path timeout n-retries 5000))
-  ([url path timeout n-retries wait-t] (download-file url path timeout n-retries wait-t 0))
+  ([url path timeout n-retries]        (download-file* url path timeout n-retries 5000))
+  ([url path timeout n-retries wait-t] (download-file* url path timeout n-retries wait-t 0))
   ([url path timeout n-retries wait-t attempts-made]
      (when (>= attempts-made n-retries)
        (throw (Exception. (str "Aborting! Download failed after "
@@ -310,4 +316,35 @@
          (catch java.io.IOException e
            (rm-rf! path)
            (Thread/sleep wait-t)
-           (download-file url path timeout n-retries wait-t (inc attempts-made)))))))
+           (download-file* url path timeout n-retries wait-t (inc attempts-made)))))))
+
+(defn- print-download-file
+  [url]
+  (when *verbose-overtone-file-helpers*
+    (let [size   (remote-file-size url)
+          p-size (pretty-file-size size)]
+      (println (str "Downloading file (" p-size ") - "  url)))))
+
+(defn download-file
+  "Downloads the file pointed to by url to local path. If no timeout
+  is specified will use blocking io to transfer data. If timeout is specified,
+  transfer will block for at most timeout ms before throwing a
+  java.net.SocketTimeoutException if data transfer has stalled.
+
+  It's also possible to specify n-retries to determine how many attempts to
+  make to download the file and also the wait-t between attempts in ms (defaults
+  to 5000 ms)
+
+  Verbose mode is enabled by binding *verbose-overtone-file-helpers* to true."
+  ([url path]
+     (print-download-file url)
+     (download-file* url path))
+  ([url path timeout]
+     (print-download-file url)
+     (download-file* url path timeout))
+  ([url path timeout n-retries]
+     (print-download-file url)
+     (download-file* url path timeout n-retries))
+  ([url path timeout n-retries wait-t]
+     (print-download-file url)
+     (download-file* url path timeout n-retries wait-t)))

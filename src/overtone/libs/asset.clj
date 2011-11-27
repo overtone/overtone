@@ -13,6 +13,12 @@
 
 (def ^{:dynamic true} *cache-root* (:assets OVERTONE-DIRS))
 
+(defn- download-asset-file
+  "Download file at url to local filesystem at tmp-file verbosely."
+  [url tmp-file]
+  (binding [*verbose-overtone-file-helpers* true]
+    (download-file url tmp-file 10000 100 5000)))
+
 (defn- safe-url
   "Replace all non a-z A-Z 0-9 - chars in stringified version of url with _"
   [url]
@@ -58,7 +64,7 @@
         dest-file (mk-path dest-dir name)]
     (try
       (mk-cache-dir! url)
-      (download-file url tmp-file 10000 100 5000)
+      (download-asset-file url tmp-file)
       (mv! tmp-file dest-file )
       (rm-rf! tmp-dir)
       dest-file
@@ -94,7 +100,7 @@
         dest-dir        (cache-dir url)]
     (try
       (mkdir! tmp-extract-dir)
-      (download-file url tmp-file 10000 100 5000)
+      (download-asset-file url tmp-file)
       (unzip tmp-file tmp-extract-dir)
       (mk-cache-dir! url)
       (let [asset-names (ls-names tmp-extract-dir)]
