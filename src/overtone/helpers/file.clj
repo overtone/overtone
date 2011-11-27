@@ -193,7 +193,7 @@
                            slices)]
       (println (str (:perc slice) "% completed")))))
 
-(defn remote-file-copy [in-stream out-stream file-size]
+(defn- remote-file-copy [in-stream out-stream file-size]
   (let [buf-size 2048
         buffer   (make-array Byte/TYPE buf-size)
         slices   (percentage-slices file-size 100)]
@@ -353,7 +353,7 @@
      (let [path (resolve-tilde-path path)]
        (try
          (download-file-with-timeout url path timeout)
-         (catch java.net.SocketTimeoutException e
+         (catch Exception e
            (rm-rf! path)
            (Thread/sleep wait-t)
            (when *verbose-overtone-file-helpers*
