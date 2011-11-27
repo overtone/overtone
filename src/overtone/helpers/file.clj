@@ -163,7 +163,7 @@
 (defn remote-file-size
   "Returns the size of the file referenced by url in bytes."
   [url]
-  (let [url (URL. url)
+  (let [url (if (= URL (type url)) url (URL. url))
         con (.openConnection url)]
     (.getContentLength con)))
 
