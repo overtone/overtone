@@ -360,7 +360,7 @@
            (rm-rf! path)
            (Thread/sleep wait-t)
            (when *verbose-overtone-file-helpers*
-             (println "Download timed out. Retrying:" url ))
+             (println (str "Download timed out. Retry " attempts-made ": " url )))
            (download-file* url path timeout n-retries wait-t (inc attempts-made)))))))
 
 (defn- print-download-file
