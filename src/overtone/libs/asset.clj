@@ -17,7 +17,7 @@
   "Download file at url to local filesystem at tmp-file verbosely."
   [url tmp-file]
   (binding [*verbose-overtone-file-helpers* true]
-    (download-file url tmp-file 10000 100 5000)))
+    (download-file url tmp-file 20000 100 5000)))
 
 (defn- safe-url
   "Replace all non a-z A-Z 0-9 - chars in stringified version of url with _"
