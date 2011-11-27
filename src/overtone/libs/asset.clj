@@ -13,7 +13,7 @@
 
 (def ^{:dynamic true} *cache-root* (:assets OVERTONE-DIRS))
 
-(defn safe-url
+(defn- safe-url
   "Replace all non a-z A-Z 0-9 - chars in stringified version of url with _"
   [url]
   (let [url  (str url)
@@ -23,33 +23,33 @@
         safe (.replaceAll safe "[^a-zA-Z0-9-.]" "")]
     safe))
 
-(defn url-hash
+(defn- url-hash
   "Return a hash for stringified version of url"
   [url]
   (let [url (str url)]
     (str (hash url))))
 
-(defn cache-dir
+(defn- cache-dir
   "Returns the name of a directory to cache an asset with the given url."
   [url]
   (let [safe (safe-url url)
         hsh  (url-hash url)]
     (mk-path *cache-root* (str safe "--" hsh))))
 
-(defn mk-cache-dir!
+(defn- mk-cache-dir!
   "Create a new cache dir for the specified url"
   [url]
   (let [dir (cache-dir url)]
     (mkdir! dir)))
 
-(defn fetch-cached-path
+(defn- fetch-cached-path
   "Returns the path to the cached asset if present, otherwise nil."
   [url name]
   (let [path (mk-path (cache-dir url) name)]
     (when (path-exists? path)
       path)))
 
-(defn download-and-cache-asset
+(defn- download-and-cache-asset
   "Downloads the file pointed to by url and caches it on the local file system"
   [url name]
   (let [tmp-dir   (str (mk-tmp-dir!))
@@ -69,16 +69,16 @@
         (throw e)))))
 
 (defn asset-seq
-  "Returns a seq of asset names for a specific url"
+  "Returns a seq of previously cached asset names for a specific url"
   [url]
   (let [dir (cache-dir url)
         dir (file dir)]
     (ls-names dir)))
 
-(defn asset
+(defn asset-path
   "Given a url will return a path to a copy of the asset on the local file
   system. Will download and persist the asset if necessary."
-  ([url] (asset url (last (split url #"/"))))
+  ([url] (asset-path url (last (split url #"/"))))
   ([url name]
      (if-let [path (fetch-cached-path url name)]
        path
@@ -109,7 +109,7 @@
         (rm-rf! dest-dir)
         (throw e)))))
 
-(defn bundled-asset
+(defn bundled-asset-path
   "Given a url to a remote zipfile and either a / separated internal path or seq
   of strings will return a path to a copy of the internal extracted asset on the
   local file system. Will download, extract and persist all the assets of the
@@ -129,3 +129,10 @@
         (when (dir-empty? (cache-dir url))
           (download-unzip-and-cache-bundled-asset url))
         (fetch-cached-path url internal-path)))))
+
+(defn bundled-asset-dir
+  "Returns the cached directory of of the bundled asset. Will download, extract
+  and persist all the assets of the zipfile referended by url if necessary"
+  [url]
+  (bundled-asset-path url "")
+  (cache-dir url))
