@@ -167,6 +167,44 @@
         con (.openConnection url)]
     (.getContentLength con)))
 
+(defn- percentage-slices
+  "Returns a seq of maps of length num-slices where each map represents the
+  percentage and the associated percentage of size
+
+  usage:
+  (percentage-slices 1000 2) ;=> ({:perc 50N, :val 500N} {:perc 100, :val 1000})"
+  [size num-slices]
+  (map (fn [slice]
+         (let [perc (/ (inc slice) num-slices)]
+           {:perc (* 100 perc)
+            :val  (* size perc)}))
+       (range num-slices)))
+
+(defn- print-file-copy-status
+  "Print copy status in percentage - granularity times - evenly as
+  num-copied-bytes approaches file-size"
+  [num-copied-bytes buf-size file-size slices]
+  (let [min    num-copied-bytes
+        max    (+ buf-size num-copied-bytes)]
+    (when-let [slice (some (fn [slice]
+                             (when (and (> (:val slice) min)
+                                        (< (:val slice) max))
+                               slice))
+                           slices)]
+      (println (str (:perc slice) "% completed")))))
+
+(defn remote-file-copy [in-stream out-stream file-size]
+  (let [buf-size 2048
+        buffer   (make-array Byte/TYPE buf-size)
+        slices   (percentage-slices file-size 100)]
+    (loop [bytes-copied 0]
+      (let [size (.read in-stream buffer)]
+        (when *verbose-overtone-file-helpers*
+          (print-file-copy-status bytes-copied size file-size slices))
+        (when (pos? size)
+          (do (.write out-stream buffer 0 size)
+              (recur (+ size bytes-copied))))))))
+
 (defn- download-file-without-timeout
   "Downloads remote file at url to local file specified by target path. Has
   potential to block current thread whilst reading data from remote host. See
@@ -185,24 +223,26 @@
   java.net.SocketTimeoutException"
   [url target-path timeout]
   (let [target-path (resolve-tilde-path target-path)
-        url (URL. url)
-        con  (.openConnection url)]
+        size        (remote-file-size url)
+        url         (URL. url)
+        con         (.openConnection url)]
     (.setReadTimeout con timeout)
     (with-open [in (.getInputStream con)
                 out (output-stream target-path)]
-      (copy in out))
+      (remote-file-copy in out size))
     target-path))
 
 (defn get-file-with-timeout
   "Returns a stringified version of the file pointed to by url. If download
   stalls for more than timeout ms an exception is thrown."
   [url timeout]
-  (let [url (URL. url)
-        con  (.openConnection url)]
+  (let [url  (URL. url)
+        con  (.openConnection url)
+        size (remote-file-size url)]
     (.setReadTimeout con timeout)
     (with-open [in (.getInputStream con)
                 out (StringWriter.)]
-      (copy in out)
+      (copy in out size)
       (.toString out))))
 
 (defn file-size
@@ -313,9 +353,11 @@
      (let [path (resolve-tilde-path path)]
        (try
          (download-file-with-timeout url path timeout)
-         (catch java.io.IOException e
+         (catch java.net.SocketTimeoutException e
            (rm-rf! path)
            (Thread/sleep wait-t)
+           (when *verbose-overtone-file-helpers*
+             (println "Download timed out. Retrying:" url ))
            (download-file* url path timeout n-retries wait-t (inc attempts-made)))))))
 
 (defn- print-download-file
