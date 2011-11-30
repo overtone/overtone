@@ -115,10 +115,10 @@
    (sample \"/Users/sam/music/samples/flibble.wav\")
 
   "
-  [path & args]
+  [path]
   (let [s          (load-sample path)
         player     (fn [& pargs]
-                     (let [id (:id (get @loaded-samples* [path args]))]
+                     (let [id (:id s)]
                        (if (empty? pargs)
                          (mono-player id)
                          (apply mono-player id pargs))))]
