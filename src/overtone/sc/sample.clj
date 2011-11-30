@@ -115,7 +115,7 @@
    (sample \"/Users/sam/music/samples/flibble.wav\")
 
   "
-  [path & args]
+  [path]
   (let [s          (load-sample path)
         player     (fn [& pargs]
                      (let [id (:id s)]
