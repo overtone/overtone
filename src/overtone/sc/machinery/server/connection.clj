@@ -273,5 +273,8 @@
      (unsatisfy-all-dependencies))))
 
 (defonce _shutdown-hook
-  (.addShutdownHook (Runtime/getRuntime)
-                    (Thread. shutdown-server)))
+     (.addShutdownHook (Runtime/getRuntime)
+                       (Thread. (fn []
+                                 (locking connection-info*
+                                   (when (= :connected @connection-status*)
+                                     (shutdown-server)))))))
