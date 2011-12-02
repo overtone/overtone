@@ -50,7 +50,7 @@
         (if (zero? (mod beat 6))
           (overpad (+ 12 (choose notes)) 0.5 0.15 0.1)
           (overpad (choose notes) 0.5 0.15 0.1)))
-  (apply-at (metro (inc beat)) #'player (inc beat) [(next notes)])))
+  (apply-at (metro (inc beat)) #'player (inc beat) (next notes) [])))
 
 (player (metro) [])
 
@@ -99,7 +99,7 @@
   (at t (kick))
   (at (+ t 350) (doseq [note (chord-notes)] (overpad (first notes) 0.3 0.1)))
   (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
-  (apply-at (+ t dur) #'looper (+ t dur) dur (next notes)))
+  (apply-at (+ t dur) #'looper (+ t dur) dur (next notes) []))
 
 ;(looper (now) 500 (cycle [60 67 65 72 75 70]))
 
