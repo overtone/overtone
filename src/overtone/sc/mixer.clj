@@ -42,7 +42,7 @@
         (send-reply (trig1 not-safe? 0.25)
                     "/server-audio-clipping-rogue-input"
                     out-bus)
-        (internal:out out-bus safe-snd)))
+        (internal:out out-bus final-snd)))
 
     (defsynth in-bus-mixer [in-bus 10 out-bus 0
                             gain 1 master-gain 1]
