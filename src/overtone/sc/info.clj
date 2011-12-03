@@ -5,10 +5,11 @@
         [overtone.sc synth gens node server]
         [overtone.util lib]))
 
-(defonce output-bus-count* (ref nil))
-(defonce input-bus-count* (ref nil))
-(defonce audio-bus-count* (ref nil))
-(defonce buffer-count* (ref nil))
+(defonce output-bus-count* (atom nil))
+(defonce input-bus-count* (atom nil))
+(defonce audio-bus-count* (atom nil))
+(defonce buffer-count* (atom nil))
+(defonce sample-rate* (atom nil))
 
 (defonce __SERVER-INFO__
   (defsynth snd-server-info
@@ -58,53 +59,57 @@
       (kill synth-id)
       res)))
 
+(defn server-sample-rate
+  "Returns the sample rate of the server. This number is cached for a given
+  running server for the duration of boot"
+  []
+  (if-let [rate @sample-rate*]
+    rate
+    (let [info (server-info)]
+      (reset! sample-rate* (:sample-rate info)))))
+
 (defn server-num-output-buses
   "Returns the number of output buses accessible by the server. This number may
-  change depending on host architecture but is static for a given running server
+  change depending on host architecture but is cached for a given running server
   for the duration of boot."
   []
   (if-let [cnt @output-bus-count*]
     cnt
     (let [info (server-info)]
-      (dosync
-       (ref-set output-bus-count*  (:num-output-buses info))))))
+      (reset! output-bus-count*  (:num-output-buses info)))))
 
 (defn server-num-input-buses
   "Returns the number of input buses accessible by the server. This number may
-  change depending on host architecture but is static for a given running
+  change depending on host architecture but is cached for a given running
   server for the duration of boot."
   []
   (if-let [cnt @input-bus-count*]
     cnt
     (let [info (server-info)]
-      (dosync
-       (ref-set input-bus-count*  (:num-input-buses info))))))
+      (reset! input-bus-count*  (:num-input-buses info)))))
 
 (defn server-num-audio-buses
   "Returns the number of audio buses accessible by the server. This number may
-  change depending on host architecture but is static for a given running server
+  change depending on host architecture but is cached for a given running server
   for the duration of boot."
   []
   (if-let [cnt @audio-bus-count*]
     cnt
     (let [info (server-info)]
-      (dosync
-       (ref-set audio-bus-count*  (:num-audio-buses info))))))
+      (reset! audio-bus-count*  (:num-audio-buses info)))))
 
 (defn server-num-buffers
   "Returns the number of buffers accessible by the server. This number may
-  change depending on host architecture but is static for a given running server
+  change depending on host architecture but is cached for a given running server
   for the duration of boot."
   []
   (if-let [cnt @buffer-count*]
     cnt
     (let [info (server-info)]
-      (dosync
-       (ref-set buffer-count*  (:num-buffers info))))))
+      (reset! buffer-count*  (:num-buffers info)))))
 
-(on-sync-event :shutdown #(dosync
-                           (ref-set output-bus-count* nil)
-                           (ref-set input-bus-count* nil)
-                           (ref-set audio-bus-count* nil)
-                           (ref-set buffer-count* nil))
+(on-sync-event :shutdown #((reset! output-bus-count* nil)
+                           (reset! input-bus-count* nil)
+                           (reset! audio-bus-count* nil)
+                           (reset! buffer-count* nil))
                ::reset-cached-server-info)
