@@ -3,9 +3,23 @@
       :author "Sam Aaron"}
   overtone.sc.mixer
   (:use [overtone.libs deps event]
-        [overtone.sc synth gens server info node]))
+        [overtone.sc synth gens server info node]
+        [overtone.sc.machinery defaults]))
 
-(defonce bus-mixers* (ref {:in [] :out []}))
+(defonce master-vol*  (ref MASTER-VOL))
+(defonce master-gain* (ref MASTER-GAIN))
+(defonce bus-mixers*  (ref {:in [] :out []}))
+
+(add-watch master-vol*
+           ::update-vol-on-server
+           (fn [k r old new-vol]
+             (println "updating volume to " new-vol (main-mixer-group))
+             (ctl (main-mixer-group) :master-volume new-vol)))
+
+(add-watch master-gain*
+           ::update-gain-on-server
+           (fn [k r old new-gain]
+             (ctl (main-input-group) :master-gain new-gain)))
 
 (on-event "/server-audio-clipping-rogue-input"
           (fn [msg]
@@ -24,7 +38,7 @@
 (defonce __BUS-MIXERS__
   (do
     (defsynth out-bus-mixer [in-bus 20 out-bus 0
-                             volume 0.5 master-volume 0.5]
+                             volume 0.5 master-volume @master-vol*]
       (let [source        (internal:in in-bus)
             source        (clip2 source 2)
             not-safe?     (> (a2k source) 1)
@@ -45,7 +59,7 @@
         (internal:out out-bus final-snd)))
 
     (defsynth in-bus-mixer [in-bus 10 out-bus 0
-                            gain 1 master-gain 1]
+                            gain 1 master-gain @master-gain*]
       (let [source  (internal:in in-bus)
             source  (* gain master-gain source)]
         (internal:out out-bus source)))))
@@ -82,13 +96,14 @@
 (on-sync-event :shutdown ::reset-bus-mixers #(dosync
                                               (ref-set bus-mixers* {:in [] :out []})))
 
-
 (defn volume
-  "Master volume control on the mixer."
-  [vol]
-  (ctl (main-mixer-group) :master-volume vol))
+  "Set the volume on the master mixer. When called with no params, retrieves the
+   current value"
+  ([] @master-vol*)
+  ([vol] (dosync (ref-set master-vol* vol))))
 
 (defn input-gain
-  "Master input gain"
-  [gain]
-  (ctl (main-input-group) :master-gain gain))
+  "Set the input gain on the master mixer. When called with no params, retrieves
+  the current value"
+  ([] @master-gain*)
+  ([gain] (dosync (ref-set master-gain* gain))))

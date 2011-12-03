@@ -64,3 +64,12 @@
   {:linux []
    :windows []
    :mac   ["-U" "/Applications/SuperCollider/plugins"]})
+
+
+(def MASTER-VOL
+  "Initial value for the master volume of the mixer"
+  0.5)
+
+(def MASTER-GAIN
+  "Initial value for the master gain of the mixer"
+  1)
