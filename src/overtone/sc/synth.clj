@@ -201,7 +201,7 @@
                                p-val)
                            [p-val DEFAULT-RATE])]
       {:name  (str p-name)
-       :default (float p-val)
+       :default `(float ~p-val)
        :rate  p-rate})))
 
 (defn- stringify-names
