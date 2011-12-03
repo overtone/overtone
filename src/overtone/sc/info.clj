@@ -40,17 +40,17 @@
                 (let [args (:args msg)
                       [nid nrid sr sd rps cr cd sso nob nib nab ncb nb nrs] args]
                   (deliver prom
-                           {:sample-rate sr
+                           {:sample-rate (long sr)
                             :sample-dur sd
                             :radians-per-sample rps
                             :control-rate cr
                             :control-dur cd
                             :subsample-offset sso
-                            :num-output-buses nob
-                            :num-input-buses nib
-                            :num-audio-buses nab
-                            :num-buffers nb
-                            :num-running-synths nrs})
+                            :num-output-buses (long nob)
+                            :num-input-buses (long nib)
+                            :num-audio-buses (long nab)
+                            :num-buffers (long nb)
+                            :num-running-synths (long nrs)})
                   :done))
               ::num-control-buses)
     (let [synth-id (snd-server-info)
