@@ -42,6 +42,21 @@
    (false? val)  (float 0)
    :else val))
 
+(defn floatify-truth
+  "Convert truth values to 0 or 1 using most of the standard Clojure truth
+  semantics:  everything that's not nil or false is 1 otherwise 0. The exception
+  to this allows for the preservation of number truth values, so an input of 0
+  maps to 0, and an input of 1 maps to 1."
+  [obj]
+  (let [obj (if (number? obj) (float obj) obj)
+        truthy (float 1)
+        falsey (float 0)]
+    (cond
+     (= truthy obj) truthy
+     (= falsey obj) falsey
+     obj truthy
+     :else falsey)))
+
 (defn stringify
   "Convert all keywords in col to strings without ':' prefixed."
   [col]

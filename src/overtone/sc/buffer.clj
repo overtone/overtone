@@ -156,11 +156,7 @@
 
     (snd "/b_write" (:id buf) path header samples
          n-frames start-frame
-         (if (or (= 0 leave-open)
-                 (false? leave-open)
-                 (nil? leave-open))
-           0
-           1))
+         (floatify-truth leave-open))
     :done))
 
 (defmulti buffer-id type)
