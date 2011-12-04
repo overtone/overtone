@@ -1,5 +1,6 @@
 (ns overtone.sc.buffer
-  (:use [overtone.util lib]
+  (:use [overtone.helpers file]
+        [overtone.util lib]
         [overtone.libs event]
         [overtone.sc server]
         [overtone.sc.machinery defaults allocator]
@@ -142,22 +143,94 @@
        (last (:args (deref! prom))))))
 
 (defn buffer-save
-  "Save the float audio data in an audio buffer to a wav file."
+  "Save the float audio data in buf to a file in the specified path on the
+  filesystem. The following options are also available (note: not all header
+  and sample combinations work - incorrect combinations will fail silently):
+
+   :header      - Header format: \"aiff\", \"next\", \"wav\", \"ircam\", \"raw\"
+                  Default \"wav\"
+   :samples     - Sample format: \"int8\", \"int16\", \"int24\", \"int32\",
+                                 \"float\", \"double\", \"mulaw\", \"alaw\"
+                  Default \"int16\"
+   :n-frames    - Number of frames to write. If < 0 then all frames from
+                  start-frame to the end of the buffer are written
+                  Default -1
+   :start-frame - starting frame in buffer (0 is the start of the buffer)
+                  Default 0
+
+   Example usage:
+   (buffer-save buf \"~/Desktop/foo.wav\" :header \"aiff\" :samples \"int32\"
+                                          :start-frame 100)"
   [buf path & args]
   (assert (buffer? buf))
 
-  (let [arg-map (merge (apply hash-map args)
+  (let [path (resolve-tilde-path path)
+        arg-map (merge (apply hash-map args)
                        {:header "wav"
-                        :samples "float"
-                        :size -1
-                        :start-frame 0
-                        :leave-open 0})
-        {:keys [header samples n-frames start-frame leave-open]} arg-map]
+                        :samples "int16"
+                        :n-frames -1
+                        :start-frame 0})
+        {:keys [header samples n-frames start-frame]} arg-map]
 
     (snd "/b_write" (:id buf) path header samples
-         n-frames start-frame
-         (floatify-truth leave-open))
+                    n-frames start-frame 0)
     :done))
+
+(defn buffer-stream
+  "Returns a buffer-stream which is similar to a regular buffer but may be used
+  with the disk-out ugen to stream to a specific file on disk.
+  Use #'buffer-stream-close to close the stream to finish recording to disk.
+
+  Options:
+
+  :n-chans     - Number of channels for the buffer
+                 Default 2
+  :size        - Buffer size
+                 Default 65536
+  :header      - Header format: \"aiff\", \"next\", \"wav\", \"ircam\", \"raw\"
+                 Default \"wav\"
+  :samples     - Sample format: \"int8\", \"int16\", \"int24\", \"int32\",
+                                \"float\", \"double\", \"mulaw\", \"alaw\"
+                 Default \"int16\"
+
+  Example usage:
+  (buffer-stream \"~/Desktop/foo.wav\" :n-chans 1 :header \"aiff\"
+                                       :samples \"int32\")"
+
+  [path & args]
+  (let [path (resolve-tilde-path path)
+        arg-map (merge (apply hash-map args)
+                       {:n-chans 2
+                        :size 65536
+                        :header "wav"
+                        :samples "int16"})
+        {:keys [n-chans size header samples]} arg-map
+        buf (buffer size n-chans)]
+    (snd "/b_write" (:id buf) path header samples -1 0 1)
+    (with-meta
+      (assoc buf
+        :path path
+        :open? (atom true))
+      {:type ::buffer-stream})))
+
+(derive ::buffer-stream ::buffer)
+
+(defn buffer-stream?
+  [bs]
+  (isa? (type bs) ::buffer-stream))
+
+(defn buffer-stream-close
+  "Close a buffer stream created with #'buffer-stream. Also frees the internal
+  buffer. Returns the path of the newly created file."
+  [buf-stream]
+  (assert (buffer-stream? buf-stream))
+  (when-not @(:open? buf-stream)
+    (throw (Exception. "buffer-stream already closed.")))
+
+  (snd "/b_close" (:id buf-stream))
+  (buffer-free buf-stream)
+  (reset! (:open? buf-stream) false)
+  (:path buf-stream))
 
 (defmulti buffer-id type)
 (defmethod buffer-id java.lang.Integer [id] id)
