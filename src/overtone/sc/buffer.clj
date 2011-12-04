@@ -228,5 +228,5 @@
     (create-buffer-data 1024 #(- (* 2 % %) 1) -1 1)"
   [size f range-min range-max]
   (let [range-size (- range-max range-min)
-	rangemap  #(+ range-min (/ (* % range-size) size))]
+        rangemap  #(+ range-min (/ (* % range-size) size))]
     (map #(float (f (rangemap %))) (range 0 size))))
