@@ -67,7 +67,7 @@
         (internal:out out-bus source)))))
 
 
-(defn start-mixers
+(defn- start-mixers
   []
   (ensure-connected!)
   (let [in-cnt          (server-num-input-buses)
