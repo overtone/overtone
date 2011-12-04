@@ -10,7 +10,6 @@
 (defonce master-vol*  (ref MASTER-VOL))
 (defonce master-gain* (ref MASTER-GAIN))
 (defonce bus-mixers*  (ref {:in [] :out []}))
-(defonce recording-flag* (atom nil))
 
 (add-watch master-vol*
            ::update-vol-on-server
