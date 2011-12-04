@@ -3,12 +3,14 @@
       :author "Sam Aaron"}
   overtone.sc.mixer
   (:use [overtone.libs deps event]
-        [overtone.sc synth gens server info node]
+        [overtone.helpers file]
+        [overtone.sc synth gens server info node buffer]
         [overtone.sc.machinery defaults]))
 
 (defonce master-vol*  (ref MASTER-VOL))
 (defonce master-gain* (ref MASTER-GAIN))
 (defonce bus-mixers*  (ref {:in [] :out []}))
+(defonce recording-flag* (atom nil))
 
 (add-watch master-vol*
            ::update-vol-on-server
@@ -107,3 +109,38 @@
   the current value"
   ([] @master-gain*)
   ([gain] (dosync (ref-set master-gain* gain))))
+
+(defonce __RECORDER__
+  (defsynth master-recorder
+    [out-buf 0]
+    (disk-out out-buf (internal:in 0 2))))
+
+(defonce recorder-info* (ref nil))
+
+(defn start-recording
+  "Start recording a wav file to a new file at wav-path. Be careful - may
+  generate very large files."
+  [wav-path]
+  (if-let [info @recorder-info*]
+    (throw (Exception. (str "Recording already taking place to: "
+                            (get-in info [:buf-stream :path])))))
+
+  (let [wav-path (resolve-tilde-path wav-path)
+        bs (buffer-stream wav-path)
+        rec (master-recorder :target (main-monitor-group) bs)]
+    (dosync
+     (ref-set recorder-info* {:rec-id rec
+                              :buf-stream bs}))
+    :recording-started))
+
+(defn stop-recording
+  "Stop system-wide recording. This frees the file and writes the wav headers.
+  Returns the path of the file created."
+  []
+  (when-let [info (dosync
+                   (let [old @recorder-info*]
+                     (ref-set recorder-info* nil)
+                     old))]
+    (kill (:rec-id info))
+    (buffer-stream-close (:buf-stream info))
+    (get-in info [:buf-stream :path])))
