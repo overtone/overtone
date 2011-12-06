@@ -205,18 +205,41 @@
        (= ::instrument (:type o))))
 
 (defmacro definst
-  "Define an instrument and return a player function. The instrument definition
-  will be loaded immediately. Instruments differ from basic synths in that they
-  will automatically add pan2 and out ugens when necessary to create a stereo
-  synth. Also, each instrument is assigned its own group which all instances
-  will automatically be placed in. This allows you to control all of an
-  instrument's running synths with one command:
+  "Define an instrument and return a player function. Arguments are a vector
+  of name/value parameter pairs, for example:
 
-  (ctrl inst-name :param val)
+  (definst inst-name [param0 value0 param1 value1 param2 value2] ...)
 
-  You may also kill an all of an instrument's running synths:
+  The returned player function takes any number of positional arguments, 
+  followed by any number of keyword arguments. For example, all of the following
+  are equivalent:
 
-  (kill inst-name)"
+  (inst-name 0 1 2)
+  (inst-name 0 1 :param2 2)
+  (inst-name :param1 1 :param0 0 :param2 2)
+
+  Omitted parameters are given their default value from the instrument's
+  parameter list.
+
+  The instrument definition will be loaded immediately. Instruments differ 
+  from basic synths in that they will automatically add pan2 and out ugens 
+  when necessary to create a stereo synth. Also, each instrument is assigned 
+  its own group which all instances will automatically be placed in. This 
+  allows you to control all of an instrument's running synths with one command:
+
+  (ctl inst-name :param0 val0 :param1 val1)
+
+  You may also kill all of an instrument's running synths:
+
+  (kill inst-name)
+  
+  A doc string may also be included between the instrument's name ant
+  parameter list:
+  
+  (definst lucille 
+    \"What's that Lucille?\"
+    [] ...)
+  "
   [i-name & inst-form]
   (let [[i-name params ugen-form] (synth-form i-name inst-form)
         i-name (with-meta i-name (merge (meta i-name) {:type ::instrument}))]

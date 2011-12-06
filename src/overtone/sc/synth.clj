@@ -201,7 +201,7 @@
                                p-val)
                            [p-val DEFAULT-RATE])]
       {:name  (str p-name)
-       :default (float p-val)
+       :default `(float ~p-val)
        :rate  p-rate})))
 
 (defn- stringify-names
@@ -517,7 +517,8 @@
   "Decompile a parsed SuperCollider synth definition back into clojure code
   that could be used to generate an identical synth.
 
-  While this probably won't create a synth definition that can directly compile, it can still be helpful when trying to reverse engineer a synth."
+  While this probably won't create a synth definition that can directly compile,
+  it can still be helpful when trying to reverse engineer a synth."
   [{:keys [name constants params pnames ugens] :as sdef}]
   (let [sname (symbol name)
         param-vec (param-vector params pnames)

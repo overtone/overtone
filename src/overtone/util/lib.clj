@@ -28,13 +28,6 @@
 (defn reset-counters []
   (dosync (ref-set id-counters* {})))
 
-(defn print-classpath
-  "Pretty print the classpath"
-  []
-  (let [paths (map (memfn getPath)
-                   (seq (.getURLs (.getClassLoader clojure.lang.RT))))]
-    (pprint paths)))
-
 (defn to-str
   "If val is a keyword, return its name sans :, otherwise return val"
   [val]
@@ -48,6 +41,21 @@
    (true? val)   (float 1)
    (false? val)  (float 0)
    :else val))
+
+(defn floatify-truth
+  "Convert truth values to 0 or 1 using most of the standard Clojure truth
+  semantics:  everything that's not nil or false is 1 otherwise 0. The exception
+  to this allows for the preservation of number truth values, so an input of 0
+  maps to 0, and an input of 1 maps to 1."
+  [obj]
+  (let [obj (if (number? obj) (float obj) obj)
+        truthy (float 1)
+        falsey (float 0)]
+    (cond
+     (= truthy obj) truthy
+     (= falsey obj) falsey
+     obj truthy
+     :else falsey)))
 
 (defn stringify
   "Convert all keywords in col to strings without ':' prefixed."
@@ -111,9 +119,6 @@
       (invoke      [& args] (apply fun args))
       (applyTo    ([args] (apply fun args)))
       (toString   [] "Callable Map")))
-
-(defn file-exists? [path]
-  (.exists (java.io.File. path)))
 
 (defn- syms-to-keywords [coll]
   (map #(if (symbol? %)
@@ -255,18 +260,6 @@
        (if (= timeout-indicator res)
          (throw (Exception. (str "deref! timeout error. Dereference took longer than " timeout " ms")))
          res))))
-
-(defn system-user-name
-  "returns the name of the current user"
-  []
-  (System/getProperty "user.name"))
-
-(defn get-os []
-  (let [os (System/getProperty "os.name")]
-    (cond
-      (re-find #"[Ww]indows" os) :windows
-      (re-find #"[Ll]inux" os)   :linux
-      (re-find #"[Mm]ac" os)     :mac)))
 
 (defn stringify-map-vals
   "converts a map by running all its vals through str

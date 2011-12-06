@@ -2,11 +2,12 @@
     ^{:doc "Audio file encoding functions"
       :author "Sam Aaron"}
   overtone.helpers.audio-file
-  (:use [overtone.sc.buffer :only [buffer-data]]
+  (:use [clojure.java.io :only [file]]
+        [overtone.sc.buffer :only [buffer-data]]
         [overtone.helpers.file :only [resolve-tilde-path]])
   (:import [javax.sound.sampled AudioFormat AudioFileFormat AudioFormat$Encoding
                                 AudioFileFormat$Type AudioInputStream AudioSystem]
-           [java.io File ByteArrayInputStream]
+           [java.io ByteArrayInputStream]
            [java.nio ByteBuffer]))
 
 (defn- fill-data-buffer!
@@ -46,7 +47,7 @@
         stream       (AudioInputStream. (ByteArrayInputStream. (.array b-data))
                                         a-format
                                         data-size)
-        f            (File. path)
+        f            (file path)
         f-type       AudioFileFormat$Type/WAVE]
     (AudioSystem/write stream f-type f)))
 

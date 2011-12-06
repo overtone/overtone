@@ -9,7 +9,8 @@
         [overtone.sc.machinery defaults]
         [overtone.sc.machinery.server comms]
         [overtone.osc]
-        [overtone.osc.decode :only [osc-decode-packet]])
+        [overtone.osc.decode :only [osc-decode-packet]]
+        [overtone.helpers.file :only [file-exists?]])
   (:require [overtone.util.log :as log]))
 
 (defonce server-thread*       (ref nil))
@@ -195,7 +196,7 @@
         paths (SC-PATHS os)
         path  (if (= :linux os)
                 (first paths)
-                (first (filter #(.exists (java.io.File. %)) paths)))]
+                (first (filter #(file-exists? %) paths)))]
     (when-not path
       (throw (Exception. (str "Unable to locate a valid scsynth executable on your system. I looked in the following places: " paths))))
 
@@ -272,5 +273,8 @@
      (unsatisfy-all-dependencies))))
 
 (defonce _shutdown-hook
-  (.addShutdownHook (Runtime/getRuntime)
-                    (Thread. shutdown-server)))
+     (.addShutdownHook (Runtime/getRuntime)
+                       (Thread. (fn []
+                                 (locking connection-info*
+                                   (when (= :connected @connection-status*)
+                                     (shutdown-server)))))))

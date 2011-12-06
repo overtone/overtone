@@ -1,7 +1,9 @@
 (ns overtone.inst.sampled-piano
   (:use [overtone.core]))
 
-(defonce piano-samples (load-samples "~/Desktop/Desktop/samples/MIS_Stereo_Piano/Piano/*LOUD*"))
+(def piano-dir (bundled-asset-dir "http://www.ericmhobbs.com/Blackhole/music-backup/MIS_Stereo_Piano.zip"))
+
+(defonce piano-samples (load-samples piano-dir "Piano" "*LOUD*"))
 
 (defn- matching-notes
   "Find the matching sample in piano-samples which matches the midi note.
