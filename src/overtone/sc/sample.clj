@@ -126,5 +126,5 @@
 
 (defmethod buffer-id ::sample [sample] (:id sample))
 
-(defmacro defsample [s-name path]
-  `(def ~s-name (sample ~path)))
+(defmacro defsample [s-name path & args]
+  `(def ~s-name (sample ~path ~@args)))
