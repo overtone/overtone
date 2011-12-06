@@ -54,6 +54,7 @@
             sample (with-meta {:allocated-on-server (atom true)
                                :id id
                                :path path
+                               :args args
                                :name f-name
                                :size (:size info)
                                :rate (:rate info)
