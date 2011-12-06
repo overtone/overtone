@@ -119,9 +119,7 @@
   (let [{:keys [path args] :as s} (apply load-sample path args)
         player (fn [& pargs]
                  (let [id (:id (get @loaded-samples* [path args]))]
-                   (if (empty? pargs)
-                     (mono-player id)
-                     (apply mono-player id pargs))))]
+                   (apply mono-player id pargs)))]
     (callable-map (merge {:player player} s)
                   player)))
 
