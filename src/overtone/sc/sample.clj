@@ -116,7 +116,7 @@
 
   "
   [path & args]
-  (let [s          (load-sample path)
+  (let [s          (load-sample path args)
         player     (fn [& pargs]
                      (let [id (:id (get @loaded-samples* [path args]))]
                        (if (empty? pargs)
