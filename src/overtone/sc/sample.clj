@@ -35,9 +35,8 @@
 
 (defn- load-sample*
   [path & args]
-  (let [path (resolve-tilde-path path)
-        f    (file path)
-        path (.getCanonicalPath f)]
+  (let [path (canonical-path path)
+        f    (file path)]
     (when-not (.exists f)
       (throw (Exception. (str "Unable to load sample - file does not exist: " path))))
     (let [f-name (.getName f)
