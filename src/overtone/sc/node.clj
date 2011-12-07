@@ -32,7 +32,7 @@
   integer"
   [node]
   (let [id (if   (and (associative? node)
-                      (= ::instrument (:type node))) (:group node) node)]
+                      (= :overtone.studio.rig/instrument (:type node))) (:group node) node)]
     (if-not (integer? id)
       (throw (Exception. (str "The following node id is not an integer:" id)))
       id)))
