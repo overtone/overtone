@@ -297,11 +297,11 @@
 (defmulti buffer-id type)
 (defmethod buffer-id java.lang.Integer [id] id)
 (defmethod buffer-id java.lang.Long [id] id)
-(defmethod buffer-id ::buffer [buf] (:id buf))
+(defmethod buffer-id ::buffer [buf] (buffer-id (buffer-info buf)))
 (defmethod buffer-id ::buffer-info [buf-info] (:id buf-info))
 
 (defmulti buffer-size type)
-(defmethod buffer-size ::buffer [buf] (:size buf))
+(defmethod buffer-size ::buffer [buf] (buffer-size (buffer-info buf)))
 (defmethod buffer-size ::buffer-info [buf-info] (:size buf-info))
 
 (defn buffer-data
