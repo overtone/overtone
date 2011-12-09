@@ -147,6 +147,8 @@
           :timeout)))
     :disconnected))
 
+(def status server-status)
+
 (defn clear-msg-queue
   "Remove any scheduled OSC messages from the run queue."
   []
