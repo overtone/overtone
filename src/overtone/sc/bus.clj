@@ -17,16 +17,25 @@
 (derive ::control-bus ::bus)
 
 (defn bus?
-  [b]
-  (or (number? b)
-      (and (associative? b)
-       (or (isa? (type b) ::bus)))))
+  "Returns true if the specified bus is a map representing a bus (either control
+  or audio) "
+  [bus]
+  (isa? (type bus) ::bus))
+
+(defn- bus-or-id?
+  "Returns true if the specified bus can be treated as a bus - i.e. is either a
+  number or a map with metadata that suggests it is of type ::bus"
+  [bus]
+  (or (number? bus)
+      (bus? bus)))
 
 (defn bus-id
-  [b]
-  (if (number? b)
-    b
-    (:id b)))
+  "Returns the id of the specified bus (returns numbers unmodified)."
+  [bus]
+  (assert (bus-or-id? bus))
+  (if (number? bus)
+    bus
+    (:id bus)))
 
 ; TODO: In order to allocate multi-channel busses we actually need to
 ; allocate multiple, adjacent busses, which the current bitset based
@@ -35,27 +44,29 @@
   "Allocate one ore more control busses."
   ([] (control-bus 1))
   ([n-channels]
-   (let [id (alloc-id :control-bus n-channels)]
-     (with-meta {:id id
-                 :n-channels n-channels
-                 :rate :control}
-                {:type ::control-bus}))))
+     (let [id (alloc-id :control-bus n-channels)]
+       (with-meta {:id id
+                   :n-channels n-channels
+                   :rate :control}
+         {:type ::control-bus}))))
 
 (defn audio-bus
   "Allocate one ore more audio busses."
   ([] (audio-bus 1))
   ([n-channels]
-   (let [id (alloc-id :audio-bus n-channels)]
-     (with-meta {:id id
-                 :n-channels n-channels
-                 :rate :audio}
-                {:type ::audio-bus}))))
+     (let [id (alloc-id :audio-bus n-channels)]
+       (with-meta {:id id
+                   :n-channels n-channels
+                   :rate :audio}
+         {:type ::audio-bus}))))
 
 (defn free-bus
-  [b]
-  (case (type b)
-    ::audio-bus   (free-id :audio-bus (:id b) (:n-channels b))
-    ::control-bus (free-id :control-bus (:id b) (:n-channels b)))
+  "Free the id of specified bus for reuse."
+  [bus]
+  (assert (bus? bus))
+  (case (type bus)
+    ::audio-bus   (free-id :audio-bus (:id bus) (:n-channels bus))
+    ::control-bus (free-id :control-bus (:id bus) (:n-channels bus)))
   :free)
 
 ; Reserve busses for overtone
@@ -75,27 +86,33 @@
 
   (bus-set! my-bus 3) ;=> Sets my-bus to the value 3"
   [bus val]
-  (assert (bus? bus))
-  (snd "/c_set" (bus-id bus) (double val)))
+  (assert (bus-or-id? bus))
+  (let [id  (bus-id bus)
+        val (double val)]
+    (snd "/c_set" id val)))
 
 (defn bus-get
   "Get the current value of a control bus."
   [bus]
-  (assert (bus? bus))
-  (let [p (server-recv "/c_set")]
-    (snd "/c_get" (bus-id bus))
+  (assert (bus-or-id? bus))
+  (let [id (bus-id bus)
+        p  (server-recv "/c_set")]
+    (snd "/c_get" id)
     (second (:args (deref! p)))))
 
 (defn bus-set-range!
   "Set a range of consecutive control busses to the supplied values."
   [bus start len vals]
-  (assert (bus? bus))
-  (apply snd "/c_setn" (bus-id bus) start len (floatify vals)))
+  (assert (bus-or-id? bus))
+  (let [id   (bus-id bus)
+        vals (floatify vals)]
+      (apply snd "/c_setn" id start len vals)))
 
 (defn bus-get-range
   "Get a range of consecutive control bus values."
   [bus len]
-  (assert (bus? bus))
-  (let [p (server-recv "/c_setn")]
-    (snd "/c_getn" (bus-id bus) len)
+  (assert (bus-or-id? bus))
+  (let [id (bus-id bus)
+        p  (server-recv "/c_setn")]
+    (snd "/c_getn" id len)
     (drop 2 (:args (deref! p)))))
