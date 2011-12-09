@@ -188,6 +188,13 @@
   {:pre [(server-connected?)]}
   (apply snd "/n_map" node-id names-busses))
 
+(defn node-map-n-controls
+  "Connect N controls of a node to a set of sequential control busses, 
+  starting at the given control name."
+  [node-id start-control start-bus n]
+  {:pre [(server-connected?)]}
+  (apply snd "/n_mapn" node-id start-control start-bus n))
+
 (defn post-tree
   "Posts a representation of this group's node subtree, i.e. all the groups and
   synths contained within it, optionally including the current control values
