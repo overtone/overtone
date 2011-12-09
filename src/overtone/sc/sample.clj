@@ -8,7 +8,7 @@
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc server synth gens buffer]
-        [overtone.helpers.file :only [glob resolve-tilde-path mk-path]]))
+        [overtone.helpers.file :only [glob canonical-path resolve-tilde-path mk-path]]))
 
 ; Define a default wav player synth
 (defonce __DEFINE-PLAYERS__
@@ -35,7 +35,7 @@
 
 (defn- load-sample*
   [path & args]
-  (let [path (resolve-tilde-path path)
+  (let [path (canonical-path path)
         f    (file path)]
     (when-not (.exists f)
       (throw (Exception. (str "Unable to load sample - file does not exist: " path))))
@@ -54,6 +54,7 @@
             sample (with-meta {:allocated-on-server (atom true)
                                :id id
                                :path path
+                               :args args
                                :name f-name
                                :size (:size info)
                                :rate (:rate info)
@@ -74,10 +75,13 @@
   in the file (:start). If the number of frames argument is less than or equal
   to zero, the entire file is read."
   [path & args]
-  (let [path (resolve-tilde-path path)]
-    (dosync (alter loaded-samples* assoc [path args] nil))
-    (if (server-connected?)
-      (apply load-sample* path args))))
+  (let [path (canonical-path path)]
+    (if-let [sample (get @loaded-samples* [path args])]
+      sample
+      (do
+        (dosync (alter loaded-samples* assoc [path args] nil))
+        (if (server-connected?)
+          (apply load-sample* path args))))))
 
 (defn load-samples
   "Takes a directoy path or glob path (see #'overtone.helpers.file/glob) and
@@ -116,16 +120,14 @@
 
   "
   [path & args]
-  (let [s          (load-sample path)
-        player     (fn [& pargs]
-                     (let [id (:id (get @loaded-samples* [path args]))]
-                       (if (empty? pargs)
-                         (mono-player id)
-                         (apply mono-player id pargs))))]
+  (let [{:keys [path args] :as s} (apply load-sample path args)
+        player (fn [& pargs]
+                 (let [id (:id (get @loaded-samples* [path args]))]
+                   (apply mono-player id pargs)))]
     (callable-map (merge {:player player} s)
                   player)))
 
 (defmethod buffer-id ::sample [sample] (:id sample))
 
-(defmacro defsample [s-name path]
-  `(def ~s-name (sample ~path)))
+(defmacro defsample [s-name path & args]
+  `(def ~s-name (sample ~path ~@args)))
