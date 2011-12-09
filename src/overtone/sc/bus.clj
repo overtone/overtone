@@ -22,12 +22,24 @@
   [bus]
   (isa? (type bus) ::bus))
 
+(defn control-bus?
+  "Returns true if the specified bus is a map representing a control bus."
+  [bus]
+  (isa? (type bus) ::control-bus))
+
 (defn- bus-or-id?
   "Returns true if the specified bus can be treated as a bus - i.e. is either a
   number or a map with metadata that suggests it is of type ::bus"
   [bus]
   (or (number? bus)
       (bus? bus)))
+
+(defn- control-bus-or-id?
+  "Returns true if the specified bus is either a control bus or a number
+  (representing the id of a control bus)"
+  [bus]
+  (or (number? bus)
+      (control-bus? bus)))
 
 (defn bus-id
   "Returns the id of the specified bus (returns numbers unmodified)."
@@ -41,7 +53,7 @@
 ; allocate multiple, adjacent busses, which the current bitset based
 ; allocator doesn't support.
 (defn control-bus
-  "Allocate one ore more control busses."
+  "Allocate one or more control busses."
   ([] (control-bus 1))
   ([n-channels]
      (let [id (alloc-id :control-bus n-channels)]
@@ -86,7 +98,7 @@
 
   (bus-set! my-bus 3) ;=> Sets my-bus to the value 3"
   [bus val]
-  (assert (bus-or-id? bus))
+  (assert (control-bus-or-id? bus))
   (let [id  (bus-id bus)
         val (double val)]
     (snd "/c_set" id val)))
