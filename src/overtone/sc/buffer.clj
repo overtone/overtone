@@ -235,7 +235,7 @@
 (defn buffer-cue
   "Returns a buffer-cue which is similar to a regular buffer but may be used
   with the disk-in ugen to stream from a specific file on disk.
-  Use #'buffer-cue-close to close the stream to finish reading from disk.
+  Use #'buffer-cue-close to close the stream when finished.
 
   Options:
 
@@ -266,6 +266,20 @@
 (defn buffer-cue?
   [bc]
   (isa? (type bc) ::buffer-cue))
+
+(defn buffer-cue-pos
+  "Moves the start position of a buffer cue to the frame indicated by
+  'pos'. Defaults to 0. Returns the buffer when done."
+  ([buf-cue]
+     (buffer-cue-pos buf-cue 0))
+  ([buf-cue pos]
+     (assert (buffer-cue? buf-cue))
+     (when-not @(:open? buf-cue)
+       (throw (Exception. "buffer-cue is closed.")))
+     (let [{:keys [id path]} buf-cue]
+       (snd "/b_close" id)
+       (snd "/b_read" id path pos -1 0 1))
+     buf-cue))
 
 (defn buffer-cue-close
   "Close a buffer stream created with #'buffer-cue. Also frees the internal
