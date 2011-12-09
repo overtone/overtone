@@ -84,10 +84,7 @@
   (assert (bus? bus))
   (let [p (server-recv "/c_set")]
     (snd "/c_get" (bus-id bus))
-    (try
-      (second (:args (deref! p)))
-      (catch TimeoutException t
-        :timeout))))
+    (second (:args (deref! p)))))
 
 (defn bus-set-range!
   "Set a range of consecutive control busses to the supplied values."
@@ -101,7 +98,4 @@
   (assert (bus? bus))
   (let [p (server-recv "/c_setn")]
     (snd "/c_getn" (bus-id bus) len)
-    (try
-      (drop 2 (:args (deref! p)))
-      (catch TimeoutException t
-        :timeout))))
+    (drop 2 (:args (deref! p)))))
