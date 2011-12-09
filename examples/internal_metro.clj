@@ -9,8 +9,9 @@
            root-trig (impulse:kr 100)
            t1        (pulse-divider:kr root-trig 20)
            t2        (pulse-divider:kr root-trig 10)]
-  (+ (* (decay t1 0.1) src1)
-     (* (decay t2 0.1) src2))))
+       (* 0.2
+          (+ (* (decay t1 0.1) src1)
+             (* (decay t2 0.1) src2)))))
 
 
 ;; Here's how you can separate the impulses out across synths and connect them
