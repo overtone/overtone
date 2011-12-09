@@ -182,18 +182,28 @@
   {:pre [(server-connected?)]}
   (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
 
+(defn- bussify 
+  "Convert busses in a col to bus ids."
+  [col]
+  (map #(if (bus? %)
+          (bus-id %)
+          %)
+       col))
+
 (defn node-map-controls
   "Connect a node's controls to a control bus."
   [node-id & names-busses]
   {:pre [(server-connected?)]}
-  (apply snd "/n_map" node-id names-busses))
+  (let [names-busses (bussify (stringify names-busses))]
+    (apply snd "/n_map" node-id names-busses)))
 
 (defn node-map-n-controls
-  "Connect N controls of a node to a set of sequential control busses, 
+  "Connect N controls of a node to a set of sequential control busses,
   starting at the given control name."
   [node-id start-control start-bus n]
   {:pre [(server-connected?)]}
-  (apply snd "/n_mapn" node-id start-control start-bus n))
+  (assert (bus? start-bus) "Invalid start-bus")
+  (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n))
 
 (defn post-tree
   "Posts a representation of this group's node subtree, i.e. all the groups and

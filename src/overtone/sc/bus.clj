@@ -22,7 +22,7 @@
       (and (associative? b)
        (or (isa? (type b) ::bus)))))
 
-(defn- bus-id
+(defn bus-id
   [b]
   (if (number? b)
     b
