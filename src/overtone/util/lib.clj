@@ -258,7 +258,7 @@
      (let [timeout-indicator (gensym "deref-timeout")
            res               (deref ref timeout timeout-indicator)]
        (if (= timeout-indicator res)
-         (throw (Exception. (str "deref! timeout error. Dereference took longer than " timeout " ms")))
+         (throw (TimeoutException. (str "deref! timeout error. Dereference took longer than " timeout " ms")))
          res))))
 
 (defn stringify-map-vals
