@@ -15,6 +15,7 @@
             src (sin-osc note-gen)]
         (* [0.1 0.1] src)))
 
+
 ; Randomize the sequence of notes
 (demo 2
       (let [trig (impulse:kr 8)
@@ -66,6 +67,23 @@
 (buffer-set! buf 3 80)
 (buffer-set! buf 7 20)
 (stop)
+
+; This is an example of mapping a note generating synth (demand rate)
+; outputting on a control bus onto the control of another synth.
+(defsynth note-generator []
+  (let [trig (impulse:kr 8)
+        freqs (dseq [440 880 220] INF)
+        note-gen (demand:kr trig 0 freqs)]
+    (out:kr 0 note-gen)))
+
+(defsynth beep [note 660]
+  (let [src (sin-osc note)]
+    (out 0 (* [0.2 0.2] src))))
+
+;(def generator-node (note-generator))
+;(def beep-node (beep))
+;(node-map-controls beep-node 0 0)
+;(stop)
 
 (demo 4
       (let [freq (duty (drand [0.2 0.4 0.8 0.6] INF)
