@@ -108,8 +108,9 @@
     (let [info (server-info)]
       (reset! buffer-count*  (:num-buffers info)))))
 
-(on-sync-event :shutdown #((reset! output-bus-count* nil)
-                           (reset! input-bus-count* nil)
-                           (reset! audio-bus-count* nil)
-                           (reset! buffer-count* nil))
+(on-sync-event :shutdown #(do
+                            (reset! output-bus-count* nil)
+                            (reset! input-bus-count* nil)
+                            (reset! audio-bus-count* nil)
+                            (reset! buffer-count* nil))
                ::reset-cached-server-info)
