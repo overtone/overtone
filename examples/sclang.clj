@@ -3,7 +3,6 @@
   (:use clj-sclang.core)
   (:use clojure.contrib.duck-streams))
 
-(refer-ugens)
 ;(boot-server :internal "127.0.0.1" 5300)
 (connect-jack-ports)
 (def cb (make-vpost-cb println))

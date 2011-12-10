@@ -2,8 +2,6 @@
   (:use overtone.live)
   (:require [monome-serial.monome :as mono]))
 
-(refer-ugens)
-
 (defsynth plop [freq 440 len 0.4]
   (* 0.4 (env-gen (perc 0.02 len) 1 1 0 1 FREE)
      (sin-osc [(+ (* 3 (sin-osc 20)) freq) (/ freq 2)])))

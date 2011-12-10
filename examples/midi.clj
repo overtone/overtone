@@ -1,7 +1,6 @@
 (ns examples.midi
   (:use overtone.live))
 
-(refer-ugens)
 (def kb (midi-in "axiom"))
 
 (defsynth pad [freq 440 vel 0.4 amt 0.3 gate 1.0]

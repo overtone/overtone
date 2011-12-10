@@ -28,8 +28,6 @@
 ; s.sendMsg("/b_close", 2); // close the file.
 ; s.sendMsg("/b_free", 0); // frees the buffer
 
-(refer-ugens)
-
 (defsynth granular [out 0, buf 0, pan 0, start 0, amp 0.8, dur 0.25]
   (let [grain (play-buf 1 buf (buf-rate-scale:kr buf) 1
                         (* start (buf-frames:ir buf)) 0)
