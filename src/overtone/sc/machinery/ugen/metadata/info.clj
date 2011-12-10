@@ -21,7 +21,7 @@
 
    {:name "ControlDur"
     :rates #{:ir}
-    :doc "returns the current block duration of the server in seconds"}
+    :doc "returns the current control rate block duration of the server in seconds"}
 
    {:name "SubsampleOffset"
     :rates #{:ir}
