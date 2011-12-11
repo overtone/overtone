@@ -30,12 +30,12 @@
              (* vol (play-buf 2 buf rate
                               1 start-pos loop?
                               FREE)))))
-    (defsynth mono-streamer
+    (defsynth mono-stream-player
       "Plays a single channel streaming buffer-cue."
       [buf 0 loop? 0 vol 1]
       (out 0 (* vol (pan2 (disk-in 1 buf loop?)))))
 
-    (defsynth stereo-streamer
+    (defsynth stereo-stream-player
       "Plays a dual channel streaming buffer-cue."
       [buf 0 loop? 0 vol 1]
       (out 0 (* vol (disk-in 2 buf loop?))))))
