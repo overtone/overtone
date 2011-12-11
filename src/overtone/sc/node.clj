@@ -182,7 +182,7 @@
   {:pre [(server-connected?)]}
   (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
 
-(defn- bussify 
+(defn- bussify
   "Convert busses in a col to bus ids."
   [col]
   (map #(if (bus? %)
@@ -354,7 +354,16 @@
     (group-clear @synth-group*)) ; clear the synth group
   ::reset-base)
 
+(defn- clear-msg-queue-and-groups
+  "Clear message queue and groups. Catches exceptions in case the server
+  has died. Meant for use in a :shutdown callback"
+  []
+  (try
+    (clear-msg-queue)
+    (group-clear 0)
+    (catch Exception e
+      (log/error "Can't clear message queue and groups - server might have died."))))
+
 (on-sync-event :shutdown
-               #(do (clear-msg-queue)
-                    (group-clear 0))
+               clear-msg-queue-and-groups
                ::free-all-nodes)

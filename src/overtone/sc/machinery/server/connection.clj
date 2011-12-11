@@ -256,12 +256,14 @@
   "Quit the SuperCollider synth process."
   []
   (locking connection-info*
-    (when-not (= :connected @connection-status*)
-      (throw (Exception. "Can't kill unconnected server.")))
 
     (log/info "quiting...")
     (sync-event :shutdown)
-    (server-snd "/quit")
+
+    (try
+      (server-snd "/quit")
+      (catch Exception e
+        (log/error "Can't quit server gracefully")))
 
     (when @server-osc-peer*
       (osc-close @server-osc-peer* true))
