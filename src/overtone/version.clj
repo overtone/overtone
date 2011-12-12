@@ -1,4 +1,4 @@
-(ns overtone.sc.version)
+(ns overtone.version)
 
 (def OVERTONE-VERSION {:major 0
                        :minor 6

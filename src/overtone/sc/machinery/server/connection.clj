@@ -4,7 +4,7 @@
   (:use [clojure.java shell]
         [overtone.config store]
         [overtone.libs event deps]
-        [overtone.sc version]
+        [overtone version]
         [overtone.util.lib :only [print-ascii-art-overtone-logo]]
         [overtone.sc.machinery defaults]
         [overtone.sc.machinery.server comms]
