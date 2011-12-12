@@ -122,8 +122,10 @@
   [path & args]
   (let [{:keys [path args] :as s} (apply load-sample path args)
         player (fn [& pargs]
-                 (let [id (:id (get @loaded-samples* [path args]))]
-                   (apply mono-player id pargs)))]
+                 (let [{:keys [id n-channels]} (get @loaded-samples* [path args])]
+                   (cond
+                    (= n-channels 1) (apply mono-player id pargs)
+                    (= n-channels 2) (apply stereo-player id pargs))))]
     (callable-map (merge {:player player} s)
                   player)))
 
