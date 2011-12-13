@@ -174,7 +174,7 @@
              (contains? m :name)
              (contains? m :default)
              (contains? m :rate))
-    (throw (IllegalArgumentException. (str "Invalid synth param map. Expected to find the keys :name, :default, :rate, got" m)))))
+    (throw (IllegalArgumentException. (str "Invalid synth param map. Expected to find the keys :name, :default, :rate, got: " m)))))
 
 (defn- ensure-paired-params!
   "throws an error if list l does not contain an even number of elements"
@@ -195,14 +195,16 @@
   DEFAULT-RATE. All names are converted to strings"
   [params]
   (for [[p-name p-val] (partition 2 params)]
-    (let [[p-val p-rate] (if (vector? p-val)
-                           (do (when-not (= 2 (count p-val))
-                                 (throw (IllegalArgumentException. (str "When specifiying the rate of a control, you need to use a vector of two args - default and rate i.e. [0.2 :ar]. Got: " p-val))))
-                               p-val)
-                           [p-val DEFAULT-RATE])]
-      {:name  (str p-name)
-       :default `(float ~p-val)
-       :rate  p-rate})))
+    (let [param-map
+          (if (associative? p-val)
+            (merge
+              {:name  (str p-name)
+               :rate  DEFAULT-RATE} p-val)
+            {:name (str p-name)
+             :default `(float ~p-val)
+             :rate DEFAULT-RATE})]
+      (ensure-param-keys! param-map)
+      param-map)))
 
 (defn- stringify-names
   "takes a map and converts the val of key :name to a string"
@@ -216,20 +218,14 @@
    name default pairs, name [default rate] pairs or a vector of maps:
 
   (defsynth foo [freq 440] ...)
-  (defsynth foo [freq [440 :ar]] ...)
-  (defsynth foo [{:name \"freq\" :default 440 :rate :ar}] ...)
+  (defsynth foo [freq {:default 440 :rate :ar}] ...)
 
   Returns a vec of param maps"
 
   [params]
-  (if (associative? (first params))
-    (do
-      (dorun (map ensure-param-keys! params))
-      (vec (map stringify-names params)))
-    (do
-      (ensure-vec! params)
-      (ensure-paired-params! params)
-      (vec (mapify-params params)))))
+  (ensure-vec! params)
+  (ensure-paired-params! params)
+  (vec (mapify-params params)))
 
 (defn- make-params
   "Create the param value vector and parameter name vector."

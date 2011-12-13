@@ -32,22 +32,23 @@
   [bodies]
   (when (empty? bodies)
     (throw (IllegalArgumentException. (str "defcgen was expecting one or more bodies implementing the various rates this cgen will support i.e. (:ar (sin-osc 440))"))))
-  (let [[rate bodies] (loop [default-rate nil
-                             parsed       {}
-                             to-parse     bodies]
-                        (if (empty? to-parse)
-                          [default-rate parsed]
-                          (let [body (first to-parse)]
-                            (if (= :default (first body))
-                              (recur (second body) parsed (rest to-parse))
-                              (if (= 2 (count body))
-                                (if-not (or (= :ar (first body))
-                                            (= :ir (first body))
-                                            (= :kr (first body))
-                                            (= :dr (first body)))
-                                  (throw (IllegalArgumentException. (str "defcgen was expecting on of the following keywords as the first item in each cgen body form: :ar, :ir, :kr, :dr or :default. Found " (first body))))
-                                  (recur default-rate (assoc parsed (first body) (second body)) (rest to-parse)))
-                                (throw (IllegalArgumentException. (str "defcgen was expecting each of the bodies to have two elements - a rate and an implementation form"))))))))
+  (let [[rate bodies]
+        (loop [default-rate nil
+               parsed       {}
+               to-parse     bodies]
+          (if (empty? to-parse)
+            [default-rate parsed]
+            (let [body (first to-parse)]
+              (if (= :default (first body))
+                (recur (second body) parsed (rest to-parse))
+                (if (= 2 (count body))
+                  (if-not (or (= :ar (first body))
+                              (= :ir (first body))
+                              (= :kr (first body))
+                              (= :dr (first body)))
+                    (throw (IllegalArgumentException. (str "defcgen was expecting on of the following keywords as the first item in each cgen body form: :ar, :ir, :kr, :dr or :default. Found " (first body))))
+                    (recur default-rate (assoc parsed (first body) (second body)) (rest to-parse)))
+                  (throw (IllegalArgumentException. (str "defcgen was expecting each of the bodies to have two elements - a rate and an implementation form"))))))))
         default-rate  (if rate
                         rate
                         (if (= 1 (count bodies))
@@ -60,20 +61,20 @@
 (defn- cgen-form
   "Pull out various bits of cgen information from a defcgen form"
   [u-form]
-  (let [summary                     (if (string? (first u-form))
-                                      (first u-form)
-                                      "Please add a summary!")
-        u-form                      (if (string? (first u-form))
-                                      (rest u-form)
-                                      u-form)
-        params                      (parse-cgen-params (first u-form))
-        u-form                      (rest u-form)
-        doc                         (if (string? (first u-form))
-                                      (first u-form)
-                                      "Please add some docs!")
-        u-form                      (if (string? (first u-form))
-                                      (rest u-form)
-                                      u-form)
+  (let [summary (if (string? (first u-form))
+                  (first u-form)
+                  "Please add a summary!")
+        u-form  (if (string? (first u-form))
+                  (rest u-form)
+                  u-form)
+        params  (parse-cgen-params (first u-form))
+        u-form  (rest u-form)
+        doc     (if (string? (first u-form))
+                  (first u-form)
+                  "Please add some docs!")
+        u-form  (if (string? (first u-form))
+                  (rest u-form)
+                  u-form)
         [default-rate rated-bodies] (parse-cgen-bodies u-form)]
 
     [summary doc params rated-bodies default-rate]))
