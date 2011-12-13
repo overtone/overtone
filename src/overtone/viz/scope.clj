@@ -5,7 +5,8 @@
   (:import [java.awt Graphics Dimension Color BasicStroke BorderLayout RenderingHints]
            [java.awt.event WindowListener ComponentListener]
            [java.awt.geom Rectangle2D$Float Path2D$Float]
-           [javax.swing JFrame JPanel JSlider])
+           [javax.swing JFrame JPanel JSlider]
+           [java.util.concurrent TimeoutException])
   (:use [clojure.stacktrace]
         [overtone.util lib]
         [overtone.libs event deps]
@@ -140,7 +141,7 @@
 
 (defn- empty-scope-data
   []
-  (doall (map reset-data-arrays (vals @scopes*))))
+  (dorun (map reset-data-arrays (vals @scopes*))))
 
 (defn scopes-stop
   "Stop all scopes from running."
@@ -173,12 +174,16 @@
       :buf  info)))
 
 (defn scope-close
+  "Close a given scope. Copes with the case where the server has crashed by
+  handling timeout errors when killing the scope's bus-synth."
   [s]
   (log/info (str "Closing scope: \n" s))
   (let [{:keys [id bus-synth buf]} s]
     (when (and bus-synth
                (server-connected?))
-      (kill bus-synth))
+      (try
+        (kill bus-synth)
+        (catch Exception e)))
     (dosync (alter scopes* dissoc id))))
 
 (defn- mk-scope

@@ -4,7 +4,7 @@
   (:use [clojure.java shell]
         [overtone.config store]
         [overtone.libs event deps]
-        [overtone.sc version]
+        [overtone version]
         [overtone.util.lib :only [print-ascii-art-overtone-logo]]
         [overtone.sc.machinery defaults]
         [overtone.sc.machinery.server comms]
@@ -256,16 +256,21 @@
   "Quit the SuperCollider synth process."
   []
   (locking connection-info*
-    (when-not (= :connected @connection-status*)
-      (throw (Exception. "Can't kill unconnected server.")))
 
-    (log/info "quiting...")
+    (log/info "Shutting down...")
     (sync-event :shutdown)
-    (server-snd "/quit")
+
+    (log/info "Quitting...")
+    (try
+      (server-snd "/quit")
+      (catch Exception e
+        (log/error "Can't quit server gracefully with /quit")))
 
     (when @server-osc-peer*
+      (log/info "Closing OSC peer...")
       (osc-close @server-osc-peer* true))
 
+    (log/info "Resetting server state and unsatisfying all deps...")
     (dosync
      (ref-set server-osc-peer* nil)
      (ref-set connection-info* {})
@@ -275,6 +280,7 @@
 (defonce _shutdown-hook
      (.addShutdownHook (Runtime/getRuntime)
                        (Thread. (fn []
-                                 (locking connection-info*
-                                   (when (= :connected @connection-status*)
-                                     (shutdown-server)))))))
+                                  (log/info "Shutdown hook activated...")
+                                  (locking connection-info*
+                                    (when (= :connected @connection-status*)
+                                      (shutdown-server)))))))

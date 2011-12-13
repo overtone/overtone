@@ -6,12 +6,12 @@
             [overtone.osc]
             [overtone.algo chance scaling trig]
             [overtone.sc buffer bus envelope example gens info
-                         mixer node sample server synth trigger
-                         version]
+                         mixer node sample server synth trigger]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
             [overtone.repl ugens examples shell]
             [overtone.libs asset event]
+            [overtone.version]
             [overtone.viz scope]))
 
 (immigrate
@@ -33,7 +33,6 @@
  'overtone.sc.server
  'overtone.sc.synth
  'overtone.sc.trigger
- 'overtone.sc.version
  'overtone.music.rhythm
  'overtone.music.pitch
  'overtone.music.tuning
@@ -45,6 +44,7 @@
  'overtone.repl.shell
  'overtone.libs.asset
  'overtone.libs.event
+ 'overtone.version
  'overtone.viz.scope
  )
 

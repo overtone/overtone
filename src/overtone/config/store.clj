@@ -65,7 +65,7 @@
         (println "Warning - old config directory detected. Moved to ~/.overtone-old and replaced with new, empty config.")
         (mv! root (str root "-old")))))
 
-(defonce __ENSIRE-DIRS___
+(defonce __ENSURE-DIRS___
   (ensure-dir-structure))
 
 (defonce __ENSURE-CONFIG__

@@ -29,7 +29,16 @@
         (out 0
              (* vol (play-buf 2 buf rate
                               1 start-pos loop?
-                              FREE)))))))
+                              FREE)))))
+    (defsynth mono-stream-player
+      "Plays a single channel streaming buffer-cue."
+      [buf 0 loop? 0 vol 1]
+      (out 0 (* vol (pan2 (disk-in 1 buf loop?)))))
+
+    (defsynth stereo-stream-player
+      "Plays a dual channel streaming buffer-cue."
+      [buf 0 loop? 0 vol 1]
+      (out 0 (* vol (disk-in 2 buf loop?))))))
 
 (defonce loaded-samples* (ref {}))
 
@@ -64,7 +73,7 @@
         sample))))
 
 (defn load-sample
-  "Synchronously load a wav file into a memory buffer.  Returns the buffer.
+  "Synchronously load a wav file into a memory buffer. Returns the buffer.
 
     ; load a sample a
     (load-sample \"/home/rosejn/studio/samples/kit/boom.wav\")
@@ -122,8 +131,10 @@
   [path & args]
   (let [{:keys [path args] :as s} (apply load-sample path args)
         player (fn [& pargs]
-                 (let [id (:id (get @loaded-samples* [path args]))]
-                   (apply mono-player id pargs)))]
+                 (let [{:keys [id n-channels]} (get @loaded-samples* [path args])]
+                   (cond
+                    (= n-channels 1) (apply mono-player id pargs)
+                    (= n-channels 2) (apply stereo-player id pargs))))]
     (callable-map (merge {:player player} s)
                   player)))
 

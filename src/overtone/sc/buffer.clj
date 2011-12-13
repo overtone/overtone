@@ -232,6 +232,68 @@
   (reset! (:open? buf-stream) false)
   (:path buf-stream))
 
+(defn buffer-cue
+  "Returns a buffer-cue which is similar to a regular buffer but may be used
+  with the disk-in ugen to stream from a specific file on disk.
+  Use #'buffer-cue-close to close the stream when finished.
+
+  Options:
+
+  :n-chans     - Number of channels for the buffer
+                 Default 2
+  :size        - Buffer size
+                 Default 65536
+
+  Example usage:
+  (buffer-cue \"~/Desktop/foo.wav\" :n-chans 1)"
+
+  [path & args]
+  (let [path (resolve-tilde-path path)
+        arg-map (merge (apply hash-map args)
+                       {:n-chans 2
+                        :size 65536})
+        {:keys [n-chans size]} arg-map
+        buf (buffer size n-chans)]
+    (snd "/b_read" (:id buf) path 0 -1 0 1)
+    (with-meta
+      (assoc buf
+        :path path
+        :open? (atom true))
+      {:type ::buffer-cue})))
+
+(derive ::buffer-cue ::buffer)
+
+(defn buffer-cue?
+  [bc]
+  (isa? (type bc) ::buffer-cue))
+
+(defn buffer-cue-pos
+  "Moves the start position of a buffer cue to the frame indicated by
+  'pos'. Defaults to 0. Returns the buffer when done."
+  ([buf-cue]
+     (buffer-cue-pos buf-cue 0))
+  ([buf-cue pos]
+     (assert (buffer-cue? buf-cue))
+     (when-not @(:open? buf-cue)
+       (throw (Exception. "buffer-cue is closed.")))
+     (let [{:keys [id path]} buf-cue]
+       (snd "/b_close" id)
+       (snd "/b_read" id path pos -1 0 1))
+     buf-cue))
+
+(defn buffer-cue-close
+  "Close a buffer stream created with #'buffer-cue. Also frees the internal
+  buffer. Returns the path of the streaming file."
+  [buf-cue]
+  (assert (buffer-cue? buf-cue))
+  (when-not @(:open? buf-cue)
+    (throw (Exception. "buffer-cue already closed.")))
+
+  (snd "/b_close" (:id buf-cue))
+  (buffer-free buf-cue)
+  (reset! (:open? buf-cue) false)
+  (:path buf-cue))
+
 (defmulti buffer-id type)
 (defmethod buffer-id java.lang.Integer [id] id)
 (defmethod buffer-id java.lang.Long [id] id)
