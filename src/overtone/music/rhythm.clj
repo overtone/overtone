@@ -34,19 +34,25 @@
   (def m (metronome 128))
   (m)          ; => <current beat number>
   (m 200)      ; => <timestamp of beat 200>
+  (m :bpm)     ; => return the current bpm val
   (m :bpm 140) ; => set bpm to 140"
   [bpm]
   (let [start   (atom (now))
-        tick-ms (atom (beat-ms 1 bpm))]
+        tick-ms (atom (beat-ms 1 bpm))
+        cur-bpm (atom bpm)]
     (fn
       ([] (inc (long (/ (- (now) @start) @tick-ms))))
-      ([beat] (+ (* beat @tick-ms) @start))
+      ([arg] (cond
+              (number? arg) (+ (* arg @tick-ms) @start)
+              (= :bpm arg) @cur-bpm
+              :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
       ([_ bpm]
        (let [tms (beat-ms 1 bpm)
              cur-beat (long (/ (- (now) @start) @tick-ms))
              new-start (- (now) (* tms cur-beat))]
          (reset! tick-ms tms)
-         (reset! start new-start))
+         (reset! start new-start)
+         (reset! cur-bpm bpm))
        [:bpm bpm]))))
 
 (comment defprotocol IMetronome
