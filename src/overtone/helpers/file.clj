@@ -375,9 +375,10 @@
 
 (defn- print-download-file
   [url]
-  (let [size   (remote-file-size url)
-        p-size (pretty-file-size size)]
-    (print-if-verbose (str "Downloading file (" p-size ") - "  url))))
+  (let [size     (remote-file-size url)
+        p-size   (pretty-file-size size)
+        size-str (if (<= size 0) "" (str "(" p-size ")"))]
+    (print-if-verbose (str "Downloading file " size-str " - "  url))))
 
 (defn download-file
   "Downloads the file pointed to by url to local path. If no timeout
