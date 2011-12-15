@@ -12,7 +12,7 @@
         snd (limiter snd 0.8)]
     (out 0 (pan2 snd))))
 
-(feedback-loop)
+;(feedback-loop)
 
 (defsynth distorted-feedback []
   (let [noiz (mul-add (lf-noise0:kr 0.5) 2 2.05)
@@ -24,6 +24,6 @@
         fb-out (local-out snd)]
     (out 0 (pan2 snd))))
 
-(distorted-feedback)
+;(distorted-feedback)
 
-(stop)
+;(stop)
