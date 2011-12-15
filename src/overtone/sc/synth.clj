@@ -332,7 +332,7 @@
   These can also be abbreviated:
       (foo :tgt 2 :pos :head)
   "
-  [sname arg-names]
+  [sname arg-names & [params]]
   (fn [& args]
     (let [args (if (and (= 1 (count args))
                         (map? (first args))
@@ -356,8 +356,14 @@
           args          (map #(if (id-able-type? %)
                                 (:id %) %) args)
 
-          arg-map       (arg-mapper args arg-names {})
+          defaults (if params
+                     (into {} (map (fn [{:keys [name value]}]
+                                     [name @value])
+                                   params))
+                     {})
+          arg-map  (arg-mapper args arg-names defaults)
 ]
+      (println arg-map)
       (player arg-map))))
 
 (defn normalize-synth-args
@@ -391,6 +397,7 @@
              ~@ugen-form)
            [~sname ~params *ugens* (into [] *constants*)])))))
 
+
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen functions
   provided by overtone.sc.ugen.  This will return an anonymous function which
@@ -400,7 +407,8 @@
   `(let [[sname# params# ugens# constants#] (pre-synth ~@args)
          sdef# (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
-         player# (synth-player sname# arg-names#)
+         params# (map #(assoc % :value (atom (:default %))) params#)
+         player# (synth-player sname# arg-names# params#)
          smap# (callable-map {:name sname#
                               :ugens ugens#
                               :sdef sdef#

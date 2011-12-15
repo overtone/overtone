@@ -30,7 +30,7 @@
      (alter handler-ref* assoc event-type (assoc handlers key [handler arity]))
      true)))
 
-(defn- run-handler
+(defn run-handler
   "Apply the handler to the args - handling exceptions gracefully."
   [handler & args]
   ;;deref vars so arg-count works correctly

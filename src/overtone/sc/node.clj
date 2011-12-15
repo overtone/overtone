@@ -80,6 +80,7 @@
   (node \"foo\" {:pitch 60} {:target 0})
   (node \"foo\" {:pitch 60} {:position :tail :target 2})
   "
+  ([synth-name] (node synth-name {} {:position :tail, :target 0}))
   ([synth-name arg-map] (node synth-name arg-map {:position :tail, :target 0}))
   ([synth-name arg-map location]
      (if (not (server-connected?))
