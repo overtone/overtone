@@ -14,7 +14,6 @@
 (add-watch master-vol*
            ::update-vol-on-server
            (fn [k r old new-vol]
-             (println "updating volume to " new-vol (main-mixer-group))
              (ctl (main-mixer-group) :master-volume new-vol)))
 
 (add-watch master-gain*
