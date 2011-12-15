@@ -11,7 +11,7 @@
             [overtone.music rhythm pitch tuning time]
             [overtone.studio rig util fx]
             [overtone.repl ugens examples shell]
-            [overtone.libs asset event]
+            [overtone.libs asset event freesound]
             [overtone.version]
             [overtone.viz scope]))
 
@@ -46,6 +46,7 @@
  'overtone.repl.shell
  'overtone.libs.asset
  'overtone.libs.event
+ 'overtone.libs.freesound
  'overtone.version
  'overtone.viz.scope
  )
