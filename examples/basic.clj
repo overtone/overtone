@@ -91,12 +91,11 @@
 ;; (play-chords (now))
 ;; (stop)
 
-
-(def kick (sample "/home/rosejn/studio/samples/kit/boom.wav"))
-;(kick)
+(def kick-d (sample (freesound-path 41155)))
+;(kick-d)
 
 (defn looper [t dur notes]
-  (at t (kick))
+  (at t (kick-d))
   (at (+ t 350) (doseq [note (chord-notes)] (overpad (first notes) 0.3 0.1)))
   (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
   (apply-at (+ t dur) #'looper (+ t dur) dur (next notes) []))
