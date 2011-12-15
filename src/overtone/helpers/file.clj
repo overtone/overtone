@@ -12,6 +12,16 @@
 
 (def ^{:dynamic true} *verbose-overtone-file-helpers* false)
 
+(defn print-if-verbose
+  "Prints the arguments if *verbose-overtone-file-helpers* is bound to true. If
+  it is also bound to an integer, will print a corresponding number of spaces at
+  the start of each line to indent the output."
+  [& to-print]
+  (when *verbose-overtone-file-helpers*
+    (when (integer? *verbose-overtone-file-helpers*)
+      (dotimes [_ *verbose-overtone-file-helpers*] (print " ")))
+    (apply println to-print)))
+
 (defn pretty-file-size
   "Takes number of bytes and returns a prettied string with an appropriate unit:
   b, kb or mb."
@@ -191,7 +201,7 @@
                                         (< (:val slice) max))
                                slice))
                            slices)]
-      (println (str (:perc slice) "% (" (pretty-file-size num-copied-bytes)  ") completed")))))
+      (print-if-verbose (str (:perc slice) "% (" (pretty-file-size num-copied-bytes)  ") completed")))))
 
 (defn- remote-file-copy [in-stream out-stream file-size]
   "Similar to  the corresponding implementation of #'do-copy in 'clojure.java.io
@@ -202,13 +212,11 @@
         slices   (percentage-slices file-size 100)]
     (loop [bytes-copied 0]
       (let [size (.read in-stream buffer)]
-        (when *verbose-overtone-file-helpers*
-          (print-file-copy-status bytes-copied size file-size slices))
+        (print-file-copy-status bytes-copied size file-size slices)
         (when (pos? size)
           (do (.write out-stream buffer 0 size)
               (recur (+ size bytes-copied))))))
-    (when *verbose-overtone-file-helpers*
-      (println "Download successful"))))
+    (print-if-verbose "Download successful")))
 
 (defn- download-file-without-timeout
   "Downloads remote file at url to local file specified by target path. Has
@@ -362,16 +370,15 @@
          (catch Exception e
            (rm-rf! path)
            (Thread/sleep wait-t)
-           (when *verbose-overtone-file-helpers*
-             (println (str "Download timed out. Retry " (inc attempts-made) ": " url )))
+           (print-if-verbose (str "Download timed out. Retry " (inc attempts-made) ": " url ))
            (download-file* url path timeout n-retries wait-t (inc attempts-made)))))))
 
 (defn- print-download-file
   [url]
-  (when *verbose-overtone-file-helpers*
-    (let [size   (remote-file-size url)
-          p-size (pretty-file-size size)]
-      (println (str "Downloading file (" p-size ") - "  url)))))
+  (let [size     (remote-file-size url)
+        p-size   (pretty-file-size size)
+        size-str (if (<= size 0) "" (str "(" p-size ")"))]
+    (print-if-verbose (str "Downloading file " size-str " - "  url))))
 
 (defn download-file
   "Downloads the file pointed to by url to local path. If no timeout
