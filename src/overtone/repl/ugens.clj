@@ -22,13 +22,15 @@
      #(:name %)
      (map #(second %)
           (filter (fn [[key spec]]
-                    (let [docstr  (:full-doc spec)
-                          docstr  (str docstr " " (overtone-ugen-name (:name spec)))
-                          matches (filter #(re-find % docstr) regexps)]
+                    (let [names (str (:name spec) " "
+                                     (.toLowerCase (:name spec)) " "
+                                     (overtone-ugen-name (:name spec)))
+                          search-str (str (:full-doc spec) " " names)
+                          matches (filter #(re-find % search-str) regexps)]
                       (= matches regexps)))
                   (combined-specs))))))
 
-(defn- print-ug-summaries
+(defn- print-ugen-summaries
   "Pretty print out a list of ugen specs by printing their name and summary on
   separate lines."
   [specs longest-name-len]
@@ -60,7 +62,7 @@
             (:full-doc ug-spec)
             "\n\n"))))
 
-(defn print-ug-docs
+(defn print-ugen-docs
   "Pretty print out a list of ugen specs by printing out their names and
   full-doc strings."
   [specs]
@@ -69,7 +71,7 @@
     #(println (pretty-ugen-doc-string %))
     specs)))
 
-(defmacro find-ug
+(defmacro find-ugen
   "Find a ugen containing the specified terms which may be either strings or
   regexp patterns. Will search the ugen's docstrings for occurrances of all the
   specified terms. Prints out a list of summaries of each matching ugen.
@@ -93,7 +95,7 @@
      :default
      (print-ug-summaries specs longest-name-len))))
 
-(defmacro find-ug-doc
+(defmacro find-ugen-doc
   "Find a ugen containing the specified terms which may be either strings or
   regexp patterns. Will search the ugen's docstrings for occurrances of all the
   specified terms. Prints out each ugens full docstring. Similar to find-doc.
@@ -109,7 +111,7 @@
       (println "Sorry, unable to find a matching ugen.")
       (print-ug-docs specs))))
 
-(defmacro ug-doc
+(defmacro ugen-doc
   "Print documentation for ugen with name ug-name"
   [ug-name]
   `(if-let [spec# (fetch-ugen-spec '~ug-name)]
