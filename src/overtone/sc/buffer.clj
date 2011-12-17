@@ -252,10 +252,10 @@
 
   [path & args]
   (let [path (resolve-tilde-path path)
-        arg-map (merge (apply hash-map args)
-                       {:n-chans 2
+        arg-map (merge {:n-chans 2
                         :start 0
-                        :size 65536})
+                        :size 65536}
+                       (apply hash-map args))
         {:keys [n-chans start size]} arg-map
         buf (buffer size n-chans)]
     (snd "/b_read" (:id buf) path start -1 0 1)
