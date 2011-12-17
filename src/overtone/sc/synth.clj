@@ -363,7 +363,6 @@
                      {})
           arg-map  (arg-mapper args arg-names defaults)
 ]
-      (println arg-map)
       (player arg-map))))
 
 (defn normalize-synth-args
@@ -407,14 +406,14 @@
   `(let [[sname# params# ugens# constants#] (pre-synth ~@args)
          sdef# (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
-         params# (map #(assoc % :value (atom (:default %))) params#)
-         player# (synth-player sname# arg-names# params#)
+         params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
+         player# (synth-player sname# arg-names# params-with-vals#)
          smap# (callable-map {:name sname#
                               :ugens ugens#
                               :sdef sdef#
                               :player player#
                               :args arg-names#
-                              :params params#
+                              :params params-with-vals#
                               :type ::synth}
                              player#)]
      (load-synthdef sdef#)
@@ -458,9 +457,11 @@
   (let [[s-name params ugen-form] (synth-form s-name s-form)]
     `(def ~s-name (synth ~s-name ~params ~ugen-form))))
 
-(defmethod print-method ::synth [syn w]
-  (let [info (meta syn)]
-    (.write w (format "#<synth: %s>" (:name info)))))
+(defn synth?
+  "Returns true if s is a synth, false otherwise."
+  [s]
+  (and (associative? s)
+       (= ::synth (:type s))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Synthdef de-compilation
@@ -580,14 +581,56 @@
        (after-delay ~demo-time #(node-free note#))
        note#)))
 
+(defn- active-synths*
+  [& [root]]
+  (let [root (or root (node-tree))
+        synths (if (= :synth (:type root))
+                 #{root}
+                 #{})
+        children (mapcat active-synths* (:children root))]
+    (into [] (if (empty? children)
+               synths
+               (set (concat synths children))))))
+
 (defn active-synths
-  "Returns a list of maps each representing an active synth on the server."
-  ([] (active-synths (node-tree)))
-  ([root]
-   (let [synths (if (= :synth (:type root))
-                  #{root}
-                  #{})
-         children (mapcat active-synths (:children root))]
-     (into [] (if (empty? children)
-                synths
-                (set (concat synths children)))))))
+  "Return a seq of the actively running synth nodes.  If a synth or inst are passed as the filter it will only return nodes of that type.
+
+    (active-synths) ; => [{:type synth :name \"mixer\" :id 12}
+                          {:type synth :name \"my-synth\" :id 24}]
+    (active-synths my-synth) ; => [{:type synth :name \"my-synth\" :id 24}]
+  "
+  [& [synth-filter]]
+  (let [active (active-synths*)]
+    (if synth-filter
+      (filter #(= (:name synth-filter) (:name %)) active)
+      active)))
+
+(defmethod print-method ::synth [syn w]
+  (let [info (meta syn)]
+    (.write w (format "#<synth: %s>" (:name info)))))
+
+(defmethod overtone.sc.node/kill :overtone.sc.synth/synth
+  [& args]
+  (doseq [synth args]
+    (apply kill (map :id (active-synths synth)))))
+
+(defn modify-synth-params
+  "Update synth parameter value atoms storing the current default settings."
+  [s & params-vals]
+  (let [params (:params s)]
+    (for [[param value] (partition 2 params-vals)]
+      (let [val-atom (:value (first (filter #(= (:name %) (name param)) params)))]
+        (if val-atom
+          (reset! val-atom value)
+          (throw (IllegalArgumentException. (str "Invalid control parameter: " param))))))))
+
+(defn reset-synth-defaults
+  "Reset a synth to it's default settings defined at definition time."
+  [synth]
+  (doseq [param (:params synth)]
+    (reset! (:value param) (:default param))))
+
+(defmethod overtone.sc.node/ctl :overtone.sc.synth/synth
+  [synth & args]
+  (apply modify-synth-params synth args))
+>>>>>>> Simplifying gui implementation after seesaw fix.

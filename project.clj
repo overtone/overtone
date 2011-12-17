@@ -11,5 +11,5 @@
                  [overtone/midi-clj "0.2.1"]
                  [clj-glob "1.0.0"]
                  [org.clojure/core.match "0.2.0-alpha6"]
-                 [seesaw "1.2.2"]]
+                 [seesaw "1.2.3-SNAPSHOT"]]
   :jvm-opts ["-Xms256m" "-Xmx1g" "-XX:+UseConcMarkSweepGC"])

@@ -175,14 +175,15 @@
                        (group :tail @inst-group*)
                        nil))
          arg-names# (map :name params#)
-         s-player# (synth-player sname# arg-names#)
+         params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
+         s-player# (synth-player sname# arg-names# params-with-vals#)
          player# (fn [& play-args#]
                    (let [ins# (get @instruments* sname#)]
                      (apply s-player#
                             :tgt (:group ins#)
                             play-args#)))
          inst# (callable-map {:type ::instrument
-                              :params params#
+                              :params params-with-vals#
                               :name sname#
                               :ugens ugens#
                               :sdef sdef#
@@ -210,7 +211,7 @@
 
   (definst inst-name [param0 value0 param1 value1 param2 value2] ...)
 
-  The returned player function takes any number of positional arguments, 
+  The returned player function takes any number of positional arguments,
   followed by any number of keyword arguments. For example, all of the following
   are equivalent:
 
@@ -221,10 +222,10 @@
   Omitted parameters are given their default value from the instrument's
   parameter list.
 
-  The instrument definition will be loaded immediately. Instruments differ 
-  from basic synths in that they will automatically add pan2 and out ugens 
-  when necessary to create a stereo synth. Also, each instrument is assigned 
-  its own group which all instances will automatically be placed in. This 
+  The instrument definition will be loaded immediately. Instruments differ
+  from basic synths in that they will automatically add pan2 and out ugens
+  when necessary to create a stereo synth. Also, each instrument is assigned
+  its own group which all instances will automatically be placed in. This
   allows you to control all of an instrument's running synths with one command:
 
   (ctl inst-name :param0 val0 :param1 val1)
@@ -232,11 +233,11 @@
   You may also kill all of an instrument's running synths:
 
   (kill inst-name)
-  
+
   A doc string may also be included between the instrument's name ant
   parameter list:
-  
-  (definst lucille 
+
+  (definst lucille
     \"What's that Lucille?\"
     [] ...)
   "
@@ -256,7 +257,8 @@
 
 (defmethod overtone.sc.node/ctl :overtone.studio.rig/instrument
   [inst & ctls]
-  (apply node-control (:group inst) (id-mapper ctls)))
+  (apply node-control (:group inst) (id-mapper ctls))
+  (apply modify-synth-params inst ctls))
 
 (defonce session* (ref
                     {:metro (metronome 120)
