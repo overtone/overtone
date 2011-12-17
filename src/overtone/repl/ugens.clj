@@ -77,9 +77,9 @@
   specified terms. Prints out a list of summaries of each matching ugen.
   If only one matching ugen is found, prints out full docstring.
 
-  (find-ug foo)         ;=> finds all ugens containing the word foo
-  (find-ug foo \"bar\") ;=> finds all ugens containing the words foo AND bar
-  (find-ug #\"foo*\")   ;=> finds all ugens matching the regex foo*"
+  (find-ugen foo)         ;=> finds all ugens containing the word foo
+  (find-ugen foo \"bar\") ;=> finds all ugens containing the words foo AND bar
+  (find-ugen #\"foo*\")   ;=> finds all ugens matching the regex foo*"
   [& search-terms]
   (let [search-terms     (map #(if (symbol? %) (str %) %) search-terms)
         specs            (find-matching-ugen-specs search-terms)
@@ -90,32 +90,32 @@
      (println "Sorry, unable to find a matching ugen.")
 
      (= 1 (count specs))
-     (print-ug-docs specs)
+     (print-ugen-docs specs)
 
      :default
-     (print-ug-summaries specs longest-name-len))))
+     (print-ugen-summaries specs longest-name-len))))
 
 (defmacro find-ugen-doc
   "Find a ugen containing the specified terms which may be either strings or
   regexp patterns. Will search the ugen's docstrings for occurrances of all the
   specified terms. Prints out each ugens full docstring. Similar to find-doc.
 
-  (find-ug-doc foo)         ;=> finds all ugens containing the word foo
-  (find-ug-doc \"foo\" bar) ;=> finds all ugens containing the words foo
+  (find-ugen-doc foo)         ;=> finds all ugens containing the word foo
+  (find-ugen-doc \"foo\" bar) ;=> finds all ugens containing the words foo
                                     AND bar
-  (find-ug-doc #\"foo*\")   ;=> finds all ugens matching the regex foo*"
+  (find-ugen-doc #\"foo*\")   ;=> finds all ugens matching the regex foo*"
   [& search-terms]
   (let [search-terms (map #(if (symbol? %) (str %) %) search-terms)
         specs        (find-matching-ugen-specs search-terms)]
     (if (empty? specs)
       (println "Sorry, unable to find a matching ugen.")
-      (print-ug-docs specs))))
+      (print-ugen-docs specs))))
 
 (defmacro ugen-doc
   "Print documentation for ugen with name ug-name"
   [ug-name]
   `(if-let [spec# (fetch-ugen-spec '~ug-name)]
-     (print-ug-docs [spec#])
+     (print-ugen-docs [spec#])
      (println "Sorry, unable to find ugen with name")))
 
 (defmacro odoc
