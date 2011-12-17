@@ -13,7 +13,8 @@
             [overtone.repl ugens examples shell]
             [overtone.libs asset event freesound]
             [overtone.version]
-            [overtone.viz scope]))
+            [overtone.viz scope]
+            [overtone.gui control]))
 
 (immigrate
  'overtone.util.lib
@@ -49,4 +50,5 @@
  'overtone.libs.freesound
  'overtone.version
  'overtone.viz.scope
+ 'overtone.gui.control
  )
