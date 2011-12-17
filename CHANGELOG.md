@@ -1,5 +1,68 @@
 # Overtone Change Log
 
+## Version 0.6
+
+### New Committers
+* Matthew Gilliard
+* Dave Ray
+* Harold Hausman
+
+### New
+
+* Improve scsynth executable lookup strategy for linux
+* Warn users if the number of samples they're attempting to write exceeds the capacity of UDP packets
+* Add #'write-wav for writing data (either a buffer or a seq) to an external file.
+* Add SC compatable wavetable format converter #'data->wavetable
+* Add more file helper fns #'mkdir #'file-exists? #'mv! #'file? #'mk-tmp-dir! #'rm-rf! #'mkdir-p! #'absolute-path? #'dir-exists? #'subdir? #'cannonical-path #'ensure-trailing-file-separator #'remote-file-size #'dir-empty?
+* Add retry functionality to #'download-fie
+* Add string helper fns #'spit-on-char
+* Add system helper fns #'window-os? #'linux-os? #'mac-os?
+* Add zip helper fns #'zip-file #'zip-entry #'zip-ls #'zip-cat #'unzip
+* Make #'defcgen globally accessible
+* Improve file-store fns. Add #'config-get #'config-set!
+* Change ~/.overtone structure - put logs in separate dir and also create assets dir.
+* Print user name on boot
+* Add #'create-buffer-data for generating buffer data
+* Add master mixer volume and pan controls #'volume #'pan
+* Set default port for external server to 57110
+* Add basic support for chord inversion
+* Add beginnings of an asset management system for dealing with direct asset urls and zipped bundles.
+* Allow #'load-samples to take a list of strings of path partials as a param which it can stitch together using the correct path
+* Add #'server-sample-rate cached server info val.
+* Expand docstrign for definst
+* Add simple 2 channel recorder functionality available through #'start-recording and #'stop-recording
+* Add support for mapping control busses to a synth params
+* Automatically determine if a sample is stereo or mono and create the appropriate player
+* Add #'buffer-cue for streaming audio from disk. Also add supporting fn #'buffer-cue-pos
+* Add ability to query a metronome for its current bpm value by passing it a single arg :bpm
+* Make find-ugen more flexible - allow searches for SC name, lowecase and overtone names. Also rename *-ug ugen helper fns to *-ugen
+
+
+### New Instruments
+* Add sampled-piano (piano samples are linked to as an asset)
+
+### Examples
+
+* Add an example of mapping a control bus onto synth params
+* Add Schroeder-reverb example
+* Add feedback example
+
+### Depricated
+
+### Bugfixes
+
+* Fix cgens to deal with the case where arg names were overriden by the explicit bindings created with #'with-overloaded-ugens
+* Fix #'bus-set!
+* Fix #'nth-interval for the case where no scale is specified (defaults to diatonic)
+* Only run #'shutdown-server in JVM shutdown hook when the server is already connected.
+* Evaluate default vals passed to synths - allows the use of fars and fns to set default parms.
+* Fix #'buffer-save - choose defaults that actually work.
+* Refer to correct namespaced keyword for instrument
+* Fix sample re-loading on server boot
+* Add #'status alias for #'server-status
+* Fix :shutdown on-sync-event callback fn ::reset-cached-server-info
+* Fix hardcoded wav path with freesound asset.
+
 ## Version 0.5 (17th Oct 2011)
 
 ### New Committers
