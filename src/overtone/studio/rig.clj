@@ -176,7 +176,7 @@
                        nil))
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
-         s-player# (synth-player sname# arg-names# params-with-vals#)
+         s-player# (synth-player sname# params-with-vals#)
          player# (fn [& play-args#]
                    (let [ins# (get @instruments* sname#)]
                      (apply s-player#

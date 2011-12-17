@@ -332,38 +332,36 @@
   These can also be abbreviated:
       (foo :tgt 2 :pos :head)
   "
-  [sname arg-names & [params]]
-  (fn [& args]
-    (let [args (if (and (= 1 (count args))
-                        (map? (first args))
-                        (not (id-able-type? (first args))))
-                 (flatten (seq (first args)))
+  [sname params]
+  (let [arg-names (map keyword (map :name params))]
+    (fn [& args]
+      (let [args (if (and (= 1 (count args))
+                          (map? (first args))
+                          (not (id-able-type? (first args))))
+                   (flatten (seq (first args)))
 
-                 args)
-          [args sgroup] (if (or (= :target (first args))
-                                (= :tgt    (first args)))
-                          [(drop 2 args) (second args)]
-                          [args @synth-group*])
-          [args pos]    (if (or (= :position (first args))
-                                (= :pos      (first args)))
-                          [(drop 2 args) (second args)]
-                          [args :tail])
-          [args sgroup] (if (or (= :target (first args))
-                                (= :tgt    (first args)))
-                          [(drop 2 args) (second args)]
-                          [args sgroup])
-          player        #(node sname % {:position pos :target sgroup })
-          args          (map #(if (id-able-type? %)
-                                (:id %) %) args)
+                   args)
+            [args sgroup] (if (or (= :target (first args))
+                                  (= :tgt    (first args)))
+                            [(drop 2 args) (second args)]
+                            [args @synth-group*])
+            [args pos]    (if (or (= :position (first args))
+                                  (= :pos      (first args)))
+                            [(drop 2 args) (second args)]
+                            [args :tail])
+            [args sgroup] (if (or (= :target (first args))
+                                  (= :tgt    (first args)))
+                            [(drop 2 args) (second args)]
+                            [args sgroup])
+            player        #(node sname % {:position pos :target sgroup })
+            args          (map #(if (id-able-type? %)
+                                  (:id %) %) args)
 
-          defaults (if params
-                     (into {} (map (fn [{:keys [name value]}]
-                                     [name @value])
-                                   params))
-                     {})
-          arg-map  (arg-mapper args arg-names defaults)
-]
-      (player arg-map))))
+            defaults (into {} (map (fn [{:keys [name value]}]
+                                       [(keyword name) @value])
+                                     params))
+            arg-map  (arg-mapper args arg-names defaults)]
+        (player arg-map)))))
 
 (defn normalize-synth-args
   "Pull out and normalize the synth name, parameters, control proxies and the ugen form
@@ -407,7 +405,7 @@
          sdef# (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
-         player# (synth-player sname# arg-names# params-with-vals#)
+         player# (synth-player sname# params-with-vals#)
          smap# (callable-map {:name sname#
                               :ugens ugens#
                               :sdef sdef#

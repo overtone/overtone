@@ -164,7 +164,7 @@
       (if (and
             (keyword? (first args))
             (even? (count args)))
-        (conj arg-map (apply hash-map args))
+        (merge arg-map (apply hash-map args))
         (recur (next args)
                (next names)
                (assoc arg-map
