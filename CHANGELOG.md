@@ -15,7 +15,7 @@
 * Add SC compatable wavetable format converter #'data->wavetable
 * Add more file helper fns #'mkdir #'file-exists? #'mv! #'file? #'mk-tmp-dir! #'rm-rf! #'mkdir-p! #'absolute-path? #'dir-exists? #'subdir? #'cannonical-path #'ensure-trailing-file-separator #'remote-file-size #'dir-empty?
 * Add retry functionality to #'download-fie
-* Add string helper fns #'spit-on-char
+* Add string helper fns #'split-on-char
 * Add system helper fns #'window-os? #'linux-os? #'mac-os?
 * Add zip helper fns #'zip-file #'zip-entry #'zip-ls #'zip-cat #'unzip
 * Make #'defcgen globally accessible
@@ -47,7 +47,7 @@
 * Add Schroeder-reverb example
 * Add feedback example
 
-### Depricated
+### Deprecated
 
 ### Bugfixes
 
