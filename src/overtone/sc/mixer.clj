@@ -31,16 +31,16 @@
 (defonce __BUS-MIXERS__
   (do
     (defsynth out-bus-mixer [in-bus 20 out-bus 0
-                             volume 0.5 master-volume @master-vol*]
-      (let [source        (internal:in in-bus)
-            source        (* volume master-volume source)
-            not-safe?     (trig1 (a2k (> source 1)) 1)
-            limited       (compander source source 0.7
-                                     1 0.1
-                                     0.05 0.05)
-            std-clipped   (clip2 limited 1)
-            safe-clipped  (clip2 limited 0.1)
-            safe-snd      (select not-safe? [std-clipped safe-clipped])]
+                             volume 0.5 master-volume @master-vol*
+                             safe-recovery-time 3]
+      (let [source    (internal:in in-bus)
+            source    (* volume master-volume source)
+            not-safe? (trig1 (a2k (> source 1)) safe-recovery-time)
+            safe-vol  (+ 0.1 (abs (- 1 not-safe?)))
+            safe-vol  (lag2-ud safe-vol 1 0.1)
+            snd-idx   (< safe-vol 0.5)
+            snd       (select snd-idx [source (pink-noise)])
+            safe-snd  (* safe-vol (clip2 snd 1))]
         (send-reply not-safe?
                     "/server-audio-clipping-rogue-vol"
                     out-bus)
