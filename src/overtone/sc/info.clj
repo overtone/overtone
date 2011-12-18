@@ -1,5 +1,6 @@
 (ns
-    ^{:doc "Functions for returning information regarding the connected SC server"}
+    ^{:doc "Functions for returning information regarding the connected SC server"
+      :author "Sam Aaron"}
   overtone.sc.info
   (:use [overtone.libs event]
         [overtone.sc synth gens node server]
@@ -31,7 +32,8 @@
   "Fetches a bunch of useful server info. Has to trigger and poll a synth to
   fetch data. See #'server-num-output-buses, #'server-num-input-buses,
   #'server-num-audio-buses and #'sever-num-buffers for fast cached versions
-  of the static values in this info map."
+  of the static values in this info map. Note, the number of running synths
+  will also include the synth used to obtain this information."
   []
   (when (server-disconnected?)
     (throw (Exception. "Please connect to a server before attempting to ask for server-info.")))
