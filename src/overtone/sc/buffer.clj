@@ -1,5 +1,6 @@
 (ns overtone.sc.buffer
-  (:use [overtone.helpers file]
+  (:use [clojure.java.io :only [file]]
+        [overtone.helpers file]
         [overtone.util lib]
         [overtone.libs event]
         [overtone.sc server]
@@ -43,6 +44,31 @@
           :rate (:rate info)
           :id (:id info)}
          {:type ::buffer}))))
+
+(defn buffer-alloc-read
+  ([path]
+     (buffer-alloc-read path 0 -1))
+  ([path start]
+     (buffer-alloc-read path start -1))
+  ([path start n-frames]
+     (let [path (canonical-path path)
+           f    (file path)]
+       (when-not (.exists f)
+         (throw (Exception. (str "Unable to read file - file does not exist: " path))))
+       (let [f-name (.getName f)
+             id     (alloc-id :audio-buffer)]
+         (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
+         (let [{:keys [id size rate n-channels]} (buffer-info id)]
+           (when (every? zero? [size rate n-channels])
+             (free-id :audio-buffer id)
+             (throw (Exception. (str "Unable to read file - file does not appear to be a valid audio file: " path))))
+           (with-meta
+             {:allocated-on-server (atom true)
+              :size size
+              :n-channels n-channels
+              :rate rate
+              :id id}
+             {:type ::buffer}))))))
 
 (defn buffer? [buf]
   (isa? (type buf) ::buffer))
