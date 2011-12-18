@@ -577,6 +577,7 @@
        note#)))
 
 (defn active-synths
+  "Returns a list of maps each representing an active synth on the server."
   ([] (active-synths (node-tree)))
   ([root]
    (let [synths (if (= :synth (:type root))
@@ -584,5 +585,5 @@
                   #{})
          children (mapcat active-synths (:children root))]
      (into [] (if (empty? children)
-       synths
-       (set (concat synths children)))))))
+                synths
+                (set (concat synths children)))))))
