@@ -147,6 +147,11 @@ Head over to Vimeo for a fast-paced 4 minute introduction to live-coding with Ov
 
   http://vimeo.com/22798433
 
+For a nice overview of the basics of creating and playing with synthesized
+instruments in Overtone checkout Philip Potter's 20 minute workshop:
+
+  http://skillsmatter.com/podcast/scala/clojurex-unpanel-2894
+
 There are also the following tutorials:
 
 * Setting up an Overtone Development Environment - Running on Edge http://vimeo.com/25102399
