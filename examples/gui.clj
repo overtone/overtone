@@ -8,8 +8,8 @@
   (out 0 (* [0.8 0.8] (env-gen (perc attack decay) :action FREE)
             (sin-osc (midicps note)))))
 
-; Build the gui
-(synth-controller foo)
+; Create the gui controller
+;(synth-controller foo)
 
 (def m (metronome 85))
 
@@ -27,10 +27,10 @@
   (* [0.8 0.8] (env-gen (perc attack decay) :action FREE)
             (sin-osc (midicps note) [0 0.2])))
 
-(synth-controller bar)
+;(synth-controller bar)
 
 (defn bar-player [b]
   (at (m b) (bar))
   (apply-at (m (inc b)) #'bar-player [(inc b)]))
 
-(bar-player (m))
+;(bar-player (m))
