@@ -1,7 +1,7 @@
 (ns overtone.inst.sampled-piano
   (:use [overtone.core]))
 
-(def piano-dir (bundled-asset-dir "http://www.ericmhobbs.com/Blackhole/music-backup/MIS_Stereo_Piano.zip"))
+(def piano-dir (asset-bundle-dir "http://www.ericmhobbs.com/Blackhole/music-backup/MIS_Stereo_Piano.zip"))
 
 (defonce piano-samples (load-samples piano-dir "Piano" "*LOUD*"))
 

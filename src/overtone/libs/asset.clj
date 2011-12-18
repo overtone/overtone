@@ -116,15 +116,15 @@
         (rm-rf! dest-dir)
         (throw e)))))
 
-(defn bundled-asset-path
+(defn asset-bundle-path
   "Given a url to a remote zipfile and either a / separated internal path or seq
   of strings will return a path to a copy of the internal extracted asset on the
   local file system. Will download, extract and persist all the assets of the
   zipfile if necessary.
 
   usage:
-  (bundled-asset \"http://foo.com/a.zip\" \"internal/asset.wav\")       ;=> path
-  (bundled-asset \"http://foo.com/a.zip\" [\"internal\" \"asset.wav\"]) ;=> path"
+  (asset-bundle-path \"http://foo.com/a.zip\" \"internal/asset.wav\")
+  (asset-bundle-path \"http://foo.com/a.zip\" [\"internal\" \"asset.wav\"])"
   [url name]
   (let [name          (if (string? name)
                         (split-on-char name "/")
@@ -137,9 +137,9 @@
           (download-unzip-and-cache-bundled-asset url))
         (fetch-cached-path url internal-path)))))
 
-(defn bundled-asset-dir
+(defn asset-bundle-dir
   "Returns the cached directory of of the bundled asset. Will download, extract
   and persist all the assets of the zipfile referended by url if necessary"
   [url]
-  (bundled-asset-path url "")
+  (asset-bundle-path url "")
   (cache-dir url))
