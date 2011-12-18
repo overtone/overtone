@@ -21,13 +21,6 @@
            (fn [k r old new-gain]
              (ctl (main-input-group) :master-gain new-gain)))
 
-(on-event "/server-audio-clipping-rogue-input"
-          (fn [msg]
-            (println "TOO LOUD!! (clipped) Bus:"
-                     (int (nth (:args msg) 2))
-                     "- fix source synth"))
-          ::server-audio-clipping-warner-input)
-
 (on-event "/server-audio-clipping-rogue-vol"
           (fn [msg]
             (println "TOO LOUD!! (clipped) Bus:"
@@ -40,23 +33,18 @@
     (defsynth out-bus-mixer [in-bus 20 out-bus 0
                              volume 0.5 master-volume @master-vol*]
       (let [source        (internal:in in-bus)
-            source        (clip2 source 2)
-            not-safe?     (> (a2k source) 1)
+            source        (* volume master-volume source)
+            not-safe?     (trig1 (a2k (> source 1)) 1)
             limited       (compander source source 0.7
                                      1 0.1
                                      0.05 0.05)
             std-clipped   (clip2 limited 1)
             safe-clipped  (clip2 limited 0.1)
-            safe-snd      (select not-safe? [std-clipped safe-clipped])
-            amplified-snd (* volume master-volume safe-snd)
-            final-snd     (clip2 amplified-snd 1)]
-        (send-reply (trig1 (> (a2k amplified-snd) 1) 0.25)
+            safe-snd      (select not-safe? [std-clipped safe-clipped])]
+        (send-reply not-safe?
                     "/server-audio-clipping-rogue-vol"
                     out-bus)
-        (send-reply (trig1 not-safe? 0.25)
-                    "/server-audio-clipping-rogue-input"
-                    out-bus)
-        (internal:out out-bus final-snd)))
+        (internal:out out-bus safe-snd)))
 
     (defsynth in-bus-mixer [in-bus 10 out-bus 0
                             gain 1 master-gain @master-gain*]
