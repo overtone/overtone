@@ -242,6 +242,8 @@
 
   :n-chans     - Number of channels for the buffer
                  Default 2
+  :start       - Start frame in file.
+                 Default 0
   :size        - Buffer size
                  Default 65536
 
@@ -252,13 +254,15 @@
   (let [path (resolve-tilde-path path)
         arg-map (merge (apply hash-map args)
                        {:n-chans 2
+                        :start 0
                         :size 65536})
-        {:keys [n-chans size]} arg-map
+        {:keys [n-chans start size]} arg-map
         buf (buffer size n-chans)]
-    (snd "/b_read" (:id buf) path 0 -1 0 1)
+    (snd "/b_read" (:id buf) path start -1 0 1)
     (with-meta
       (assoc buf
         :path path
+        :start start
         :open? (atom true))
       {:type ::buffer-cue})))
 
