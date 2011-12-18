@@ -139,7 +139,7 @@
 
 (defn asset-bundle-dir
   "Returns the cached directory of of the bundled asset. Will download, extract
-  and persist all the assets of the zipfile referended by url if necessary"
+  and persist all the assets of the zipfile referenced by url if necessary"
   [url]
   (asset-bundle-path url "")
   (cache-dir url))
