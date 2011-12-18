@@ -55,8 +55,7 @@
            f    (file path)]
        (when-not (.exists f)
          (throw (Exception. (str "Unable to read file - file does not exist: " path))))
-       (let [f-name (.getName f)
-             id     (alloc-id :audio-buffer)]
+       (let [id (alloc-id :audio-buffer)]
          (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
          (let [{:keys [id size rate n-channels]} (buffer-info id)]
            (when (every? zero? [size rate n-channels])
