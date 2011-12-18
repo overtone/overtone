@@ -103,7 +103,7 @@
 
 (defonce recorder-info* (ref nil))
 
-(defn start-recording
+(defn recording-start
   "Start recording a wav file to a new file at wav-path. Be careful - may
   generate very large files."
   [wav-path]
@@ -119,7 +119,7 @@
                               :buf-stream bs}))
     :recording-started))
 
-(defn stop-recording
+(defn recording-stop
   "Stop system-wide recording. This frees the file and writes the wav headers.
   Returns the path of the file created."
   []
