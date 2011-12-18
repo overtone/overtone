@@ -266,24 +266,21 @@
 
   Options:
 
-  :n-chans     - Number of channels for the buffer
-                 Default 2
   :start       - Start frame in file.
                  Default 0
   :size        - Buffer size
                  Default 65536
 
   Example usage:
-  (buffer-cue \"~/Desktop/foo.wav\" :n-chans 1)"
+  (buffer-cue \"~/Desktop/foo.wav\" :start (* 3 44100))"
 
   [path & args]
   (let [path (resolve-tilde-path path)
-        arg-map (merge {:n-chans 2
-                        :start 0
+        arg-map (merge {:start 0
                         :size 65536}
                        (apply hash-map args))
-        {:keys [n-chans start size]} arg-map
-        buf (buffer size n-chans)]
+        {:keys [start size]} arg-map
+        buf (buffer-alloc-read path start size)]
     (snd "/b_read" (:id buf) path start -1 0 1)
     (with-meta
       (assoc buf
