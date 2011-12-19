@@ -6,6 +6,7 @@
         [overtone.helpers.string :only [capitalize]]
         [overtone.helpers.system :only [get-os system-user-name]]
         [overtone.helpers.file :only [mkdir! file-exists? path-exists? mv!]]
+        [overtone version]
         [clojure.java.io :only [delete-file]]))
 
 (def CONFIG-DEFAULTS
@@ -59,6 +60,16 @@
              (alter config* assoc k v)))
          CONFIG-DEFAULTS))))
 
+(defn- update-seen-versions
+  []
+  (dosync
+   (let [val (get @config* :versions-seen)
+         val (or val #{})
+         new-val (conj val OVERTONE-VERSION-STR)]
+
+     (alter config* assoc :versions-seen new-val))))
+
+
 (defonce __MOVE-OLD-ROOT-DIR__
   (let [root (:root OVERTONE-DIRS)]
       (when (path-exists? (str root "/config"))
@@ -75,6 +86,7 @@
   (try
     (do
       (live-config OVERTONE-CONFIG-FILE)
-      (load-config-defaults))
+      (load-config-defaults)
+      (update-seen-versions))
     (catch Exception e
       (throw (Exception. (str "Unable to load config file - it doesn't appear to be valid clojure. Perhaps it has been modified externally? You may reset it by deleting " OVERTONE-CONFIG-FILE " and restarting Overtone. Error: " (.printStackTrace e)))))))
