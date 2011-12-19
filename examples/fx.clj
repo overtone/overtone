@@ -79,18 +79,16 @@
 (defsynth ext-source [out-bus 10]
   (out out-bus (in (num-output-buses:ir))))
 
-; This sound comes with supercollider, otherwise replace with another wav or aiff file
-(def nasa (load-sample "a11wlk01-44_1.aiff"))
+;; Fetch a spoken countdown from freesound.org
+(def count-down (sample (freesound-path 71128)))
 
-(defsynth simple-sound
-  []
-  (let [input (pan2 (play-buf 1 nasa) -0.5)]
-    (out 0 input)))
+;; Play it unmodified:
+;;(count-down)
 
-; From Designing Sound in SuperCollider
+;; From Designing Sound in SuperCollider
 (defsynth schroeder-reverb
   []
-  (let [input (pan2 (play-buf 1 nasa) -0.5)
+  (let [input (pan2 (play-buf 1 count-down) -0.5)
         delrd (local-in 4)
         output (+ input [(first delrd) (second delrd)])
         sig [(+ (first output) (second output)) (- (first output) (second output))
@@ -103,4 +101,5 @@
         ]
     (out 0 output)))
 
-
+;;Spooky!
+;;(schroeder-reverb)
