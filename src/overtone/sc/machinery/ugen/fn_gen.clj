@@ -3,6 +3,7 @@
       :author "Jeff Rose, Christophe McKeon and Sam Aaron"}
   overtone.sc.machinery.ugen.fn-gen
   (:use [overtone.util lib]
+        [overtone.sc buffer]
         [overtone.sc.machinery.ugen sc-ugen defaults specs special-ops intern-ns]
         [overtone.sc.machinery.ugen.metadata unaryopugen binaryopugen])
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
@@ -34,8 +35,7 @@
   (:infinite-sequence (meta obj)))
 
 (defn- expandable? [arg]
-  (and (coll? arg)
-       (not (map? arg))))
+  (sequential? arg))
 
 (defn- multichannel-expand
   "Does sc style multichannel expansion.
@@ -125,12 +125,13 @@
 
 (defn unwrap-map-arg
   "Returns a fn which checks to see if its args is a list containing a map,
-  and if so unwraps it.# Otherwise applies f directly with args"
+  and if so unwraps it. Otherwise applies f directly with args"
   [f]
   (fn [& args]
     (if (and
          (= 1 (count args))
          (not (sc-ugen? (first args)))
+         (not (buffer? (first args)))
          (map? (first args)))
       (apply f (flatten (seq (first args))))
       (apply f args))))
