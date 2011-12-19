@@ -73,10 +73,11 @@
         sample))))
 
 (defn load-sample
-  "Synchronously load a wav file into a memory buffer. Returns the buffer.
+  "Synchronously load a .wav or .aiff file into a memory buffer. Returns the
+  buffer.
 
-    ; load a sample a
-    (load-sample \"/home/rosejn/studio/samples/kit/boom.wav\")
+    ; e.g.
+    (load-sample \"~/studio/samples/kit/boom.wav\")
 
   Takes optional params :start and :size. Allocates buffer to number of channels
   of file and number of samples requested (:size), or fewer if sound file is
@@ -95,7 +96,8 @@
 (defn load-samples
   "Takes a directoy path or glob path (see #'overtone.helpers.file/glob) and
   loads up all matching samples and returns a seq of maps representing
-  information for each loaded sample (see load-sample)"
+  information for each loaded sample (see load-sample). Samples should be in
+  .aiff or .wav format."
   [& path-glob]
   (let [path  (apply mk-path path-glob)
         path  (resolve-tilde-path path)
@@ -119,13 +121,14 @@
 ;; Samples are just audio files loaded into a buffer, so buffer
 ;; functions work on samples too.
 (derive ::sample :overtone.sc.buffer/buffer)
+(derive ::playable-sample ::sample)
 
 (defn sample
-  "Loads a wave file into a memory buffer. Returns a function capable
+  "Loads a .wav or .aiff file into a memory buffer. Returns a function capable
    of playing that sample.
 
    ; e.g.
-   (sample \"/Users/sam/music/samples/flibble.wav\")
+   (sample \"~/music/samples/flibble.wav\")
 
   "
   [path & args]
@@ -135,8 +138,9 @@
                    (cond
                     (= n-channels 1) (apply mono-player id pargs)
                     (= n-channels 2) (apply stereo-player id pargs))))]
-    (callable-map (merge {:player player} s)
-                  player)))
+    (with-meta
+      (callable-map s player)
+      {:type ::playable-sample})))
 
 (defmethod buffer-id ::sample [sample] (:id sample))
 
