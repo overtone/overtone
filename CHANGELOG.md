@@ -24,9 +24,9 @@
 * Change ~/.overtone structure - put logs in separate dir and also create assets dir.
 * Print user name on boot
 * Add #'create-buffer-data for generating buffer data
-* Add master mixer volume and pan controls #'volume #'pan
+* Add master mixer volume and input gain controls #'volume #input-gain
 * Set default port for external server to 57110
-* Add basic support for chord inversion
+* Add basic support for chord inversion #'inc-first #'dec-last #'invert-chord
 * Add beginnings of an asset management system for dealing with direct asset urls and zipped bundles.
 * Allow #'load-samples to take a list of strings of path partials as a param which it can stitch together using the correct path
 * Add #'server-sample-rate cached server info val.
@@ -37,6 +37,8 @@
 * Add #'buffer-cue for streaming audio from disk. Also add supporting fn #'buffer-cue-pos
 * Add ability to query a metronome for its current bpm value by passing it a single arg :bpm
 * Make find-ugen more flexible - allow searches for SC name, lowecase and overtone names. Also rename *-ug ugen helper fns to *-ugen
+* Allow samples returned by #'sample to be used as buffers
+* Remember versions seen by the config by storing them in a set.
 
 
 ### New Instruments
