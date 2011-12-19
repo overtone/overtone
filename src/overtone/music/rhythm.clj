@@ -22,9 +22,45 @@
 ;  ([] (bar 1))
 ;  ([b] (* (bar 1) (first @*signature) b)))
 
-; A metronome is a linear function that given a beat count returns the time in milliseconds.
-;
-; tpb = ticks-per-beat
+(defprotocol IMetronome
+  (start [this] [this b]
+    "Start or restart the metronome at beat number 'b' or 0 if none is given. Returns the next beat number")
+  (tick [this]
+    "Returns the duration of each 'tick' in milleseconds.")
+  (beat [this] [this b]
+    "Returns the number of the next beat or the timestamp (in milliseconds) of the
+     given beat number 'b'.")
+  (bpm [this] [this new-bpm]
+    "Get the current bpm or change the bpm to 'new-bpm'."))
+
+(defrecord Metronome [start cur-bpm tick-ms]
+  IMetronome
+  (start [this] (do (reset! start (now))
+                    (beat this)))
+  (start [this b] (let [new-start (- (now) (* b @tick-ms))]
+                        (reset! start new-start)
+                        (beat this)))
+  (tick  [this] (beat-ms 1 @cur-bpm))
+  (beat  [this] (inc (long (/ (- (now) @start) @tick-ms))))
+  (beat  [this b] (+ (* b @tick-ms) @start))
+  (bpm   [this] @cur-bpm)
+  (bpm   [this new-bpm]
+    (let [cur-beat (beat this)
+          new-tick (beat-ms 1 new-bpm)
+          new-start (- (now) (* new-tick cur-beat))]
+      (reset! start new-start)
+      (reset! tick-ms new-tick)
+      (reset! cur-bpm new-bpm))
+    [:bpm new-bpm])
+  clojure.lang.IFn
+  (invoke [this] (beat this))
+  (invoke [this arg]
+    (cond
+     (number? arg) (beat this arg)
+     (= :bpm arg) (.bpm this) ;; (bpm this) fails.
+     :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
+  (invoke [this _ new-bpm] (.bpm this new-bpm)))
+
 (defn metronome
   "A metronome is a beat management function.  Tell it what BPM you want,
   and it will output beat timestamps accordingly.  Call the returned function
@@ -32,7 +68,7 @@
   to get the timestamp to play a note at that beat.
 
   (def m (metronome 128))
-  (m)          ; => <current beat number>
+  (m)          ; => <next beat number>
   (m 200)      ; => <timestamp of beat 200>
   (m :bpm)     ; => return the current bpm val
   (m :bpm 140) ; => set bpm to 140"
@@ -40,27 +76,7 @@
   (let [start   (atom (now))
         tick-ms (atom (beat-ms 1 bpm))
         cur-bpm (atom bpm)]
-    (fn
-      ([] (inc (long (/ (- (now) @start) @tick-ms))))
-      ([arg] (cond
-              (number? arg) (+ (* arg @tick-ms) @start)
-              (= :bpm arg) @cur-bpm
-              :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
-      ([_ bpm]
-       (let [tms (beat-ms 1 bpm)
-             cur-beat (long (/ (- (now) @start) @tick-ms))
-             new-start (- (now) (* tms cur-beat))]
-         (reset! tick-ms tms)
-         (reset! start new-start)
-         (reset! cur-bpm bpm))
-       [:bpm bpm]))))
-
-(comment defprotocol IMetronome
-  (start [this])
-  (stop  [this])
-  (beat  [this])
-  (tick  [this])
-  (bpm   [this] [this bpm]))
+    (Metronome. start cur-bpm tick-ms)))
 
 ;== Grooves
 ;
