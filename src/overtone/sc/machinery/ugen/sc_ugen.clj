@@ -1,4 +1,7 @@
-(ns overtone.sc.machinery.ugen.sc-ugen
+(ns
+    ^{:doc "Records and fns for representing SCUgens. These are to be distinguised with ugens which are Overtone functions which compile down into SCUGens. Trees of SCUGens can then, in turn, be compiled down into a binary synth format for shipping to SCServer."
+      :author "Sam Aaron"}
+    overtone.sc.machinery.ugen.sc-ugen
   (:use [overtone.sc.machinery.ugen defaults]
         [overtone.util lib]))
 
