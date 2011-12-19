@@ -30,415 +30,432 @@
 \definecolorset{hsb}{}{}{blue,.55,.4,0.95;purple,.7,.4,0.95;pink,.8,.4,0.95;blue2,.58,.4,0.95}
 
 \definecolorset{hsb}{}{}
-{magenta,.9,.4,0.95;green2,.29,.4,0.95}
-
-% Redefine sections
-\makeatletter
-\renewcommand{\section}{\@startsection{section}{1}{0mm}
-	{-1.7ex}{0.7ex}{\normalfont\large\bfseries}}
-\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}
-	{-1.7ex}{0.5ex}{\normalfont\normalsize\bfseries}}
-\makeatother
-
-% No section numbers
-\setcounter{secnumdepth}{0}
-
-% No indentation
-\setlength{\parindent}{0em}
-
-% No header and footer
-\pagestyle{empty}
-
-
-% A few shortcuts
-\newcommand{\cmd}[1] {\frenchspacing\texttt{\textbf{{#1}}}}
-\newcommand{\cmdline}[1] {
-	\begin{tabularx}{\hsize}{X}
-			\texttt{\textbf{{#1}}}
-	\end{tabularx}
-}
-
-\newcommand{\colouredbox}[2] {
-	\colorbox{#1!40}{
-		\begin{minipage}{0.95\linewidth}
-			{
-			\rowcolors[]{1}{#1!20}{#1!10}
-			#2
-			}
-		\end{minipage}
-	}
-}
-
-\begin{document}
-
-{\Large{\textbf{Overtone Cheat Sheet (Overtone 0.5.0)}}}
-
-\colouredbox{pink}{
-\section{REPL helpers}
-\begin{tabularx}{\hsize}{lX}
-Documentation&\cmd{odoc ug-doc find-ug find-ug-doc}\\
-Examples& \cmd{examples example get-example}\\
-Shell& \cmd{ls grep}\\
-\end{tabularx}
-}
-
-\colouredbox{blue2}{
-\section{Synths}
-\begin{tabularx}{\hsize}{lX}
-Design&\cmd{definst defsynth}\\
-Examples& \cmd{defexamples}\\
-CGens& \cmd{defcgen}\\
-Control& \cmd{ctl kill}\\
-Auditioning& \cmd{demo run}\\
-\end{tabularx}
-}
-
-\colouredbox{grey}{
-\section{Server}
-\begin{tabularx}{\hsize}{lX}
-Startup&\cmd{boot-server boot-external-server connect-external-server}\\
-Shutdown&\cmd{kill-server}\\
-Control& \cmd{stop}\\
-OSC Communication& \cmd{snd recv clear-msg-queue}\\
-Diagnostic& \cmd{server-status server-info server-connected? server-disconnected? connection-info}\\
-Debug& \cmd{sc-osc-log-on sc-osc-log-off sc-osc-log sc-debug-on sc-debug-off external-server-log sc-osc-debug-on sc-osc-debug-off}\\
-\end{tabularx}
-}
-
-\colouredbox{yellow}{
-\section{Event Handling}
-\begin{tabularx}{\hsize}{lX}
-Add & \cmd{on-event on-sync-event} \\
-Remove & \cmd{remove-handler remove-all-handlers}\\
-Trigger & \cmd{event sync-event}\\
-Synth Triggers & \cmd{on-trigger remove-trigger}
-\end{tabularx}
-}
-
-\colouredbox{purple}{
-\section{Sound Data}
-\subsection{Buffers}
-\begin{tabularx}{\hsize}{lX}
-Create \& Free & \cmd{buffer buffer-free} \\
-Read \& Write & \cmd{buffer-read buffer-write! buffer-fill! buffer-set! buffer-get buffer-save buffer-data buffer-read }\\
-Info & \cmd{buffer-info num-frames buffer-id}
-\end{tabularx}
-\subsection{Samples}
-\begin{tabularx}{\hsize}{lX}
-Create  & \cmd{load-sample load-samples sample defsample} \\
-Playback& \cmd{mono-player stereo-player}\\
-\end{tabularx}
-
-\subsection{Busses}
-\begin{tabularx}{\hsize}{lX}
-Create \& Free & \cmd{control-bus audio-bus free-bus} \\
-Modify & \cmd{bus-set! bus-set-range!}\\
-\end{tabularx}
-}
-
-
-\colouredbox{orange}{
-\section{Nodes \& Groups}
-\begin{tabularx}{\hsize}{lX}
-Create  & \cmd{node group node-free group-free group-clear} \\
-Manipulate & \cmd{node-run node-stop  node-place node-control node-control-range node-map-controls prepend-node append-node }\\
-Info & \cmd{node-tree}
-\end{tabularx}
-}
-
-\colouredbox{pink}{
-\section{Algorithmic Composition}
-\subsection{Chance}
-\begin{tabularx}{\hsize}{lX}
-Choice  & \cmd{choose choose-n weighted-choose} \\
-Dice & \cmd{weighted-coin ranged-rand}\\
-\end{tabularx}
-
-\subsection{Scaling}
-\begin{tabularx}{\hsize}{lX}
-Range& \cmd{scale-range}\\
-Rounding& \cmd{closest-to round-to}
-\end{tabularx}
-
-\subsection{Trig}
-\begin{tabularx}{\hsize}{lX}
-Scaled& \cmd{cosr sinr tanr}\\
-\end{tabularx}
-}
-
-\colouredbox{purple}{
-\section{Music}
-\subsection{Pitch}
-\begin{tabularx}{\hsize}{lX}
-Ratios& \cmd{unison octave fifth sixth third fourth min-third min-sixth}\\
-Note Shifting& \cmd{shift flat sharp invert}\\
-Notes, Scales \& Chords& \cmd{note octave-note resolve-scale scale-field nth-interval resolve-degree degree->interval degrees->pitches resolve-degrees scale resolve-chord chord nth-octave nth-equal-tempered-freq interval-freq canonical-pitch-class-name}\\
-Frequencies& \cmd{cent midi->hz hz->midi }\\
-Amplitude& \cmd{db->amp}
-\end{tabularx}
-}
-\colouredbox{green}{
-\section{Studio}
-\subsection{Instruments}
-\begin{tabularx}{\hsize}{lX}
-Drums & \cmd{kick small-hat c-hat o-hat round-kick snare snare2 tom } \\
-Piano & \cmd{piano}\\
-Sampler & \cmd{granular}\\
-Synth& \cmd{tick ping tb303 mooger rise-fall-pad pad buzz bass grunge-bass ks1 ks-stringer fm-demo harmonic-swimming whoahaha bubbles}\\
-IO & \cmd{mic}
-\end{tabularx}
-
-\subsection{Effects}
-\begin{tabularx}{\hsize}{lX}
-Mixer &\cmd{volume pan inst-volume inst-out-bus inst-fx clear-fx}\\
-FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-reverb fx-echo fx-chorus fx-distortion fx-rlpf fx-rhpf } \\
-\end{tabularx}
-
-\subsection{Metronome}
-\begin{tabularx}{\hsize}{lX}
-Create & \cmd{metronome } \\
-bps & \cmd{beat-ms}\\
-\end{tabularx}
-}
-
-
-\colouredbox{red}{
-\section{Visualisation}
-\subsection{Scope}
-\begin{tabularx}{\hsize}{lX}
-Create \& Reset&\cmd{scope pscope reset-scopes } \\
-\end{tabularx}
-}
-
-\colouredbox{blue2}{
-\section{CGens}
-\begin{tabularx}{\hsize}{lX}
-Audio In & \cmd{sound-in}\\
-Oscillators & \cmd{pm-osc square}\\
-Mix & \cmd{mix splay}\\
-\end{tabularx}
-}
-
-
-\colouredbox{blue}{
-\section{UGen Helper Constants}
-\begin{tabularx}{\hsize}{lX}
-Done Actions& \cmd{NO-ACTION PAUSE FREE FREE-AND-BEFORE FREE-AND-AFTER FREE-AND-GROUP-BEFORE FREE-AND-GROUP-AFTER FREE-UPTO-THIS FREE-FROM-THIS-ON FREE-PAUSE-BEFORE FREE-PAUSE-AFTER FREE-AND-GROUP-BEFORE-DEEP FREE-AND-GROUP-AFTER-DEEP FREE-CHILDREN FREE-GROUP}\\
-FFT Windows& \cmd{SINE HANN RECT}\\
-Lines& \cmd{LINEAR LIN EXPONENTIAL EXP}\\
-Onset Analysis& \cmd{POWER MAGSUM COMPLEX RCOMPLEX PHASE WPHASE MKL}\\
-Infinity& \cmd{INFINITE INF}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Unary UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{neg not-pos? abs ceil floor frac sign squared cubed sqrt exp reciprocal midicps cpsmidi midiratio ratiomidi dbamp ampdb octcps cpsoct log log2 log10 sin cos tan asin acos atan sinh cosh tanh distort softclip rect-window han-window wel-window tri-window}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Binary UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{+ - * / mod = not= < > <= >= min max and or xor round round-up round-down atan2 hypot hypot-aprox pow ring1 ring2 ring3 ring4 difsqr sumsqr sqrsum sqrdif absdif thresh amclip scale-neg clip2 excess fold2 wrap2}\\
-\end{tabularx}
-}
-
-
-\colouredbox{blue}{
-\section{B Equalization Suit UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{b-low-pass b-hi-pass b-all-pass b-band-pass b-band-stop b-peak-eq b-low-shelf b-hi-shelf}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Buffer IO UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{play-buf t-grains buf-rd buf-wr record-buf scope-out local-buf max-local-bufs set-buf clear-buf}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Chaos UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{quad-n quad-l quad-c cusp-n cusp-l gbman-n gbman-l henon-n henon-l henon-c latoocarfian-n latoocarfian-l latoocarfian-c lin-cong-n lin-cong-l lin-cong-c standard-n standard-l fb-sine-n fb-sine-l fb-sine-c lorenz-l}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Compander}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{amplitude compander normalizer limiter}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Delay UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{delay1 delay-n delay-l delay-c comb-n comb-l comb-c allpass-n allpass-l allpass-c buf-delay-n buf-delay-l buf-delay-c buf-comb-n buf-comb-l buf-comb-c buf-allpass-n buf-allpass-l buf-allpass-c}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Demand UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{demand duty t-duty demand-env-gen dseries dgeom dbufrd dbufwr dseq dser dshuf drand dxrand dswitch1 dswitch dwhite dbrown dibrown dstutter donce dpoll}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Envelope Ugens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{done free-self pause-self free-self-when-done pause-self-when-done pause free env-gen linen i-env-gen}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Fixed Frequency Oscillator UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{f-sin-osc klang klank blip saw pulse p-sin-grain}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{FFT UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{fft ifft pv-mag-above pv-mag-below pv-mag-clip pv-local-max pv-mag-smear pv-bin-shift pv-mag-shift pv-mag-squared pv-mag-noise pv-phase-shift90 pv-phase-shift270 pv-conj pv-phase-shift pv-brick-wall pv-bin-wipe pv-mag-mul pv-copy-phase pv-copy pv-max pv-min pv-mul pv-div pv-add pv-mag-div pv-rand-comb pv-rect-comb pv-rect-comb2 pv-rand-wipe pv-diffuser pv-mag-freeze pv-bin-scramble fft-trigger}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Extra FFT UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{pv-conformal-map convolution convolution2 convolution2-l stereo-convolution2-l convolution3 pv-jenson-andersen pv-hainsworth-foote running-sum}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Filter UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{resonz one-pole one-zero two-pole two-zero apf integrator decay decay2 lag lag2 lag3 ramp lag-ud lag2-ud lag3-ud leak-dc rlpf rhpf hpf bpf brf mid-eq lpz1 lpz2 hpz1 hpz2 slope bpz2 median slew sos ringz formlet detect-silence }\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Grain UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{grain-sin grain-in warp1 }\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Information UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{sample-rate sample-dur radians-per-sample control-rate control-dur subsample-offset num-output-busses num-input-busses num-audio-busses num-control-busses num-buffers num-running-synths buf-sample-rate buf-rate-scale buf-frames buf-samples buf-dur buf-channels check-bad-values poll}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Input UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{mouse-x mouse-y mouse-button key-state}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{IO UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{disk-out disk-in v-disk-in in local-in lag-in in-feedback in-trig shared-in out replace-out offset-out local-out x-out shared-out}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Line Ugens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{line x-line lin-exp lin-lin amp-comp amp-comp-a k2a a2k t2k t2a dc silent}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Machine Listening UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{beat-track loudness onsets key-track mfcc beat-track2 spec-flatness spec-pcile spec-centroid}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{MDA UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{mda-piano}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Miscellaneous UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{pitch-shift pluck part-conv hilbert freq-shift g-verb free-verb free-verb2 moog-ff spring ball t-ball check-bad-values gendy1 gendy2 gendy3}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Noise UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{white-noise brown-noise pink-noise clip-noise gray-noise crackle logistic lf-noise0 lf-noise1 lf-noise2 lf-clip-noise lfd-noise0 lfd-noise1 lfd-noise3 ldf-clip-noise hasher mantissa-mask dust dust2}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Oscillator UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{osc sin-osc sin-osc-fb osc-n v-osc v-osc3 c-osc formant lf-saw lf-par lf-cub lf-tri lf-gauss lf-pulse var-saw impulse sync-saw wrap-index index-in-between detect-index shaper degree-to-key select vibrato index}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Pan UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{pan2 lin-pan2 pan4 balance2 rotate2 pan-b pan-b2 bi-pan-b2 decode-b2 pan-az x-fade2 lin-x-fade2}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Random UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{rand-seed rand-id i-rand t-rand ti-rand n-rand exp-rand t-exp-rand coin-gate lin-rand }\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{STK UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{stk-pluck stk-flute stk-bowed stk-mandolin stk-saxofony stk-shakers stk-banded-wg stk-voic-form stk-modal-bar stk-clarinet stk-blow-hole stk-moog stk-bee-three}\\
-\end{tabularx}
-}
-
-\colouredbox{blue}{
-\section{Trig UGens}
-\begin{tabularx}{\hsize}{lX}
-& \cmd{tw-index trig1 trig t-delay send-trig send-reply latch gate pulse-count set-reset-ff peak running-min running-max stepper pulse-divider toggle-ff zero-crossing timer sweep phasor peak-follower pitch in-range fold clip wrap schmidt in-rect trapezoid most-changed least-change last-value}\\
-\end{tabularx}
-}
-
-
-
-
-
-
-
-
-
-
-
-\begin{flushright}
-\footnotesize
-\rule{0.7\linewidth}{0.25pt}
-\verb!$Revision: 0.5.0.0, $Date: 18th October, 2011!\\
-\verb!Sam Aaron (sam.aaron gmail com)!
-\end{flushright}
-
-% history
-
-
-\end{document}
+               {magenta,.9,.4,0.95;green2,.29,.4,0.95}
+
+               % Redefine sections
+               \makeatletter
+               \renewcommand{\section}{\@startsection{section}{1}{0mm}
+                 {-1.7ex}{0.7ex}{\normalfont\large\bfseries}}
+               \renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}
+                 {-1.7ex}{0.5ex}{\normalfont\normalsize\bfseries}}
+               \makeatother
+
+               % No section numbers
+               \setcounter{secnumdepth}{0}
+
+               % No indentation
+               \setlength{\parindent}{0em}
+
+               % No header and footer
+               \pagestyle{empty}
+
+
+               % A few shortcuts
+               \newcommand{\cmd}[1] {\frenchspacing\texttt{\textbf{{#1}}}}
+               \newcommand{\cmdline}[1] {
+                 \begin{tabularx}{\hsize}{X}
+                   \texttt{\textbf{{#1}}}
+                 \end{tabularx}
+               }
+
+               \newcommand{\colouredbox}[2] {
+                 \colorbox{#1!40}{
+                   \begin{minipage}{0.95\linewidth}
+                     {
+                       \rowcolors[]{1}{#1!20}{#1!10}
+                       #2
+                     }
+                   \end{minipage}
+                 }
+               }
+
+               \begin{document}
+
+               {\Large{\textbf{Overtone Cheat Sheet (Overtone 0.6.0)}}}
+
+               \colouredbox{pink}{
+                 \section{REPL helpers}
+                 \begin{tabularx}{\hsize}{lX}
+                   Documentation&\cmd{odoc ugen-doc find-ugen find-ugen-doc}\\
+                   Examples& \cmd{examples example get-example}\\
+                   Shell& \cmd{ls grep}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue2}{
+                 \section{Synths}
+                 \begin{tabularx}{\hsize}{lX}
+                   Design&\cmd{definst defsynth}\\
+                   Examples& \cmd{defexamples}\\
+                   CGens& \cmd{defcgen}\\
+                   Control& \cmd{ctl kill}\\
+                   Auditioning& \cmd{demo run}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{grey}{
+                 \section{Server}
+                 \begin{tabularx}{\hsize}{lX}
+                   Startup&\cmd{boot-server boot-external-server connect-external-server}\\
+                   Shutdown&\cmd{kill-server}\\
+                   Control& \cmd{stop}\\
+                   OSC Communication& \cmd{snd recv clear-msg-queue}\\
+                   Diagnostic& \cmd{server-status server-info server-connected? server-disconnected? connection-info server-sample-rate server-num-output-buses server-num-input-buses server-num-audio-buses server-num-buffers}\\
+                   Debug& \cmd{sc-osc-log-on sc-osc-log-off sc-osc-log sc-debug-on sc-debug-off external-server-log sc-osc-debug-on sc-osc-debug-off}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{yellow}{
+                 \section{Event Handling}
+                 \begin{tabularx}{\hsize}{lX}
+                   Add & \cmd{on-event on-sync-event} \\
+                   Remove & \cmd{remove-handler remove-all-handlers}\\
+                   Trigger & \cmd{event sync-event}\\
+                   Synth Triggers & \cmd{on-trigger remove-trigger}
+                 \end{tabularx}
+               }
+
+               \colouredbox{purple}{
+                 \section{Sound Data}
+                 \subsection{Buffers}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create \& Free & \cmd{buffer buffer-free} \\
+                   Generate Buffer Data & \cmd{data->wavetable create-buffer-data}\\
+                   Read \& Write To Server & \cmd{buffer-read buffer-write! buffer-fill! buffer-set! buffer-get buffer-save buffer-data buffer-read}\\
+                   Write To Filesystem & \cmd{write-wav}\\
+                   Streaming In \& Out&\cmd{buffer-stream buffer-stream? buffer-stream-close buffer-cue buffer-cue? buffer-cue-pos buffer-cue-close}\\
+                   Info & \cmd{buffer-info num-frames buffer-id}\\
+                 \end{tabularx}
+                 \subsection{Samples}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create  & \cmd{load-sample load-samples sample defsample} \\
+                   Playback& \cmd{mono-player stereo-player}\\
+                 \end{tabularx}
+
+                 \subsection{Busses}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create \& Free & \cmd{control-bus audio-bus free-bus}\\
+                   Modify & \cmd{bus-set! bus-set-range!}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{orange}{
+                 \section{Nodes \& Groups}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create  & \cmd{node group node-free group-free group-clear}\\
+                   Manipulate & \cmd{node-run node-stop  node-place node-control node-control-range node-map-controls node-map-n-controls prepend-node append-node }\\
+                   Info & \cmd{node-tree}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{pink}{
+                 \section{Algorithmic Composition}
+                 \subsection{Chance}
+                 \begin{tabularx}{\hsize}{lX}
+                   Choice  & \cmd{choose choose-n weighted-choose} \\
+                   Dice & \cmd{weighted-coin ranged-rand}\\
+                 \end{tabularx}
+
+                 \subsection{Scaling}
+                 \begin{tabularx}{\hsize}{lX}
+                   Range& \cmd{scale-range}\\
+                   Rounding& \cmd{closest-to round-to}\\
+                 \end{tabularx}
+
+                 \subsection{Trig}
+                 \begin{tabularx}{\hsize}{lX}
+                   Scaled& \cmd{cosr sinr tanr}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{purple}{
+                 \section{Music}
+                 \subsection{Pitch}
+                 \begin{tabularx}{\hsize}{lX}
+                   Ratios& \cmd{unison octave fifth sixth third fourth min-third min-sixth}\\
+                   Note Shifting& \cmd{shift flat sharp invert invert-chord inc-first dec-last}\\
+                   Notes &\cmd{note octave-note nth-octave nth-equal-tempered-freq canonical-pitch-class-name }\\
+                   Scales &\cmd{resolve-scale scale-field nth-interval resolve-degree degree->interval degrees->pitches resolve-degrees scale interval-freq}\\
+                   Chords &\cmd{resolve-chord chord rand-chord}\\
+                   Frequencies& \cmd{cent midi->hz hz->midi }\\
+                   Amplitude& \cmd{db->amp}
+                 \end{tabularx}
+               }
+
+               \colouredbox{green}{
+                 \section{Studio}
+                 \subsection{Instruments}
+                 \begin{tabularx}{\hsize}{lX}
+                   Drums & \cmd{kick small-hat c-hat o-hat round-kick snare snare2 tom } \\
+                   Piano & \cmd{piano}\\
+                   Sampler & \cmd{granular}\\
+                   Synth& \cmd{tick ping tb303 mooger rise-fall-pad pad buzz bass grunge-bass ks1 ks-stringer fm-demo harmonic-swimming whoahaha bubbles}\\
+                   IO & \cmd{mic}
+                 \end{tabularx}
+
+                 \subsection{Mixer}
+                 \begin{tabularx}{\hsize}{lX}
+                   Control &\cmd{volume input-gain}\\
+                 \end{tabularx}
+
+                 \subsection{Effects}
+                 \begin{tabularx}{\hsize}{lX}
+
+                   Instrument &\cmd{inst-volume inst-out-bus inst-fx clear-fx}\\
+                   FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-reverb fx-echo fx-chorus fx-distortion fx-rlpf fx-rhpf } \\
+                 \end{tabularx}
+
+                 \subsection{Metronome}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create & \cmd{metronome } \\
+                   bps & \cmd{beat-ms}\\
+                 \end{tabularx}
+
+                 \subsection{Scope}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create \& Reset&\cmd{scope pscope reset-scopes } \\
+                 \end{tabularx}
+
+                 \subsection{Recording}
+                 \begin{tabularx}{\hsize}{lX}
+                   Stop \& Start&\cmd{recording-start recording-stop} \\
+                 \end{tabularx}
+               }
+
+
+               \colouredbox{red}{
+                 \section{External Assets}
+                 \subsection{Generic URLs}
+                 \begin{tabularx}{\hsize}{lX}
+                    Auto cache \& Return Path&\cmd{asset-path asset-seq asset-bundle-path asset-bundle-dir} \\
+                 \end{tabularx}
+
+                 \subsection{Freesound.org}
+                 \begin{tabularx}{\hsize}{lX}
+                    Auto cache \& Query&\cmd{freesound-info freesound-path} \\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue2}{
+                 \section{CGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   Audio In & \cmd{sound-in}\\
+                   Oscillators & \cmd{pm-osc square}\\
+                   Mix & \cmd{mix splay}\\
+                 \end{tabularx}
+               }
+
+
+               \colouredbox{blue}{
+                 \section{UGen Helper Constants}
+                 \begin{tabularx}{\hsize}{lX}
+                   Done Actions& \cmd{NO-ACTION PAUSE FREE FREE-AND-BEFORE FREE-AND-AFTER FREE-AND-GROUP-BEFORE FREE-AND-GROUP-AFTER FREE-UPTO-THIS FREE-FROM-THIS-ON FREE-PAUSE-BEFORE FREE-PAUSE-AFTER FREE-AND-GROUP-BEFORE-DEEP FREE-AND-GROUP-AFTER-DEEP FREE-CHILDREN FREE-GROUP}\\
+                   FFT Windows& \cmd{SINE HANN RECT}\\
+                   Lines& \cmd{LINEAR LIN EXPONENTIAL EXP}\\
+                   Onset Analysis& \cmd{POWER MAGSUM COMPLEX RCOMPLEX PHASE WPHASE MKL}\\
+                   Infinity& \cmd{INFINITE INF}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Unary UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{neg not-pos? abs ceil floor frac sign squared cubed sqrt exp reciprocal midicps cpsmidi midiratio ratiomidi dbamp ampdb octcps cpsoct log log2 log10 sin cos tan asin acos atan sinh cosh tanh distort softclip rect-window han-window wel-window tri-window}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Binary UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{+ - * / mod = not= < > <= >= min max and or xor round round-up round-down atan2 hypot hypot-aprox pow ring1 ring2 ring3 ring4 difsqr sumsqr sqrsum sqrdif absdif thresh amclip scale-neg clip2 excess fold2 wrap2}\\
+                 \end{tabularx}
+               }
+
+
+               \colouredbox{blue}{
+                 \section{B Equalization Suit UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{b-low-pass b-hi-pass b-all-pass b-band-pass b-band-stop b-peak-eq b-low-shelf b-hi-shelf}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Buffer IO UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{play-buf t-grains buf-rd buf-wr record-buf scope-out local-buf max-local-bufs set-buf clear-buf}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Chaos UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{quad-n quad-l quad-c cusp-n cusp-l gbman-n gbman-l henon-n henon-l henon-c latoocarfian-n latoocarfian-l latoocarfian-c lin-cong-n lin-cong-l lin-cong-c standard-n standard-l fb-sine-n fb-sine-l fb-sine-c lorenz-l}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Compander}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{amplitude compander normalizer limiter}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Delay UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{delay1 delay-n delay-l delay-c comb-n comb-l comb-c allpass-n allpass-l allpass-c buf-delay-n buf-delay-l buf-delay-c buf-comb-n buf-comb-l buf-comb-c buf-allpass-n buf-allpass-l buf-allpass-c}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Demand UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{demand duty t-duty demand-env-gen dseries dgeom dbufrd dbufwr dseq dser dshuf drand dxrand dswitch1 dswitch dwhite dbrown dibrown dstutter donce dpoll}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Envelope Ugens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{done free-self pause-self free-self-when-done pause-self-when-done pause free env-gen linen i-env-gen}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Fixed Frequency Oscillator UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{f-sin-osc klang klank blip saw pulse p-sin-grain}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{FFT UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{fft ifft pv-mag-above pv-mag-below pv-mag-clip pv-local-max pv-mag-smear pv-bin-shift pv-mag-shift pv-mag-squared pv-mag-noise pv-phase-shift90 pv-phase-shift270 pv-conj pv-phase-shift pv-brick-wall pv-bin-wipe pv-mag-mul pv-copy-phase pv-copy pv-max pv-min pv-mul pv-div pv-add pv-mag-div pv-rand-comb pv-rect-comb pv-rect-comb2 pv-rand-wipe pv-diffuser pv-mag-freeze pv-bin-scramble fft-trigger}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Extra FFT UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{pv-conformal-map convolution convolution2 convolution2-l stereo-convolution2-l convolution3 pv-jenson-andersen pv-hainsworth-foote running-sum}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Filter UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{resonz one-pole one-zero two-pole two-zero apf integrator decay decay2 lag lag2 lag3 ramp lag-ud lag2-ud lag3-ud leak-dc rlpf rhpf hpf bpf brf mid-eq lpz1 lpz2 hpz1 hpz2 slope bpz2 median slew sos ringz formlet detect-silence }\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Grain UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{grain-sin grain-in warp1 }\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Information UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{sample-rate sample-dur radians-per-sample control-rate control-dur subsample-offset num-output-busses num-input-busses num-audio-busses num-control-busses num-buffers num-running-synths buf-sample-rate buf-rate-scale buf-frames buf-samples buf-dur buf-channels check-bad-values poll}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Input UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{mouse-x mouse-y mouse-button key-state}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{IO UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{disk-out disk-in v-disk-in in local-in lag-in in-feedback in-trig shared-in out replace-out offset-out local-out x-out shared-out}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Line Ugens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{line x-line lin-exp lin-lin amp-comp amp-comp-a k2a a2k t2k t2a dc silent}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Machine Listening UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{beat-track loudness onsets key-track mfcc beat-track2 spec-flatness spec-pcile spec-centroid}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{MDA UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{mda-piano}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Miscellaneous UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{pitch-shift pluck part-conv hilbert freq-shift g-verb free-verb free-verb2 moog-ff spring ball t-ball check-bad-values gendy1 gendy2 gendy3}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Noise UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{white-noise brown-noise pink-noise clip-noise gray-noise crackle logistic lf-noise0 lf-noise1 lf-noise2 lf-clip-noise lfd-noise0 lfd-noise1 lfd-noise3 ldf-clip-noise hasher mantissa-mask dust dust2}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Oscillator UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{osc sin-osc sin-osc-fb osc-n v-osc v-osc3 c-osc formant lf-saw lf-par lf-cub lf-tri lf-gauss lf-pulse var-saw impulse sync-saw wrap-index index-in-between detect-index shaper degree-to-key select vibrato index}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Pan UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{pan2 lin-pan2 pan4 balance2 rotate2 pan-b pan-b2 bi-pan-b2 decode-b2 pan-az x-fade2 lin-x-fade2}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Random UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{rand-seed rand-id i-rand t-rand ti-rand n-rand exp-rand t-exp-rand coin-gate lin-rand }\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{STK UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{stk-pluck stk-flute stk-bowed stk-mandolin stk-saxofony stk-shakers stk-banded-wg stk-voic-form stk-modal-bar stk-clarinet stk-blow-hole stk-moog stk-bee-three}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{Trig UGens}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{tw-index trig1 trig t-delay send-trig send-reply latch gate pulse-count set-reset-ff peak running-min running-max stepper pulse-divider toggle-ff zero-crossing timer sweep phasor peak-follower pitch in-range fold clip wrap schmidt in-rect trapezoid most-changed least-change last-value}\\
+                 \end{tabularx}
+               }
+
+
+               \begin{flushright}
+                 \footnotesize
+                 \rule{0.7\linewidth}{0.25pt}
+                 \verb!$Revision: 0.6.0.0, $Date: 19th December, 2011!\\
+                 \verb!Sam Aaron (sam.aaron gmail com)!
+               \end{flushright}
+
+               % history
+
+
+               \end{document}
