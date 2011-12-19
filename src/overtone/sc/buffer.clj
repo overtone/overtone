@@ -5,6 +5,7 @@
         [overtone.sc server]
         [overtone.sc.machinery defaults allocator]
         [overtone.sc.machinery.server comms connection]
+        [overtone.helpers.audio-file]
         [overtone.sc.util :only [id-mapper]]))
 
 (defn buffer-info
@@ -365,3 +366,31 @@
   (let [range-size (- range-max range-min)
         rangemap  #(+ range-min (/ (* % range-size) size))]
     (map #(float (f (rangemap %))) (range 0 size))))
+
+
+(defn- resolve-data-type
+  [& args]
+  (let [data (first args)]
+    (cond
+     (= :overtone.sc.buffer/buffer (type data)) ::buffer
+     (sequential? data) ::sequence)))
+
+
+(defmulti write-wav
+  "Write data as a wav file. Accepts either a buffer or a sequence of values.
+  When passing a sequence, you also need to specify the frame-rate and n-channels.
+  For both, you need to pass the path of the new file as the 2nd arg.
+
+  Required args:
+  buffer [data path]
+  seq    [data path frame-rate n-channels]"
+  resolve-data-type)
+
+
+(defmethod write-wav ::buffer
+  [data path]
+  (write-audio-file-from-seq (buffer-data data) path (:rate data) (:n-channels data)))
+
+(defmethod write-wav ::sequence
+  [data path frame-rate n-channels]
+  (write-audio-file-from-seq data path frame-rate n-channels))

@@ -3,14 +3,13 @@
       :author "Sam Aaron"}
   overtone.helpers.audio-file
   (:use [clojure.java.io :only [file]]
-        [overtone.sc.buffer :only [buffer-data]]
         [overtone.helpers.file :only [resolve-tilde-path]])
   (:import [javax.sound.sampled AudioFormat AudioFileFormat AudioFormat$Encoding
                                 AudioFileFormat$Type AudioInputStream AudioSystem]
            [java.io ByteArrayInputStream]
            [java.nio ByteBuffer]))
 
-(defn- fill-data-buffer!
+(defn fill-data-buffer!
   [^ByteBuffer b-data data sample-bytes]
   (loop [idx 0
          data data]
@@ -21,7 +20,7 @@
 
   b-data)
 
-(defn- write-audio-file-from-seq
+(defn write-audio-file-from-seq
   "Writes contents of data to a new wav file with path. Adds frame-rate and
   n-channels as file metadata for appropriate playback/consumption of the new
   audio file."
@@ -50,29 +49,3 @@
         f            (file path)
         f-type       AudioFileFormat$Type/WAVE]
     (AudioSystem/write stream f-type f)))
-
-(defn- resolve-data-type
-  [& args]
-  (let [data (first args)]
-    (cond
-     (= :overtone.sc.buffer/buffer (type data)) ::buffer
-     (sequential? data) ::sequence)))
-
-
-(defmulti write-wav
-  "Write data as a wav file. Accepts either a buffer or a sequence of values.
-  When passing a sequence, you also need to specify the frame-rate and n-channels.
-  For both, you need to pass the path of the new file as the 2nd arg.
-
-  Required args:
-  buffer [data path]
-  seq    [data path frame-rate n-channels]"
-  resolve-data-type)
-
-(defmethod write-wav ::buffer
-  [data path]
-  (write-audio-file-from-seq (buffer-data data) path (:rate data) (:n-channels data)))
-
-(defmethod write-wav ::sequence
-  [data path frame-rate n-channels]
-  (write-audio-file-from-seq data path frame-rate n-channels))
