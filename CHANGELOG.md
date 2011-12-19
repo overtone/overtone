@@ -52,8 +52,6 @@
 * Add feedback example
 * Festive Troika melody complete with fully synthesised bells
 
-### Deprecated
-
 ### Bugfixes
 
 * Fix cgens to deal with the case where arg names were overriden by the explicit bindings created with #'with-overloaded-ugens
