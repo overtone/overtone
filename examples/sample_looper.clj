@@ -1,4 +1,4 @@
-(ns beatbox.core
+(ns sample-looper.core
   (:use [overtone.live])
   (:require [polynome.core :as poly]))
 
@@ -12,7 +12,8 @@
 ;;(def m (poly/init "/dev/tty.usbserial-m128-115"))
 ;;(def m (poly/init "dummy"))
 
-(defonce samples (load-samples "assets/*.{aif,AIF,wav,WAV}"))
+;;(defonce samples (load-samples "assets/*.{aif,AIF,wav,WAV}"))
+(def samples (load-samples "~/Desktop/tech/*.wav"))
 
 (defn start-samples
   "Starts all samples playing at init-vol. Returns a seq containing info
@@ -46,20 +47,22 @@
 
 (defn toggle-sample
   [n]
-  (send playing-samples* (fn [playing-samples]
+  (if (< n (count @playing-samples*))
+      (send playing-samples* (fn [playing-samples]
                            (let [samp     (nth playing-samples n)
                                  id       (:id samp)
                                  new-vol  (toggle (:vol samp))
                                  new-samp (assoc samp :vol new-vol)]
                              (ctl id :vol new-vol)
-                             (assoc playing-samples n new-samp)))))
+                             (assoc playing-samples n new-samp))))
+      false))
 
 (defn trigger
   "Invert the volume for the loop corresponding to the given x y coords. Also
    update the associated agent's state and monome LED state."
   [x y]
-  (poly/toggle-led m x y)
-  (toggle-sample (poly/button-id m x y)))
+  (when (toggle-sample (poly/button-id m x y))
+    (poly/toggle-led m x y)))
 
 
 (poly/on-press m (fn [x y s] (trigger x y)))
@@ -72,5 +75,9 @@
         vals (range from to step)]
     (dorun (map #(do (ctl loop-synth :rate (reset! rate* %)) (Thread/sleep 35)) vals))))
 
-
-;;(tempo-slide 1)
+;;(tempo-slide sdlkfjsf lsdjfsdlkjf 0)
+;;(volume 1.5)
+;;(reset-samples!)
+;;(trigger 1 1)
+;;(poly/remove-all-callbacks m)
+;;(poly/disconnect m)
