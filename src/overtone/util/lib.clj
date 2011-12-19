@@ -103,22 +103,29 @@
     (val [] v)
     (getValue [] v)))
 
-(defn callable-map [m fun]
-    (proxy [clojure.lang.Associative clojure.lang.IFn] []
-      (count       [] (count m))
-      (seq         [] (seq m))
-      (cons        [[k v]] (callable-map (assoc m k v) fun))
-      (empty       [] {})
-      (equiv       [o] (= o m))
-      (containsKey [k] (contains? m k))
-      (entryAt     [k] (map-entry k (get m k)))
-      (assoc       [k v] (callable-map (assoc m k v) fun))
-      (valAt
-                  ([k] (get m k))
-                  ([k d] (get m k d)))
-      (invoke      [& args] (apply fun args))
-      (applyTo    ([args] (apply fun args)))
-      (toString   [] "Callable Map")))
+(defn callable-map
+  "Create a map-like datastructure which overrides it's behaviour when called as
+  a fn from lookup to an arbitrary fn you specify at creation time."
+  ([m fun] (callable-map m fun {}))
+  ([m fun metadata]
+     (proxy [clojure.lang.Associative clojure.lang.IFn clojure.lang.IObj clojure.lang.IMeta]
+         []
+       (count       [] (count m))
+       (seq         [] (seq m))
+       (cons        [[k v]] (callable-map (assoc m k v) fun))
+       (empty       [] {})
+       (equiv       [o] (= o m))
+       (containsKey [k] (contains? m k))
+       (entryAt     [k] (map-entry k (get m k)))
+       (assoc       [k v] (callable-map (assoc m k v) fun))
+       (valAt
+         ([k] (get m k))
+         ([k d] (get m k d)))
+       (invoke      [& args] (apply fun args))
+       (applyTo    ([args] (apply fun args)))
+       (toString   [] "Callable Map")
+       (withMeta   [new-metadata] (callable-map m fun new-metadata))
+       (meta       [] metadata))))
 
 (defn- syms-to-keywords [coll]
   (map #(if (symbol? %)
