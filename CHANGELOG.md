@@ -39,6 +39,7 @@
 * Make find-ugen more flexible - allow searches for SC name, lowecase and overtone names. Also rename *-ug ugen helper fns to *-ugen
 * Allow samples returned by #'sample to be used as buffers
 * Remember versions seen by the config by storing them in a set.
+* Illustrate that the mixer is receiving too high volumes by outputting pink noise in addition to printing warning messages (this bevaviour is likely to change in a future version).
 
 
 ### New Instruments
