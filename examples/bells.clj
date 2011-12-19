@@ -1,8 +1,5 @@
-(ns examples.bells 
+(ns examples.bells
   (:use [overtone.live]))
-
-;;tested in Overtone 0.6-dev
-;;add [overtone.sc.machinery.defcgen] to ns :use clause for 0.5.0
 
 ;;http://computermusicresource.com/Simple.bell.tutorial.html
 (def dull-partials
