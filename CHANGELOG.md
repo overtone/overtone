@@ -1,6 +1,6 @@
 # Overtone Change Log
 
-## Version 0.6
+## Version 0.6 (19th Dec 2011)
 
 ### New Committers
 * Matthew Gilliard
