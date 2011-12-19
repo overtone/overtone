@@ -6,6 +6,7 @@
 * Matthew Gilliard
 * Dave Ray
 * Harold Hausman
+* Jennifer Smith
 
 ### New
 
@@ -46,6 +47,7 @@
 * Add an example of mapping a control bus onto synth params
 * Add Schroeder-reverb example
 * Add feedback example
+* Festive Troika melody complete with fully synthesised bells
 
 ### Deprecated
 

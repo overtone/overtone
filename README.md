@@ -228,3 +228,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Matthew Gilliard
 * Dave Ray
 * Harold Hausman
+* Jennifer Smith
