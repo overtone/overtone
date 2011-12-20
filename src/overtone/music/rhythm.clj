@@ -26,31 +26,30 @@
   (start [this] [this b]
     "Start or restart the metronome at beat number 'b' or 0 if none is given. Returns the next beat number")
   (tick [this]
-    "Returns the duration of each 'tick' in milleseconds.")
+    "Returns the duration of one metronome 'tick' in milleseconds.")
   (beat [this] [this b]
     "Returns the number of the next beat or the timestamp (in milliseconds) of the
      given beat number 'b'.")
   (bpm [this] [this new-bpm]
     "Get the current bpm or change the bpm to 'new-bpm'."))
 
-(defrecord Metronome [start cur-bpm tick-ms]
+(defrecord Metronome [start bpm]
   IMetronome
   (start [this] (do (reset! start (now))
                     (beat this)))
-  (start [this b] (let [new-start (- (now) (* b @tick-ms))]
+  (start [this b] (let [new-start (- (now) (* b (tick this)))]
                         (reset! start new-start)
                         (beat this)))
-  (tick  [this] (beat-ms 1 @cur-bpm))
-  (beat  [this] (inc (long (/ (- (now) @start) @tick-ms))))
-  (beat  [this b] (+ (* b @tick-ms) @start))
-  (bpm   [this] @cur-bpm)
+  (tick  [this] (beat-ms 1 @bpm))
+  (beat  [this] (inc (long (/ (- (now) @start) (tick this)))))
+  (beat  [this b] (+ (* b (tick this)) @start))
+  (bpm   [this] @bpm)
   (bpm   [this new-bpm]
     (let [cur-beat (beat this)
           new-tick (beat-ms 1 new-bpm)
           new-start (- (now) (* new-tick cur-beat))]
       (reset! start new-start)
-      (reset! tick-ms new-tick)
-      (reset! cur-bpm new-bpm))
+      (reset! bpm new-bpm))
     [:bpm new-bpm])
   clojure.lang.IFn
   (invoke [this] (beat this))
@@ -73,10 +72,9 @@
   (m :bpm)     ; => return the current bpm val
   (m :bpm 140) ; => set bpm to 140"
   [bpm]
-  (let [start   (atom (now))
-        tick-ms (atom (beat-ms 1 bpm))
-        cur-bpm (atom bpm)]
-    (Metronome. start cur-bpm tick-ms)))
+  (let [start (atom (now))
+        bpm   (atom bpm)]
+    (Metronome. start bpm)))
 
 ;== Grooves
 ;
