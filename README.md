@@ -25,6 +25,8 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 * Metronome and timing system to support live-coding and sequencing
 * Plug and play midi device I/O
 * Simple Open Sound Control (OSC) message handling
+* Pre-cache - a system for locally caching external assets such as .wav files
+* An API querying and fetching sounds from http://freesound.org
 
 ## Quick Setup
 
