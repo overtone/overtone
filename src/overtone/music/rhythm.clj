@@ -23,23 +23,24 @@
 ;  ([b] (* (bar 1) (first @*signature) b)))
 
 (defprotocol IMetronome
-  (start [this] [this b]
-    "Start or restart the metronome at beat number 'b' or 0 if none is given. Returns the next beat number")
+  (start [this] [this start-beat]
+    "Returns the start time of the metronome or restart's the metronome at
+     'start-beat' if given.")
   (tick [this]
     "Returns the duration of one metronome 'tick' in milleseconds.")
-  (beat [this] [this b]
-    "Returns the number of the next beat or the timestamp (in milliseconds) of the
-     given beat number 'b'.")
+  (beat [this] [this beat]
+    "Returns the next beat number or the timestamp (in milliseconds) of the
+     given beat.")
   (bpm [this] [this new-bpm]
     "Get the current bpm or change the bpm to 'new-bpm'."))
 
 (deftype Metronome [start bpm]
   IMetronome
-  (start [this] (do (reset! start (now))
-                    (beat this)))
-  (start [this b] (let [new-start (- (now) (* b (tick this)))]
-                        (reset! start new-start)
-                        (beat this)))
+  (start [this] @start)
+  (start [this start-beat]
+    (let [new-start (- (now) (* start-beat (tick this)))]
+      (reset! start new-start)
+      new-start))
   (tick  [this] (beat-ms 1 @bpm))
   (beat  [this] (inc (long (/ (- (now) @start) (tick this)))))
   (beat  [this b] (+ (* b (tick this)) @start))
