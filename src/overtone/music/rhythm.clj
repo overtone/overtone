@@ -33,7 +33,7 @@
   (bpm [this] [this new-bpm]
     "Get the current bpm or change the bpm to 'new-bpm'."))
 
-(defrecord Metronome [start bpm]
+(deftype Metronome [start bpm]
   IMetronome
   (start [this] (do (reset! start (now))
                     (beat this)))
