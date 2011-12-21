@@ -46,6 +46,11 @@
          {:type ::buffer}))))
 
 (defn buffer-alloc-read
+  "Synchronously allocates a buffer with the same number of channels as the
+  audio file given by 'path'. Reads the number of samples requested ('n-frames')
+  into the buffer, or fewer if the file is smaller than requested. Reads sound
+  file data from the given starting frame ('start') in the file. If 'n-frames'
+  is less than or equal to zero, the entire file is read."
   ([path]
      (buffer-alloc-read path 0 -1))
   ([path start]
