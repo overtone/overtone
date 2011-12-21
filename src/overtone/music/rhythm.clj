@@ -35,6 +35,7 @@
     "Get the current bpm or change the bpm to 'new-bpm'."))
 
 (deftype Metronome [start bpm]
+
   IMetronome
   (start [this] @start)
   (start [this start-beat]
@@ -52,6 +53,14 @@
       (reset! start new-start)
       (reset! bpm new-bpm))
     [:bpm new-bpm])
+
+  clojure.lang.ILookup
+  (valAt [this key] (.valAt this key nil))
+  (valAt [this key not-found]
+    (cond (= key :start) @start
+          (= key :bpm) @bpm
+          :else not-found))
+
   clojure.lang.IFn
   (invoke [this] (beat this))
   (invoke [this arg]
