@@ -126,3 +126,8 @@
     (kill (:rec-id info))
     (buffer-stream-close (:buf-stream info))
     (get-in info [:buf-stream :path])))
+
+(defn recording?
+  []
+  (not (nil? @recorder-info*)))
+
