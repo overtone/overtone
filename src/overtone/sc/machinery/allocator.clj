@@ -67,7 +67,7 @@
 
   Returns newly allocated id."
   ([k] (alloc-id k 1 nil))
-  ([k size] (alloc-id k 1 nil))
+  ([k size] (alloc-id k size nil))
   ([k size action-fn]
      (let [bits  (get allocator-bits k)
            limit (get allocator-limits k)]
