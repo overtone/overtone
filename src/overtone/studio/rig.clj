@@ -27,9 +27,11 @@
 (defonce mixer-id*     (ref nil))
 (defonce fx-group*     (ref nil))
 (defonce record-group* (ref nil))
-(defonce MIXER-BUS 49)
+(defonce MIXER-BUS     (audio-bus 2))
 
 (def RIG-BOOT-DEPS [:server-ready :studio-setup-completed])
+(def DEFAULT-VOLUME 1.0)
+(def DEFAULT-PAN 0.0)
 
 (defn rig-booted? []
   (deps-satisfied? RIG-BOOT-DEPS))
@@ -49,15 +51,32 @@
 ; A mixer synth for volume, pan, and limiting
 ; TODO: Add basic EQ
 (defonce __MIXER-SYNTH__
-  (defsynth mixer [in-bus 49 out-bus 0
-                   volume 0.5 pan 0.0]
-    (let [source  (in in-bus)]
-      (out out-bus (pan2 source pan volume)))))
+  (defsynth inst-mixer [in-bus 10 out-bus 0 mix -1
+                        low-freq 80 mid-freq 800 hi-freq 2000
+                        band1 -45 band2 -45 band3 -45
+                        volume DEFAULT-VOLUME pan DEFAULT-PAN]
+    (let [dry (in in-bus)
+          wet (b-low-shelf dry low-freq 1 band1)
+          wet (b-peak-eq wet mid-freq 1 band2)
+          wet (b-hi-shelf wet hi-freq 1 band3)
+          mixed (x-fade2 dry wet mix)]
+      (out out-bus (pan2 mixed pan volume)))))
 
 (defn inst-volume
   "Control the volume for a single instrument."
   [inst vol]
-  (ctl inst :volume vol))
+  (ctl inst :volume vol)
+  (reset! (:volume inst) vol))
+
+(defn inst-pan
+  "Control the pan setting for a single instrument."
+  [inst pan]
+  (ctl inst :pan pan)
+  (reset! (:pan inst) pan))
+
+(defn inst-eq-low
+  [ins freq]
+  ())
 
 (defn inst-out-bus
   "Set an instruments downstream bus."
@@ -106,13 +125,6 @@
       (alter instruments* assoc-in [ins-name :fx-chain] [])))
   :clear)
 
-(defn start-mixer []
-  (Thread/sleep 2000)
-  (let [mix (mixer :tgt @mixer-group*)]
-    (dosync (ref-set mixer-id* mix))))
-
-(on-deps :studio-setup-completed ::start-mixer start-mixer)
-
 (defn setup-studio []
   (log/info (str "Creating studio group at head of: " (root-group)))
   (let [g (with-server-sync #(group :head (root-group)))
@@ -148,7 +160,8 @@
     i-name))
 
 (defn remove-instrument [i-name]
-  (dosync (alter instruments* dissoc i-name)))
+  (dosync (alter instruments* dissoc (name i-name)))
+  (event :inst-removed :inst-name i-name))
 
 (defn clear-instruments []
   (dosync (ref-set instruments* {})))
@@ -160,20 +173,25 @@
        (binding [*ugens* []
                  *constants* #{}]
          (with-overloaded-ugens
-           (out MIXER-BUS ~@ugen-form)
-           [~sname
-            ~params
-            *ugens*
-            (into [] *constants*)])))))
+           (let [form# ~@ugen-form
+                 n-chans# (count form#)]
+             (out MIXER-BUS form#)
+             [~sname
+              ~params
+              *ugens*
+              (into [] *constants*)
+              n-chans#]))))))
 
 (defmacro inst
   [sname & args]
-  `(let [[sname# params# ugens# constants#] (pre-inst ~sname ~@args)
+  `(let [[sname# params# ugens# constants# n-chans#] (pre-inst ~sname ~@args)
          sdef# (synthdef sname# params# ugens# constants#)
-         sgroup# (or (:group (get @instruments* sname#))
+         igroup# (or (:group (get @instruments* sname#))
                      (if (server-connected?)
                        (group :tail @inst-group*)
                        nil))
+         imixer-bus# (audio-bus n-chans#)
+         imixer# (inst-mixer :tgt igroup# :pos :head :in-bus in-bus# :out-bus MIXER-BUS)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
          s-player# (synth-player sname# params-with-vals#)
@@ -187,7 +205,10 @@
                               :name sname#
                               :ugens ugens#
                               :sdef sdef#
-                              :group sgroup#
+                              :group igroup#
+                              :mixer imixer#
+                              :volume (atom DEFAULT-VOLUME)
+                              :pan (atom DEFAULT-PAN)
                               :out-bus MIXER-BUS
                               :fx-chain []
                               :player player#
