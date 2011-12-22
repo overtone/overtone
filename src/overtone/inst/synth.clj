@@ -3,8 +3,7 @@
         [overtone.sc.machinery.ugen.fn-gen]
         [overtone.studio rig]))
 
-
-(definst tick [freq 880]
+(definst ticker [freq 880]
   (* (env-gen (perc 0.001 0.01) :action FREE)
      (sin-osc freq)))
 
@@ -34,6 +33,7 @@
 (definst mooger
   [note 60 amp 0.8
    osc1 0 osc2 1     ; Choose 0 1 2 for saw, sin, or pulse
+   osc1-level 0.5 osc2-level 0.5
    cutoff 500
    attack 0.1 decay 0.1 sustain 0.7 release 0.2
    fattack 0.1 fdecay 0.1 fsustain 0.9 frelease 0.2
@@ -43,8 +43,8 @@
         osc-bank-2 [(saw freq) (sin-osc freq) (pulse freq)]
         amp-env (env-gen (adsr attack decay sustain release) gate :action FREE)
         f-env (env-gen (adsr fattack fdecay fsustain frelease) gate :action FREE)
-        s1 (select osc1 osc-bank-1)
-        s2 (select osc2 osc-bank-2)
+        s1 (* osc1-level (select osc1 osc-bank-1))
+        s2 (* osc2-level (select osc2 osc-bank-2))
         filt (moog-ff (+ s1 s2) (* cutoff f-env) 3)]
     (* amp filt)))
 
@@ -62,12 +62,14 @@
         echo       (comb-n reverb 0.4 0.3 0.5)]
     (* amp echo)))
 
-(definst pad [note 60 t 4 amt 0.3 amp 0.8]
+(definst pad [note 60 t 10 amt 0.3 amp 0.8 a 0.4 d 0.5 s 0.8 r 2]
   (let [freq       (midicps note)
-        f-env      (env-gen (perc t t) 1 1 0 1 FREE)
-        src        (saw [freq (* freq (+ 2 (* 0.01 (sin-osc:kr 5 (rand 1.5)))))])
-        signal     (rlpf (* 0.9 src)
-                         (+ (* 0.3 freq) (* f-env 4 freq)) 0.5)
+        lfo        (+ 2 (* 0.01 (sin-osc:kr 5 (rand 1.5))))
+        src        (apply + (saw [freq (* freq lfo)]))
+        env        (env-gen (adsr a d s r) (sin-osc:kr 0.2))
+        f-env      (x-line:kr 0.001 4 t)
+        src        (* env src)
+        signal     (rlpf src (+ (* 0.3 freq) (* f-env 2 freq)) 0.5)
         k          (/ (* 4 amt) (- 1 amt))
         dist       (clip2 (/ (* (+ 1 k) signal) (+ 1 (* k (abs signal))))
                           0.03)]
