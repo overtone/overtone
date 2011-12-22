@@ -7,7 +7,9 @@
   (* (env-gen (perc 0.001 0.01) :action FREE)
      (sin-osc freq)))
 
-(definst ping [note 60 a 0.2 b 0.2]
+(definst ping [note {:default 60 :min 0 :max 120 :step 1}
+               a    {:default 0.2 :min 0.001 :max 1 :step 0.001}
+               b    {:default 0.2 :min 0.001 :max 1 :step 0.001}]
   (let [snd (sin-osc (midicps note))
         env (env-gen (perc a b) :action FREE)]
     (* env snd)))
@@ -72,8 +74,9 @@
         signal     (rlpf src (+ (* 0.3 freq) (* f-env 2 freq)) 0.5)
         k          (/ (* 4 amt) (- 1 amt))
         dist       (clip2 (/ (* (+ 1 k) signal) (+ 1 (* k (abs signal))))
-                          0.03)]
-    (* amp dist (line:kr 1 0 t))))
+                          0.03)
+        snd        (* amp dist (line:kr 1 0 t))]
+    src))
 
 (definst buzz [pitch 40 cutoff 300 dur 200]
   (let [lpf-lev (* (+ 1 (lf-noise1:kr 10)) 400)
