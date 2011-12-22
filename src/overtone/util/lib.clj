@@ -112,12 +112,12 @@
          []
        (count       [] (count m))
        (seq         [] (seq m))
-       (cons        [[k v]] (callable-map (assoc m k v) fun))
+       (cons        [[k v]] (callable-map (assoc m k v) fun metadata))
        (empty       [] {})
        (equiv       [o] (= o m))
        (containsKey [k] (contains? m k))
        (entryAt     [k] (map-entry k (get m k)))
-       (assoc       [k v] (callable-map (assoc m k v) fun))
+       (assoc       [k v] (callable-map (assoc m k v) fun metadata))
        (valAt
          ([k] (get m k))
          ([k d] (get m k d)))
