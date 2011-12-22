@@ -48,7 +48,7 @@
  'overtone.libs.freesound
  'overtone.version
  'overtone.viz.scope
- 'overtone.gui.control
+ ;'overtone.gui.control
  )
 
 (defonce _auto-boot_ (boot-rig))
