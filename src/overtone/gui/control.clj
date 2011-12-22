@@ -1,8 +1,6 @@
 (ns overtone.gui.control
-  (:use overtone.libs.event
-        seesaw.core)
-  (:require [seesaw.bind :as bind]
-            [clojure.set :as set]))
+  (:use [seesaw core mig])
+  (:require [seesaw.bind :as bind]))
 
 (native!)
 
@@ -16,9 +14,11 @@
         scaled-init (* (/ (- init-val min-val)
                           (double (- max-val min-val)))
                        SLIDER-MAX)
-        slider (slider :value scaled-init :min 0 :max SLIDER-MAX :orientation :vertical)
+        slider (slider :value scaled-init :min 0 :max SLIDER-MAX :orientation :horizontal)
         label  (label name)
-        pane   (vertical-panel :items [slider spinner label])]
+        items  [[label "width 80:80:100"]
+                [spinner "width 80:80:80"]
+                [slider "wrap"]]]
     (bind/bind slider
                (bind/transform (fn [v]
                                  (let [val (+ min-val (* (- max-val min-val)
@@ -30,7 +30,7 @@
                slider)
     (bind/bind spinner val-atom)
     (bind/bind val-atom spinner)
-    pane))
+    items))
 
 (defn synth-controller
   "Create a GUI for the given synth or instrument.  Requires sufficient parameter metadata in the synthdef.
@@ -52,11 +52,12 @@ Example:
           (defsynth foo [freq {:default 440 :min 10 :max 10000 :step 1}] ...)
 ")
   (invoke-now
-    (let [control-panes (map
+    (let [control-panes (mapcat
                           (fn [{:keys [name default min max step value]}]
                             (control-slider name default min max step value))
                           (:params synth))
-          pane (horizontal-panel :items control-panes)
+          pane (mig-panel :constraints ["" "[right][center][center]" ""]
+                          :items control-panes)
           frame (frame :title (:name synth)
                        :content pane
                        :on-close :dispose)]
