@@ -25,7 +25,7 @@
     (for [k (keys bar)]
       (let [beat (Math/floor k)
             offset (- k beat)]
-           (if (= 0 (mod (- tick beat) 4))
+           (if (= 0.0 (mod (- tick beat) 4))
                (let [instruments (bar k)]
                     (dorun
                       (for [instrument instruments]
