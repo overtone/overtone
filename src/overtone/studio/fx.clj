@@ -112,3 +112,26 @@
         mixed (x-fade2 dry wet mix)]
     (replace-out bus (pan2 mixed pan volume))))
 
+(def MAX-DELAY 4)
+
+(defsynth fx-feedback
+  [bus 0 delay-t 0.5 decay 0.5]
+  (let [input (in bus)
+        fb-in (local-in 1)
+        snd (* decay (leak-dc (delay-n fb-in MAX-DELAY (min MAX-DELAY delay-t))))
+        snd (+ input snd)
+        fb-out (local-out snd)
+        snd (limiter snd 0.8)]
+    (replace-out bus snd)))
+
+(defsynth fx-feedback-distortion
+  [bus 0 delay-t 0.5 noise-rate 0.5 boost 1.1 decay 0.8]
+  (let [noiz (mul-add (lf-noise0:kr noise-rate) 2 2.05)
+        input (in bus)
+        fb-in (local-in 1)
+        snd (* boost (delay-n fb-in MAX-DELAY noiz))
+        snd (+ input (leak-dc snd))
+        snd (clip:ar (distort snd) 0 0.9)
+        fb-out (local-out (* decay snd))]
+    (replace-out bus snd)))
+
