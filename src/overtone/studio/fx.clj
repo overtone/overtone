@@ -88,4 +88,15 @@
        cutoff 2 res 0.6]
       (let [src (in in-bus)]
         (out out-bus (rhpf src cutoff res))))
+
+    (defsynth eq-3
+      [in-bus 0 out-bus 16 pan 0 volume 1
+       low-freq 80 mid-freq 800 hi-freq 2000 mix -1
+       band1 -45 band2 -45 band3 -45]
+      (let [dry (in in-bus)
+            wet (b-low-shelf dry low-freq 1 band1)
+            wet (b-peak-eq wet mid-freq 1 band2)
+            wet (b-hi-shelf wet hi-freq 1 band3)
+            mixed (x-fade2 dry wet mix)]
+        (out out-bus (pan2 mixed pan volume))))
     ))

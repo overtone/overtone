@@ -48,19 +48,11 @@
     (boot-server)
     (wait-until-rig-booted)))
 
-; A mixer synth for volume, pan, and limiting
-; TODO: Add basic EQ
 (defonce __MIXER-SYNTH__
   (defsynth inst-mixer [in-bus 10 out-bus 0 mix -1
-                        low-freq 80 mid-freq 800 hi-freq 2000
-                        band1 -45 band2 -45 band3 -45
                         volume DEFAULT-VOLUME pan DEFAULT-PAN]
-    (let [dry (in in-bus)
-          wet (b-low-shelf dry low-freq 1 band1)
-          wet (b-peak-eq wet mid-freq 1 band2)
-          wet (b-hi-shelf wet hi-freq 1 band3)
-          mixed (x-fade2 dry wet mix)]
-      (out out-bus (pan2 mixed pan volume)))))
+    (let [snd (in in-bus)]
+      (out out-bus (pan2 snd pan volume)))))
 
 (defn inst-volume
   "Control the volume for a single instrument."
@@ -167,52 +159,57 @@
   (dosync (ref-set instruments* {})))
 
 (defmacro pre-inst
-  [& args]
+  [inst-bus & args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
        (binding [*ugens* []
                  *constants* #{}]
          (with-overloaded-ugens
            (let [form# ~@ugen-form
-                 n-chans# (count form#)]
-             (out MIXER-BUS form#)
+                 n-chans# (count form#)
+                 inst-bus# (audio-bus n-chans#)]
+             (out inst-bus# form#)
              [~sname
               ~params
               *ugens*
               (into [] *constants*)
-              n-chans#]))))))
+              n-chans#
+              inst-bus#]))))))
 
 (defmacro inst
   [sname & args]
-  `(let [[sname# params# ugens# constants# n-chans#] (pre-inst ~sname ~@args)
-         sdef# (synthdef sname# params# ugens# constants#)
-         igroup# (or (:group (get @instruments* sname#))
-                     (if (server-connected?)
-                       (group :tail @inst-group*)
-                       nil))
-         imixer-bus# (audio-bus n-chans#)
-         imixer# (inst-mixer :tgt igroup# :pos :head :in-bus in-bus# :out-bus MIXER-BUS)
+  `(let [[sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst inst-bus# ~sname ~@args)
+         container-group# (or (:group (get @instruments* sname#))
+                              (group :tail @inst-group*))
+         instance-group#  (or (:instance-group (get @instruments* sname#))
+                              (group :head container-group#))
+         fx-group#        (or (:fx-group (get @instruments* sname#))
+                              (group :tail container-group#))
+         imixer#    (inst-mixer :tgt container-group# :pos :tail :in-bus inst-bus#)
+         sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
-         s-player# (synth-player sname# params-with-vals#)
+         s-player#  (synth-player sname# params-with-vals#)
          player# (fn [& play-args#]
                    (let [ins# (get @instruments* sname#)]
                      (apply s-player#
-                            :tgt (:group ins#)
+                            :tgt (:instance-group ins#)
                             play-args#)))
          inst# (callable-map {:type ::instrument
-                              :params params-with-vals#
-                              :name sname#
-                              :ugens ugens#
-                              :sdef sdef#
-                              :group igroup#
-                              :mixer imixer#
-                              :volume (atom DEFAULT-VOLUME)
-                              :pan (atom DEFAULT-PAN)
-                              :out-bus MIXER-BUS
-                              :fx-chain []
-                              :player player#
-                              :args arg-names#}
+                              :params      params-with-vals#
+                              :name        sname#
+                              :ugens       ugens#
+                              :sdef        sdef#
+                              :group       container-group#
+                              :instance-group instance-group#
+                              :fx-group    fx-group#
+                              :mixer       imixer#
+                              :bus         inst-bus#
+                              :volume      (atom DEFAULT-VOLUME)
+                              :pan         (atom DEFAULT-PAN)
+                              :fx-chain    []
+                              :player      player#
+                              :args        arg-names#}
                              player#)]
 
      (load-synthdef sdef#)
