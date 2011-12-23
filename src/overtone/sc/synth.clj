@@ -631,4 +631,3 @@
 (defmethod overtone.sc.node/ctl :overtone.sc.synth/synth
   [synth & args]
   (apply modify-synth-params synth args))
->>>>>>> Simplifying gui implementation after seesaw fix.
