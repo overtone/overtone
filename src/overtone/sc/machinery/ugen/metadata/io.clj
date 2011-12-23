@@ -38,8 +38,8 @@ Continuously play a longer soundfile from disk.  This requires a buffer to be pr
        :args [{:name "bus", :default 0 :doc "the index of the bus to read in from"}
               {:name "num-channels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef."}]
        :rates #{:ar :kr}
-       :internal-name true
-       :doc "Internalised see the in cgen for public version of this gen."}
+       :summary "Read a signal from a bus."
+       :doc   "in:kr is functionally similar to in-feedback. That is it reads all data on the bus whether it is from the current cycle or not. This allows for it to receive data from later in the node order. in:ar reads only data from the current cycle, and will zero data from earlier cycles (for use within that synth; the data remains on the bus). Because of this and the fact that the various out ugens mix their output with data from the current cycle but overwrite data from an earlier cycle it may be necessary to use a private control bus when this type of feedback is desired. There is an example below which demonstrates the problem."}
 
       {:name "LocalIn",
        :args [{:name "num-channels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef."}]
@@ -51,19 +51,44 @@ There can only be one audio rate and one control rate local-in per SynthDef.
 The audio can be written to the bus using local-out."}
 
       {:name "LagIn",
-       :args [{:name "bus", :default 0}
-              {:name "num-channels", :mode :num-outs :default 1}
-              {:name "lag", :default 0.1}],
+       :args [{:name "bus", :default 0 :doc "the index of the bus to read in from"}
+              {:name "num-channels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. Not modulatable."}
+              {:name "lag", :default 0.1 :doc "the lag time"}],
        :rates #{:kr}
-       :internal-name true
-       :doc "Internalised. See the lag-in cgen."}
+       :doc "Please document me"}
 
       {:name "InFeedback",
        :args [{:name "bus", :default 0 :doc "the index of the bus to read in from."}
               {:name "num-channels", :mode :num-outs :default 1 :doc "the number of channels (i.e. adjacent buses) to read in. The default is 1. You cannot modulate this number by assigning it to an argument in a SynthDef."}],
        :rates #{:ar}
-       :internal-name true
-       :doc "Internalised. See the in-feedback cgen."}
+       :summary "read signal from a bus with a current or one cycle old timestamp"
+       :doc   "When the various output ugens (out, offsetOut, x-out) write data to a bus, they mix it with any data from the current cycle, but overwrite any data from the previous cycle. (replace-out overwrites all data regardless.) Thus depending on node order and what synths are writing to thep bus, the data on a given bus may be from the current cycle or be one cycle old at the time of reading. in:ar checks the timestamp of any data it reads in and zeros any data from the previous cycle (for use within that node; the data remains on the bus). This is fine for audio data, as it avoids feedback, but for control data it is useful to be able to read data from any place in the node order. For this reason in:kr also reads data that is older than the current cycle.
+
+
+In some cases we might also want to read audio from a node later in the current node order. This is the purpose of InFeedback. The delay introduced by this is one block size, which equals about 0.0014 sec at the default block size and sample rate. (See the resonator example below to see the implications of this.)
+
+
+The variably mixing and overwriting behaviour of the output ugens can make order of execution crucial. (No pun intended.) For example with a node order like the following the InFeedback ugen in Synth 2 will only receive data from Synth 1 (-> = write out; <- = read in):
+
+Synth 1 -> busA					this synth overwrites the output of Synth3 before it reaches Synth 2
+
+Synth 2 (with InFeedback) <- busA
+
+Synth 3 -> busA
+
+If Synth 1 were moved after Synth 2 then Synth 2's InFeedback would receive a mix of the output from Synth 1 and Synth 3. This would also be true if Synth 2 came after Synth1 and Synth 3. In both cases data from Synth 1 and Synth 3 would have the same time stamp (either current or from the previous cycle), so nothing would be overwritten.
+
+
+Because of this it is often useful to allocate a separate bus for feedback. With the following arrangement Synth 2 will receive data from Synth3 regardless of Synth 1's position in the node order.
+
+
+Synth 1 -> busA
+
+Synth 2 (with InFeedback) <- busB
+
+Synth 3 -> busB + busA
+
+"}
 
       {:name "InTrig",
        :args [{:name "bus", :default 0 :doc "the index of the bus to read in from."}
@@ -88,19 +113,25 @@ Reads from a control bus shared between the internal server and the SC client. C
        :rates #{:ar :kr}
        :auto-rate true
        :check (when-ar (all-but-first-input-ar "out:ar requires that all incoming signals be audio rate"))
-       :internal-name true
-       :doc ""}
+       :summary "write a signal to a bus"
+       :doc "write a signal to a bus, adding to any existing contents
+
+N.B. Out is subject to control rate jitter. Where sample accurate output is needed, use OffsetOut.
+
+When using an array of bus indexes, the channel array will just be copied to each bus index in the array. So (out:ar [bus1 bus2] channels-array) will be the same as (+ (out:ar bus1 channelsArray)  (out:ar bus2 channelsArray))."}
 
       {:name "ReplaceOut", :extends "Out"
-       :doc "write signal to a bus, replacing the contents rather than adding to it."
-       :internal-name true
+       :summary "write signal to a bus, replacing contents rather than adding to it"
+       :doc ""
        }
 
       {:name "OffsetOut" :extends "Out"
        :rates #{:ar}
        :check (all-but-first-input-ar "signals-array must all be audio rate")
-       :internal-name true
-       :doc "Internalised. See offset-out cgen."}
+       :summary   "write signal to a bus with sample accurate timing"
+       :doc   "Output signal to a bus,  the sample offset within the bus is kept exactly; i.e. if the synth is scheduled to be started part way through a control cycle, offset-out will maintain the correct offset by buffering the output and delaying it until the exact time that the synth was scheduled for.
+
+This ugen is used where sample accurate output is needed."}
 
       {:name "LocalOut",
        :args [{:name "channelsArray" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
@@ -116,12 +147,16 @@ local-out writes to buses that are local to the enclosing synth. The buses shoul
               {:name "channels-array" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
        :num-outs 0
        :check (when-ar (after-n-inputs-rest-ar 2 "all channels must be audio rate"))
-       :internal-name true
-       :doc "Internalised. See x-out cgen."}
+       :summary "write signal to a bus, crossfading with the existing content"
+       :doc   "xfade is a level for the crossfade between what is on the bus and what you are sending.
+
+The algorithm is equivalent to this:
+
+bus_signal = (input_signal * xfade) + (bus_signal * (1 - xfade));"}
 
       {:name "SharedOut",
        :args [{:name "bus" :doc "the index of the shared control bus to read from"}
               {:name "channelsArray" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
        :rates #{:kr},
        :num-outs 0
-       :doe "Reads from a control bus shared between the internal server and the SC client. Control rate only. Reading from a shared control bus on the client is synchronous. "}])
+       :doc "Reads from a control bus shared between the internal server and the SC client. Control rate only. Reading from a shared control bus on the client is synchronous. "}])

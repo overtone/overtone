@@ -30,10 +30,10 @@
 
 (defonce __BUS-MIXERS__
   (do
-    (defsynth out-bus-mixer [in-bus 20 out-bus 0
+    (defsynth out-bus-mixer [out-bus 0
                              volume 0.5 master-volume @master-vol*
                              safe-recovery-time 3]
-      (let [source    (internal:in in-bus)
+      (let [source    (in out-bus)
             source    (* volume master-volume source)
             not-safe? (trig1 (a2k (> source 1)) safe-recovery-time)
             safe-vol  (+ 0.1 (abs (- 1 not-safe?)))
@@ -44,13 +44,13 @@
         (send-reply not-safe?
                     "/server-audio-clipping-rogue-vol"
                     out-bus)
-        (internal:out out-bus safe-snd)))
+        (replace-out out-bus safe-snd)))
 
-    (defsynth in-bus-mixer [in-bus 10 out-bus 0
+    (defsynth in-bus-mixer [in-bus 0
                             gain 1 master-gain @master-gain*]
-      (let [source  (internal:in in-bus)
+      (let [source  (in in-bus)
             source  (* gain master-gain source)]
-        (internal:out out-bus source)))))
+        (replace-out in-bus source)))))
 
 
 (defn- start-mixers
@@ -58,14 +58,11 @@
   (ensure-connected!)
   (let [in-cnt          (server-num-input-buses)
         out-cnt         (server-num-output-buses)
-        safe-out-offset (+ in-cnt out-cnt)
-        safe-in-offset  (+ safe-out-offset out-cnt)
         out-mixers      (doall
                          (map
                           (fn [out-bus]
                             (out-bus-mixer :pos :head
                                            :target (main-mixer-group)
-                                           :in-bus (+ safe-out-offset out-bus)
                                            :out-bus out-bus))
                           (range out-cnt)))
         in-mixers       (doall
@@ -73,8 +70,7 @@
                           (fn [in-bus]
                             (in-bus-mixer :pos :head
                                           :target (main-input-group)
-                                          :in-bus (+ out-cnt in-bus)
-                                          :out-bus (+ safe-in-offset in-bus)))
+                                          :in-bus (+ out-cnt in-bus)))
                           (range in-cnt)))]
 
     (dosync
@@ -99,7 +95,7 @@
 (defonce __RECORDER__
   (defsynth master-recorder
     [out-buf 0]
-    (disk-out out-buf (internal:in 0 2))))
+    (disk-out out-buf (in 0 2))))
 
 (defonce recorder-info* (ref nil))
 

@@ -1,5 +1,6 @@
 (ns overtone.sc.buffer
-  (:use [overtone.helpers file]
+  (:use [clojure.java.io :only [file]]
+        [overtone.helpers file]
         [overtone.util lib]
         [overtone.libs event]
         [overtone.sc server]
@@ -43,6 +44,35 @@
           :rate (:rate info)
           :id (:id info)}
          {:type ::buffer}))))
+
+(defn buffer-alloc-read
+  "Synchronously allocates a buffer with the same number of channels as the
+  audio file given by 'path'. Reads the number of samples requested ('n-frames')
+  into the buffer, or fewer if the file is smaller than requested. Reads sound
+  file data from the given starting frame ('start') in the file. If 'n-frames'
+  is less than or equal to zero, the entire file is read."
+  ([path]
+     (buffer-alloc-read path 0 -1))
+  ([path start]
+     (buffer-alloc-read path start -1))
+  ([path start n-frames]
+     (let [path (canonical-path path)
+           f    (file path)]
+       (when-not (.exists f)
+         (throw (Exception. (str "Unable to read file - file does not exist: " path))))
+       (let [id (alloc-id :audio-buffer)]
+         (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
+         (let [{:keys [id size rate n-channels]} (buffer-info id)]
+           (when (every? zero? [size rate n-channels])
+             (free-id :audio-buffer id)
+             (throw (Exception. (str "Unable to read file - file does not appear to be a valid audio file: " path))))
+           (with-meta
+             {:allocated-on-server (atom true)
+              :size size
+              :n-channels n-channels
+              :rate rate
+              :id id}
+             {:type ::buffer}))))))
 
 (defn buffer? [buf]
   (isa? (type buf) ::buffer))
@@ -240,25 +270,26 @@
 
   Options:
 
-  :n-chans     - Number of channels for the buffer
-                 Default 2
+  :start       - Start frame in file.
+                 Default 0
   :size        - Buffer size
                  Default 65536
 
   Example usage:
-  (buffer-cue \"~/Desktop/foo.wav\" :n-chans 1)"
+  (buffer-cue \"~/Desktop/foo.wav\" :start (* 3 44100))"
 
   [path & args]
   (let [path (resolve-tilde-path path)
-        arg-map (merge (apply hash-map args)
-                       {:n-chans 2
-                        :size 65536})
-        {:keys [n-chans size]} arg-map
-        buf (buffer size n-chans)]
-    (snd "/b_read" (:id buf) path 0 -1 0 1)
+        arg-map (merge {:start 0
+                        :size 65536}
+                       (apply hash-map args))
+        {:keys [start size]} arg-map
+        buf (buffer-alloc-read path start size)]
+    (snd "/b_read" (:id buf) path start -1 0 1)
     (with-meta
       (assoc buf
         :path path
+        :start start
         :open? (atom true))
       {:type ::buffer-cue})))
 
