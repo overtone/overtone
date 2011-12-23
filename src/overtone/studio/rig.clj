@@ -23,11 +23,6 @@
 
 (defonce instruments*  (ref {}))
 (defonce inst-group*   (ref nil))
-(defonce mixer-group*  (ref nil))
-(defonce mixer-id*     (ref nil))
-(defonce fx-group*     (ref nil))
-(defonce record-group* (ref nil))
-(defonce MIXER-BUS     (audio-bus 2))
 
 (def RIG-BOOT-DEPS [:server-ready :studio-setup-completed])
 (def DEFAULT-VOLUME 1.0)
@@ -66,69 +61,26 @@
   (ctl inst :pan pan)
   (reset! (:pan inst) pan))
 
-(defn inst-eq-low
-  [ins freq]
-  ())
-
-(defn inst-out-bus
-  "Set an instruments downstream bus."
-  [inst bus]
-  (let [ins-name (:name inst)]
-    (ctl inst :out-bus bus)
-    (dosync
-      (alter instruments* assoc-in [ins-name :out-bus] bus))))
-
 (defn inst-fx
   "Append an effect to an instrument channel."
   [inst fx]
-  (let [ins-name (:name inst)
-        fx-chain (:fx-chain (get @instruments* ins-name))
-        bus (audio-bus)
-        fx-id (fx :tgt @fx-group* :pos :tail :in-bus bus :out-bus MIXER-BUS)
-        src  (if (empty? fx-chain)
-               inst
-               (:fx-id (last fx-chain)))
-        entry {:fx fx
-               :fx-id fx-id
-               :bus bus
-               :src src}
-        fx-chain (conj fx-chain entry)]
-    (if (= src inst)
-      (inst-out-bus inst bus)
-      (ctl src :out-bus bus))
-    (dosync
-      (alter instruments* assoc-in [ins-name :fx-chain] fx-chain))
-    entry))
-
-(comment defn remove-fx
-  [inst fx]
-  (let [ins-name (:name inst)]
-    (dosync
-      (alter instruments* assoc-in [ins-name :fx-chain] fx-chain))))
+  (let [fx-group (:fx-group inst)
+        bus (:bus inst)
+        fx-id (fx :tgt fx-group :pos :tail :bus bus)]
+    fx-id))
 
 (defn clear-fx
   [inst]
-  (inst-out-bus inst MIXER-BUS)
-  (let [ins-name (:name inst)
-        fx-chain (:fx-chain (get @instruments* ins-name))]
-    (doseq [id (map :fx-id fx-chain)]
-      (kill id))
-    (dosync
-      (alter instruments* assoc-in [ins-name :fx-chain] [])))
+  (group-clear (:fx-group inst))
   :clear)
 
 (defn setup-studio []
   (log/info (str "Creating studio group at head of: " (root-group)))
   (let [g (with-server-sync #(group :head (root-group)))
-        f (with-server-sync #(group :after g))
-        m (group :tail (root-group))
         r (group :tail (root-group))]
 
     (dosync
       (ref-set inst-group* g)
-      (ref-set fx-group* f)
-      (ref-set mixer-group* m)
-      (ref-set record-group* r)
       (ref-set instruments* (map-vals #(assoc % :group (group :tail g))
                                       @instruments*)))
     (satisfy-deps :studio-setup-completed)))
@@ -271,11 +223,11 @@
 (defmethod overtone.sc.node/kill :overtone.studio.rig/instrument
   [& args]
   (doseq [inst args]
-    (group-clear (:group inst))))
+    (group-clear (:instance-group inst))))
 
 (defmethod overtone.sc.node/ctl :overtone.studio.rig/instrument
   [inst & ctls]
-  (apply node-control (:group inst) (id-mapper ctls))
+  (apply node-control (:instance-group inst) (id-mapper ctls))
   (apply modify-synth-params inst ctls))
 
 (defonce session* (ref
