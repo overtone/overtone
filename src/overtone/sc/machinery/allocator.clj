@@ -38,7 +38,7 @@
 (defn- find-gap
   [bs size idx gap-found limit]
   (when (> idx limit)
-    (throw (Exception. (str "No more ids! Unable to allocate a sequence of ids of length" size))))
+    (throw (Exception. (str "No more ids! Unable to allocate a sequence of ids of length: " size))))
   (if (= gap-found size)
     (- idx gap-found)
     (let [gap-found (if (not (get bs idx)) (inc gap-found) 0)]
