@@ -1,36 +1,43 @@
 (ns overtone.inst.synth
   (:use [overtone.sc gens envelope]
         [overtone.sc.machinery.ugen.fn-gen]
+        [overtone.music pitch]
         [overtone.studio rig]))
 
 (definst ticker [freq 880]
   (* (env-gen (perc 0.001 0.01) :action FREE)
      (sin-osc freq)))
 
-(definst ping [note {:default 60 :min 0 :max 120 :step 1}
-               a    {:default 0.2 :min 0.001 :max 1 :step 0.001}
-               b    {:default 0.2 :min 0.001 :max 1 :step 0.001}]
+(definst ping [note {:default 72 :min 0 :max 120 :step 1}
+               a    {:default 0.02 :min 0.001 :max 1 :step 0.001}
+               b    {:default 0.3 :min 0.001 :max 1 :step 0.001}]
   (let [snd (sin-osc (midicps note))
         env (env-gen (perc a b) :action FREE)]
-    (* env snd)))
+    (* 0.1 env snd)))
 
-(definst tb303 [note 60 wave 1
-                cutoff 100 r 0.9
-                attack 0.101 decay 1.8 sustain 0.2 release 0.2
-                env 200 gate 0 vol 0.8]
+(definst tb303 [note {:default 60 :min 0 :max 120 :step 1}
+                wave {:default 1 :min 0 :max 2 :step 1}
+                r {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
+                attack {:default 0.01 :min 0.001 :max 4 :step 0.001}
+                decay {:default 0.1 :min 0.001 :max 4 :step 0.001}
+                sustain {:default 0.6 :min 0.001 :max 0.99 :step 0.001}
+                release {:default 0.01 :min 0.001 :max 4 :step 0.001}
+                cutoff {:default 100 :min 1 :max 20000 :step 1}
+                env-amount {:default 0.01 :min 0.001 :max 4 :step 0.001}]
   (let [freq       (midicps note)
         freqs      [freq (* 1.01 freq)]
         vol-env    (env-gen (adsr attack decay sustain release)
                             (line:kr 1 0 (+ attack decay release))
                             :action FREE)
         fil-env    (env-gen (perc))
-        fil-cutoff (+ cutoff (* env fil-env))
-        waves     [(* vol-env (saw freqs))
-                   (* vol-env [(pulse (first freqs) 0.5)
-                               (lf-tri (second freqs))])]
-        selector   (select wave (apply + waves))
+        fil-cutoff (+ cutoff (* env-amount fil-env))
+        waves     (* vol-env
+                     [(saw freqs)
+                      (pulse freqs 0.5)
+                      (lf-tri freqs)])
+        selector   (select wave waves)
         filt       (rlpf selector fil-cutoff r)]
-    filt))
+    (* 0.5 filt)))
 
 (definst mooger
   [note 60 amp 0.8
@@ -64,7 +71,7 @@
         echo       (comb-n reverb 0.4 0.3 0.5)]
     (* amp echo)))
 
-(definst pad [note 60 t 10 amt 0.3 amp 0.8 a 0.4 d 0.5 s 0.8 r 2]
+(definst pad [note 60 t 10 amt 0.3 amp 0.1 a 0.4 d 0.5 s 0.8 r 2]
   (let [freq       (midicps note)
         lfo        (+ 2 (* 0.01 (sin-osc:kr 5 (rand 1.5))))
         src        (apply + (saw [freq (* freq lfo)]))
@@ -106,12 +113,44 @@
         bounced (free-verb sliced 0.8 0.9 0.2)]
     (* env bounced)))
 
+
+; B3 modeled a church organ using additive synthesis of 9 sin oscillators
+; * Octave under root
+; *	Fifth over root
+; * Root
+; * Octave over root
+; * Octave and a fifth over root
+; * Two octaves over root
+; * Two octaves and a major third over root
+; * Two octaves and a fifth over root
+; * Three octaves over root
+; Work in progress...  just getting started
+(definst b3
+  [note 60 a 0.01 d 3 s 1 r 0.01]
+  (let [freq (midicps note)
+        waves (sin-osc [(* 0.5 freq)
+                        freq
+                        (* (/ 3 2) freq)
+                        (* 2 freq)
+                        (* freq 2 (/ 3 2))
+                        (* freq 2 2)
+                        (* freq 2 2 (/ 5 4))
+                        (* freq 2 2 (/ 3 2))
+                        (* freq 2 2 2)])
+        snd (apply + waves)
+        env (env-gen (adsr a d s r) :action FREE)]
+    (* env snd 0.1)))
+
 ; Experimenting with Karplus Strong synthesis...
-(definst ks1 [note 60 amp 0.8 dur 2 decay 30 coef 0.3 gate 1]
+(definst ks1 [note {:default 60 :min 10 :max 120 :step 1}
+              amp  {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
+              dur  {:default 2 :min 0.1 :max 4 :step 0.1}
+              decay {:default 30 :min 1 :max 50 :step 1}
+              coef {:default 0.3 :min 0.01 :max 2 :step 0.01}]
   (let [freq (midicps note)
         noize (* 0.8 (white-noise))
         dly (/ 1.0 freq)
-        plk   (pluck noize gate (/ 1.0 freq) dly
+        plk   (pluck noize 1 (/ 1.0 freq) dly
                      decay
                      coef)
         dist (distort plk)
