@@ -3,7 +3,7 @@
       :author "Sam Aaron"}
   overtone.sc.gens
   (:use [overtone.util.ns :only [immigrate]])
-  (:require [overtone.sc.machinery.cgens oscillators demand mix io]
+  (:require [overtone.sc.machinery.cgens oscillators demand mix io buf-io]
             [overtone.sc.machinery ugens defcgen]))
 
 (immigrate
@@ -12,4 +12,5 @@
  'overtone.sc.machinery.cgens.oscillators
  'overtone.sc.machinery.cgens.demand
  'overtone.sc.machinery.cgens.mix
- 'overtone.sc.machinery.cgens.io)
+ 'overtone.sc.machinery.cgens.io
+ 'overtone.sc.machinery.cgens.buf-io)

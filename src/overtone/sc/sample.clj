@@ -16,20 +16,21 @@
     (defsynth mono-player
       "Plays a single channel audio buffer."
       [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
-      (let [rate (* rate (buf-rate-scale:kr buf))]
-        (out 0 (* vol (pan2
-                       (play-buf 1 buf rate
-                                 1 start-pos loop?
-                                 FREE))))))
+      (out 0 (* vol
+                (pan2
+                 (scaled-play-buf 1 buf rate
+                                  1 start-pos loop?
+                                  FREE)))))
 
     (defsynth stereo-player
       "Plays a dual channel audio buffer."
       [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
-      (let [rate (* rate (buf-rate-scale:kr buf))]
-        (out 0
-             (* vol (play-buf 2 buf rate
-                              1 start-pos loop?
-                              FREE)))))
+      (out 0
+           (* vol
+              (scaled-play-buf 2 buf rate
+                               1 start-pos loop?
+                               FREE))))
+
     (defsynth mono-stream-player
       "Plays a single channel streaming buffer-cue."
       [buf 0 loop? 0 vol 1]
@@ -48,9 +49,9 @@
         f    (file path)]
     (when-not (.exists f)
       (throw (Exception. (str "Unable to load sample - file does not exist: " path))))
-    (let [f-name (.getName f)
-          id       (alloc-id :audio-buffer)
+    (let [id       (alloc-id :audio-buffer)
           arg-map  (apply hash-map args)
+          f-name   (or (:name args) (.getName f))
           start    (get arg-map :start 0)
           n-frames (get arg-map :size 0)]
       (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
