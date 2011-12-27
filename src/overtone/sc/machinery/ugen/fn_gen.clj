@@ -4,6 +4,7 @@
   overtone.sc.machinery.ugen.fn-gen
   (:use [overtone.util lib]
         [overtone.libs counters]
+        [overtone.helpers seq]
         [overtone.sc buffer]
         [overtone.sc.machinery.ugen sc-ugen defaults specs special-ops intern-ns]
         [overtone.sc.machinery.ugen.metadata unaryopugen binaryopugen])

@@ -10,7 +10,8 @@
         [overtone.music time]
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]
-        [overtone.sc server node buffer])
+        [overtone.sc server node buffer]
+        [overtone.helpers seq])
   (:require [overtone.at-at :as at-at]
             [overtone.util.log :as log]))
 

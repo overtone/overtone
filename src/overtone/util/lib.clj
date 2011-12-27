@@ -8,12 +8,6 @@
         [clojure.pprint]
         [overtone.util doc]))
 
-(defn indexed
-  "Takes col and returns a list of index val pairs for each successive val in
-  col. O(n) complexity. Prefer map-indexed or filter-indexed where possible."
-  [col]
-  (map-indexed (fn [i v] [i v]) col))
-
 
 (defn to-str
   "If val is a keyword, return its name sans :, otherwise return val"
@@ -189,13 +183,6 @@
   [m]
   (apply hash-map (interleave (vals m) (keys m))))
 
-(defn mapply
-  "Takes a fn and a seq of seqs and returns a seq representing the application
-  of the fn on each sub-seq.
-
-   (mapply + [[1 2 3] [4 5 6] [7 8 9]]) ;=> [6 15 24]"
-  [f coll-coll]
-  (map #(apply f %) coll-coll))
 
 (defn update-all
   "Update a value retrieved with the key k in each element of a seq of
@@ -228,19 +215,6 @@
            elem))
        maps))))
 
-(defn parallel-seqs
-  "takes n seqs and returns a seq of vectors of length n, lazily
-   (take 4 (parallel-seqs (repeat 5)
-                          (cycle [1 2 3]))) => ([5 1] [5 2] [5 3] [5 1])"
-  [seqs]
-  (apply map vector seqs))
-
-(defn index-of
-  "Return the index of item in col."
-  [col item]
-  (first (first (filter (fn [[i v]]
-                          (= v item))
-                        (indexed col)))))
 
 (def DEFAULT-PROMISE-TIMEOUT 5000)
 
@@ -308,10 +282,3 @@ Hello " user-name ", may this be the start of a beautiful music hacking session.
                (= :overtone.sc.machinery.defcgen/cgen (:type gen))))
     (keyword (:name gen))
     gen))
-
-(defn consecutive-ints?
-  "Checks whether seq s consists of consecutive integers
-   (consecutive-ints? [1 2 3 4 5]) ;=> true
-   (consecutive-ints? [1 2 3 5 4]) ;=> false"
-  [s]
-  (apply = (map - (rest s) (seq s))))
