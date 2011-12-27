@@ -6,7 +6,7 @@
     :author "Jeff Rose"}
   overtone.sc.synth
   (:use [overtone.util lib old-contrib]
-        [overtone.libs event]
+        [overtone.libs event counters]
         [overtone.music time]
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]

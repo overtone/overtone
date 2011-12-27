@@ -14,19 +14,6 @@
   [col]
   (map-indexed (fn [i v] [i v]) col))
 
-; Some generic counters
-(def id-counters* (ref {}))
-
-(defn next-id [id-key]
-  (dosync
-    (let [counter* (get @id-counters* id-key (ref 0))
-          id @counter*]
-      (alter counter* inc)
-      (if (zero? id) (alter id-counters* assoc id-key counter*))
-    id)))
-
-(defn reset-counters []
-  (dosync (ref-set id-counters* {})))
 
 (defn to-str
   "If val is a keyword, return its name sans :, otherwise return val"
