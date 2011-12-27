@@ -306,7 +306,7 @@
    been defined with an explicit name. Has the form \"anon-id\" where id is a unique
    integer across all anonymous synths."
   []
-  (str "anon-" (next-id :anonymous-synth)))
+  (str "anon-" (next-id ::anonymous-synth)))
 
 (defn- id-able-type?
   [o]

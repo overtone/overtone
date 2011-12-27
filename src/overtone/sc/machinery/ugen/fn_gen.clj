@@ -80,7 +80,7 @@
   (let [rate (or (get RATES rate) rate)
         args (if args args [])
         ug (sc-ugen
-            (next-id :ugen)
+            (next-id ::ugen)
             (:name spec)
             rate
             (REVERSE-RATES rate)
@@ -154,7 +154,7 @@
 
 (defn mk-generic-control-ugen
   [name rate n-outputs offset]
-  (with-meta {:id (next-id :ugen)
+  (with-meta {:id (next-id ::ugen)
               :name name
               :rate (rate RATES)
               :rate-name (REVERSE-RATES (rate RATES))
