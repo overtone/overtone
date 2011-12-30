@@ -58,6 +58,7 @@
 (comment
   (use 'overtone.live)
   (use 'overtone.gui.sequencer)
+  (use 'overtone.gui.control)
   (use 'overtone.inst.synth)
   (def m (metronome 128))
   (step-sequencer m 8 ks1 ping)
