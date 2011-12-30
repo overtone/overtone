@@ -36,6 +36,18 @@
       (let [source    (in out-bus)
             source    (* volume master-volume source)
             not-safe? (trig1 (a2k (> source 1)) safe-recovery-time)
+            safe-snd  (limiter source 0.99 0.001)]
+        (send-reply not-safe?
+                    "/server-audio-clipping-rogue-vol"
+                    out-bus)
+        (replace-out out-bus safe-snd)))
+
+    (comment defsynth out-bus-mixer [out-bus 0
+                             volume 0.5 master-volume @master-vol*
+                             safe-recovery-time 3]
+      (let [source    (in out-bus)
+            source    (* volume master-volume source)
+            not-safe? (trig1 (a2k (> source 1)) safe-recovery-time)
             safe-vol  (+ 0.1 (abs (- 1 not-safe?)))
             safe-vol  (lag2-ud safe-vol 1 0.1)
             snd-idx   (< safe-vol 0.5)
