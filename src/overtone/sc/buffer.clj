@@ -136,7 +136,7 @@
      (let [data (if (number? data) [data] data)
            size (count data)
            doubles (map double data)]
-       (if (> (+ start-idx size) size)
+       (if (> (+ start-idx size) (:size buf))
          (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index.")))
          (apply snd "/b_setn" (:id buf) start-idx size doubles)))))
 
