@@ -1,10 +1,9 @@
 (ns overtone.sc.machinery.server.comms
   (:use [overtone.sc.machinery.server osc-validator]
-        [overtone.libs.event]
+        [overtone.libs event counters]
         [overtone.util.lib :only [uuid deref!]])
   (:require [overtone.util.log :as log]))
 
-(defonce server-sync-id* (atom 0))
 (defonce osc-debug*     (atom false))
 (defonce server-osc-peer*        (ref nil))
 
@@ -45,19 +44,11 @@
       (log/debug (str "Sending: " path [args])))
     (apply validated-snd @server-osc-peer* path args)))
 
-(defn- update-server-sync-id
-  "update osc-sync-id*. Increments by 1 unless it has maxed out
-  in which case it resets it to 0."
-  []
-  (swap! server-sync-id* (fn [cur] (if (= Integer/MAX_VALUE cur)
-                                    0
-                                    (inc cur)))))
-
 (defn on-server-sync
   "Registers the handler to be executed when all the osc messages generated
    by executing the action-fn have completed. Returns result of action-fn."
   [action-fn handler-fn]
-  (let [id (update-server-sync-id)
+  (let [id (next-id ::server-sync-id)
         key (uuid)]
     (on-event "/synced"
               (fn [msg] (when (= id (first (:args msg)))
@@ -85,7 +76,7 @@
   synchronise with its completion. The action-fn can sync using the fn server-sync.
   Returns the result of action-fn."
   [action-fn]
-  (let [id (update-server-sync-id)
+  (let [id (next-id ::server-sync-id)
         prom (promise)
         key (uuid)]
     (on-event "/synced"
@@ -102,7 +93,7 @@
   "Blocks current thread until all osc messages in action-fn have completed.
   Returns result of action-fn."
   [action-fn]
-  (let [id (update-server-sync-id)
+  (let [id (next-id ::server-sync-id)
         prom (promise)
         key (uuid)]
     (on-event "/synced"

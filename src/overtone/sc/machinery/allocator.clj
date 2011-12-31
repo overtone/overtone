@@ -1,4 +1,7 @@
-(ns overtone.sc.machinery.allocator
+(ns
+    ^{:doc "ID allocator system. Used to return new unique integer IDs in a threadsafe manner. IDs may be freed and therefore reused. Allows action fns to be executed in synchronisation with allocation and deallocation."
+      :author "Sam Aaron"}
+  overtone.sc.machinery.allocator
   (:use [overtone.sc.machinery defaults])
   (:require [overtone.util.log :as log]))
 
@@ -10,23 +13,22 @@
 ;; notifications from the server.  (e.g. When an envelope trigger fires to
 ;; free a synth.)
 
-(defn mk-bitset [size]
+(defn mk-bitset
+  "Create a vector representation of a bitset"
+  [size]
   (vec (repeat size false)))
 
 (defonce allocator-bits
   {:node         (ref (mk-bitset MAX-NODES))
    :audio-buffer (ref (mk-bitset MAX-BUFFERS))
-   :audio-bus    (ref (mk-bitset MAX-NODES))
-   :control-bus  (ref (mk-bitset MAX-NODES))})
-
-(defonce allocator-limits
-  {:node         MAX-NODES
-   :audio-buffer MAX-BUFFERS
-   :audio-bus    MAX-AUDIO-BUS
-   :control-bus  MAX-CONTROL-BUS})
+   :audio-bus    (ref (mk-bitset MAX-AUDIO-BUS))
+   :control-bus  (ref (mk-bitset MAX-CONTROL-BUS))})
 
 (defn- fill-gaps
-  "Fill a given vector bs with size consecutive vals from idx"
+  "Returns a new vector similar to bs except filled with with size consecutive vals from idx
+
+  example: (fill with 3 from idx 1 for 2 vals)
+  (fill-gaps [1 0 0 0 1] 1 2 3) ;=> [1 3 3 0 1]"
   [bs idx size val]
   (loop [bs bs
          idx idx
@@ -36,13 +38,20 @@
       bs)))
 
 (defn- find-gap
-  [bs size idx gap-found limit]
-  (when (> idx limit)
-    (throw (Exception. (str "No more ids! Unable to allocate a sequence of ids of length: " size))))
-  (if (= gap-found size)
-    (- idx gap-found)
-    (let [gap-found (if (not (get bs idx)) (inc gap-found) 0)]
-      (find-gap bs size (inc idx) gap-found limit))))
+  "Returns index of the first gap in vector bs with specified size where gap is
+  defined as a falsey value.
+
+  example:
+  (find-gap [true false true false false false true] 3) ;=> 3"
+  ([bs size] (find-gap bs size 0 0))
+  ([bs size idx gap-found]
+     (let [limit (count bs)]
+       (when (> idx limit)
+         (throw (Exception. (str "No more ids! Unable to allocate a sequence of ids of length: " size))))
+       (if (= gap-found size)
+         (- idx gap-found)
+         (let [gap-found (if (not (get bs idx)) (inc gap-found) 0)]
+           (find-gap bs size (inc idx) gap-found))))))
 
 (def action-fn-executor* (agent nil))
 
@@ -69,14 +78,11 @@
   ([k] (alloc-id k 1 nil))
   ([k size] (alloc-id k size nil))
   ([k size action-fn]
-     (let [bits  (get allocator-bits k)
-           limit (get allocator-limits k)]
+     (let [bits  (get allocator-bits k)]
        (when-not bits
          (throw (Exception. (str "Unable to get allocator bits for keyword " k))))
-       (when-not limit
-         (throw (Exception. (str "Unable to get allocator limit for keyword " k))))
        (dosync
-        (let [id (find-gap @bits size 0 0 limit)]
+        (let [id (find-gap @bits size)]
           (alter bits fill-gaps id size true)
           (when action-fn (execute-action-fn #(action-fn id) "alloc-id"))
           id)))))
@@ -95,8 +101,7 @@
   ([k id] (free-id k id 1 nil))
   ([k id size] (free-id k id size nil))
   ([k id size action-fn]
-     (let [bits (get allocator-bits k)
-           limit (get allocator-limits k)]
+     (let [bits (get allocator-bits k)]
        (dosync
         (alter bits fill-gaps id size false)
         (when action-fn (execute-action-fn action-fn "free-id"))))))
@@ -104,7 +109,8 @@
 (defn clear-ids
   "Clear all ids allocated for key."
   [k]
-  (let [bits  (get allocator-bits k)
-        limit (get allocator-limits k)]
+  (let [bits (get allocator-bits k)]
     (dosync
-     (ref-set bits (mk-bitset limit)))))
+     (let [new-bitset (mk-bitset (count @bits))]
+       (ref-set bits new-bitset)))
+    :cleared))
