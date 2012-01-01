@@ -398,7 +398,6 @@
         rangemap  #(+ range-min (/ (* % range-size) size))]
     (map #(float (f (rangemap %))) (range 0 size))))
 
-
 (defn- resolve-data-type
   [& args]
   (let [data (first args)]
