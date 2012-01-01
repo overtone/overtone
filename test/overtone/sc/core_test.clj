@@ -1,10 +1,11 @@
 (ns overtone.sc.core-test
   (:use
     clojure.test
-    overtone.core
-    overtone.music.instrument.synth)
+    overtone.live
+    ; TODO: this is not importable until the server is booted?
+    overtone.inst.synth)
   (:require
-    [overtone.core.log :as log]))
+    [overtone.util.log :as log]))
 
 (def ditty-notes [50 50 57 50 48 62 62 50])
 (def ditty-durs  [250 250 500 125 125 250 250 500])
@@ -14,6 +15,7 @@
          durs durs
          t (now)]
     (when (and notes durs)
+      ; TODO: hit is not defined
       (hit t inst :note (first notes) :dur (first durs))
       (recur (next notes) (next durs) (+ t (first durs))))))
 
