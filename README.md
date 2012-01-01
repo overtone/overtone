@@ -232,3 +232,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Harold Hausman
 * Jennifer Smith
 * Jacob Lee
+* Jon Rose
