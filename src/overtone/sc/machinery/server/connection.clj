@@ -19,6 +19,12 @@
 (defonce connection-info*     (ref {}))
 (defonce connection-status*   (ref :disconnected))
 
+(defn transient-server?
+  "Return true if the server was booted by us, whether internally or
+  externally."
+  []
+  (not-empty @connection-info*))
+
 (defn- server-notifications-on
   "Turn on notification messages from the audio server.  This lets us free
   synth IDs when they are automatically freed with envelope triggers.  It also
@@ -67,9 +73,9 @@
                                      (interleave interface-ins sc-ins)))]
        (doseq [[src dest] connections]
          (sh "jack_connect" src dest)
-         (log/info "jack_connect " src dest)))))
+         (log/info "jack_connect " src " " dest)))))
 
-(if (= :linux (config-get :os))
+(if (and (= :linux (config-get :os)) (transient-server?))
   (on-deps :server-connected ::connect-jack-ports #(connect-jack-ports)))
 
 ;; We have to do this to handle the change in SC, where they added a "/" to the
@@ -218,6 +224,14 @@
          (connect "127.0.0.1" port)
          :booting))))
 
+(defn- transient-connection-info
+  "Build the connection-info for booting an internal or external server."
+  [connection-type port]
+  (into {:connection-type connection-type}
+        (case connection-type
+          :internal {}
+          :external {:port port :host "127.0.0.1"})))
+
 (defn boot
   "Boot either the internal or external audio server. If specified port is nil
   will choose a random port.
@@ -237,20 +251,14 @@
         (ref-set connection-status* :connecting))
 
        (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
-         (cond
-          (= :internal connection-type) (boot-internal-server)
-          (= :external connection-type) (boot-external-server port))
+         (case connection-type
+           :internal (boot-internal-server)
+           :external (boot-external-server port))
          (wait-until-deps-satisfied :server-ready)
 
          (dosync
-          (cond
-           (= :internal connection-type)
-           (ref-set connection-info* {:connection connection-type})
-
-           (= :external connection-type)
-           (ref-set connection-info* {:connection connection-type
-                                      :port port
-                                      :host "127.0.0.1"})))))))
+          (ref-set connection-info*
+                   (transient-connection-info connection-type port)))))))
 
 (defn shutdown-server
   "Quit the SuperCollider synth process."
@@ -260,11 +268,12 @@
     (log/info "Shutting down...")
     (sync-event :shutdown)
 
-    (log/info "Quitting...")
-    (try
-      (server-snd "/quit")
-      (catch Exception e
-        (log/error "Can't quit server gracefully with /quit")))
+    (when (transient-server?)
+      (log/info "Quitting...")
+      (try
+        (server-snd "/quit")
+        (catch Exception e
+          (log/error "Can't quit server gracefully with /quit"))))
 
     (when @server-osc-peer*
       (log/info "Closing OSC peer...")
