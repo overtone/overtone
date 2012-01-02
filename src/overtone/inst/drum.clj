@@ -12,6 +12,21 @@
         hit-env (env-gen (perc))]
     (* amp (+ (* drum drum-env) (* hit hit-env)))))
 
+
+(definst kick2 [freq {:default 80 :min 10 :max 20000 :step 1}
+                amp {:default 0.8 :min 0.001 :max 1.0 :step 0.001}
+                mod-freq {:default 5 :min 0.001 :max 10.0 :step 0.01}
+                mod-index {:default 5 :min 0.001 :max 10.0 :step 0.01}
+                sustain {:default 0.4 :min 0.001 :max 1.0 :step 0.001}
+                noise {:default 0.025 :min 0.001 :max 1.0 :step 0.001}]
+  (let [pitch-contour (line:kr (* 2 freq) freq 0.02)
+        drum (lpf (sin-osc pitch-contour (sin-osc mod-freq (/ mod-index 1.3))) 1000)
+        drum-env (env-gen (perc 0.005 sustain) :action FREE)
+        hit (hpf (* noise (white-noise)) 500)
+        hit (lpf hit (line 6000 500 0.03))
+        hit-env (env-gen (perc))]
+    (* amp (+ (* drum drum-env) (* hit hit-env)))))
+
 (comment defsynth kick [out 0 ffreq 80 attack 0 release 2 amp 0.1 pan 0]
   (let [snd (apply + (sin-osc [ffreq (* 1.01 ffreq) (* ffreq 1.03)
                       (* ffreq 1.06) (* ffreq 1.1) 0 0.5]))
@@ -32,7 +47,8 @@
         snd (* snd (env-gen (perc attack release 1 -10) :action FREE))]
     (* 2 snd amp)))
 
-(definst c-hat [amp 0.3 t 0.07]
+(definst c-hat [amp {:default 0.1 :min 0.001 :max 1.0 :step 0.001}
+                t   {:default 0.07 :min 0.001 :max 1.0 :step 0.001}]
   (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
         noise (white-noise)
         sqr (* (env-gen (perc 0.01 0.04)) (pulse 880 0.2))

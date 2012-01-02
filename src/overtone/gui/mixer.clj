@@ -1,11 +1,12 @@
 (ns overtone.gui.mixer
   (:use [seesaw core border]
         overtone.studio.rig
+        overtone.gui.dial
         [overtone.libs event])
   (:require [seesaw.bind :as bind]))
 
-(def CHAN-WIDTH  100)
-(def CHAN-HEIGHT 300)
+(def ^{:private true} CHAN-WIDTH  100)
+(def ^{:private true} CHAN-HEIGHT 300)
 
 (defn- inst-name
   [ins]
@@ -16,8 +17,7 @@
   (let [v-slider (slider :value (* @(:volume ins) 100.0) :min 0 :max 100
                     :orientation :vertical)
         vsp (border-panel :center v-slider)
-        p-slider (slider :value (* @(:pan ins) 100) :min -100 :max 100
-                         :orientation :horizontal)
+        p-slider (dial :min -100 :max 100 :value (* @(:pan ins)))
         mute-state (atom false)
         mute-toggle #(if @mute-state
                        (do

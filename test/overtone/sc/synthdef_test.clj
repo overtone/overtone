@@ -5,9 +5,10 @@
                     ByteArrayOutputStream ByteArrayInputStream))
   (:use overtone.core
         overtone.byte-spec
+        overtone.sc.machinery.synthdef
         test-utils
         clojure.test)
-  (:require [overtone.log :as log]))
+  (:require [overtone.util.log :as log]))
 
 (defn sawzall-raw
   []
@@ -37,6 +38,7 @@
         b (bytes-and-back synth-spec a)]
     (is (= a b))))
 
+; TODO: this call no longer matches the signature of synthdef.
 (def mini-sin (synthdef "mini-sin" {"freq" 440}
                         (out:ar 0 (sin-osc:ar 0))))
 

@@ -1,6 +1,6 @@
 (ns overtone.event-test
-  (:require [overtone.core.log :as log])
-  (:use overtone.event
+  (:require [overtone.util.log :as log])
+  (:use overtone.libs.event
         clojure.test))
 
 (log/level :debug)
@@ -25,7 +25,7 @@
     (Thread/sleep 100)
     (is (= 7 @counter))
 
-    (clear-handlers :test-event)
+    (remove-all-handlers :test-event)
     (event :test-event)
     (Thread/sleep 100)
     (is (= 7 @counter))))

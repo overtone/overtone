@@ -42,6 +42,7 @@
  'overtone.music.time
  'overtone.studio.rig
  'overtone.studio.fx
+ 'overtone.studio.wavetable
  'overtone.repl.ugens
  'overtone.repl.examples
  'overtone.repl.shell
@@ -50,5 +51,4 @@
  'overtone.libs.freesound
  'overtone.version
  'overtone.viz.scope
- 'overtone.gui.control
  )
