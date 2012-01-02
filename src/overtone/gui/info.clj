@@ -6,11 +6,11 @@
 
 (native!)
 
-(def update-timer (atom nil))
+(def ^{:private true} update-timer (atom nil))
 
-(def divider-color "#aaaaaa")
-(def normal-font "ARIAL-12-PLAIN")
-(def title-font "ARIAL-14-BOLD")
+(def ^{:private true} divider-color "#aaaaaa")
+(def ^{:private true} normal-font   "ARIAL-12-PLAIN")
+(def ^{:private true} title-font    "ARIAL-14-BOLD")
 
 (comment defn make-toolbar
   []
@@ -23,20 +23,20 @@
               :class :refresh
               :text "Ann Arbor,MI")))
 
-(defn format-status-label
+(defn- format-status-label
   [id value]
   (str (name id) ": " (if (float? value)
                         (format "%4.2f" value)
                         (format "%4d" value))))
 
-(defn update-status-panel
+(defn- update-status-panel
   [panel]
   (let [info (server-status)]
     (doseq [[id value] info]
       (config! (select panel [(keyword (str "#" (name id)))]) :text (format-status-label id value)))
     panel))
 
-(defn make-status-panel
+(defn- make-status-panel
   []
   (let [info (server-status)
         panel (border-panel
@@ -57,7 +57,7 @@
     ;(reset! update-timer (timer update-status-panel :delay 1000 :initial-value panel))
     panel))
 
-(defn make-info-panel
+(defn- make-info-panel
   []
   (let [info (server-info)]
     (border-panel
@@ -73,13 +73,13 @@
                      {:l1 "Input Buses: "  :v1 (:num-input-buses info)
                       :l2 "Output Buses: " :v2 (:num-output-buses info)}]]))))
 
-(defn make-tabs
+(defn- make-tabs
   []
   (tabbed-panel
     :tabs [{ :title "Server Status" :content (make-status-panel) }
            { :title "Server Info"   :content (make-info-panel) }]))
 
-(defn make-master-controls
+(defn- make-master-controls
   []
   (let [init-val (int (* (volume) 100.0))
         slide (slider :value init-val :min 0 :max 120 :orientation :vertical
@@ -104,7 +104,7 @@
       (stop-recording)
       (invoke-later (config! btn :background (color :lightgreen))))))
 
-(defn add-behaviors
+(defn- add-behaviors
   [frame]
   (listen frame :window-closed (fn [e] (when-let [old-timer @update-timer]
                                          (.stop old-timer)
@@ -113,7 +113,7 @@
     (listen rec-btn :action (fn [e] (toggle-recording rec-btn))))
   frame)
 
-(defn server-window
+(defn server-info-window
   []
   (invoke-now
     (-> (frame

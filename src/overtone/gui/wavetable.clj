@@ -3,11 +3,13 @@
         [overtone.util log]
         [overtone.music time]
         [overtone.studio wavetable]
-        [seesaw core graphics color mig])
+        [seesaw core graphics color mig meta])
   (:require [seesaw.bind :as bind]))
 
-(def WAVE-Y-PADDING 10)
+(def ^{:private true} WAVE-Y-PADDING 10)
 
+;; TODO: figure out a nicer way to pull out the wavetable conversions to make this more general
+;; purpose.
 (defn- paint-wavetable
   "Paint the dial widget group"
   [wavetable? buf c g]
@@ -38,13 +40,15 @@
 (defn waveform-panel
   "Creates a swing panel that displays the waveform in a buffer."
   [wavetable? buf]
-  (border-panel :hgap 5 :vgap 5 :border 5
-                :center (canvas :id :waveform-canvas
+  (let [display (canvas :id :waveform-canvas
                                 :background "#000000"
-                                :paint (partial paint-wavetable wavetable? buf))
-                :minimum-size [64 :by 48]))
+                                :paint (partial paint-wavetable wavetable? buf))]
+    (put-meta! display :buf buf)
+    (border-panel :hgap 5 :vgap 5 :border 5
+                  :center display
+                  :minimum-size [64 :by 48])))
 
-(defn interpolate
+(defn- interpolate
   [a b steps]
   (let [shift (/ (- b a) (float (dec steps)))]
     (concat (take (dec steps) (iterate #(+ shift %) a)) [b])))
@@ -142,10 +146,9 @@
 (defn- add-thumbnail-behavior
   [root update-fn]
   (let [thumbnails (select root [:.thumbnail])]
-    (doall
-      (map-indexed
-        (fn [i thumb] (listen thumb :mouse-clicked (fn [_] (update-fn i))))
-        thumbnails))))
+    (doseq [thumb thumbnails]
+      (let [buf (get-meta thumb :buf)]
+        (listen thumb :mouse-clicked (fn [_] (update-fn buf)))))))
 
 (defn wavetable-editor
   [table]
@@ -156,11 +159,10 @@
                       editor
                       (wavetable-thumbnailer table)
                       :divider-location 0.9)
-            change-wave-fn (fn [i]
+            change-wave-fn (fn [buf]
                              (invoke-later
                                (try
-                                 (let [buf (nth (:waveforms table) i)
-                                       bounds (.getBounds (select split [:#waveform-canvas]))
+                                 (let [bounds (.getBounds (select split [:#waveform-canvas]))
                                        loc (.getDividerLocation split)
                                        editor (waveform-editor-panel buf)
                                        {:keys [x y width height]} (bean bounds)]

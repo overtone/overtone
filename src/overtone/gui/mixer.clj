@@ -5,8 +5,8 @@
         [overtone.libs event])
   (:require [seesaw.bind :as bind]))
 
-(def CHAN-WIDTH  100)
-(def CHAN-HEIGHT 300)
+(def ^{:private true} CHAN-WIDTH  100)
+(def ^{:private true} CHAN-HEIGHT 300)
 
 (defn- inst-name
   [ins]
