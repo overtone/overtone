@@ -3,23 +3,12 @@
 
 (def specs
      [
-
-      ;; from PitchShift.sc
-      ;; PitchShift : UGen {
-      ;;    checkInputs { ^this.checkSameRateAsFirstInput }
-      ;;  *ar { arg in = 0.0, windowSize = 0.2, pitchRatio = 1.0,
-      ;;      pitchDispersion = 0.0, timeDispersion = 0.0, mul = 1.0, add = 0.0;
-      ;;    ^this.multiNew('audio', in, windowSize, pitchRatio,
-      ;;      pitchDispersion, timeDispersion).madd(mul, add)
-      ;;  }
-      ;; }
-
       {:name "PitchShift",
        :args [{:name "in", :doc "The input signal."}
-              {:name "windowSize", :default 0.2, :doc "The size of the grain window in seconds. This value cannot be modulated."}
-              {:name "pitchRatio", :default 1.0, :doc "The ratio of the pitch shift. Must be from 0.0 to 4.0"}
-              {:name "pitchDispersion", :default 0.0, :doc "The maximum random deviation of the pitch from the pitchRatio."}
-              {:name "timeDispersion", :default 0.0, :doc "A random offset of from zero to timeDispersion seconds is added to the delay
+              {:name "window-cize", :default 0.2, :doc "The size of the grain window in seconds. This value cannot be modulated."}
+              {:name "pitch-ratio", :default 1.0, :doc "The ratio of the pitch shift. Must be from 0.0 to 4.0"}
+              {:name "pitch-dispersion", :default 0.0, :doc "The maximum random deviation of the pitch from the pitchRatio."}
+              {:name "time-dispersion", :default 0.0, :doc "A random offset of from zero to timeDispersion seconds is added to the delay
 of each grain. Use of some dispersion can alleviate a hard comb filter effect due to uniform grain placement. It can also be an effect in itself. timeDispersion can be no larger than windowSize."}],
        :rates #{:ar}
        :check (same-rate-as-first-input)
@@ -71,60 +60,17 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
        :rates #{:ar}
        :doc "Partitioned convolution. Various additional buffers must be supplied. Mono impulse response only! If inputting multiple channels, you'll need independent PartConvs, one for each channel. But the charm is: impulse response can be as large as you like (CPU load increases with IR size. Various tradeoffs based on fftsize choice, due to rarer but larger FFTs. This plug-in uses amortisation to spread processing and avoid spikes). Normalisation factors difficult to anticipate; convolution piles up multiple copies of the input on top of itself, so can easily overload. "}
 
-      ;; from Hilbert.sc
-      ;; Hilbert : MultiOutUGen {
-      ;;  *ar { arg in, mul = 1, add = 0;
-      ;;    ^this.multiNew('audio', in).madd(mul, add);
-      ;;  }
-
-      ;;  init { arg ... theInputs;
-      ;;    inputs = theInputs;
-      ;;    ^this.initOutputs(2, rate);
-      ;;  }
-      ;; }
-
       {:name "Hilbert",
        :args [{:name "in"}],
        :rates #{:ar},
        :num-outs 2}
 
-      ;; // single sideband amplitude modulation, using optimized Hilbert phase differencing network
-      ;; // basically coded by Joe Anderson, except Sean Costello changed the word HilbertIIR.ar
-      ;; // to Hilbert.ar
-
-      ;; FreqShift : UGen {
-      ;;  *ar {
-      ;;    arg in,     // input signal
-      ;;    freq = 0.0,   // shift, in cps
-      ;;    phase = 0.0,  // phase of SSB
-      ;;    mul = 1.0,
-      ;;    add = 0.0;
-      ;;    ^this.multiNew('audio', in, freq, phase).madd(mul, add)
-      ;;  }
-      ;; }
-      ;;TODO: SC docs call the second param shift - check which is correct
       {:name "FreqShift",
        :args [{:name "in", :doc "The signal to process"}
               {:name "freq", :default 0.0, :doc "Amount of shift in cycles per second"}
               {:name "phase", :default 0.0, :doc "Phase of the frequency shift (0 - 2pi)"}],
        :rates #{:ar},
        :doc "FreqShift implements single sideband amplitude modulation, also known as frequency shifting, but not to be confused with pitch shifting.  Frequency shifting moves all the components of a signal by a fixed amount but does not preserve the original harmonic relationships."}
-
-
-      ;; from GVerb.sc
-      ;;       GVerb : MultiOutUGen {
-      ;;  *ar { arg in, roomsize = 10, revtime = 3, damping = 0.5, inputbw =  0.5, spread = 15,
-      ;;      drylevel = 1, earlyreflevel = 0.7, taillevel = 0.5, maxroomsize = 300, mul = 1,
-      ;;      add = 0;
-      ;;    ^this.multiNew('audio', in, roomsize, revtime, damping, inputbw, spread, drylevel,
-      ;;      earlyreflevel, taillevel, maxroomsize).madd(mul, add);
-      ;;  }
-
-      ;;  init {arg ... theInputs;
-      ;;    inputs = theInputs;
-      ;;    ^this.initOutputs(2, rate);
-      ;;  }
-      ;; }
 
       {:name "GVerb",
        :args [{:name "in", :doc "mono input"}
@@ -141,15 +87,6 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
        :num-outs 2,
        :doc "A two-channel reverb UGen, based on the \"GVerb\" LADSPA effect by Juhana Sadeharju (kouhia at nic.funet.fi)."}
 
-      ;; from FreeVerb.sc
-      ;; // blackrain's freeverb ugen.
-
-      ;; FreeVerb : UGen {
-      ;; 	*ar { arg in, mix = 0.33, room = 0.5, damp = 0.5, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('audio', in, mix, room, damp).madd(mul, add)
-      ;; 	}
-      ;; }
-
       {:name "FreeVerb",
        :args [{:name "in", :doc "The input signal"}
               {:name "mix", :default 0.33, :doc "Dry/wet balance. range 0..1"}
@@ -157,20 +94,6 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "damp", :default 0.5, :doc "Reverb HF damp. range 0..1"}],
        :rates #{:ar}
        :doc "A reverb coded from experiments with faust. Valid parameter range from 0 to 1. Values outside this range are clipped by the UGen."}
-
-      ;; FreeVerb2 : MultiOutUGen {
-      ;; 	*ar { arg in, in2, mix = 0.33, room = 0.5, damp = 0.5, mul = 1.0, add = 0.0;
-      ;; 		^this.multiNew('audio', in, in2, mix, room, damp).madd(mul, add)
-      ;; 	}
-      ;; 	init { arg ... theInputs;
-      ;; 		inputs = theInputs;
-      ;; 		channels = [
-      ;; 			OutputProxy(rate, this, 0),
-      ;; 			OutputProxy(rate, this, 1)
-      ;; 		];
-      ;; 		^channels
-      ;; 	}
-      ;; }
 
       {:name "FreeVerb2",
        :args [{:name "in", :doc "Input signal channel 1"}
@@ -182,92 +105,36 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
        :num-outs 2,
        :doc "A two-channel reverb coded from experiments with faust. Valid parameter range from 0 to 1. Values outside this range are clipped by the UGen."}
 
-      ;; from MoogFF.sc
-      ;; /**
-      ;; "MoogFF" - Moog VCF digital implementation.
-      ;; As described in the paper entitled
-      ;; "Preserving the Digital Structure of the Moog VCF"
-      ;; by Federico Fontana
-      ;; appeared in the Proc. ICMC07, Copenhagen, 25-31 August 2007
-
-      ;; Original Java code Copyright F. Fontana - August 2007
-      ;; federico.fontana@univr.it
-
-      ;; Ported to C++ for SuperCollider by Dan Stowell - August 2007
-      ;; http://www.mcld.co.uk/
-      ;; */
-
-      ;; MoogFF : Filter {
-
-      ;;  *ar { | in, freq=100, gain=2, reset=0, mul=1, add=0 |
-      ;;    ^this.multiNew('audio', in, freq, gain, reset).madd(mul, add)
-      ;;  }
-      ;;  *kr { | in, freq=100, gain=2, reset=0, mul=1, add=0 |
-      ;;    ^this.multiNew('control', in, freq, gain, reset).madd(mul, add)
-      ;;  }
-      ;; }
-
       {:name "MoogFF",
        :args [{:name "in", :default 0.0 :doc "The imput signal"}
               {:name "freq", :default 100.0, :doc "The cutoff frequency"}
               {:name "gain", :default 2.0, :doc "The filter resonance gain, between zero and 4"}
               {:name "reset", :default 0.0, :doc "When greater than zero, this will reset the state of the digital filters at the beginning of a computational block."}]
+       :rates #{:ar :kr}
        :doc "A digital implementation of the Moog VCF (filter)."}
-
-      ;; from PhysicalModel.sc
-      ;; Spring : UGen {
-      ;;  *ar { arg in=0.0, spring=1, damp=0;
-      ;;    ^this.multiNew('audio', in, spring, damp)
-      ;;  }
-      ;; }
 
       {:name "Spring",
        :args [{:name "in", :default 0.0, :doc "Modulated input force"}
               {:name "spring", :default 0.0, :doc "Spring constant (incl. mass)"}
               {:name "damp", :default 0.0, :doc "Damping"}]
+       :rates #{:ar}
        :doc "Physical model of resonating spring"}
-
-      ;; from PhysicalModel.sc
-      ;; Ball : UGen {
-      ;;  *ar { arg in=0.0, g=1, damp=0, friction=0.01;
-      ;;    ^this.multiNew('audio', in, g, damp, friction)
-      ;;  }
-      ;; }
 
       {:name "Ball",
        :args [{:name "in", :default 0.0, :doc "modulated surface level"}
               {:name "g", :default 1.0, :doc "gravity"}
               {:name "damp", :default 0.0, :doc "damping on impact"}
               {:name "friction", :default 0.01, :doc "proximity from which on attraction to surface starts"}]
+       :rates #{:ar}
        :doc "models the path of a bouncing object that is reflected by a vibrating surface"}
-
-      ;; from PhysicalModel.sc
-      ;; TBall : UGen {
-      ;;  *ar { arg in=0.0, g=10, damp=0, friction=0.01;
-      ;;    ^this.multiNew('audio', in, g, damp, friction)
-      ;;  }
-      ;; }
 
       {:name "TBall",
        :args [{:name "in", :default 0.0, :doc "modulated surface level"}
               {:name "g", :default 10.0, :doc "gravity"}
               {:name "damp", :default 0.0, :doc "damping on impact"}
               {:name "friction", :default 0.01, :doc "proximity from which on attraction to surface starts"}]
+       :rates #{:ar}
        :doc "models the impacts of a bouncing object that is reflected by a vibrating surface"}
-
-      ;; from Gendyn.sc
-      ;;       //GENDYN by Iannis Xenakis implemented for SC3 by
-      ;; sicklincoln with some refinements
-      ;; Gendy1 : UGen {
-      ;;   *ar { arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, minfreq=440, maxfreq=660, ampscale= 0.5, durscale=0.5, initCPs= 12, knum, mul=1.0,add=0.0;
-      ;;    ^this.multiNew('audio', ampdist, durdist, adparam,
-      ;;   ddparam, minfreq, maxfreq, ampscale, durscale,
-      ;;    initCPs, knum ? initCPs).madd( mul, add )
-      ;; }
-      ;; *kr {arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, minfreq=20, maxfreq=1000, ampscale= 0.5, durscale=0.5, initCPs= 12, knum,mul=1.0,add=0.0;
-      ;;   ^this.multiNew('control', ampdist, durdist, adparam, ddparam, minfreq, maxfreq, ampscale, durscale, initCPs, knum ? initCPs).madd( mul, add )
-      ;;  }
-      ;;}
 
       {:name "Gendy1",
        :args [{:name "ampdist", :default 1.0, :doc "Choice of probability distribution for the next perturbation of the amplitude of a control point. The distributions are (adapted from the GENDYN program in Formalized Music): 0- LINEAR,1- CAUCHY, 2- LOGIST, 3- HYPERBCOS, 4- ARCSINE, 5- EXPON, 6- SINUS, Where the sinus (Xenakis' name) is in this implementation taken as sampling from a third party oscillator. See example below."}
@@ -279,18 +146,10 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "maxfreq", :default 660.0, :doc "Maximum allowed frequency of oscillation for the Gendy1 oscillator, so gives the smallest period the duration is allowed to take on. "}
               {:name "ampscale", :default 0.5, :doc "Normally 0.0 to 1.0, multiplier for the distribution's delta value for amplitude. An ampscale of 1.0 allows the full range of  -1 to 1 for a change of amplitude."}
               {:name "durscale", :default 0.5, :doc "Normally 0.0 to 1.0, multiplier for the distribution's delta value for duration. An ampscale of 1.0 allows the full range of  -1 to 1 for a change of duration."}
-              {:name "initCPs", :default 12, :doc "Initialise the number of control points in the memory. Xenakis specifies 12. There would be this number of control points per cycle of the oscillator, though the oscillator's period will constantly change due to the duration distribution."}
+              {:name "init-cps", :default 12, :doc "Initialise the number of control points in the memory. Xenakis specifies 12. There would be this number of control points per cycle of the oscillator, though the oscillator's period will constantly change due to the duration distribution."}
               {:name "knum" :default 12, :doc "Current number of utilised control points, allows modulation."}]
+       :rates #{:ar :kr}
        :doc "An implementation of the dynamic stochastic synthesis generator conceived by Iannis Xenakis and described in Formalized Music (1992, Stuyvesant, NY: Pendragon Press) chapter 9 (pp 246-254) and chapters 13 and 14 (pp 289-322). The BASIC program in the book was written by Marie-Helene Serra so I think it helpful to credit her too. The program code has been adapted to avoid infinities in the probability distribution functions. The distributions are hard-coded in C but there is an option to have new amplitude or time breakpoints sampled from a continuous controller input."}
-
-      ;; Gendy2 : UGen {
-      ;;      *ar { arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, minfreq=440, maxfreq=660, ampscale= 0.5, durscale=0.5, initCPs= 12, knum, a=1.17, c=0.31, mul=1.0,add=0.0;
-      ;;               ^this.multiNew('audio', ampdist, durdist, adparam, ddparam, minfreq, maxfreq, ampscale, durscale, initCPs, knum ? initCPs, a, c).madd( mul, add )
-      ;;           }
-      ;;      *kr {arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, minfreq=20, maxfreq=1000, ampscale= 0.5, durscale=0.5, initCPs= 12, knum, a=1.17, c=0.31, mul=1.0,add=0.0;
-      ;;              ^this.multiNew('control', ampdist, durdist, adparam, ddparam, minfreq, maxfreq, ampscale, durscale, initCPs, knum ? initCPs, a, c).madd( mul, add )
-      ;;           }
-      ;;         }
 
       {:name "Gendy2",
        :args [{:name "ampdist", :default 1.0, :doc "Choice of probability distribution for the next perturbation of the amplitude of a control point. The distributions are (adapted from the GENDYN program in Formalized Music): 0- LINEAR, 1- CAUCHY, 2- LOGIST, 3- HYPERBCOS, 4- ARCSINE, 5- EXPON, 6- SINUS, Where the sinus (Xenakis' name) is in this implementation taken as sampling from a third party oscillator. "}
@@ -301,23 +160,12 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "maxfreq", :default 660.0, :doc "Maximum allowed frequency of oscillation for the Gendy1 oscillator, so gives the smallest period the duration is allowed to take on."}
               {:name "ampscale", :default 0.5, :doc "Normally 0.0 to 1.0, multiplier for the distribution's delta value for amplitude. An ampscale of 1.0 allows the full range of  -1 to 1 for a change of amplitude."}
               {:name "durscale", :default 0.5, :doc "Normally 0.0 to 1.0, multiplier for the distribution's delta value for duration. An ampscale of 1.0 allows the full range of  -1 to 1 for a change of duration."}
-              {:name "initCPs", :default 12, :doc "Initialise the number of control points in the memory. Xenakis specifies 12. There would be this number of control points per cycle of the oscillator, though the oscillator's period will constantly change due to the duration distribution."}
+              {:name "init-cps", :default 12, :doc "Initialise the number of control points in the memory. Xenakis specifies 12. There would be this number of control points per cycle of the oscillator, though the oscillator's period will constantly change due to the duration distribution."}
               {:name "knum" :default 12, :doc "Current number of utilised control points, allows modulation. "}
               {:name "a", :default 1.17, :doc "parameter for Lehmer random number generator perturbed by Xenakis as in ((old*a)+c)%1.0"}
               {:name "c", :default 0.31, :doc "parameter for Lehmer random number generator perturbed by Xenakis"}]
+       :rates #{:ar :kr}
        :doc "See gendy1 help file for background. This variant of GENDYN is closer to that presented in Hoffmann, Peter. (2000) The New GENDYN Program. Computer Music Journal 24:2, pp 31-38. "}
-
-      ;; Gendy3 : UGen {
-
-      ;;      *ar { arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, freq=440, ampscale= 0.5, durscale=0.5, initCPs= 12, knum, mul=1.0,add=0.0;
-      ;;               ^this.multiNew('audio', ampdist, durdist, adparam, ddparam, freq, ampscale, durscale, initCPs, knum ? initCPs).madd( mul, add )
-      ;;           }
-
-      ;;      *kr {arg ampdist=1, durdist=1, adparam=1.0, ddparam=1.0, freq=440, ampscale= 0.5, durscale=0.5, initCPs= 12, knum, mul=1.0,add=0.0;
-      ;;              ^this.multiNew('control', ampdist, durdist, adparam, ddparam, freq, ampscale, durscale, initCPs, knum ? initCPs).madd( mul, add )
-      ;;           }
-
-      ;;         }
 
       {:name "Gendy3",
        :args [{:name "ampdist", :default 1.0, :doc "Choice of probability distribution for the next perturbation of the amplitude of a control point. The distributions are (adapted from the GENDYN program in Formalized Music): 0- LINEAR,1- CAUCHY, 2- LOGIST, 3- HYPERBCOS, 4- ARCSINE, 5- EXPON, 6- SINUS, Where the sinus (Xenakis' name) is in this implementation taken as sampling from a third party oscillator."}
@@ -327,6 +175,7 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "freq", :default 440.0, :doc "Oscillation frquency."}
               {:name "ampscale", :default 0.5, :doc "Normally 0.0 to 1.0, multiplier for the distribution's delta value for amplitude. An ampscale of 1.0 allows the full range of  -1 to 1 for a change of amplitude."}
               {:name "durscale", :default 0.5, :doc "Normally 0.0 to 1.0, multiplier for the distribution's delta value for duration. An ampscale of 1.0 allows the full range of  -1 to 1 for a change of duration."}
-              {:name "initCPs", :default 12, :doc "Initialise the number of control points in the memory. Xenakis specifies 12. There would be this number of control points per cycle of the oscillator, though the oscillator's period will constantly change due to the duration distribution."}
+              {:name "init-cps", :default 12, :doc "Initialise the number of control points in the memory. Xenakis specifies 12. There would be this number of control points per cycle of the oscillator, though the oscillator's period will constantly change due to the duration distribution."}
               {:name "knum" :default 12, :doc "Current number of utilised control points, allows modulation."}]
+       :rates #{:ar :kr}
       :doc "See Gendy1 help file for background. This variant of GENDYN normalises the durations in each period to force oscillation at the desired pitch. The breakpoints still get perturbed as in Gendy1. There is some glitching in the oscillator caused by the stochastic effects: control points as they vary cause big local jumps of amplitude. Put ampscale and durscale low to minimise this. All parameters can be modulated at control rate except for initCPs which is used only at initialisation."}])

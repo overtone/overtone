@@ -2,7 +2,7 @@
   (:use [overtone.sc.machinery.ugen common check]))
 
 ;; Filter : UGen {
-;;  	checkInputs { ^this.checkSameRateAsFirstInput }
+;;      checkInputs { ^this.checkSameRateAsFirstInput }
 ;; }
 
 (def muladd-specs
@@ -42,7 +42,6 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"
     :doc "a two zero filter"
     :auto-rate true}
 
-   ;; APF : TwoPole {}
    {:name "APF",
     :args [{:name "in", :default 0.0}
            {:name "freq", :default 440.0}
@@ -195,27 +194,11 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"
     :doc "two zero fixed midcut which cuts out frequencies around 1/2 of the Nyquist frequency. Implements the formula: out(i) = 0.5 * (in(i) + in(i-2))"
     :auto-rate true}
 
-   ;; Median : Filter {
-   ;; 	*ar { arg length=3, in = 0.0, mul = 1.0, add = 0.0;
-   ;; 		^this.multiNew('audio', length, in).madd(mul, add)
-   ;; 	}
-   ;; 	*kr { arg length=3, in = 0.0, mul = 1.0, add = 0.0;
-   ;; 		^this.multiNew('control', length, in).madd(mul, add)
-   ;; 	}
-   ;; 	checkInputs {
-   ;;  		if (rate == 'audio', {
-   ;;  			if (inputs.at(1).rate != 'audio', {
-   ;;  				^"input was not audio rate";
-   ;;  			});
-   ;;  		});
-   ;;  		^this.checkValidInputs
-   ;;  	}
-   ;; }
-
    {:name "Median",
     :args [{:name "length", :default 3.0 :doc "number of input points in which to find the median. Must be an odd number from 1 to 31. If length is 1 then Median has no effect."}
            {:name "in", :default 0.0 :doc "Input signal to be processed"}]
     :doc "returns the median of the last length input points. This non linear filter is good at reducing impulse noise  from a signal."
+    :rates #{:ar :kr}
     :auto-rate true}
 
    {:name "Slew",

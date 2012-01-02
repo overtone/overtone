@@ -48,11 +48,11 @@ The trigger message sent back to the client is this:
 
 /tr						a trigger message
 
-	int - node ID
+        int - node ID
 
-	int - trigger ID
+        int - trigger ID
 
-	float - trigger value
+        float - trigger value
 
 "}
 
@@ -153,7 +153,7 @@ One use of this is to have some precipitating event cause something to happen un
               {:name "rate", :default 1.0 :doc "The amount of change per sample i.e at a rate of 1 the value of each sample will be 1 greater than the preceding sample"}
               {:name "start", :default 0.0 :doc "Starting point of the ramp"}
               {:name "end", :default 1.0 :doc "End point of the ramp"}
-              {:name "resetPos", :default 0.0  :doc "The value to jump to upon receiving a trigger"}]
+              {:name "reset-pos", :default 0.0  :doc "The value to jump to upon receiving a trigger"}]
        :default-rate :kr
        :doc "Phasor is a linear ramp between start and end values. When its trigger input crosses from non-positive to positive, Phasor's output will jump to its reset position. Upon reaching the end of its ramp Phasor will wrap back to its start. N.B. Since end is defined as the wrap point, its value is never actually output."}
 
@@ -165,15 +165,15 @@ One use of this is to have some precipitating event cause something to happen un
 
       {:name "Pitch"
        :args [{:name "in", :default 0.0 :doc ""}
-              {:name "initFreq", :default 440.0}
-              {:name "minFreq", :default 60.0}
-              {:name "maxFreq", :default 4000.0}
-              {:name "execFreq", :default 100.0}
-              {:name "maxBinsPerOctave", :default 16}
+              {:name "init-freq", :default 440.0}
+              {:name "min-freq", :default 60.0}
+              {:name "max-freq", :default 4000.0}
+              {:name "exec-freq", :default 100.0}
+              {:name "max-bins-per-octave", :default 16}
               {:name "median", :default 1}
-              {:name "ampThreshold", :default 0.01}
-              {:name "peakThreshold", :default 0.5}
-              {:name "downSample", :default 1}]
+              {:name "ampTthreshold", :default 0.01}
+              {:name "peak-threshold", :default 0.5}
+              {:name "down-sample", :default 1}]
        :rates #{:kr}
        :num-outs 2
        :doc "Autocorrelation pitch follower
@@ -203,8 +203,8 @@ This is a better pitch follower than ZeroCrossing, but more costly of CPU. For m
       {:name "Schmidt", :extends "InRange"
        :doc "outout one when signal greater than high, and zero when lower than low."}
 
-	  ;; TODO maybe allow a rect datatype as arg
-	  ;;      and write init function to handle it
+          ;; TODO maybe allow a rect datatype as arg
+          ;;      and write init function to handle it
       {:name "InRect"
        :args [{:name "x", :default 0.0 :doc "X component signal"}
               {:name "y", :default 0.0 :doc "Y component signal"}

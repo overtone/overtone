@@ -141,8 +141,8 @@ where x is to vary in the range -1 to 1 over the period dur. minval is the initi
 
 
       {:name "SyncSaw",
-       :args [{:name "syncFreq", :default 440.0 :doc "Frequency of the fundamental."}
-              {:name "sawFreq", :default 440.0 :doc "Frequency of the slave synched sawtooth wave. sawFreq should always be greater than syncFreq."}]
+       :args [{:name "sync-freq", :default 440.0 :doc "Frequency of the fundamental."}
+              {:name "saw-freq", :default 440.0 :doc "Frequency of the slave synched sawtooth wave. sawFreq should always be greater than syncFreq."}]
        :muladd true
        :rates #{:ar :kr}
        :doc "hard sync sawtooth wave oscillator
@@ -184,8 +184,8 @@ A sawtooth wave that is hard synched to a fundamental pitch. This produces an ef
               {:name "depth", :default 0.02}
               {:name "delay", :default 0.0}
               {:name "onset", :default 0.0}
-              {:name "rateVariation", :default 0.04}
-              {:name "depthVariation", :default 0.1}
+              {:name "rate-variation", :default 0.04}
+              {:name "depth-variation", :default 0.1}
               {:name "iphase", :default 0.0}]
        :doc ""}
       ])

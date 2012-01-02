@@ -52,8 +52,8 @@ chapter 18: http:// www.dspguide.com/ch18.htm "}
 
       {:name "StereoConvolution2L",
        :args [{:name "in" :doc "processing target"}
-              {:name "kernelL" :doc "buffer index for the fixed kernel of the left channel, may be modulated in combination with the trigger"}
-              {:name "kernelR" :doc "buffer index for the fixed kernel of the right channel, may be modulated in combination with the trigger"}
+              {:name "kernel-l" :doc "buffer index for the fixed kernel of the left channel, may be modulated in combination with the trigger"}
+              {:name "kernel-r" :doc "buffer index for the fixed kernel of the right channel, may be modulated in combination with the trigger"}
               {:name "trigger" :doc "update the kernel on a change from <= 0 to > 0"}
               {:name "framesize", :default 512.0 :doc "size of FFT frame, must be a power of two. Convolution uses twice this number internally, maximum value you can give this argument is 2^16=65536. Note that it gets progressively more expensive to run for higher powers! 512, 1024, 2048, 4096 standard."}
               {:name "crossfade", :default 1.0 :doc "The number of periods over which a crossfade is made. This must be an integer."}],

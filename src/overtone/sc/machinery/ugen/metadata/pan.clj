@@ -101,8 +101,8 @@ This allows you to use an LFSaw to do continuous rotation around a circle."}
         :doc "Encode a mono signal to two dimensional ambisonic B-format."}
 
        {:name "BiPanB2",
-        :args [{:name "inA", :doc "input signal A"}
-               {:name "inB", :doc "input signal B"}
+        :args [{:name "in-a", :doc "input signal A"}
+               {:name "in-b", :doc "input signal B"}
                {:name "azimuth", :doc "position around the circle from -1 to +1. -1 is behind, -0.5 is left, 0 is forward, +0.5 is right, +1 is behind."}
                {:name "gain", :default 1.0, :doc "amplitude control"}]
         :num-outs 3
@@ -127,7 +127,7 @@ The outputs will be in clockwise order. The position of the first speaker is eit
 
 
        {:name "PanAz",
-        :args [{:name "numChannels" :mode :num-outs, :doc "number of output channels"}
+        :args [{:name "num-channels" :mode :num-outs, :doc "number of output channels"}
                {:name "in", :doc "input signal"}
                {:name "pos", :default 0.0, :doc "pan position. Channels are evenly spaced over a cyclic period of 2.0 with 0.0 equal to the position directly in front, 2.0/numChans a clockwise shift 1/numChans of the way around the ring, 4.0/numChans equal to a shift of 2/numChans, etc. Thus all channels will be cyclically panned through if a sawtooth wave from -1 to +1 is used to modulate the pos. N.B. Front may or may not correspond to a speaker depending on the setting of the orientation arg, see below."}
                {:name "level", :default 1.0, :doc "a control rate level input."}
@@ -135,42 +135,20 @@ The outputs will be in clockwise order. The position of the first speaker is eit
                {:name "orientation", :default 0.5, :doc "Should be zero if the front is a vertex of the polygon. The first speaker will be directly in front. Should be 0.5 if the front bisects a side of the polygon. Then the first speaker will be the one left of center. Default is 0.5."}]
         :doc "Multichannel equal power panner."}
 
-       ;; XFade2 : XFade {
-       ;;  // equal power two channel cross fade
-       ;;  *ar { arg inA, inB = 0.0, pan = 0.0, level = 1.0;
-       ;;    ^this.multiNew('audio', inA, inB, pan, level)
-       ;;  }
-       ;;  *kr { arg inA, inB = 0.0, pan = 0.0, level = 1.0;
-       ;;    ^this.multiNew('control', inA, inB, pan, level)
-       ;;  }
-       ;;    checkInputs { ^this.checkNInputs(2) }
-       ;; }
-
-       ;; TODO why is inB default 0.0 in sc code if checkNInputs(2)?
        {:name "XFade2",
         :args [{:name "inA" :doc "input signal A"}
                {:name "inB" :doc "input signal B"}
                {:name "pan", :default 0.0 :doc "Pan between the two input signals with -1 being inA only and 1 being inB only with values between being a mix of the two."}
                {:name "level", :default 1.0 :doc "Output level - 0 being silent and 1 being original volume"}]
         :check (when-ar (first-n-inputs-ar 2))
+        :rates #{:ar :kr}
         :doc "Equal power two channel cross fade"}
 
-       ;; LinXFade2 : XFade {
-       ;;  // linear two channel cross fade
-       ;;  *ar { arg inA, inB = 0.0, pan = 0.0, level = 1.0;
-       ;;    ^this.multiNew('audio', inA, inB, pan) * level
-       ;;  }
-       ;;  *kr { arg inA, inB = 0.0, pan = 0.0, level = 1.0;
-       ;;    ^this.multiNew('control', inA, inB, pan) * level
-       ;;  }
-       ;;    checkInputs { ^this.checkNInputs(2) }
-       ;; }
-
-       ;; TODO MAYBE? level not supported as of yet
        {:name "LinXFade2",
         :args [{:name "inA", :doc "input signal A"}
                {:name "inB", :doc "input signal B"}
                {:name "pan", :default 0.0, :doc "cross fade position from -1 to +1"}
                {:name "level", :default 1.0, :doc "a control rate level input"}]
+        :rates #{:ar :kr}
         :doc "Two channel linear crossfader."
         :check (when-ar (first-n-inputs-ar 2))}]))

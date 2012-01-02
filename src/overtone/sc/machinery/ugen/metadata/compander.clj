@@ -26,7 +26,6 @@
        :rates #{:ar :kr}
        :auto-rate true}
 
-;;compander
       {:name "Compander",
        :args [{:name "in"
                :default 0.0
@@ -80,8 +79,6 @@ May be used to define: compressers, expanders, limiters, gates and duckers.
 For more information see: http://en.wikipedia.org/wiki/Audio_level_compression
 "}
 
-
-;;normalizer
       {:name "Normalizer"
        :args [{:name "in"
                :doc "The input signal"}
@@ -98,8 +95,6 @@ For more information see: http://en.wikipedia.org/wiki/Audio_level_compression
        :doc "flattens dynamics. Normalizes the input amplitude to the given level. Normalize will not overshoot
 like Compander will, but it needs to look ahead in the audio. Thus there is a
 delay equal to twice the lookAheadTime."}
-
-      ;; Limiter : Normalizer {}
 
       {:name "Limiter", :extends "Normalizer"
        :doc "Limits the input amplitude to the given level. Limiter will not overshoot like Compander will, but it needs to look ahead in the audio. Thus there is a delay equal to twice the lookAheadTime. Limiter, unlike Compander, is completely transparent for an in range signal."}
