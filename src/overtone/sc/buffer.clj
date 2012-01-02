@@ -38,11 +38,8 @@
                                                      (server-sync uid)))))
            info (buffer-info id)]
        (with-meta
-         {:allocated-on-server (atom true)
-          :size (:size info)
-          :n-channels (:n-channels info)
-          :rate (:rate info)
-          :id (:id info)}
+         (merge info
+                {:allocated-on-server (atom true)})
          {:type ::buffer}))))
 
 (defn buffer-alloc-read
@@ -62,19 +59,28 @@
          (throw (Exception. (str "Unable to read file - file does not exist: " path))))
        (let [id (alloc-id :audio-buffer)]
          (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
-         (let [{:keys [id size rate n-channels]} (buffer-info id)]
+         (let [info                              (buffer-info id)
+               {:keys [id size rate n-channels]} info]
            (when (every? zero? [size rate n-channels])
              (free-id :audio-buffer id)
-             (throw (Exception. (str "Unable to read file - file does not appear to be a valid audio file: " path))))
+             (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
            (with-meta
-             {:allocated-on-server (atom true)
-              :size size
-              :n-channels n-channels
-              :rate rate
-              :id id}
-             {:type ::buffer}))))))
+             (merge info
+                    {:allocated-on-server (atom true)})
+             {:type ::file-buffer}))))))
 
-(defn buffer? [buf]
+(derive ::buffer ::buffer-info)
+(derive ::file-buffer ::buffer)
+
+(defn buffer-info?
+  "Returns true if b-info is buffer information. This includes buffers
+  themselves in addition to the return value from #'buffer-info"
+  [b-info]
+  (isa? (type b-info) ::buffer-info))
+
+(defn buffer?
+  "Returns true if buf is a buffer."
+  [buf]
   (isa? (type buf) ::buffer))
 
 (defn buffer-free
