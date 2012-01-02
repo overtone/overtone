@@ -44,9 +44,9 @@
        :args [{:name "envelope" :mode :append-sequence :doc "an Array of Controls."}
               {:name "gate", :default 1.0 :doc "this triggers the envelope and holds it open while > 0. If the Env is fixed-length (e.g. Env.linen, Env.perc), the gate argument is used as a simple trigger. If it is an sustaining envelope (e.g. Env.adsr, Env.asr), the envelope is held open until the gate becomes 0, at which point is released.
 "}
-              {:name "levelScale", :default 1.0 :doc "scales the levels of the breakpoints."}
-              {:name "levelBias", :default 0.0 :doc "offsets the levels of the breakpoints."}
-              {:name "timeScale", :default 1.0 :doc "scales the durations of the segments."}
+              {:name "level-scale", :default 1.0 :doc "scales the levels of the breakpoints."}
+              {:name "level-bias", :default 0.0 :doc "offsets the levels of the breakpoints."}
+              {:name "time-scale", :default 1.0 :doc "scales the durations of the segments."}
               {:name "action", :default 0 :doc "an integer representing an action to be executed when the env is finished playing. This can be used to free the enclosing synth, etc."}]
        :doc "envelope generator, interpolates across a path of control points over time, see the overtone.sc.envelope functions to generate the control points array
 
@@ -58,9 +58,9 @@ The actual minimum duration of a segment is not zero, but one sample step for au
 
       {:name "Linen",
        :args [{:name "gate", :default 1.0 :doc "Input trigger"}
-              {:name "attackTime", :default 0.01 :doc "Time taken to rise to susLevel in seconds"}
-              {:name "susLevel", :default 1.0 :doc "Level to hold the envelope at until gate is triggered"}
-              {:name "releaseTime", :default 1.0 :doc "Time to fall from susLevel back to 0 after the gate has been triggered"}
+              {:name "attack-time", :default 0.01 :doc "Time taken to rise to susLevel in seconds"}
+              {:name "sus-level", :default 1.0 :doc "Level to hold the envelope at until gate is triggered"}
+              {:name "release-time", :default 1.0 :doc "Time to fall from susLevel back to 0 after the gate has been triggered"}
               {:name "action", :default 0 :doc "done action"}],
        :rates #{:kr}
        :doc "A linear envelope generator, rises to susLevel over attackTime seconds and after the gate goes non-positive falls over releaseTime to finally perform an option doneAction"}
