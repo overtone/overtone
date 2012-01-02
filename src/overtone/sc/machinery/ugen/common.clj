@@ -3,8 +3,7 @@
      :author "Jeff Rose & Christophe McKeon"}
   overtone.sc.machinery.ugen.common
   (:use [overtone.util lib]
-        [overtone.sc.machinery.ugen special-ops]
-        [overtone.sc buffer bus]))
+        [overtone.sc.machinery.ugen special-ops]))
 
 
 (defn real-ugen-name
