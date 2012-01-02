@@ -51,5 +51,4 @@
  'overtone.libs.freesound
  'overtone.version
  'overtone.viz.scope
- 'overtone.gui.control
  )
