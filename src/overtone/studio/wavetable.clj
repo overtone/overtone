@@ -1,7 +1,7 @@
 (ns overtone.studio.wavetable
   (:use [overtone.sc server buffer]))
 
-(def WAVEFORM-LENGTH 1024)
+(def ^{:private true} WAVEFORM-LENGTH 1024)
 
 (defn signal->wavetable
   "Convert a seq of values (-1 to 1) into wavetable format, which is partially
@@ -33,9 +33,3 @@
       :waveforms (repeatedly num-waves #(buffer wavelength))}
      {:type ::wave-table})))
 
-(comment
-  (take 10
-        (partition 2
-                   (interleave (overtone.studio.wavetable/old-sig (range 100))
-                               (overtone.studio.wavetable/signal->wavetable (range 100)))))
-)
