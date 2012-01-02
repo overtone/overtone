@@ -1,6 +1,5 @@
 (ns test-utils
-  (:use
-     [clojure.contrib.str-utils :only (re-split re-gsub)])
+  (:require [clojure.string :as string])
   (:import (java.io File)))
 
 (defn refer-private [ns]
@@ -17,10 +16,10 @@
 (defn file-to-ns-string [f root-dir]
   (let [f-sep File/separator
         td-p (re-pattern (str f-sep root-dir f-sep))]
-    (re-gsub (re-pattern "_") "-"
-             (re-gsub (re-pattern f-sep) "."
+    (replace (re-pattern "_") "-"
+             (replace (re-pattern f-sep) "."
                       (remove-file-ext
-                        (last (re-split td-p (.getAbsolutePath f))))))))
+                        (last (string/split td-p (.getAbsolutePath f))))))))
 
 (defn file-seq-map-filter [dir mf ff]
   (filter ff (map mf (file-seq (File. dir)))))
