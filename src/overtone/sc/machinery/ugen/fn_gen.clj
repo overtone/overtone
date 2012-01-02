@@ -5,7 +5,6 @@
   (:use [overtone.util lib]
         [overtone.libs counters]
         [overtone.helpers seq]
-        [overtone.sc buffer]
         [overtone.sc.machinery.ugen sc-ugen defaults specs special-ops intern-ns]
         [overtone.sc.machinery.ugen.metadata unaryopugen binaryopugen])
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
@@ -133,7 +132,7 @@
     (if (and
          (= 1 (count args))
          (not (sc-ugen? (first args)))
-         (not (buffer? (first args)))
+         (not (isa? (type (first args)) ::overtone.sc.buffer/buffer))
          (map? (first args)))
       (apply f (flatten (seq (first args))))
       (apply f args))))
