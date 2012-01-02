@@ -94,6 +94,7 @@
   ([port] (connect-external-server "127.0.0.1" port))
   ([host port]
      (connect host port)
+     (wait-until-deps-satisfied :server-ready)
      :connected-to-external-server))
 
 (defn boot-external-server
