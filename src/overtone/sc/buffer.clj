@@ -3,7 +3,7 @@
         [overtone.helpers file]
         [overtone.util lib]
         [overtone.libs event]
-        [overtone.sc server]
+        [overtone.sc server info]
         [overtone.sc.machinery defaults allocator]
         [overtone.sc.machinery.server comms connection]
         [overtone.helpers.audio-file]
@@ -11,18 +11,35 @@
 
 (defn buffer-info
   "Fetch the information for buffer associated with buf-id (either an integer or
-  an associative with an :id key). Synchronous."
+  an associative with an :id key). Synchronous.
+
+  Information returned is as follows:
+
+  :size       - number of frames in the buffer
+  :n-channels - number of audio channels stored in the buffer
+  :rate       - rate of the buffer (typical rate is 44100 samples per second)
+  :n-samples  - total number of samples in the buffer (* size n-channels)
+  :rate-scale - rate to specify in order to play the buffer correctly according
+                to the server's sample rate (/ rate (server-sample-rate))
+  :duration   - duration of the buffer in seconds
+  :id         - unique id for the buffer"
   [buf-id]
   (let [buf-id (id-mapper buf-id)
         prom   (recv "/b_info" (fn [msg]
                                  (= buf-id (first (:args msg)))))]
     (with-server-sync #(snd "/b_query" buf-id))
-    (let [msg                               (deref! prom)
-          [buf-id n-frames n-channels rate] (:args msg)]
+    (let [msg                        (deref! prom)
+          [id n-frames n-chans rate] (:args msg)
+          num-samples                (* n-frames n-chans)
+          rate-scale                 (/ rate (server-sample-rate))
+          duration                   (/ n-frames rate)]
       (with-meta     {:size n-frames
-                      :n-channels n-channels
+                      :n-channels n-chans
                       :rate rate
-                      :id buf-id}
+                      :n-samples num-samples
+                      :rate-scale rate-scale
+                      :duration duration
+                      :id id}
         {:type ::buffer-info}))))
 
 (defn buffer
@@ -38,11 +55,8 @@
                                                      (server-sync uid)))))
            info (buffer-info id)]
        (with-meta
-         {:allocated-on-server (atom true)
-          :size (:size info)
-          :n-channels (:n-channels info)
-          :rate (:rate info)
-          :id (:id info)}
+         (merge info
+                {:allocated-on-server (atom true)})
          {:type ::buffer}))))
 
 (defn buffer-alloc-read
@@ -62,19 +76,28 @@
          (throw (Exception. (str "Unable to read file - file does not exist: " path))))
        (let [id (alloc-id :audio-buffer)]
          (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
-         (let [{:keys [id size rate n-channels]} (buffer-info id)]
+         (let [info                              (buffer-info id)
+               {:keys [id size rate n-channels]} info]
            (when (every? zero? [size rate n-channels])
              (free-id :audio-buffer id)
-             (throw (Exception. (str "Unable to read file - file does not appear to be a valid audio file: " path))))
+             (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
            (with-meta
-             {:allocated-on-server (atom true)
-              :size size
-              :n-channels n-channels
-              :rate rate
-              :id id}
-             {:type ::buffer}))))))
+             (merge info
+                    {:allocated-on-server (atom true)})
+             {:type ::file-buffer}))))))
 
-(defn buffer? [buf]
+(derive ::buffer ::buffer-info)
+(derive ::file-buffer ::buffer)
+
+(defn buffer-info?
+  "Returns true if b-info is buffer information. This includes buffers
+  themselves in addition to the return value from #'buffer-info"
+  [b-info]
+  (isa? (type b-info) ::buffer-info))
+
+(defn buffer?
+  "Returns true if buf is a buffer."
+  [buf]
   (isa? (type buf) ::buffer))
 
 (defn buffer-free

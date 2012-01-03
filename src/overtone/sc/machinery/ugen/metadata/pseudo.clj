@@ -6,16 +6,16 @@
      [
       ;; from BufIO.sc
       ;; Tap : UGen {
-      ;; 	*ar { arg bufnum = 0, numChannels = 1, delaytime = 0.2;
-      ;; 		var n;
-      ;; 		n = delaytime * SampleRate.ir.neg; // this depends on the session sample rate, not buffer.
-      ;; 		^PlayBuf.ar(numChannels, bufnum, 1, 0, n, 1);
-      ;; 	}
+      ;;        *ar { arg bufnum = 0, numChannels = 1, delaytime = 0.2;
+      ;;                var n;
+      ;;                n = delaytime * SampleRate.ir.neg; // this depends on the session sample rate, not buffer.
+      ;;                ^PlayBuf.ar(numChannels, bufnum, 1, 0, n, 1);
+      ;;        }
       ;; }
 
       {:name "Tap"
        :args [{:name "bufnum", :default 0 :doc " the index of the buffer to use"}
-              {:name "numChannels" :mode :num-outs, :default 1 :doc "number of channels of the buffer"}
+              {:name "num-channels" :mode :num-outs, :default 1 :doc "number of channels of the buffer"}
               {:name "delaytime" :default 0.2 :doc "tap delay; cannot be modulated"}]
        :rates #{:ar}
        :doc "The Tap UGen allows a single tap at a delay into a buffer. "}
@@ -25,17 +25,17 @@
 ;
       ;; from Osc.sc
       ;; IndexL {
-      ;; 	*ar { arg bufnum, in = 0.0, mul = 1.0, add = 0.0;
-      ;; 		var val0 = Index.ar(bufnum, in);
-      ;; 		var val1 = Index.ar(bufnum, in + 1);
-      ;; 		if(in.rate != \audio) { in = K2A.ar(in) }; // for now.
-      ;; 		^LinLin.ar(in.frac, 0.0, 1.0, val0, val1);
-      ;; 	}
-      ;; 	*kr { arg bufnum, in = 0.0, mul = 1.0, add = 0.0;
-      ;; 		var val0 = Index.kr(bufnum, in);
-      ;; 		var val1 = Index.kr(bufnum, in + 1);
-      ;; 		^LinLin.kr(in.frac, 0.0, 1.0, val0, val1);
-      ;; 	}
+      ;;        *ar { arg bufnum, in = 0.0, mul = 1.0, add = 0.0;
+      ;;                var val0 = Index.ar(bufnum, in);
+      ;;                var val1 = Index.ar(bufnum, in + 1);
+      ;;                if(in.rate != \audio) { in = K2A.ar(in) }; // for now.
+      ;;                ^LinLin.ar(in.frac, 0.0, 1.0, val0, val1);
+      ;;        }
+      ;;        *kr { arg bufnum, in = 0.0, mul = 1.0, add = 0.0;
+      ;;                var val0 = Index.kr(bufnum, in);
+      ;;                var val1 = Index.kr(bufnum, in + 1);
+      ;;                ^LinLin.kr(in.frac, 0.0, 1.0, val0, val1);
+      ;;        }
       ;; }
 
       {:name "IndexL"
@@ -48,14 +48,14 @@
 
       ;; from Osc.sc
       ;; TChoose {
-      ;; 	*ar { arg trig, array;
-      ;; 		^Select.ar(TIRand.kr(0, array.lastIndex, trig), array)
+      ;;        *ar { arg trig, array;
+      ;;                ^Select.ar(TIRand.kr(0, array.lastIndex, trig), array)
 
-      ;; 	}
-      ;; 	*kr { arg trig, array;
-      ;; 		^Select.kr(TIRand.kr(0, array.lastIndex, trig), array)
+      ;;        }
+      ;;        *kr { arg trig, array;
+      ;;                ^Select.kr(TIRand.kr(0, array.lastIndex, trig), array)
 
-      ;; 	}
+      ;;        }
       ;; }
 
       {:name "TChoose"
@@ -68,12 +68,12 @@
 
       ;; from Osc.sc
       ;; TWChoose : UGen {
-      ;; 	*ar { arg trig, array, weights, normalize=0;
-      ;; 		^Select.ar(TWindex.ar(trig, weights, normalize), array)
-      ;; 	}
-      ;; 	*kr { arg trig, array, weights, normalize=0;
-      ;; 		^Select.kr(TWindex.kr(trig, weights, normalize), array)
-      ;; 	}
+      ;;        *ar { arg trig, array, weights, normalize=0;
+      ;;                ^Select.ar(TWindex.ar(trig, weights, normalize), array)
+      ;;        }
+      ;;        *kr { arg trig, array, weights, normalize=0;
+      ;;                ^Select.kr(TWindex.kr(trig, weights, normalize), array)
+      ;;        }
 
       ;; }
 
@@ -89,12 +89,12 @@
 
       ;; from BEQSuite.sc
       ;; BLowPass4 {
-      ;; 	*ar { arg in, freq = 1200.0, rq = 1.0, mul = 1.0, add = 0.0;
-      ;; 		var coefs;
-      ;; 		rq = sqrt(rq);
-      ;; 		coefs = BLowPass.sc(nil, freq, rq);
-      ;; 		^SOS.ar(SOS.ar(in, *coefs), *coefs ++ [mul, add]);
-      ;; 	}
+      ;;        *ar { arg in, freq = 1200.0, rq = 1.0, mul = 1.0, add = 0.0;
+      ;;                var coefs;
+      ;;                rq = sqrt(rq);
+      ;;                coefs = BLowPass.sc(nil, freq, rq);
+      ;;                ^SOS.ar(SOS.ar(in, *coefs), *coefs ++ [mul, add]);
+      ;;        }
       ;; }
 
       {:name "BLowPass4"
@@ -107,12 +107,12 @@
 
       ;; from BEQSuite.sc
       ;; BHiPass4 {
-      ;; 	*ar { arg in, freq = 1200.0, rq = 1.0, mul = 1.0, add = 0.0;
-      ;; 		var coefs;
-      ;; 		rq = sqrt(rq);
-      ;; 		coefs = BHiPass.sc(nil, freq, rq);
-      ;; 		^SOS.ar(SOS.ar(in, *coefs), *coefs ++ [mul, add]);
-      ;; 	}
+      ;;        *ar { arg in, freq = 1200.0, rq = 1.0, mul = 1.0, add = 0.0;
+      ;;                var coefs;
+      ;;                rq = sqrt(rq);
+      ;;                coefs = BHiPass.sc(nil, freq, rq);
+      ;;                ^SOS.ar(SOS.ar(in, *coefs), *coefs ++ [mul, add]);
+      ;;        }
       ;; }
 
       {:name "BHiPass4"
@@ -126,21 +126,21 @@
 
       ;; from DelayWR.sc
       ;; PingPong {
-      ;; 	//your buffer should be the same numChannels as your inputs
-      ;; 	*ar { arg  bufnum=0,  inputs, delayTime, feedback=0.7, rotate=1;
-      ;; 		var trig, delayedSignals;
-      ;; 		trig = Impulse.kr(delayTime.reciprocal);
+      ;;        //your buffer should be the same numChannels as your inputs
+      ;;        *ar { arg  bufnum=0,  inputs, delayTime, feedback=0.7, rotate=1;
+      ;;                var trig, delayedSignals;
+      ;;                trig = Impulse.kr(delayTime.reciprocal);
       ;;
-      ;; 		delayedSignals =
-      ;; 			PlayBuf.ar(inputs.numChannels,bufnum,1.0,trig,
-      ;; 				0,
-      ;; 				0.0).rotate(rotate)
-      ;; 			* feedback + inputs;
+      ;;                delayedSignals =
+      ;;                        PlayBuf.ar(inputs.numChannels,bufnum,1.0,trig,
+      ;;                                0,
+      ;;                                0.0).rotate(rotate)
+      ;;                        * feedback + inputs;
       ;;
-      ;; 		RecordBuf.ar(delayedSignals,bufnum,0.0,1.0,0.0,1.0,0.0,trig);
+      ;;                RecordBuf.ar(delayedSignals,bufnum,0.0,1.0,0.0,1.0,0.0,trig);
       ;;
-      ;; 		^delayedSignals
-      ;; 	}
+      ;;                ^delayedSignals
+      ;;        }
       ;; }
 
       {:name "PingPong" ...}
@@ -190,51 +190,51 @@
       ;; // 1024, less delay, little choppier results
 
       ;; HilbertFIR : UGen {
-      ;; 	*ar { arg in, buffer;
-      ;; 		var fft, delay;
-      ;; 		fft = FFT(buffer, in);
-      ;; 		fft = PV_PhaseShift90(fft);
-      ;; 		delay = BufDur.kr(buffer);
-      ;; 		// return [source, shift90]
-      ;; 		^[DelayN.ar(in, delay, delay), IFFT(fft)];
-      ;; 	}
+      ;;        *ar { arg in, buffer;
+      ;;                var fft, delay;
+      ;;                fft = FFT(buffer, in);
+      ;;                fft = PV_PhaseShift90(fft);
+      ;;                delay = BufDur.kr(buffer);
+      ;;                // return [source, shift90]
+      ;;                ^[DelayN.ar(in, delay, delay), IFFT(fft)];
+      ;;        }
       ;; }
 
       ;; from AudioIn.sc
       ;; SoundIn  {
 
-      ;; 	*ar { arg bus = 0, mul=1.0, add=0.0;
-      ;; 		var chanOffset;
-      ;; 		chanOffset = this.channelOffset;
-      ;; 		if(bus.isArray.not,{
-      ;; 			^In.ar(chanOffset + bus, 1).madd(mul,add)
-      ;; 		});
+      ;;        *ar { arg bus = 0, mul=1.0, add=0.0;
+      ;;                var chanOffset;
+      ;;                chanOffset = this.channelOffset;
+      ;;                if(bus.isArray.not,{
+      ;;                        ^In.ar(chanOffset + bus, 1).madd(mul,add)
+      ;;                });
 
-      ;; 		// check to see if channels array is consecutive [n,n+1,n+2...]
-      ;; 		if(bus.every({arg item, i;
-      ;; 				(i==0) or: {item == (bus.at(i-1)+1)}
-      ;; 			}),{
-      ;; 			^In.ar(chanOffset + bus.first, bus.size).madd(mul,add)
-      ;; 		},{
-      ;; 			// allow In to multi channel expand
-      ;; 			^In.ar(chanOffset + bus).madd(mul,add)
-      ;; 		})
-      ;; 	}
+      ;;                // check to see if channels array is consecutive [n,n+1,n+2...]
+      ;;                if(bus.every({arg item, i;
+      ;;                                (i==0) or: {item == (bus.at(i-1)+1)}
+      ;;                        }),{
+      ;;                        ^In.ar(chanOffset + bus.first, bus.size).madd(mul,add)
+      ;;                },{
+      ;;                        // allow In to multi channel expand
+      ;;                        ^In.ar(chanOffset + bus).madd(mul,add)
+      ;;                })
+      ;;        }
 
-      ;; 	*channelOffset {
-      ;; 		^NumOutputBuses.ir
-      ;; 	}
+      ;;        *channelOffset {
+      ;;                ^NumOutputBuses.ir
+      ;;        }
       ;; }
 
       ;; // backward compatible version. Only difference: starts counting from channel 1
       ;; from AudioIn.sc
       ;; AudioIn : SoundIn  {
-      ;; 	*ar { arg channel = 0, mul=1.0, add=0.0;
-      ;; 		^super.ar(channel, mul, add)
-      ;; 	}
-      ;; 	*channelOffset {
-      ;; 		^NumOutputBuses.ir - 1
-      ;; 	}
+      ;;        *ar { arg channel = 0, mul=1.0, add=0.0;
+      ;;                ^super.ar(channel, mul, add)
+      ;;        }
+      ;;        *channelOffset {
+      ;;                ^NumOutputBuses.ir - 1
+      ;;        }
       ;; }
 
       ;; from Compander.sc
@@ -253,75 +253,75 @@
 
       ;; from Splay.sc
       ;;       Splay {
-      ;;                                                                     	*ar { arg inArray, spread=1, level=1, center=0.0, levelComp=true;
-      ;; 		var n, n1; n = inArray.size.max(2); n1 = n-1;
+      ;;                                                                        *ar { arg inArray, spread=1, level=1, center=0.0, levelComp=true;
+      ;;                var n, n1; n = inArray.size.max(2); n1 = n-1;
 
-      ;; 		if (levelComp, { level = level * n.reciprocal.sqrt });
+      ;;                if (levelComp, { level = level * n.reciprocal.sqrt });
 
-      ;; 		^Pan2.ar(
-      ;; 			inArray,
-      ;; 			((0 .. n1) * (2 / n1) - 1) * spread + center
-      ;; 		).sum * level;
-      ;; 	}
+      ;;                ^Pan2.ar(
+      ;;                        inArray,
+      ;;                        ((0 .. n1) * (2 / n1) - 1) * spread + center
+      ;;                ).sum * level;
+      ;;        }
 
-      ;; 	*arFill { arg n, function, spread=1, level=1, center=0.0, levelComp=true;
-      ;; 		^this.ar((function ! n), spread, level, center, levelComp)
-      ;; 	}
+      ;;        *arFill { arg n, function, spread=1, level=1, center=0.0, levelComp=true;
+      ;;                ^this.ar((function ! n), spread, level, center, levelComp)
+      ;;        }
       ;; }
 
       ;; SplayZ {
-      ;; 	*ar { arg numChans=4, inArray, spread=1, level = 1, width = 2, center = 0.0,
-      ;; 			orientation = 0.5, levelComp=true;
+      ;;        *ar { arg numChans=4, inArray, spread=1, level = 1, width = 2, center = 0.0,
+      ;;                        orientation = 0.5, levelComp=true;
 
-      ;; 		var n, n1; n = inArray.size.max(2); n1 = n-1;
-      ;; 		if (levelComp, { level = level * n.reciprocal.sqrt });
+      ;;                var n, n1; n = inArray.size.max(2); n1 = n-1;
+      ;;                if (levelComp, { level = level * n.reciprocal.sqrt });
 
-      ;; 		"SplayZ is deprecated, because its geometry is wrong.
-      ;; 		Please convert to SplayAz.".inform;
+      ;;                "SplayZ is deprecated, because its geometry is wrong.
+      ;;                Please convert to SplayAz.".inform;
 
-      ;; 		^PanAz.ar(
-      ;; 			numChans,
-      ;; 			inArray,
-      ;; 			((0 .. n1) * (2 / n1) - 1) * spread + center,
-      ;; 			1,
-      ;; 			width,
-      ;; 			orientation
-      ;; 		).sum * level;
-      ;; 	}
+      ;;                ^PanAz.ar(
+      ;;                        numChans,
+      ;;                        inArray,
+      ;;                        ((0 .. n1) * (2 / n1) - 1) * spread + center,
+      ;;                        1,
+      ;;                        width,
+      ;;                        orientation
+      ;;                ).sum * level;
+      ;;        }
 
-      ;; 	*arFill { arg numChans=4, n, function, spread=1, level=1, width = 2, center=0.0,
-      ;; 		orientation = 0.5, levelComp=true;
-      ;; 		^this.ar(numChans, function ! n, spread, level, width, center,
-      ;; 		orientation, levelComp)
-      ;; 	}
+      ;;        *arFill { arg numChans=4, n, function, spread=1, level=1, width = 2, center=0.0,
+      ;;                orientation = 0.5, levelComp=true;
+      ;;                ^this.ar(numChans, function ! n, spread, level, width, center,
+      ;;                orientation, levelComp)
+      ;;        }
       ;; }
 
 
       ;; SplayAz {
-      ;; 	*ar { arg numChans=4, inArray, spread=1, level = 1, width = 2, center = 0.0,
-      ;; 			orientation = 0.5, levelComp=true;
+      ;;        *ar { arg numChans=4, inArray, spread=1, level = 1, width = 2, center = 0.0,
+      ;;                        orientation = 0.5, levelComp=true;
 
-      ;; 		var n = inArray.size.max(1);
-      ;; 		var moreOuts = numChans > n;
+      ;;                var n = inArray.size.max(1);
+      ;;                var moreOuts = numChans > n;
 
-      ;; 		if (levelComp, { level = level * n.reciprocal.sqrt });
-      ;; 		if (moreOuts, { inArray = inArray * level });
+      ;;                if (levelComp, { level = level * n.reciprocal.sqrt });
+      ;;                if (moreOuts, { inArray = inArray * level });
 
-      ;; 		^PanAz.ar(
-      ;; 			numChans,
-      ;; 			inArray,
-      ;; 			((0 .. n-1) / n * 2).postln * spread + center,
-      ;; 			1,
-      ;; 			width,
-      ;; 			orientation
-      ;; 		).sum * if (moreOuts, 1, level);
-      ;; 	}
+      ;;                ^PanAz.ar(
+      ;;                        numChans,
+      ;;                        inArray,
+      ;;                        ((0 .. n-1) / n * 2).postln * spread + center,
+      ;;                        1,
+      ;;                        width,
+      ;;                        orientation
+      ;;                ).sum * if (moreOuts, 1, level);
+      ;;        }
 
-      ;; 	*arFill { arg numChans=4, n, function, spread=1, level=1, width = 2, center=0.0,
-      ;; 		orientation = 0.5, levelComp=true;
-      ;; 		^this.ar(numChans, function ! n, spread, level, width, center,
-      ;; 		orientation, levelComp)
-      ;; 	}
+      ;;        *arFill { arg numChans=4, n, function, spread=1, level=1, width = 2, center=0.0,
+      ;;                orientation = 0.5, levelComp=true;
+      ;;                ^this.ar(numChans, function ! n, spread, level, width, center,
+      ;;                orientation, levelComp)
+      ;;        }
       ;; }
 
       ])

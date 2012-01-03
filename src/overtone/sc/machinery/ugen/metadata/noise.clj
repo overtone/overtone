@@ -36,7 +36,7 @@
 
 
       {:name "Crackle"
-       :args [{:name "chaosParam", :default 1.5 :doc "a parameter of the chaotic function with useful values from just below 1.0 to just above 2.0. Towards 2.0 the sound crackles.
+       :args [{:name "chaos-param", :default 1.5 :doc "a parameter of the chaotic function with useful values from just below 1.0 to just above 2.0. Towards 2.0 the sound crackles.
 "}]
        :rates #{:ar :kr}
        :doc "A noise generator based on a chaotic function."}

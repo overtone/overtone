@@ -47,8 +47,8 @@
       {:name "AmpCompA" :extends "AmpComp"
        :args [{:name "freq", :default 1000.0 :doc "Input frequency value. For freq == root, the output is rootAmp"}
               {:name "root", :default 0 :doc "Root freq relative to which the curve is calculated (usually lowest freq)"}
-              {:name "minAmp", :default 0.32 :doc "Amplitude at the minimum point of the curve (around 2512 Hz) "}
-              {:name "rootAmp", :default 1.0 :doc "Amplitude at the root frequency."}]
+              {:name "min-amp", :default 0.32 :doc "Amplitude at the minimum point of the curve (around 2512 Hz) "}
+              {:name "root-amp", :default 1.0 :doc "Amplitude at the root frequency."}]
        :doc "amplitude compensation: ANSI a-weighting curve for lowering highs. Apart from freq, the args are not modulatable."}
 
 
@@ -79,6 +79,6 @@
        :doc "outputs the initial value you give it."}
 
       {:name "Silent",
-       :args [{:name "numChannels", :mode :num-outs, :default 1 :doc "Number of channels of silence."}],
+       :args [{:name "num-channels", :mode :num-outs, :default 1 :doc "Number of channels of silence."}],
        :rates #{:ar}
        :doc "Continuously outputs 0"}])

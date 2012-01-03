@@ -87,16 +87,16 @@ The IFFT UGen converts the FFT data in-place (in the original FFT buffer) and ov
        :doc "clears bins above or below a cutoff point"}
 
       {:name "PV_BinWipe",
-       :args [{:name "bufferA" :doc "fft buffer A."}
-              {:name "bufferB" :doc "fft buffer B."}
+       :args [{:name "buffer-a" :doc "fft buffer A."}
+              {:name "buffer-b" :doc "fft buffer B."}
               {:name "wipe", :default 0.0
                :doc "can range between -1 and +1; if wipe == 0 then the output is the same as inA; if  wipe > 0 then it begins replacing with bins from inB from the bottom up;if  wipe < 0 then it begins replacing with bins from inB from the top down."}],
        :rates #{:kr}
        :doc "copies low bins from one input and the high bins of the other"}
 
       {:name "PV_MagMul",
-       :args [{:name "bufferA" :doc "fft buffer A."}
-              {:name "bufferB" :doc "fft buffer B."}],
+       :args [{:name "buffer-a" :doc "fft buffer A."}
+              {:name "buffer-b" :doc "fft buffer B."}],
        :rates #{:kr}
        :doc "multiplies magnitudes of two inputs and keeps the phases of the first input"}
 
@@ -104,8 +104,8 @@ The IFFT UGen converts the FFT data in-place (in the original FFT buffer) and ov
        :doc "combines magnitudes of first input and phases of the second input"}
 
       {:name "PV_Copy" :extends "PV_MagMul"
-       :args [{:name "bufferA" :doc "source buffer"}
-              {:name "bufferB" :doc "destination buffer"}]
+       :args [{:name "buffer-a" :doc "source buffer"}
+              {:name "buffer-b" :doc "destination buffer"}]
        :doc "copies the spectral frame in bufferA to bufferB at that point in the chain of PV UGens. This allows for parallel processing of spectral data without the need for multiple FFT UGens, and to copy out data at that point in the chain for other purposes. bufferA and bufferB must be the same size."}
 
       {:name "PV_Max" :extends "PV_MagMul"
@@ -124,8 +124,8 @@ The IFFT UGen converts the FFT data in-place (in the original FFT buffer) and ov
        :doc "complex addition: RealA + RealB, ImagA + ImagB"}
 
       {:name "PV_MagDiv",
-       :args [{:name "bufferA" :doc "fft buffer A."}
-              {:name "bufferB" :doc "fft buffer B."}
+       :args [{:name "buffer-a" :doc "fft buffer A."}
+              {:name "buffer-b" :doc "fft buffer B."}
               {:name "zeroed", :default 0.0001 :doc "number to use when bins are zeroed out, i.e. causing division by zero"}],
        :rates #{:kr}
        :doc "divides magnitudes of two inputs and keeps the phases of the first input"}
@@ -139,24 +139,24 @@ The IFFT UGen converts the FFT data in-place (in the original FFT buffer) and ov
 
       {:name "PV_RectComb",
        :args [{:name "buffer" :doc " fft buffer."}
-              {:name "numTeeth", :default 0.0 :doc "number of teeth in the comb."}
+              {:name "num-teeth", :default 0.0 :doc "number of teeth in the comb."}
               {:name "phase", :default 0.0 :doc "starting phase of comb pulse."}
               {:name "width", :default 0.5 :doc "pulse width of comb."}],
        :rates #{:kr}
        :doc "makes a series of gaps in a spectrum"}
 
       {:name "PV_RectComb2",
-       :args [{:name "bufferA" :doc "fft buffer A."}
-              {:name "bufferB" :doc "fft buffer B."}
-              {:name "numTeeth", :default 0.0 :doc "number of teeth in the comb."}
+       :args [{:name "buffer-a" :doc "fft buffer A."}
+              {:name "buffer-b" :doc "fft buffer B."}
+              {:name "num-teeth", :default 0.0 :doc "number of teeth in the comb."}
               {:name "phase", :default 0.0 :doc "starting phase of comb pulse."}
               {:name "width", :default 0.5 :doc "pulse width of comb."}],
        :rates #{:kr}
        :doc "alternates blocks of bins between the two inputs"}
 
       {:name "PV_RandWipe",
-       :args [{:name "bufferA" :doc "fft buffer A."}
-              {:name "bufferB" :doc "fft buffer B."}
+       :args [{:name "buffer-a" :doc "fft buffer A."}
+              {:name "buffer-b" :doc "fft buffer B."}
               {:name "wipe", :default 0.0 :doc "copies bins from bufferB in a random order as wipe goes from 0 to 1."}
               {:name "trig", :default 0.0 :doc "a trigger selects a new random ordering."}],
        :rates #{:kr}

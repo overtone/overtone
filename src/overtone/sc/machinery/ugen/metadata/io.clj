@@ -134,7 +134,7 @@ When using an array of bus indexes, the channel array will just be copied to eac
 This ugen is used where sample accurate output is needed."}
 
       {:name "LocalOut",
-       :args [{:name "channelsArray" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
+       :args [{:name "channels-array" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
        :num-outs 0
        :check (when-ar (all-inputs-ar "all channels must be audio rate"))
        :doc "write to buses local to a synth
@@ -156,7 +156,7 @@ bus_signal = (input_signal * xfade) + (bus_signal * (1 - xfade));"}
 
       {:name "SharedOut",
        :args [{:name "bus" :doc "the index of the shared control bus to read from"}
-              {:name "channelsArray" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
+              {:name "channels-array" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
        :rates #{:kr},
        :num-outs 0
        :doc "Reads from a control bus shared between the internal server and the SC client. Control rate only. Reading from a shared control bus on the client is synchronous. "}])

@@ -6,7 +6,7 @@
       {:name "Demand",
        :args [{:name "trig" :doc "Can be any signal. A trigger happens when the signal changes from non-positive to positive."}
               {:name "reset" :default 0 :doc "Resets the list of ugens when triggered."}
-              {:name "demandUGens", :mode :append-sequence-set-num-outs :doc "list of demand rate ugens"}],
+              {:name "demand-ugens", :mode :append-sequence-set-num-outs :doc "list of demand rate ugens"}],
        :check (same-rate-as-first-input)
        :auto-rate true
        :doc "On every trigger it demands the next value from each of the demand ugens passed as args.  Used to pull values from the other demand rate ugens.

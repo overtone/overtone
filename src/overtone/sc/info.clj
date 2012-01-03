@@ -55,7 +55,7 @@
                             :num-buffers (long nb)
                             :num-running-synths (long nrs)})
                   :done))
-              ::num-control-buses)
+              ::server-info)
     (let [synth-id (snd-server-info)
           res (deref! prom)]
       (kill synth-id)

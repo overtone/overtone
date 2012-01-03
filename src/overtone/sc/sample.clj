@@ -60,15 +60,13 @@
                               (= 0.0 (:rate info))
                               (= 0 (:n-channels info)))
                      (free-id :audio-buffer id)
-                     (throw (Exception. (str "Unable to load sample - file does not appear to be a valid audio file: " path))))
-            sample (with-meta {:allocated-on-server (atom true)
-                               :id id
-                               :path path
-                               :args args
-                               :name f-name
-                               :size (:size info)
-                               :rate (:rate info)
-                               :n-channels (:n-channels info)}
+                     (throw (Exception. (str "Unable to load sample - perhaps path is not a valid audio file: " path))))
+            sample (with-meta
+                     (merge info
+                            {:allocated-on-server (atom true)
+                             :path path
+                             :args args
+                             :name f-name})
                      {:type ::sample})]
         (dosync (alter loaded-samples* assoc [path args] sample))
         sample))))
@@ -116,6 +114,7 @@
 (on-deps :server-ready ::load-all-samples load-all-samples)
 
 (defn sample?
+  "Returns true if s is a sample"
   [s]
   (isa? (type s) ::sample))
 
