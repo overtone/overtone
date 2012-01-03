@@ -5,10 +5,10 @@
   (:require [seesaw.bind :as bind]))
 
 (defn- make-initial-state [metro steps instruments]
-  {:playing?  false 
+  {:playing?  false
    :metronome metro
    :step      0
-   :rows      (into 
+   :rows      (into
                 {}
                 (for [i instruments]
                   [(:name i) (vec (repeat steps false))]))})
@@ -21,7 +21,7 @@
 
 (defn- step-player
   [state-atom beat steps instruments]
-  (let [state @state-atom] 
+  (let [state @state-atom]
     (when (:playing? state)
       (let [metro (:metronome state)
             index (mod beat steps)
@@ -52,14 +52,14 @@
           play-btn     (button :text "play")
           bpm-spinner  (spinner :model (spinner-model (metro :bpm) :from 20 :to 300 :by 1)
                                 :maximum-size [60 :by 100])
-          step-lbls    (vec (for [i (range steps)] (label :size [25 :by 25] 
+          step-lbls    (vec (for [i (range steps)] (label :size [25 :by 25]
                                                           :background "#22F"
                                                           :opaque? false
                                                           :border (line-border :color "#22A"))))
-          control-pane (toolbar :floatable? false 
+          control-pane (toolbar :floatable? false
                                 :items [play-btn
                                         :separator
-                                        bpm-spinner 
+                                        bpm-spinner
                                         [:fill-h 5]
                                         "bpm"])
           seq-pane     (mig-panel :constraints [(str "wrap " (inc steps)) "" ""]
@@ -79,7 +79,7 @@
                    (repaint! step-lbls)))
       (listen play-btn :action
               (fn [e]
-                (let [playing? (:playing? (swap! state-atom toggle-playing))] 
+                (let [playing? (:playing? (swap! state-atom toggle-playing))]
                   (config! play-btn :text (if playing? "stop" "play"))
                   (if playing?
                     (step-player state-atom (metro) steps instruments)))))
@@ -92,7 +92,7 @@
   (use 'overtone.live)
   (use 'overtone.gui.sequencer)
   (use 'overtone.gui.control)
-  (use 'overtone.inst.synth)
+  (use 'overtone.inst.drum)
   (def m (metronome 128))
-  (step-sequencer m 8 ks1 ping)
+  (step-sequencer m 8 kick closed-hat snare)
 )
