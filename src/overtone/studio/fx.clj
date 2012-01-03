@@ -101,17 +101,6 @@
   (let [src (in bus)]
     (replace-out bus (rhpf src cutoff res))))
 
-(defsynth eq-3
-  [bus 0 pan 0 volume 1
-   low-freq 80 mid-freq 800 hi-freq 2000 mix 1
-   low-gain -45 mid-gain -45 hi-gain -45]
-  (let [dry (in bus)
-        wet (b-low-shelf dry low-freq 1 low-gain)
-        wet (b-peak-eq wet mid-freq 1 mid-gain)
-        wet (b-hi-shelf wet hi-freq 1 hi-gain)
-        mixed (x-fade2 dry wet mix)]
-    (replace-out bus (pan2 mixed pan volume))))
-
 (def MAX-DELAY 4)
 
 (defsynth fx-feedback

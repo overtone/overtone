@@ -1,24 +1,24 @@
 (ns overtone.inst.drum
   (:use [overtone.sc gens envelope synth]
-        [overtone.studio rig]))
+        [overtone.studio mixer]))
 
-(definst kick [freq 80 mod-freq 5 mod-index 5
-                sustain 0.4 amp 0.8 noise 0.025]
-  (let [pitch-contour (line:kr (* 2 freq) freq 0.02)
-        drum (lpf (sin-osc pitch-contour (sin-osc mod-freq (/ mod-index 1.3))) 1000)
-        drum-env (env-gen (perc 0.005 sustain) :action FREE)
-        hit (hpf (* noise (white-noise)) 500)
-        hit (lpf hit (line 6000 500 0.03))
-        hit-env (env-gen (perc))]
-    (* amp (+ (* drum drum-env) (* hit hit-env)))))
+;;; Kick Drums
 
+(definst kick
+  [freq       {:default 50 :min 40 :max 140 :step 1}
+   env-ratio  {:default 3 :min 1.2 :max 8.0 :step 0.1}
+   freq-decay {:default 0.02 :min 0.001 :max 1.0 :step 0.001}
+   amp-decay  {:default 0.5 :min 0.001 :max 1.0 :step 0.001}]
+  (let [fenv (* (env-gen (envelope [env-ratio 1] [freq-decay] :exp)) freq)
+        aenv (env-gen (perc 0.005 amp-decay) :done FREE)]
+    (* (sin-osc fenv (* 0.5 Math/PI)) aenv)))
 
-(definst kick2 [freq {:default 80 :min 10 :max 20000 :step 1}
-                amp {:default 0.8 :min 0.001 :max 1.0 :step 0.001}
-                mod-freq {:default 5 :min 0.001 :max 10.0 :step 0.01}
+(definst kick2 [freq      {:default 80 :min 10 :max 20000 :step 1}
+                amp       {:default 0.8 :min 0.001 :max 1.0 :step 0.001}
+                mod-freq  {:default 5 :min 0.001 :max 10.0 :step 0.01}
                 mod-index {:default 5 :min 0.001 :max 10.0 :step 0.01}
-                sustain {:default 0.4 :min 0.001 :max 1.0 :step 0.001}
-                noise {:default 0.025 :min 0.001 :max 1.0 :step 0.001}]
+                sustain   {:default 0.4 :min 0.001 :max 1.0 :step 0.001}
+                noise     {:default 0.025 :min 0.001 :max 1.0 :step 0.001}]
   (let [pitch-contour (line:kr (* 2 freq) freq 0.02)
         drum (lpf (sin-osc pitch-contour (sin-osc mod-freq (/ mod-index 1.3))) 1000)
         drum-env (env-gen (perc 0.005 sustain) :action FREE)
@@ -27,95 +27,136 @@
         hit-env (env-gen (perc))]
     (* amp (+ (* drum drum-env) (* hit hit-env)))))
 
-(comment defsynth kick [out 0 ffreq 80 attack 0 release 2 amp 0.1 pan 0]
-  (let [snd (apply + (sin-osc [ffreq (* 1.01 ffreq) (* ffreq 1.03)
-                      (* ffreq 1.06) (* ffreq 1.1) 0 0.5]))
-        snd (+ snd (pink-noise))
-        snd (reduce (fn [mem v]
-                      (rlpf mem (* ffreq v) (* 0.1 v)))
-                    snd (range 1 6))
-        snd (+ snd (lpf (white-noise) (* ffreq 6)))
-        env (env-gen (perc attack release 1 -50) :action FREE)]
-    (offset-out out (pan2 (* snd amp env) 0))))
+(definst kick3
+  [freq {:default 80 :min 40 :max 140 :step 1}
+   amp {:default 0.3 :min 0.001 :max 1 :step 0.001}]
+  (let [sub-osc   (sin-osc freq)
+        sub-env   (line 1 0 0.7 FREE)
+        click-osc  (lpf (white-noise) 1500)
+        click-env  (line 1 0 0.02)
+        sub-out   (* sub-osc sub-env)
+        click-out (* click-osc click-env)]
+    (* amp (+ sub-out click-out))))
 
-(definst small-hat [ffreq 200 rq 0.5
-                    attack 0 release 0.025 amp 0.3
-                    pan 0]
-  (let [snd (white-noise)
-        snd (hpf snd ffreq)
-        snd (rhpf snd (* ffreq 2) rq)
-        snd (* snd (env-gen (perc attack release 1 -10) :action FREE))]
-    (* 2 snd amp)))
+(definst round-kick
+  [freq   {:default 80 :min 40 :max 140 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.001}
+   attack {:default 0.8 :min 0.001 :max 1.0 :step 0.001}
+   decay  {:default 0.4 :min 0.001 :max 1 :step 0.001}]
+  (let [env (env-gen (perc attack decay) :action FREE)
+        snd (sin-osc freq (* Math/PI 0.5))
+        snd (* amp env snd)]
+    snd))
 
-(definst c-hat [amp {:default 0.1 :min 0.001 :max 1.0 :step 0.001}
-                t   {:default 0.07 :min 0.001 :max 1.0 :step 0.001}]
-  (let [env (env-gen (perc 0.001 t) 1 1 0 1 FREE)
-        noise (white-noise)
-        sqr (* (env-gen (perc 0.01 0.04)) (pulse 880 0.2))
-        filt (bpf (+ sqr noise) 9000 0.5)]
-    (* amp env filt)))
+(definst dub-kick
+  [freq   {:default 80 :min 40 :max 140 :step 1}]
+  (let [cutoff-env (perc 0.001 1 freq -20)
+        amp-env (perc 0.001 1 1 -8)
+        osc-env (perc 0.001 1 freq -8)
+        noiz (lpf (white-noise) (+ (env-gen:kr cutoff-env) 20))
+        snd  (lpf (sin-osc (+ (env-gen:kr osc-env) 20)) 200)
+        mixed (* (+ noiz snd) (env-gen amp-env :done FREE))]
+    mixed))
 
-(definst o-hat [amp 0.4 t 0.3 low 6000 hi 2000]
+(definst dry-kick
+  [freq   {:default 60 :min 40 :max 140 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   attack {:default 0.001 :min 0.001 :max 1.0 :step 0.0001}
+   decay  {:default 0.2 :min 0.001 :max 1 :step 0.001}]
+  (let [env (env-gen (perc attack decay) :action FREE)
+        snd (mix (sin-osc [freq (* 2 freq) (- freq 15)] (* Math/PI 0.5)))
+        snd (* amp env snd)]
+    snd))
+
+;; Hi-hats
+
+(definst open-hat
+  [amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   t      {:default 0.3 :min 0.1 :max 1.0 :step 0.01}
+   low    {:default 6000 :min 3000 :max 12000 :step 1}
+   hi     {:default 2000 :min 1000 :max 8000 :step 1}]
   (let [low (lpf (white-noise) low)
         hi (hpf low hi)
         env (line 1 0 t :action FREE)]
-    (* env hi)))
+    (* amp env hi)))
 
-(definst o-hat-demo [amp 0.4 t 0.3 low 6000 hi 2000]
-  (let [low (lpf (white-noise) (mouse-x 100 20000))
-        hi (hpf low (mouse-y 20 20000))
+(definst closed-hat
+  [amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   t      {:default 0.1 :min 0.1 :max 1.0 :step 0.01}
+   low    {:default 6000 :min 3000 :max 12000 :step 1}
+   hi     {:default 2000 :min 1000 :max 8000 :step 1}]
+  (let [low (lpf (white-noise) low)
+        hi (hpf low hi)
         env (line 1 0 t :action FREE)]
-    (* env hi)))
+    (* amp env hi)))
 
-(definst round-kick [amp 0.5 decay 0.6 freq 65]
-  (let [env (env-gen (perc 0 decay) :action FREE)
-        snd (* amp (sin-osc freq (* Math/PI 0.5)))]
-    (* snd env)))
+(definst hat-demo
+  [amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   t      {:default 0.3 :min 0.1 :max 1.0 :step 0.01}]
+  (let [low (lpf (white-noise) (mouse-x 3000 12000))
+        hi (hpf low (mouse-y 1000 8000))
+        env (line 1 0 t :action FREE)]
+    (* amp env hi)))
 
-(definst snare [freq 405 amp 0.2 sustain 0.1
-                drum-amp 0.25 crackle-amp 40 tightness 1000]
-  (let [drum-env (* 0.5 (env-gen (perc 0.005 sustain) :action FREE))
-        drum-s1 (* drum-env (sin-osc freq))
-        drum-s2 (* drum-env (sin-osc (* freq 0.53)))
-        drum-s3 (* drum-env (sin-osc (saw (* freq 0.85))
-                                     (sin-osc 184)))
-        drum (* drum-amp (+ drum-s1 drum-s2 drum-s3))
-        noise (lf-noise0 20000 0.1)
-        filtered (* 0.5 (brf noise 8000 0.1))
-        filtered (* 0.5 (brf filtered 5000 0.1))
-        filtered (* 0.5 (brf filtered 3600 0.1))
-        filtered (* (env-gen (perc 0.005 sustain) :action FREE)
-                    (brf filtered 2000 0.0001))
-        crackle (* (resonz filtered tightness) crackle-amp)]
-    (* amp (+ drum crackle))))
+(definst closed-hat2
+  [amp    {:default 0.3 :min 0.001 :max 1.0 :step 0.001}
+   attack {:default 0.001 :min 0.001 :max 1.0 :step 0.0001}
+   decay  {:default 0.07 :min 0.001 :max 1.0 :step 0.001}]
+  (let [env (env-gen (perc attack decay) 1 1 0 1 FREE)
+        noise (white-noise)
+        sqr (* (env-gen (perc 0.01 0.04)) (pulse 880 0.2))
+        filt (bpf (+ sqr noise) 9000 0.5)]
+    (* 0.5 amp env filt)))
 
-(definst snare2 [amp 0.5 decay 0.1 freq 1000]
-  (let [env (env-gen (perc 0 decay) :action FREE)
-        snd (rlpf (* (gray-noise) amp) freq (line 0.1 0.9 decay))]
-    (* snd env)))
+(definst hat3
+  [amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   t      {:default 0.1 :min 0.1 :max 1.0 :step 0.01}
+   low    {:default 6000 :min 3000 :max 12000 :step 1}
+   hi     {:default 2000 :min 1000 :max 8000 :step 1}]
+  (let [low (lpf (white-noise) low)
+        hi (hpf low hi)
+        env (line 1 0 t :action FREE)]
+    (* amp env hi)))
+; (hat3 :t 0.1) => closed
+; (hat3 :t 0.3) => open
 
-(defsynth tom [amp 0.2 sustain 0.4 mode-level 0.25 freq 90 timbre 1]
-  (let [env (env-gen (perc 0.005 sustain) :action FREE)
-        s1 (* 0.5 env (sin-osc (* freq 0.8)))
-        s2 (* 0.5 env (sin-osc freq))
-        s3 (* 5 env (sin-osc (saw (* 0.9 freq))
-                             (* (sin-osc (* freq 0.85))
-                                (/ timbre 1.3))))
-        mix (* mode-level (+ s1 s2 s3))
-        stick (* 3 (env-gen (perc 0.005 0.01))
-                 (crackle 2.01))
-        mix2 (* amp (+ mix stick))]
-    (out 0 (pan2 mix2))))
+(definst soft-hat
+  [freq   {:default 6000 :min 3000 :max 12000 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   attack {:default 0.0001 :min 0.1 :max 1.0 :step 0.01}
+   decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
+  (let [env (env-gen (perc attack decay) :done FREE)
+        noiz (bpf (* amp (gray-noise)) freq 0.3)
+        snd (* noiz env)]
+    snd))
 
-; //variation with more sines
-; SynthDef("dry-kick", {|amp= 0.5, decay= 0.1, freq= 60|
-;         var env, snd;
-;         env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;         snd= Mix(SinOsc.ar([freq, freq*2, freq-15], 0, amp));
-;         Out.ar(0, Pan2.ar(snd*env, 0));
-;         }).store;
-; Synth("dry-kick")
-;
+(comment
+  ; there is something wrong with these two...
+
+(definst noise-hat
+  [freq   {:default 6000 :min 3000 :max 12000 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   attack {:default 0.0001 :min 0.1 :max 1.0 :step 0.01}
+   decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
+  (let [env (env-gen (perc attack decay) :done FREE)
+        noiz (bpf (* amp (gray-noise))
+                  (line freq 50 (* decay 0.5))
+                  (* env 0.1))
+        snd (* noiz env)]
+    snd))
+
+(definst bell-hat
+  [freq   {:default 6000 :min 3000 :max 12000 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   attack {:default 0.0001 :min 0.1 :max 1.0 :step 0.01}
+   decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
+  (let [env (env-gen (perc attack decay) :done FREE)
+        noiz (bpf (* amp (gray-noise)) (line freq 5 (* decay 0.5)) (+ env 0.1))
+        wave (* 0.1 env (mix (sin-osc [4000 6500 5000])))
+        snd (+ noiz wave)]
+    snd))
+  )
+
 ; SynthDef("hat",
 ; 	{arg out = 0, freq = 6000, sustain = 0.1, amp = 0.8;
 ; 	var root_cymbal, root_cymbal_square, root_cymbal_pmosc;
@@ -139,97 +180,59 @@
 ; 	Out.ar(out, [cymbal_mix, cymbal_mix])
 ; 	}).store
 ; Synth("hat")
-;
-; SynthDef("soft-hat", {|amp= 0.5, decay= 0.1, freq= 6000|
-;             var env, snd;
-;             env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;             snd= BPF.ar(GrayNoise.ar(amp), freq, 0.3);
-;             Out.ar(0, Pan2.ar(snd*env, 0));
-;             }).store;
-; Synth("soft-hat")
-;
-; //variation with cutoff lfo
-; SynthDef("noise-hat", {|amp= 0.5, decay= 0.1, freq= 6000|
-;             var env, snd;
-;             env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;             snd= BPF.ar(GrayNoise.ar(amp), Line.ar(freq, 50, decay*0.5)
-;
-;                 , env+0.1);
-;             Out.ar(0, Pan2.ar(snd*env, 0));
-;             }).store;
-; Synth("noise-hat")
-;
-; SynthDef("bell-hat", {|amp= 0.5, decay= 0.1, freq= 6000|
-;             var env, snd, snd2;
-;             env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;             snd= BPF.ar(GrayNoise.ar(amp), Line.ar(freq, 5, decay*0.5)
-;
-;                 , env+0.1);
-;             snd2= Mix(SinOsc.ar([4000, 6500, 5000], 0,  env*0.1));
-;             Out.ar(0, Pan2.ar(snd+snd2*env, 0));
-;             }).store;
-; Synth("bell-hat")
-;
-; SynthDef("snare",
-; 	{arg out = 0, sustain = 0.1, drum_mode_level = 0.25,
-; 	snare_level = 40, snare_tightness = 1000,
-; 	freq = 405, amp = 0.8;
-; 	var drum_mode_sin_1, drum_mode_sin_2, drum_mode_pmosc, drum_mode_mix, drum_mode_env;
-; 	var snare_noise, snare_brf_1, snare_brf_2, snare_brf_3, snare_brf_4, snare_reson;
-; 	var snare_env;
-; 	var snare_drum_mix;
-;
-; 	drum_mode_env = EnvGen.ar(Env.perc(0.005, sustain), 1.0, doneAction: 2);
-; 	drum_mode_sin_1 = SinOsc.ar(freq*0.53, 0, drum_mode_env * 0.5);
-; 	drum_mode_sin_2 = SinOsc.ar(freq, 0, drum_mode_env * 0.5);
-; 	drum_mode_pmosc = PMOsc.ar(	Saw.ar(freq*0.85),
-; 					184,
-; 					0.5/1.3,
-; 					mul: drum_mode_env*5,
-; 					add: 0);
-; 	drum_mode_mix = Mix.new([drum_mode_sin_1, drum_mode_sin_2, drum_mode_pmosc]) * drum_mode_level;
-;
-; // choose either noise source below
-; //	snare_noise = Crackle.ar(2.01, 1);
-; 	snare_noise = LFNoise0.ar(20000, 0.1);
-; 	snare_env = EnvGen.ar(Env.perc(0.005, sustain), 1.0, doneAction: 2);
-; 	snare_brf_1 = BRF.ar(in: snare_noise, freq: 8000, mul: 0.5, rq: 0.1);
-; 	snare_brf_2 = BRF.ar(in: snare_brf_1, freq: 5000, mul: 0.5, rq: 0.1);
-; 	snare_brf_3 = BRF.ar(in: snare_brf_2, freq: 3600, mul: 0.5, rq: 0.1);
-; 	snare_brf_4 = BRF.ar(in: snare_brf_3, freq: 2000, mul: snare_env, rq: 0.0001);
-; 	snare_reson = Resonz.ar(snare_brf_4, snare_tightness, mul: snare_level) ;
-; 	snare_drum_mix = Mix.new([drum_mode_mix, snare_reson]) * 5 * amp;
-; 	Out.ar(out, [snare_drum_mix, snare_drum_mix])
-; 	}).store
-; Synth("snare")
-;
-; SynthDef("soft-snare", {|amp= 0.5, decay= 0.1, freq= 1000|
-;             var env, snd;
-;             env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;             snd= BPF.ar(GrayNoise.ar(amp), freq, 3);
-;             Out.ar(0, Pan2.ar(snd*env, 0));
-;             }).store;
-; Synth("soft-snare")
-;
-; SynthDef("snare2", {|amp= 0.5, decay= 0.1, freq= 1000|
-;             var env, snd;
-;             env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;             snd= RLPF.ar(GrayNoise.ar(amp), freq, Line.ar(0.1, 0.9, decay));
-;             Out.ar(0, Pan2.ar(snd*env, 0));
-;             }).store;
-; Synth("snare2")
 
-; SynthDef("snare3", {|amp= 0.5, decay= 0.1, freq= 1000|
-;             var env, snd, env2, snd2;
-;             env= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;             env2= EnvGen.ar(Env.perc(0, decay), doneAction:2);
-;             snd= RLPF.ar(GrayNoise.ar(amp), freq, Line.ar(0.1, 0.9, decay));
-;             snd2= WhiteNoise.ar(amp)*env2;
-;             Out.ar(0, Pan2.ar(snd*env, 0));
-;             }).store;
-; Synth("snare3")
-;
-; // Some more abstract 'snares'
+;; Snares
+
+(definst snare
+  [freq   {:default 1000 :min 100 :max 10000 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
+  (let [env (env-gen (perc 0 decay) :done FREE)
+        snd (bpf (gray-noise) freq 3)]
+    (* snd env amp)))
+
+(definst snare2
+  [freq   {:default 1000 :min 100 :max 10000 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
+  (let [env (env-gen (perc 0 decay) :action FREE)
+        snd (rlpf (* (gray-noise) amp) freq (line 0.1 0.9 decay))]
+    (* snd env)))
+
+(definst snare3
+  [freq   {:default 405 :min 100 :max 1000 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   sustain {:default 0.1 :min 0.01 :max 1.0 :step 0.001}
+   decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}
+   drum-amp 0.25
+   crackle-amp 40
+   tightness 1000]
+  (let [drum-env  (env-gen (perc 0.005 sustain) :action FREE)
+        drum-osc  (mix (* drum-env (sin-osc [freq (* freq 0.53)])))
+        drum-s3   (* drum-env (pm-osc (saw (* freq 0.85)) 184 (/ 0.5 1.3)))
+        drum      (* drum-amp (+ drum-s3 drum-osc))
+        noise     (* 0.1 (lf-noise0 20000))
+        noise-env (env-gen (perc 0.005 sustain) :action FREE)
+        filtered  (* 0.5 (brf noise 8000 0.1))
+        filtered  (* 0.5 (brf filtered 5000 0.1))
+        filtered  (* 0.5 (brf filtered 3600 0.1))
+        filtered  (* (brf filtered 2000 0.0001) noise-env)
+        resonance (* (resonz filtered tightness) crackle-amp)]
+    (* amp (+ drum resonance))))
+
+(definst snare4
+  [freq   {:default 1000 :min 100 :max 10000 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}]
+  (let [filterenv (line 1 0 0.2)
+        amp-env   (line 1 0 0.6 :done FREE)
+        snd       (pulse 100)
+        snd       (lpf snd (+ (* filterenv freq) 30))
+        snap-env  (line 1 0 0.2)
+        snap-osc  (bpf (hpf (white-noise) 500) 1500)]
+    (* amp (+ (* snd amp-env)
+              (* snap-env snap-osc)))))
+
+
 ; SynthDef("snare-x", { |freq=100, sustain=5, amp=0.1|
 ;         var mod, sound, env, saw, filter;
 ;         //mod = XLine.kr(freq*1,freq,sustain); von freq nach freq
@@ -238,10 +241,7 @@
 ;         filter = BPF.ar(saw, LFNoise1.kr(0.1).exprange(5000, 20000), 0.9);
 ;         //sound = SinOsc.ar(mod,0,amp.dup); keine amp
 ;         Out.ar(0, filter * env);
-;         };
-;         ).load(s);
-; Synth("snare-x")
-;
+
 ; SynthDef("snare-y", { |sustain=3, amp=0.5, freq=20, hard=0|
 ;         var sound, env, env2;
 ;         env = EnvGen.ar(Env.perc(0.025, sustain*(1-hard), 1, -12));
@@ -250,9 +250,6 @@
 ;         sound = sound * env;
 ;         sound = CombL.ar(sound, freq.reciprocal, freq.reciprocal, sustain);
 ;         Out.ar(0, sound * env2);
-;         };
-;         ).load(s);
-; Synth("snare-y")
 ;
 ; SynthDef("snare-z", { |sustain=3, amp=0.5, freq=20, hard=0|
 ;         var sound, env, env2;
@@ -262,33 +259,46 @@
 ;
 ;         sound = sound * (LFSaw.ar(Rand(5, 10)).max(0) + 1) * (env * amp);
 ;         Out.ar(0, sound * env2);
-;         };
-;         ).load(s);
-; Synth("snare-z")
 
-; SynthDef("clap", { |freq=100, sustain=5, amp=0.9|
-;         var mod, sound, env, saw, filter;
-;         mod = XLine.kr(freq*1,freq,sustain);
-;         env = EnvGen.ar(Env.perc(0.02, sustain,1,-200),doneAction:2);
-;         saw = LFPulse.kr(0.6,0,0.5) * WhiteNoise.ar(0.07 * [1,1]) * Saw.ar(1000 * [1,1]).sum;
-;         filter = BPF.ar(saw, LFNoise1.kr(0.1).exprange(10000, 20000), 0.9);
-;
-;         sound = SinOsc.ar(mod,0,amp.dup);
-;         Out.ar(0, filter * env);
-;         };
-; ).load(s);
-; Synth("clap");
-; Synth("clap", ["freq", 300, "amp", 1.5]);
+;; Toms
 
-; TODO: figure this one out... :-)
-(defsynth clap [freq 100 sustain 5 amp 0.9]
-  (let [env (env-gen (perc 0.02 sustain) :action FREE)
-        saw (apply +
-                   (* (lf-pulse:kr 0.6 0 0.5)
-               (* 0.07 [(white-noise) (white-noise)])
-               [(saw 1000) (saw 1000)]))
-        filt (bpf saw (lin-exp (lf-noise1:kr 0.1)
-                               -1 1 10000
-                               20000)
-                  0.9)]
-    (out 0 (pan2 (* filt env)))))
+(definst tom
+  [freq {:default 90 :min 50 :max 400 :step 1}
+   amp {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   sustain {:default 0.4 :min 0.01 :max 1.0 :step 0.001}
+   mode-level {:default 0.25 :min 0.01 :max 1.0 :step 0.001}
+   timbre {:default 1 :min 0.1 :max 5.0 :step 0.1}]
+  (let [env (env-gen (perc 0.005 sustain) :action FREE)
+        s1 (* 0.5 env (sin-osc (* freq 0.8)))
+        s2 (* 0.5 env (sin-osc freq))
+        s3 (* 5 env (sin-osc (saw (* 0.9 freq))
+                             (* (sin-osc (* freq 0.85))
+                                (/ timbre 1.3))))
+        mix (* mode-level (+ s1 s2 s3))
+        stick (* 0.2 (env-gen (perc 0.001 0.01))
+                 (crackle 2.01))
+        mix2 (* amp (+ mix stick))]
+    (out 0 (pan2 mix2))))
+
+;; Percussive elements
+
+(definst clap
+  [low {:default 7500 :min 100 :max 10000 :step 1}
+   hi  {:default 1500 :min 100 :max 10000 :step 1}
+   amp {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   decay {:default 0.6 :min 0.1 :max 0.8 :step 0.001}]
+  (let [noise      (bpf (lpf (white-noise) low) hi)
+        clap-env   (line 1 0 decay :done FREE)
+        noise-envs (map #(envelope [0 0 1 0] [(* % 0.01) 0 0.04]) (range 8))
+        claps      (apply + (* noise (map env-gen noise-envs)))]
+    (* claps clap-env)))
+
+(definst bing
+  [freq {:default 440 :min 110 :max 880 :step 1}
+   amp {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   attack {:default 0.001 :min 0.0001 :max 1.0 :step 0.001}
+   decay  {:default 0.1 :min 0.001 :max 1.0 :step 0.001}]
+  (let [env (env-gen (perc attack decay) :done FREE)
+        snd (sin-osc freq)]
+    (* amp env snd)))
+
