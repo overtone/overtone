@@ -132,7 +132,7 @@
     (if (and
          (= 1 (count args))
          (not (sc-ugen? (first args)))
-         (not (isa? (type (first args)) ::overtone.sc.buffer/buffer))
+         (not (isa? (type (first args)) :overtone.sc.buffer/buffer))
          (map? (first args)))
       (apply f (flatten (seq (first args))))
       (apply f args))))
