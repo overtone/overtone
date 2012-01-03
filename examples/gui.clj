@@ -1,6 +1,7 @@
 (ns examples.gui
   (:use overtone.core
-        [overtone.gui info control wavetable]))
+        [overtone.gui info control wavetable sequencer]
+        [overtone.inst synth drum]))
 
 ; Show the server info window
 (server-window)
@@ -57,3 +58,9 @@
 
 (def table (wave-table 12 1024))
 (wave-table-editor table)
+
+; Up the tempo, and try the step sequencer out on a couple of drums
+(m :bpm 128)
+(step-sequencer m 8 ks1 ping)
+
+)
