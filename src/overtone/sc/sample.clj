@@ -119,6 +119,33 @@
 (derive ::sample :overtone.sc.buffer/buffer)
 (derive ::playable-sample ::sample)
 
+(defn- free-loaded-sample
+  [[[path args] buf]]
+  (if (server-connected?)
+    (do (buffer-free buf)
+        (dosync (alter loaded-samples*
+                       dissoc
+                       [path args])))))
+
+(defn free-all-loaded-samples
+  "Free all buffers associated with a loaded sample and the memory they
+  consume. Also remove each sample from @loaded-samples once freed"
+  []
+  (doseq [loaded-sample @loaded-samples*]
+    (free-loaded-sample loaded-sample)))
+
+(defn free-sample
+  "Free the buffer associated with smpl and the memory it consumes. Uses the
+  cached version from @loaded-samples* in case the server has crashed or been
+  rebooted. Also remove the sample from @loaded-samples."
+  [smpl]
+  (assert sample? smpl)
+  (let [path (:path smpl)
+        args (:args smpl)
+        buf  (get @loaded-samples* [path args])]
+    (free-loaded-sample [[path args] buf])
+    :done))
+
 (defn sample
   "Loads a .wav or .aiff file into a memory buffer. Returns a function capable
    of playing that sample.
