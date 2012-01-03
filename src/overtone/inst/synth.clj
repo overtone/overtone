@@ -2,7 +2,7 @@
   (:use [overtone.sc gens envelope]
         [overtone.sc.machinery.ugen.fn-gen]
         [overtone.music pitch]
-        [overtone.studio rig]))
+        [overtone.studio mixer]))
 
 (definst ticker [freq 880]
   (* (env-gen (perc 0.001 0.01) :action FREE)
