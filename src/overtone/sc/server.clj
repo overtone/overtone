@@ -35,12 +35,12 @@
 (defn internal-server?
   "Returns true if the server is internal"
   []
-  (= :internal (:connection (connection-info))))
+  (= :internal (:connection-type (connection-info))))
 
 (defn external-server?
   "Returns true if the server is external"
   []
-  (= :external (:connection (connection-info))))
+  (= :external (:connection-type (connection-info))))
 
 (defmacro at
   "All messages sent within the body will be sent in the same timestamped OSC
