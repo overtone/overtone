@@ -116,7 +116,7 @@
 
 ;; Samples are just audio files loaded into a buffer, so buffer
 ;; functions work on samples too.
-(derive ::sample :overtone.sc.buffer/buffer)
+(derive ::sample :overtone.sc.buffer/file-buffer)
 (derive ::playable-sample ::sample)
 
 (defn- free-loaded-sample
