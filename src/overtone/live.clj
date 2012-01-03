@@ -8,7 +8,7 @@
             [overtone.sc buffer bus envelope example gens info
                          mixer node sample server synth trigger]
             [overtone.music rhythm pitch tuning time]
-            [overtone.studio rig util fx wavetable]
+            [overtone.studio mixer util fx wavetable]
             [overtone.repl ugens examples shell]
             [overtone.libs asset event freesound]
             [overtone.version]
@@ -38,7 +38,7 @@
  'overtone.music.pitch
  'overtone.music.tuning
  'overtone.music.time
- 'overtone.studio.rig
+ 'overtone.studio.mixer
  'overtone.studio.fx
  'overtone.studio.wavetable
  'overtone.repl.ugens
@@ -51,6 +51,6 @@
  'overtone.viz.scope
  )
 
-(defonce _auto-boot_ (boot-rig))
+(defonce _auto-boot_ (boot-mixer))
 
 (print-ascii-art-overtone-logo (overtone.config.store/config-get :user-name) OVERTONE-VERSION-STR)

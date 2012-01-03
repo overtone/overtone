@@ -9,7 +9,7 @@
             [overtone.sc buffer bus envelope example gens info
                          mixer node sample server synth trigger]
             [overtone.music rhythm pitch tuning time]
-            [overtone.studio rig util fx]
+            [overtone.studio mixer util fx]
             [overtone.repl ugens examples shell]
             [overtone.libs asset event freesound]
             [overtone.version]
@@ -40,7 +40,7 @@
  'overtone.music.pitch
  'overtone.music.tuning
  'overtone.music.time
- 'overtone.studio.rig
+ 'overtone.studio.mixer
  'overtone.studio.fx
  'overtone.studio.wavetable
  'overtone.repl.ugens
