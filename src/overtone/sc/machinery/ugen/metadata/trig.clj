@@ -171,7 +171,7 @@ One use of this is to have some precipitating event cause something to happen un
               {:name "exec-freq", :default 100.0}
               {:name "max-bins-per-octave", :default 16}
               {:name "median", :default 1}
-              {:name "ampTthreshold", :default 0.01}
+              {:name "amp-threshold", :default 0.01}
               {:name "peak-threshold", :default 0.5}
               {:name "down-sample", :default 1}]
        :rates #{:kr}

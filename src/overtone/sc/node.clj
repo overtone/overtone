@@ -133,14 +133,15 @@
 ;; RootNode and default_group for more info.
 
 (defn group
-  "Create a new synth group as a child of the target group."
-  [position target-id]
-  {:pre [(server-connected?)]}
-  (let [id (alloc-id :node)
-        pos (if (keyword? position) (get POSITION position) position)
-        pos (or pos 1)]
-    (snd "/g_new" id pos target-id)
-    id))
+  "Create a new synth group as a child of the target group. By default creates
+  a new group at the tail of the root group."
+  ([] (group :tail (root-group)))
+  ([position target-id]
+     (let [id (alloc-id :node)
+           pos (if (keyword? position) (get POSITION position) position)
+           pos (or pos 1)]
+       (snd "/g_new" id pos target-id)
+       id)))
 
 (defn group-free
   "Free synth groups, releasing their resources."

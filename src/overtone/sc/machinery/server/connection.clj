@@ -227,10 +227,10 @@
 (defn- transient-connection-info
   "Build the connection-info for booting an internal or external server."
   [connection-type port]
-  (into {:connection-type connection-type}
-        (case connection-type
-          :internal {}
-          :external {:port port :host "127.0.0.1"})))
+  (merge {:connection-type connection-type}
+         (case connection-type
+           :internal {}
+           :external {:port port :host "127.0.0.1"})))
 
 (defn boot
   "Boot either the internal or external audio server. If specified port is nil
