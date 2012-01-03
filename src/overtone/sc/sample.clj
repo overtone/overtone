@@ -53,22 +53,14 @@
         f    (file path)]
     (when-not (.exists f)
       (throw (Exception. (str "Unable to load sample - file does not exist: " path))))
-    (let [id       (alloc-id :audio-buffer)
-          arg-map  (apply hash-map args)
+    (let [arg-map  (apply hash-map args)
           f-name   (or (:name args) (.getName f))
           start    (get arg-map :start 0)
-          n-frames (get arg-map :size 0)]
-      (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
-      (let [info   (buffer-info id)
-            _      (when (and (= 0 (:size info))
-                              (= 0.0 (:rate info))
-                              (= 0 (:n-channels info)))
-                     (free-id :audio-buffer id)
-                     (throw (Exception. (str "Unable to load sample - perhaps path is not a valid audio file: " path))))
-            sample (with-meta
-                     (merge info
-                            {:allocated-on-server (atom true)
-                             :path path
+          n-frames (get arg-map :size 0)
+          buf      (buffer-alloc-read path start n-frames)]
+      (let [sample (with-meta
+                     (merge buf
+                            {:path path
                              :args args
                              :name f-name})
                      {:type ::sample})]
