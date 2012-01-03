@@ -48,12 +48,20 @@
   (invoke-now
     (let [state-atom   (atom (make-initial-state metro steps instruments))
           play-btn     (button :text "play")
-          control-pane (toolbar :floatable? false :items [play-btn])
+          bpm-spinner  (spinner :model (spinner-model (metro :bpm) :from 20 :to 300 :by 1)
+                                 :maximum-size [60 :by 100])
+          control-pane (toolbar :floatable? false 
+                                :items [play-btn
+                                        :separator
+                                        bpm-spinner 
+                                        [:fill-h 5]
+                                        "bpm"])
           seq-pane     (mig-panel :constraints [(str "wrap " (inc steps)) "" ""]
                                   :items (mapcat #(step-row % steps state-atom) instruments))
           f (frame :title    "Sequencer"
                    :content  (border-panel :north control-pane :center seq-pane)
                    :on-close :dispose)]
+      (bind/bind bpm-spinner (bind/b-do [v] (metro :bpm v)))
       (listen play-btn :action
               (fn [e]
                 (let [playing? (:playing? (swap! state-atom toggle-playing))] 
