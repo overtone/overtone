@@ -114,14 +114,14 @@
 (defn recording-start
   "Start recording a wav file to a new file at wav-path. Be careful - may
   generate very large files."
-  [wav-path]
+  [path & args]
   (if-let [info @recorder-info*]
     (throw (Exception. (str "Recording already taking place to: "
                             (get-in info [:buf-stream :path])))))
 
-  (let [wav-path (resolve-tilde-path wav-path)
-        bs (buffer-stream wav-path)
-        rec (master-recorder :target (main-monitor-group) bs)]
+  (let [path (resolve-tilde-path path)
+        bs   (apply buffer-stream path args)
+        rec  (master-recorder :target (main-monitor-group) bs)]
     (dosync
      (ref-set recorder-info* {:rec-id rec
                               :buf-stream bs}))
@@ -142,4 +142,3 @@
 (defn recording?
   []
   (not (nil? @recorder-info*)))
-

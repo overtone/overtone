@@ -257,11 +257,11 @@
 
   [path & args]
   (let [path (resolve-tilde-path path)
-        arg-map (merge (apply hash-map args)
-                       {:n-chans 2
+        arg-map (merge {:n-chans 2
                         :size 65536
                         :header "wav"
-                        :samples "int16"})
+                        :samples "int16"}
+                       (apply hash-map args))
         {:keys [n-chans size header samples]} arg-map
         buf (buffer size n-chans)]
     (snd "/b_write" (:id buf) path header samples -1 0 1)

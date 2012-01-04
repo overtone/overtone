@@ -107,7 +107,8 @@
                                               (= val "next")
                                               (= val "wav")
                                               (= val "ircam")
-                                              (- val "raw")))}
+                                              (= val "raw")
+                                              (= val "flac")))}
 
    :sample-format    {:desc "a string representing the sound sample format - one of \"int8\", \"int16\", \"int24\", \"int32\", \"float\", \"double\", \"mulaw\", \"alaw\""
                       :validator (fn [val] (or (= val "int8")
