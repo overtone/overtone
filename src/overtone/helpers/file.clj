@@ -264,6 +264,18 @@
   (let [path (resolve-tilde-path path)]
     (.length (file path))))
 
+(defn file-name
+  "Returns the name of path-or-file."
+  [path-or-file]
+  (.getName (file path-or-file)))
+
+(defn file-extension
+  "Returns the file extension of path-or-file"
+  [path-or-file]
+  (let [name (file-name path-or-file)]
+    (if (re-seq #"\.." name)
+      (last (split-on-char name ".")))))
+
 (defn mkdir!
   "Makes a dir at path if it doesn't already exist."
   [path]

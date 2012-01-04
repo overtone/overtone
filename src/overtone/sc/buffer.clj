@@ -256,12 +256,13 @@
                                        :samples \"int32\")"
 
   [path & args]
-  (let [path (resolve-tilde-path path)
+  (let [path    (resolve-tilde-path path)
+        f-ext   (file-extension path)
         arg-map (merge {:n-chans 2
-                        :size 65536
-                        :header "wav"
-                        :samples "int16"}
-                       (apply hash-map args))
+                         :size 65536
+                         :header (or f-ext "wav")
+                         :samples "int16"}
+                        (apply hash-map args))
         {:keys [n-chans size header samples]} arg-map
         buf (buffer size n-chans)]
     (snd "/b_write" (:id buf) path header samples -1 0 1)
