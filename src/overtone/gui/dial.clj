@@ -12,7 +12,6 @@
   [x y w h start end]
   (arc (- x w) (- y h) (* w 2) (* h 2) start end))
 
-
 (defn paint-dial-group
   "Paint the dial widget group"
   [dial-value size c g]
@@ -30,11 +29,6 @@
         ox (- dx (* DIAL_PADDING 2)) 
         oy (- dy (* DIAL_PADDING 2))
         theta (- (* @dial-value 270) 135)]
-        ;; debug lines
-        ; (draw g
-        ;   (line cx 0 cx h) (style :foreground "#000000" :stroke 1.0 :cap :round))
-        ; (draw g
-        ;   (line 0 cy w cy) (style :foreground "#000000" :stroke 1.0 :cap :round))
         ; start finish indicators
         ; (draw g
         ;   (circle (+ ox 4) (+ oy (- outline-radius 6)) 2) indicator-style)
@@ -75,7 +69,6 @@
             (.repaint (.getSource e)))))
     panel))
 
-
 (deftype Dial [panel value model]
   bind/ToBindable
   (to-bindable* [this] model)
@@ -92,16 +85,6 @@
         (bind/bind dial-value
           (bind/b-do [v] (.setValue model (+ (* (- maximum minimum) v) minimum))))
         (Dial. panel dial-value model)))
-
-
-; (defn dial
-;   [minimum maximum value]
-;   (let [model (DefaultBoundedRangeModel. value 0 minimum maximum)
-;         dial-value (atom value)
-;         panel (dial-widget dial-value)]
-;           (bind/bind dial-value
-;             (bind/b-do [v] (.setValue model (+ (* (- maximum minimum) v) minimum))))
-;           (Dial. panel dial-value model)))
 
 
 
