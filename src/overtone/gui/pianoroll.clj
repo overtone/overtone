@@ -76,26 +76,29 @@
           ;; paint the active notes last
           (paint-active-notes notes active-notes g note-width note-height)))
 
-(defn update-active-notes [notes-atom active-notes-atom x-cell y-cell]
+(defn update-active-notes [notes-atom active-notes-atom creating-note x-cell y-cell]
   (let [x x-cell
         y y-cell]
     (if 
       (= 1 (nth (nth @notes-atom x-cell) y-cell))
           (do
-            (println "adding new note @" x-cell y-cell)
-            (println @active-notes-atom)
+            ; (println "adding new note @" x-cell y-cell)
+            ; (println @active-notes-atom)
+            (swap! creating-note (fn [b] true))
             (swap! active-notes-atom (fn [notes] (conj notes [x-cell y-cell])))
-            (println @active-notes-atom))
+            ; (println @active-notes-atom)
+            )
           (do 
-            (println "removing a note @" x-cell y-cell)
-            (println @active-notes-atom)
+            ; (println "removing a note @" x-cell y-cell)
+            ; (println @active-notes-atom)
             (swap! active-notes-atom (fn [notes] (remove #{[x-cell y-cell]} @active-notes-atom)))
-            (println @active-notes-atom)))))
+            ; (println @active-notes-atom)
+            ))))
 
 (defn piano-roll-widget
   [num-measures num-bars num-beats num-steps-per-beat num-octaves]
   (let [notes-atom (atom (note-matrix (atom nil) num-octaves num-measures num-bars num-beats num-steps-per-beat))
-        active-notes-atom (atom [[0 5][5 2] [5 6][8 2]])
+        active-notes-atom (atom [])
         piano-roll (canvas  :id :piano-roll
                             :paint (partial paint-piano-roll 4 4 4 4 4 notes-atom active-notes-atom))
         panel (border-panel :center piano-roll)
@@ -105,6 +108,8 @@
         beat-width (/ measure-width 4)
         note-width (/ beat-width 4)
         note-height NOTE_HEIGHT
+        creating-note (atom false)
+        current-count (atom 0)
         ]
 
     (listen piano-roll
@@ -117,13 +122,17 @@
                 measure (int (/ piano-roll-width MEASURE_WIDTH))]
                 (swap! notes-atom (fn [old-matrix] (update-note old-matrix x-cell y-cell (if (zero? (nth (nth old-matrix x-cell) y-cell)) 1 0))))
 
-            (update-active-notes notes-atom active-notes-atom x-cell y-cell)
+            (update-active-notes notes-atom active-notes-atom creating-note x-cell y-cell)
+            (.repaint (.getSource e))
             ))
       :mouse-dragged
-        (fn [e])
+        (fn [e]
+          (if creating-note 0 1))
 
       :mouse-released
-        (fn [e] (.repaint (.getSource e))))
+        (fn [e]  
+          (swap! creating-note (fn [b] false))
+          (.repaint (.getSource e))))
     panel))
 
 (defn create-piano-roll 
