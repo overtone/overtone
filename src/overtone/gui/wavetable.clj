@@ -3,7 +3,8 @@
         [overtone.util log]
         [overtone.music time]
         [overtone.studio wavetable]
-        [seesaw core graphics color mig meta])
+        [seesaw core graphics color mig meta]
+        [clojure stacktrace])
   (:require [seesaw.bind :as bind]))
 
 (def ^{:private true} WAVE-Y-PADDING 10)
@@ -17,10 +18,12 @@
     (let [w (width c)
           h (height c)
           line-style (style :foreground "#FFFFFF" :stroke 1.0 :cap :round :dashes [10.0 20.0])
-          data (wavetable->signal (buffer-data buf))
-          x-array (int-array w)
+          data (if wavetable?
+                 (wavetable->signal (buffer-data buf))
+                 (buffer-data buf))
+                 x-array (int-array w)
           y-array (int-array w)
-          step (/ (:size buf) w 2)
+          step (/ (:size buf) w (if wavetable? 2 1))
           y-scale h] ;(- h (* 2 WAVE-Y-PADDING))]
 
       (draw g (line 0 (/ h 2) w (/ h 2)) line-style)
@@ -34,24 +37,18 @@
       (.setStroke g (stroke :width 2.0))
       (.drawPolyline g x-array y-array w))
     (catch Exception ex
-      (warning (str "Error in paint-wavetable: " ex))
-      (.printStackTrace ex))))
+      (warning (str "Error in paint-wavetable: " ex (with-out-str (clojure.stacktrace/print-stack-trace ex)))))))
 
 (defn waveform-panel
   "Creates a swing panel that displays the waveform in a buffer."
   [wavetable? buf]
   (let [display (canvas :id :waveform-canvas
-                                :background "#000000"
-                                :paint (partial paint-wavetable wavetable? buf))]
+                        :background "#000000"
+                        :paint (partial paint-wavetable wavetable? buf))]
     (put-meta! display :buf buf)
     (border-panel :hgap 5 :vgap 5 :border 5
                   :center display
                   :minimum-size [64 :by 48])))
-
-(defn- interpolate
-  [a b steps]
-  (let [shift (/ (- b a) (float (dec steps)))]
-    (concat (take (dec steps) (iterate #(+ shift %) a)) [b])))
 
 (defn- editor-drag-handler
   [wavetable? buf last-drag event]
@@ -82,17 +79,17 @@
                          (wavetable->signal (buffer-data buf))
                          (buffer-data buf))
               [start-idx y-vals] (if (< x1 x2)
-                                   [x1-idx (interpolate (nth buf-data x1-idx) cy-val
+                                   [x1-idx (linear-interpolate (nth buf-data x1-idx) cy-val
                                                         (inc (- x2-idx x1-idx)))]
                                    [x2-idx [cy-val]])
               y-vals (if (> x3-idx x2-idx)
-                       (concat y-vals (interpolate cy-val (nth buf-data x3-idx)
+                       (concat y-vals (linear-interpolate cy-val (nth buf-data x3-idx)
                                                    (inc (- x3-idx x2-idx))))
                        y-vals)]
           (reset! last-drag [cx cy])
-          (buffer-write! buf (* 2 start-idx) (if wavetable?
-                                               (signal->wavetable y-vals)
-                                               y-vals))
+          (if wavetable?
+            (buffer-write! buf (* 2 start-idx) (signal->wavetable y-vals))
+            (buffer-write! buf start-idx y-vals))
 
           ; repaint from the root so thumbnails get redrawn too
           (.repaint (to-root source)))))
@@ -112,25 +109,26 @@
             :mouse-pressed (partial editor-press-handler last-drag))))
 
 (defn waveform-editor-panel
-  [buf]
-  (let [wave-pane (waveform-panel true buf)]
-    (add-waveform-editor-behaviors buf wave-pane true)
+  [buf wavetable?]
+  (let [wave-pane (waveform-panel wavetable? buf)]
+    (add-waveform-editor-behaviors buf wave-pane wavetable?)
     wave-pane))
 
 (defn waveform-editor
-  [buf]
-  (invoke-now
-    (try
-      (let [f (frame :title "Waveform Editor"
-                     :content (waveform-editor-panel buf)
-                     :width 1024 :height 760
-                     :minimum-size [320 :by 240])]
-        (-> f pack! show!)
-        (with-meta
-          {:frame f :buf buf}
-          {:type ::waveform-editor}))
-      (catch Exception e
-        (.printStackTrace e)))))
+  ([buf] (waveform-editor buf false))
+  ([buf wavetable?]
+   (invoke-now
+     (try
+       (let [f (frame :title "Waveform Editor"
+                      :content (waveform-editor-panel buf wavetable?)
+                      :width 1024 :height 760
+                      :minimum-size [320 :by 240])]
+         (-> f pack! show!)
+         (with-meta
+           {:frame f :buf buf}
+           {:type ::waveform-editor}))
+       (catch Exception e
+         (.printStackTrace e))))))
 
 (defn- wavetable-thumbnailer
   [table]
@@ -147,39 +145,40 @@
   [root update-fn]
   (let [thumbnails (select root [:.thumbnail])]
     (doseq [thumb thumbnails]
-      (let [buf (get-meta thumb :buf)]
+      (let [buf (get-meta (select thumb [:#waveform-canvas]) :buf)]
         (listen thumb :mouse-clicked (fn [_] (update-fn buf)))))))
 
 (defn wavetable-editor
-  [table]
-  (invoke-now
-    (try
-      (let [editor  (waveform-editor-panel (first (:waveforms table)))
-            split (top-bottom-split
-                      editor
-                      (wavetable-thumbnailer table)
-                      :divider-location 0.9)
-            change-wave-fn (fn [buf]
-                             (invoke-later
-                               (try
-                                 (let [bounds (.getBounds (select split [:#waveform-canvas]))
-                                       loc (.getDividerLocation split)
-                                       editor (waveform-editor-panel buf)
-                                       {:keys [x y width height]} (bean bounds)]
-                                   (.setLeftComponent split editor)
-                                   (.setBounds editor x y width height)
-                                   (.setDividerLocation split loc))
-                                   (catch Exception ex
-                                     (error "Exception in wave change: " ex)))))
-                               f (frame :title "Wave Table Editor"
-                                        :content split
-                     :width 1024 :height 760
-                     :minimum-size [640 :by 480])]
-        (add-thumbnail-behavior f change-wave-fn)
-        (-> f pack! show!)
-        (with-meta
-          {:frame f :wavetable table}
-          {:type ::wavetable-editor}))
-      (catch Exception e
-        (.printStackTrace e)))))
+  ([table] (wavetable-editor table true))
+  ([table wavetable?]
+   (invoke-now
+     (try
+       (let [editor  (waveform-editor-panel (first (:waveforms table)) true)
+             split (top-bottom-split
+                     editor
+                     (wavetable-thumbnailer table)
+                     :divider-location 0.9)
+             change-wave-fn (fn [buf]
+                              (invoke-later
+                                (try
+                                  (let [bounds (.getBounds (select split [:#waveform-canvas]))
+                                        loc (.getDividerLocation split)
+                                        editor (waveform-editor-panel buf wavetable?)
+                                        {:keys [x y width height]} (bean bounds)]
+                                    (.setLeftComponent split editor)
+                                    (.setBounds editor x y width height)
+                                    (.setDividerLocation split loc))
+                                  (catch Exception ex
+                                    (error "Exception in wave change: " ex)))))
+             f (frame :title "Wave Table Editor"
+                      :content split
+                      :width 1024 :height 760
+                      :minimum-size [640 :by 480])]
+         (add-thumbnail-behavior f change-wave-fn)
+         (-> f pack! show!)
+         (with-meta
+           {:frame f :wavetable table}
+           {:type ::wavetable-editor}))
+       (catch Exception e
+         (warning (str "Error creating wavetable-editor: " (with-out-str (print-stack-trace e)))))))))
 

@@ -1,6 +1,6 @@
 (ns overtone.gui.mixer
   (:use [seesaw core border]
-        overtone.studio.rig
+        overtone.studio.mixer
         overtone.gui.dial
         [overtone.libs event])
   (:require [seesaw.bind :as bind]))

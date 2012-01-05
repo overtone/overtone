@@ -46,8 +46,7 @@
     (draw g
           (circle cx cy (/ dial-radius 2)) line-style)
     (draw g
-          (line cx (+ dy 6) cx (- dy 1)) line-style)
-    ))
+          (line cx (+ dy 6) cx (- dy 1)) line-style)))
 
 (defn- dial-widget
   [dial-value size]
