@@ -1,10 +1,10 @@
 (ns examples.gui
   (:use overtone.core
-        [overtone.gui info control wavetable sequencer]
+        [overtone.gui info control wavetable sequencer mixer]
         [overtone.inst synth drum]))
 
 ; Show the server info window
-(server-window)
+(server-info-window)
 
 ; Create a synth with metadata that can be used to generate a GUI controller
 (defsynth foo [note {:default 60 :min 0 :max 120 :step 1}
@@ -24,6 +24,7 @@
 
 ; Start the synth looping, and play with the GUI to hear it change live
 (foo-player (m))
+(stop)
 
 ; Works with instruments too, as long as they have all the necessary metadata.
 (definst bar [note {:default 60 :min 0 :max 120 :step 1}
@@ -48,7 +49,7 @@
 
 ; Create a buffer to use for our wavetable
 (def b (buffer 1024))
-(waveform-editor b)
+(waveform-editor b true)
 
 (defsynth table-player
   [buf 0 freq 440]
@@ -56,11 +57,13 @@
 
 (table-player b 660)
 
-(def table (wave-table 12 1024))
-(wave-table-editor table)
+;(def waves (load-samples "waveforms/AKWF_cello/*.wav"))
+(def table (wavetable 12 1024))
+(wavetable-editor table)
 
 ; Up the tempo, and try the step sequencer out on a couple of drums
 (m :bpm 128)
 (step-sequencer m 8 ks1 ping)
 
-)
+(use 'overtone.gui.mixer)
+(mixing-console)
