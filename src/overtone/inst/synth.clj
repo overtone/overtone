@@ -40,18 +40,28 @@
     (* 0.5 filt)))
 
 (definst mooger
-  [note 60 amp 0.8
-   osc1 0 osc2 1     ; Choose 0 1 2 for saw, sin, or pulse
-   osc1-level 0.5 osc2-level 0.5
-   cutoff 500
-   attack 0.1 decay 0.1 sustain 0.7 release 0.2
-   fattack 0.1 fdecay 0.1 fsustain 0.9 frelease 0.2
+  "Choose 0, 1, or 2 for saw, sin, or pulse"
+  [note {:default 60 :min 0 :max 127 :step 1}
+   amp  {:default 0.3 :min 0 :max 1 :step 0.01}
+   osc1 {:default 0 :min 0 :max 2 :step 1}
+   osc2 {:default 1 :min 0 :max 2 :step 1}
+   osc1-level {:default 0.5 :min 0 :max 1 :step 0.01}
+   osc2-level {:default 0 :min 0 :max 1 :step 0.01}
+   cutoff {:default 500 :min 0 :max 20000 :step 1}
+   attack {:default 0.0001 :min 0.0001 :max 5 :step 0.001}
+   decay {:default 0.3 :min 0.0001 :max 5 :step 0.001}
+   sustain {:default 0.99 :min 0.0001 :max 1 :step 0.001}
+   release {:default 0.0001 :min 0.0001 :max 6 :step 0.001}
+   fattack {:default 0.0001 :min 0.0001 :max 6 :step 0.001}
+   fdecay {:default 0.3 :min 0.0001 :max 6 :step 0.001}
+   fsustain {:default 0.999 :min 0.0001 :max 1 :step 0.001}
+   frelease {:default 0.0001 :min 0.0001 :max 6 :step 0.001}
    gate 1]
   (let [freq (midicps note)
         osc-bank-1 [(saw freq) (sin-osc freq) (pulse freq)]
         osc-bank-2 [(saw freq) (sin-osc freq) (pulse freq)]
         amp-env (env-gen (adsr attack decay sustain release) gate :action FREE)
-        f-env (env-gen (adsr fattack fdecay fsustain frelease) gate :action FREE)
+        f-env (env-gen (adsr fattack fdecay fsustain frelease) gate)
         s1 (* osc1-level (select osc1 osc-bank-1))
         s2 (* osc2-level (select osc2 osc-bank-2))
         filt (moog-ff (+ s1 s2) (* cutoff f-env) 3)]
