@@ -70,7 +70,6 @@
                 (.repaint (.getSource e)))))
     panel))
 
-
 (deftype Dial [panel value model]
   bind/ToBindable
   (to-bindable* [this] model)
