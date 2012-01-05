@@ -100,6 +100,10 @@
   [buf]
   (isa? (type buf) ::buffer))
 
+(defn file-buffer?
+  [buf]
+  (isa? (type buf) ::file-buffer))
+
 (defn buffer-free
   "Synchronously free an audio buffer and the memory it was consuming."
   [buf]
@@ -252,12 +256,13 @@
                                        :samples \"int32\")"
 
   [path & args]
-  (let [path (resolve-tilde-path path)
-        arg-map (merge (apply hash-map args)
-                       {:n-chans 2
-                        :size 65536
-                        :header "wav"
-                        :samples "int16"})
+  (let [path    (resolve-tilde-path path)
+        f-ext   (file-extension path)
+        arg-map (merge {:n-chans 2
+                         :size 65536
+                         :header (or f-ext "wav")
+                         :samples "int16"}
+                        (apply hash-map args))
         {:keys [n-chans size header samples]} arg-map
         buf (buffer size n-chans)]
     (snd "/b_write" (:id buf) path header samples -1 0 1)
@@ -265,19 +270,19 @@
       (assoc buf
         :path path
         :open? (atom true))
-      {:type ::buffer-stream})))
+      {:type ::buffer-out-stream})))
 
-(derive ::buffer-stream ::buffer)
+(derive ::buffer-out-stream ::file-buffer)
 
-(defn buffer-stream?
+(defn buffer-out-stream?
   [bs]
-  (isa? (type bs) ::buffer-stream))
+  (isa? (type bs) ::buffer-out-stream))
 
 (defn buffer-stream-close
   "Close a buffer stream created with #'buffer-stream. Also frees the internal
   buffer. Returns the path of the newly created file."
   [buf-stream]
-  (assert (buffer-stream? buf-stream))
+  (assert (file-buffer? buf-stream))
   (when-not @(:open? buf-stream)
     (throw (Exception. "buffer-stream already closed.")))
 
@@ -314,13 +319,13 @@
         :path path
         :start start
         :open? (atom true))
-      {:type ::buffer-cue})))
+      {:type ::buffer-in-stream})))
 
-(derive ::buffer-cue ::buffer)
+(derive ::buffer-in-stream ::file-buffer)
 
-(defn buffer-cue?
+(defn buffer-in-stream?
   [bc]
-  (isa? (type bc) ::buffer-cue))
+  (isa? (type bc) ::buffer-in-stream))
 
 (defn buffer-cue-pos
   "Moves the start position of a buffer cue to the frame indicated by
@@ -328,26 +333,13 @@
   ([buf-cue]
      (buffer-cue-pos buf-cue 0))
   ([buf-cue pos]
-     (assert (buffer-cue? buf-cue))
+     (assert (buffer-in-stream? buf-cue))
      (when-not @(:open? buf-cue)
-       (throw (Exception. "buffer-cue is closed.")))
+       (throw (Exception. "buffer-in-stream is closed.")))
      (let [{:keys [id path]} buf-cue]
        (snd "/b_close" id)
        (snd "/b_read" id path pos -1 0 1))
      buf-cue))
-
-(defn buffer-cue-close
-  "Close a buffer stream created with #'buffer-cue. Also frees the internal
-  buffer. Returns the path of the streaming file."
-  [buf-cue]
-  (assert (buffer-cue? buf-cue))
-  (when-not @(:open? buf-cue)
-    (throw (Exception. "buffer-cue already closed.")))
-
-  (snd "/b_close" (:id buf-cue))
-  (buffer-free buf-cue)
-  (reset! (:open? buf-cue) false)
-  (:path buf-cue))
 
 (defmulti buffer-id type)
 (defmethod buffer-id java.lang.Integer [id] id)

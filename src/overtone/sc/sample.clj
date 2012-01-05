@@ -25,21 +25,25 @@
     (defsynth stereo-player
       "Plays a dual channel audio buffer."
       [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
-      (out 0
-           (* vol
-              (scaled-play-buf 2 buf rate
-                               1 start-pos loop?
-                               FREE))))
+      (out 0 (* vol
+                (scaled-play-buf 2 buf rate
+                                 1 start-pos loop?
+                                 FREE))))
 
     (defsynth mono-stream-player
-      "Plays a single channel streaming buffer-cue."
-      [buf 0 loop? 0 vol 1]
-      (out 0 (* vol (pan2 (disk-in 1 buf loop?)))))
+      "Plays a single channel streaming buffer-cue. Must be freed manually when
+      done."
+      [buf 0 rate 1 loop? 0 vol 1]
+      (out 0 (* vol
+                (pan2
+                 (scaled-v-disk-in 1 buf rate loop?)))))
 
     (defsynth stereo-stream-player
-      "Plays a dual channel streaming buffer-cue."
-      [buf 0 loop? 0 vol 1]
-      (out 0 (* vol (disk-in 2 buf loop?))))))
+      "Plays a dual channel streaming buffer-cue. Must be freed manually when
+      done."
+      [buf 0 rate 1 loop? 0 vol 1]
+      (out 0 (* vol
+                (scaled-v-disk-in 2 buf rate loop?))))))
 
 (defonce loaded-samples* (ref {}))
 
@@ -49,22 +53,14 @@
         f    (file path)]
     (when-not (.exists f)
       (throw (Exception. (str "Unable to load sample - file does not exist: " path))))
-    (let [id       (alloc-id :audio-buffer)
-          arg-map  (apply hash-map args)
+    (let [arg-map  (apply hash-map args)
           f-name   (or (:name args) (.getName f))
           start    (get arg-map :start 0)
-          n-frames (get arg-map :size 0)]
-      (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
-      (let [info   (buffer-info id)
-            _      (when (and (= 0 (:size info))
-                              (= 0.0 (:rate info))
-                              (= 0 (:n-channels info)))
-                     (free-id :audio-buffer id)
-                     (throw (Exception. (str "Unable to load sample - perhaps path is not a valid audio file: " path))))
-            sample (with-meta
-                     (merge info
-                            {:allocated-on-server (atom true)
-                             :path path
+          n-frames (get arg-map :size 0)
+          buf      (buffer-alloc-read path start n-frames)]
+      (let [sample (with-meta
+                     (merge buf
+                            {:path path
                              :args args
                              :name f-name})
                      {:type ::sample})]
@@ -120,8 +116,35 @@
 
 ;; Samples are just audio files loaded into a buffer, so buffer
 ;; functions work on samples too.
-(derive ::sample :overtone.sc.buffer/buffer)
+(derive ::sample :overtone.sc.buffer/file-buffer)
 (derive ::playable-sample ::sample)
+
+(defn- free-loaded-sample
+  [[[path args] buf]]
+  (if (server-connected?)
+    (do (buffer-free buf)
+        (dosync (alter loaded-samples*
+                       dissoc
+                       [path args])))))
+
+(defn free-all-loaded-samples
+  "Free all buffers associated with a loaded sample and the memory they
+  consume. Also remove each sample from @loaded-samples once freed"
+  []
+  (doseq [loaded-sample @loaded-samples*]
+    (free-loaded-sample loaded-sample)))
+
+(defn free-sample
+  "Free the buffer associated with smpl and the memory it consumes. Uses the
+  cached version from @loaded-samples* in case the server has crashed or been
+  rebooted. Also remove the sample from @loaded-samples."
+  [smpl]
+  (assert sample? smpl)
+  (let [path (:path smpl)
+        args (:args smpl)
+        buf  (get @loaded-samples* [path args])]
+    (free-loaded-sample [[path args] buf])
+    :done))
 
 (defn sample
   "Loads a .wav or .aiff file into a memory buffer. Returns a function capable
