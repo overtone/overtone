@@ -17,7 +17,7 @@
   (let [v-slider (slider :value (* @(:volume ins) 100.0) :min 0 :max 100
                     :orientation :vertical)
         vsp (border-panel :center v-slider)
-        p-slider (dial :min -100 :max 100 :value (* @(:pan ins)))
+        p-slider (dial :size [45 :by 45] :min -100 :max 100 :value (* @(:pan ins)))
         mute-state (atom false)
         mute-toggle #(if @mute-state
                        (do
