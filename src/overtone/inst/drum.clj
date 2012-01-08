@@ -184,22 +184,6 @@
 ;; Snares
 
 (definst snare
-  [freq   {:default 1000 :min 100 :max 10000 :step 1}
-   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
-   decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
-  (let [env (env-gen (perc 0 decay) :done FREE)
-        snd (bpf (gray-noise) freq 3)]
-    (* snd env amp)))
-
-(definst snare2
-  [freq   {:default 1000 :min 100 :max 10000 :step 1}
-   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
-   decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
-  (let [env (env-gen (perc 0 decay) :action FREE)
-        snd (rlpf (* (gray-noise) amp) freq (line 0.1 0.9 decay))]
-    (* snd env)))
-
-(definst snare3
   [freq   {:default 405 :min 100 :max 1000 :step 1}
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
    sustain {:default 0.1 :min 0.01 :max 1.0 :step 0.001}
@@ -220,7 +204,27 @@
         resonance (* (resonz filtered tightness) crackle-amp)]
     (* amp (+ drum resonance))))
 
-(definst snare4
+(definst snare2
+  [freq   {:default 261.62 :min 100 :max 10000 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   decay  {:default 0.081 :min 0.01 :max 1.0 :step 0.01}]
+  (let [snd-env (env-gen (perc 0.001 decay))
+        snd-env-b (env-gen (perc 0.001 (* decay 0.28)))
+        snd (* 0.1 (lpf (square (- freq (* freq snd-env 0.4) (* freq snd-env-b 0.05))) (* 2.5 freq)))
+        amp-env (env-gen (perc 0.001 (+ decay 0.036)) :action FREE)
+        noise (* 0.2 amp-env (pink-noise))
+        snd (rlpf (* amp-env (+ snd noise)) 10567 0.2)]
+    snd))
+
+(definst noise-snare
+  [freq   {:default 1000 :min 100 :max 10000 :step 1}
+   amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
+   decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
+  (let [env (env-gen (perc 0 decay) :done FREE)
+        snd (bpf (gray-noise) freq 3)]
+    (* snd env amp)))
+
+(definst tone-snare
   [freq   {:default 1000 :min 100 :max 10000 :step 1}
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}]
   (let [filterenv (line 1 0 0.2)
@@ -231,7 +235,6 @@
         snap-osc  (bpf (hpf (white-noise) 500) 1500)]
     (* amp (+ (* snd amp-env)
               (* snap-env snap-osc)))))
-
 
 ; SynthDef("snare-x", { |freq=100, sustain=5, amp=0.1|
 ;         var mod, sound, env, saw, filter;
