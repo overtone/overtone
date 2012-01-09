@@ -59,6 +59,7 @@ thrown.
 
 ## The anatomy of a spec map
 
+```
 :name     mandatory string; containing the sc lang UGen name
 :derived  optional string; containing the name of a spec to merge
           with. Note that properties marked mandatory can also be
@@ -111,3 +112,4 @@ thrown.
               [rate num-outs inputs spec]
               this is called after init (if specified) and should
               return an error string or nil if no error
+```
