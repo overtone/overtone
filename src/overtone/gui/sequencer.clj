@@ -37,13 +37,18 @@
   [ins steps state-atom]
   (let [lbl [(label (:name ins)) "gap 5px, gapright 10px"]
         btns (repeatedly steps #(toggle :selected? false))
-        btns-constrained (map (fn [b] [b "width 25:25:25"]) btns)]
+        btns-constrained (map (fn [b] [b "width 25:25:25"]) btns)
+        clear (button :text "clear"
+                      :tip "Clear this row") ]
     ; Route changes in buttons to changes in state vector for row
     (bind/bind
       (apply bind/funnel btns)
       (bind/b-swap! state-atom set-step-state ins))
 
-    (apply vector lbl btns-constrained) ))
+    ; Clear button unselects the row
+    (listen clear :action (fn [_] (config! btns :selected? false)))
+
+    (concat [lbl] btns-constrained [[clear "gapleft 10px"]])))
 
 (defn step-sequencer
   [metro steps & instruments]
@@ -62,10 +67,11 @@
                                         bpm-spinner
                                         [:fill-h 5]
                                         "bpm"])
-          seq-pane     (mig-panel :constraints [(str "wrap " (inc steps)) "" ""]
+          seq-pane     (mig-panel :constraints [(str "wrap " (+ 2 steps)) "" ""]
                                   :items (concat
                                            [["step" "gap 5px, gapright 10px"]]
-                                           (for [lbl step-lbls] [lbl "width 25:25:25"])
+                                              (for [lbl step-lbls] [lbl "width 25:25:25"])
+                                              [["" ""]]
                                            (mapcat #(step-row % steps state-atom) instruments)))
           f (frame :title    "Sequencer"
                    :content  (border-panel :north control-pane :center seq-pane)
