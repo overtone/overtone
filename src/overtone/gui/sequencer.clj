@@ -1,7 +1,9 @@
 (ns overtone.gui.sequencer
   (:use [overtone.sc server]
         [overtone.music time]
-        [seesaw core mig border])
+        [overtone.gui.control :only [synth-controller]]
+        [seesaw core mig border]
+        [seesaw.swingx :only [hyperlink]])
   (:require [seesaw.bind :as bind]))
 
 (defn- make-initial-state [metro steps instruments]
@@ -35,7 +37,7 @@
 
 (defn- step-row
   [ins steps state-atom]
-  (let [lbl [(label (:name ins)) "gap 5px, gapright 10px"]
+  (let [ins-btn (hyperlink :text (:name ins) :tip "Click for synth controls") 
         btns (repeatedly steps #(toggle :selected? false))
         btns-constrained (map (fn [b] [b "width 25:25:25"]) btns)
         clear (button :text "clear"
@@ -45,10 +47,14 @@
       (apply bind/funnel btns)
       (bind/b-swap! state-atom set-step-state ins))
 
+    ; inst buttons open controls
+    (listen ins-btn :action (fn [_] (synth-controller ins)))
     ; Clear button unselects the row
     (listen clear :action (fn [_] (config! btns :selected? false)))
 
-    (concat [lbl] btns-constrained [[clear "gapleft 10px"]])))
+    (concat [[ins-btn "growx, gap 5px, gapright 10px"]] 
+            btns-constrained 
+            [[clear "gapleft 10px"]])))
 
 (defn step-sequencer
   [metro steps & instruments]
@@ -69,7 +75,7 @@
                                         "bpm"])
           seq-pane     (mig-panel :constraints [(str "wrap " (+ 2 steps)) "" ""]
                                   :items (concat
-                                           [["step" "gap 5px, gapright 10px"]]
+                                           [[(label :text "step") "growx, gap 5px, gapright 10px"]]
                                               (for [lbl step-lbls] [lbl "width 25:25:25"])
                                               [["" ""]]
                                            (mapcat #(step-row % steps state-atom) instruments)))
