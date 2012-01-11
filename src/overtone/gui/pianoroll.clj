@@ -15,6 +15,20 @@
 (def NUM_BEATS 4)
 (def NUM_BARS 4)
 
+(defn dissoc-in
+  "Dissociates an entry from a nested associative structure returning a new
+  nested structure. keys is a sequence of keys. Any empty maps that result
+  will not be present in the new structure."
+  [m [k & ks :as keys]]
+  (if ks
+    (if-let [nextmap (get m k)]
+      (let [newmap (dissoc-in nextmap ks)]
+        (if (seq newmap)
+          (assoc m k newmap)
+          (dissoc m k)))
+      m)
+    (dissoc m k)))
+
 
 (defn note-matrix [notes n-octaves n-measures n-bars n-beats n-steps-per-beat]
     (let [n-keys (* n-octaves 12)
@@ -33,7 +47,7 @@
             (draw g
               (rounded-rect x y w h 3 3) 
                 (style :stroke 1.0 
-                       :background (color 0 255 0 200)
+                       :background (color 0 255 0 150)
                        :foreground (color 0 150 0))))
                        )
                        )))
@@ -102,12 +116,7 @@
           ;; paint the active notes last
           (paint-active-notes notes active-notes g note-width note-height)))
 
-(defn contains-in? 
-  [note-map x y]
-  (let [result (not (nil? (get (get note-map x) y)))]
-    result))
-
-(defn contains-in? [note-map x y note-width]
+(defn get-note [note-map x y note-width]
   (let [r (atom nil)]
     (doseq [[note-x notes] note-map] 
       (if (<= note-x x)
@@ -121,10 +130,8 @@
                        (>= (- x 1) note-x)
                        (= y note-y)) ;; bounds checking
                        (do
-                          ; (println "contains-in? is in" r x x-max x note-x y note-y)
                           (swap! r (fn [_] {note-x {note-y data}}))))
                         )))))
-    ; (println "contains in? return-note" r)
     @r))
 
 
@@ -132,14 +139,13 @@
   (let [x (int (/ x note-width))
         y (int (/ y note-height))
         length (count @active-notes-atom)
-        return-note (atom (contains-in? @active-notes-atom x y note-width))
+        return-note (atom (get-note @active-notes-atom x y note-width))
         new-note-data {:velocity 1.0 :duration 1}]
 
       (if (not (nil? @return-note))
         (do
             (doseq [[k note] @return-note] 
               (doseq [[n note-data] note] 
-               ; (swap! return-note (fn [_] {k {n note-data}} ))
                 (swap! x-cell (fn [_] k))
                 (swap! y-cell (fn [_] n)))))
         (do 
@@ -157,8 +163,14 @@
         offset (- x cell-x-start)
         offset-diff (+ offset cell-diff)]  ;; <<-- NEED TO FIX THIS SO THAT IT GRABS THE CURRENT VELOCITY NOT JUST SETS IT TO 0
     (swap! active-notes-atom (fn [notes] 
-      (update-in notes [cell-x-start cell-y-start] (fn [_]{:velocity v :duration cell-diff})))) ;;adding one to the cell diff makes the update happen directly under the mouse. if you dont it is always one cell behind when dragging
-      (swap! active-note (fn [_] {cell-x-start {cell-y-start {:velocity v :duration cell-diff}}}))))
+      (if (>= 0 cell-diff)
+        (do
+          (dissoc-in notes [cell-x-start cell-y-start]) 
+          )
+        (do
+          (update-in notes [cell-x-start cell-y-start] (fn [_]{:velocity v :duration cell-diff})))))) 
+    
+    (swap! active-note (fn [_] {cell-x-start {cell-y-start {:velocity v :duration cell-diff}}}))))
 
 (def active-note (atom nil))
 
@@ -193,7 +205,7 @@
             (swap! start-x (fn [_] (int (/ x note-width))))
             (swap! start-y (fn [_] (int (/ y note-height))))
             (swap! active-note (fn [n] (update-active-notes active-notes-atom active-note x y cell-x-start cell-y-start note-width note-height)))
-            (println "mouse pressed" start-x start-y cell-x-start cell-y-start)
+            
             (.repaint (.getSource e))))
 
       :mouse-dragged
@@ -203,18 +215,17 @@
                 measure (int (/ piano-roll-width MEASURE_WIDTH))
                 current-x-cell (int (/ (.getX e) note-width))
                 cell-delta (- current-x-cell @cell-x-start)
-                diff(if (> cell-delta 0) cell-delta 0)]
-                    (println "mouse dragged" x-cell y-cell start-x start-y cell-x-start cell-y-start cell-delta diff)
+                diff(+ 1 cell-delta)]
 
-                    (update-note x-cell y-cell active-notes-atom active-note diff)
-
-                    (.repaint (.getSource e))))
+                (update-note x-cell y-cell active-notes-atom active-note diff)
+                (.repaint (.getSource e))))
 
       :mouse-released
         (fn [e]  
 
-          (swap! creating-note (fn [b] false))
-          (.repaint (.getSource e))))
+          ; (swap! creating-note (fn [b] false))
+          ; (.repaint (.getSource e)))
+          ))
     panel))
 
 (defn create-piano-roll 
