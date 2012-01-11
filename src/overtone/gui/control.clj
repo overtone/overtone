@@ -29,9 +29,16 @@
                val-atom)
     (bind/bind val-atom
                (bind/transform #(* (/ (- % min-val) (- max-val min-val)) SLIDER-MAX))
+               ; if the value's "close enough" to the spinner, stop. Otherwise,
+               ; we get infinite loops caused by rounding error.
+               (bind/filter #(>= (Math/abs (- % (value slider))) 0.01))
                slider)
     (bind/bind spinner val-atom)
-    (bind/bind val-atom spinner)
+    (bind/bind val-atom 
+               ; if the value's "close enough" to the slider, stop. Otherwise,
+               ; we get infinite loops caused by rounding error.
+               (bind/filter #(>= (Math/abs (- % (value spinner))) 0.01))
+               spinner)
     items))
 
 (defn- control-dial
