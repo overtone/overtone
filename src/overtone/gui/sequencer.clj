@@ -8,15 +8,17 @@
         [seesaw.swingx :only [hyperlink]])
   (:require [seesaw.bind :as bind]))
 
-(defn- make-initial-state [metro steps instruments]
+(defn- make-initial-state [metro steps instruments init-vals]
   {:playing?  false
    :metronome metro
    :steps     steps
    :step      0
    :rows      (vec
                 (for [i instruments]
-                  { :inst i 
-                    :value (vec (repeat steps false))}))
+                  (let [i-vals (or (get init-vals (:name i))
+                                   (vec (repeat steps false)))]
+                    {:inst i
+                     :value i-vals})))
    })
 
 (defn- toggle-playing [state]
@@ -49,18 +51,18 @@
         (apply-at (metro next-beat) #'step-player
                   [state-atom next-beat])))))
 
-(def ^{:private true} grid-line-style 
+(def ^{:private true} grid-line-style
   (style :foreground "#55F" :stroke 1.0 :cap :round))
 
-(def ^{:private true} enabled-entry-style 
-  (style 
-    :stroke 1.0 
+(def ^{:private true} enabled-entry-style
+  (style
+    :stroke 1.0
     :background (color 0 255 0 200)
     :foreground (color 0 150 0)))
 
-(def ^{:private true} current-step-style 
-  (style 
-    :stroke 1.0 
+(def ^{:private true} current-step-style
+  (style
+    :stroke 1.0
     :background (color 128 128 224 200)
     :foreground (color 0 150 0)))
 
@@ -82,7 +84,7 @@
           (let [x (* c dx)]
             (draw g (line x 0 x h) grid-line-style)
             (when (get-entry state r c)
-              (draw g 
+              (draw g
                     (rounded-rect (+ x 2) (+ y 2) (- dx 3) (- dy 3) 3 3)
                     enabled-entry-style))))))))
 
@@ -108,11 +110,11 @@
 
 (defn- step-grid [state-atom]
   (let [state @state-atom
-        
+
         c (canvas :background :darkgrey
                   :paint #(paint-grid @state-atom %1 %2)
-                  :preferred-size [(* 25 (:steps state)) 
-                                   :by 
+                  :preferred-size [(* 25 (:steps state))
+                                   :by
                                    (* 25 (count (:rows state)))])]
     (listen c :mouse-clicked #(swap! state-atom on-grid-clicked %)
               :mouse-dragged #(swap! state-atom on-grid-drag %))
@@ -124,11 +126,11 @@
              :listen [:action (fn [e] (synth-controller inst))]))
 
 (defn step-sequencer
-  [metro steps & instruments]
+  [metro steps instruments & [init-vals]]
   (invoke-now
-    (let [state-atom   (atom (make-initial-state metro steps instruments))
+    (let [state-atom   (atom (make-initial-state metro steps instruments init-vals))
           play-btn     (button :text "play")
-          bpm-spinner  (spinner :model (spinner-model (metro :bpm) :from 20 :to 300 :by 1)
+          bpm-spinner  (spinner :model (spinner-model (metro :bpm) :from 1 :to 10000 :by 1)
                                 :maximum-size [60 :by 100])
           controls-btn (button :text "controls")
           control-pane (toolbar :floatable? false
@@ -142,16 +144,16 @@
           grid         (step-grid state-atom)
           inst-btns    (map inst-button instruments)
           f (frame :title    "Sequencer"
-                   :content  (border-panel 
+                   :content  (border-panel
                                :border 5 :hgap 5 :vgap 5
-                               :north control-pane 
+                               :north control-pane
                                :west (grid-panel :columns 1
                                                  :items inst-btns)
                                :center grid)
                    :on-close :dispose)]
       (bind/bind bpm-spinner (bind/b-do [v] (metro :bpm v)))
       (bind/bind state-atom (bind/b-do [v] (repaint! grid)))
-      
+
       (listen play-btn :action
               (fn [e]
                 (let [playing? (:playing? (swap! state-atom toggle-playing))]
@@ -166,6 +168,13 @@
       (with-meta {:frame (-> f pack! show!)
                   :state state-atom }
                  {:type :sequencer}))))
+
+(defn step-sequencer-map
+  "Returns a map that can be passed to initialize a new step-sequencer."
+  [s]
+  (let [rows (:rows @(:state s))
+        rows (map (fn [row] [(:name (:inst row)) (:value row)]) rows)]
+    (into {} rows)))
 
 (comment
   (use 'overtone.live)
