@@ -23,3 +23,5 @@ pom.xml
 *.jar
 *.aux
 *.dvi
+.lein-deps-sum
+.project
