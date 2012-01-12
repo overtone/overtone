@@ -130,12 +130,15 @@
           play-btn     (button :text "play")
           bpm-spinner  (spinner :model (spinner-model (metro :bpm) :from 20 :to 300 :by 1)
                                 :maximum-size [60 :by 100])
+          controls-btn (button :text "controls")
           control-pane (toolbar :floatable? false
                                 :items [play-btn
                                         :separator
                                         bpm-spinner
                                         [:fill-h 5]
-                                        "bpm"])
+                                        "bpm"
+                                        :separator
+                                        controls-btn])
           grid         (step-grid state-atom)
           inst-btns    (map inst-button instruments)
           f (frame :title    "Sequencer"
@@ -155,6 +158,10 @@
                   (config! play-btn :text (if playing? "stop" "play"))
                   (if playing?
                     (step-player state-atom (metro))))))
+
+      (listen controls-btn :action
+              (fn [e]
+                (apply synth-controller instruments)))
 
       (with-meta {:frame (-> f pack! show!)
                   :state state-atom }
