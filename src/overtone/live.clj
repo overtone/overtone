@@ -9,7 +9,7 @@
                          mixer node sample server synth trigger]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio mixer util fx wavetable]
-            [overtone.repl ugens examples shell]
+            [overtone.repl ugens examples shell inst]
             [overtone.libs asset event freesound]
             [overtone.version]
             [overtone.viz scope]
@@ -44,6 +44,7 @@
  'overtone.repl.ugens
  'overtone.repl.examples
  'overtone.repl.shell
+ 'overtone.repl.inst
  'overtone.libs.asset
  'overtone.libs.event
  'overtone.libs.freesound
