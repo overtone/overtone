@@ -182,5 +182,5 @@
   (use 'overtone.gui.control)
   (use 'overtone.inst.drum)
   (def m (metronome 128))
-  (step-sequencer m 8 kick closed-hat snare)
+  (step-sequencer m 8 [kick closed-hat snare])
 )
