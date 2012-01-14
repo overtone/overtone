@@ -414,7 +414,8 @@
                               :args arg-names#
                               :params params-with-vals#
                               :type ::synth}
-                             player#)]
+                             player#
+                             {:overtone.util.live/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
      smap#))
