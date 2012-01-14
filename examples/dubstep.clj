@@ -65,7 +65,6 @@
        snare (clip2 snare 1)]
 
    (clip2 (+ wob kick snare) 1)))
-(ctl dubstep :bpm 250)
 
 (defsynth dubstep [bpm 120 wobble 1 note 50 snare-vol 1 kick-vol 1 v 1]
  (let [trig (impulse:kr (/ bpm 120))
@@ -93,9 +92,10 @@
 (comment
   ;;Control the dubstep synth with the following:
   (dubstep)
-  (ctl dubstep :wobble 8)
-  (ctl dubstep :note 40)
-  (ctl dubstep :bpm 250)
+  ;=> 25 ; synth ID to use below
+  (ctl 25 :wobble 8)
+  (ctl 25 :note 40)
+  (ctl 25 :bpm 250)
   (stop)
   )
 
