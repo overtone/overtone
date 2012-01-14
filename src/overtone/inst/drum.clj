@@ -10,7 +10,7 @@
    freq-decay {:default 0.02 :min 0.001 :max 1.0 :step 0.001}
    amp-decay  {:default 0.5 :min 0.001 :max 1.0 :step 0.001}]
   (let [fenv (* (env-gen (envelope [env-ratio 1] [freq-decay] :exp)) freq)
-        aenv (env-gen (perc 0.005 amp-decay) :done FREE)]
+        aenv (env-gen (perc 0.005 amp-decay) :action FREE)]
     (* (sin-osc fenv (* 0.5 Math/PI)) aenv)))
 
 (definst kick2 [freq      {:default 80 :min 10 :max 20000 :step 1}
@@ -55,7 +55,7 @@
         osc-env (perc 0.001 1 freq -8)
         noiz (lpf (white-noise) (+ (env-gen:kr cutoff-env) 20))
         snd  (lpf (sin-osc (+ (env-gen:kr osc-env) 20)) 200)
-        mixed (* (+ noiz snd) (env-gen amp-env :done FREE))]
+        mixed (* (+ noiz snd) (env-gen amp-env :action FREE))]
     mixed))
 
 (definst dry-kick
@@ -125,7 +125,7 @@
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
    attack {:default 0.0001 :min 0.1 :max 1.0 :step 0.01}
    decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
-  (let [env (env-gen (perc attack decay) :done FREE)
+  (let [env (env-gen (perc attack decay) :action FREE)
         noiz (bpf (* amp (gray-noise)) freq 0.3)
         snd (* noiz env)]
     snd))
@@ -138,7 +138,7 @@
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
    attack {:default 0.0001 :min 0.1 :max 1.0 :step 0.01}
    decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
-  (let [env (env-gen (perc attack decay) :done FREE)
+  (let [env (env-gen (perc attack decay) :action FREE)
         noiz (bpf (* amp (gray-noise))
                   (line freq 50 (* decay 0.5))
                   (* env 0.1))
@@ -150,7 +150,7 @@
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
    attack {:default 0.0001 :min 0.1 :max 1.0 :step 0.01}
    decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
-  (let [env (env-gen (perc attack decay) :done FREE)
+  (let [env (env-gen (perc attack decay) :action FREE)
         noiz (bpf (* amp (gray-noise)) (line freq 5 (* decay 0.5)) (+ env 0.1))
         wave (* 0.1 env (mix (sin-osc [4000 6500 5000])))
         snd (+ noiz wave)]
@@ -220,7 +220,7 @@
   [freq   {:default 1000 :min 100 :max 10000 :step 1}
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
    decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
-  (let [env (env-gen (perc 0 decay) :done FREE)
+  (let [env (env-gen (perc 0 decay) :action FREE)
         snd (bpf (gray-noise) freq 3)]
     (* snd env amp)))
 
@@ -228,7 +228,7 @@
   [freq   {:default 1000 :min 100 :max 10000 :step 1}
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}]
   (let [filterenv (line 1 0 0.2)
-        amp-env   (line 1 0 0.6 :done FREE)
+        amp-env   (line 1 0 0.6 :action FREE)
         snd       (pulse 100)
         snd       (lpf snd (+ (* filterenv freq) 30))
         snap-env  (line 1 0 0.2)
@@ -291,7 +291,7 @@
    amp {:default 0.3 :min 0.001 :max 1 :step 0.01}
    decay {:default 0.6 :min 0.1 :max 0.8 :step 0.001}]
   (let [noise      (bpf (lpf (white-noise) low) hi)
-        clap-env   (line 1 0 decay :done FREE)
+        clap-env   (line 1 0 decay :action FREE)
         noise-envs (map #(envelope [0 0 1 0] [(* % 0.01) 0 0.04]) (range 8))
         claps      (apply + (* noise (map env-gen noise-envs)))]
     (* claps clap-env)))
@@ -301,7 +301,7 @@
    amp {:default 0.3 :min 0.001 :max 1 :step 0.01}
    attack {:default 0.001 :min 0.0001 :max 1.0 :step 0.001}
    decay  {:default 0.1 :min 0.001 :max 1.0 :step 0.001}]
-  (let [env (env-gen (perc attack decay) :done FREE)
+  (let [env (env-gen (perc attack decay) :action FREE)
         snd (sin-osc freq)]
     (* amp env snd)))
 
