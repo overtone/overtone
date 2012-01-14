@@ -48,7 +48,7 @@
                     slope-below slope-above
                     clamp-time relax-time))))
 
-(defsynth fx-reverb1
+(defsynth fx-freeverb
   "Uses the free-verb ugen."
   [bus 0 wet-dry 0.5 room-size 0.5 dampening 0.5]
   (let [source (in bus)
@@ -90,6 +90,16 @@
   [bus 0 boost 4 level 0.01]
   (let [src (in bus)]
     (replace-out bus (distort (* boost (clip2 src level))))))
+
+; Equation for distortion:
+; k = 2*amount/(1-amount)
+; f(x) = (1+k)*x/(1+k*abs(x))
+(defsynth fx-distortion2
+  [bus 0 amount 0.5]
+  (let [src (in bus)
+        k (/ (* 2 amount) (- 1 amount))
+        snd (/ (* src (+ 1 k)) (+ 1 (* k (abs src))))]
+    (replace-out bus snd)))
 
 (defsynth fx-rlpf
   [bus 0 cutoff 20000 res 0.6]

@@ -365,8 +365,9 @@
   (buffer-info (:buf s)))
 
 (defn num-frames
+  "Returns the size of the buffer."
   [buf]
-  (:size  buf))
+  (:size buf))
 
 (def TWO-PI (* 2 Math/PI))
 

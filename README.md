@@ -26,7 +26,7 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 * Plug and play midi device I/O
 * Simple Open Sound Control (OSC) message handling
 * Pre-cache - a system for locally caching external assets such as .wav files
-* An API querying and fetching sounds from http://freesound.org
+* An API for querying and fetching sounds from http://freesound.org
 
 ## Quick Setup
 
@@ -159,6 +159,17 @@ There are also the following tutorials:
 * Setting up an Overtone Development Environment - Running on Edge http://vimeo.com/25102399
 * How to Hack Overtone with Emacs http://vimeo.com/25190186
 
+## Interviews
+
+Overtone has generated quite a bit of interest. Here's a list of available interviews which go into further depth on the background and philosophy of Overtone:
+
+* http://twit.tv/show/floss-weekly/197
+* http://mostlylazy.com/2011/11/18/episode-0-0-2-sam-aaron-and-overtone-at-clojure-conj-2011/
+* http://codebassradio.net/2011/11/29/runtime-expectations-episode-13-hot-clojure-conj/ (scroll down to the section with Sam Aaron, Ghadi Shayban, and Daniel Spiewak)
+* http://clojure.com/blog/2012/01/04/take5-sam-aaron.html
+
+
+
 ## Cheat Sheet
 
 For a quick glance at all the exciting functionality Overtone puts at your musical fingertips check out the cheat sheet:
@@ -233,3 +244,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Jennifer Smith
 * Jacob Lee
 * Jon Rose
+* Fabian Steeg

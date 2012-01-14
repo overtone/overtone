@@ -111,7 +111,7 @@
   (dosync (ref-set instruments* {})))
 
 (defmacro pre-inst
-  [inst-bus & args]
+  [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
        (binding [*ugens* []
@@ -119,7 +119,7 @@
          (with-overloaded-ugens
            (let [form# ~@ugen-form
                  n-chans# (count form#)
-                 inst-bus# (audio-bus n-chans#)]
+                 inst-bus# (or (:bus (get @instruments* ~sname)) (audio-bus n-chans#))]
              (out inst-bus# form#)
              [~sname
               ~params
@@ -130,14 +130,16 @@
 
 (defmacro inst
   [sname & args]
-  `(let [[sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst inst-bus# ~sname ~@args)
-         container-group# (or (:group (get @instruments* sname#))
+  `(let [[sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
+         new-inst# (get @instruments* sname#)
+         container-group# (or (:group new-inst#)
                               (group :tail @inst-group*))
-         instance-group#  (or (:instance-group (get @instruments* sname#))
+         instance-group#  (or (:instance-group new-inst#)
                               (group :head container-group#))
-         fx-group#        (or (:fx-group (get @instruments* sname#))
+         fx-group#        (or (:fx-group new-inst#)
                               (group :tail container-group#))
-         imixer#    (inst-mixer :tgt container-group# :pos :tail :in-bus inst-bus#)
+         imixer#    (or (:mixer new-inst#)
+                        (inst-mixer :tgt container-group# :pos :tail :in-bus inst-bus#))
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)

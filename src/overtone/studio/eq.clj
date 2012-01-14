@@ -31,4 +31,16 @@
         wet (b-hi-shelf wet freq6 gain6)]
     (replace-out bus wet)))
 
-
+(defsynth eq-7b
+  [bus 0
+   freq0 90 freq1 250 freq2 500 freq3 1500 freq4 3000 freq5 5000 freq6 8000
+   gain0 -45 gain1 -45 gain2 -45 gain3 -45 gain4 -45 gain5 -45 gain6 -45]
+  (let [dry (in bus)
+        wet (b-low-shelf dry freq0 1 gain0)
+        wet (mid-eq wet freq1 1 gain1)
+        wet (mid-eq wet freq2 1 gain2)
+        wet (mid-eq wet freq3 1 gain3)
+        wet (mid-eq wet freq4 1 gain4)
+        wet (mid-eq wet freq5 1 gain5)
+        wet (b-hi-shelf wet freq6 gain6)]
+    (replace-out bus wet)))

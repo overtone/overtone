@@ -98,10 +98,10 @@
   (if (not (recording?))
       (choose-file :type :save
                    :success-fn (fn [fc file]
-                                 (start-recording (.getAbsolutePath file))
+                                 (recording-start (.getAbsolutePath file))
                                  (invoke-later (config! btn :background (color :red)))))
     (do
-      (stop-recording)
+      (recording-stop)
       (invoke-later (config! btn :background (color :lightgreen))))))
 
 (defn- add-behaviors
