@@ -95,7 +95,12 @@
         rows (count (:rows state))
         cols (:steps state)
         c    (int (/ x (/ (width grid) cols)))
-        r    (int (/ y (/ (height grid) rows)))]
+        r    (int (/ y (/ (height grid) rows)))
+        new-state (toggle-entry state r c)]
+    ; when they enable a cell, play the sample.
+    (if (and (get-in new-state [:rows r :value c])
+             (not (:playing? new-state)))
+      ((get-in new-state [:rows r :inst])))
     (toggle-entry state r c)))
 
 (defn- on-grid-drag [state e]
