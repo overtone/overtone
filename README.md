@@ -166,6 +166,7 @@ Overtone has generated quite a bit of interest. Here's a list of available inter
 * http://twit.tv/show/floss-weekly/197
 * http://mostlylazy.com/2011/11/18/episode-0-0-2-sam-aaron-and-overtone-at-clojure-conj-2011/
 * http://codebassradio.net/2011/11/29/runtime-expectations-episode-13-hot-clojure-conj/ (scroll down to the section with Sam Aaron, Ghadi Shayban, and Daniel Spiewak)
+* http://clojure.com/blog/2012/01/04/take5-sam-aaron.html
 
 
 
@@ -243,3 +244,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Jennifer Smith
 * Jacob Lee
 * Jon Rose
+* Fabian Steeg
