@@ -28,7 +28,9 @@
   (update-in state [:rows row :value col] not))
 
 (defn- set-entry [state row col v]
-  (assoc-in state [:rows row :value col] v))
+  (if (< row (count (:rows state)))
+    (assoc-in state [:rows row :value col] v)
+    state))
 
 (defn- get-entry [state row col]
   (get-in state [:rows row :value col]))
