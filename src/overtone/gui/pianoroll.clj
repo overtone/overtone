@@ -4,16 +4,16 @@
   (:import [javax.swing DefaultBoundedRangeModel]))
 
 (def note-types [:white :black :white :black :white :white :black :white :black :white :black :white])
-(def ^{:private true} EASURE_WIDTH 150)
-(def ^{:private true} OTE_HEIGHT 10)
-(def ^{:private true} UM_MEASURES 4)
-(def ^{:private true} UM_OCTAVES 4)
-(def ^{:private true} TEPS_PER_BEAT 4)
+(def ^{:private true} MEASURE_WIDTH 150)
+(def ^{:private true} NOTE_HEIGHT 10)
+(def ^{:private true} NUM_MEASURES 4)
+(def ^{:private true} NUM_OCTAVES 4)
+(def ^{:private true} STEPS_PER_BEAT 4)
 
-(def ^{:private true} CTIVE_NOTE_PADDING 2)
+(def ^{:private true} ACTIVE_NOTE_PADDING 2)
 
-(def ^{:private true} UM_BEATS 4)
-(def ^{:private true} UM_BARS 4)
+(def ^{:private true} NUM_BEATS 4)
+(def ^{:private true} NUM_BARS 4)
 
 (defn- note-matrix
   [notes n-octaves n-measures n-bars n-beats n-steps-per-beat]
@@ -159,7 +159,7 @@
                                       num-octaves num-measures num-bars
                                       num-beats num-steps-per-beat))
         active-notes-atom (atom {})
-        piano-roll (canvas  :id :piano-roll
+        piano-roll (canvas :id :piano-roll
                            :paint (partial paint-piano-roll 4 4 4 4 4 notes-atom active-notes-atom))
         panel (border-panel :center piano-roll)
         measure-width MEASURE_WIDTH
@@ -207,8 +207,7 @@
 
 (defn- create-piano-roll
   [& {:keys [measures bars beats steps-per-beat octaves]
-      :or {n-octaves      4
-           measures       4
+      :or {measures       4
            bars           4
            beats          4
            steps-per-beat 4
@@ -216,16 +215,17 @@
       (piano-roll-panel measures bars beats steps-per-beat octaves))
 
 (defn piano-roll
-  ([metro inst]
-   (invoke-now
-     (let [piano-roll (create-piano-roll)
-           panel (border-panel :id :piano-roll :center piano-roll)
-           f (-> (frame :title "Piano Roll"
-                        :on-close :dispose
-                        :minimum-size [601 :by 502]
-                        :content panel)
+  [metro inst]
+  (invoke-now
+   (let [state-atom (atom {}) ;;FIXME
+         piano-roll (create-piano-roll)
+         panel (border-panel :id :piano-roll :center piano-roll)
+         f (-> (frame :title "Piano Roll"
+                      :on-close :dispose
+                      :minimum-size [601 :by 502]
+                      :content panel)
                pack!
                show!)]
-       (with-meta {:frame f
-                   :state state-atom}
-                  {:type :sequencer})))))
+     (with-meta {:frame f
+                 :state state-atom}
+       {:type :sequencer}))))
