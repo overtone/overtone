@@ -17,7 +17,12 @@
 (defn- make-state [this]
   { :model (atom nil)
     :unbind (atom (fn []))
-    :update (fn [v this] (.setText this (str v)))})
+    :update (fn [v this]
+              (.setText
+                this
+                (if (number? v)
+                  (format "%.2f" v) ; TODO make format configurable
+                  (str v))))})
 
 (defn- get-model [this] @(:model (get-meta this ::state)))
 (defn- set-model [this m]
@@ -37,23 +42,30 @@
     (set-model widget (spinner-model 0.0))
     (when-mouse-dragged
       widget
+      :start (fn [_]
+               (config! widget :background :lightyellow))
       :drag (fn [e [dx dy]]
               (let [m @(:model state)
                     next (.getNextValue m)
                     prev (.getPreviousValue m)]
                 (cond
                   (and next (neg? dy)) (.setValue m next)
-                  (and prev (pos? dy)) (.setValue m prev)))))
+                  (and prev (pos? dy)) (.setValue m prev))))
+      :finish (fn [_]
+                (-> widget
+                  (config! :opaque? false)
+                  repaint!)))
     (apply-options
       widget
       (concat
-        []
+        [:cursor :n-resize
+         :tip "Drag to adjust"]
         opts))
     widget))
 
 (def spinner-label-options
   (merge
-    default-options
+    label-options
     (option-map
       (default-option :model
         set-model
@@ -67,9 +79,9 @@
 
   Value
     (container?* [this] false)
-    ; TODO implement value for spinner models in Seesaw
-    (value* [this] (.getValue (config this :model)))
-    (value!* [this v] (.setValue (config this :model) v))
+    (value* [this] (.getValue (get-model this)))
+    (value!* [this v] (.setValue (get-model this) v))
+
   Selection
     (get-selection [this] [(value this)])
     (set-selection [this [v]] (value! this v))
@@ -78,8 +90,15 @@
     (to-bindable* [this] (config this :model)))
 
 (comment
-  (use 'overtone.gui.spinner-label 'seesaw.core 'seesaw.dev)
-  (def sl (spinner-label :id :my-spin-label :model (spinner-model 10.0 :from 0.0 :to 100.0 :by 0.5)))
+  (use 'overtone.gui.spinner-label
+       'seesaw.core
+       'seesaw.border
+       'seesaw.dev)
+  (def sl (spinner-label
+            :id :my-spin-label
+            :halign :center
+            :border [(line-border :color :darkgrey :thickness 1)]
+            :model (spinner-model 10.0 :from 0.0 :to 100.0 :by 0.5)))
   (selection! sl 99.5)
   (bind/bind sl (bind/b-do [v] (println "new value " (value sl) ", " (selection sl))))
   (-> (frame :content sl) pack! show!))
