@@ -17,26 +17,35 @@
                 (for [i instruments]
                   (let [i-vals (or (get init-vals (:name i))
                                    (vec (repeat steps false)))]
-                    {:inst i
+                    {:inst  i
                      :value i-vals})))
    })
 
 (defn- toggle-playing [state]
   (update-in state [:playing?] not))
 
-(defn- toggle-entry [state row col]
-  (update-in state [:rows row :value col] not))
+(defn- get-entry [state row col]
+  (get-in state [:rows row :value col]))
 
 (defn- set-entry [state row col v]
   (if (< row (count (:rows state)))
     (assoc-in state [:rows row :value col] v)
     state))
 
-(defn- get-entry [state row col]
-  (get-in state [:rows row :value col]))
+(defn- toggle-entry [state row col]
+  (if (get-entry state row col)
+    (set-entry state row col false)
+    (set-entry state row col 1)))
 
 (defn- clear-row [state row]
   (assoc-in state [:rows row :value] (vec (repeat (:steps state) false))))
+
+(defn- play-step
+  [row index]
+  (let [{:keys [inst value]} row
+        step-val (nth value index)]
+
+    (when step-val (inst step-val))))
 
 (defn- step-player
   [state-atom beat]
@@ -45,11 +54,13 @@
       (let [metro (:metronome state)
             steps (:steps state)
             index (mod beat steps)
-            next-beat (inc beat) ]
+            next-beat (inc beat)]
+
         (swap! state-atom assoc-in [:step] index)
-        (doseq [{:keys [inst value]} (:rows state)]
-          (when (nth value index)
-            (at (metro beat) (inst))))
+
+        (doseq [row (:rows state)]
+          (at (metro beat) (play-step row index)))
+
         (apply-at (metro next-beat) #'step-player
                   [state-atom next-beat])))))
 
@@ -99,11 +110,13 @@
         c    (int (/ x (/ (width grid) cols)))
         r    (int (/ y (/ (height grid) rows)))
         new-state (toggle-entry state r c)]
-    ; when they enable a cell, play the sample.
-    (if (and (get-in new-state [:rows r :value c])
-             (not (:playing? new-state)))
-      ((get-in new-state [:rows r :inst])))
-    (toggle-entry state r c)))
+
+    ;;when they enable a cell, play the sample.
+    (when (not (:playing? new-state))
+      (let [row (get-in new-state [:rows r])]
+        (play-step row c)))
+
+    new-state))
 
 (defn- on-grid-drag [state e]
   (let [grid (to-widget e)
@@ -112,8 +125,15 @@
         rows (count (:rows state))
         cols (:steps state)
         c    (int (/ x (/ (width grid) cols)))
-        r    (int (/ y (/ (height grid) rows)))]
-    (set-entry state r c (not (.isShiftDown e)))))
+        r    (int (/ y (/ (height grid) rows)))
+        on   (not (.isShiftDown e))
+        val  (if (.isAltDown e)
+               (max 0 (- 1 (min 1 (* 0.001 y))))
+               1)]
+
+    (if on
+      (set-entry state r c val)
+      (set-entry state r c false))))
 
 (defn- step-grid [state-atom]
   (let [state @state-atom
@@ -132,6 +152,16 @@
   (hyperlink :text (:name inst)
              :listen [:action (fn [e] (synth-controller inst))]))
 
+(defn- inst-param-menu
+  [inst]
+  (combobox :model (map :name (:params inst))))
+
+(defn- inst-panel
+  [inst]
+  (grid-panel :columns 1
+              :items [(inst-button inst)
+                      (inst-param-menu inst)]))
+
 (defn step-sequencer
   [metro steps instruments & [init-vals]]
   (invoke-now
@@ -149,13 +179,13 @@
                                         :separator
                                         controls-btn])
           grid         (step-grid state-atom)
-          inst-btns    (map inst-button instruments)
+          inst-panels  (map inst-panel instruments)
           f (frame :title    "Sequencer"
                    :content  (border-panel
                                :border 5 :hgap 5 :vgap 5
                                :north control-pane
                                :west (grid-panel :columns 1
-                                                 :items inst-btns)
+                                                 :items inst-panels)
                                :center grid)
                    :on-close :dispose)]
       (bind/bind bpm-spinner (bind/b-do [v] (metro :bpm v)))
@@ -184,10 +214,10 @@
     (into {} rows)))
 
 (comment
-  (use 'overtone.live)
-  (use 'overtone.gui.sequencer)
-  (use 'overtone.gui.control)
-  (use 'overtone.inst.drum)
-  (def m (metronome 128))
-  (step-sequencer m 8 [kick closed-hat snare])
-)
+  (do (use 'overtone.live)
+      (use 'overtone.gui.sequencer)
+      (use 'overtone.gui.control)
+      (use 'overtone.inst.drum)
+      (def m (metronome 128))
+      (step-sequencer m 8 [kick closed-hat snare]))
+  )
