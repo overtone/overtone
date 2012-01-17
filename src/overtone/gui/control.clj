@@ -105,9 +105,9 @@
     (let [panels  (map synth-controller-panel synths)
           cleanup (apply juxt (map :cleanup panels))
           frame (frame :title "Synth Controllers"
-                       :content (vertical-panel 
+                       :content (scrollable (vertical-panel 
                                   :border 5
-                                  :items (map :panel panels))
+                                  :items (map :panel panels)))
                        :on-close :dispose)]
       ; When the window is closed, unhook everything from the synth
       ; so the ui can be garbage collected, etc.
