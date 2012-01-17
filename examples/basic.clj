@@ -8,12 +8,11 @@
         env (env-gen (perc 0.1 dur) :action FREE)]
     (out 0 (pan2 (* 0.1 low env filt)))))
 
-(dotimes [i 10]
-  (foo (* i 220) 2)
-  (Thread/sleep 800))
+;(dotimes [i 10]
+;  (foo (* i 220) 2)
+;  (Thread/sleep 800))
 
-
-; Some of the example gathered here were found on this page:
+; Some of the examples gathered here were found on this page:
 ; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
 ; which come originally from the book Designing Sound by Andy Farnell.
 
@@ -37,6 +36,8 @@
         env (env-gen (perc 0.001 0.3) :action FREE)]
     (* 0.7 src env)))
 
+;;(kick)
+
 (defn player [beat notes]
   (let [notes (if (empty? notes)
                 [50 55 53 50]
@@ -52,7 +53,7 @@
           (overpad (choose notes) 0.5 0.15 0.1)))
   (apply-at (metro (inc beat)) #'player (inc beat) (next notes) [])))
 
-(player (metro) [])
+;(player (metro) [])
 
 ;; (overpad 60 0.5 5)
 ;; (stop)
@@ -123,6 +124,19 @@
 ;;(trancy-waves)
 ;;(stop)
 
+;; A noise filter, using the mouse to control the bandpass frequency and bandwidth
+(demo 20 (bpf (* [0.5 0.5] (pink-noise))
+              (mouse-y 10 10000)
+              (mouse-x 0.0001 0.9999)))
+
+(defsynth roaming-sines
+  []
+  (let [freqs (take 5 (repeatedly #(ranged-rand 40 2000)))
+        ampmod [(mouse-x 0 1) (mouse-y 1 0)]
+        snd (splay (* 0.5 (sin-osc freqs)))
+        snd (* (sin-osc ampmod) snd)]
+    (out 0 snd)))
+;;(roaming-sines)
 
 (defsynth scratch-pendulum []
   (let [kon (sin-osc:kr (* 10 (mouse-x)))
@@ -289,3 +303,4 @@
 ;                out = Select.ar(MouseX.kr(0,4).poll, operations);
 ;                Pan2.ar(out * 0.1)
 ;              }).play
+;
