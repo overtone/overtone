@@ -1,7 +1,8 @@
 (ns overtone.gui.info
   (:use overtone.libs.event
         [overtone.sc info server mixer]
-        [seesaw core border table chooser color])
+        [seesaw core border table chooser color]
+        [overtone.gui dock])
   (:require [seesaw.bind :as bind]))
 
 (native!)
@@ -36,7 +37,7 @@
       (config! (select panel [(keyword (str "#" (name id)))]) :text (format-status-label id value)))
     panel))
 
-(defn- make-status-panel
+(defn- status-panel
   []
   (let [info (server-status)
         panel (border-panel
@@ -57,7 +58,7 @@
     ;(reset! update-timer (timer update-status-panel :delay 1000 :initial-value panel))
     panel))
 
-(defn- make-info-panel
+(defn- info-panel
   []
   (let [info (server-info)]
     (border-panel
@@ -75,9 +76,17 @@
 
 (defn- make-tabs
   []
-  (tabbed-panel
-    :tabs [{ :title "Server Status" :content (make-status-panel) }
-           { :title "Server Info"   :content (make-info-panel) }]))
+  (let [dock (split-dock)
+        status (dockable (status-panel))
+        info (dockable (info-panel))]
+    (doto dock
+      (.drop status)
+      (.drop info))
+    dock))
+
+;  (tabbed-panel
+;    :tabs [{ :title "Server Status" :content (status-panel) }
+;           { :title "Server Info"   :content (info-panel) }]))
 
 (defn- make-master-controls
   []
