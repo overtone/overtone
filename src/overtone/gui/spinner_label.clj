@@ -14,30 +14,31 @@
 
 (def ^{:private true} SpinnerLabelClass (class (spinner-label-proxy)))
 
-(defn- make-state [this]
-  { :model (atom nil)
-    :unbind (atom (fn []))
-    :update (fn [v this]
-              (.setText
-                this
-                (if (number? v)
-                  (format "%.2f" v) ; TODO make format configurable
-                  (str v))))})
+(defn- update-display [new-value this]
+  (.setText
+    this
+    (if (number? new-value)
+      (format "%.2f" new-value) ; TODO make format configurable
+      (str new-value))))
+
+(defn- make-initial-state []
+  { :model  (atom nil)
+    :unbind (atom (fn [])) })
 
 (defn- get-model [this] @(:model (get-meta this ::state)))
 (defn- set-model [this m]
   (let [{:keys [model unbind update]} (get-meta this ::state)]
     (@unbind)
     (reset! model m)
-    (reset! unbind (bind/bind m (bind/b-do* update this)))
-    (update (.getValue m) this)))
+    (reset! unbind (bind/bind m (bind/b-do* update-display this)))
+    (update-display (.getValue m) this)))
 
 (defn spinner-label
   "Same API as #'seesaw.core/spinner, but only a label is displayed and the
   current value is modified by dragging the mouse up and down over it."
   [& opts]
   (let [widget (spinner-label-proxy)
-        state  (make-state widget)]
+        state  (make-initial-state)]
     (put-meta! widget ::state state)
     (set-model widget (spinner-model 0.0))
     (when-mouse-dragged
