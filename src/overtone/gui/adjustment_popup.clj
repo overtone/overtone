@@ -37,24 +37,25 @@
                                      popup-y (- (+ y (/ h 2)) (/ (.getHeight popup) 2))
                                      popup-x (+ x w OFFSET)]
                                  (move! popup :to [popup-x popup-y])
-                                 (show! popup)
-                                 (repaint! widget)
-                                 ))
+                                 (show! popup)))
               :mouse-released (fn [_]
                                 (hide! popup)))
+      (bind/bind widget (bind/b-do [_] (repaint! widget)))
       popup)))
-
 
 
 (comment
 
-(use 'overtone.live)
 (require '[seesaw.core :as saw])
 (use 'overtone.gui.adjustment-popup)
+(use 'overtone.gui.dial)
 (def s (saw/slider :value 50 :min 0 :max 100 :orientation :vertical))
-(def adj (adjustment-popup-for s "Value:"))
+(def s-adj (adjustment-popup-for s "Value:"))
+
+(def d (dial :value 50 :min 0 :max 100))
+(def d-adj (adjustment-popup-for d "Pan:"))
 (def f (saw/frame :title "testing" :minimum-size [200 :by 400]
-              :content (saw/vertical-panel :items [s])))
+              :content (saw/vertical-panel :items [s d])))
 (saw/show! f)
 
 )
