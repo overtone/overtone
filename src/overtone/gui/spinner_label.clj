@@ -94,6 +94,7 @@
        'seesaw.core
        'seesaw.border
        'seesaw.dev)
+  (require '[seesaw.bind :as bind])
   (def sl (spinner-label
             :id :my-spin-label
             :halign :center
@@ -101,5 +102,6 @@
             :model (spinner-model 10.0 :from 0.0 :to 100.0 :by 0.5)))
   (selection! sl 99.5)
   (bind/bind sl (bind/b-do [v] (println "new value " (value sl) ", " (selection sl))))
-  (-> (frame :content sl) pack! show!))
+  (-> (frame :content sl) pack! show!)
+  )
 
