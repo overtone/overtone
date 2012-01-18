@@ -4,26 +4,29 @@
         [overtone.music pitch]
         [overtone.studio mixer]))
 
-(definst ticker [freq 880]
+(definst ticker
+  [freq 880]
   (* (env-gen (perc 0.001 0.01) :action FREE)
      (sin-osc freq)))
 
-(definst ping [note {:default 72 :min 0 :max 120 :step 1}
-               a    {:default 0.02 :min 0.001 :max 1 :step 0.001}
-               b    {:default 0.3 :min 0.001 :max 1 :step 0.001}]
+(definst ping
+  [note {:default 72 :min 0 :max 120 :step 1}
+   a    {:default 0.02 :min 0.001 :max 1 :step 0.001}
+   b    {:default 0.3 :min 0.001 :max 1 :step 0.001}]
   (let [snd (sin-osc (midicps note))
         env (env-gen (perc a b) :action FREE)]
     (* 0.1 env snd)))
 
-(definst tb303 [note {:default 60 :min 0 :max 120 :step 1}
-                wave {:default 1 :min 0 :max 2 :step 1}
-                r {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
-                attack {:default 0.01 :min 0.001 :max 4 :step 0.001}
-                decay {:default 0.1 :min 0.001 :max 4 :step 0.001}
-                sustain {:default 0.6 :min 0.001 :max 0.99 :step 0.001}
-                release {:default 0.01 :min 0.001 :max 4 :step 0.001}
-                cutoff {:default 100 :min 1 :max 20000 :step 1}
-                env-amount {:default 0.01 :min 0.001 :max 4 :step 0.001}]
+(definst tb303
+  [note {:default 60 :min 0 :max 120 :step 1}
+   wave {:default 1 :min 0 :max 2 :step 1}
+   r {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
+   attack {:default 0.01 :min 0.001 :max 4 :step 0.001}
+   decay {:default 0.1 :min 0.001 :max 4 :step 0.001}
+   sustain {:default 0.6 :min 0.001 :max 0.99 :step 0.001}
+   release {:default 0.01 :min 0.001 :max 4 :step 0.001}
+   cutoff {:default 100 :min 1 :max 20000 :step 1}
+   env-amount {:default 0.01 :min 0.001 :max 4 :step 0.001}]
   (let [freq       (midicps note)
         freqs      [freq (* 1.01 freq)]
         vol-env    (env-gen (adsr attack decay sustain release)
@@ -67,7 +70,8 @@
         filt (moog-ff (+ s1 s2) (* cutoff f-env) 3)]
     (* amp filt)))
 
-(definst rise-fall-pad [freq 440 t 4 amt 0.3 amp 0.8]
+(definst rise-fall-pad
+  [freq 440 t 4 amt 0.3 amp 0.8]
   (let [f-env      (env-gen (perc t t) 1 1 0 1 FREE)
         src        (saw [freq (* freq 1.01)])
         signal     (rlpf (* 0.3 src)
@@ -81,7 +85,8 @@
         echo       (comb-n reverb 0.4 0.3 0.5)]
     (* amp echo)))
 
-(definst pad [note 60 t 10 amt 0.3 amp 0.1 a 0.4 d 0.5 s 0.8 r 2]
+(definst pad
+  [note 60 t 10 amt 0.3 amp 0.1 a 0.4 d 0.5 s 0.8 r 2]
   (let [freq       (midicps note)
         lfo        (+ 2 (* 0.01 (sin-osc:kr 5 (rand 1.5))))
         src        (apply + (saw [freq (* freq lfo)]))
@@ -95,14 +100,28 @@
         snd        (* amp dist (line:kr 1 0 t))]
     src))
 
-(definst buzz [pitch 40 cutoff 300 dur 200]
+(definst overpad
+  [note 60 amp 0.7 attack 0.001 release 2]
+  (let [freq  (midicps note)
+        env   (env-gen (perc attack release) :action FREE)
+        f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- release 0.1)))))
+        bfreq (/ freq 2)
+        sig   (apply +
+                     (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
+                             (lpf (saw [freq (* freq 1.01)]) f-env)))
+        audio (* amp env sig)]
+    audio))
+
+(definst buzz
+  [pitch 40 cutoff 300 dur 200]
   (let [lpf-lev (* (+ 1 (lf-noise1:kr 10)) 400)
         a (lpf (saw (midicps pitch)) lpf-lev)
         b (sin-osc (midicps (- pitch 12)))
         env (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
     (* env (+ a b))))
 
-(definst bass [freq 120 t 0.6 amp 0.5]
+(definst bass
+  [freq 120 t 0.6 amp 0.5]
   (let [env (env-gen (perc 0.08 t) :action FREE)
         src (saw [freq (* 0.98 freq) (* 2.015 freq)])
         src (clip2 (* 1.3 src) 0.8)
@@ -110,7 +129,8 @@
         filt (resonz (rlpf src (* 4.4 freq) 0.09) (* 2.0 freq) 2.9)]
     (* env amp (fold:ar (distort (* 1.3 (+ filt sub))) 0.08))))
 
-(definst grunge-bass [note 48 amp 0.5 dur 0.1 a 0.01 d 0.01 s 0.4 r 0.01]
+(definst grunge-bass
+  [note 48 amp 0.5 dur 0.1 a 0.01 d 0.01 s 0.4 r 0.01]
   (let [freq (midicps note)
         env (env-gen (adsr a d s r) (line:kr 1 0 (+ a d dur r 0.1))
                      :action FREE)
@@ -123,6 +143,18 @@
         bounced (free-verb sliced 0.8 0.9 0.2)]
     (* env bounced)))
 
+(definst vintage-bass
+  [note 40 velocity 80 t 0.6 amp 0.5 gate 1]
+  (let [freq     (midicps note)
+        sub-freq (midicps (- note 12))
+        velocity (/ velocity 127.0)
+        sawz1    (* 0.075 (saw [freq freq]))
+        sawz2    (* 0.75 (saw [(- freq 2) (+ 1 freq)]))
+        sqz      (* 0.3 (pulse [sub-freq (- sub-freq 1)]))
+        mixed    (* 0.1 (mix sawz1 sawz2 sqz))
+        env      (env-gen (adsr 0.1 3.3 0.4 0.8) gate :action FREE)
+        filt     (* env (moog-ff mixed (* velocity env (+ freq 200)) 2.2))]
+    filt))
 
 ; B3 modeled a church organ using additive synthesis of 9 sin oscillators
 ; * Octave under root
@@ -152,11 +184,12 @@
     (* env snd 0.1)))
 
 ; Experimenting with Karplus Strong synthesis...
-(definst ks1 [note {:default 60 :min 10 :max 120 :step 1}
-              amp  {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
-              dur  {:default 2 :min 0.1 :max 4 :step 0.1}
-              decay {:default 30 :min 1 :max 50 :step 1}
-              coef {:default 0.3 :min 0.01 :max 2 :step 0.01}]
+(definst ks1
+  [note {:default 60 :min 10 :max 120 :step 1}
+   amp  {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
+   dur  {:default 2 :min 0.1 :max 4 :step 0.1}
+   decay {:default 30 :min 1 :max 50 :step 1}
+   coef {:default 0.3 :min 0.01 :max 2 :step 0.01}]
   (let [freq (midicps note)
         noize (* 0.8 (white-noise))
         dly (/ 1.0 freq)
@@ -169,7 +202,8 @@
         reverb (free-verb clp 0.4 0.8 0.2)]
     (* amp (env-gen (perc 0.0001 dur) :action FREE) reverb)))
 
-(definst ks1-demo [note 60 amp 0.8 gate 1]
+(definst ks1-demo
+  [note 60 amp 0.8 gate 1]
   (let [freq (midicps note)
         noize (* 0.8 (white-noise))
         dly (/ 1.0 freq)
@@ -181,7 +215,8 @@
         reverb (free-verb filt 0.4 0.8 0.2)]
     (* amp (env-gen (perc 0.0001 2) :action FREE) reverb)))
 
-(definst ks-stringer [freq 440 rate 6]
+(definst ks-stringer
+  [freq 440 rate 6]
   (let [noize (* 0.8 (white-noise))
         trig  (dust rate)
         coef  (mouse-x -0.999 0.999)
@@ -190,7 +225,8 @@
         filt (rlpf plk (* 12 freq) 0.6)]
     (* 0.8 filt)))
 
-(definst fm-demo [note 60 amp 0.2 gate 0]
+(definst fm-demo
+  [note 60 amp 0.2 gate 0]
   (let [freq (midicps note)
         osc-a (* (sin-osc (mouse-x 20 3000))
                  0.3)
@@ -199,7 +235,8 @@
 
 ; From the SC2 examples included with SC
 ; Don't think it's quite there, but almost...
-(definst harmonic-swimming [amp 0.5]
+(definst harmonic-swimming
+  [amp 0.5]
   (let [freq     100
         partials 20
         z-init   0
@@ -217,7 +254,8 @@
                   (recur newz (inc i)))))]
     (out 10 (pan2 (* amp snd)))))
 
-(definst whoahaha [freq 440 dur 5 osc 100 mul 1000]
+(definst whoahaha
+  [freq 440 dur 5 osc 100 mul 1000]
   (let [freqs [freq (* freq 1.0068) (* freq 1.0159)]
         sound (resonz (saw (map #(+ % (* (sin-osc osc) mul)) freqs))
                       (x-line 10000 10 25)
@@ -225,7 +263,8 @@
         sound (apply + sound)]
   (* (lf-saw:kr (line:kr 13 17 3)) (line:kr 1 0 dur FREE) sound)))
 
-(definst bubbles [bass-freq 80]
+(definst bubbles
+  [bass-freq 80]
   (let [bub (+ bass-freq (* 3 (lf-saw:kr [8 7.23])))
         glis (+ bub (* 24 (lf-saw:kr 0.4 0)))
         freq (midicps glis)
@@ -233,107 +272,49 @@
         zout (comb-n src :decaytime 4)]
     zout))
 
-;(def alien-buffer (buffer 2250))
-;(definst alien-computer [trig 0.3]
-;  (ifft (pv-rand-comb (fft alien-buffer (white-noise))
-;                               0.95 (impulse:kr trig))))))
-;(defn buzzer [t tick dur notes]
-;  (let [note (first notes)]
-;    (if (> (rand) 0.9)
-;      (do
-;        (hit t :buzz :pitch note :dur dur)
-;        (hit (+ t tick) :buzz :pitch note :dur dur)
-;        (callback (+ t tick (- tick 100)) #'buzzer (+ t tick tick) tick dur (next notes)))
-;      (do
-;        (hit t :buzz :pitch note :dur dur)
-;        (callback (+ t (- tick 100)) #'buzzer (+ t tick) tick dur (next notes))))))
-;
-;;(buzzer (+ (now) 200) 100 50 (cycle [68 80 48 80 92 75]))
-;
-;;; Helpers
-;
-;(defmacro mix [& args]
-;  (syn (reduce (fn [mem arg] (list '+ mem arg))
-;          args)))
-;
-;;; Toy synths... clean up eventually
-;
-;(def sin (synth sin {:out 0 :amp 0.1 :pitch 40 :dur 300}
-;  (let [snd (sin-osc.ar (midicps :pitch))
-;        env (env-gen.kr (linen 0.001 (/ :dur 1000.0) 0.002) :done-free)]
-;    (out.ar :out (pan2.ar (* (* snd env) :amp) 0)))))
-;
-;(synth mouse-saw
-;  (out.ar 0 (pan2.ar (sin-osc.ar (mouse-y.kr 10 1200 1 0) 0) 0)))
-;
-;(comment
-;  (load-synth mouse-saw)
-;  (hit mouse-saw)
-;  )
-;
-;(synth noise-filter {:cutoff 500}
-;  (quick (lpf.ar (* 0.4 (pink-noise.ar)) :cutoff)))
+; // Originally from the STK instrument models...
+(definst bowed
+  [note 60 velocity 80 gate 1 amp 1
+   bow-offset 0 bow-slope 0.5 bow-position 0.75 vib-freq 6.127 vib-gain 0.2]
+  (let [freq         (midicps note)
+        velocity     (/ velocity 127)
+        beta-ratio   (+ 0.027236 (* 0.2 bow-position))
+        base-delay   (reciprocal freq)
+        [fb1 fb2]    (local-in 2)
+        vibrato      (* (sin-osc vib-freq) vib-gain)
+        neck-delay   (+ (* base-delay (- 1 beta-ratio)) (* base-delay vibrato))
+        neck         (delay-l fb1 0.05 neck-delay)
+        nut-refl     (neg neck)
+        bridge       (delay-l fb2 0.025 (* base-delay beta-ratio))
+        string-filt  (one-pole (* bridge 0.95) 0.55)
+        bridge-refl  (neg string-filt)
+        adsr         (* amp (env-gen (adsr 0.02 3.005 1.0 0.01) gate :action FREE))
+        string-vel   (+ bridge-refl nut-refl)
+        vel-diff     (- adsr string-vel)
+        slope        (- 5.0 (* 4 bow-slope))
+        bow-table    (clip:ar (pow (abs (+ (* (+ vel-diff bow-offset) slope) 0.75 )) -4) 0 1)
+        new-vel       (* vel-diff bow-table)]
+   (local-out (+ [bridge-refl nut-refl] new-vel))
+   (resonz (* bridge 0.5) 500 0.85)))
 
+(definst flute
+  [gate 1 freq 440 amp 1.0 endreflection 0.5 jetreflection 0.5
+   jetratio 0.32 noise-gain 0.15 vibfreq 5.925 vib-gain 0.0 amp 1.0]
+  (let [nenv           (env-gen (linen 0.2 0.03 0.5 0.5) gate :action FREE)
+        adsr           (+ (* amp 0.2) (env-gen (adsr 0.005 0.01 1.1 0.01) gate :action FREE))
+        noise          (* (white-noise) noise-gain)
+        vibrato        (sin-osc vibfreq 0 vib-gain)
+        delay          (reciprocal (* freq 0.66666))
+        lastout        (local-in 1)
+        breathpressure (* adsr (+ noise, vibrato))
+        filter         (leak-dc (one-pole (neg lastout) 0.7))
+        pressurediff   (- breathpressure (* jetreflection filter))
+        jetdelay       (delay-l pressurediff 0.025 (* delay jetratio))
+        jet            (clip2 (* jetdelay (- (squared jetdelay) 1.0)) 1.0)
+        boredelay      (delay-l (+ jet (* endreflection filter) 0.05 delay))]
+    (local-out boredelay)
+    (* 0.3 boredelay amp nenv)))
 
-;(defn basic-sound []
-;  (syn
-;    (mul-add.ar
-;      (decay2.ar (mul-add.ar
-;                 (impulse.ar 8 0)
-;                 (mul-add.kr (lf-saw.kr 0.3 0) -0.3 0.3)
-;                 0)
-;               0.001)
-;      0.3 (+ (pulse.ar 80 0.3) (pulse.ar 81 0.3)))))
-;
-;(synth basic-synth
-;  (quick (basic-sound)))
-;
-;(synth compressed-synth {:attack 0.01
-;                            :release 0.01}
-;  (let [z (basic-sound)]
-;    (quick
-;      (compander.ar z 0
-;                    (mouse-x.kr 0.1 1) ; mouse controls gain
-;                    1 0.5 ; slope below and above the knee
-;                    :attack  ; clamp time (attack)
-;                    :release)))) ; relax time (release)
-;
-;(defn wand [n]
-;  (syn
-;  (mix
-;    (sin-osc.ar (mhz (- n octave)))
-;    (lpf.ar (saw.ar [(mhz n) (mhz (+ n fifth))])
-;          (mul-add.kr
-;              (sin-osc.kr 4)
-;              30
-;              300)))))
-;
-;(synth triangle-test
-;  (out.ar 0
-;          (mul-add.ar
-;            (wand 60)
-;            (env-gen.kr 1 1 0 1 2 (triangle 3 0.8))
-;            0)))
-; TODO: Port the interesting ones to Overtone synthdefs
-
-; SynthDef("vintage-bass", {|out=0, note=40, vel=0.5, gate=1|
-;   var f = midicps(note);
-;   var f2 = midicps(note-12);
-;   var saw = Saw.ar([f, f], 0.075);
-;   var saw2 = Saw.ar([f-2, f+1], 0.75);
-;   var sq = Pulse.ar([f2, f2-1], 0.5, 0.3);
-;   var snd = Mix([saw, saw2, sq], 0, 0.1);
-;   var env = EnvGen.kr(Env.adsr(0.1, 3.3, 0.4, 0.3), gate, doneAction: 2);
-;   var filt = env * MoogFF.ar(snd, env * vel * f+200, 2.2);
-;   Out.ar(0, Pan2.ar(filt, 0))
-; }).store;
-; b = Synth("vintage-bass", ["note", 30.0, "vel", 0.6]);
-; b.set("gate", 1);
-; b.set("gate", 0);
-;
-; /////////////////////////////
-; // Originally from the STK instrument models.  SuperCollider port found at lost URL.
-;
 ; SynthDef(\flute, { arg out=0, gate=1, freq=440, amp=1.0, endReflection=0.5, jetReflection=0.5, jetRatio=0.32, noiseGain=0.15, vibFreq=5.925, vibGain=0.0, outputGain=1.0;
 ;
 ;   var nenv = EnvGen.ar(Env.linen(0.2, 0.03, 0.5, 0.5), gate, doneAction: 2);
@@ -372,31 +353,7 @@
 ; f = Synth(\blowbotl);
 ; f.set("freq", 100);
 ; f.free;
-;
-; SynthDef(\bowed, { arg out=0, amp=1.0, gate=1, freq=420, bowOffset = 0.0, bowSlope = 0.5, bowPosition = 0.75, vibFreq=6.127, vibGain=0.2;
-;   var betaRatio = 0.027236 + (0.2*bowPosition);
-;   var baseDelay = freq.reciprocal;
-;   var lastOut = LocalIn.ar(2);
-;   var vibrato = SinOsc.ar(vibFreq, 0, vibGain);
-;   var neckDelay = baseDelay*(1.0-betaRatio) + (baseDelay*vibrato);
-;   var neck = DelayL.ar(lastOut[0], 0.05, neckDelay);
-;   var bridge = DelayL.ar(lastOut[1], 0.025, baseDelay*betaRatio);
-;   var stringFilter = OnePole.ar(bridge*0.95, 0.55);
-;   var adsr = amp*EnvGen.ar(Env.adsr(0.02, 0.005, 1.0, 0.01), gate, doneAction: 2);
-;   var bridgeRefl = stringFilter.neg;
-;   var nutRefl = neck.neg;
-;   var stringVel = bridgeRefl + nutRefl;
-;   var velDiff = adsr - stringVel;
-;   var slope = 5.0 - (4.0*bowSlope);
-;   var bowtable = (( ((velDiff+bowOffset)*slope) + 0.75 ).abs ).pow(-4).clip(0, 1);
-;   var newVel = velDiff*bowtable;
-;   LocalOut.ar([bridgeRefl, nutRefl] + newVel);
-;   Out.ar(out, Resonz.ar( bridge*0.5, 500, 0.85 ) );
-; }, [\ir, 0,0, 0, 0, 0, 0, 0, 0]).send(s);
-;
-; Synth("bowed")
-; Synth("bowed", ["freq", 200])
-;
+
 ; SynthDef(\voicform, { arg out=0, gate=1, freq=440, amp=0.3, voiceGain=1.0, noiseGain=0.0, sweepRate=0.001;
 ;
 ;   var voiced = Pulse.ar(freq, 0.1, voiceGain);
@@ -417,8 +374,8 @@
 ; v = Synth(\voicform, target: s)
 ; v.set("freq", 100);
 ; v.free;
-;
-;
+
+
 ; SynthDef.new("mcldjospiano1", { | out = 0, freq = 440, gate = 1,
 ; amp=0.1, pan = 0|
 ;         var impresp, imps, dels, hammerstr, velocity, string, ampcomp,
@@ -483,37 +440,3 @@
 ;         sig = HPF.ar(sig,50) * EnvGen.ar(Env.perc(0.0001,dur, amp, -1), doneAction:2);
 ;         Out.ar(outBus, Pan2.ar(sig,pan));
 ; }).send(s);
-;
-; ( //play a little ditty
-; Task({
-; 36.do({
-; 2.do({arg i;
-; Synth(\piano, [\freq, [0,2,3,5,7,8,10].choose + (60 + (i * 12)), \outBus, 0,
-; \amp, rrand(0.25,0.9), \dur, 1, \pan, 0], s);
-; });
-; [0.5,1].choose.wait
-; });
-; }).start
-; );
-;
-;
-; (
-;  SynthDef(\sine_osc, {
-;      arg amp = 0.1, gate = 1;
-;
-;      // I tried to figure out how to use .do for this but it eluded me this time!
-;      var freq_array = [Rand(40.0, 2000.0), Rand(40.0, 2000.0), Rand(40.0, 2000.0), Rand(40.0, 2000.0), Rand(40.0, 2000.0)];
-;      var ampmod_array = [MouseX.kr(0.0, 1.0), MouseY.kr(1.0, 0.0)];
-;
-;      // Five SinOscs with randomly selected frequency are created and spread across the stereo image
-;      // The amp mod applied to left and right output channels is controlled by mouse position
-;      Out.ar(0, SinOsc.ar(ampmod_array, 0, 1.0) * Splay.ar(SinOsc.ar(freq_array, 0, amp)));
-;
-;      FreeSelf.kr(1 - gate);
-;      }).store;
-;  )
-;
-; d = Synth(\sine_osc);
-; d.free;
-;
-; { Out.ar(1, SinOsc.ar(300, 0)) }.scope;
