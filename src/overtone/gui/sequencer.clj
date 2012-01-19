@@ -23,6 +23,8 @@
                      :value i-vals})))
    })
 
+(def ^{:private true} NEW_ENTRY {:on true})
+
 (defn- toggle-playing [state]
   (update-in state [:playing?] not))
 
@@ -36,7 +38,7 @@
 
 (defn- update-entry [state row col v]
   (if (< row (count (:rows state)))
-    (update-in state [:rows row :value col] merge v)
+    (update-in state [:rows row :value col] merge NEW_ENTRY v)
     state))
 
 (defn- toggle-entry [state row col]
@@ -44,10 +46,16 @@
              (fn [v]
                (if (associative? v)
                  (update-in v [:on] not)
-                 {:on true}))))
+                 NEW_ENTRY))))
 
 (defn- delete-entry [state row col]
   (set-entry state row col false))
+
+(defn- get-param-info
+  [state row]
+  (let [p-name (get-in state [:rows row :param])]
+    (first (filter #(= (:name %) p-name)
+                 (get-in state [:rows row :inst :params])))))
 
 (defn- clear-row [state row]
   (assoc-in state [:rows row :value] (vec (repeat (:steps state) false))))
@@ -127,79 +135,54 @@
                   (paint-cell enabled-entry-style)
                   (paint-cell muted-entry-style))))))))))
 
-(defn- on-grid-clicked [state e]
-  (let [grid (to-widget e)
-        x    (.getX e)
-        y    (.getY e)
-        rows (count (:rows state))
-        cols (:steps state)
-        c    (int (/ x (/ (width grid) cols)))
-        r    (int (/ y (/ (height grid) rows)))
+(defn- scaled-param-map
+  [state row val]
+  (let [{:keys [max min name]} (get-param-info state row)
+        p-name (keyword name)
+        p-val (-> val
+                (* (- max min))
+                (+ min))]
+    {p-name p-val}))
 
-        new-state (if (.isControlDown e)
-                    (delete-entry state r c)
-                    (toggle-entry state r c))]
+(defn- parse-grid-click
+  [state e]
+  (let [grid   (to-widget e)
+        x      (.getX e)
+        y      (.getY e)
+        n-rows (count (:rows state))
+        n-cols (:steps state)
+        r-size (/ (height grid) n-rows)
+        c-size (/ (width  grid) n-cols)
+        r      (int (/ y r-size))
+        c      (int (/ x c-size))
+        r-top  (* r-size r)
+        r-btm  (+ r-top r-size)
+        y-val  (-> y (max r-top) (min r-btm) (- r-top))
+        y-val  (- 1 (double (/ y-val r-size)))
+        param  (scaled-param-map state r y-val)]
+    {:row r :col c :r-size r-size :c-size c-size :y-val y-val :param param}))
+
+(defn- on-grid-clicked [state e]
+  (let [{:keys [row col param]} (parse-grid-click state e)
+        new-state (cond (.isControlDown e) (delete-entry state row col)
+                        (.isAltDown e)     (update-entry state row col param)
+                        :else (toggle-entry state row col))]
 
     ;;when they enable a cell, play the sample.
     (when (not (:playing? new-state))
-      (let [row (get-in new-state [:rows r])]
-        (play-step row c)))
+      (let [row (get-in new-state [:rows row])]
+        (play-step row col)))
 
     new-state))
 
-(defn- scale-val
-  [val max min]
-  (let [dif (- max min)]
-    (-> val
-        (* dif)
-        (+ min))))
-
-(defn- get-param-name
-  [state r]
-  (get-in state [:rows r :param]))
-
-(defn- get-param-range
-  [state r p-name]
-  (select-keys (first (filter #(= (:name %) p-name)
-                              (get-in state [:rows r :inst :params])))
-               [:min :max]))
-
-(defn- scale-param-val
-  [state r p-name val]
-  (let [p-range (get-param-range state r p-name)]
-    (scale-val val (:max p-range) (:min p-range))))
-
 (defn- on-grid-drag [state e]
-  (let [grid (to-widget e)
-        x    (.getX e)
-        y    (.getY e)
-        rows (count (:rows state))
-        cols (:steps state)
-
-        row-size (/ (height grid) rows)
-        col-size (/ (width  grid) cols)
-
-        c (int (/ x col-size))
-        r (int (/ y row-size))
-
-        row-top (* row-size r)
-        row-btm (+ row-top row-size)
-        row-y   (-> y (max row-top) (min row-btm) (- row-top))
-
-        p-name  (get-param-name state r)
-
-        on  (not (.isShiftDown e))
-        del (.isControlDown e)
-        val (when (.isAltDown e)
-              (scale-param-val state r p-name
-                               (- 1 (double (/ row-y row-size)))))]
-
-    (if del
-      (delete-entry state r c)
-      (if val
-        (update-entry state r c {:on on (keyword p-name) val})
-        (update-entry state r c {:on on})))))
-
+  (let [{:keys [row col r-size c-size y-val param]} (parse-grid-click state e)]
+    (if (.isControlDown e)
+      (delete-entry state row col)
+      (let [on (not (.isShiftDown e))]
+        (if (.isAltDown e)
+          (update-entry state row col {:on on (keyword (:name param)) y-val})
+          (update-entry state row col {:on on}))))))
 
 (defn- inst->index
   [rows inst]
