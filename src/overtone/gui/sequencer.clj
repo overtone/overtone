@@ -5,7 +5,8 @@
         [seesaw core]
         [seesaw.color :only [color]]
         [seesaw.graphics :only [style draw rounded-rect line]]
-        [seesaw.swingx :only [hyperlink]])
+        [seesaw.swingx :only [hyperlink]]
+        [seesaw.mig :only [mig-panel]])
   (:require [seesaw.bind :as bind]))
 
 (defn- make-initial-state [metro steps instruments init-vals]
@@ -149,8 +150,8 @@
 
 (defn- inst-button
   [inst]
-  (hyperlink :text (:name inst)
-             :listen [:action (fn [e] (synth-controller inst))]))
+  (button :text (:name inst)
+          :listen [:action (fn [e] (synth-controller inst))]))
 
 (defn- inst-param-menu
   [inst]
@@ -158,9 +159,10 @@
 
 (defn- inst-panel
   [inst]
-  (grid-panel :columns 1
-              :items [(inst-button inst)
-                      (inst-param-menu inst)]))
+  (mig-panel :constraints ["wrap 1"
+                           "grow"]
+             :items [[(inst-button inst)     "growx, wrap"]
+                     [(inst-param-menu inst) "growx"]]))
 
 (defn step-sequencer
   [metro steps instruments & [init-vals]]
