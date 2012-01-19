@@ -19,6 +19,7 @@
                   (let [i-vals (or (get init-vals (:name i))
                                    (vec (repeat steps false)))]
                     {:inst  i
+                     :param (-> i :params first :name)
                      :value i-vals})))
    })
 
