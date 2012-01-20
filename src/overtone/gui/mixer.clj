@@ -2,6 +2,7 @@
   (:use [seesaw core border]
         overtone.studio.mixer
         overtone.gui.dial
+        overtone.gui.adjustment-popup
         [overtone.libs event])
   (:require [seesaw.bind :as bind]))
 
@@ -14,10 +15,10 @@
 
 (defn- mixing-channel
   [ins]
-  (let [v-slider (slider :value (* @(:volume ins) 100.0) :min 0 :max 100
+  (let [volume-slider (slider :value (* @(:volume ins) 100.0) :min 0 :max 100
                     :orientation :vertical)
-        vsp (border-panel :center v-slider)
-        p-slider (dial :size [45 :by 45] :min -100 :max 100 :value (* @(:pan ins)))
+        vsp (border-panel :center volume-slider)
+        pan-dial (dial :size [45 :by 45] :min -100 :max 100 :value (* @(:pan ins)))
         mute-state (atom false)
         mute-toggle #(if @mute-state
                        (do
@@ -30,14 +31,16 @@
                                (button :text "M"
                                        :listen [:action mute-toggle]))
         solo-btn (border-panel :center (button :text "S"))]
-    (bind/bind v-slider
+    (adjustment-popup-for volume-slider "Volume:")
+    (adjustment-popup-for pan-dial "Pan:")
+    (bind/bind volume-slider
                (bind/transform (fn [v] (/ v 100.0)))
                (bind/b-do [v] (inst-volume ins v)))
-    (bind/bind p-slider
+    (bind/bind pan-dial
                (bind/transform (fn [p] (/ p 100.0)))
                (bind/b-do [p] (inst-pan ins p)))
     (vertical-panel :size [CHAN-WIDTH :by CHAN-HEIGHT] :border (to-border (inst-name ins))
-                    :items [vsp p-slider mute-btn solo-btn])))
+                    :items [vsp pan-dial mute-btn solo-btn])))
 
 (defn mixing-console
   ([] (mixing-console (vals @instruments*)))
