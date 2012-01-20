@@ -4,8 +4,7 @@
         [overtone.gui.control :only [synth-controller]]
         [seesaw core]
         [seesaw.color :only [color]]
-        [seesaw.graphics :only [style draw rounded-rect line]]
-        [seesaw.swingx :only [hyperlink]]
+        [seesaw.graphics :only [style update-style draw rounded-rect line]]
         [seesaw.mig :only [mig-panel]])
   (:require [seesaw.bind :as bind]))
 
@@ -41,6 +40,13 @@
     (update-in state [:rows row :value col] merge NEW_ENTRY v)
     state))
 
+(defn- mute-entry [state row col]
+  (update-in state [:rows row :value col]
+             (fn [v]
+               (if (associative? v)
+                 (assoc-in v [:on] false)
+                 v))))
+
 (defn- toggle-entry [state row col]
   (update-in state [:rows row :value col]
              (fn [v]
@@ -51,9 +57,13 @@
 (defn- delete-entry [state row col]
   (set-entry state row col false))
 
+(defn- get-row-param
+  [state row]
+  (get-in state [:rows row :param]))
+
 (defn- get-param-info
   [state row]
-  (let [p-name (get-in state [:rows row :param])]
+  (let [p-name (get-row-param state row)]
     (first (filter #(= (:name %) p-name)
                  (get-in state [:rows row :inst :params])))))
 
@@ -109,6 +119,19 @@
     :background (color 128 128 224 200)
     :foreground (color 0 150 0)))
 
+(defn- scaled-entry-style
+  [n]
+  (let [g (int (+ (* n 200) 55))
+        bg (color 0 g 0 200)]
+    (update-style enabled-entry-style :background bg)))
+
+(defn- get-param-factor
+  [p-info val]
+  (let [{:keys [max min name default]} p-info
+        p-val (or ((keyword name) val)
+                  default)]
+    (double (/ (- p-val min) (- max min)))))
+
 (defn- paint-grid [state ^javax.swing.JComponent c g]
   (let [w    (width c)
         h    (height c)
@@ -121,7 +144,8 @@
       (let [x (* step dx)]
         (draw g (rounded-rect x 0 dx h) current-step-style)))
     (dotimes [r rows]
-      (let [y (* r dy)]
+      (let [y (* r dy)
+            p (get-param-info state r)]
         (draw g (line 0 y w y) grid-line-style)
         (dotimes [c cols]
           (let [x (* c dx)]
@@ -132,7 +156,8 @@
                            (rounded-rect (+ x 2) (+ y 2) (- dx 3) (- dy 3) 3 3)
                            %)]
                 (if (:on val)
-                  (paint-cell enabled-entry-style)
+                  (let [p-fact (get-param-factor p val)]
+                    (paint-cell (scaled-entry-style p-fact)))
                   (paint-cell muted-entry-style))))))))))
 
 (defn- scaled-param-map
@@ -177,12 +202,10 @@
 
 (defn- on-grid-drag [state e]
   (let [{:keys [row col r-size c-size y-val param]} (parse-grid-click state e)]
-    (if (.isControlDown e)
-      (delete-entry state row col)
-      (let [on (not (.isShiftDown e))]
-        (if (.isAltDown e)
-          (update-entry state row col {:on on (keyword (:name param)) y-val})
-          (update-entry state row col {:on on}))))))
+    (cond (.isControlDown e) (delete-entry state row col)
+          (.isShiftDown e)   (mute-entry state row col)
+          (.isAltDown e)     (update-entry state row col param)
+          :else              (update-entry state row col {}))))
 
 (defn- inst->index
   [rows inst]
