@@ -123,7 +123,7 @@
 (definst soft-hat
   [freq   {:default 6000 :min 3000 :max 12000 :step 1}
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
-   attack {:default 0.0001 :min 0.1 :max 1.0 :step 0.01}
+   attack {:default 0.0001 :min 0.0001 :max 1.0 :step 0.01}
    decay  {:default 0.1 :min 0.1 :max 1.0 :step 0.01}]
   (let [env (env-gen (perc attack decay) :action FREE)
         noiz (bpf (* amp (gray-noise)) freq 0.3)
