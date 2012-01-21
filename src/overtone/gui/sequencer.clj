@@ -8,7 +8,8 @@
         [seesaw.mig :only [mig-panel]])
   (:require [seesaw.bind :as bind]))
 
-(defn- make-initial-state [metro steps instruments init-vals]
+(defn- make-initial-state
+  [metro steps instruments init-vals]
   {:playing?  false
    :metronome metro
    :steps     steps
@@ -24,37 +25,44 @@
 
 (def ^{:private true} NEW_ENTRY {:on true})
 
-(defn- toggle-playing [state]
+(defn- toggle-playing
+  [state]
   (update-in state [:playing?] not))
 
-(defn- get-entry [state row col]
+(defn- get-entry
+  [state row col]
   (get-in state [:rows row :value col]))
 
-(defn- set-entry [state row col v]
+(defn- set-entry
+  [state row col v]
   (if (< row (count (:rows state)))
     (assoc-in state [:rows row :value col] v)
     state))
 
-(defn- update-entry [state row col v]
+(defn- update-entry
+  [state row col v]
   (if (< row (count (:rows state)))
     (update-in state [:rows row :value col] merge NEW_ENTRY v)
     state))
 
-(defn- mute-entry [state row col]
+(defn- mute-entry
+  [state row col]
   (update-in state [:rows row :value col]
              (fn [v]
                (if (associative? v)
                  (assoc-in v [:on] false)
                  v))))
 
-(defn- toggle-entry [state row col]
+(defn- toggle-entry
+  [state row col]
   (update-in state [:rows row :value col]
              (fn [v]
                (if (associative? v)
                  (update-in v [:on] not)
                  NEW_ENTRY))))
 
-(defn- delete-entry [state row col]
+(defn- delete-entry
+  [state row col]
   (set-entry state row col false))
 
 (defn- get-row-param
@@ -132,7 +140,8 @@
                   default)]
     (double (/ (- p-val min) (- max min)))))
 
-(defn- paint-grid [state ^javax.swing.JComponent c g]
+(defn- paint-grid
+  [state ^javax.swing.JComponent c g]
   (let [w    (width c)
         h    (height c)
         rows (count (:rows state))
@@ -187,7 +196,8 @@
         param  (scaled-param-map state r y-val)]
     {:row r :col c :r-size r-size :c-size c-size :y-val y-val :param param}))
 
-(defn- on-grid-clicked [state e]
+(defn- on-grid-clicked
+  [state e]
   (let [{:keys [row col param]} (parse-grid-click state e)
         new-state (cond (.isControlDown e) (delete-entry state row col)
                         (.isAltDown e)     (update-entry state row col param)
@@ -200,7 +210,8 @@
 
     new-state))
 
-(defn- on-grid-drag [state e]
+(defn- on-grid-drag
+  [state e]
   (let [{:keys [row col r-size c-size y-val param]} (parse-grid-click state e)]
     (cond (.isControlDown e) (delete-entry state row col)
           (.isShiftDown e)   (mute-entry state row col)
@@ -215,11 +226,13 @@
               index))
           rows)))
 
-(defn- on-param-selection [state inst e]
+(defn- on-param-selection
+  [state inst e]
   (let [r (inst->index (:rows state) inst)]
     (assoc-in state [:rows r :param] (selection e))))
 
-(defn- step-grid [state-atom]
+(defn- step-grid
+  [state-atom]
   (let [state @state-atom
 
         c (canvas :background :darkgrey
