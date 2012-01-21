@@ -21,6 +21,7 @@
                     {:inst  i
                      :param (-> i :params first :name)
                      :mute  false
+                     :solo  false
                      :value i-vals})))
    })
 
@@ -69,6 +70,14 @@
 (defn- toggle-row-mute
   [state row]
   (update-in state [:rows row :mute] not))
+
+(defn- toggle-row-solo
+  [state row]
+  (update-in state [:rows row :solo] not))
+
+(defn- get-row-solo
+  [state row]
+  (get-in state [:rows row :solo]))
 
 (defn- get-row-param
   [state row]
@@ -246,6 +255,11 @@
   (let [r (inst->index (:rows state) inst)]
     (toggle-row-mute state r)))
 
+(defn- on-solo-toggle
+  [state inst e]
+  (let [r (inst->index (:rows state) inst)]
+    (toggle-row-solo state r)))
+
 (defn- step-grid
   [state-atom]
   (let [state @state-atom
@@ -290,6 +304,9 @@
             :selection #(swap! state-atom on-param-selection inst %))
     (listen (select panel [:.mute])
             :selection #(swap! state-atom on-mute-toggle inst %))
+    (listen (select panel [:.solo])
+            :selection #(swap! state-atom on-solo-toggle inst %))
+
     panel))
 
 (defn step-sequencer
@@ -322,6 +339,9 @@
 
       (bind/bind bpm-spinner (bind/b-do [v] (metro :bpm v)))
       (bind/bind state-atom (bind/b-do [v] (repaint! grid)))
+
+      (swap! state-atom assoc-in [:solo-bg]
+             (button-group :buttons (select f [:.solo])))
 
       (listen play-btn :action
               (fn [e]
