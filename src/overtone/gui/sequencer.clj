@@ -20,6 +20,7 @@
                                    (vec (repeat steps false)))]
                     {:inst  i
                      :param (-> i :params first :name)
+                     :mute  false
                      :value i-vals})))
    })
 
@@ -65,9 +66,17 @@
   [state row col]
   (set-entry state row col false))
 
+(defn- toggle-row-mute
+  [state row]
+  (update-in state [:rows row :mute] not))
+
 (defn- get-row-param
   [state row]
   (get-in state [:rows row :param]))
+
+(defn- set-row-param
+  [state row val]
+  (assoc-in state [:rows row :param] val))
 
 (defn- get-param-info
   [state row]
@@ -101,7 +110,8 @@
         (swap! state-atom assoc-in [:step] index)
 
         (doseq [row (:rows state)]
-          (at (metro beat) (play-step row index)))
+          (when-not (:mute row)
+            (at (metro beat) (play-step row index))))
 
         (apply-at (metro next-beat) #'step-player
                   [state-atom next-beat])))))
@@ -229,7 +239,12 @@
 (defn- on-param-selection
   [state inst e]
   (let [r (inst->index (:rows state) inst)]
-    (assoc-in state [:rows r :param] (selection e))))
+    (set-row-param state r (selection e))))
+
+(defn- on-mute-toggle
+  [state inst e]
+  (let [r (inst->index (:rows state) inst)]
+    (toggle-row-mute state r)))
 
 (defn- step-grid
   [state-atom]
@@ -272,7 +287,9 @@
                                  [(inst-mute   inst) "growx"]
                                  [(inst-solo   inst) "growx"]])]
     (listen (select panel [:.param])
-             :selection #(swap! state-atom on-param-selection inst %))
+            :selection #(swap! state-atom on-param-selection inst %))
+    (listen (select panel [:.mute])
+            :selection #(swap! state-atom on-mute-toggle inst %))
     panel))
 
 (defn step-sequencer
