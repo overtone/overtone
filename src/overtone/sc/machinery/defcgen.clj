@@ -87,7 +87,7 @@
 (defn- mk-cgen-fn
   "Make the function which gets executed when a cgen is called."
   [params body]
-  (let [expand-flags (map #(:expands? %) params)
+  (let [expand-flags (map #(or (:expands? %) false) params)
         param-names  (vec (map :name params))
         defaults     (reduce (fn [s el] (assoc s (:name el) (:default el)))
                              {}
@@ -98,13 +98,16 @@
                                (conj final (get sym-gensyms (symbol (name param))) `(get (arg-mapper ~arg-sym ~param-names ~defaults) ~param)))
                              []
                              param-names)
-        body         (walk/prewalk-replace sym-gensyms body )]
-    `(make-expanding
-      (fn [& ~arg-sym]
-        (let [~@bindings]
-          (with-overloaded-ugens
-            ~body)))
-      (quote ~expand-flags))))
+        body         (walk/prewalk-replace sym-gensyms body )
+        cgen-fn      `(fn [& ~arg-sym]
+                        (let [~@bindings]
+                          (with-overloaded-ugens
+                            ~body)))]
+
+    (if (or (empty? params)
+            (not-any? true? expand-flags))
+      cgen-fn
+      `(make-expanding ~cgen-fn (quote ~expand-flags)))))
 
 (defn generate-full-cgen-doc
   "Generate a full docstring from a the specified cgen information"
