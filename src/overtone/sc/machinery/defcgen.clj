@@ -88,17 +88,17 @@
   "Make the function which gets executed when a cgen is called."
   [params body]
   (let [expand-flags (map #(:expands? %) params)
-        param-names (vec (map :name params))
-        defaults    (reduce (fn [s el] (assoc s (:name el) (:default el)))
-                            {}
-                            params)
-        arg-sym     (gensym 'arg-sym)
-        sym-gensyms (syms->sym-gensym-pairs param-names)
-        bindings    (reduce (fn [final param]
-                              (conj final (get sym-gensyms (symbol (name param))) `(get (arg-mapper ~arg-sym ~param-names ~defaults) ~param)))
-                            []
-                            param-names)
-        body        (walk/prewalk-replace sym-gensyms body )]
+        param-names  (vec (map :name params))
+        defaults     (reduce (fn [s el] (assoc s (:name el) (:default el)))
+                             {}
+                             params)
+        arg-sym      (gensym 'arg-sym)
+        sym-gensyms  (syms->sym-gensym-pairs param-names)
+        bindings     (reduce (fn [final param]
+                               (conj final (get sym-gensyms (symbol (name param))) `(get (arg-mapper ~arg-sym ~param-names ~defaults) ~param)))
+                             []
+                             param-names)
+        body         (walk/prewalk-replace sym-gensyms body )]
     `(make-expanding
       (fn [& ~arg-sym]
         (let [~@bindings]
@@ -127,8 +127,8 @@
   params."
   ([c-name summary doc params body categories rate] (mk-cgen c-name summary doc params body categories rate #{rate}))
   ([c-name summary doc params body categories rate rates]
-     (let [full-doc    (generate-full-cgen-doc c-name summary doc categories rate params rates)
-           cgen-fn     (mk-cgen-fn params body)]
+     (let [full-doc (generate-full-cgen-doc c-name summary doc categories rate params rates)
+           cgen-fn  (mk-cgen-fn params body)]
        `(callable-map {:params ~params
                        :summary ~summary
                        :doc ~doc
