@@ -545,6 +545,14 @@
 
 (def ^{:dynamic true} *demo-time* 2000)
 
+(comment defcgen soft-mute
+  "Softly mute an input source. Free's the containing synth when done by
+  default."
+  [in   {:doc "input source." :default 0.0}
+   dur  {:doc "duration of input." :default *demo-time*}
+   done {:doc "done action" :default FREE}]
+  (:ar (* in (linen (trig 1 dur) 0 1 0.01 done))))
+
 (defmacro run
   "Run an anonymous synth definition for a fixed period of time.  Useful for
   experimentation. Does NOT add  an out ugen - see #'demo for that. You can
@@ -571,15 +579,14 @@
   (demo 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
   [& body]
   (let [[demo-time body] (if (number? (first body))
-                           [(* 1000 (first body)) (second body)]
-                           [*demo-time* (first body)])
-        b2 (if (= 'out (first body))
-             body
-             (list 'out 0 body))]
-    `(let [s# (synth "audition-synth" ~b2)
-           note# (s#)]
-       (after-delay ~demo-time #(node-free note#))
-       note#)))
+                           [(first body) (second body)]
+                           [(* 0.001 *demo-time*) (first body)])
+        [out-bus body]   (if (= 'out (first body))
+                           [(second body) (nth body 2)]
+                           [0 body])
+
+        body (list 'out out-bus (list 'hold body demo-time :done 'FREE))]
+    `((synth "audition-synth" ~body))))
 
 (defn- active-synths*
   [& [root]]
