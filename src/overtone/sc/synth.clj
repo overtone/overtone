@@ -545,14 +545,6 @@
 
 (def ^{:dynamic true} *demo-time* 2000)
 
-(comment defcgen soft-mute
-  "Softly mute an input source. Free's the containing synth when done by
-  default."
-  [in   {:doc "input source." :default 0.0}
-   dur  {:doc "duration of input." :default *demo-time*}
-   done {:doc "done action" :default FREE}]
-  (:ar (* in (linen (trig 1 dur) 0 1 0.01 done))))
-
 (defmacro run
   "Run an anonymous synth definition for a fixed period of time.  Useful for
   experimentation. Does NOT add  an out ugen - see #'demo for that. You can
