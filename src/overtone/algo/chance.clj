@@ -28,15 +28,15 @@
   3 -> 12.5%
   4 -> 7.5%
   (weighted-choose [1 2 3 4] [0.5 0.3 0.125 0.075])
-  (weighted-choose {1 0.5, 2 0.3, 3 0.125, 4 0.075"
-  ([val-prob-map] (weighted-choose (keys val-prob-map) (vals (val-prob-map))))
+  (weighted-choose {1 0.5, 2 0.3, 3 0.125, 4 0.075})"
+  ([val-prob-map] (weighted-choose (keys val-prob-map) (vals val-prob-map)))
   ([vals probabilities]
      (when-not (= (count vals) (count probabilities))
        (throw (IllegalArgumentException. (str "Size of vals and probabilities don't match. Got "
                                (count vals)
                                " and "
                                (count probabilities)))))
-     (when-not (= (reduce + probabilities) 1)
+     (when-not (= (reduce + probabilities) 1.0)
        (throw (IllegalArgumentException. (str "The sum of your probabilities is not 1.0"))))
 
      (let [paired (map vector probabilities vals)
