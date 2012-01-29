@@ -1,4 +1,3 @@
-
           _,,ddP"""Ybb,,_
         ,dP"'         `"Yb
       ,d"                 .gPPRg,
@@ -245,3 +244,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Jacob Lee
 * Jon Rose
 * Fabian Steeg
+* Michael Bernstein
