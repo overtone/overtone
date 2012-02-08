@@ -11,14 +11,15 @@
 
 (def ^{:private true} step-style
   (style
-    :background (theme-color :fill-1)
-    :stroke 0.0))
+    :background (clarify-color (theme-color :fill-1) -1)
+    :foreground (theme-color :stroke-1)
+    :stroke 1.0))
 
 (def ^{:private true} step-border-style
   (style
     :foreground (theme-color :stroke-2)
     :background (theme-color :fill-2)
-    :stroke 1.0))
+    :stroke 2.0))
 
 (def ^{:private true} background-stroke
   (style
@@ -51,7 +52,7 @@
         y             (/ h 2)
         tick-height   (/ h NUM_SLICES)
         num-steps    (:num-steps state)
-        line-padding  1.5]
+        line-padding  0]
 
     (draw g (rect 0 0 w h) background-fill)
 
