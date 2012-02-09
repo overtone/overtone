@@ -1,7 +1,8 @@
 (ns overtone.gui.surface
   (:use [seesaw.core]
         [seesaw.graphics :only [draw circle style string-shape]]
-        [seesaw.color :only [color]]))
+        [seesaw.color :only [color]]
+        [overtone.sc.node :only [ctl]]))
 
 ; TODO move to Seesaw.
 (def ^ {:private true} input-modifier-table
@@ -114,33 +115,18 @@
       :mouse-released (partial handle-release-event state t))
     [c t]))
 
+(defn- nil-param
+  []
+  (let [v (atom 0.0)]
+    {:name ""
+    :get-value (fn [] @v)
+    :set-value (fn [new-val] (reset! v new-val))
+    :min 0.0
+    :max 1.0}))
+
 (defn surface
-  [x y z]
-  (invoke-now
-    (let [[panel timer] (surface-panel x y z)
-          f (frame :title "Surface"
-                   :content panel
-                   :on-close :dispose)]
-      (listen f :window-closed (fn [_] (.stop timer)))
-      (-> f pack! show!))))
-
-(defn- synth-param [synth name]
-  (let [param (some #(if (= name (:name %)) %) (:params synth))]
-    { :name (str (:name synth) "/" name)
-      :get-value (fn []  @(:value param))
-      :set-value #(reset! (:value param) %)
-      :min (:min param)
-      :max (:max param)}))
-
-(def ^ {:private true} nil-param {:name ""
-                                  :get-value (fn [] 0)
-                                  :set-value (fn [_])
-                                  :min 0.0
-                                  :max 1.0})
-
-(defn synth-surface
-  "Create a 'surface' for controlling synth params. Takes three
-  synth/param-name pairs for x, y, and z.
+  "Create a 'surface' for controlling params. Takes three
+  params for x, y, and z.
 
   Mouse controls are as follows:
 
@@ -148,12 +134,41 @@
     y - left-drag top to bottom
     z - hold down right mouse button
 
+  See:
+    (synth-param)
   "
-  [[x-synth x-name] [y-synth y-name] [z-synth z-name]]
-  (surface
-    (if x-synth (synth-param x-synth x-name) nil-param)
-    (if y-synth (synth-param y-synth y-name) nil-param)
-    (if z-synth (synth-param z-synth z-name) nil-param)))
+  [x y z]
+  (invoke-now
+    (let [[panel timer] (surface-panel (or x (nil-param))
+                                       (or y (nil-param))
+                                       (or z (nil-param)))
+          f (frame :title "Surface"
+                   :content panel
+                   :on-close :dispose)]
+      (listen f :window-closed (fn [_] (.stop timer)))
+      (-> f pack! show!))))
+
+(defn synth-param
+  "Create a surface param for a synth or instrument.
+
+  See:
+    (surface)
+  "
+  ([synth id name]
+   (let [param (some #(if (= name (:name %)) %) (:params synth))
+         value (atom (:min param))]
+     {  :name (str (:name synth) "/" id "/" name)
+        :get-value (fn []  @value)
+        :set-value #(ctl id name (reset! value %))
+        :min (:min param)
+        :max (:max param)}))
+  ([synth name]
+   (let [param (some #(if (= name (:name %)) %) (:params synth))]
+     { :name (str (:name synth) "/" name)
+      :get-value (fn []  @(:value param))
+      :set-value #(reset! (:value param) %)
+      :min (:min param)
+      :max (:max param)})))
 
 (comment
   (do
@@ -163,5 +178,19 @@
     (use 'overtone.inst.drum)
     (def m (metronome 128))
     (step-sequencer m 11 [kick closed-hat snare])
-    (synth-surface [snare "freq"] [kick "freq"] [snare "sustain"])))
+    (surface (synth-param snare "freq")
+             (synth-param kick "freq")
+             (synth-param snare "sustain")))
+
+  (do
+    (use 'overtone.live)
+    (use 'overtone.gui.surface)
+    (defsynth harmony [freq1 {:default 440 :min 40 :max 1800 :step 1}
+                       freq2 {:default 880 :min 40 :max 1800 :step 1}
+                       amp    {:default 0.1 :min 0.1 :max 1 :step 0.01} ]
+      (out 0 (* amp (sin-osc [freq1 freq2]))))
+    (def h (harmony))
+    (surface (synth-param harmony h "freq1")
+             (synth-param harmony h "freq2")
+             (synth-param harmony h "amp") )))
 

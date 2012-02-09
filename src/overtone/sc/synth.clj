@@ -571,15 +571,14 @@
   (demo 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
   [& body]
   (let [[demo-time body] (if (number? (first body))
-                           [(* 1000 (first body)) (second body)]
-                           [*demo-time* (first body)])
-        b2 (if (= 'out (first body))
-             body
-             (list 'out 0 body))]
-    `(let [s# (synth "audition-synth" ~b2)
-           note# (s#)]
-       (after-delay ~demo-time #(node-free note#))
-       note#)))
+                           [(first body) (second body)]
+                           [(* 0.001 *demo-time*) (first body)])
+        [out-bus body]   (if (= 'out (first body))
+                           [(second body) (nth body 2)]
+                           [0 body])
+
+        body (list 'out out-bus (list 'hold body demo-time :done 'FREE))]
+    `((synth "audition-synth" ~body))))
 
 (defn- active-synths*
   [& [root]]
