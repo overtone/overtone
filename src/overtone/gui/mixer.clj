@@ -1,8 +1,7 @@
 (ns overtone.gui.mixer
   (:use [seesaw core border]
         overtone.studio.mixer
-        overtone.gui.dial
-        overtone.gui.adjustment-popup
+        [overtone.gui dock dial adjustment-popup]
         [overtone.libs event])
   (:require [seesaw.bind :as bind]))
 
@@ -39,17 +38,17 @@
     (bind/bind pan-dial
                (bind/transform (fn [p] (/ p 100.0)))
                (bind/b-do [p] (inst-pan ins p)))
-    (vertical-panel :size [CHAN-WIDTH :by CHAN-HEIGHT] :border (to-border (inst-name ins))
-                    :items [vsp pan-dial mute-btn solo-btn])))
+      (vertical-panel :size [CHAN-WIDTH :by CHAN-HEIGHT] :border (to-border (inst-name ins))
+                      :items [vsp pan-dial mute-btn solo-btn])))
 
 (defn mixing-console
   ([] (mixing-console (vals @instruments*)))
   ([insts]
    (invoke-now
-     (let [f (-> (frame :title "Mixer"
-                        :on-close :dispose
-                        :content (horizontal-panel :id :mix-panel
-                                                   :items (map mixing-channel insts)))
+     (let [channels (map mixing-channel insts)
+           f        (-> (frame :title "Mixer"
+                               :on-close :dispose
+                               :content (split-dock :items channels))
                pack!
                show!)]
        (on-event :new-inst
@@ -63,3 +62,8 @@
                    :inst-added)
                  f))))
 
+(comment
+ (use :reload 'overtone.gui.mixer)
+ (mixing-console)
+
+  )

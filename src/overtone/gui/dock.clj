@@ -30,11 +30,20 @@
   [w]
   (.setRootWindow dock-controller (to-root w)))
 
-(comment defn screen-dock
-  []
-  (let [station (ScreenDockStation.)]
-    (.add dock-controller station)
-    station))
+(defn dockable
+  [component]
+  (let [dock (DefaultDockable.)]
+    (.add dock component)
+    dock))
+
+(defn to-dockable
+  [component]
+  (if (isa? (class component) Dockable)
+    component
+    (dockable component)))
+
+; Question: How can we integrate seesaw compatible :id and :class metadata
+; for these widgets?
 
 (defn flap-dock
   []
@@ -43,13 +52,11 @@
     station))
 
 (defn split-dock
-  []
+  [& {:keys [items]
+      :or {}}]
   (let [station (SplitDockStation.)]
     (.add dock-controller station)
+    (doseq [item items]
+      (.drop station (to-dockable item)))
     station))
 
-(defn dockable
-  [component]
-  (let [dock (DefaultDockable.)]
-    (.add dock component)
-    dock))
