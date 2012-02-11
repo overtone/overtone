@@ -4,8 +4,7 @@
          [make-widget :only [MakeWidget]]
          [to-widget :only [ToWidget]]
          [value :only [Value]]])
-  (:import javax.swing.JWindow
-           java.awt.MouseInfo))
+  (:import java.awt.MouseInfo))
 
 (defrecord Toolbox [tools primary secondary])
 
