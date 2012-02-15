@@ -22,8 +22,26 @@
 
 ;; 12-tone equal temperament --> Western music
 ;; ratio = (Math/pow 2 (/ 1 12)) => 1.0594630943592953
+;; (perform '((:edo 100 440) 73 76 79)
+;; (perform '(:midi 60 69 81)
 
 ;; 24-tone equal temperament --> Arabic music
 ;; ratio = (Math/pow 2 (/ 1 24)) => 1.029302236643492
+;; (perform '((:arabic 100 440) 73 76 79)
 
+(defmulti perfn first)
 
+(defmethod perfn :ed [[symb divisions multiplier initial freq]]
+    (fn [note]
+        (* freq (Math/pow multiplier (/ (- note initial) divisions)))))
+
+(defmethod perfn :edo [[symb divisions initial freq]]
+    (perfn (list :ed divisions 2 initial freq)))
+
+(defmethod perfn :midi [[symb]]
+    (perfn (list :edo 12 69 440)))
+
+(defmethod perfn :arabic [[symb initial freq]]
+    (perfn (list :edo 12 initial freq)))
+
+(defn perform [[opts & notes]] (map (perfn (flatten (list opts))) notes))
