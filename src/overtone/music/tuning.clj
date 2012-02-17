@@ -2,7 +2,8 @@
   ^{:doc "Functions that define tuning systems from various musical traditions and theories."
      :author "Jeff Rose"}
   overtone.music.tuning
-  (:use [overtone.music pitch]))
+  (:use [overtone.music pitch]
+        [clojure.math.numeric-tower]))
 
 ;; TODO: Not only should we pre-compute the frequency values for standard tunings,
 ;; but it would be cool to let people explore different tunings while creating
@@ -42,6 +43,35 @@
     (perfn (list :edo 12 69 440)))
 
 (defmethod perfn :arabic [[symb initial freq]]
-    (perfn (list :edo 12 initial freq)))
+    (perfn (list :edo 24 initial freq)))
+
+(def qcmeantone-list
+    (let [x (expt 5 1/4)]
+        '(1
+         (* 8/25 (sqrt 5) x)
+         (* 1/2 (sqrt 5))
+         (* 4/5 x)
+         5/4
+         (* 2/5 (sqrt 5) x)
+         (* 5/8 (sqrt 5)) ; Could also use (* 16/25 (sqrt 5))
+         x
+         8/5
+         (* 1/2 (sqrt 5) x)
+         (* 4/5 (sqrt 5))
+         (* 5/4 x))))
+
+(def qcmeantone
+    (let [x (expt 5 1/4)]
+        (sort
+            (map #(if (< % 1) (* 2 %) %) ; Dear DAemon. What the hell. Love DAemon.
+                 (for [expnt (range -5 7)]
+                     (* (expt x expnt)
+                        (expt 2 (ceil (* expnt -0.5)))))))))
+
+(defmethod perfn :qcmeantone [[symb initial freq]]
+    (fn [note]
+        (let [pos (mod (- note initial) 12)
+             octave (quot (- note initial 11) 12)] ; There's a hack in here, but it makes my tests pass. More thought is needed.
+            (* freq (nth qcmeantone pos) (expt 2 octave)))))
 
 (defn perform [[opts & notes]] (map (perfn (flatten (list opts))) notes))
