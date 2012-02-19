@@ -45,43 +45,21 @@
 (defmethod perfn :arabic [[symb initial freq]]
     (perfn (list :edo 24 initial freq)))
 
-(def qcmeantone-list
-    (let [x (expt 5 1/4)]
-        '(1
-         (* 8/25 (sqrt 5) x)
-         (* 1/2 (sqrt 5))
-         (* 4/5 x)
-         5/4
-         (* 2/5 (sqrt 5) x)
-         (* 5/8 (sqrt 5)) ; Could also use (* 16/25 (sqrt 5))
-         x
-         8/5
-         (* 1/2 (sqrt 5) x)
-         (* 4/5 (sqrt 5))
-         (* 5/4 x))))
 
-(def qcmeantone-hack
-    (let [x (expt 5 1/4)]
-        (sort
-            (map #(if (< % 1) (* 2 %) %) ; Dear DAemon. What the hell. Love DAemon.
-                 (for [expnt (range -5 7)]
-                     (* (expt x expnt)
-                        (expt 2 (ceil (* expnt -0.5)))))))))
-
-(defn collapse-to-ntave [number ntave]
+(defn- collapse-to-ntave [number ntave]
     (condp > number
              1 (recur (* number ntave) ntave)
              ntave number
              (recur (/ number ntave) ntave)))
 
-(defn notesetfromgenerator [generator initpower finpower ntave]
+(defn- note-set-from-generator [generator initpower finpower ntave]
     (let [tempset (for [exponent (range initpower finpower)] (expt generator exponent))]
         (sort (map #(collapse-to-ntave % ntave) tempset))))
 
 (def qcmeantone
-    (notesetfromgenerator (expt 5 1/4) -5 7 2))
+    (note-set-from-generator (expt 5 1/4) -5 7 2))
 
-(defn perfmap [note initial freq notemap]
+(defn- perfmap [note initial freq notemap]
     (let [pos (mod (- note initial) (count notemap))
           octave (quot (- note initial (- (count notemap) 1 )) (count notemap))]
         (* freq (nth notemap pos) (expt (ceil (reduce max notemap)) octave))))
