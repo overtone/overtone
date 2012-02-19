@@ -13,7 +13,6 @@
           `""YbbgggddP""'         Y88P    "Y8888  888      "Y888 "Y88P"  888  888  "Y8888
 
 
-
 # Programmable Music.
 
 ## Live-coding & musical exploration
@@ -245,3 +244,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 * Jacob Lee
 * Jon Rose
 * Fabian Steeg
+* Michael Bernstein

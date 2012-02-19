@@ -104,7 +104,9 @@
          ([k d] (get m k d)))
        (invoke      [& args] (apply fun args))
        (applyTo    ([args] (apply fun args)))
-       (toString   [] "Callable Map")
+       (toString   [] (if-let [ts (::to-string metadata)]
+                        (ts this)
+                        "Callable Map"))
        (withMeta   [new-metadata] (callable-map m fun new-metadata))
        (meta       [] metadata))))
 

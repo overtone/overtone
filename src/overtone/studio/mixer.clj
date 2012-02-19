@@ -164,7 +164,8 @@
                               :fx-chain    []
                               :player      player#
                               :args        arg-names#}
-                             player#)]
+                             player#
+                             {:overtone.util.lib/to-string #(str (name (:type %)) ":" (:name %))})]
 
      (load-synthdef sdef#)
      (add-instrument inst#)

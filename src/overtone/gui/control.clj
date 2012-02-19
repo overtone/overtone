@@ -1,9 +1,9 @@
 (ns overtone.gui.control
-  (:use [overtone.gui dial]
-        [seesaw core mig])
+  (:use [overtone.gui dial spinner-label]
+        [seesaw core mig]
+        [seesaw.border :only [line-border]])
   (:require [seesaw.bind :as bind]))
 
-(native!)
 
 (defn scale-val [[from-min from-max] [to-min to-max] v]
   (let [from-min (double from-min)
@@ -23,8 +23,11 @@
                                    :from (double min-val) 
                                    :to (double max-val) 
                                    :by (double step))
-        spinner     (spinner :class :synth-control-spinner
-                             :model spin-model)
+        spinner     (spinner-label
+                      :class :synth-control-spinner
+                      :halign :center
+                      :border (line-border :thickness 1 :color :darkgrey)
+                      :model spin-model)
         slider-max  (int (/ (- max-val min-val) step))
         scaled-init (scale-val [min-val max-val] [0 slider-max] init-val)
         slider      (slider :class :synth-control-slider
@@ -102,9 +105,9 @@
     (let [panels  (map synth-controller-panel synths)
           cleanup (apply juxt (map :cleanup panels))
           frame (frame :title "Synth Controllers"
-                       :content (vertical-panel 
+                       :content (scrollable (vertical-panel 
                                   :border 5
-                                  :items (map :panel panels))
+                                  :items (map :panel panels)))
                        :on-close :dispose)]
       ; When the window is closed, unhook everything from the synth
       ; so the ui can be garbage collected, etc.

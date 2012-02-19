@@ -59,3 +59,15 @@
 
 (defn error [& msg]
   (.log LOGGER Level/SEVERE (apply str msg)))
+
+(defmacro with-error-log
+  "Wrap body with a try/catch form, and log exceptions (using warning)."
+  [message & body]
+  `(try
+     ~@body
+     (catch Exception ex#
+       (println "Exception: " ex#)
+       (warning (str ~message "\nException: " ex#
+                     (with-out-str (clojure.stacktrace/print-stack-trace ex#)))))))
+
+
