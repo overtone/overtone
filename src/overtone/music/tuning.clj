@@ -60,7 +60,7 @@
          (* 4/5 (sqrt 5))
          (* 5/4 x))))
 
-(def qcmeantone
+(def qcmeantone-hack
     (let [x (expt 5 1/4)]
         (sort
             (map #(if (< % 1) (* 2 %) %) ; Dear DAemon. What the hell. Love DAemon.
@@ -68,10 +68,28 @@
                      (* (expt x expnt)
                         (expt 2 (ceil (* expnt -0.5)))))))))
 
+(defn collapse-to-ntave [number ntave]
+    (condp > number
+             1 (recur (* number ntave) ntave)
+             ntave number
+             (recur (/ number ntave) ntave)))
+
+(defn notesetfromgenerator [generator initpower finpower ntave]
+    (let [tempset (for [exponent (range initpower finpower)] (expt generator exponent))]
+        (sort (map #(collapse-to-ntave % ntave) tempset))))
+
+(def qcmeantone
+    (notesetfromgenerator (expt 5 1/4) -5 7 2))
+
+(defn perfmap [note initial freq notemap]
+    (let [pos (mod (- note initial) (count notemap))
+          octave (quot (- note initial (- (count notemap) 1 )) (count notemap))]
+        (* freq (nth notemap pos) (expt (ceil (reduce max notemap)) octave))))
+
 (defmethod perfn :qcmeantone [[symb initial freq]]
     (fn [note]
-        (let [pos (mod (- note initial) 12)
-             octave (quot (- note initial 11) 12)] ; There's a hack in here, but it makes my tests pass. More thought is needed.
-            (* freq (nth qcmeantone pos) (expt 2 octave)))))
+        (perfmap note initial freq qcmeantone)))
+
+
 
 (defn perform [[opts & notes]] (map (perfn (flatten (list opts))) notes))
