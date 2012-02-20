@@ -2,7 +2,7 @@
   ^{:doc "Functions that define tuning systems from various musical traditions and theories."
      :author "Jeff Rose"}
   overtone.music.tuning
-  (:use [overtone.music pitch]
+  (:use [overtone.music.pitch]
         [clojure.math.numeric-tower]))
 
 ;; TODO: Not only should we pre-compute the frequency values for standard tunings,
