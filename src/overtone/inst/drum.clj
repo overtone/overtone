@@ -278,7 +278,8 @@
                              (* (sin-osc (* freq 0.85))
                                 (/ timbre 1.3))))
         mix (* mode-level (+ s1 s2 s3))
-        stick (* 0.2 (env-gen (perc 0.001 0.01))
+        stick (* 0.2
+                 (env-gen (perc 0.001 0.01))
                  (crackle 2.01))
         mix2 (* amp (+ mix stick))]
     (out 0 (pan2 mix2))))

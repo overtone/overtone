@@ -70,9 +70,6 @@
           [greatest-count seqs] (reduce gc-seqs [1 [] expand-flags] args)]
       (take greatest-count (parallel-seqs seqs)))))
 
-(def ^{:dynamic true} *ugens* nil)
-(def ^{:dynamic true} *constants* nil)
-
 (defn mk-scugen
   "Create a SCUGen with the specified spec, rate, special and args"
   [spec rate special args]
@@ -87,11 +84,6 @@
             args
             (or (:num-outs spec) 1))
         ug (if (contains? spec :init) ((:init spec) ug) ug)]
-    (when (and *ugens* *constants*)
-      (set! *ugens* (conj *ugens* ug))
-      (doseq [const (filter number? (:args ug))]
-        (set! *constants* (conj *constants* const))))
-
     (if (> (:n-outputs ug) 1)
       (map-indexed (fn [idx _] (output-proxy ug idx)) (range (:n-outputs ug)))
       ug)))

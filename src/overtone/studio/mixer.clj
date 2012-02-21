@@ -44,7 +44,7 @@
     (wait-until-mixer-booted)))
 
 (defonce __MIXER-SYNTH__
-  (defsynth inst-mixer [in-bus 10 out-bus 0 mix -1
+  (defsynth inst-mixer [in-bus 10 out-bus 0
                         volume DEFAULT-VOLUME pan DEFAULT-PAN]
     (let [snd (in in-bus)]
       (out out-bus (pan2 snd pan volume)))))
@@ -114,19 +114,20 @@
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
-       (binding [*ugens* []
-                 *constants* #{}]
          (with-overloaded-ugens
            (let [form# ~@ugen-form
-                 n-chans# (count form#)
-                 inst-bus# (or (:bus (get @instruments* ~sname)) (audio-bus n-chans#))]
-             (out inst-bus# form#)
+                 n-chans# (if (seq? form#)
+                            (count form#)
+                            1)
+                 inst-bus# (or (:bus (get @instruments* ~sname)) (audio-bus n-chans#))
+                 [ugens# constants#] (gather-ugens-and-constants (out inst-bus# form#))
+                 ugens# (topological-sort-ugens ugens#)]
              [~sname
               ~params
-              *ugens*
-              (into [] *constants*)
+              ugens#
+              constants#
               n-chans#
-              inst-bus#]))))))
+              inst-bus#])))))
 
 (defmacro inst
   [sname & args]

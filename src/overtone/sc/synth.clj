@@ -13,10 +13,8 @@
         [overtone.sc server node]
         [overtone.helpers seq])
   (:require [overtone.at-at :as at-at]
-            [overtone.util.log :as log]))
-
-;;TODO replace occruences of indexed with clojure.core/keep-indexed or
-;;     map-indexed where possible
+            [overtone.util.log :as log]
+            [clojure.set :as set]))
 
 ;; ### Synth
 ;;
@@ -27,13 +25,12 @@
 
 
 (defn- ugen-index [ugens ugen]
-  (first (first (filter (fn [[i v]]
-                          (= (:id v) (:id ugen)))
-                        (indexed ugens)))))
+  (ffirst (filter (fn [[i v]]
+                    (= (:id v) (:id ugen)))
+                  (indexed ugens))))
 
-; TODO: Ugh...  There must be a nicer way to do this.  I need to get the group
-; number (source) and param index within the group (index) from a grouped
-; parameter structure like this (2x2 in this example):
+; Gets the group number (source) and param index within the group (index)
+; from the params that are grouped by rate like this:
 ;
 ;[[{:name :freq :default 440.0 :rate  1} {:name :amp :default 0.4 :rate  1}]
 ; [{:name :adfs :default 20.23 :rate  2} {:name :bar :default 8.6 :rate  2}]]
@@ -292,8 +289,6 @@
                 :ugens detailed}
                {:type :overtone.sc.machinery.synthdef/synthdef})))
 
-; TODO: This should eventually handle optional rate specifiers, and possibly
-; be extended with support for defining ranges of values, etc...
 (defn- control-proxies
   "Returns a list of param name symbols and control proxies"
   [params]
@@ -379,22 +374,113 @@
         param-proxies (control-proxies params)]
     [sname params param-proxies ugen-form]))
 
-; TODO: Figure out how to generate the let-bindings rather than having them
-; hard coded here.
+(defn gather-ugens-and-constants
+  "Traverses a ugen tree and returns a vector of two sets [#{ugens} #{constants}]."
+  [root]
+  (if (seq? root)
+    (reduce
+      (fn [[ugens constants] ugen]
+        (let [[us cs] (gather-ugens-and-constants ugen)]
+          [(set/union ugens us)
+           (set/union constants cs)]))
+      [#{} #{}]
+      root)
+    (let [args (:args root)
+          cur-ugens (filter sc-ugen? args)
+          cur-ugens (filter (comp not control-proxy?) cur-ugens)
+          cur-ugens (map #(if (output-proxy? %)
+                            (:ugen %)
+                            %) cur-ugens)
+          cur-consts (filter number? args)
+          [child-ugens child-consts] (gather-ugens-and-constants cur-ugens)
+          ugens (conj (set child-ugens) root)
+          constants (set/union (set cur-consts) child-consts)]
+      [ugens (vec constants)])))
+
+(defn- ugen-children
+  "Returns the children (arguments) of this ugen that are themselves upstream ugens."
+  [ug]
+  (mapcat
+    #(cond
+       (seq? %) %
+       (output-proxy? %) [(:ugen %)]
+       :default [%])
+    (filter
+      (fn [arg]
+        (and (not (control-proxy? arg))
+             (or (sc-ugen? arg)
+                 (and (seq? arg)
+                      (every? sc-ugen? arg)))))
+      (:args ug))))
+
+(defn topological-sort-ugens
+  "Sort into a vector where each node in the directed graph of ugens will always
+  be preceded by its upstream dependencies."
+  [ugens]
+  (loop [ugens ugens
+         ; start with leaf nodes that don't have any dependencies
+         leaves (set (filter (fn [ugen]
+                          (every?
+                            #(or (not (sc-ugen? %))
+                                 (control-proxy? %))
+                            (:args ugen)))
+                        ugens))
+         sorted-ugens []
+         rec-count 0]
+    ;(println "\n------------\nugens: " ugens)
+    ;(println "leaves: " leaves)
+    ;(println "sorted-ugens: " sorted-ugens)
+
+    ; bail out after 1000 iterations, either a bug in this code, or a bad synth graph
+    (when (= 1000 rec-count)
+      (throw (Exception. "Invalid ugen tree passed to topological-sort-ugens, maybe you have cycles in the synthdef...")))
+
+    (if (empty? leaves)
+      sorted-ugens
+      (let [last-ugen (last sorted-ugens)
+            ; try to always place the downstream ugen from the last-ugen if all other
+            ; deps are satisfied, which keeps internal buffers in cache as long as possible
+            next-ugen (first (filter #((set (ugen-children %)) last-ugen) leaves))
+            [next-ugen leaves] (if next-ugen
+                                 [next-ugen (disj leaves next-ugen)]
+                                 [(first leaves) (next leaves)])
+            ;_ (println "next-ugen: " next-ugen)
+            sorted-ugens (conj sorted-ugens next-ugen)
+            sorted-ugen-set (set sorted-ugens)
+            ugens (set/difference ugens sorted-ugen-set leaves)
+            leaves (set
+                     (reduce
+                       (fn [rleaves ug]
+                         (let [children (ugen-children ug)]
+                           ;(println ug ": " children)
+                           (if (set/subset? children sorted-ugen-set)
+                             (conj rleaves ug)
+                             rleaves)))
+                       leaves
+                       ugens))]
+        (recur ugens leaves sorted-ugens (inc rec-count))))))
+
+(comment
+  ; Some test synths, while shaking out the bugs...
+(defsynth foo [] (out 0 (rlpf (saw [220 663]) (x-line:kr 20000 2 1 FREE))))
+(defsynth bar [freq 220] (out 0 (rlpf (saw [freq (* 3.013 freq)]) (x-line:kr 20000 2 1 FREE))))
+(definst faz [] (rlpf (saw [220 663]) (x-line:kr 20000 2 1 FREE)))
+(definst baz [freq 220] (rlpf (saw [freq (* 3.013 freq)]) (x-line:kr 20000 2 1 FREE)))
+(run 1 (out 184 (saw (x-line:kr 10000 10 1 FREE))))
+)
+
 (defmacro pre-synth
   "Resolve a synth def to a list of its name, params, ugens (nested if necessary) and
    constants. Sets the lexical bindings of the param names to control proxies within
    the synth definition"
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
-    `(let [~@param-proxies]
-       (binding [*ugens* []
-                 *constants* #{}]
-         (with-overloaded-ugens
-           (do
-             ~@ugen-form)
-           [~sname ~params *ugens* (into [] *constants*)])))))
-
+    `(let [~@param-proxies
+           [ugens# constants#] (gather-ugens-and-constants (with-overloaded-ugens ~@ugen-form))
+       ;    _# (println "ugens: " ugens#)
+           ugens# (topological-sort-ugens ugens#)]
+       ;(println "\nsorted-ugens: " ugens#)
+       [~sname ~params ugens# constants#])))
 
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen functions
