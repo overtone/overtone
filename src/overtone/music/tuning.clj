@@ -46,7 +46,7 @@
     (perfn (list :edo 24 initial freq)))
 
 
-(defn- collapse-to-ntave [number ntave]
+(defn collapse-to-ntave [number ntave]
     (condp > number
              1 (recur (* number ntave) ntave)
              ntave number
@@ -59,7 +59,7 @@
 (def qcmeantone
     (note-set-from-generator (expt 5 1/4) -5 7 2))
 
-(defn- perfmap [note initial freq notemap]
+(defn perfmap [note initial freq notemap]
     (let [pos (mod (- note initial) (count notemap))
           octave (quot (- note initial (- (count notemap) 1 )) (count notemap))]
         (* freq (nth notemap pos) (expt (ceil (reduce max notemap)) octave))))
@@ -67,7 +67,5 @@
 (defmethod perfn :qcmeantone [[symb initial freq]]
     (fn [note]
         (perfmap note initial freq qcmeantone)))
-
-
 
 (defn perform [[opts & notes]] (map (perfn (flatten (list opts))) notes))
