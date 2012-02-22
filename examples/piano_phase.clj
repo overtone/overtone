@@ -5,14 +5,15 @@
 (def piece [:E4 :F#4 :B4 :C#5 :D5 :F#4 :E4 :C#5 :B4 :F#4 :D5 :C#5])
 
 (defn player
-  [metro beat notes]
+  [t speed notes]
   (let [n     (first notes)
         notes (next notes)
-        b     (inc beat)]
+        t-next (+ t speed)]
     (when n
-      (at (metro beat)
+      (at t
           (sampled-piano (note n)))
-      (apply-at (metro b) #'player [metro b (next notes)]))))
+      (apply-at t-next #'player [t-next speed notes]))))
 
-(def m (metronome 140))
-(player m (m) piece)
+(do
+  (player (now) 338 (take 100 (cycle piece)))
+  (player (now) 328 (take 100 (cycle piece))))
