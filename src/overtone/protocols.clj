@@ -41,8 +41,30 @@
 
 
 (defprotocol ISynthNode
-  (trigger [this & params] "Instantiate the synth and start playing.")
-  (control [this & params] "Modify control parameters of a synth.")
-  (kill    [this] "Stop and delete a synth instance."))
+  (control        [this & params] "Modify control parameters of the synth.")
+  (control-range  [this ctl-start & ctl-vals] "Modify a range of control parameters of the synth.")
+  (free           [this] "Stop and delete the synth instance.")
+  (on-destroyed   [this fn & args] "Calls (apply fn node-id args) when the synth node is destroyed.")
+  (stop           [this] "Stop the synth instance.")
+  (run            [this] "Start a stopped synth node.")
+  (place          [this node] "Place this node in one of four ways:
 
+                              (place n :before dest-node)
+                              (place n :after  dest-node)
+                              (place n :first dest-group)
+                              (place n :last  dest-group)"))
+
+(defprotocol ISynthGroup
+  (clear     [this] "Free all synth nodes contained in this group.")
+  (node-tree [this] "Returns a data structure representing the tree of nodes rooted at this group."))
+
+(defprotocol ISynthBuffer
+  (info         [this] "Returns a map containing the properties of this buffer (e.g. size, n-channels...)")
+  (sample-array [this] [this start len] "Returns a float array with values read from this buffer.")
+  (write!       [this data] [this start-idx data] "Write float values into the buffer.")
+  (set-value!   [this idx value] "Set a single value in the buffer.")
+  (get-value    [this idx] "Get a single value in the buffer."))
+
+(defprotocol ISaveable
+  (save [this] [this path] [this path & options] "Save to a default location"))
 

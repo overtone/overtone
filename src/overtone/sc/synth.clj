@@ -310,55 +310,6 @@
       (isa? (type o) :overtone.sc.bus/audio-bus)
       (isa? (type o) :overtone.sc.bus/control-bus)))
 
-(defn synth-player
-  "Returns a player function for a named synth.  Used by (synth ...)
-  internally, but can be used to generate a player for a pre-compiled
-  synth.  The function generated will accept two optional arguments that
-  must come first, the :position and :target (see the node function docs).
-
-      (foo)
-      (foo :position :tail :target 0)
-
-  or if foo has two arguments:
-      (foo 440 0.3)
-      (foo :position :tail :target 0 440 0.3)
-  at the head of group 2:
-      (foo :position :head :target 2 440 0.3)
-
-  These can also be abbreviated:
-      (foo :tgt 2 :pos :head)
-  "
-  [sname params]
-  (let [arg-names (map keyword (map :name params))]
-    (fn [& args]
-      (let [args (if (and (= 1 (count args))
-                          (map? (first args))
-                          (not (id-able-type? (first args))))
-                   (flatten (seq (first args)))
-
-                   args)
-            [args sgroup] (if (or (= :target (first args))
-                                  (= :tgt    (first args)))
-                            [(drop 2 args) (second args)]
-                            [args @synth-group*])
-            [args pos]    (if (or (= :position (first args))
-                                  (= :pos      (first args)))
-                            [(drop 2 args) (second args)]
-                            [args :tail])
-            [args sgroup] (if (or (= :target (first args))
-                                  (= :tgt    (first args)))
-                            [(drop 2 args) (second args)]
-                            [args sgroup])
-            player        #(node sname % {:position pos :target sgroup })
-            args          (map #(if (id-able-type? %)
-                                  (:id %) %) args)
-
-            defaults (into {} (map (fn [{:keys [name value]}]
-                                       [(keyword name) @value])
-                                     params))
-            arg-map  (arg-mapper args arg-names defaults)]
-        (player arg-map)))))
-
 (defn normalize-synth-args
   "Pull out and normalize the synth name, parameters, control proxies and the ugen form
    from the supplied arglist resorting to defaults if necessary."
@@ -476,11 +427,58 @@
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies
-           [ugens# constants#] (gather-ugens-and-constants (with-overloaded-ugens ~@ugen-form))
-       ;    _# (println "ugens: " ugens#)
+           [ugens# constants#] (gather-ugens-and-constants (overtone.sc.machinery.ugen.fn-gen/with-overloaded-ugens ~@ugen-form))
            ugens# (topological-sort-ugens ugens#)]
-       ;(println "\nsorted-ugens: " ugens#)
        [~sname ~params ugens# constants#])))
+
+(defn synth-player
+  [name params this & args]
+    "Returns a player function for a named synth.  Used by (synth ...)
+    internally, but can be used to generate a player for a pre-compiled
+    synth.  The function generated will accept two optional arguments that
+    must come first, the :position and :target (see the node function docs).
+
+    (foo)
+    (foo :position :tail :target 0)
+
+    or if foo has two arguments:
+    (foo 440 0.3)
+    (foo :position :tail :target 0 440 0.3)
+    at the head of group 2:
+    (foo :position :head :target 2 440 0.3)
+
+    These can also be abbreviated:
+    (foo :tgt 2 :pos :head)
+    "
+    (let [arg-names (map keyword (map :name params))
+          args (if (and (= 1 (count args))
+                        (map? (first args))
+                        (not (id-able-type? (first args))))
+                 (flatten (seq (first args)))
+
+                 args)
+          [args sgroup] (if (or (= :target (first args))
+                                (= :tgt    (first args)))
+                          [(drop 2 args) (second args)]
+                          [args @synth-group*])
+          [args pos]    (if (or (= :position (first args))
+                                (= :pos      (first args)))
+                          [(drop 2 args) (second args)]
+                          [args :tail])
+          [args sgroup] (if (or (= :target (first args))
+                                (= :tgt    (first args)))
+                          [(drop 2 args) (second args)]
+                          [args sgroup])
+          args          (map #(if (id-able-type? %)
+                                (:id %) %) args)
+          defaults (into {} (map (fn [{:keys [name value]}]
+                                   [(keyword name) @value])
+                                 params))
+          arg-map  (arg-mapper args arg-names defaults)]
+      (node name arg-map {:position pos :target sgroup })))
+
+(defrecord-ifn Synth [name ugens sdef args params]
+  (partial synth-player name params))
 
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen functions
@@ -492,16 +490,9 @@
          sdef# (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
-         player# (synth-player sname# params-with-vals#)
-         smap# (callable-map {:name sname#
-                              :ugens ugens#
-                              :sdef sdef#
-                              :player player#
-                              :args arg-names#
-                              :params params-with-vals#
-                              :type ::synth}
-                             player#
-                             {:overtone.util.live/to-string #(str (name (:type %)) ":" (:name %))})]
+         smap# (with-meta
+                 (Synth. sname# ugens# sdef# arg-names# params-with-vals#)
+                 {:overtone.util.live/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
      smap#))
@@ -546,8 +537,7 @@
 (defn synth?
   "Returns true if s is a synth, false otherwise."
   [s]
-  (and (associative? s)
-       (= ::synth (:type s))))
+  (= overtone.sc.synth.Synth (type s)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Synthdef de-compilation

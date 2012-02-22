@@ -110,6 +110,25 @@
        (withMeta   [new-metadata] (callable-map m fun new-metadata))
        (meta       [] metadata))))
 
+(defmacro defrecord-ifn
+  "A helper macro for creating callable records with a var-args function.
+  It generates all arities of invoke, calling the function.  Besides generating
+  the clojure.lang.IFn implementation, you can declare any other implementations
+  as you would normally with defrecord."
+  [rec-name fields invoke_fn & body]
+  `(defrecord ~rec-name ~fields
+     ~@body
+     clojure.lang.IFn
+     ~@(map (fn [n]
+              (let [args (for [i (range n)] (symbol (str "arg" i)))]
+                (if (empty? args)
+                  `(~'invoke [this#]
+                           (~invoke_fn this#))
+                  `(~'invoke [this# ~@args]
+                           (~invoke_fn this# ~@args))))) (range 21))
+     (~'applyTo [this# args#]
+                (apply ~invoke_fn this# args#))))
+
 (defn- syms-to-keywords [coll]
   (map #(if (symbol? %)
           (keyword %)
