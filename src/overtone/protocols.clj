@@ -41,13 +41,13 @@
 
 
 (defprotocol ISynthNode
-  (control        [this & params] "Modify control parameters of the synth.")
+  (control        [this & params]             "Modify control parameters of the synth.")
   (control-range  [this ctl-start & ctl-vals] "Modify a range of control parameters of the synth.")
-  (free           [this] "Stop and delete the synth instance.")
-  (on-destroyed   [this fn & args] "Calls (apply fn node-id args) when the synth node is destroyed.")
-  (stop           [this] "Stop the synth instance.")
-  (run            [this] "Start a stopped synth node.")
-  (place          [this node] "Place this node in one of four ways:
+  (free           [this]                      "Stop and delete the synth instance.")
+  (on-destroyed   [this fn & args]            "Calls (apply fn node-id args) when the synth node is destroyed.")
+  (stop           [this]                      "Stop the synth instance.")
+  (run            [this]                      "Start a stopped synth node.")
+  (place          [this position dest-node]   "Place this node in one of four ways:
 
                               (place n :before dest-node)
                               (place n :after  dest-node)
