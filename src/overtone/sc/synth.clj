@@ -656,17 +656,6 @@
         body (list 'out out-bus (list 'hold body demo-time :done 'FREE))]
     `((synth "audition-synth" ~body))))
 
-(defn- active-synths*
-  [& [root]]
-  (let [root (or root (node-tree))
-        synths (if (= :synth (:type root))
-                 #{root}
-                 #{})
-        children (mapcat active-synths* (:children root))]
-    (into [] (if (empty? children)
-               synths
-               (set (concat synths children))))))
-
 (defn active-synths
   "Return a seq of the actively running synth nodes.  If a synth or inst are passed as the filter it will only return nodes of that type.
 
@@ -675,20 +664,17 @@
     (active-synths my-synth) ; => [{:type synth :name \"my-synth\" :id 24}]
   "
   [& [synth-filter]]
-  (let [active (active-synths*)]
+  (let [active-nodes (filter #(= overtone.sc.node.SynthNode (type %)) 
+                             (vals @active-synth-nodes*))]
     (if synth-filter
-      (filter #(= (:name synth-filter) (:name %)) active)
-      active)))
+      (filter #(= (:name synth-filter) (:name %)) active-nodes)
+      active-nodes)))
 
 (defmethod print-method ::synth [syn w]
   (let [info (meta syn)]
     (.write w (format "#<synth: %s>" (:name info)))))
 
-(defmethod overtone.sc.node/kill :overtone.sc.synth/synth
-  [& args]
-  (doseq [synth args]
-    (apply kill (map :id (active-synths synth)))))
-
+; TODO: pull out the default param atom stuff into a separate mechanism
 (defn modify-synth-params
   "Update synth parameter value atoms storing the current default settings."
   [s & params-vals]
@@ -704,7 +690,3 @@
   [synth]
   (doseq [param (:params synth)]
     (reset! (:value param) (:default param))))
-
-(defmethod overtone.sc.node/ctl :overtone.sc.synth/synth
-  [synth & args]
-  (apply modify-synth-params synth args))

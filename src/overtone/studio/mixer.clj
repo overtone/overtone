@@ -44,13 +44,16 @@
 
 (defn setup-studio []
   (log/info (str "Creating studio group at head of: " (root-group)))
-  (let [g (with-server-sync #(group :head (root-group)))
-        r (group :tail (root-group))]
-
+  (let [root (root-group)
+        g (with-server-sync #(group :head root))
+        r (group :tail root)
+        _ (log/info "Creating insts with groups...")
+        insts-with-groups (map-vals #(assoc % :group (group :tail g))
+                                    @instruments*)]
     (dosync
       (ref-set inst-group* g)
-      (ref-set instruments* (map-vals #(assoc % :group (group :tail g))
-                                      @instruments*)))
+      (ref-set instruments* insts-with-groups))
+    (log/info "Completed studio setup...")
     (satisfy-deps :studio-setup-completed)))
 
 (on-deps :server-ready ::setup-studio setup-studio)

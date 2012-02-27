@@ -144,16 +144,18 @@
   (let [info (meta ins)]
     (.write w (format "#<instrument: %s>" (:name info)))))
 
-(defmethod overtone.sc.node/kill :overtone.studio.mixer/instrument
-  [& args]
-  (doseq [inst args]
-    (group-clear (:instance-group inst))))
-
-(defmethod overtone.sc.node/ctl :overtone.studio.mixer/instrument
-  [inst & ctls]
-  (apply node-control (:instance-group inst) (id-mapper ctls))
-  (apply modify-synth-params inst ctls))
-
+; TODO: extract instrument features and setup defrecord and protocol implementations
+;
+;(defmethod overtone.sc.node/kill :overtone.studio.mixer/instrument
+;  [& args]
+;  (doseq [inst args]
+;    (group-clear (:instance-group inst))))
+;
+;(defmethod overtone.sc.node/ctl :overtone.studio.mixer/instrument
+;  [inst & ctls]
+;  (apply node-control (:instance-group inst) (id-mapper ctls))
+;  (apply modify-synth-params inst ctls))
+;
 (defn load-instruments []
   (doseq [synth (filter #(synthdef? %1)
                         (map #(var-get %1)

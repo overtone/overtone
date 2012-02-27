@@ -39,25 +39,6 @@
 ; * automatic instance placement
 ; * group allocation and fx/mixer setup
 
-
-(defprotocol ISynthNode
-  (control        [this & params]             "Modify control parameters of the synth.")
-  (control-range  [this ctl-start & ctl-vals] "Modify a range of control parameters of the synth.")
-  (free           [this]                      "Stop and delete the synth instance.")
-  (on-destroyed   [this fn & args]            "Calls (apply fn node-id args) when the synth node is destroyed.")
-  (stop           [this]                      "Stop the synth instance.")
-  (run            [this]                      "Start a stopped synth node.")
-  (place          [this position dest-node]   "Place this node in one of four ways:
-
-                              (place n :before dest-node)
-                              (place n :after  dest-node)
-                              (place n :first dest-group)
-                              (place n :last  dest-group)"))
-
-(defprotocol ISynthGroup
-  (clear     [this] "Free all synth nodes contained in this group.")
-  (node-tree [this] "Returns a data structure representing the tree of nodes rooted at this group."))
-
 (defprotocol ISynthBuffer
   (info         [this] "Returns a map containing the properties of this buffer (e.g. size, n-channels...)")
   (sample-array [this] [this start len] "Returns a float array with values read from this buffer.")
