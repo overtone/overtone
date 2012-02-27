@@ -103,7 +103,8 @@
            args     (flatten (seq arg-map))
            snode    (SynthNode. id target position (atom :loading))]
        (apply snd "/s_new" synth-name id position (to-synth-id target) args)
-       (swap! active-synth-nodes* assoc id snode))))
+       (swap! active-synth-nodes* assoc id snode)
+       snode)))
 
 ;; ### Synth node callbacks
 ;;
@@ -114,10 +115,9 @@
   "Free the specified nodes on the server. The allocated id is subsequently
   freed from the allocator via a callback fn listening for /n_end which will
   call node-destroyed."
-  [& nodes]
+  [node]
   {:pre [(server-connected?)]}
-  (doseq [id nodes]
-    (snd "/n_free" (to-synth-id id))))
+  (snd "/n_free" (to-synth-id node)))
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
@@ -286,6 +286,19 @@
    :node-start node-start*
    :node-place node-place*})
 
+(extend java.lang.Long
+  ISynthNode
+  {:node-free  node-free*
+   :node-pause node-pause*
+   :node-start node-start*
+   :node-place node-place*}
+
+  IControllableNode
+  {:node-control        node-control*
+   :node-control-range  node-control-range*
+   :node-map-controls   node-map-controls*
+   :node-map-n-controls node-map-n-controls*})
+
 (extend SynthNode
   IControllableNode
   {:node-control        node-control*
@@ -300,7 +313,8 @@
    :node-map-controls   node-map-controls*
    :node-map-n-controls node-map-n-controls*})
 
-(defn ctl [& args] (apply node-control args))
+(defn ctl [node & args]
+  (apply node-control node args))
 
 (defn kill
   "Free one or more synth nodes.
@@ -318,8 +332,9 @@
   ; or a seq of synth handles can be removed at once
   (kill [(hit) (hit) (hit)])
   "
-  [& args]
-  (apply node-free args))
+  [& nodes]
+  (doseq [node (flatten nodes)]
+    (node-free node)))
 
 ;/g_queryTree				get a representation of this group's node subtree.
 ;	[
