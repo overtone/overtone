@@ -1,6 +1,8 @@
 (ns examples.gui
   (:use overtone.core
-        [overtone.gui info control wavetable sequencer mixer]
+        [overtone.gui
+           info control wavetable sequencer mixer
+           stepinator]
         [overtone.inst synth drum]))
 
 ; Show the server info window
@@ -65,5 +67,38 @@
 (m :bpm 128)
 (step-sequencer m 8 ks1 ping)
 
-(use 'overtone.gui.mixer)
+; Create a mixer for all currently defined instruments
 (mixing-console)
+
+; Bring up a monophonic step sequencer
+(def pstep (stepinator))
+
+;  * parameters used in synthdefs
+(definst step-pad
+  [note 60 amp 0.7 attack 0.009 release 0.6]
+  (let [freq  (midicps note)
+        env   (env-gen (perc attack release) :action FREE)
+        f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- release 0.1)))))
+        bfreq (/ freq 2)
+        mod-seq (demand (
+        sig   (apply +
+                     (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
+                             (lpf (saw [freq (* freq 1.01)]) f-env)))
+        audio (* amp env sig)]
+    audio))
+
+; You can access the sequence once when creating a synth
+(demo 2
+  (let [note (duty (dseq [0.2 0.1] INF)
+                   0
+                   (dseq (map #(+ 60 %) (:steps @(:state pstep)))))
+        src (saw (midicps note))]
+    (* [0.2 0.2] src)))
+
+; or access the sequence steps in a player function
+(defn step-player [b]
+  (at (m b)
+      (bar (+ 60 (nth (:steps @(:state pstep)) (mod b 16)))))
+  (apply-at (m (inc b)) #'step-player [(inc b)]))
+
+(step-player (m))

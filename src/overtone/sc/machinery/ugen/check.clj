@@ -19,7 +19,7 @@
 
 (defn ar? [obj] (= (:rate-name obj) :ar))
 (defn kr? [obj] (= (:rate-name obj) :kr))
-(defn ir? [obj] (= (:rate-name obj) :ir))
+(defn ir? [obj] (or (number? obj) (= (:rate-name obj) :ir)))
 (defn dr? [obj] (= (:rate-name obj) :dr))
 
 (defmacro defcheck [name params default-message expr]
