@@ -9,6 +9,8 @@
         [overtone.helpers.audio-file]
         [overtone.sc.util :only [id-mapper]]))
 
+(defrecord BufferInfo [id size n-channels rate n-samples rate-scale duration])
+
 (defn buffer-info
   "Fetch the information for buffer associated with buf-id (either an integer or
   an associative with an :id key). Synchronous.
@@ -33,31 +35,37 @@
           num-samples                (* n-frames n-chans)
           rate-scale                 (/ rate (server-sample-rate))
           duration                   (/ n-frames rate)]
-      (with-meta     {:size n-frames
-                      :n-channels n-chans
-                      :rate rate
-                      :n-samples num-samples
-                      :rate-scale rate-scale
-                      :duration duration
-                      :id id}
-        {:type ::buffer-info}))))
+
+      (map->BufferInfo
+       {:id id
+        :size n-frames
+        :n-channels n-chans
+        :rate rate
+        :n-samples num-samples
+        :rate-scale rate-scale
+        :duration duration}))))
+
+(defrecord Buffer [id size n-channels rate allocated-on-server])
 
 (defn buffer
   "Synchronously allocate a new zero filled buffer for storing audio data with
   the specified size and num-channels."
   ([size] (buffer size 1))
   ([size num-channels]
-     (let [id   (with-server-self-sync (fn [uid]
-                                         (alloc-id :audio-buffer
-                                                   1
-                                                   (fn [id]
-                                                     (snd "/b_alloc" id size num-channels)
-                                                     (server-sync uid)))))
+     (let [id   (with-server-self-sync
+                  (fn [uid]
+                    (alloc-id :audio-buffer
+                              1
+                              (fn [id]
+                                (snd "/b_alloc" id size num-channels)
+                                (server-sync uid)))))
            info (buffer-info id)]
-       (with-meta
-         (merge info
-                {:allocated-on-server (atom true)})
-         {:type ::buffer}))))
+
+       (map->Buffer
+        (assoc info
+          :allocated-on-server (atom true))))))
+
+(defrecord BufferFile [id size n-channels rate allocated-on-server path])
 
 (defn buffer-alloc-read
   "Synchronously allocates a buffer with the same number of channels as the
@@ -81,10 +89,14 @@
            (when (every? zero? [size rate n-channels])
              (free-id :audio-buffer id)
              (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
-           (with-meta
-             (merge info
-                    {:allocated-on-server (atom true)})
-             {:type ::file-buffer}))))))
+
+           (map->BufferFile
+            (assoc info
+              :allocated-on-server (atom true))))))))
+
+(derive BufferInfo ::buffer-info)
+(derive Buffer     ::buffer)
+(derive BufferFile ::file-buffer)
 
 (derive ::buffer ::buffer-info)
 (derive ::file-buffer ::buffer)
@@ -234,6 +246,8 @@
                     n-frames start-frame 0)
     :done))
 
+(defrecord BufferOutStream [id size n-channels rate allocated-on-server path open?])
+
 (defn buffer-stream
   "Returns a buffer-stream which is similar to a regular buffer but may be used
   with the disk-out ugen to stream to a specific file on disk.
@@ -259,19 +273,19 @@
   (let [path    (resolve-tilde-path path)
         f-ext   (file-extension path)
         arg-map (merge {:n-chans 2
-                         :size 65536
-                         :header (or f-ext "wav")
-                         :samples "int16"}
-                        (apply hash-map args))
+                        :size 65536
+                        :header (or f-ext "wav")
+                        :samples "int16"}
+                       (apply hash-map args))
         {:keys [n-chans size header samples]} arg-map
         buf (buffer size n-chans)]
     (snd "/b_write" (:id buf) path header samples -1 0 1)
-    (with-meta
-      (assoc buf
-        :path path
-        :open? (atom true))
-      {:type ::buffer-out-stream})))
+    (map->BufferOutStream
+     (assoc buf
+       :path path
+       :open? (atom true)))))
 
+(derive BufferOutStream ::buffer-out-stream)
 (derive ::buffer-out-stream ::file-buffer)
 
 (defn buffer-out-stream?
@@ -290,6 +304,8 @@
   (buffer-free buf-stream)
   (reset! (:open? buf-stream) false)
   (:path buf-stream))
+
+(defrecord BufferInStream [id size n-channels rate allocated-on-server path open?])
 
 (defn buffer-cue
   "Returns a buffer-cue which is similar to a regular buffer but may be used
@@ -314,13 +330,13 @@
         {:keys [start size]} arg-map
         buf (buffer-alloc-read path start size)]
     (snd "/b_read" (:id buf) path start -1 0 1)
-    (with-meta
+    (map->BufferInStream
       (assoc buf
         :path path
         :start start
-        :open? (atom true))
-      {:type ::buffer-in-stream})))
+        :open? (atom true)))))
 
+(derive BufferInStream ::buffer-in-stream)
 (derive ::buffer-in-stream ::file-buffer)
 
 (defn buffer-in-stream?
