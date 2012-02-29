@@ -47,6 +47,8 @@
 
 (defonce loaded-samples* (ref {}))
 
+(defrecord Sample [id size n-channels rate allocated-on-server path args name])
+
 (defn- load-sample*
   [path & args]
   (let [path (canonical-path path)
@@ -58,12 +60,11 @@
           start    (get arg-map :start 0)
           n-frames (get arg-map :size 0)
           buf      (buffer-alloc-read path start n-frames)]
-      (let [sample (with-meta
-                     (merge buf
-                            {:path path
-                             :args args
-                             :name f-name})
-                     {:type ::sample})]
+      (let [sample (map->Sample
+                    (assoc buf
+                      :path path
+                      :args args
+                      :name f-name))]
         (dosync (alter loaded-samples* assoc [path args] sample))
         sample))))
 
@@ -114,11 +115,6 @@
   [s]
   (isa? (type s) ::sample))
 
-;; Samples are just audio files loaded into a buffer, so buffer
-;; functions work on samples too.
-(derive ::sample :overtone.sc.buffer/file-buffer)
-(derive ::playable-sample ::sample)
-
 (defn- free-loaded-sample
   [[[path args] buf]]
   (if (server-connected?)
@@ -146,6 +142,19 @@
     (free-loaded-sample [[path args] buf])
     :done))
 
+(defn sample-player
+  [smpl & pargs]
+  {:pre [(sample? smpl)]}
+  (let [{:keys [path args]}     smpl
+        {:keys [id n-channels]} (get @loaded-samples* [path args])]
+    (cond
+     (= n-channels 1) (apply mono-player id pargs)
+     (= n-channels 2) (apply stereo-player id pargs))))
+
+(defrecord-ifn PlayableSample
+  [id size n-channels rate allocated-on-server path args name]
+  sample-player)
+
 (defn sample
   "Loads a .wav or .aiff file into a memory buffer. Returns a function capable
    of playing that sample.
@@ -155,15 +164,16 @@
 
   "
   [path & args]
-  (let [{:keys [path args] :as s} (apply load-sample path args)
-        player (fn [& pargs]
-                 (let [{:keys [id n-channels]} (get @loaded-samples* [path args])]
-                   (cond
-                    (= n-channels 1) (apply mono-player id pargs)
-                    (= n-channels 2) (apply stereo-player id pargs))))]
-    (with-meta
-      (callable-map s player)
-      {:type ::playable-sample})))
+  (let [smpl (apply load-sample path args)]
+    (map->PlayableSample smpl)))
+
+;; Samples are just audio files loaded into a buffer, so buffer
+;; functions work on samples too.
+(derive Sample         ::sample)
+(derive PlayableSample ::playable-sample)
+
+(derive ::sample :overtone.sc.buffer/file-buffer)
+(derive ::playable-sample ::sample)
 
 (defmethod buffer-id ::sample [sample] (:id sample))
 
