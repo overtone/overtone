@@ -42,6 +42,9 @@
 (defmethod perfn :midi [[symb]]
     (perfn (list :edo 12 69 440)))
 
+(defmethod perfn :default [[& contents]]
+    (perfn (list :midi)))
+
 (defmethod perfn :arabic [[symb initial freq]]
     (perfn (list :edo 24 initial freq)))
 
@@ -69,3 +72,13 @@
         (perfmap note initial freq qcmeantone)))
 
 (defn perform [[opts & notes]] (map (perfn (flatten (list opts))) notes))
+
+
+
+(defn get-or-fn [map key func]
+    (if-let [result (map key)]
+        result
+        (func key)))
+
+(defn map-or-fn [m keys func]
+    (map #(get-or-fn m % func) keys))
