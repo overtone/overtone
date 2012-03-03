@@ -11,10 +11,10 @@
 
 (definst ping
   [note {:default 72 :min 0 :max 120 :step 1}
-   a    {:default 0.02 :min 0.001 :max 1 :step 0.001}
-   b    {:default 0.3 :min 0.001 :max 1 :step 0.001}]
+   attack {:default 0.02 :min 0.001 :max 1 :step 0.001}
+   decay {:default 0.3 :min 0.001 :max 1 :step 0.001}]
   (let [snd (sin-osc (midicps note))
-        env (env-gen (perc a b) :action FREE)]
+        env (env-gen (perc attack decay) :action FREE)]
     (* 0.1 env snd)))
 
 (definst tb303

@@ -38,7 +38,7 @@
 
           (play-blues instr pitch))
       (at (+ time (* 0.5 dur))
-          (c-hat 0.1))
+          (closed-hat 0.1))
       (apply-at n-time #'play-seq
                 [(mod (inc count) 4) instr (next notes) (next durs) n-time odds]))))
 

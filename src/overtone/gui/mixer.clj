@@ -31,8 +31,8 @@
                                (button :text "M"
                                        :listen [:action mute-toggle]))
         solo-btn (border-panel :center (button :text "S"))]
-    (adjustment-popup-for volume-slider "Volume:")
-    (adjustment-popup-for pan-dial "Pan:")
+    (adjustment-popup :widget volume-slider :label "Volume:")
+    (adjustment-popup :widget pan-dial :label "Pan:")
     (bind/bind volume-slider
                (bind/transform (fn [v] (/ v 100.0)))
                (bind/b-do [v] (inst-volume ins v)))

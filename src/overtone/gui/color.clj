@@ -45,9 +45,11 @@
 
 (defn clarify-color
   "Increase the color transparency in steps of 10."
-  ([color] (clarify-color color 1))
-  ([color factor]
-   (let [r (.getRed color)
-         g (.getGreen color)
-         b (.getBlue color)]
-     (color r g b (- (.getTransparency color) (* factor 10))))))
+  ([col] (clarify-color col 1))
+  ([col factor]
+   (let [r (.getRed col)
+         g (.getGreen col)
+         b (.getBlue col)]
+     (color r g b (- (.getTransparency col) (* factor 10))))))
+
+
