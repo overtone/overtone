@@ -67,6 +67,15 @@
   (let [pivot (or pivot (first notes))]
     (for [n notes] (- pivot (- n pivot)))))
 
+(defn find-name
+  "Returnd the name of the first matching thing found in things
+  or nil if not found"
+  ([thing things]
+     (if (= (val (first things)) thing)
+       (key (first things))
+       (if (< 1 (count things))
+         (find-name thing (rest things))))))
+
 (defn octave-note
   "Convert an octave and interval to a midi note."
   [octave interval]
@@ -283,6 +292,25 @@
   (if (some #{degree} (keys DEGREE))
     (degree DEGREE)
     (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
+
+(defn make-degree
+  "returns a roman numeral in the range :i -> :vii with trailing + or - character(s) when given
+  an integer representing the degree and an octave shift
+
+  i.e.  (make-degree 3)   -> :iii
+        (make-degree 9)   -> :ii+
+        (make-degree 4 2) -> :iv++"
+
+  ([degree-int] (make-degree degree-int 0))
+  ([degree-int octave-shift]
+     (let [deg-int   (- degree-int 1)
+           oct-shift (+ octave-shift (quot deg-int 7))
+           deg-str   (name (find-name (+ 1 (mod deg-int 7)) DEGREE))
+           shift-str (cond
+                      (= oct-shift 0) ""
+                      (> oct-shift 0) (apply str (repeat oct-shift \+))
+                      (< oct-shift 0) (apply str (repeat (* -1 oct-shift) \-))) ]
+       (keyword (str deg-str shift-str)))))
 
 (defn resolve-degree
   "returns a map representing the degree, and the octave semitone
@@ -537,15 +565,6 @@
      (case tuning
            :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
 
-(defn find-name
-  "Returnd the name of the first matching thing found in things
-  or nil if not found"
-  ([thing things]
-     (if (= (val (first things)) thing)
-       (key (first things))
-       (if (< 1 (count things))
-         (find-name thing (rest things))))))
-
 (defn find-scale-name
   "Return the name of the first matching scale found in SCALE
   or nil if not found
@@ -554,6 +573,10 @@
   :melodic-minor-asc"
   [scale]
   (find-name scale SCALE))
+
+(defn find-degree-name
+  [degree]
+  (find-name degree DEGREE ))
 
 (defn find-note-name
   [note]
