@@ -2,27 +2,8 @@
   (:use [seesaw.core]
         [seesaw.graphics :only [draw circle style string-shape]]
         [seesaw.color :only [color]]
-        [overtone.sc.node :only [ctl]]))
-
-; TODO move to Seesaw.
-(def ^ {:private true} input-modifier-table
-  {:left java.awt.event.InputEvent/BUTTON1_DOWN_MASK
-    :center java.awt.event.InputEvent/BUTTON2_DOWN_MASK
-   :right java.awt.event.InputEvent/BUTTON3_DOWN_MASK})
-
-(def ^ {:private true} mouse-button-table
-  {java.awt.event.MouseEvent/BUTTON1 :left
-   java.awt.event.MouseEvent/BUTTON2 :center
-   java.awt.event.MouseEvent/BUTTON3 :right
-   java.awt.event.MouseEvent/NOBUTTON :none })
-
-(defn- mouse-button-down?
-  [^java.awt.event.InputEvent e btn]
-  (let [mask (input-modifier-table btn 0)]
-    (not= 0 (bit-and mask (.getModifiersEx e)))))
-
-(defn- mouse-button [^java.awt.event.MouseEvent e]
-  (mouse-button-table (.getButton e)))
+        [overtone.sc.node :only [ctl]])
+  (:require [seesaw.mouse :as mouse]))
 
 ;;;
 
@@ -69,8 +50,8 @@
     (style :foreground :darkgrey)))
 
 (defn- handle-move-event [state e]
-  (if (or (mouse-button-down? e :left)
-          (mouse-button-down? e :right))
+  (if (or (mouse/button-down? e :left)
+          (mouse/button-down? e :right))
     (let [x (min (max (.getX e) 0) (width e))
           y (min (max (.getY e) 0) (height e))]
       ((get-in state [:x :set-value]) (to-model (:x state) (width e) x))
@@ -79,12 +60,12 @@
 
 (defn- handle-press-event [state timer e]
   (handle-move-event state e)
-  (if (= :right (mouse-button e))
+  (if (= :right (mouse/button e))
     (reset! (:dir state) +)
     (repaint! e)))
 
 (defn- handle-release-event [state timer e]
-  (if (= :right (mouse-button e))
+  (if (= :right (mouse/button e))
     (reset! (:dir state) -)
     (repaint! e)))
 
