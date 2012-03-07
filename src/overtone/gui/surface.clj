@@ -81,10 +81,22 @@
       (repaint! c)))
   c)
 
+(defn- nil-param
+  []
+  (let [v (atom 0.0)]
+    {:name ""
+    :get-value (fn [] @v)
+    :set-value (fn [new-val] (reset! v new-val))
+    :min 0.0
+    :max 1.0}))
+
 (defn surface-panel [x y z]
   (let [state {:color :blue
-               :x x :y y :z z :dir (atom nil)}
-        c (canvas :preferred-size [480 :by 480]
+               :x (or x (nil-param))
+               :y (or y (nil-param))
+               :z (or z (nil-param))
+               :dir (atom nil)}
+        c (canvas :preferred-size [400 :by 300]
                   :cursor :crosshair
                   :paint (fn [c g] (paint-surface state c g)))
         t (timer (partial handle-timer state)
@@ -96,14 +108,6 @@
       :mouse-released (partial handle-release-event state t))
     [c t]))
 
-(defn- nil-param
-  []
-  (let [v (atom 0.0)]
-    {:name ""
-    :get-value (fn [] @v)
-    :set-value (fn [new-val] (reset! v new-val))
-    :min 0.0
-    :max 1.0}))
 
 (defn surface
   "Create a 'surface' for controlling params. Takes three
@@ -120,14 +124,35 @@
   "
   [x y z]
   (invoke-now
-    (let [[panel timer] (surface-panel (or x (nil-param))
-                                       (or y (nil-param))
-                                       (or z (nil-param)))
+    (let [[panel timer] (surface-panel x y z)
           f (frame :title "Surface"
                    :content panel
                    :on-close :dispose)]
       (listen f :window-closed (fn [_] (.stop timer)))
       (-> f pack! show!))))
+
+(defn surface-grid
+  "Create a grid of surfaces. params is a sequence of [x y z] triples passed
+  to (surface). Returns the frame that displays the grid. If you get an
+  empty surface, it probably means you've got an inst without sufficient
+  metadata.
+
+  See:
+    (surface)
+  "
+  [& params]
+  (let [p-and-t (for [p params] (apply surface-panel p))
+        panels (map first p-and-t)
+        timers (map second p-and-t)
+        f (frame :title "Surfaces"
+                 :content (grid-panel
+                            :columns (int (Math/ceil (Math/sqrt (count panels))))
+                            :border 5 :hgap 5 :vgap 5
+                            :background :black
+                            :items panels))]
+    (listen f :window-closed (fn [_]
+                               (doseq [t timers] (.stop t))))
+    (-> f pack! show!)))
 
 (defn synth-param
   "Create a surface param for a synth or instrument.
@@ -152,23 +177,27 @@
       :max (:max param)})))
 
 (comment
+  ; Set up a sequencer with some drum sounds. Hook some drum params
+  ; to a couple surfaces.
   (do
     (use 'overtone.live)
     (use 'overtone.gui.sequencer)
     (use 'overtone.gui.surface)
     (use 'overtone.inst.drum)
     (def m (metronome 128))
-    (step-sequencer m 11 [kick closed-hat snare])
-    (surface (synth-param snare "freq")
-             (synth-param kick "freq")
-             (synth-param snare "sustain")))
+    (step-sequencer m 11 [kick closed-hat open-hat snare])
+    (surface-grid [(synth-param snare "freq") (synth-param kick "freq") (synth-param snare "sustain")]
+              [(synth-param closed-hat "low") (synth-param closed-hat "hi") (synth-param closed-hat "t")]
+              [(synth-param open-hat "low") (synth-param open-hat "hi") (synth-param open-hat "t")]
+              [(synth-param kick "freq-decay") (synth-param kick "amp-decay") (synth-param snare "decay")]))
 
+  ; Set up two sin waves and control their frequencies with a surface.
   (do
     (use 'overtone.live)
     (use 'overtone.gui.surface)
     (defsynth harmony [freq1 {:default 440 :min 40 :max 1800 :step 1}
                        freq2 {:default 880 :min 40 :max 1800 :step 1}
-                       amp    {:default 0.1 :min 0.1 :max 1 :step 0.01} ]
+                       amp   {:default 0.1 :min 0.1 :max 1 :step 0.01} ]
       (out 0 (* amp (sin-osc [freq1 freq2]))))
     (def h (harmony))
     (surface (synth-param harmony h "freq1")
