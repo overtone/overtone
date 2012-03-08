@@ -293,25 +293,6 @@
     (degree DEGREE)
     (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
 
-(defn make-degree
-  "returns a roman numeral in the range :i -> :vii with trailing + or - character(s) when given
-  an integer representing the degree and an octave shift
-
-  i.e.  (make-degree 3)   -> :iii
-        (make-degree 9)   -> :ii+
-        (make-degree 4 2) -> :iv++"
-
-  ([degree-int] (make-degree degree-int 0))
-  ([degree-int octave-shift]
-     (let [deg-int   (- degree-int 1)
-           oct-shift (+ octave-shift (quot deg-int 7))
-           deg-str   (name (find-name (+ 1 (mod deg-int 7)) DEGREE))
-           shift-str (cond
-                      (= oct-shift 0) ""
-                      (> oct-shift 0) (apply str (repeat oct-shift \+))
-                      (< oct-shift 0) (apply str (repeat (* -1 oct-shift) \-))) ]
-       (keyword (str deg-str shift-str)))))
-
 (defn resolve-degree
   "returns a map representing the degree, and the octave semitone
   shift (i.e. sharp flat)"
@@ -335,6 +316,36 @@
         {:degree degree
          :octave-shift octave-shift
          :semitone-shift semitone-shift}))))
+
+(defn make-degree
+  "returns a roman numeral in the range :i -> :vii with trailing + or - character(s) when given
+  an integer representing the degree and an octave shift
+
+  i.e.  (make-degree 3)   -> :iii
+        (make-degree 9)   -> :ii+
+        (make-degree 4 2) -> :iv++"
+
+  ([degree-int] (make-degree degree-int 0))
+  ([degree-int octave-shift]
+     (let [deg-int   (- degree-int 1)
+           oct-shift (+ octave-shift (quot deg-int 7))
+           oct-sh    (if (< deg-int 0) (- oct-shift 1) oct-shift)
+           deg-str   (name (find-name (+ 1 (mod deg-int 7)) DEGREE))
+           shift-str (cond
+                      (= oct-sh 0) ""
+                      (> oct-sh 0) (apply str (repeat oct-sh \+))
+                      (< oct-sh 0) (apply str (repeat (* -1 oct-sh) \-))) ]
+       (keyword (str deg-str shift-str)))))
+
+(defn move-degrees
+  "Shifts each degree in degrees by offset.
+
+  i.e.(move-degrees [:i :iii :vi] 2) -> (:iii :v :vi)"
+
+  [rf offset]
+  (map (fn [nt]
+         (make-degree (+ offset ((resolve-degree nt) :degree)) ((resolve-degree nt) :octave-shift)))
+       rf))
 
 (defn degree->interval
   "Converts the degree of a scale given as a roman numeral keyword and converts
