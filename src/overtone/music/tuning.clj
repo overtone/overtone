@@ -30,13 +30,16 @@
 ;; ratio = (Math/pow 2 (/ 1 24)) => 1.029302236643492
 ;; (perform '((:arabic 100 440) 73 76 79))
 
-(defmulti perfn first)
+(defmulti perf n first
+    "Multimethod that returns a function taking note numbers to frequencies in \\s^{-1}\\")
 
 (defmethod perfn :ed [[symb divisions multiplier initial freq]]
+    "Equal divisions of some n-tave."
     (fn [note]
         (* freq (Math/pow multiplier (/ (- note initial) divisions)))))
 
 (defmethod perfn :edo [[symb divisions initial freq]]
+    "Equal divisions of the octave."
     (perfn (list :ed divisions 2 initial freq)))
 
 (defmethod perfn :midi [[symb]]
