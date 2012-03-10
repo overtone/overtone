@@ -59,8 +59,8 @@
   (tock  [this] (beat-ms @bpb @bpm))
   (beat  [this] (inc (long (/ (- (now) @start) (tick this)))))
   (beat  [this b] (+ (* b (tick this)) @start))
-  (bar   [this] (inc (long (/ (- (now) @start) (tock this)))))
-  (bar   [this b] (+ (* b (tock this)) @start))
+  (bar   [this] (inc (long (/ (- (now) @bar-start) (tock this)))))
+  (bar   [this b] (+ (* b (tock this)) @bar-start))
   (bpm   [this] @bpm)
   (bpm   [this new-bpm]
     (let [cur-beat (beat this)
