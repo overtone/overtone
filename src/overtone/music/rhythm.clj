@@ -49,7 +49,7 @@
   (bpm   [this new-bpm]
     (let [cur-beat (beat this)
           new-tick (beat-ms 1 new-bpm)
-          new-start (- (now) (* new-tick cur-beat))]
+          new-start (- (beat this cur-beat) (* new-tick cur-beat))]
       (reset! start new-start)
       (reset! bpm new-bpm))
     [:bpm new-bpm])

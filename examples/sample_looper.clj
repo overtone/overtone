@@ -75,7 +75,7 @@
         vals (range from to step)]
     (dorun (map #(do (ctl loop-synth :rate (reset! rate* %)) (Thread/sleep 35)) vals))))
 
-;;(tempo-slide sdlkfjsf lsdjfsdlkjf 0)
+;;(tempo-slide  2)
 ;;(volume 1.5)
 ;;(reset-samples!)
 ;;(trigger 1 1)
