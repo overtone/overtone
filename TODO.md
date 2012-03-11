@@ -68,3 +68,15 @@ to ugens as arguments and their :id property will be used
  (currently there is just :append-seq)
 
 ## Ugens
+
+## SC Tweets:
+
+{loop{play{GVerb.ar(LeakDC.ar(Crackle.ar([a=Phasor.ar(1,Line.kr(0.0020.rand,0,9),0,1),a],0.5,0)))*0.05*EnvGen.kr(Env.sine(9))};5.wait}}.fork
+
+{loop{play{|q|c=EnvGen.kr(Env.sine(6),b=(6..1));Pan2.ar(PMOsc.ar(a=40*b*b.rand,a/2-1,1+q*c*90,c,0.01).sum.tan,2.0.rand-1)*c*5};1.wait}}.fork
+
+play{b=LocalBuf(2**20,2).clear;n=LFNoise2.ar(Rand(500)!2);w=Warp1.ar(2,b,n+1/2,[a=0.5,1,2,4]).sum/50;RecordBuf.ar(LeakDC.ar(w+n),b,0,a,a);w}
+
+{loop{play{GVerb.ar(Pan2.ar(HenonC.ar(11025/(16.rand+1),0.4.rand+1,0.3.rand),2.rand-1).tanh)*0.01*EnvGen.kr(Env.sine(4))};0.8.wait}}.fork
+
+play{n=12;Splay.ar(Ringz.ar(Decay2.ar(Impulse.ar({2.0.rand.round(0.25)}!n),0.01,0.1,0.1),{|i|50+(i*50)+4.0.rand2}!n,{8.0.rand}!n),0.1)}
