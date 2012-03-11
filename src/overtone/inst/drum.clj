@@ -1,6 +1,6 @@
 (ns overtone.inst.drum
   (:use [overtone.sc gens envelope synth]
-        [overtone.studio mixer]))
+        [overtone.studio mixer inst]))
 
 ;;; Kick Drums
 

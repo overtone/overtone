@@ -1,6 +1,6 @@
 (ns overtone.gui.mixer
   (:use [seesaw core border]
-        overtone.studio.mixer
+        [overtone.studio mixer inst]
         overtone.gui.dial
         overtone.gui.adjustment-popup
         [overtone.libs event])
