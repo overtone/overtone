@@ -30,23 +30,107 @@
 ;; ratio = (Math/pow 2 (/ 1 24)) => 1.029302236643492
 ;; (perform '((:arabic 100 440) 73 76 79))
 
-(defmulti perf n first
-    "Multimethod that returns a function taking note numbers to frequencies in \\s^{-1}\\")
 
-(defmethod perfn :ed [[symb divisions multiplier initial freq]]
-    "Equal divisions of some n-tave."
+
+;; Helper Functions
+(defn list-flatten-first [x]
+    (first (flatten (list x))))
+
+(defn get-or-fn [map key func]
+    (if-let [result (map key)]
+        result
+        (func key)))
+
+(defn map-or-fn [m keys func]
+    (map #(get-or-fn m % func) keys))
+
+(defn perfmap [note initial freq notemap]
+    (let [pos (mod (- note initial) (count notemap))
+          octave (quot (- note initial (- (count notemap) 1 )) (count notemap))]
+        (* freq (nth notemap pos) (expt (ceil (reduce max notemap)) octave))))
+
+
+;; Public Face - the tuning multimethods.
+
+(defmulti perfn
+    "Multimethod that returns a function taking note numbers to frequencies in \\s^{-1}\\"
+    list-flatten-first)
+
+(defmulti tunednotes
+    "Multimethod that returns a function taking note keywords to note numbers.
+
+    A note keyword is usually of the form :[notename][pitchmodifiers][ntave], for example, :A4, :cb6 or :Bbb0, however this is entirely dependent on the kind of scale."
+    list-flatten-first)
+
+(defmulti reversenotes
+    "Multimethod that returns a function taking note numbers to note symbols."
+    list-flatten-first)
+
+(defn perform [[opts & notes]]
+    "Takes a set of options and a list of note numbers/keywords, and runs the notes through the appropriate tuning system to give frequencies."
+    (map (perfn opts) (map-or-fn (tunednotes opts) notes identity)))
+
+(defn canonical-note-names [argz]
+    "Returns a function that takes note names to their canonical selves within the relevant tuning system."
+    (fn [note]
+        ((reversenotes argz) ((tunednotes argz) note))))
+
+
+;;Implementation of some tuning systems.
+(defmethod perfn :ed [[_ divisions multiplier initial freq]]
+    "Divides a multiplier-tave (e.g. 2-tave = octave, 3-tave, &c.) into divisions divisions. Maps initial to a note with frequency freq."
     (fn [note]
         (* freq (Math/pow multiplier (/ (- note initial) divisions)))))
 
-(defmethod perfn :edo [[symb divisions initial freq]]
+(defmethod perfn :edo [[_ divisions initial freq]]
     "Equal divisions of the octave."
     (perfn (list :ed divisions 2 initial freq)))
 
-(defmethod perfn :midi [[symb]]
+(defmethod perfn :midi [_]
     (perfn (list :edo 12 69 440)))
 
-(defmethod perfn :default [[& contents]]
-    (perfn (list :midi)))
+(defmethod tunednotes :midi [_]
+    "Returns a function that resolves notes to MIDI number format. Resolves upper and lower-case keywords
+     and strings in MIDI note format. If given an integer or nil, returns them
+     unmodified. All other inputs will raise an exception.
+
+     Usage examples:
+     (note :F#7)    ;=> 102
+     (note :db5)    ;=> 73"
+    (fn [n]
+        (if (or (keyword? n) (string? n))
+            (let [match (re-find (re-pattern "([a-gA-G])([#bB]*)([-0-9]+)") (name n))
+                  _ (when (nil? match)
+                        (throw (IllegalArgumentException.
+                            (str "Unable to resolve note: " n ". Does not appear to be in MIDI format i.e. C#4"))))
+                  [_ pitchclass modifier octavestr] match
+                  octave (Integer. octavestr)
+                  _ (when (< octave -1)
+                        (throw (IllegalArgumentException.
+                            (str "Unable to resolve note: " n ". Octave is out of range. Lowest octave value for midi is -1"))))]
+                (+ (get {"c"  0, "d"  2, "e"  4, "f"  5, "g"  7, "a"  9, "b"  11} (clojure.string/lower-case pitchclass))
+                   (- (count (filter #(= \b %) modifier)))
+                   (count (filter #(= \# %) modifier))
+                   (* 12 octave)
+                   12))
+            n)))
+
+(defmethod reversenotes :midi [_]
+    (fn [note]
+        (let [degree (rem note 12)
+              octave (- (floor (/ note 12)) 1)
+              _ (when (< octave -1)
+                    (throw (IllegalArgumentException.
+                           (str "Unable to resolve note: " note ". Octave is out of range. Lowest octave value for midi is -1"))))]
+            (keyword (str (nth '("c" "c#" "d" "d#" "e" "f" "f#" "g" "g#" "a" "a#" "b") degree) octave)))))
+
+(defmethod perfn :default [_]
+    (perfn :midi))
+
+(defmethod tunednotes :default [_]
+    (tunednotes :midi))
+
+
 
 (defmethod perfn :arabic [[symb initial freq]]
     (perfn (list :edo 24 initial freq)))
@@ -65,23 +149,9 @@
 (def qcmeantone
     (note-set-from-generator (expt 5 1/4) -5 7 2))
 
-(defn perfmap [note initial freq notemap]
-    (let [pos (mod (- note initial) (count notemap))
-          octave (quot (- note initial (- (count notemap) 1 )) (count notemap))]
-        (* freq (nth notemap pos) (expt (ceil (reduce max notemap)) octave))))
-
 (defmethod perfn :qcmeantone [[symb initial freq]]
     (fn [note]
         (perfmap note initial freq qcmeantone)))
 
-(defn perform [[opts & notes]] (map (perfn (flatten (list opts))) notes))
 
 
-
-(defn get-or-fn [map key func]
-    (if-let [result (map key)]
-        result
-        (func key)))
-
-(defn map-or-fn [m keys func]
-    (map #(get-or-fn m % func) keys))
