@@ -117,20 +117,20 @@
 
 (defn validate-midi-string!
   "Throws a friendly exception if midi-keyword mk is not
-  valid. Returns regexp match object if valid."
+  valid. Returns matches if valid."
   [mk]
-  (let [matcher (midi-string-matcher mk)]
-    (when-not matcher
+  (let [matches (midi-string-matcher mk)]
+    (when-not matches
       (throw (IllegalArgumentException.
               (str "Invalid midi-string. " mk
                    " does not appear to be in MIDI format i.e. C#4"))))
 
-    (let [[match pictch-class octave] matcher]
+    (let [[match pictch-class octave] matches]
       (when (< (Integer. octave) -1)
         (throw (IllegalArgumentException.
                 (str "Invalid midi-string: " mk
                      ". Octave is out of range. Lowest octave value is -1")))))
-    matcher))
+    matches))
 
 (defn note-map
   "Takes a match array returned by a regexp match and returns a map of note info"
@@ -193,10 +193,11 @@
   ([s] (match-note s "" ""))
   ([s prev-str post-str]
      (let [look-behind (if prev-str (str "(?<=" prev-str ")") "")
-           look-ahead (if post-str (str "(?=" post-str ")") "")
-           match (re-find (re-pattern (str look-behind MIDI-NOTE-RE-STR look-ahead)) s)]
+           look-ahead  (if post-str (str "(?=" post-str ")") "")
+           match       (re-find (re-pattern (str look-behind MIDI-NOTE-RE-STR look-ahead)) s)]
        (when match
-         (note-map match)))))
+         (let [[match pitch-class octave] match]
+           (note-map match))))))
 
 
 
