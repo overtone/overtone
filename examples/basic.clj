@@ -36,7 +36,7 @@
         env (env-gen (perc 0.001 0.3) :action FREE)]
     (* 0.7 src env)))
 
-;;(kick)
+;(kick)
 
 (defn player [beat notes]
   (let [notes (if (empty? notes)
@@ -53,14 +53,14 @@
           (overpad (choose notes) 0.5 0.15 0.1)))
   (apply-at (metro (inc beat)) #'player (inc beat) (next notes) [])))
 
-;(player (metro) [])
+; (player (metro) [])
 
-;; (overpad 60 0.5 5)
-;; (stop)
+; (overpad 60 0.5 5)
+; (stop)
 
 (defn play-notes [t beat-dur notes attacks]
   (when notes
-    (let [note      (first notes)
+    (let [note      (+ 12 (first notes))
           attack    (first attacks)
           amp       0.5
           release   0.1
@@ -68,12 +68,13 @@
       (at t (overpad note amp attack release))
       (apply-at next-beat #'play-notes next-beat beat-dur (next notes) (next attacks) []))))
 
-;(play-notes (now) 425 [40 42 44 45 47 49 51 52] (repeat 0.4))
+(play-notes (now) 425 (cycle [40 42 44 45 47 49 51 52]) (repeat 0.4))
 ;(play-notes (now) 300 (scale :c4 :major) (repeat 0.05))
 
 ;(play-notes (now) 300 (take 15 (cycle [40 42 44 45 47 49 51 52])) (repeat 0.3))
 
 ;(play-notes (now) 100 (take 50 (cycle (scale :a4 :minor))) (repeat 0.4))
+(stop)
 
 ; Inspired by "How do I play a chord" from Impromptu website
 (defn chord-notes []
@@ -89,8 +90,9 @@
             (overpad note 0.3 (/ tick 1020))))
     (apply-at (+ t 800 )#'play-chords (+ t 800) [])))
 
-;; (play-chords (now))
-;; (stop)
+;(play-chords (now))
+;(bpm metro 200)
+;(stop)
 
 (def kick-d (sample (freesound-path 41155)))
 ;(kick-d)
@@ -101,7 +103,8 @@
   (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
   (apply-at (+ t dur) #'looper (+ t dur) dur (next notes) []))
 
-;(looper (now) 500 (cycle [60 67 65 72 75 70]))
+; (looper (now) 500 (cycle [60 67 65 72 75 70]))
+; (stop)
 
 ; When a multiplication is done involving UGen objects, then
 ; multiply UGens will be produced with the operands as their
@@ -111,8 +114,8 @@
   []
   (* 0.2 (sin-osc 2500) (lf-pulse 5)))
 
-;; (pedestrian-crossing)
-;; (stop)
+ (pedestrian-crossing)
+; (stop)
 
 ; You can mix signals by adding them together.  The soundcard can take audio
 ; data between -1 and 1, so if you add up signals remember to multiply
@@ -121,8 +124,8 @@
   (* 0.2
      (+ (sin-osc 200) (saw 200) (saw 203) (sin-osc 400))))
 
-;;(trancy-waves)
-;;(stop)
+; (trancy-waves)
+; (stop)
 
 ;; A noise filter, using the mouse to control the bandpass frequency and bandwidth
 (demo 20 (bpf (* [0.5 0.5] (pink-noise))
@@ -136,7 +139,8 @@
         snd (splay (* 0.5 (sin-osc freqs)))
         snd (* (sin-osc ampmod) snd)]
     (out 0 snd)))
-;;(roaming-sines)
+(roaming-sines)
+(stop)
 
 (defsynth scratch-pendulum []
   (let [kon (sin-osc:kr (* 10 (mouse-x)))
@@ -171,32 +175,14 @@
 (defsynth trigger-finger []
   (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))
 
-;;(trigger-finger)
-;;(stop)
+;(trigger-finger)
+;(stop)
 
 (defsynth dtest []
   (send-trig:kr (impulse:kr 2) 1 (demand:kr (impulse:kr 0.5) 1 (dwhite))))
 
-;; (dtest)
-;; (stop)
-
-;(defsynth demander-tone [rate 3]
-;  (let [trig (impulse:kr rate)
-;        a (dwhite 0 15 1000)
-;        freq (+ 340 (* (demand:kr trig 0 a) 30))]
-;    (out 0 (pan2 (* 0.1 (sin-osc freq))))))
-;
-;ynthDef(\demander,
-;            { arg rate = 3;
-;               var a, freq, trig;
-;               a = Dwhite(0, 15, inf);
-;               trig = Impulse.kr(rate);
-;               freq = Demand.kr(trig, 0, a) * 30 + 340;
-;               Out.ar(0, Pan2.ar( SinOsc.ar(freq) * 0.1));
-;               }).store;
-;)
-;
-;
+; (dtest)
+; (stop)
 
 (defsynth adder [a 1 b 2]
   (let [v1 (- a b)
@@ -206,7 +192,7 @@
     (send-trig:kr v1 201 sum)
     (send-trig:kr v2 202 product)))
 
-;;(adder)
+(adder)
 
 ; You can read audio data in from your sound card using the regular (in <bus-num>) ugen,
 ; but you need to know where your input buses start.  The output buses start at number 0,
@@ -217,20 +203,22 @@
 
 (definst ticker [freq 2]
   (* (sin-osc 440) (env-gen (perc 0.1 0.2) (sin-osc freq))))
+(ticker)
 
 (definst sizzle [bus 0 amp 0.4 depth 10 freq 220 lfo 8]
   (out bus (* amp (saw (+ freq (* depth (sin-osc:kr lfo)))))))
-;;(sizzle)
-;;(ctl sizzle :depth 100 :lfo 0.5)
-;;(stop)
+
+; (sizzle)
+; (ctl sizzle :depth 100 :lfo 0.5)
+; (stop)
 
 ; It's typical to use a pulse as a sort of on off switch like this.
 (defsynth line-two [bus 0]
   (let [sig (lf-pulse 1/6 0 0.25)]
     (out 0 (* 0.5 (sin-osc [480 440]) (lag sig)))))
 
-;;(line-two)
-;;(stop)
+; (line-two)
+; (stop)
 
 (definst busy-signal []
   (let [on-off (lag (lf-pulse 2) 0.1)]
@@ -241,17 +229,17 @@
 ;;(stop)
 
 ; Need to make a call?
-(def DTMF-TONES {1 [697, 1209]
-                 2 [770, 1209]
-                 3 [852, 1209]
-                 4 [697, 1336]
-                 5 [770, 1336]
-                 6 [852, 1336]
-                 7 [697, 1477]
-                 8 [770, 1477]
-                 9 [852, 1477]
+(def DTMF-TONES {1  [697, 1209]
+                 2  [770, 1209]
+                 3  [852, 1209]
+                 4  [697, 1336]
+                 5  [770, 1336]
+                 6  [852, 1336]
+                 7  [697, 1477]
+                 8  [770, 1477]
+                 9  [852, 1477]
                  \* [697, 1633]
-                 0 [770, 1633]
+                 0  [770, 1633]
                  \# [852, 1633]})
 
 (definst dtmf [freq-a 770 freq-b 1633 gate 1]
@@ -271,7 +259,7 @@
         (recur t-off (next nums))))))
 
 ; Try this:
-;(dial-number [0 6 2 1 2 2 4 2 9 8])
+(dial-number [0 6 2 1 2 2 4 2 9 8])
 
 ; The done ugen can act as a flag for the completion of envelopes and other ugens that
 ; have a done action.  Listen to the noise come on after the 2 second sine wave.

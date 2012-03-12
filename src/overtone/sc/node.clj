@@ -126,7 +126,7 @@
     ;(log/info (format "node-destroyed: %d\nsynth-node: %s" id snode))
     (free-id :node id 1 #(log/debug (format "node-destroyed: %d" id)))
     (if snode
-      (swap! (:status snode) :destroyed)
+      (reset! (:status snode) :destroyed)
       (log/warning (format "ERROR: node-destroyed can't find synth node: %d" id)))
     (swap! active-synth-nodes* dissoc id)))
 
@@ -136,12 +136,30 @@
   (let [snode (get @active-synth-nodes* id)]
     ;(log/info (format "node-created: %d\nsynth-node: %s" id snode))
     (if snode
-      (swap! (:status snode) :live)
+      (reset! (:status snode) :live)
       (log/warning (format "ERROR: node-created can't find synth node: %d" id)))))
+
+(defn- node-paused
+  "Called when a node is turned off, but not deallocated."
+  [id]
+  (let [snode (get @active-synth-nodes* id)]
+    (if snode
+      (reset! (:status snode) :paused)
+      (log/warning (format "ERROR: node-paused can't find synth node: %d" id)))))
+
+(defn- node-started
+  "Called whena a node is turned on."
+  [id]
+  (let [snode (get @active-synth-nodes* id)]
+    (if snode
+      (reset! (:status snode) :running)
+      (log/warning (format "ERROR: node-started can't find synth node: %d" id)))))
 
 ; Setup the feedback handlers with the audio server.
 (on-event "/n_end" #(node-destroyed (first (:args %))) ::node-destroyer)
-(on-event "/n_go"  #(node-created (first (:args %))) ::node-creator)
+(on-event "/n_go"  #(node-created   (first (:args %))) ::node-creator)
+(on-event "/n_off" #(node-paused    (first (:args %))) ::node-pauser)
+(on-event "/n_on"  #(node-started   (first (:args %))) ::node-starter)
 
 ;; ### Group
 ;;
@@ -156,7 +174,7 @@
 
 (defrecord SynthGroup [id target position status]
   to-synth-id*
-  (to-synth-id [this] (:id this)))
+  (to-synth-id [_] id))
 
 (defn group
   "Create a new synth group as a child of the target group. By default creates
@@ -200,7 +218,7 @@
       (= :before position) (snd "/n_before" node-id target-id)
       (= :after  position) (snd "/n_after" node-id target-id))))
 
-(defn- node-control*
+(defn node-control*
   "Set control values for a node."
   [node & name-values]
   {:pre [(server-connected?)]}
@@ -209,7 +227,7 @@
         node-id))
 
 ; This can be extended to support setting multiple ranges at once if necessary...
-(defn- node-control-range*
+(defn node-control-range*
   "Set a range of controls all at once, or if node is a group control
   all nodes in the group."
   [node ctl-start & ctl-vals]
@@ -225,7 +243,7 @@
           %)
        col))
 
-(defn- node-map-controls*
+(defn node-map-controls*
   "Connect a node's controls to a control bus."
   [node & names-busses]
   {:pre [(server-connected?)]}
@@ -233,7 +251,7 @@
         names-busses (bussify (stringify names-busses))]
     (apply snd "/n_map" node-id names-busses)))
 
-(defn- node-map-n-controls*
+(defn node-map-n-controls*
   "Connect N controls of a node to a set of sequential control busses,
   starting at the given control name."
   [node start-control start-bus n]
@@ -276,16 +294,6 @@
   (snd "/g_deepFree" (to-synth-id group))
   :clear)
 
-; Use a watcher on the status atom to call handler when appropriate
-;(on-destroyed   [this fn & args]            "Calls (apply fn node args) when the synth node is destroyed.")
-
-(extend SynthNode
-  ISynthNode
-  {:node-free  node-free*
-   :node-pause node-pause*
-   :node-start node-start*
-   :node-place node-place*})
-
 (extend java.lang.Long
   ISynthNode
   {:node-free  node-free*
@@ -300,6 +308,12 @@
    :node-map-n-controls node-map-n-controls*})
 
 (extend SynthNode
+  ISynthNode
+  {:node-free  node-free*
+   :node-pause node-pause*
+   :node-start node-start*
+   :node-place node-place*}
+
   IControllableNode
   {:node-control        node-control*
    :node-control-range  node-control-range*
@@ -308,8 +322,8 @@
 
 (extend SynthGroup
   IControllableNode
-  {:control             node-control*
-   :control-range       node-control-range*
+  {:node-control        node-control*
+   :node-control-range  node-control-range*
    :node-map-controls   node-map-controls*
    :node-map-n-controls node-map-n-controls*})
 

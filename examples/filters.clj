@@ -1,5 +1,5 @@
-(ns example.filters
-  (:use overtone.core))
+(ns examples.filters
+  (:use overtone.live))
 
 ; Filter examples, mostly ported from SC docs
 

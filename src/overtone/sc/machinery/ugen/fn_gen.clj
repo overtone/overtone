@@ -378,17 +378,6 @@
 ;;ensure overloaded-ugens* is populated
 (defonce __intern-locally__ (intern-ugens (ugen-intern-ns)))
 
-(defmacro with-overloaded-ugens
-  "Bind symbols for all overloaded ugens (i.e. + - / etc.) to the overloaded fn
-  in the ns overtone.sc.ugen-colliders. These fns will revert back to original
-  (Clojure) semantics if not passed with ugen args. "
-  [& body]
-  (let [bindings (flatten (map (fn [[orig overload]]
-                                 [orig (symbol ugen-collide-ns-str (str overload))])
-                               @overloaded-ugens*))]
-    `(let [~@bindings]
-       ~@body)))
-
 (defn combined-specs
   "Return a combination of ugen specs and the auto-generated special-op specs."
   []

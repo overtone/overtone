@@ -4,7 +4,7 @@
   overtone.sc.machinery.defexample
   (:use [overtone.util lib doc]
         [overtone.sc.machinery.ugen fn-gen doc]
-        [overtone.sc.machinery defcgen]))
+        [overtone.sc defcgen]))
 
 (defonce examples* (atom {}))
 

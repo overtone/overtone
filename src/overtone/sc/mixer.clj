@@ -4,7 +4,7 @@
   overtone.sc.mixer
   (:use [overtone.libs deps event]
         [overtone.helpers file]
-        [overtone.sc synth gens server info node buffer]
+        [overtone.sc synth ugens server info node buffer]
         [overtone.sc.machinery defaults]))
 
 (defonce master-vol*  (ref MASTER-VOL))

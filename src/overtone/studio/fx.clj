@@ -3,7 +3,7 @@
       :author "Jeff Rose"}
   overtone.studio.fx
   (:use [overtone.libs event]
-        [overtone.sc synth gens]))
+        [overtone.sc synth ugens]))
 
 (def BITS 32)
 

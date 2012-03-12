@@ -1,8 +1,7 @@
 (ns overtone.studio.inst
   (:use
-    [overtone.sc server synth gens envelope node bus]
+    [overtone.sc server synth ugens envelope node bus]
     [overtone.sc.machinery defaults synthdef]
-    [overtone.sc.machinery.ugen fn-gen]
     [overtone.sc.util :only (id-mapper)]
     [overtone.studio mixer fx]
     [overtone.util lib]
@@ -43,7 +42,7 @@
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
-         (overtone.sc.machinery.ugen.fn-gen/with-overloaded-ugens
+         (with-overloaded-ugens
            (let [form# ~@ugen-form
                  n-chans# (if (seq? form#)
                             (count form#)
@@ -62,7 +61,10 @@
                      group instance-group fx-group
                      mixer bus fx-chain
                      volume pan]
-    (fn [this & args] (apply synth-player name params this :tgt instance-group args)))
+  (fn [this & args] (apply synth-player name params this :tgt instance-group args))
+
+  to-synth-id*
+  (to-synth-id [this] (to-synth-id instance-group)))
 
 (defn inst?
   "Returns true if o is an instrument, false otherwise"
@@ -162,4 +164,9 @@
                              (vals (ns-publics 'overtone.instrument))))]
     (load-synthdef synth)))
 
-
+(extend Inst
+  IControllableNode
+  {:node-control        node-control*
+   :node-control-range  node-control-range*
+   :node-map-controls   node-map-controls*
+   :node-map-n-controls node-map-n-controls*})

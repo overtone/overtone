@@ -10,7 +10,7 @@
         [overtone.music time]
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]
-        [overtone.sc server node]
+        [overtone.sc ugens server node]
         [overtone.helpers seq])
   (:require [overtone.at-at :as at-at]
             [overtone.util.log :as log]
@@ -22,7 +22,6 @@
 ;; addressed and controlled by commands to the synthesis engine. They read
 ;; input and write output to global audio and control buses. Synths can have
 ;; their own local controls that are set via commands to the server.
-
 
 (defn- ugen-index [ugens ugen]
   (ffirst (filter (fn [[i v]]
@@ -427,7 +426,7 @@
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies
-           [ugens# constants#] (gather-ugens-and-constants (overtone.sc.machinery.ugen.fn-gen/with-overloaded-ugens ~@ugen-form))
+           [ugens# constants#] (gather-ugens-and-constants (with-overloaded-ugens ~@ugen-form))
            ugens# (topological-sort-ugens ugens#)]
        [~sname ~params ugens# constants#])))
 
@@ -664,7 +663,7 @@
     (active-synths my-synth) ; => [{:type synth :name \"my-synth\" :id 24}]
   "
   [& [synth-filter]]
-  (let [active-nodes (filter #(= overtone.sc.node.SynthNode (type %)) 
+  (let [active-nodes (filter #(= overtone.sc.node.SynthNode (type %))
                              (vals @active-synth-nodes*))]
     (if synth-filter
       (filter #(= (:name synth-filter) (:name %)) active-nodes)

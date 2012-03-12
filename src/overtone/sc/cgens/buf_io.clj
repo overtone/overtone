@@ -1,5 +1,5 @@
-(ns overtone.sc.machinery.cgens.buf-io
-  (:use [overtone.sc.machinery defcgen ugens]))
+(ns overtone.sc.cgens.buf-io
+  (:use [overtone.sc defcgen ugens]))
 
 (defcgen scaled-play-buf
   "Play back a sample resident in a buffer with a rate scaled depending on the buffer's sample-rate."
