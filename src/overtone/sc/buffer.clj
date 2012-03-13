@@ -246,7 +246,7 @@
                     n-frames start-frame 0)
     :done))
 
-(defrecord BufferOutStream [id size n-channels rate allocated-on-server path open?])
+(defrecord BufferOutStream [id size n-channels header samples rate allocated-on-server path open?])
 
 (defn buffer-stream
   "Returns a buffer-stream which is similar to a regular buffer but may be used
@@ -283,6 +283,8 @@
     (map->BufferOutStream
      (assoc buf
        :path path
+       :header header
+       :samples samples
        :open? (atom true)))))
 
 (derive BufferOutStream ::buffer-out-stream)

@@ -4,14 +4,17 @@
         [overtone.util.lib :only [uuid deref!]])
   (:require [overtone.util.log :as log]))
 
-(defonce osc-debug*     (atom false))
-(defonce server-osc-peer*        (ref nil))
+(defonce osc-debug*       (atom false))
+(defonce server-osc-peer* (ref nil))
 
 
 ;; The base handler for receiving osc messages just forwards the message on
 ;; as an event using the osc path as the event key.
 (on-sync-event :osc-msg-received
                (fn [{{path :path args :args} :msg}]
+                 (when @osc-debug*
+                   (println "Receiving: " path args)
+                   (log/debug (str "Receiving: " path args)))
                  (event path :path path :args args))
                ::osc-receiver)
 
@@ -40,8 +43,8 @@
   [path & args]
   (let [args (massage-numerical-args args)]
     (when @osc-debug*
-      (println "Sending: " path [args])
-      (log/debug (str "Sending: " path [args])))
+      (println "Sending: " path args)
+      (log/debug (str "Sending: " path args)))
     (apply validated-snd @server-osc-peer* path args)))
 
 (defn on-server-sync
