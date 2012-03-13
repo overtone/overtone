@@ -109,10 +109,33 @@
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
 (def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
 
-(defn- parse-note-match
+(defn midi-string-matcher
+  "Determines whether a midi keyword is valid or not. If valid,
+  returns a regexp match object"
+  [mk]
+  (re-find ONLY-MIDI-NOTE-RE (name mk)))
+
+(defn validate-midi-string!
+  "Throws a friendly exception if midi-keyword mk is not
+  valid. Returns matches if valid."
+  [mk]
+  (let [matches (midi-string-matcher mk)]
+    (when-not matches
+      (throw (IllegalArgumentException.
+              (str "Invalid midi-string. " mk
+                   " does not appear to be in MIDI format i.e. C#4"))))
+
+    (let [[match pictch-class octave] matches]
+      (when (< (Integer. octave) -1)
+        (throw (IllegalArgumentException.
+                (str "Invalid midi-string: " mk
+                     ". Octave is out of range. Lowest octave value is -1")))))
+    matches))
+
+(defn note-map
   "Takes a match array returned by a regexp match and returns a map of note info"
-  [match]
-  (let [[match pitch-class octave] match
+  [midi-string]
+  (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
         octave                     (Integer. octave)
         interval                   (NOTES (keyword pitch-class))]
@@ -121,6 +144,20 @@
      :octave      (Integer. octave)
      :interval    interval
      :midi-note   (octave-note octave interval)}))
+
+
+(defn mk-midi-string
+  "Takes a string or keyword representing a pitch and a number
+  representing an integer and returns a new keyword which is a
+  concatanation of the two. Throws an error if the resulting midi
+  string is invalid.
+
+  (midi-string :F 7)  ;=> :F7
+  (midi-string :Eb 3) ;=> :Eb3"
+  [pitch-key octave]
+  (let [res (str (name pitch-key) octave)]
+    (validate-midi-string! res)
+    res))
 
 (defn note
   "Resolves note to MIDI number format. Resolves upper and lower-case keywords
@@ -136,31 +173,18 @@
   (note :db5)    ;=> 73
   (note 60)      ;=> 60
   (note nil)     ;=> nil"
-
   [n]
   (cond
-   (nil? n) nil
-   (integer? n) (if (>= n 0)
-                    n
-                    (throw (IllegalArgumentException.
-                            (str "Unable to resolve note: "
-                                 n
-                                 ". Value is out of range. Lowest value is 0"))))
-   (keyword? n) (note (name n))
-   (string? n) (let [match (re-find ONLY-MIDI-NOTE-RE n)
-                     _ (when (nil? match)
-                         (throw (IllegalArgumentException.
-                                 (str "Unable to resolve note: "
-                                      n
-                                      ". Does not appear to be in MIDI format i.e. C#4"))))
-                     note-match (parse-note-match match)
-                     _ (when (< (:octave note-match) -1)
-                         (throw (IllegalArgumentException.
-                                 (str "Unable to resolve note: "
-                                      n
-                                      ". Octave is out of range. Lowest octave value is -1"))))]
-                 (:midi-note note-match))
-   :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
+    (nil? n) nil
+    (integer? n) (if (>= n 0)
+                   n
+                   (throw (IllegalArgumentException.
+                           (str "Unable to resolve note: "
+                                n
+                                ". Value is out of range. Lowest value is 0"))))
+    (keyword? n) (note (name n))
+    (string? n) (:midi-note (note-map n))
+    :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
 
 (defn match-note
   "Returns the first midi-note formatted substring in s. If passed optional prev
@@ -169,10 +193,11 @@
   ([s] (match-note s "" ""))
   ([s prev-str post-str]
      (let [look-behind (if prev-str (str "(?<=" prev-str ")") "")
-           look-ahead (if post-str (str "(?=" post-str ")") "")
-           match (re-find (re-pattern (str look-behind MIDI-NOTE-RE-STR look-ahead)) s)]
+           look-ahead  (if post-str (str "(?=" post-str ")") "")
+           match       (re-find (re-pattern (str look-behind MIDI-NOTE-RE-STR look-ahead)) s)]
        (when match
-         (parse-note-match match)))))
+         (let [[match pitch-class octave] match]
+           (note-map match))))))
 
 
 
