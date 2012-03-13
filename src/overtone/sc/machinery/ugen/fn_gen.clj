@@ -5,6 +5,7 @@
   (:use [overtone.util lib]
         [overtone.libs counters]
         [overtone.helpers seq]
+        [overtone.sc bindings]
         [overtone.sc.machinery.ugen sc-ugen defaults specs special-ops intern-ns]
         [overtone.sc.machinery.ugen.metadata unaryopugen binaryopugen])
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
@@ -84,6 +85,10 @@
             args
             (or (:num-outs spec) 1))
         ug (if (contains? spec :init) ((:init spec) ug) ug)]
+     (when (and *ugens* *constants*)
+      (set! *ugens* (conj *ugens* ug))
+      (doseq [const (filter number? (:args ug))]
+        (set! *constants* (conj *constants* const))))
     (if (> (:n-outputs ug) 1)
       (map-indexed (fn [idx _] (output-proxy ug idx)) (range (:n-outputs ug)))
       ug)))

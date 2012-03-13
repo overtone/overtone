@@ -1,6 +1,6 @@
 (ns overtone.studio.inst
   (:use
-    [overtone.sc server synth ugens envelope node bus]
+    [overtone.sc bindings server synth ugens envelope node bus]
     [overtone.sc.machinery defaults synthdef]
     [overtone.sc.util :only (id-mapper)]
     [overtone.studio mixer fx]
@@ -42,6 +42,8 @@
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
+       (binding [*ugens* []
+                 *constants* #{}]
          (with-overloaded-ugens
            (let [form# ~@ugen-form
                  n-chans# (if (seq? form#)
@@ -49,13 +51,17 @@
                             1)
                  inst-bus# (or (:bus (get @instruments* ~sname)) (audio-bus n-chans#))
                  [ugens# constants#] (gather-ugens-and-constants (out inst-bus# form#))
-                 ugens# (topological-sort-ugens ugens#)]
+                 ugens# (topological-sort-ugens ugens#)
+                 main-tree# (set ugens#)
+                 side-tree# (filter #(not (main-tree# %)) *ugens*)
+                 ugens# (concat ugens# side-tree#)
+                 constants# (into [] (set (concat constants# *constants*)))]
              [~sname
               ~params
               ugens#
               constants#
               n-chans#
-              inst-bus#])))))
+              inst-bus#]))))))
 
 (defrecord-ifn Inst [name params args ugens sdef
                      group instance-group fx-group
@@ -64,7 +70,7 @@
   (fn [this & args] (apply synth-player name params this :tgt instance-group args))
 
   to-synth-id*
-  (to-synth-id [this] (to-synth-id instance-group)))
+  (to-synth-id [_] (to-synth-id instance-group)))
 
 (defn inst?
   "Returns true if o is an instrument, false otherwise"
@@ -146,18 +152,6 @@
   (let [info (meta ins)]
     (.write w (format "#<instrument: %s>" (:name info)))))
 
-; TODO: extract instrument features and setup defrecord and protocol implementations
-;
-;(defmethod overtone.sc.node/kill :overtone.studio.mixer/instrument
-;  [& args]
-;  (doseq [inst args]
-;    (group-clear (:instance-group inst))))
-;
-;(defmethod overtone.sc.node/ctl :overtone.studio.mixer/instrument
-;  [inst & ctls]
-;  (apply node-control (:instance-group inst) (id-mapper ctls))
-;  (apply modify-synth-params inst ctls))
-;
 (defn load-instruments []
   (doseq [synth (filter #(synthdef? %1)
                         (map #(var-get %1)
@@ -165,8 +159,19 @@
     (load-synthdef synth)))
 
 (extend Inst
+  ISynthNode
+  {:node-free  node-free*
+   :node-pause node-pause*
+   :node-start node-start*
+   :node-place node-place*}
+
   IControllableNode
   {:node-control        node-control*
    :node-control-range  node-control-range*
    :node-map-controls   node-map-controls*
-   :node-map-n-controls node-map-n-controls*})
+   :node-map-n-controls node-map-n-controls*}
+
+  IKillable
+  {:kill* (fn [this] (group-deep-clear (:instance-group this)))})
+
+

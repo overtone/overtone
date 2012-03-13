@@ -6,7 +6,7 @@
             [overtone.midi]
             [overtone.osc]
             [overtone.algo chance scaling trig]
-            [overtone.sc buffer bus envelope example ugens info
+            [overtone.sc bindings buffer bus envelope example ugens info
                          mixer node sample server synth trigger]
             [overtone.sc.cgens oscillators demand mix io buf-io env]
             [overtone.sc ugens defcgen]
@@ -26,6 +26,7 @@
  'overtone.algo.scaling
  'overtone.algo.trig
  'overtone.config.store
+ 'overtone.sc.bindings
  'overtone.sc.buffer
  'overtone.sc.bus
  'overtone.sc.envelope

@@ -10,7 +10,7 @@
         [overtone.music time]
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]
-        [overtone.sc ugens server node]
+        [overtone.sc bindings ugens server node]
         [overtone.helpers seq])
   (:require [overtone.at-at :as at-at]
             [overtone.util.log :as log]
@@ -69,6 +69,7 @@
                               #(not (or (sc-ugen? %) (number? %)))
                               (:args ugen)))))))
 
+;  (println "with-inputs: " ugen)
   (let [inputs (flatten
                  (map (fn [arg]
                         (cond
@@ -89,8 +90,11 @@
                           (sc-ugen? arg)
                           (let [src (ugen-index ugens arg)
                                 updated-ugen (nth ugens src)]
+                            ;(println "child ugen: " arg)
+                            ;(println "src: " src)
                             (inputs-from-outputs src updated-ugen))))
                       (:args ugen)))
+;        _ (println "inputs: " inputs)
         ugen (assoc ugen :inputs inputs)]
     (when-not (every? (fn [{:keys [src index]}]
                     (and (not (nil? src))
@@ -425,10 +429,20 @@
    the synth definition"
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
-    `(let [~@param-proxies
-           [ugens# constants#] (gather-ugens-and-constants (with-overloaded-ugens ~@ugen-form))
-           ugens# (topological-sort-ugens ugens#)]
-       [~sname ~params ugens# constants#])))
+    `(let [~@param-proxies]
+          (binding [*ugens* []
+                    *constants* #{}]
+            (let [[ugens# constants#] (gather-ugens-and-constants
+                                        (with-overloaded-ugens ~@ugen-form))
+                  ugens# (topological-sort-ugens ugens#)
+                  ;_# (println "main-tree[" (count ugens#) "]: " ugens#)
+                  main-tree# (set ugens#)
+                  side-tree# (filter #(not (main-tree# %)) *ugens*)
+                  ;_# (println "side-tree[" (count side-tree#) "]: " side-tree#)
+                  ugens# (concat ugens# side-tree#)
+                  constants# (into [] (set (concat constants# *constants*)))]
+              ;(println "all ugens[" (count ugens#) "]: " ugens#)
+       [~sname ~params ugens# constants#])))))
 
 (defn synth-player
   [name params this & args]

@@ -67,7 +67,7 @@
     "Connect N controls of a node to a set of sequential control busses,
     starting at the given control name."))
 
-(defrecord SynthNode [id target position status]
+(defrecord SynthNode [synth id target position status]
   to-synth-id*
   (to-synth-id [this] (:id this)))
 
@@ -101,7 +101,7 @@
            target   (to-synth-id (get location :target 0))
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
-           snode    (SynthNode. id target position (atom :loading))]
+           snode    (SynthNode. synth-name id target position (atom :loading))]
        (apply snd "/s_new" synth-name id position (to-synth-id target) args)
        (swap! active-synth-nodes* assoc id snode)
        snode)))
@@ -111,7 +111,7 @@
 ;; The synth server sends an n_go event when a synth node is created and an
 ;; n_end event when a synth node is destroyed.
 
-(defn- node-free*
+(defn node-free*
   "Free the specified nodes on the server. The allocated id is subsequently
   freed from the allocator via a callback fn listening for /n_end which will
   call node-destroyed."
@@ -196,19 +196,19 @@
   {:pre [(server-connected?)]}
   (apply node-free group-ids))
 
-(defn- node-pause*
+(defn node-pause*
   "Pause a running synth node."
   {:pre [(server-connected?)]}
   [node]
   (snd "/n_run" (to-synth-id node) 0))
 
-(defn- node-start*
+(defn node-start*
   "Start a paused synth node."
   [node]
   {:pre [(server-connected?)]}
   (snd "/n_run" (to-synth-id node) 1))
 
-(defn- node-place*
+(defn node-place*
   "Place a node :before or :after another node."
   [node position target]
   {:pre [(server-connected?)]}
@@ -330,6 +330,9 @@
 (defn ctl [node & args]
   (apply node-control node args))
 
+(defprotocol IKillable
+  (kill* [this] "Kill a synth element (node, or group, or ...)."))
+
 (defn kill
   "Free one or more synth nodes.
   Functions that create instance of synth definitions, such as hit, return
@@ -348,7 +351,11 @@
   "
   [& nodes]
   (doseq [node (flatten nodes)]
-    (node-free node)))
+    (kill* node)))
+
+(extend SynthNode
+  IKillable
+  {:kill* node-free*})
 
 ;/g_queryTree				get a representation of this group's node subtree.
 ;	[
@@ -442,6 +449,20 @@
    :group-deep-clear   group-deep-clear*
    :group-post-tree    group-post-tree*
    :group-node-tree    group-node-tree*})
+
+(extend java.lang.Long
+  ISynthGroup
+  {:group-prepend-node group-prepend-node*
+   :group-append-node  group-append-node*
+   :group-clear        group-clear*
+   :group-deep-clear   group-deep-clear*
+   :group-post-tree    group-post-tree*
+   :group-node-tree    group-node-tree*})
+
+(defn node-tree
+  "Returns a data representation of the synth node tree starting at the root group."
+  []
+  (group-node-tree 0))
 
 (on-deps :core-groups-created ::create-synth-group #(dosync
                                                      (log/debug (str "Creating synth group at head of group with id: " (root-group)))
