@@ -42,11 +42,12 @@
 
 (defn stop-player
   "Stop scheduled fn gracefully if it hasn't already executed."
-  [sched-fn] (at-at/stop sched-fn))
+  [sched-fn] (at-at/stop sched-fn :pool player-pool))
 
 (defn kill-player
-  "Kills scheduled fn immediately if it hasn't already executed."
-  [sched-fn] (at-at/kill sched-fn))
+  "Kills scheduled fn immediately if it hasn't already executed. You
+  are also able to specify player by job id - see print-schedule."
+  [sched-fn] (at-at/kill sched-fn :pool player-pool))
 
 (def ^{:dynamic true} *apply-ahead*
   "Amount of time apply-at is scheduled to execute *before* it was scheduled
