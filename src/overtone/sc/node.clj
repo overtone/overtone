@@ -3,6 +3,7 @@
         [overtone.libs event deps]
         [overtone.sc bus server]
         [overtone.sc.machinery defaults allocator]
+        [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]])
   (:require [overtone.util.log :as log]))
 
@@ -26,25 +27,6 @@
     (:id val)
     val))
 
-(defn node-id
-  "Resolves the id of node. If it's an instrument, returns the group id, else
-  just returns the node unchanged. Throws an exception if the id isn't an
-  integer"
-  [node]
-  (let [id (if   (and (associative? node)
-                      (= :overtone.studio.rig/instrument (:type node))) (:group node) node)]
-    (if-not (integer? id)
-      (throw (Exception. (str "The following node id is not an integer:" id)))
-      id)))
-
-(defn map-ctl
-  "Maps node's control param to the values in the control-bus"
-  [node control control-bus]
-  (let [n-id (node-id node)
-        ctl (to-str control)
-        bus (bus->id control-bus)]
-    (snd "/n_map" n-id ctl bus)))
-
 (defn- map-and-check-node-args
   [arg-map]
   (let [name-fn (fn [name]
@@ -61,6 +43,35 @@
 
     (zipmap (map name-fn (keys arg-map))
             (map val-fn (vals arg-map)))))
+
+
+(defprotocol to-synth-id* (to-synth-id [v]))
+
+(extend-type java.lang.Long to-synth-id*    (to-synth-id [v] v))
+(extend-type java.lang.Integer to-synth-id* (to-synth-id [v] v))
+
+(defprotocol ISynthNode
+  (node-free   [this])
+  (node-pause  [this])
+  (node-start  [this])
+  (node-place  [this position dest-node]))
+
+(defprotocol IControllableNode
+  (node-control         [this & params]
+    "Modify control parameters of the synth node.")
+  (node-control-range   [this ctl-start & ctl-vals]
+    "Modify a range of control parameters of the synth node.")
+  (node-map-controls    [this & names-busses]
+    "Connect a node's controls to a control bus.")
+  (node-map-n-controls  [this start-control start-bus n]
+    "Connect N controls of a node to a set of sequential control busses,
+    starting at the given control name."))
+
+(defrecord SynthNode [synth id target position status]
+  to-synth-id*
+  (to-synth-id [this] (:id this)))
+
+(def active-synth-nodes* (atom {}))
 
 ;; ### Node
 ;;
@@ -87,39 +98,68 @@
        (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
      (let [id       (alloc-id :node)
            position (or ((get location :position :tail) POSITION) 1)
-           target   (get location :target 0)
+           target   (to-synth-id (get location :target 0))
            arg-map  (map-and-check-node-args arg-map)
-           args     (flatten (seq arg-map))]
-       (apply snd "/s_new" synth-name id position target args)
-       id)))
+           args     (flatten (seq arg-map))
+           snode    (SynthNode. synth-name id target position (atom :loading))]
+       (apply snd "/s_new" synth-name id position (to-synth-id target) args)
+       (swap! active-synth-nodes* assoc id snode)
+       snode)))
 
 ;; ### Synth node callbacks
 ;;
 ;; The synth server sends an n_go event when a synth node is created and an
 ;; n_end event when a synth node is destroyed.
 
-(defn node-free
-  "Free the specified node-ids on the server. The allocated id is subsequently
+(defn node-free*
+  "Free the specified nodes on the server. The allocated id is subsequently
   freed from the allocator via a callback fn listening for /n_end which will
   call node-destroyed."
-  [& node-ids]
+  [node]
   {:pre [(server-connected?)]}
-  (doseq [id node-ids]
-    (snd "/n_free" id)))
+  (snd "/n_free" (to-synth-id node)))
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
   [id]
-  (free-id :node id 1 #(log/debug (format "node-destroyed: %d" id))))
+  (let [snode (get @active-synth-nodes* id)]
+    ;(log/info (format "node-destroyed: %d\nsynth-node: %s" id snode))
+    (free-id :node id 1 #(log/debug (format "node-destroyed: %d" id)))
+    (if snode
+      (reset! (:status snode) :destroyed)
+      (log/warning (format "ERROR: node-destroyed can't find synth node: %d" id)))
+    (swap! active-synth-nodes* dissoc id)))
 
 (defn- node-created
   "Called when a node is created on the synth."
   [id]
-  (log/debug (format "node-created: %d" id)))
+  (let [snode (get @active-synth-nodes* id)]
+    ;(log/info (format "node-created: %d\nsynth-node: %s" id snode))
+    (if snode
+      (reset! (:status snode) :live)
+      (log/warning (format "ERROR: node-created can't find synth node: %d" id)))))
+
+(defn- node-paused
+  "Called when a node is turned off, but not deallocated."
+  [id]
+  (let [snode (get @active-synth-nodes* id)]
+    (if snode
+      (reset! (:status snode) :paused)
+      (log/warning (format "ERROR: node-paused can't find synth node: %d" id)))))
+
+(defn- node-started
+  "Called whena a node is turned on."
+  [id]
+  (let [snode (get @active-synth-nodes* id)]
+    (if snode
+      (reset! (:status snode) :running)
+      (log/warning (format "ERROR: node-started can't find synth node: %d" id)))))
 
 ; Setup the feedback handlers with the audio server.
 (on-event "/n_end" #(node-destroyed (first (:args %))) ::node-destroyer)
-(on-event "/n_go"  #(node-created (first (:args %))) ::node-creator)
+(on-event "/n_go"  #(node-created   (first (:args %))) ::node-creator)
+(on-event "/n_off" #(node-paused    (first (:args %))) ::node-pauser)
+(on-event "/n_on"  #(node-started   (first (:args %))) ::node-starter)
 
 ;; ### Group
 ;;
@@ -132,57 +172,68 @@
 ;; group' with an ID of 1 which is the default target for all new Nodes. See
 ;; RootNode and default_group for more info.
 
+(defrecord SynthGroup [id target position status]
+  to-synth-id*
+  (to-synth-id [_] id))
+
 (defn group
   "Create a new synth group as a child of the target group. By default creates
   a new group at the tail of the root group."
   ([] (group :tail (root-group)))
-  ([position target-id]
-     (let [id (alloc-id :node)
-           pos (if (keyword? position) (get POSITION position) position)
-           pos (or pos 1)]
-       (snd "/g_new" id pos target-id)
-       id)))
+  ([position target] (group (alloc-id :node) position target))
+  ([id position target]
+     (let [pos (if (keyword? position) (get POSITION position) position)
+           target (to-synth-id target)
+           pos (or pos 1)
+           snode    (SynthGroup. id target position (atom :loading))]
+       (snd "/g_new" id pos target)
+       (swap! active-synth-nodes* assoc id snode)
+       snode)))
 
-(defn group-free
+(defn- group-free*
   "Free synth groups, releasing their resources."
   [& group-ids]
   {:pre [(server-connected?)]}
   (apply node-free group-ids))
 
-(defn node-run
-  "Start a stopped synth node."
-  [node-id]
+(defn node-pause*
+  "Pause a running synth node."
   {:pre [(server-connected?)]}
-  (snd "/n_run" node-id 1))
+  [node]
+  (snd "/n_run" (to-synth-id node) 0))
 
-(defn node-stop
-  "Stop a running synth node."
+(defn node-start*
+  "Start a paused synth node."
+  [node]
   {:pre [(server-connected?)]}
-  [node-id]
-  (snd "/n_run" node-id 0))
+  (snd "/n_run" (to-synth-id node) 1))
 
-(defn node-place
+(defn node-place*
   "Place a node :before or :after another node."
-  [node-id position target-id]
+  [node position target]
   {:pre [(server-connected?)]}
-  (cond
-    (= :before position) (snd "/n_before" node-id target-id)
-    (= :after  position) (snd "/n_after" node-id target-id)))
+  (let [node-id (to-synth-id node)
+        target-id (to-synth-id target)]
+    (cond
+      (= :before position) (snd "/n_before" node-id target-id)
+      (= :after  position) (snd "/n_after" node-id target-id))))
 
-(defn node-control
+(defn node-control*
   "Set control values for a node."
-  [node-id & name-values]
+  [node & name-values]
   {:pre [(server-connected?)]}
-  (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
-  node-id)
+  (let [node-id (to-synth-id node)]
+        (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
+        node-id))
 
 ; This can be extended to support setting multiple ranges at once if necessary...
-(defn node-control-range
-  "Set a range of controls all at once, or if node-id is a group control
+(defn node-control-range*
+  "Set a range of controls all at once, or if node is a group control
   all nodes in the group."
-  [node-id ctl-start & ctl-vals]
+  [node ctl-start & ctl-vals]
   {:pre [(server-connected?)]}
-  (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
+  (let [node-id (to-synth-id node)]
+    (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals)))
 
 (defn- bussify
   "Convert busses in a col to bus ids."
@@ -192,22 +243,24 @@
           %)
        col))
 
-(defn node-map-controls
+(defn node-map-controls*
   "Connect a node's controls to a control bus."
-  [node-id & names-busses]
+  [node & names-busses]
   {:pre [(server-connected?)]}
-  (let [names-busses (bussify (stringify names-busses))]
+  (let [node-id (to-synth-id node)
+        names-busses (bussify (stringify names-busses))]
     (apply snd "/n_map" node-id names-busses)))
 
-(defn node-map-n-controls
+(defn node-map-n-controls*
   "Connect N controls of a node to a set of sequential control busses,
   starting at the given control name."
-  [node-id start-control start-bus n]
+  [node start-control start-bus n]
   {:pre [(server-connected?)]}
   (assert (bus? start-bus) "Invalid start-bus")
-  (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n))
+  (let [node-id (to-synth-id node)]
+    (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n)))
 
-(defn post-tree
+(defn- group-post-tree*
   "Posts a representation of this group's node subtree, i.e. all the groups and
   synths contained within it, optionally including the current control values
   for synths."
@@ -215,39 +268,72 @@
   {:pre [(server-connected?)]}
   (snd "/g_dumpTree" id with-args?))
 
-(defn prepend-node
+(defn- group-prepend-node*
   "Add a synth node to the end of a group list."
-  [g n]
-  (snd "/g_head" g n))
+  [group node]
+  (let [group-id (to-synth-id group)
+        node-id (to-synth-id node)]
+    (snd "/g_head" group-id node-id)))
 
-(defn append-node
+(defn- group-append-node*
   "Add a synth node to the end of a group list."
-  [g n]
-  (snd "/g_tail" g n))
+  [group node]
+  (let [group-id (to-synth-id group)
+        node-id (to-synth-id node)]
+  (snd "/g_tail" group-id node-id)))
 
-(defn group-clear
+(defn- group-clear*
   "Free all child synth nodes in a group."
-  [group-id]
-  (snd "/g_freeAll" group-id)
+  [group]
+  (snd "/g_freeAll" (to-synth-id group))
   :clear)
 
-(defn- synth-kind
-  "Resolve synth kind depending on type of arguments. Intended for use as a multimethod dispatch fn"
-  [& args]
-  (cond
-   (number? (first args)) :number
-   (associative? (first args)) (:type (first args))
-   :else (type (first args))))
+(defn- group-deep-clear*
+  "Free all child synth nodes in and below this group in other child groups."
+  [group]
+  (snd "/g_deepFree" (to-synth-id group))
+  :clear)
 
-(defmulti ctl
-  "Modify synth parameters for a synth node or group of nodes."
-  synth-kind)
+(extend java.lang.Long
+  ISynthNode
+  {:node-free  node-free*
+   :node-pause node-pause*
+   :node-start node-start*
+   :node-place node-place*}
 
-(defmethod ctl :number
-  [synth-id & ctls]
-  (apply node-control synth-id (id-mapper ctls)))
+  IControllableNode
+  {:node-control        node-control*
+   :node-control-range  node-control-range*
+   :node-map-controls   node-map-controls*
+   :node-map-n-controls node-map-n-controls*})
 
-(defmulti kill
+(extend SynthNode
+  ISynthNode
+  {:node-free  node-free*
+   :node-pause node-pause*
+   :node-start node-start*
+   :node-place node-place*}
+
+  IControllableNode
+  {:node-control        node-control*
+   :node-control-range  node-control-range*
+   :node-map-controls   node-map-controls*
+   :node-map-n-controls node-map-n-controls*})
+
+(extend SynthGroup
+  IControllableNode
+  {:node-control        node-control*
+   :node-control-range  node-control-range*
+   :node-map-controls   node-map-controls*
+   :node-map-n-controls node-map-n-controls*})
+
+(defn ctl [node & args]
+  (apply node-control node args))
+
+(defprotocol IKillable
+  (kill* [this] "Kill a synth element (node, or group, or ...)."))
+
+(defn kill
   "Free one or more synth nodes.
   Functions that create instance of synth definitions, such as hit, return
   a handle for the synth node that was created.
@@ -263,12 +349,13 @@
   ; or a seq of synth handles can be removed at once
   (kill [(hit) (hit) (hit)])
   "
-  synth-kind)
+  [& nodes]
+  (doseq [node (flatten nodes)]
+    (kill* node)))
 
-(defmethod kill :number
-  [& ids]
-  (apply node-free (flatten ids))
-  :killed)
+(extend SynthNode
+  IKillable
+  {:kill* node-free*})
 
 ;/g_queryTree				get a representation of this group's node subtree.
 ;	[
@@ -328,16 +415,16 @@
       {:type :group :id id
        :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
 
-(defn parse-node-tree
+(defn- parse-node-tree
   [data]
   (let [ctls? (= 1 (first data))]
     (binding [*node-tree-data* (next data)]
       (parse-node-tree-helper ctls?))))
 
-(defn node-tree
+(defn- group-node-tree*
   "Returns a data structure representing the current arrangement of groups and
   synthesizer instances residing on the audio server."
-  ([] (node-tree 0))
+  ([] (group-node-tree* 0))
   ([id & [ctls?]]
    (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
      (let [reply-p (recv "/g_queryTree.reply")
@@ -345,6 +432,37 @@
           tree (:args (deref! reply-p))]
        (with-meta (parse-node-tree tree)
          {:type ::node-tree})))))
+
+(defprotocol ISynthGroup
+  (group-prepend-node [group node])
+  (group-append-node  [group node])
+  (group-clear        [group])
+  (group-deep-clear   [group])
+  (group-post-tree    [group & [with-args?]])
+  (group-node-tree    [group]))
+
+(extend SynthGroup
+  ISynthGroup
+  {:group-prepend-node group-prepend-node*
+   :group-append-node  group-append-node*
+   :group-clear        group-clear*
+   :group-deep-clear   group-deep-clear*
+   :group-post-tree    group-post-tree*
+   :group-node-tree    group-node-tree*})
+
+(extend java.lang.Long
+  ISynthGroup
+  {:group-prepend-node group-prepend-node*
+   :group-append-node  group-append-node*
+   :group-clear        group-clear*
+   :group-deep-clear   group-deep-clear*
+   :group-post-tree    group-post-tree*
+   :group-node-tree    group-node-tree*})
+
+(defn node-tree
+  "Returns a data representation of the synth node tree starting at the root group."
+  []
+  (group-node-tree 0))
 
 (on-deps :core-groups-created ::create-synth-group #(dosync
                                                      (log/debug (str "Creating synth group at head of group with id: " (root-group)))
@@ -366,6 +484,25 @@
     (catch Exception e
       (log/error "Can't clear message queue and groups - server might have died."))))
 
+(defn- setup-core-groups
+  []
+  (let [input-group   (with-server-sync #(group 0 0))
+        root-group    (with-server-sync #(group 3 input-group))
+        mixer-group   (with-server-sync #(group 3 root-group))
+        monitor-group (with-server-sync #(group 3 mixer-group))]
+    (dosync
+      (alter core-groups* assoc
+             :input   input-group
+             :root    root-group
+             :mixer   mixer-group
+             :monitor monitor-group))
+    (satisfy-deps :core-groups-created)))
+
+(on-deps :server-connected ::setup-core-groups setup-core-groups)
+(on-sync-event :shutdown ::reset-core-groups #(dosync
+                                               (ref-set core-groups* {})))
+
+(on-deps [:server-connected :core-groups-created] ::signal-server-ready #(satisfy-deps :server-ready))
 (on-sync-event :shutdown
                clear-msg-queue-and-groups
                ::free-all-nodes)

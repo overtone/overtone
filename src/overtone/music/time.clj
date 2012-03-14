@@ -8,7 +8,7 @@
 
 ;;Scheduled thread pool (created by at-at) which is to be used by default for
 ;;all scheduled musical functions (players).
-(defonce player-pool* (at-at/mk-pool))
+(defonce player-pool (at-at/mk-pool))
 
 (defn now
   "Returns the current time in ms"
@@ -18,23 +18,36 @@
 (defn after-delay
   "Schedules fun to be executed after ms-delay milliseconds. Pool defaults to
   the player-pool."
-  [ms-delay fun] (at-at/at (+ (now) ms-delay) fun player-pool*))
+  ([ms-delay fun] (after-delay ms-delay fun "Overtone delayed fn"))
+  ([ms-delay fun description]
+     (at-at/at (+ (now) ms-delay) fun :pool player-pool
+                                      :description description)))
 
 (defn periodic
   "Calls fun every ms-period, and takes an optional initial-delay for the first
   call in ms. Pool defaults to the player-pool."
   ([ms-period fun] (periodic ms-period fun 0))
-  ([ms-period fun initial-delay]
-     (at-at/every ms-period fun initial-delay player-pool*)))
+  ([ms-period fun initial-delay] (periodic ms-period fun initial-delay "Overtone periodic fn"))
+  ([ms-period fun initial-delay description]
+     (at-at/every ms-period fun :initial-delay initial-delay
+                                :description description
+                                :pool player-pool)))
 
 ;;Ensure all scheduled player fns are stopped when Overtone is reset
 ;;(typically triggered by a call to stop)
-(on-sync-event :reset #(at-at/stop-and-reset-pool! player-pool* true) ::player-reset)
+(on-sync-event :reset
+               #(at-at/stop-and-reset-pool! :pool player-pool
+                                            :strategy :kill)
+               ::player-reset)
 
 (defn stop-player
-  "Stop scheduled fn if it hasn't already executed."
-  ([sched-fn] (at-at/cancel sched-fn))
-  ([sched-fn cancel-immediately?] (at-at/cancel sched-fn cancel-immediately?)))
+  "Stop scheduled fn gracefully if it hasn't already executed."
+  [sched-fn] (at-at/stop sched-fn :pool player-pool))
+
+(defn kill-player
+  "Kills scheduled fn immediately if it hasn't already executed. You
+  are also able to specify player by job id - see print-schedule."
+  [sched-fn] (at-at/kill sched-fn :pool player-pool))
 
 (def ^{:dynamic true} *apply-ahead*
   "Amount of time apply-at is scheduled to execute *before* it was scheduled
@@ -56,5 +69,10 @@
   [#^clojure.lang.IFn ms-time f & args]
   (let [delay-time (- ms-time *apply-ahead* (now))]
     (if (<= delay-time 0)
-      (.execute @player-pool* #(apply f (#'clojure.core/spread args)))
+      (after-delay 0 #(apply f (#'clojure.core/spread args)))
       (after-delay delay-time #(apply f (#'clojure.core/spread args))))))
+
+(defn print-schedule
+  ""
+  []
+  (at-at/print-schedule player-pool))

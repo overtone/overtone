@@ -1,8 +1,9 @@
 (ns overtone.inst.synth
-  (:use [overtone.sc gens envelope]
+  (:use [overtone.sc ugens envelope]
+        [overtone.sc.cgens mix]
         [overtone.sc.machinery.ugen.fn-gen]
         [overtone.music pitch]
-        [overtone.studio mixer]))
+        [overtone.studio mixer inst]))
 
 (definst ticker
   [freq 880]
@@ -18,14 +19,14 @@
     (* 0.1 env snd)))
 
 (definst tb303
-  [note {:default 60 :min 0 :max 120 :step 1}
-   wave {:default 1 :min 0 :max 2 :step 1}
-   r {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
-   attack {:default 0.01 :min 0.001 :max 4 :step 0.001}
-   decay {:default 0.1 :min 0.001 :max 4 :step 0.001}
-   sustain {:default 0.6 :min 0.001 :max 0.99 :step 0.001}
-   release {:default 0.01 :min 0.001 :max 4 :step 0.001}
-   cutoff {:default 100 :min 1 :max 20000 :step 1}
+  [note       {:default 60 :min 0 :max 120 :step 1}
+   wave       {:default 1 :min 0 :max 2 :step 1}
+   r          {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
+   attack     {:default 0.01 :min 0.001 :max 4 :step 0.001}
+   decay      {:default 0.1 :min 0.001 :max 4 :step 0.001}
+   sustain    {:default 0.6 :min 0.001 :max 0.99 :step 0.001}
+   release    {:default 0.01 :min 0.001 :max 4 :step 0.001}
+   cutoff     {:default 100 :min 1 :max 20000 :step 1}
    env-amount {:default 0.01 :min 0.001 :max 4 :step 0.001}]
   (let [freq       (midicps note)
         freqs      [freq (* 1.01 freq)]

@@ -12,7 +12,7 @@
      :author "Jeff Rose, Sam Aaron"}
   overtone.sc.envelope
   (:use [overtone.util lib]
-        [overtone.sc.machinery.ugen fn-gen]))
+        [overtone.sc ugens]))
 
 (def ENV-SHAPES
   {:step        0

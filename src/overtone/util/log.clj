@@ -20,7 +20,7 @@
              :warn  Level/WARNING
              :error Level/SEVERE})
 
-(def DEFAULT-LEVEL :info)
+(def DEFAULT-LEVEL :error)
 
 (defn level [& [lvl]]
   (if (nil? lvl)
@@ -33,7 +33,6 @@
   (let [formatter (SimpleFormatter.)]
     (proxy [StreamHandler] []
       (publish [msg] (println (.format formatter msg))))))
-;      (publish [msg] (println "info: " msg)))))
 
 (defn console []
   (.addHandler LOGGER (print-handler)))
@@ -41,10 +40,7 @@
 (defonce LOG-SETUP?
   (do
     (level DEFAULT-LEVEL)
-
-    ;(.setOutputStream LOG-CONSOLE *out*)
     (.setFormatter LOG-FILE-HANDLER (SimpleFormatter.))
-    ;(.addHandler LOGGER LOG-CONSOLE)
     (.addHandler LOGGER LOG-FILE-HANDLER)
     true))
 

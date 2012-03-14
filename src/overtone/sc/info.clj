@@ -3,7 +3,7 @@
       :author "Sam Aaron"}
   overtone.sc.info
   (:use [overtone.libs event]
-        [overtone.sc synth gens node server]
+        [overtone.sc synth ugens node server]
         [overtone.util lib]))
 
 (defonce output-bus-count* (atom nil))

@@ -4,7 +4,7 @@
   overtone.sc.mixer
   (:use [overtone.libs deps event]
         [overtone.helpers file]
-        [overtone.sc synth gens server info node buffer]
+        [overtone.sc synth ugens server info node buffer]
         [overtone.sc.machinery defaults]))
 
 (defonce master-vol*  (ref MASTER-VOL))
@@ -112,8 +112,9 @@
 (defonce recorder-info* (ref nil))
 
 (defn recording-start
-  "Start recording a wav file to a new file at wav-path. Be careful - may
-  generate very large files."
+  "Start recording a wav file to a new file at wav-path. Be careful -
+  may generate very large files. See buffer-stream for a list of
+  output options."
   [path & args]
   (if-let [info @recorder-info*]
     (throw (Exception. (str "Recording already taking place to: "

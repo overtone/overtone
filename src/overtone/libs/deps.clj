@@ -3,7 +3,8 @@
            fns once dependencies have been met."
       :author "Sam Aaron & Jeff Rose"}
   overtone.libs.deps
-  (:require [clojure.set :as set]))
+  (:require [clojure.set :as set]
+            [overtone.util.log :as log]))
 
 ;; A representation of the state of the dependencies:
 ;; :satisified - a set of keywords representing ids for each of the satisfied
@@ -58,10 +59,14 @@
 
 (defn- satisfy*
   [{:keys [satisfied todo done]} new-deps]
+  ;(log/info (format "new-deps: %s" new-deps))
   (let [satisfied (set/union satisfied new-deps)
+        ;_ (log/info (format "satisfied: %s" satisfied))
         execute-tasks (fn [[final-done final-todo] [key deps task]]
+                        ;(log/info (format "Satisfied? = %s --- sat: %s deps: %s" (set/superset? satisfied deps) satisfied deps))
                         (if (set/superset? satisfied deps)
                           (do
+                            ;(log/info "Satisfying deps: " deps)
                             (task)
                             [(conj final-done [key deps task]) final-todo])
                           [final-done (conj final-todo [key deps task])]))
@@ -132,7 +137,7 @@
   If timeout is a positive value throws timeout exception if deps haven't been
   satisfied by timeout ms. Default wait-time is 100ms and default timeout is
   10000 ms"
-  ([deps] (wait-until-deps-satisfied deps 20000 100))
+  ([deps] (wait-until-deps-satisfied deps 10000 100))
   ([deps timeout] (wait-until-deps-satisfied deps timeout 100))
   ([deps timeout wait-time]
      (if (<= timeout 0)

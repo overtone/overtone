@@ -1,5 +1,5 @@
-(ns overtone.sc.machinery.cgens.demand
-  (:use [overtone.sc.machinery defcgen ugens]
+(ns overtone.sc.cgens.demand
+  (:use [overtone.sc defcgen ugens]
         [overtone.util lib]))
 
 (defcgen duty

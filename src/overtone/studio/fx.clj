@@ -3,7 +3,9 @@
       :author "Jeff Rose"}
   overtone.studio.fx
   (:use [overtone.libs event]
-        [overtone.sc synth gens]))
+        [overtone.sc synth ugens]))
+
+(def BITS 32)
 
 (defsynth fx-noise-gate
   "A noise gate only lets audio above a certain amplitude threshold through.  Often used to filter out hardware circuit noise or unwanted background noise."
@@ -100,6 +102,21 @@
         k (/ (* 2 amount) (- 1 amount))
         snd (/ (* src (+ 1 k)) (+ 1 (* k (abs src))))]
     (replace-out bus snd)))
+
+(defsynth bitcrusher
+  [in-bus 0]
+  (let [src (in in-bus)
+        resolution (/ (Math/pow 2 (dec BITS)) 2)
+        crushed (floor (/ (+ 0.5 (* src resolution)) resolution))]
+    (replace-out in-bus crushed)))
+
+(defsynth fx-distortion-tubescreamer
+  [bus 0 hi-freq 720.484 low-freq 723.431 hi-freq2 1 gain 4 threshold 0.4]
+  (let [src (in bus)
+        f1 (* (hpf src hi-freq) gain)
+        f2 (lpf (clip2 f1 threshold) low-freq)
+        f3 (hpf f2 hi-freq2)]
+    (replace-out bus f3)))
 
 (defsynth fx-rlpf
   [bus 0 cutoff 20000 res 0.6]

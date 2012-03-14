@@ -11,7 +11,7 @@
         [overtone.util lib]
         [overtone.libs event deps]
         [overtone.sc.machinery defaults]
-        [overtone.sc server synth gens buffer node]
+        [overtone.sc server synth ugens buffer node]
         [overtone.studio.util])
   (:require [clojure.set :as set]
             [overtone.util.log :as log]
@@ -122,7 +122,7 @@
   (ensure-internal-server!)
   (dosync
    (when-not @scopes-running?*
-     (at-at/every (/ 1000 FPS) update-scopes scope-pool)
+     (at-at/every (/ 1000 FPS) update-scopes :pool scope-pool :description "Scope refresh fn")
      (ref-set scopes-running?* true))))
 
 (defn- reset-data-arrays
@@ -147,7 +147,7 @@
   "Stop all scopes from running."
   []
   (ensure-internal-server!)
-  (at-at/stop-and-reset-pool! scope-pool)
+  (at-at/stop-and-reset-pool! :pool scope-pool)
   (empty-scope-data)
   (dosync (ref-set scopes-running?* false)))
 
