@@ -8,7 +8,7 @@
             [overtone.algo chance scaling trig]
             [overtone.sc bindings buffer bus envelope example ugens info
                          mixer node sample server synth trigger]
-            [overtone.sc.cgens oscillators demand mix io buf-io env]
+            [overtone.sc.cgens oscillators demand mix io buf-io env tap]
             [overtone.sc ugens defcgen]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio mixer inst util fx wavetable]
@@ -39,6 +39,7 @@
  'overtone.sc.cgens.io
  'overtone.sc.cgens.buf-io
  'overtone.sc.cgens.env
+ 'overtone.sc.cgens.tap
  'overtone.sc.info
  'overtone.sc.mixer
  'overtone.sc.node

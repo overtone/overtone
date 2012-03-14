@@ -8,7 +8,7 @@
             [overtone.sc bindings buffer bus envelope example info
                          ugens defcgen mixer node sample server synth trigger]
 
-            [overtone.sc.cgens oscillators demand mix io buf-io env]
+            [overtone.sc.cgens oscillators demand mix io buf-io env tap]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio inst mixer util fx wavetable]
             [overtone.repl ugens examples shell inst]
@@ -44,6 +44,7 @@
  'overtone.sc.cgens.io
  'overtone.sc.cgens.buf-io
  'overtone.sc.cgens.env
+ 'overtone.sc.cgens.tap
  'overtone.music.rhythm
  'overtone.music.pitch
  'overtone.music.tuning
