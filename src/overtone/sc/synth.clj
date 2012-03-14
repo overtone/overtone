@@ -424,9 +424,9 @@
 )
 
 (defmacro pre-synth
-  "Resolve a synth def to a list of its name, params, ugens (nested if necessary) and
-   constants. Sets the lexical bindings of the param names to control proxies within
-   the synth definition"
+  "Resolve a synth def to a list of its name, params, ugens (nested if
+   necessary) and constants. Sets the lexical bindings of the param
+   names to control proxies within the synth definition"
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
@@ -435,13 +435,14 @@
             (let [[ugens# constants#] (gather-ugens-and-constants
                                         (with-overloaded-ugens ~@ugen-form))
                   ugens# (topological-sort-ugens ugens#)
-                  ;_# (println "main-tree[" (count ugens#) "]: " ugens#)
+;;                  _# (println "main-tree[" (count ugens#) "]: " ugens#)
+;;                  _# (println (str "*ugens*: [" (count *ugens*) "] " *ugens*))
                   main-tree# (set ugens#)
                   side-tree# (filter #(not (main-tree# %)) *ugens*)
-                  ;_# (println "side-tree[" (count side-tree#) "]: " side-tree#)
+;;                  _# (println "side-tree[" (count side-tree#) "]: " side-tree#)
                   ugens# (concat ugens# side-tree#)
                   constants# (into [] (set (concat constants# *constants*)))]
-              ;(println "all ugens[" (count ugens#) "]: " ugens#)
+;;              (println "all ugens[" (count ugens#) "]: " ugens#)
        [~sname ~params ugens# constants#])))))
 
 (defn synth-player
@@ -487,24 +488,47 @@
           defaults (into {} (map (fn [{:keys [name value]}]
                                    [(keyword name) @value])
                                  params))
-          arg-map  (arg-mapper args arg-names defaults)]
-      (node name arg-map {:position pos :target sgroup })))
+          arg-map  (arg-mapper args arg-names defaults)
+          synth-node (node name arg-map {:position pos :target sgroup })
+          synth-node (if (:instance-fn this)
+                       ((:instance-fn this) synth-node)
+                       synth-node)]
+      (when (:instance-fn this)
+        (swap! active-synth-nodes* assoc (:id synth-node) synth-node))
+      synth-node))
 
-(defrecord-ifn Synth [name ugens sdef args params]
-  (partial synth-player name params))
+(defrecord-ifn Synth [name ugens sdef args params instance-fn]
+               (partial synth-player name params))
+
+(defn update-tap-data
+  [msg]
+  (let [[node-id label-id val] (:args msg)
+        node                     (get @active-synth-nodes* node-id)
+        label                    (get (:tap-labels node) label-id)
+        tap-atom                 (get (:taps node) label)]
+    (reset! tap-atom val)))
+
+(on-event "/overtone/tap" #'update-tap-data ::handle-incoming-tap-data)
 
 (defmacro synth
-  "Define a SuperCollider synthesizer using the library of ugen functions
-  provided by overtone.sc.ugen.  This will return an anonymous function which
-  can be used to trigger the synthesizer.
+  "Define a SuperCollider synthesizer using the library of ugen
+  functions provided by overtone.sc.ugen.  This will return callable
+  record which can be used to trigger the synthesizer.
   "
   [& args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~@args)
          sdef# (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
+         instance-fn# (apply comp (map :instance-fn (filter :instance-fn (map meta ugens#))))
          smap# (with-meta
-                 (Synth. sname# ugens# sdef# arg-names# params-with-vals#)
+                 (map->Synth
+                  {:name sname#
+                   :ugens ugens#
+                   :sdef sdef#
+                   :args arg-names#
+                   :params params-with-vals#
+                   :instance-fn instance-fn#})
                  {:overtone.util.live/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
@@ -518,7 +542,7 @@
                           (throw (IllegalArgumentException. (str "You need to specify a name for your synth using a symbol"))))
         params          (first s-form)
         params          (parse-params params)
-        ugen-form       (second s-form)
+        ugen-form       (concat '(do) (next s-form))
         param-names     (list (vec (map #(symbol (:name %)) params)))
         md              (assoc (meta s-name)
                           :name s-name

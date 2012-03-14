@@ -399,3 +399,16 @@
   [ug-name]
   (let [ug-name (normalize-ugen-name (str ug-name ))]
     (get (combined-specs) ug-name)))
+
+(defmacro with-ugen-meta
+  "Use to add metadata to ugens. The standard with-meta will not work
+  as some ugens in a synth are obtained by looking within the *ugens*
+  binding which is poplulated with a ugen before it is possible to
+  hook metadata on it. This macro provides a work-around for this
+  scenario."
+  [form metadata]
+  `(let [ugen#      ~form
+         ugen#      (with-meta ugen# ~metadata)
+         new-ugens# (vec (concat (butlast overtone.sc.bindings/*ugens*) [ugen#]))]
+     (set! overtone.sc.bindings/*ugens* new-ugens#)
+     ugen#))
