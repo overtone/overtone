@@ -357,6 +357,10 @@
   IKillable
   {:kill* node-free*})
 
+(extend java.lang.Number
+  IKillable
+  {:kill* node-free*})
+
 ;/g_queryTree				get a representation of this group's node subtree.
 ;	[
 ;		int - group ID
