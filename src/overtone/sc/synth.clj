@@ -502,7 +502,6 @@
 
 (defn update-tap-data
   [msg]
-  (println "hi jeffers: " msg)
   (let [[node-id label-id val] (:args msg)
         node                     (get @active-synth-nodes* node-id)
         label                    (get (:tap-labels node) label-id)
