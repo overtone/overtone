@@ -49,6 +49,16 @@
           octave (quot (- note initial (- (count notemap) 1 )) (count notemap))]
         (* freq (nth notemap pos) (expt (ceil (reduce max notemap)) octave))))
 
+(defn collapse-to-ntave [number ntave]
+    (condp > number
+             1 (recur (* number ntave) ntave)
+             ntave number
+             (recur (/ number ntave) ntave)))
+
+(defn note-set-from-generator [generator initpower finpower ntave]
+    (let [tempset (for [exponent (range initpower finpower)] (expt generator exponent))]
+        (sort (map #(collapse-to-ntave % ntave) tempset))))
+
 
 ;; Public Face - the tuning multimethods.
 
@@ -59,7 +69,9 @@
 (defmulti tunednotes
     "Multimethod that returns a function taking note keywords to note numbers.
 
-    A note keyword is usually of the form :[notename][pitchmodifiers][ntave], for example, :A4, :cb6 or :Bbb0, however this is entirely dependent on the kind of scale."
+    A note keyword is usually of the form :[notename][pitchmodifiers][ntave], for example, :A4, :cb6 or :Bbb0, however this is entirely dependent on the kind of scale.
+
+    TunedNotes functions should ideally return nonmatching symbols or numbers unmodified. Particularly numbers, which could be note numbers."
     list-flatten-first)
 
 (defmulti reversenotes
@@ -77,6 +89,7 @@
 
 
 ;;Implementation of some tuning systems.
+
 (defmethod perfn :ed [[_ divisions multiplier initial freq]]
     "Divides a multiplier-tave (e.g. 2-tave = octave, 3-tave, &c.) into divisions divisions. Maps initial to a note with frequency freq."
     (fn [note]
@@ -90,9 +103,7 @@
     (perfn (list :edo 12 69 440)))
 
 (defmethod tunednotes :midi [_]
-    "Returns a function that resolves notes to MIDI number format. Resolves upper and lower-case keywords
-     and strings in MIDI note format. If given an integer or nil, returns them
-     unmodified. All other inputs will raise an exception.
+    "Returns a function that resolves notes to MIDI number format. Resolves upper and lower-case keywords and strings in MIDI note format. If given a string or keyword in a different format, throws an exception. Anything else is returned unmodified.
 
      Usage examples:
      (note :F#7)    ;=> 102
@@ -130,28 +141,27 @@
 (defmethod tunednotes :default [_]
     (tunednotes :midi))
 
+(defn parsemodifiers
+    "Parses standard modifiers b, #, es, eh, ih and is for note names. Returns shifts where 1 is equivalent to a semitone."
+    [modifiers]
+    (let [matches (map first (concat (re-seq #"([ie][sh])" modifiers) (re-seq #"([b#])" modifiers)))]
+        (+
+            (- (count (filter #(= "b" %) matches)))
+            (- (count (filter #(= "es" %) matches)))
+            (* -0.5 (count (filter #(= "eh" %) matches)))
+            (* 0.5 (count (filter #(= "ih" %) matches)))
+            (count (filter #(= "is" %) matches))
+            (count (filter #(= "#" %) matches)))))
 
+
+;; Some other tuning systems
 
 (defmethod perfn :arabic [[symb initial freq]]
     (perfn (list :edo 24 initial freq)))
 
-
-(defn collapse-to-ntave [number ntave]
-    (condp > number
-             1 (recur (* number ntave) ntave)
-             ntave number
-             (recur (/ number ntave) ntave)))
-
-(defn- note-set-from-generator [generator initpower finpower ntave]
-    (let [tempset (for [exponent (range initpower finpower)] (expt generator exponent))]
-        (sort (map #(collapse-to-ntave % ntave) tempset))))
-
-(def qcmeantone
-    (note-set-from-generator (expt 5 1/4) -5 7 2))
-
 (defmethod perfn :qcmeantone [[symb initial freq]]
     (fn [note]
-        (perfmap note initial freq qcmeantone)))
+        (perfmap note initial freq (note-set-from-generator (expt 5 1/4) -5 7 2))))
 
 
 
