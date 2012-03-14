@@ -12,4 +12,8 @@
                  [clj-glob "1.0.0"]
                  [org.clojure/core.match "0.2.0-alpha6"]
                  [seesaw "1.4.0"]]
-  :jvm-opts ["-Xms256m" "-Xmx1g" "-XX:+UseConcMarkSweepGC"])
+  :jvm-opts ["-Xms256m" "-Xmx1g"           ; minimum and maximum sizes of the heap
+             "-XX:+UseConcMarkSweepGC"     ; use concurrent garbage collector
+             "-XX:+CMSIncrementalMode"     ; do many small GC cycles to minimize pauses
+             "-XX:CompileThreshold=1"     ; JIT each funciton after one execution
+             ])
