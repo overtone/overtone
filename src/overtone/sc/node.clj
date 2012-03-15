@@ -357,7 +357,7 @@
   IKillable
   {:kill* node-free*})
 
-(extend java.lang.Number
+(extend java.lang.Long
   IKillable
   {:kill* node-free*})
 
@@ -452,7 +452,11 @@
    :group-clear        group-clear*
    :group-deep-clear   group-deep-clear*
    :group-post-tree    group-post-tree*
-   :group-node-tree    group-node-tree*})
+   :group-node-tree    group-node-tree*}
+
+  IKillable
+  {:kill* group-deep-clear*})
+
 
 (extend java.lang.Long
   ISynthGroup
