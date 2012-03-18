@@ -10,5 +10,7 @@
    (doseq [[sym var] (ns-publics ns)]
      (let [sym (with-meta sym (assoc (meta var) :orig-ns ns))]
        (if (.isBound var)
-         (intern *ns* sym (var-get var))
+         (intern *ns* sym (if (fn? (var-get var))
+                            var
+                            (var-get var)))
          (intern *ns* sym))))))
