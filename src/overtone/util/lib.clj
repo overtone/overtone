@@ -23,6 +23,12 @@
    (false? val)  (float 0)
    :else val))
 
+(defn to-keyword
+  [val]
+  (if (string? val)
+    (keyword val)
+    val))
+
 (defn floatify-truth
   "Convert truth values to 0 or 1 using most of the standard Clojure truth
   semantics:  everything that's not nil or false is 1 otherwise 0. The exception
@@ -48,6 +54,10 @@
   [col]
   (map to-float col))
 
+(defn keywordify
+  "Convert all strings to keywords."
+  [col]
+  (map to-keyword col))
 
 ; Now available in recent Clojure versions as of Nov. 29, 2009...
 ;(defn byte-array [len]

@@ -15,5 +15,5 @@
   :jvm-opts ["-Xms256m" "-Xmx1g"           ; minimum and maximum sizes of the heap
              "-XX:+UseConcMarkSweepGC"     ; use concurrent garbage collector
              "-XX:+CMSIncrementalMode"     ; do many small GC cycles to minimize pauses
-             "-XX:CompileThreshold=1"     ; JIT each funciton after one execution
+;             "-XX:CompileThreshold=1"     ; JIT each funciton after one execution
              ])

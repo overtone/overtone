@@ -59,8 +59,12 @@
 (defprotocol IControllableNode
   (node-control         [this & params]
     "Modify control parameters of the synth node.")
+  (node-get-control     [this node & names]
+    "Get a set of named synth control values.")
   (node-control-range   [this ctl-start & ctl-vals]
     "Modify a range of control parameters of the synth node.")
+  (node-get-control-range [this node name-index n]
+    "Get n synth control values starting at a given control name or index.")
   (node-map-controls    [this & names-busses]
     "Connect a node's controls to a control bus.")
   (node-map-n-controls  [this start-control start-bus n]
@@ -226,6 +230,18 @@
         (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
         node-id))
 
+(defn node-get-control*
+  "Get one or more synth control values by name.  Returns a map of key/value pairs, 
+  for example:
+
+    {:freq 440.0 :attack 0.2}
+  "
+  [node & names]
+  (let [res (recv "/n_set")
+        _ (apply snd "/s_get" (to-synth-id node) (stringify names))
+        cvals (:args (deref! res))]
+    (apply hash-map (keywordify (drop 1 cvals)))))
+
 ; This can be extended to support setting multiple ranges at once if necessary...
 (defn node-control-range*
   "Set a range of controls all at once, or if node is a group control
@@ -234,6 +250,15 @@
   {:pre [(server-connected?)]}
   (let [node-id (to-synth-id node)]
     (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals)))
+
+(defn node-get-control-range*
+  "Get a range of n controls starting at a given name or index.  Returns a
+  vector of values."
+  [node name-index n]
+  (let [res (recv "/n_setn")
+        _ (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
+        cvals (:args (deref! res))]
+    (vec (drop 3 cvals))))
 
 (defn- bussify
   "Convert busses in a col to bus ids."
@@ -302,10 +327,12 @@
    :node-place node-place*}
 
   IControllableNode
-  {:node-control        node-control*
-   :node-control-range  node-control-range*
-   :node-map-controls   node-map-controls*
-   :node-map-n-controls node-map-n-controls*})
+  {:node-control           node-control*
+   :node-get-control       node-get-control*
+   :node-control-range     node-control-range*
+   :node-get-control-range node-get-control-range*
+   :node-map-controls      node-map-controls*
+   :node-map-n-controls    node-map-n-controls*})
 
 (extend SynthNode
   ISynthNode
@@ -314,18 +341,21 @@
    :node-start node-start*
    :node-place node-place*}
 
-  IControllableNode
-  {:node-control        node-control*
-   :node-control-range  node-control-range*
-   :node-map-controls   node-map-controls*
-   :node-map-n-controls node-map-n-controls*})
+  {:node-control           node-control*
+   :node-get-control       node-get-control*
+   :node-control-range     node-control-range*
+   :node-get-control-range node-get-control-range*
+   :node-map-controls      node-map-controls*
+   :node-map-n-controls    node-map-n-controls*})
 
 (extend SynthGroup
   IControllableNode
-  {:node-control        node-control*
-   :node-control-range  node-control-range*
-   :node-map-controls   node-map-controls*
-   :node-map-n-controls node-map-n-controls*})
+  {:node-control           node-control*
+   :node-get-control       node-get-control*
+   :node-control-range     node-control-range*
+   :node-get-control-range node-get-control-range*
+   :node-map-controls      node-map-controls*
+   :node-map-n-controls    node-map-n-controls*})
 
 (defn ctl [node & args]
   (apply node-control node args))

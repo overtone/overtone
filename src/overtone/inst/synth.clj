@@ -168,7 +168,7 @@
 ; * Two octaves and a fifth over root
 ; * Three octaves over root
 ; Work in progress...  just getting started
-(definst b3
+(comment definst b3
   [note 60 a 0.01 d 3 s 1 r 0.01]
   (let [freq (midicps note)
         waves (sin-osc [(* 0.5 freq)
