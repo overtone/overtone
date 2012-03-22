@@ -59,12 +59,8 @@
 (defprotocol IControllableNode
   (node-control         [this & params]
     "Modify control parameters of the synth node.")
-  (node-get-control     [this node & names]
-    "Get a set of named synth control values.")
   (node-control-range   [this ctl-start & ctl-vals]
     "Modify a range of control parameters of the synth node.")
-  (node-get-control-range [this node name-index n]
-    "Get n synth control values starting at a given control name or index.")
   (node-map-controls    [this & names-busses]
     "Connect a node's controls to a control bus.")
   (node-map-n-controls  [this start-control start-bus n]
@@ -230,7 +226,7 @@
         (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
         node-id))
 
-(defn node-get-control*
+(defn node-get-control
   "Get one or more synth control values by name.  Returns a map of key/value pairs, 
   for example:
 
@@ -251,7 +247,7 @@
   (let [node-id (to-synth-id node)]
     (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals)))
 
-(defn node-get-control-range*
+(defn node-get-control-range
   "Get a range of n controls starting at a given name or index.  Returns a
   vector of values."
   [node name-index n]
@@ -328,9 +324,7 @@
 
   IControllableNode
   {:node-control           node-control*
-   :node-get-control       node-get-control*
    :node-control-range     node-control-range*
-   :node-get-control-range node-get-control-range*
    :node-map-controls      node-map-controls*
    :node-map-n-controls    node-map-n-controls*})
 
@@ -342,18 +336,14 @@
    :node-place node-place*}
 
   {:node-control           node-control*
-   :node-get-control       node-get-control*
    :node-control-range     node-control-range*
-   :node-get-control-range node-get-control-range*
    :node-map-controls      node-map-controls*
    :node-map-n-controls    node-map-n-controls*})
 
 (extend SynthGroup
   IControllableNode
   {:node-control           node-control*
-   :node-get-control       node-get-control*
    :node-control-range     node-control-range*
-   :node-get-control-range node-get-control-range*
    :node-map-controls      node-map-controls*
    :node-map-n-controls    node-map-n-controls*})
 

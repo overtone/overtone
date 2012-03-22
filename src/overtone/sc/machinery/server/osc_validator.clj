@@ -156,7 +156,7 @@
 
    ;;Synth Commands
    "/s_new"              [:synthdef-name :synth-id :zero-to-four :node-id :ALTERNATING-ctl-handle-THEN-ctl-val*]
-   "/s_get"              [:synth-id :ctl-handle]
+   "/s_get"              [:synth-id :ctl-handle*]
    "/s_getn"             [:synth-id :ctl-handle :count]
    "/s_noid"             [:synth-id]
 

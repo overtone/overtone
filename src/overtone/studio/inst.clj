@@ -167,9 +167,7 @@
 
   IControllableNode
   {:node-control           node-control*
-   :node-get-control       node-get-control*
    :node-control-range     node-control-range*
-   :node-get-control-range node-get-control-range*
    :node-map-controls      node-map-controls*
    :node-map-n-controls    node-map-n-controls*}
 
