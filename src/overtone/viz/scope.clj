@@ -289,10 +289,11 @@
 
 (on-deps #{:synthdefs-loaded :scope-group-created} ::reset-scopes #(when (internal-server?)
                                                                      (reset-scopes)))
-(on-sync-event :shutdown #(when (internal-server?)
-                            (scopes-stop)
-                            (dorun
-                             (map (fn [s] scope-close s) @scopes*)))
+(on-sync-event :shutdown (fn [event-info]
+                           (when (internal-server?)
+                             (scopes-stop)
+                             (dorun
+                              (map (fn [s] scope-close s) @scopes*))))
                ::stop-scopes)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

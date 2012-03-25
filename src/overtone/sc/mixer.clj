@@ -89,8 +89,9 @@
      (ref-set bus-mixers* {:in in-mixers :out out-mixers}))))
 
 (on-deps [:core-groups-created :synthdefs-loaded] ::start-bus-mixers start-mixers)
-(on-sync-event :shutdown ::reset-bus-mixers #(dosync
-                                              (ref-set bus-mixers* {:in [] :out []})))
+(on-sync-event :shutdown ::reset-bus-mixers (fn [event-info]
+                                              (dosync
+                                               (ref-set bus-mixers* {:in [] :out []}))))
 
 (defn volume
   "Set the volume on the master mixer. When called with no params, retrieves the

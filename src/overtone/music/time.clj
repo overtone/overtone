@@ -36,8 +36,8 @@
 ;;Ensure all scheduled player fns are stopped when Overtone is reset
 ;;(typically triggered by a call to stop)
 (on-sync-event :reset
-               #(at-at/stop-and-reset-pool! :pool player-pool
-                                            :strategy :kill)
+               (fn [event-info] (at-at/stop-and-reset-pool! :pool player-pool
+                                                           :strategy :kill))
                ::player-reset)
 
 (defn stop-player

@@ -60,7 +60,7 @@
 ;; TODO: re-create the instrument groups
 (defn reset-inst-groups
   "Frees all synth notes for each of the current instruments"
-  []
+  [event-info]
   (doseq [[name inst] @instruments*]
     (group-clear (:instance-group inst))))
 
@@ -78,4 +78,3 @@
 
 (defn clear-instruments []
   (dosync (ref-set instruments* {})))
-

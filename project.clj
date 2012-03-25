@@ -9,6 +9,7 @@
                  [overtone/osc-clj "0.7.1"]
                  [overtone/byte-spec "0.3.1"]
                  [overtone/midi-clj "0.2.1"]
+                 [overtone/libs.handlers "0.1.0"]
                  [clj-glob "1.0.0"]
                  [org.clojure/core.match "0.2.0-alpha6"]
                  [seesaw "1.4.0"]]

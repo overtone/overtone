@@ -156,10 +156,10 @@
       (log/warning (format "ERROR: node-started can't find synth node: %d" id)))))
 
 ; Setup the feedback handlers with the audio server.
-(on-event "/n_end" #(node-destroyed (first (:args %))) ::node-destroyer)
-(on-event "/n_go"  #(node-created   (first (:args %))) ::node-creator)
-(on-event "/n_off" #(node-paused    (first (:args %))) ::node-pauser)
-(on-event "/n_on"  #(node-started   (first (:args %))) ::node-starter)
+(on-event "/n_end" (fn [info] (node-destroyed (first (:args info)))) ::node-destroyer)
+(on-event "/n_go"  (fn [info] (node-created   (first (:args info)))) ::node-creator)
+(on-event "/n_off" (fn [info] (node-paused    (first (:args info)))) ::node-pauser)
+(on-event "/n_on"  (fn [info] (node-started   (first (:args info)))) ::node-starter)
 
 ;; ### Group
 ;;
@@ -227,7 +227,7 @@
         node-id))
 
 (defn node-get-control
-  "Get one or more synth control values by name.  Returns a map of key/value pairs, 
+  "Get one or more synth control values by name.  Returns a map of key/value pairs,
   for example:
 
     {:freq 440.0 :attack 0.2}
@@ -497,7 +497,7 @@
                                                      (ref-set synth-group* (group :head (root-group)))))
 
 (on-sync-event :reset
-  (fn []
+  (fn [event-info]
     (clear-msg-queue)
     (group-clear @synth-group*)) ; clear the synth group
   ::reset-base)
@@ -505,7 +505,7 @@
 (defn- clear-msg-queue-and-groups
   "Clear message queue and groups. Catches exceptions in case the server
   has died. Meant for use in a :shutdown callback"
-  []
+  [event-info]
   (try
     (clear-msg-queue)
     (group-clear 0)
