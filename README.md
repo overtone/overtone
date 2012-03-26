@@ -25,8 +25,8 @@ Overtone is an Open Source toolkit for creating synthesizers and making music.  
 
 * A Clojure API to the SuperCollider synthesis engine
 * A growing library of musical functions (scales, chords, rhythms, arpeggiators, etc.)
-* Metronome and timing system to support live-coding and sequencing
-* Plug and play midi device I/O
+* Metronome and timing system to support live-programming and sequencing
+* Plug and play MIDI device I/O
 * Simple Open Sound Control (OSC) message handling
 * Pre-cache - a system for locally caching external assets such as .wav files
 * An API for querying and fetching sounds from http://freesound.org
