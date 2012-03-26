@@ -59,6 +59,22 @@
     (let [tempset (for [exponent (range initpower finpower)] (expt generator exponent))]
         (sort (map #(collapse-to-ntave % ntave) tempset))))
 
+(defn parsemodifiers
+    "Parses standard modifiers b, #, es, eh, ih and is for note names. Returns shifts where 1 is equivalent to a semitone.
+
+    Please note that this function fails spectacularly when asked to parse anything but standard Western and Arabic music. That is, anything that doesn't equate sharp and tone + flat, or halfsharp and semitone + halfflat."
+    [modifiers]
+    (let [matches (map first (concat (re-seq #"([ie][sh])" modifiers) (re-seq #"([b#])" modifiers)))]
+        (+
+            (- (count (filter #(= "b" %) matches)))
+            (- (count (filter #(= "es" %) matches)))
+            (* -0.5 (count (filter #(= "eh" %) matches)))
+            (* 0.5 (count (filter #(= "ih" %) matches)))
+            (count (filter #(= "is" %) matches))
+            (count (filter #(= "#" %) matches)))))
+
+(def lilypondpattern (re-pattern "([a-gA-G])([#bB(is)(ih)(es)(eh)]*)([-0-9]+)"))
+
 
 ;; Public Face - the tuning multimethods.
 
@@ -71,7 +87,9 @@
 
     A note keyword is usually of the form :[notename][pitchmodifiers][ntave], for example, :A4, :cb6 or :Bbb0, however this is entirely dependent on the kind of scale.
 
-    TunedNotes functions should ideally return nonmatching symbols or numbers unmodified. Particularly numbers, which could be note numbers."
+    Tunednotes functions should ideally return nonmatching symbols or numbers unmodified. Particularly numbers, which could be note numbers.
+
+    When using keywords of the form :c[modifier]0, :c0 should be mapped to [initial]. This is purely arbitrary, but it makes me feel good in my happy place. Convention over configuration, bitchez."
     list-flatten-first)
 
 (defmulti reversenotes
@@ -106,22 +124,22 @@
     "Returns a function that resolves notes to MIDI number format. Resolves upper and lower-case keywords and strings in MIDI note format. If given a string or keyword in a different format, throws an exception. Anything else is returned unmodified.
 
      Usage examples:
-     (note :F#7)    ;=> 102
-     (note :db5)    ;=> 73"
+     ((tunednotes :midi) :F#7)    ;=> 102
+     ((tunednotes :midi) :db5)    ;=> 73"
     (fn [n]
         (if (or (keyword? n) (string? n))
             (let [match (re-find (re-pattern "([a-gA-G])([#bB]*)([-0-9]+)") (name n))
                   _ (when (nil? match)
                         (throw (IllegalArgumentException.
                             (str "Unable to resolve note: " n ". Does not appear to be in MIDI format i.e. C#4"))))
-                  [_ pitchclass modifier octavestr] match
+                  [_ pitchclass modifiers octavestr] match
+                  shift (parsemodifiers modifiers)
                   octave (Integer. octavestr)
                   _ (when (< octave -1)
                         (throw (IllegalArgumentException.
                             (str "Unable to resolve note: " n ". Octave is out of range. Lowest octave value for midi is -1"))))]
                 (+ (get {"c"  0, "d"  2, "e"  4, "f"  5, "g"  7, "a"  9, "b"  11} (clojure.string/lower-case pitchclass))
-                   (- (count (filter #(= \b %) modifier)))
-                   (count (filter #(= \# %) modifier))
+                   (int (floor shift))
                    (* 12 octave)
                    12))
             n)))
@@ -141,27 +159,36 @@
 (defmethod tunednotes :default [_]
     (tunednotes :midi))
 
-(defn parsemodifiers
-    "Parses standard modifiers b, #, es, eh, ih and is for note names. Returns shifts where 1 is equivalent to a semitone."
-    [modifiers]
-    (let [matches (map first (concat (re-seq #"([ie][sh])" modifiers) (re-seq #"([b#])" modifiers)))]
-        (+
-            (- (count (filter #(= "b" %) matches)))
-            (- (count (filter #(= "es" %) matches)))
-            (* -0.5 (count (filter #(= "eh" %) matches)))
-            (* 0.5 (count (filter #(= "ih" %) matches)))
-            (count (filter #(= "is" %) matches))
-            (count (filter #(= "#" %) matches)))))
-
 
 ;; Some other tuning systems
 
 (defmethod perfn :arabic [[symb initial freq]]
     (perfn (list :edo 24 initial freq)))
 
+(defmethod tunednotes :arabic [[symb initial _]]
+    (fn [n]
+        (if (or (keyword? n) (string? n))
+            (let [match (re-find lilypondpattern (name n))
+                  _ (when (nil? match)
+                    (throw (IllegalArgumentException.
+                               (str "Unable to resolve note: " n ". Does not appear to be in Arabic format i.e. C#4"))))
+                  [_ pitchclass modifiers octavestr] match
+                  shift (parsemodifiers modifiers)
+                  octave (Integer. octavestr)]
+                (int (+ (* 2 (get {"c"  0, "d"  2, "e"  4, "f"  5, "g"  7, "a"  9, "b"  11} (clojure.string/lower-case pitchclass)))
+                        (* 2 shift)
+                        (* 24 octave)
+                        initial)))
+            n)))
+
+(defmethod reversenotes :arabic [[symb initial _]]
+    (fn [n]
+        (let [note (- n initial)
+              degree (rem note 24)
+              octave (floor (/ note 24))]
+            (keyword (str (nth '("c" "cih" "c#" "deh" "d" "dih" "d#" "eeh" "e" "eih" "f" "fih" "f#" "geh" "g" "gih" "g#" "aeh" "a" "aih" "a#" "beh" "b" "ceh") degree) octave)))))
+
 (defmethod perfn :qcmeantone [[symb initial freq]]
     (fn [note]
         (perfmap note initial freq (note-set-from-generator (expt 5 1/4) -5 7 2))))
-
-
 
