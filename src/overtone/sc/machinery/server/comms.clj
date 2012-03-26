@@ -13,8 +13,7 @@
 (on-sync-event :osc-msg-received
                (fn [{{path :path args :args} :msg}]
                  (when @osc-debug*
-                   (println "Receiving: " path args)
-                   (log/debug (str "Receiving: " path args)))
+                   (println "Receiving: " path args))
                  (event path :path path :args args))
                ::osc-receiver)
 
@@ -42,9 +41,9 @@
   (server-snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
   (let [args (massage-numerical-args args)]
+    (log/debug (str "Sending: " path ", args: " (doall args)))
     (when @osc-debug*
-      (println "Sending: " path args)
-      (log/debug (str "Sending: " path args)))
+      (println "Sending: " path args))
     (apply validated-snd @server-osc-peer* path args)))
 
 (defn on-server-sync

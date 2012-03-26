@@ -84,7 +84,7 @@
   (event ::my-event)
   (event ::filter-sweep-done :instrument :phat-bass)"
   [event-type & args]
-  (log/debug "event: " event-type args)
+  (log/debug "event: " event-type " " args)
   (binding [overtone.libs.handlers/*log-fn* log/error]
     (apply handlers/event handler-pool event-type args)))
 

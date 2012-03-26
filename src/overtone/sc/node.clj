@@ -123,8 +123,7 @@
   "Frees up a synth node to keep in sync with the server."
   [id]
   (let [snode (get @active-synth-nodes* id)]
-    ;(log/info (format "node-destroyed: %d\nsynth-node: %s" id snode))
-    (free-id :node id 1 #(log/debug (format "node-destroyed: %d" id)))
+    (free-id :node id 1 #(log/debug (format "node-destroyed: %d - synth-node: %s" id snode)))
     (if snode
       (reset! (:status snode) :destroyed)
       (log/warning (format "ERROR: The fn node-destroyed can't find synth node: %d" id)))
@@ -134,7 +133,7 @@
   "Called when a node is created on the synth."
   [id]
   (let [snode (get @active-synth-nodes* id)]
-    ;(log/info (format "node-created: %d\nsynth-node: %s" id snode))
+    (log/debug (format "node-created: %d\nsynth-node: %s" id snode))
     (if snode
       (reset! (:status snode) :live)
       (log/warning (format "ERROR: The fn node-created can't find synth node: %d" id)))))
@@ -143,6 +142,7 @@
   "Called when a node is turned off, but not deallocated."
   [id]
   (let [snode (get @active-synth-nodes* id)]
+    (log/debug (format "node-paused: %d\nsynth-node: %s" id snode))
     (if snode
       (reset! (:status snode) :paused)
       (log/warning (format "ERROR: The fn node-paused can't find synth node: %d" id)))))
@@ -151,6 +151,7 @@
   "Called whena a node is turned on."
   [id]
   (let [snode (get @active-synth-nodes* id)]
+    (log/debug (format "node-started: %d\nsynth-node: %s" id snode))
     (if snode
       (reset! (:status snode) :running)
       (log/warning (format "ERROR: The fn node-started can't find synth node: %d" id)))))
