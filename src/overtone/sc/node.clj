@@ -127,7 +127,7 @@
     (free-id :node id 1 #(log/debug (format "node-destroyed: %d" id)))
     (if snode
       (reset! (:status snode) :destroyed)
-      (log/warning (format "ERROR: node-destroyed can't find synth node: %d" id)))
+      (log/warning (format "ERROR: The fn node-destroyed can't find synth node: %d" id)))
     (swap! active-synth-nodes* dissoc id)))
 
 (defn- node-created
@@ -137,7 +137,7 @@
     ;(log/info (format "node-created: %d\nsynth-node: %s" id snode))
     (if snode
       (reset! (:status snode) :live)
-      (log/warning (format "ERROR: node-created can't find synth node: %d" id)))))
+      (log/warning (format "ERROR: The fn node-created can't find synth node: %d" id)))))
 
 (defn- node-paused
   "Called when a node is turned off, but not deallocated."
@@ -145,7 +145,7 @@
   (let [snode (get @active-synth-nodes* id)]
     (if snode
       (reset! (:status snode) :paused)
-      (log/warning (format "ERROR: node-paused can't find synth node: %d" id)))))
+      (log/warning (format "ERROR: The fn node-paused can't find synth node: %d" id)))))
 
 (defn- node-started
   "Called whena a node is turned on."
@@ -153,7 +153,7 @@
   (let [snode (get @active-synth-nodes* id)]
     (if snode
       (reset! (:status snode) :running)
-      (log/warning (format "ERROR: node-started can't find synth node: %d" id)))))
+      (log/warning (format "ERROR: The fn node-started can't find synth node: %d" id)))))
 
 ; Setup the feedback handlers with the audio server.
 (on-event "/n_end" (fn [info] (node-destroyed (first (:args info)))) ::node-destroyer)
