@@ -57,7 +57,7 @@
               (fn [msg] (when (= id (first (:args msg)))
                          (do
                            (handler-fn)
-                           :done)))
+                           :overtone/remove-handler)))
               key)
 
     (let [res (action-fn)]
@@ -86,7 +86,7 @@
               (fn [msg] (when (= id (first (:args msg)))
                          (do
                            (deliver prom true)
-                           :done)))
+                           :overtone/remove-handler)))
               key)
     (let [res (action-fn id)]
       (deref! prom)
@@ -103,7 +103,7 @@
               (fn [msg] (when (= id (first (:args msg)))
                          (do
                            (deliver prom true)
-                           :done)))
+                           :overtone/remove-handler)))
               key)
     (let [res (action-fn)]
       (server-snd "/sync" id)
@@ -128,6 +128,6 @@
                         (when (or (nil? matcher-fn)
                                   (matcher-fn info))
                           (deliver p info)
-                          :done))
+                          :overtone/remove-handler))
                       key)
     p)))

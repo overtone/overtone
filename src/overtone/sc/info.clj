@@ -54,7 +54,7 @@
                             :num-audio-buses (long nab)
                             :num-buffers (long nb)
                             :num-running-synths (long nrs)})
-                  :done))
+                  :overtone/remove-handler))
               ::server-info)
     (let [synth-id (snd-server-info)
           res (deref! prom)]

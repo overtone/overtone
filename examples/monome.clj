@@ -47,7 +47,7 @@
       (on "/n_end" (fn [msg]
                      (if (= id (first (:args msg)))
                        (mono/led-off m x y))
-                     :done)))))
+                     :overtone/remove-handler)))))
 
 (def loops
  [[1 0 0 0 1 0 0 0]

@@ -141,7 +141,7 @@
         args (:args smpl)
         buf  (get @loaded-samples* [path args])]
     (free-loaded-sample [[path args] buf])
-    :done))
+    :overtone/remove-handler))
 
 (defn sample-player
   [smpl & pargs]
