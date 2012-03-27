@@ -82,7 +82,7 @@
 ;; status.reply messsage, which it should have had in the first place.
 (defn- setup-connect-handlers []
   (let [handler-fn
-        (fn []
+        (fn [event-info]
           (dosync
            (ref-set connection-status* :connected))
           (server-notifications-on) ; turn on notifications now that we can communicate

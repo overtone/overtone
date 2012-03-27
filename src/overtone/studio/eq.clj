@@ -1,7 +1,7 @@
 (ns overtone.studio.eq
   ^{:doc "Audio equalizer effect synths."
     :author "Jeff Rose"}
-  (:use [overtone.sc gens envelope synth]))
+  (:use [overtone.sc ugens envelope synth]))
 
 (defsynth eq-3
   [bus 0

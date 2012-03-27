@@ -1,5 +1,5 @@
 (ns overtone.inst.sampler
-  (:use [overtone.sc synth envelope gens]
+  (:use [overtone.sc synth envelope ugens]
         [overtone.music pitch]))
 
 ; TODO: Implement in native synthdefs a more full featured sampler

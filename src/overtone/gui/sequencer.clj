@@ -1,15 +1,16 @@
 (ns overtone.gui.sequencer
   (:use [overtone.sc server]
         [overtone.music time]
+        [overtone.gui spinner-label]
         [overtone.gui.control :only [synth-controller]]
         [seesaw core]
         [seesaw.color :only [color]]
-        [seesaw.graphics :only [style update-style draw rounded-rect line]]
-        [seesaw.mig :only [mig-panel]])
+        [seesaw.graphics :only [style update-style draw rect rounded-rect line]]
+        [seesaw.mig :only [mig-panel]]
+        [seesaw.border :only [line-border]])
   (:require [seesaw.bind :as bind]))
 
-(defn- make-initial-state
-  [metro steps instruments init-vals]
+(defn- make-initial-state [metro steps instruments init-vals]
   {:playing?  false
    :metronome metro
    :steps     steps
@@ -19,93 +20,43 @@
                   (let [i-vals (or (get init-vals (:name i))
                                    (vec (repeat steps false)))]
                     {:inst  i
-                     :param (-> i :params first :name)
-                     :mute  false
-                     :solo  false
                      :value i-vals})))
    })
 
-(def ^{:private true} NEW_ENTRY {:on true})
-
-(defn- toggle-playing
-  [state]
+(defn- toggle-playing [state]
   (update-in state [:playing?] not))
 
-(defn- get-entry
-  [state row col]
+(defn- get-entry [state row col]
   (get-in state [:rows row :value col]))
 
-(defn- set-entry
-  [state row col v]
+(defn- set-entry [state row col v]
   (if (< row (count (:rows state)))
     (assoc-in state [:rows row :value col] v)
     state))
 
-(defn- update-entry
-  [state row col v]
-  (if (< row (count (:rows state)))
-    (update-in state [:rows row :value col] merge NEW_ENTRY v)
+(defn- toggle-entry [state row col]
+  (update-in state [:rows row :value col] not))
+
+(defn- add-column-to-row [row]
+  (update-in row [:value] #(conj % false)))
+
+(defn- add-column [state]
+  (-> state
+      (update-in [:rows] #(vec (map add-column-to-row %)))
+      (update-in [:steps] inc)))
+
+(defn- remove-column-from-row [row]
+  (update-in row [:value] pop))
+
+(defn- remove-column [state]
+  (if (> (:steps state) 2)
+    (-> state
+      (update-in [:rows] #(vec (map remove-column-from-row %)))
+      (update-in [:steps] dec))
     state))
-
-(defn- mute-entry
-  [state row col]
-  (update-in state [:rows row :value col]
-             (fn [v]
-               (if (associative? v)
-                 (assoc-in v [:on] false)
-                 v))))
-
-(defn- toggle-entry
-  [state row col]
-  (update-in state [:rows row :value col]
-             (fn [v]
-               (if (associative? v)
-                 (update-in v [:on] not)
-                 NEW_ENTRY))))
-
-(defn- delete-entry
-  [state row col]
-  (set-entry state row col false))
-
-(defn- toggle-row-mute
-  [state row]
-  (update-in state [:rows row :mute] not))
-
-(defn- toggle-row-solo
-  [state row]
-  (update-in state [:rows row :solo] not))
-
-(defn- get-row-solo
-  [state row]
-  (get-in state [:rows row :solo]))
-
-(defn- get-row-param
-  [state row]
-  (get-in state [:rows row :param]))
-
-(defn- set-row-param
-  [state row val]
-  (assoc-in state [:rows row :param] val))
-
-(defn- get-param-info
-  [state row]
-  (let [p-name (get-row-param state row)]
-    (first (filter #(= (:name %) p-name)
-                 (get-in state [:rows row :inst :params])))))
 
 (defn- clear-row [state row]
   (assoc-in state [:rows row :value] (vec (repeat (:steps state) false))))
-
-(defn- play-step
-  [row index]
-  (let [{:keys [inst value]} row
-        step-val (nth value index)]
-
-    (when (:on step-val)
-      (apply inst (-> step-val
-                      (dissoc :on)
-                      seq
-                      flatten)))))
 
 (defn- step-player
   [state-atom beat]
@@ -118,9 +69,9 @@
 
         (swap! state-atom assoc-in [:step] index)
 
-        (doseq [row (:rows state)]
-          (when-not (:mute row)
-            (at (metro beat) (play-step row index))))
+        (doseq [{:keys [inst value]} (:rows state)]
+          (when (value index)
+            (at (metro beat) (inst))))
 
         (apply-at (metro next-beat) #'step-player
                   [state-atom next-beat])))))
@@ -146,21 +97,7 @@
     :background (color 128 128 224 200)
     :foreground (color 0 150 0)))
 
-(defn- scaled-entry-style
-  [n]
-  (let [g (int (+ (* n 200) 55))
-        bg (color 0 g 0 200)]
-    (update-style enabled-entry-style :background bg)))
-
-(defn- get-param-factor
-  [p-info val]
-  (let [{:keys [max min name default]} p-info
-        p-val (or ((keyword name) val)
-                  default)]
-    (double (/ (- p-val min) (- max min)))))
-
-(defn- paint-grid
-  [state ^javax.swing.JComponent c g]
+(defn- paint-grid [state ^javax.swing.JComponent c g]
   (let [w    (width c)
         h    (height c)
         rows (count (:rows state))
@@ -172,30 +109,16 @@
       (let [x (* step dx)]
         (draw g (rounded-rect x 0 dx h) current-step-style)))
     (dotimes [r rows]
-      (let [y (* r dy)
-            p (get-param-info state r)]
+      (let [y (* r dy)]
         (draw g (line 0 y w y) grid-line-style)
         (dotimes [c cols]
           (let [x (* c dx)]
             (draw g (line x 0 x h) grid-line-style)
-            (when-let [val (get-entry state r c)]
-              (let [paint-cell
-                    #(draw g
-                           (rounded-rect (+ x 2) (+ y 2) (- dx 3) (- dy 3) 3 3)
-                           %)]
-                (if (:on val)
-                  (let [p-fact (get-param-factor p val)]
-                    (paint-cell (scaled-entry-style p-fact)))
-                  (paint-cell muted-entry-style))))))))))
-
-(defn- scaled-param-map
-  [state row val]
-  (let [{:keys [max min name]} (get-param-info state row)
-        p-name (keyword name)
-        p-val (-> val
-                (* (- max min))
-                (+ min))]
-    {p-name p-val}))
+            (when (get-entry state r c)
+              (draw g
+                    (rounded-rect (+ x 2) (+ y 2) (- dx 4) (- dy 4) 8 8)
+                    enabled-entry-style))))))
+    (draw g (rect 0 0 (dec w) (dec h)) grid-line-style)))
 
 (defn- parse-grid-click
   [state e]
@@ -207,61 +130,24 @@
         r-size (/ (height grid) n-rows)
         c-size (/ (width  grid) n-cols)
         r      (int (/ y r-size))
-        c      (int (/ x c-size))
-        r-top  (* r-size r)
-        r-btm  (+ r-top r-size)
-        y-val  (-> y (max r-top) (min r-btm) (- r-top))
-        y-val  (- 1 (double (/ y-val r-size)))
-        param  (scaled-param-map state r y-val)]
-    {:row r :col c :r-size r-size :c-size c-size :y-val y-val :param param}))
+        c      (int (/ x c-size))]
+    { :row r :col c }))
 
-(defn- on-grid-clicked
-  [state e]
-  (let [{:keys [row col param]} (parse-grid-click state e)
-        new-state (cond (.isControlDown e) (delete-entry state row col)
-                        (.isAltDown e)     (update-entry state row col param)
-                        :else (toggle-entry state row col))]
+(defn- on-grid-clicked [state e]
+  (let [{:keys [row col]} (parse-grid-click state e)
+        new-state (toggle-entry state row col)]
 
     ;;when they enable a cell, play the sample.
-    (when (not (:playing? new-state))
-      (let [row (get-in new-state [:rows row])]
-        (play-step row col)))
+    (when-not (:playing? new-state)
+      ((get-in new-state [:rows row :inst])))
 
     new-state))
 
-(defn- on-grid-drag
-  [state e]
-  (let [{:keys [row col r-size c-size y-val param]} (parse-grid-click state e)]
-    (cond (.isControlDown e) (delete-entry state row col)
-          (.isShiftDown e)   (mute-entry state row col)
-          (.isAltDown e)     (update-entry state row col param)
-          :else              (update-entry state row col {}))))
+(defn- on-grid-drag [state e]
+  (let [{:keys [row col]} (parse-grid-click state e)]
+    (set-entry state row col (not (.isShiftDown e)))))
 
-(defn- inst->index
-  [rows inst]
-  (first (keep-indexed
-          (fn [index item]
-            (when (= inst (:inst item))
-              index))
-          rows)))
-
-(defn- on-param-selection
-  [state inst e]
-  (let [r (inst->index (:rows state) inst)]
-    (set-row-param state r (selection e))))
-
-(defn- on-mute-toggle
-  [state inst e]
-  (let [r (inst->index (:rows state) inst)]
-    (toggle-row-mute state r)))
-
-(defn- on-solo-toggle
-  [state inst e]
-  (let [r (inst->index (:rows state) inst)]
-    (toggle-row-solo state r)))
-
-(defn- step-grid
-  [state-atom]
+(defn- step-grid [state-atom]
   (let [state @state-atom
 
         c (canvas :background :darkgrey
@@ -277,54 +163,28 @@
 (defn- inst-button
   [inst]
   (button :text (:name inst)
-          :listen [:action (fn [e] (synth-controller inst))]))
-
-(defn- inst-param
-  [inst]
-  (combobox :model (map :name (:params inst))
-            :class :param))
-
-(defn- inst-mute
-  [inst]
-  (toggle :text "Mute" :class :mute))
-
-(defn- inst-solo
-  [inst]
-  (toggle :text "Solo" :class :solo))
+          :listen [:action (fn [_] (synth-controller inst))]))
 
 (defn- inst-panel
   [state-atom inst]
-  (let [panel (mig-panel :constraints ["wrap 2"
-                                       "grow"]
-                         :items [[(inst-button inst) "span, growx"]
-                                 [(inst-param  inst) "span, growx"]
-                                 [(inst-mute   inst) "growx"]
-                                 [(inst-solo   inst) "growx"]])]
-    (listen (select panel [:.param])
-            :selection #(swap! state-atom on-param-selection inst %))
-    (listen (select panel [:.mute])
-            :selection #(swap! state-atom on-mute-toggle inst %))
-    (listen (select panel [:.solo])
-            :selection #(swap! state-atom on-solo-toggle inst %))
-
-    panel))
+  (inst-button inst))
 
 (defn step-sequencer
   [metro steps instruments & [init-vals]]
   (invoke-now
     (let [state-atom   (atom (make-initial-state metro steps instruments init-vals))
-          play-btn     (button :text "play")
-          bpm-spinner  (spinner :model (spinner-model (metro :bpm) :from 1 :to 10000 :by 1)
-                                :maximum-size [60 :by 100])
-          controls-btn (button :text "controls")
+          play-btn     (button :text "Play")
+          bpm-spinner  (spinner-label :class :sequencer-bpm-spinner
+                                      :halign :center
+                                      :border (line-border :thickness 1 :color :darkgrey)
+                                      :maximum-size [60 :by 100]
+                                      :model (spinner-model (metro :bpm) :from 1 :to 10000 :by 1))
+          controls-btn (button :text "Controls" :tip "Show controls for all insts")
+          plus-btn     (button :text "+" :tip "Add a column")
+          minus-btn    (button :text "-" :tip "Remove a column")
           control-pane (toolbar :floatable? false
-                                :items [play-btn
-                                        :separator
-                                        bpm-spinner
-                                        [:fill-h 5]
-                                        "bpm"
-                                        :separator
-                                        controls-btn])
+                                :items [play-btn    [:fill-h 5]
+                                        bpm-spinner [:fill-h 5] "bpm"])
           grid         (step-grid state-atom)
           inst-panels  (map (partial inst-panel state-atom)
                             instruments)
@@ -334,14 +194,13 @@
                                :north control-pane
                                :west (grid-panel :columns 1
                                                  :items inst-panels)
-                               :center grid)
+                               :center grid
+                               :south (toolbar :floatable? false
+                                        :items [controls-btn :fill-h plus-btn minus-btn]))
                    :on-close :dispose)]
 
       (bind/bind bpm-spinner (bind/b-do [v] (metro :bpm v)))
       (bind/bind state-atom (bind/b-do [v] (repaint! grid)))
-
-      (swap! state-atom assoc-in [:solo-bg]
-             (button-group :buttons (select f [:.solo])))
 
       (listen play-btn :action
               (fn [e]
@@ -349,7 +208,8 @@
                   (config! play-btn :text (if playing? "stop" "play"))
                   (if playing?
                     (step-player state-atom (metro))))))
-
+      (listen plus-btn :action (fn [_] (swap! state-atom add-column)))
+      (listen minus-btn :action (fn [_] (swap! state-atom remove-column)))
       (listen controls-btn :action
               (fn [e]
                 (apply synth-controller instruments)))
@@ -371,5 +231,4 @@
       (use 'overtone.gui.control)
       (use 'overtone.inst.drum)
       (def m (metronome 128))
-      (step-sequencer m 8 [kick closed-hat snare]))
-  )
+      (step-sequencer m 8 [kick closed-hat snare])))

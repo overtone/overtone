@@ -23,6 +23,12 @@
    (false? val)  (float 0)
    :else val))
 
+(defn to-keyword
+  [val]
+  (if (string? val)
+    (keyword val)
+    val))
+
 (defn floatify-truth
   "Convert truth values to 0 or 1 using most of the standard Clojure truth
   semantics:  everything that's not nil or false is 1 otherwise 0. The exception
@@ -48,6 +54,10 @@
   [col]
   (map to-float col))
 
+(defn keywordify
+  "Convert all strings to keywords."
+  [col]
+  (map to-keyword col))
 
 ; Now available in recent Clojure versions as of Nov. 29, 2009...
 ;(defn byte-array [len]
@@ -109,6 +119,25 @@
                         "Callable Map"))
        (withMeta   [new-metadata] (callable-map m fun new-metadata))
        (meta       [] metadata))))
+
+(defmacro defrecord-ifn
+  "A helper macro for creating callable records with a var-args function.
+  It generates all arities of invoke, calling the function.  Besides generating
+  the clojure.lang.IFn implementation, you can declare any other implementations
+  as you would normally with defrecord."
+  [rec-name fields invoke_fn & body]
+  `(defrecord ~rec-name ~fields
+     ~@body
+     clojure.lang.IFn
+     ~@(map (fn [n]
+              (let [args (for [i (range n)] (symbol (str "arg" i)))]
+                (if (empty? args)
+                  `(~'invoke [this#]
+                           (~invoke_fn this#))
+                  `(~'invoke [this# ~@args]
+                           (~invoke_fn this# ~@args))))) (range 21))
+     (~'applyTo [this# args#]
+                (apply ~invoke_fn this# args#))))
 
 (defn- syms-to-keywords [coll]
   (map #(if (symbol? %)

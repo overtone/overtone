@@ -1,5 +1,5 @@
 (ns overtone.repl.inst
-  (:require [overtone.studio.mixer :as mixer]))
+  (:use [overtone.studio.inst :only (inst?)]))
 
 (defn ns-instruments
   "Returns a sequence of all the (public) instruments in the given
@@ -20,6 +20,6 @@
 
   "
   [ns]
-  (for [[n v] (ns-publics ns) :when (mixer/inst? @v)]
+  (for [[n v] (ns-publics ns) :when (inst? @v)]
     @v))
 

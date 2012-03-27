@@ -3,7 +3,7 @@
       :author "Sam Aaron"}
   overtone.sc.info
   (:use [overtone.libs event]
-        [overtone.sc synth gens node server]
+        [overtone.sc synth ugens node server]
         [overtone.util lib]))
 
 (defonce output-bus-count* (atom nil))
@@ -54,7 +54,7 @@
                             :num-audio-buses (long nab)
                             :num-buffers (long nb)
                             :num-running-synths (long nrs)})
-                  :done))
+                  :overtone/remove-handler))
               ::server-info)
     (let [synth-id (snd-server-info)
           res (deref! prom)]
@@ -110,9 +110,9 @@
     (let [info (server-info)]
       (reset! buffer-count*  (:num-buffers info)))))
 
-(on-sync-event :shutdown #(do
-                            (reset! output-bus-count* nil)
-                            (reset! input-bus-count* nil)
-                            (reset! audio-bus-count* nil)
-                            (reset! buffer-count* nil))
+(on-sync-event :shutdown (fn [event-info]
+                           (reset! output-bus-count* nil)
+                           (reset! input-bus-count* nil)
+                           (reset! audio-bus-count* nil)
+                           (reset! buffer-count* nil))
                ::reset-cached-server-info)

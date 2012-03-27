@@ -1,5 +1,5 @@
 (ns examples.dubstep
-  (:use [overtone.live]))
+  (:use [overtone.core]))
 
 ;; Dan Stowells' Dubstep Synth:
 ;; SClang version:

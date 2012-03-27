@@ -1,5 +1,5 @@
-(ns overtone.sc.machinery.cgens.audio-in
-  (:use [overtone.sc.machinery defcgen ugens]
+(ns overtone.sc.cgens.audio-in
+  (:use [overtone.sc defcgen ugens]
         [overtone.helpers seq]))
 
 (defcgen sound-in

@@ -230,25 +230,3 @@
   (ensure-connected!)
   (:input @core-groups*))
 
-(defn- setup-core-groups
-  []
-  (let [inpt-id (alloc-id :node)
-        root-id (alloc-id :node)
-        mixr-id (alloc-id :node)
-        mont-id (alloc-id :node)]
-    (with-server-sync #(snd "/g_new" inpt-id 0 0))
-    (with-server-sync #(snd "/g_new" root-id 3 inpt-id))
-    (with-server-sync #(snd "/g_new" mixr-id 3 root-id))
-    (with-server-sync #(snd "/g_new" mont-id 3 mixr-id))
-    (dosync
-     (alter core-groups* assoc :input inpt-id
-                               :root root-id
-                               :mixer mixr-id
-                               :monitor mont-id))
-    (satisfy-deps :core-groups-created)))
-
-(on-deps :server-connected ::setup-core-groups setup-core-groups)
-(on-sync-event :shutdown ::reset-core-groups #(dosync
-                                               (ref-set core-groups* {})))
-
-(on-deps [:server-connected :core-groups-created] ::signal-server-ready #(satisfy-deps :server-ready))

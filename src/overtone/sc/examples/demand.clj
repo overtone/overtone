@@ -1,6 +1,7 @@
 (ns overtone.sc.examples.demand
   (:use [overtone.sc.machinery defexample]
-        [overtone.sc gens]))
+        [overtone.sc ugens]
+        [overtone.sc.cgens demand]))
 
 (defexamples dibrown
   (:rand-walk

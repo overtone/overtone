@@ -1,28 +1,32 @@
-          _,,ddP"""Ybb,,_
-        ,dP"'         `"Yb
-      ,d"                 .gPPRg,
-     d"                  dP'   `Yb
-    d'                   8)     (8
-    8                    Yb     dP                        888
-    8                     "8ggg8"                         888
-    8                                                     888
-    Y,                       ,P 888  888  .d88b.  888d888 888888 .d88b.  88888b.   .d88b.
-     Ya                     aP  888  888 d8P  Y8b 888P"   888   d88""88b 888 "88b d8P  Y8b
-      "Ya                 aP"   Y88  88P 88888888 888     888   888  888 888  888 88888888
-        "Yb,_         _,dP"      Y8bd8P  Y8b.     888     Y88b. Y88..88P 888  888 Y8b.
-          `""YbbgggddP""'         Y88P    "Y8888  888      "Y888 "Y88P"  888  888  "Y8888
+                                                              888
+                                                              888
+             _ooooooooo._                                     888
+          ,o888PP""""PP88   .d88b.  888  888  .d88b.  888d888 888888 .d88b.  88888b.   .d88b.
+        d88P''          '  d88""88b 888  888 d8P  Y8b 888P"   888   d88""88b 888 "88b d8P  Y8b
+      ,88P                 88    88 Y88  88P 88888888 888     888   88    88 888  888 88888888
+     ,88                   Y88..88P  Y8bd8P  Y8b.     888     Y88b. Y88..88P 888  888 Y8b.
+    ,88'                    "Y88P"    Y88P    "Y8888  888      "Y888 "Y88P"  888  888  "Y8888
+    d8P
+    d8b                        88[
+    `88                       J88
+     Y8b                     ,88'
+      Y8b.                  d88'
+       `Y8b._            _o88P
+         `Y888oo.____ooo888P'
+            '"PP888888PP''
+
 
 
 # Programmable Music.
 
-## Live-coding & musical exploration
+## Live-programming & musical exploration
 
 Overtone is an Open Source toolkit for creating synthesizers and making music.  It provides:
 
 * A Clojure API to the SuperCollider synthesis engine
 * A growing library of musical functions (scales, chords, rhythms, arpeggiators, etc.)
-* Metronome and timing system to support live-coding and sequencing
-* Plug and play midi device I/O
+* Metronome and timing system to support live-programming and sequencing
+* Plug and play MIDI device I/O
 * Simple Open Sound Control (OSC) message handling
 * Pre-cache - a system for locally caching external assets such as .wav files
 * An API for querying and fetching sounds from http://freesound.org

@@ -38,7 +38,7 @@
        :assets assets}))
 
 (def OVERTONE-CONFIG-FILE (str (:root OVERTONE-DIRS) "/config.clj"))
-(def OVERTONE-LOG-FILE (str (:log OVERTONE-DIRS) "/log.log"))
+(def OVERTONE-LOG-FILE (str (:log OVERTONE-DIRS) "/overtone.log"))
 
 (defn- ensure-dir-structure
   []

@@ -1,5 +1,5 @@
-(ns overtone.sc.machinery.cgens.env
-  (:use [overtone.sc.machinery defcgen ugens]))
+(ns overtone.sc.cgens.env
+  (:use [overtone.sc defcgen ugens]))
 
 (defcgen hold
   "Hold an input source for a set period of time and then stop."

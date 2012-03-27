@@ -87,7 +87,7 @@
     (audio-bus)))
 
 (defn reset-busses
-  []
+  [event-info]
   nil)
 
 ;(on-sync-event :reset reset-busses ::reset-busses)

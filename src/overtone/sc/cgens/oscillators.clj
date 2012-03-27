@@ -1,5 +1,5 @@
-(ns overtone.sc.machinery.cgens.oscillators
-  (:use [overtone.sc.machinery defcgen ugens]))
+(ns overtone.sc.cgens.oscillators
+  (:use [overtone.sc defcgen ugens]))
 
 (defcgen pm-osc
   "Phase modulation sine oscillator pair."

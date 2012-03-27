@@ -4,7 +4,7 @@
   overtone.sc.mixer
   (:use [overtone.libs deps event]
         [overtone.helpers file]
-        [overtone.sc synth gens server info node buffer]
+        [overtone.sc synth ugens server info node buffer]
         [overtone.sc.machinery defaults]))
 
 (defonce master-vol*  (ref MASTER-VOL))
@@ -89,8 +89,9 @@
      (ref-set bus-mixers* {:in in-mixers :out out-mixers}))))
 
 (on-deps [:core-groups-created :synthdefs-loaded] ::start-bus-mixers start-mixers)
-(on-sync-event :shutdown ::reset-bus-mixers #(dosync
-                                              (ref-set bus-mixers* {:in [] :out []})))
+(on-sync-event :shutdown ::reset-bus-mixers (fn [event-info]
+                                              (dosync
+                                               (ref-set bus-mixers* {:in [] :out []}))))
 
 (defn volume
   "Set the volume on the master mixer. When called with no params, retrieves the
@@ -112,8 +113,9 @@
 (defonce recorder-info* (ref nil))
 
 (defn recording-start
-  "Start recording a wav file to a new file at wav-path. Be careful - may
-  generate very large files."
+  "Start recording a wav file to a new file at wav-path. Be careful -
+  may generate very large files. See buffer-stream for a list of
+  output options."
   [path & args]
   (if-let [info @recorder-info*]
     (throw (Exception. (str "Recording already taking place to: "

@@ -5,6 +5,7 @@
   (:use [overtone.util lib]
         [overtone.libs counters]
         [overtone.helpers seq]
+        [overtone.sc bindings]
         [overtone.sc.machinery.ugen sc-ugen defaults specs special-ops intern-ns]
         [overtone.sc.machinery.ugen.metadata unaryopugen binaryopugen])
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
@@ -70,9 +71,6 @@
           [greatest-count seqs] (reduce gc-seqs [1 [] expand-flags] args)]
       (take greatest-count (parallel-seqs seqs)))))
 
-(def ^{:dynamic true} *ugens* nil)
-(def ^{:dynamic true} *constants* nil)
-
 (defn mk-scugen
   "Create a SCUGen with the specified spec, rate, special and args"
   [spec rate special args]
@@ -87,11 +85,10 @@
             args
             (or (:num-outs spec) 1))
         ug (if (contains? spec :init) ((:init spec) ug) ug)]
-    (when (and *ugens* *constants*)
+     (when (and *ugens* *constants*)
       (set! *ugens* (conj *ugens* ug))
       (doseq [const (filter number? (:args ug))]
         (set! *constants* (conj *constants* const))))
-
     (if (> (:n-outputs ug) 1)
       (map-indexed (fn [idx _] (output-proxy ug idx)) (range (:n-outputs ug)))
       ug)))
@@ -386,17 +383,6 @@
 ;;ensure overloaded-ugens* is populated
 (defonce __intern-locally__ (intern-ugens (ugen-intern-ns)))
 
-(defmacro with-overloaded-ugens
-  "Bind symbols for all overloaded ugens (i.e. + - / etc.) to the overloaded fn
-  in the ns overtone.sc.ugen-colliders. These fns will revert back to original
-  (Clojure) semantics if not passed with ugen args. "
-  [& body]
-  (let [bindings (flatten (map (fn [[orig overload]]
-                                 [orig (symbol ugen-collide-ns-str (str overload))])
-                               @overloaded-ugens*))]
-    `(let [~@bindings]
-       ~@body)))
-
 (defn combined-specs
   "Return a combination of ugen specs and the auto-generated special-op specs."
   []
@@ -413,3 +399,16 @@
   [ug-name]
   (let [ug-name (normalize-ugen-name (str ug-name ))]
     (get (combined-specs) ug-name)))
+
+(defmacro with-ugen-meta
+  "Use to add metadata to ugens. The standard with-meta will not work
+  as some ugens in a synth are obtained by looking within the *ugens*
+  binding which is poplulated with a ugen before it is possible to
+  hook metadata on it. This macro provides a work-around for this
+  scenario."
+  [form metadata]
+  `(let [ugen#      ~form
+         ugen#      (with-meta ugen# ~metadata)
+         new-ugens# (vec (concat (butlast overtone.sc.bindings/*ugens*) [ugen#]))]
+     (set! overtone.sc.bindings/*ugens* new-ugens#)
+     ugen#))

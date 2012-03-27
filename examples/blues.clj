@@ -92,6 +92,6 @@
             (now)
             0.5))
 
-;;(blue-ks1)
-;;(blue-ks1-demo)
-;;(stop)
+;(blue-ks1)
+;(blue-ks1-demo)
+;(stop)

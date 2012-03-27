@@ -74,7 +74,7 @@
 (defn kicker [time sep]
   (let [tick (+ time sep)]
     (at time (kick))
-    (apply-at #'kicker tick tick sep)))
+    (apply-at tick #'kicker [tick sep])))
 
 (defn play-scale [time notes:vols sep]
   (let [next-tick (+ time sep)
@@ -86,7 +86,7 @@
       (at time (tb303 :note (- note 24) :vol vol :wave @wave :cutoff @cutoff* :r @r
                       :attack @attack :decay (+ 0.001 (* (rand-int 10) @decay*))
                       :sustain @sustain :release (* 10 @bass-release))))
-    (apply-at #'play-scale next-tick next-tick (next notes:vols) sep)))
+    (apply-at next-tick #'play-scale [next-tick (next notes:vols) sep])))
 
 (defn reich [tempo phase]
   (let [time (+ 400 (now))]
@@ -99,7 +99,7 @@
                 (cycle p:v)
                 (+ tempo phase))))
 
-;(tb3)
-;(reich 270 6)
+(tb303)
+(reich 270 6)
 
-;(stop)
+(stop)
