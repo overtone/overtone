@@ -12,8 +12,7 @@
         [overtone.sc.machinery synthdef]
         [overtone.sc bindings ugens server node]
         [overtone.helpers seq])
-  (:require [overtone.at-at :as at-at]
-            [overtone.util.log :as log]
+  (:require [overtone.util.log :as log]
             [clojure.set :as set]))
 
 ;; ### Synth
