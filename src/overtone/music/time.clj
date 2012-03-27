@@ -73,7 +73,7 @@
       (after-delay 0 #(apply f (#'clojure.core/spread args)))
       (after-delay delay-time #(apply f (#'clojure.core/spread args))))))
 
-(defn print-schedule
+(defn show-schedule
   "Print the schedule of currently running audio players."
   []
-  (at-at/print-schedule player-pool))
+  (at-at/show-schedule player-pool))
