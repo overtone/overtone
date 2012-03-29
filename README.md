@@ -17,11 +17,11 @@
 
 
 
-# Programmable Music.
+# Collaborative Programmable Music.
 
-## Live-programming & musical exploration
+## A Live-programmable music exploration & collaboration toolkit.
 
-Overtone is an Open Source toolkit for creating synthesizers and making music.  It provides:
+Overtone is an Open Source toolkit for designing synthesizers and collaborating with music.  It provides:
 
 * A Clojure API to the SuperCollider synthesis engine
 * A growing library of musical functions (scales, chords, rhythms, arpeggiators, etc.)
