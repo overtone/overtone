@@ -81,10 +81,11 @@
 
 ;; Sending a synth-id of -1 lets the server choose an ID
 (defn node
-  "Instantiate a synth node on the audio server.  Takes the synth name and a
-  map of argument name/value pairs.  Optionally use target <node/group-id>
-  and position <pos> to specify where the node should be located.  The
-  position can be one of :head, :tail :before, :after, or :replace.
+  "Instantiate a synth node on the audio server.  Takes the synth name
+  and a map of argument name/value pairs.  Optionally use target
+  <node/group-id> and position <pos> to specify where the node should
+  be located.  The position can be one
+  of :head, :tail :before, :after, or :replace.
 
   (node \"foo\")
   (node \"foo\" {:pitch 60})
@@ -112,9 +113,9 @@
 ;; n_end event when a synth node is destroyed.
 
 (defn node-free*
-  "Free the specified nodes on the server. The allocated id is subsequently
-  freed from the allocator via a callback fn listening for /n_end which will
-  call node-destroyed."
+  "Free the specified nodes on the server. The allocated id is
+  subsequently freed from the allocator via a callback fn listening
+  for /n_end which will call node-destroyed."
   [node]
   {:pre [(server-connected?)]}
   (snd "/n_free" (to-synth-id node)))
@@ -178,8 +179,8 @@
   (to-synth-id [_] id))
 
 (defn group
-  "Create a new synth group as a child of the target group. By default creates
-  a new group at the tail of the root group."
+  "Create a new synth group as a child of the target group. By default
+  creates a new group at the tail of the root group."
   ([] (group :tail (root-group)))
   ([position target] (group (alloc-id :node) position target))
   ([id position target]
@@ -228,11 +229,10 @@
         node-id))
 
 (defn node-get-control
-  "Get one or more synth control values by name.  Returns a map of key/value pairs,
-  for example:
+  "Get one or more synth control values by name.  Returns a map of
+  key/value pairs, for example:
 
-    {:freq 440.0 :attack 0.2}
-  "
+  {:freq 440.0 :attack 0.2}"
   [node & names]
   (let [res (recv "/n_set")
         _ (apply snd "/s_get" (to-synth-id node) (stringify names))
@@ -249,8 +249,8 @@
     (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals)))
 
 (defn node-get-control-range
-  "Get a range of n controls starting at a given name or index.  Returns a
-  vector of values."
+  "Get a range of n controls starting at a given name or index.
+  Returns a vector of values."
   [node name-index n]
   (let [res (recv "/n_setn")
         _ (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
@@ -283,9 +283,9 @@
     (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n)))
 
 (defn- group-post-tree*
-  "Posts a representation of this group's node subtree, i.e. all the groups and
-  synths contained within it, optionally including the current control values
-  for synths."
+  "Posts a representation of this group's node subtree, i.e. all the
+  groups and synths contained within it, optionally including the
+  current control values for synths."
   [id & [with-args?]]
   {:pre [(server-connected?)]}
   (snd "/g_dumpTree" id with-args?))
@@ -311,7 +311,8 @@
   :clear)
 
 (defn- group-deep-clear*
-  "Free all child synth nodes in and below this group in other child groups."
+  "Free all child synth nodes in and below this group in other child
+  groups."
   [group]
   (snd "/g_deepFree" (to-synth-id group))
   :clear)
@@ -356,8 +357,8 @@
 
 (defn kill
   "Free one or more synth nodes.
-  Functions that create instance of synth definitions, such as hit, return
-  a handle for the synth node that was created.
+  Functions that create instance of synth definitions, such as hit,
+  return a handle for the synth node that was created.
   (let [handle (hit :sin)] ; returns => synth-handle
   (kill (+ 1000 (now)) handle))
 
@@ -395,7 +396,7 @@
 ;
 ;	int - flag: if synth control values are included 1, else 0
 ;	int - node ID of the requested group
-;	int - number of child nodes contained within the requested group
+                                        ;	int - number of child nodes contained within the requested group
 ;	then for each node in the subtree:
 ;	[
 ;		int - node ID
@@ -447,8 +448,8 @@
       (parse-node-tree-helper ctls?))))
 
 (defn- group-node-tree*
-  "Returns a data structure representing the current arrangement of groups and
-  synthesizer instances residing on the audio server."
+  "Returns a data structure representing the current arrangement of
+  groups and synthesizer instances residing on the audio server."
   ([] (group-node-tree* 0))
   ([id & [ctls?]]
    (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
@@ -489,7 +490,8 @@
    :group-node-tree    group-node-tree*})
 
 (defn node-tree
-  "Returns a data representation of the synth node tree starting at the root group."
+  "Returns a data representation of the synth node tree starting at
+  the root group."
   []
   (group-node-tree 0))
 
@@ -504,8 +506,8 @@
   ::reset-base)
 
 (defn- clear-msg-queue-and-groups
-  "Clear message queue and groups. Catches exceptions in case the server
-  has died. Meant for use in a :shutdown callback"
+  "Clear message queue and groups. Catches exceptions in case the
+  server has died. Meant for use in a :shutdown callback"
   [event-info]
   (try
     (clear-msg-queue)
