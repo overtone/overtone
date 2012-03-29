@@ -37,17 +37,17 @@ Overtone is an Open Source toolkit for designing synthesizers and collaborating 
 ### Installation
 
 ```sh
-    # Install cake (or lein)
-    # http://clojure-cake.org/
+    # Install lein
+    # https://github.com/technomancy/leiningen
 
-    $ cake new insane-noises
+    $ lein new insane-noises
 
     # add the following dependencies to insane-noises/project.clj
     # [org.clojure/clojure "1.3.0"]
     # [overtone "0.6.0"]
 
     $ cd insane-noises
-    $ cake deps
+    $ lein deps
 ```
 
 ### Server Option A: Internal
@@ -56,7 +56,7 @@ Overtone is an Open Source toolkit for designing synthesizers and collaborating 
     # Linux users - start jackd
     # (see https://github.com/overtone/overtone/wiki/Installing-and-starting-jack)
 
-    $ cake repl
+    $ lein repl
 ```
 ```clj
     user=> (use 'overtone.live)
@@ -68,7 +68,7 @@ Overtone is an Open Source toolkit for designing synthesizers and collaborating 
     # Download and install SuperCollider:
     # http://supercollider.sourceforge.net/downloads/
 
-    $ cake repl
+    $ lein repl
 ```
 ```clj
     user=> (use 'overtone.core)
@@ -207,7 +207,7 @@ Downloads and the source repository can be found on GitHub:
 Clone the repository on GitHub to get started developing, and if you are ready
 to submit a patch then fork your own copy and do a pull request.
 
-### Cake & Lein Support
+###  Lein Support
 
 Overtone and its dependencies are on http://clojars.org, and the dependency for
 your project.clj is:
