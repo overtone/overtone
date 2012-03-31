@@ -41,7 +41,7 @@
   (server-snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
   (let [args (massage-numerical-args args)]
-    (log/debug (str "Sending: " path ", args: " (doall args)))
+    (log/debug (str "Sending: " path ", args: " (into [] args)))
     (when @osc-debug*
       (println "Sending: " path args))
     (apply validated-snd @server-osc-peer* path args)))

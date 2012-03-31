@@ -122,7 +122,7 @@
   (ensure-internal-server!)
   (dosync
    (when-not @scopes-running?*
-     (at-at/every (/ 1000 FPS) update-scopes :pool scope-pool :description "Scope refresh fn")
+     (at-at/every (/ 1000 FPS) update-scopes scope-pool :desc "Scope refresh fn")
      (ref-set scopes-running?* true))))
 
 (defn- reset-data-arrays
@@ -147,7 +147,7 @@
   "Stop all scopes from running."
   []
   (ensure-internal-server!)
-  (at-at/stop-and-reset-pool! :pool scope-pool)
+  (at-at/stop-and-reset-pool! scope-pool)
   (empty-scope-data)
   (dosync (ref-set scopes-running?* false)))
 
