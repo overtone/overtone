@@ -68,22 +68,22 @@
 (defn- start-mixers
   []
   (ensure-connected!)
-  (let [in-cnt          (server-num-input-buses)
-        out-cnt         (server-num-output-buses)
-        out-mixers      (doall
-                         (map
-                          (fn [out-bus]
-                            (out-bus-mixer :pos :head
-                                           :target (main-mixer-group)
-                                           :out-bus out-bus))
-                          (range out-cnt)))
-        in-mixers       (doall
-                         (map
-                          (fn [in-bus]
-                            (in-bus-mixer :pos :head
-                                          :target (main-input-group)
-                                          :in-bus (+ out-cnt in-bus)))
-                          (range in-cnt)))]
+  (let [in-cnt     (with-server-sync #(server-num-input-buses))
+        out-cnt    (with-server-sync #(server-num-output-buses))
+        out-mixers (doall
+                    (map
+                     (fn [out-bus]
+                       (out-bus-mixer :pos :head
+                                      :target (main-mixer-group)
+                                      :out-bus out-bus))
+                     (range out-cnt)))
+        in-mixers  (doall
+                    (map
+                     (fn [in-bus]
+                       (in-bus-mixer :pos :head
+                                     :target (main-input-group)
+                                     :in-bus (+ out-cnt in-bus)))
+                     (range in-cnt)))]
 
     (dosync
      (ref-set bus-mixers* {:in in-mixers :out out-mixers}))))
