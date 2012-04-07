@@ -80,7 +80,6 @@
         env   (env-gen (perc attack release) :action FREE)
         f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- release 0.1)))))
         bfreq (/ freq 2)
-        mod-seq (demand (
         sig   (apply +
                      (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
                              (lpf (saw [freq (* freq 1.01)]) f-env)))
@@ -92,13 +91,13 @@
   (let [note (duty (dseq [0.2 0.1] INF)
                    0
                    (dseq (map #(+ 60 %) (:steps @(:state pstep)))))
-        src (saw (midicps note))]
+        src (sin-osc (midicps note))]
     (* [0.2 0.2] src)))
 
 ; or access the sequence steps in a player function
 (defn step-player [b]
   (at (m b)
-      (bar (+ 60 (nth (:steps @(:state pstep)) (mod b 16)))))
+      (step-pad (+ 60 (nth (:steps @(:state pstep)) (mod b 16)))))
   (apply-at (m (inc b)) #'step-player [(inc b)]))
 
 (step-player (m))
