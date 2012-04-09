@@ -275,7 +275,7 @@
        / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
        \\____/ |___/\\___/_/   \\__/\\____/_/ /_/\\___/
 
-                          Programmable Music. "version-str"
+              Collaborative Programmable Music. "version-str"
 
 
 Hello " user-name ", may this be the start of a beautiful music hacking session...")))
