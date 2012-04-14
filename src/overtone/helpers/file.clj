@@ -317,7 +317,9 @@
         dest   (resolve-tilde-path dest)
         f-src  (file src)
         f-dest (file dest)]
-    (.renameTo f-src f-dest)))
+    (when-not (.renameTo f-src f-dest)
+      (copy f-src f-dest)
+      (delete-file f-src))))
 
 (defn path-exists?
   "Returns true if file or dir specified by path exists"
