@@ -44,7 +44,7 @@
     (let [[synth info] (nth synths x)
           id (hit synth :dur (/ (:n-frames info) (:rate info)))]
       (mono/led-on m x y)
-      (on "/n_end" (fn [msg]
+      (on-event "/n_end" (fn [msg]
                      (if (= id (first (:args msg)))
                        (mono/led-off m x y))
                      :overtone/remove-handler)))))
