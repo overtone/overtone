@@ -116,7 +116,11 @@
 (defn recording-start
   "Start recording a wav file to a new file at wav-path. Be careful -
   may generate very large files. See buffer-stream for a list of
-  output options."
+  output options.
+
+  Note, due to the size of the buffer used for transferring the audio
+  from the audio server to the file, there will be 1.5s of silence at
+  the start of the recording"
   [path & args]
   (if-let [info @recorder-info*]
     (throw (Exception. (str "Recording already taking place to: "
