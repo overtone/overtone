@@ -244,7 +244,7 @@
 
     (snd "/b_write" (:id buf) path header samples
                     n-frames start-frame 0)
-    :overtone/remove-handler))
+    :buffer-saved))
 
 (defrecord BufferOutStream [id size n-channels header samples rate allocated-on-server path open?])
 
