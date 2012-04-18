@@ -173,7 +173,7 @@
 (defn sc-osc-log-off
   "Turn osc logging off"
   []
-  (remove-handler :osc-msg-received ::osc-logger))
+  (remove-handler ::osc-logger))
 
 (defn sc-osc-log
   "Return the current status of the osc log"
@@ -229,4 +229,3 @@
   []
   (ensure-connected!)
   (:input @core-groups*))
-

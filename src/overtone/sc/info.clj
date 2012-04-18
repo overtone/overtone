@@ -38,24 +38,24 @@
   (when (server-disconnected?)
     (throw (Exception. "Please connect to a server before attempting to ask for server-info.")))
   (let [prom (promise)]
-    (on-event "/server-info"
-              (fn [msg]
-                (let [args (:args msg)
-                      [nid nrid sr sd rps cr cd sso nob nib nab ncb nb nrs] args]
-                  (deliver prom
-                           {:sample-rate (long sr)
-                            :sample-dur sd
-                            :radians-per-sample rps
-                            :control-rate cr
-                            :control-dur cd
-                            :subsample-offset sso
-                            :num-output-buses (long nob)
-                            :num-input-buses (long nib)
-                            :num-audio-buses (long nab)
-                            :num-buffers (long nb)
-                            :num-running-synths (long nrs)})
-                  :overtone/remove-handler))
-              ::server-info)
+    (oneshot-event
+     "/server-info"
+     (fn [msg]
+       (let [args (:args msg)
+             [nid nrid sr sd rps cr cd sso nob nib nab ncb nb nrs] args]
+         (deliver prom
+                  {:sample-rate (long sr)
+                   :sample-dur sd
+                   :radians-per-sample rps
+                   :control-rate cr
+                   :control-dur cd
+                   :subsample-offset sso
+                   :num-output-buses (long nob)
+                   :num-input-buses (long nib)
+                   :num-audio-buses (long nab)
+                   :num-buffers (long nb)
+                   :num-running-synths (long nrs)})))
+     ::server-info)
     (let [synth-id (snd-server-info)
           res (deref! prom)]
       (kill synth-id)

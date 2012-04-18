@@ -83,12 +83,10 @@
   (let [id (next-id ::server-sync-id)
         prom (promise)
         key (uuid)]
-    (on-event "/synced"
-              (fn [msg] (when (= id (first (:args msg)))
-                         (do
-                           (deliver prom true)
-                           :overtone/remove-handler)))
-              key)
+    (oneshot-event "/synced"
+                   (fn [msg] (when (= id (first (:args msg)))
+                              (deliver prom true)))
+                   key)
     (let [res (action-fn id)]
       (deref! prom)
       res)))
@@ -132,4 +130,4 @@
                           (deliver p info)
                           :overtone/remove-handler))
                       key)
-    p)))
+       p)))

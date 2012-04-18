@@ -88,8 +88,8 @@
           (server-notifications-on) ; turn on notifications now that we can communicate
           (satisfy-deps :server-connected)
           (event :connection-complete)
-          (remove-handler "status.reply" ::connected-handler1)
-          (remove-handler "/status.reply" ::connected-handler2))]
+          (remove-handler ::connected-handler1)
+          (remove-handler ::connected-handler2))]
     (on-sync-event "status.reply" handler-fn ::connected-handler1)
     (on-sync-event "/status.reply" handler-fn ::connected-handler2)))
 

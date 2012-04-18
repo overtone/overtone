@@ -13,7 +13,7 @@
     (Thread/sleep 100)
     (is (= 2 @counter))
 
-    (remove-handler :test-event :b)
+    (remove-handler :b)
     (event :test-event)
     (Thread/sleep 100)
     (is (= 3 @counter))
@@ -25,7 +25,7 @@
     (Thread/sleep 100)
     (is (= 7 @counter))
 
-    (remove-all-handlers :test-event)
+    (remove-event-handlers :test-event)
     (event :test-event)
     (Thread/sleep 100)
     (is (= 7 @counter))))

@@ -28,7 +28,7 @@
   handler list after execution."
   [event-type handler key]
   (log/debug "Registering async event handler:: " event-type key)
-  (handlers/add-handler handler-pool event-type key handler ))
+  (handlers/add-handler! handler-pool event-type key handler ))
 
 (defn on-sync-event
   "Synchronously runs handler whenever events of type event-type are
@@ -51,7 +51,19 @@
   handler list after execution."
   [event-type handler key]
   (log/debug "Registering sync event handler:: " event-type key)
-  (handlers/add-sync-handler handler-pool event-type key handler))
+  (handlers/add-sync-handler! handler-pool event-type key handler))
+
+(defn oneshot-event
+  ""
+  [event-type handler key]
+  (log/debug "Registering async self-removing event handler:: " event-type key)
+  (handlers/add-one-shot-handler! handler-pool event-type key handler))
+
+(defn oneshot-sync-event
+  ""
+  [event-type handler key]
+  (log/debug "Registering sync self-removing event handler:: " event-type key)
+  (handlers/add-one-shot-sync-handler! handler-pool event-type key handler))
 
 (defn remove-handler
   "Remove an event handler previously registered to handle events of
@@ -65,14 +77,18 @@
                         ; {:event-type :foo :val 200}
   (remove-handler :foo ::bar-key)
   (event :foo :val 200) ; my-foo-handler no longer called"
-  [event-type key]
-  (handlers/remove-handler handler-pool event-type key))
+  [key]
+  (handlers/remove-handler! handler-pool key))
+
+(defn remove-event-handlers
+  "Remove all handlers for events of type event-type."
+  [event-type]
+  (handlers/remove-event-handlers! handler-pool event-type))
 
 (defn remove-all-handlers
-  "Remove all handlers (both sync and async) for events of type
-  event-type."
-  [event-type]
-  (handlers/remove-event-handlers handler-pool event-type))
+  "Remove all handlers."
+  []
+  (handlers/remove-all-handlers! handler-pool))
 
 (defn event
   "Fire an event of type event-type with any number of additional
@@ -86,7 +102,8 @@
   [event-type & args]
   (log/debug "event: " event-type " " args)
   (binding [overtone.libs.handlers/*log-fn* log/error]
-    (apply handlers/event handler-pool event-type args)))
+    (let [event-info (apply hash-map args)]
+      (handlers/event handler-pool event-type event-info))))
 
 (defn sync-event
   "Runs all event handlers synchronously of type event-tye regardless
@@ -96,4 +113,5 @@
   [event-type & args]
   (log/debug "sync-event: " event-type args)
   (binding [overtone.libs.handlers/*log-fn* log/error]
-    (apply handlers/sync-event handler-pool event-type args)))
+    (let [event-info (apply hash-map args)]
+      (apply handlers/sync-event handler-pool event-type event-info))))
