@@ -23,7 +23,7 @@
   "Return true if the server was booted by us, whether internally or
   externally."
   []
-  (not-empty @connection-info*))
+  (when (not-empty @connection-info*) true))
 
 (defn- server-notifications-on
   "Turn on notification messages from the audio server.  This lets us free
@@ -75,8 +75,10 @@
          (sh "jack_connect" src dest)
          (log/info "jack_connect " src " " dest)))))
 
-(if (and (= :linux (config-get :os)) (transient-server?))
-  (on-deps :server-connected ::connect-jack-ports #(connect-jack-ports)))
+(if (= :linux (config-get :os))
+  (on-deps :server-connected ::connect-jack-ports
+           #(when (transient-server?)
+              (connect-jack-ports))))
 
 ;; We have to do this to handle the change in SC, where they added a "/" to the
 ;; status.reply messsage, which it should have had in the first place.
@@ -250,15 +252,15 @@
        (dosync
         (ref-set connection-status* :connecting))
 
+       (dosync
+        (ref-set connection-info*
+                 (transient-connection-info connection-type port)))
+
        (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
          (case connection-type
            :internal (boot-internal-server)
            :external (boot-external-server port))
-         (wait-until-deps-satisfied :server-ready)
-
-         (dosync
-          (ref-set connection-info*
-                   (transient-connection-info connection-type port)))))))
+         (wait-until-deps-satisfied :server-ready)))))
 
 (defn shutdown-server
   "Quit the SuperCollider synth process."
