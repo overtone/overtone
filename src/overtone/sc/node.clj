@@ -337,6 +337,7 @@
    :node-start node-start*
    :node-place node-place*}
 
+  IControllableNode
   {:node-control           node-control*
    :node-control-range     node-control-range*
    :node-map-controls      node-map-controls*
