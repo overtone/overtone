@@ -36,12 +36,16 @@
   (let [url (str url)]
     (str (hash url))))
 
+(defn- safe-path
+  [path]
+  (let [safe (safe-url path)
+        hsh  (url-hash path)]
+    (str safe "--" hsh)))
+
 (defn- cache-dir
   "Returns the name of a directory to cache an asset with the given url."
   [url]
-  (let [safe (safe-url url)
-        hsh  (url-hash url)]
-    (mk-path *cache-root* (str safe "--" hsh))))
+  (mk-path *cache-root* (safe-path url)))
 
 (defn- mk-cache-dir!
   "Create a new cache dir for the specified url"
@@ -52,14 +56,16 @@
 (defn- fetch-cached-path
   "Returns the path to the cached asset if present, otherwise nil."
   [url name]
-  (let [path (mk-path (cache-dir url) name)]
+  (let [name (safe-path name)
+        path (mk-path (cache-dir url) name)]
     (when (path-exists? path)
       path)))
 
 (defn- download-and-cache-asset
   "Downloads the file pointed to by url and caches it on the local file system"
   [url name]
-  (let [tmp-dir   (str (mk-tmp-dir!))
+  (let [name      (safe-path name)
+        tmp-dir   (str (mk-tmp-dir!))
         tmp-file  (mk-path tmp-dir name)
         dest-dir  (cache-dir url)
         dest-file (mk-path dest-dir name)]
