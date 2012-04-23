@@ -1,5 +1,6 @@
 (ns overtone.studio.wavetable
-  (:use [overtone.sc server buffer]))
+  (:use [overtone.helpers.pow2 :only [power-of-two?]]
+        [overtone.sc server buffer]))
 
 (def ^{:private true} WAVEFORM-LENGTH 1024)
 
@@ -11,15 +12,20 @@
   [a0, a1 ,a2, ...] => [(- (* 2 a0) a1), (- a1 a0), (- (* 2 a1) a2), (- a2 a1), ...]
   "
   [signal]
-  (loop [sig (seq signal)
-         res []]
-    (let [a (float (first sig))
-          bs (second sig)
-          b (float (or bs (first signal)))
-          next-res (conj res (- (* 2 a) b) (- b a))]
-      (if (nil? bs)
-        next-res
-        (recur (next sig) next-res)))))
+  (let [sig (seq signal)
+        len (count sig)]
+    (when-not (power-of-two? len)
+      (throw (IllegalArgumentException. (str "Signal data is not a power of 2. Got seq of data with size: " len))))
+
+    (loop [sig sig
+           res []]
+      (let [a (float (first sig))
+            bs (second sig)
+            b (float (or bs (first signal)))
+            next-res (conj res (- (* 2 a) b) (- b a))]
+        (if (nil? bs)
+          next-res
+          (recur (next sig) next-res))))))
 
 (defn wavetable->signal
   [table]
@@ -28,6 +34,8 @@
 (defn wavetable
   ([num-waves] (wavetable num-waves WAVEFORM-LENGTH))
   ([num-waves wavelength]
+     (when-not (power-of-two? wavelength)
+       (throw (IllegalArgumentException. (str "wavelength is not a power of 2. Got: " wavelength))))
    (with-meta
      {:size num-waves
       :waveforms (repeatedly num-waves #(buffer wavelength))}

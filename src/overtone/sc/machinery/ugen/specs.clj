@@ -2,7 +2,8 @@
     ^{:doc "Read and decorate ugen metadata to create final UGEN-SPECS"
       :author "Jeff Rose"}
   overtone.sc.machinery.ugen.specs
-  (:use [overtone.util lib]
+  (:use [clojure.pprint]
+        [overtone.util lib]
         [overtone.sc.machinery.ugen defaults common special-ops categories sc-ugen])
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
 
@@ -91,7 +92,7 @@
                                (if (string? el)
                                  (if (empty? s)
                                    el
-                                   (str s " AND " el))
+                                   (str s "\nAND\n" el))
                                  s))
                              ""
                              results)
@@ -99,7 +100,7 @@
                  (fun rate num-outs args spec))]
 
     (if (string? result)
-      (throw (Exception. (str "Error in checker for ugen " (overtone-ugen-name (:name spec)) ". " result)))
+      (throw (Exception. (str "Error in checker for ugen" (overtone-ugen-name (:name spec)) ":\n" result "\nUgen:\n" (with-out-str (pprint ugen)))))
       ugen)))
 
 (defn- check-arg-rates [spec ugen]
@@ -253,7 +254,7 @@
   [ugen]
   (let [args (:args ugen)]
     (when (some nil? args)
-      (throw (IllegalArgumentException. (str "Error - attempted to call the " (:name ugen) " ugen with one or more nil arguments. This usually happens when the ugen contains arguments without defaults which haven't been explicitly called. Got " (vec args))))))
+      (throw (IllegalArgumentException. (str "Error - attempted to call the " (:name ugen) " ugen with one or more nil arguments. This usually happens when the ugen contains arguments without defaults which haven't been explicitly called. \nUgen:\n" (with-out-str (pprint args)))))))
   ugen)
 
 (defn- sanity-checker-fn
@@ -311,12 +312,12 @@
                  initer
                  n-outputer
                  floater
-                 associative->id
                  appender
                  auto-rater
                  nil-arg-checker
-                 rate-checker
                  bespoke-checker
+                 associative->id
+                 rate-checker
                  sanity-checker)))))
 
 (defn- with-fn-names

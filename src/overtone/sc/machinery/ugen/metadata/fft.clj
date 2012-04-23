@@ -4,13 +4,15 @@
 (def specs
      [
       {:name "FFT",
-       :args [{:name "buffer" :doc "The buffer where a frame will be held. Its size must be a power of two. local-buf is useful here, because processes should not share data between synths. (Note: most PV UGens operate on this data in place."}
+       :args [{:name "buffer" :doc "The buffer where a frame will be held. Its size must be a power of two. local-buf is useful here, because processes should not share data between synths. (Note: most PV UGens operate on this data in place. Use buffer-2n if you wish to create an external buffer."}
               {:name "in", :default 0.0 :doc "the signal to be analyzed. The signal's rate determines the rate at which the input is read."}
               {:name "hop", :default 0.5 :doc "the amount of offset from one FFT analysis frame to the next, measured in multiples of the analysis frame size. This can range between zero and one, and the default is 0.5 (meaning each frame has a 50% overlap with the preceding/following frames)."}
               {:name "wintype", :default 0 :doc "defines how the data is windowed: RECT is for rectangular windowing, simple but typically not recommended; SINE (the default) is for Sine windowing, typically recommended for phase-vocoder work; HANN is for Hann windowing, typically recommended for analysis work."}
               {:name "active", :default 1 :doc "is a simple control allowing FFT analysis to be active (>0) or inactive (<=0). This is mainly useful for signal analysis processes which are only intended to analyse at specific times rather than continuously"}
               {:name "winsize", :default 0 :doc "the windowed audio frames are usually the same size as the buffer. If you wish the FFT to be zero-padded then you can specify a window size smaller than the actual buffer size (e.g. window size 1024 with buffer size 2048). Both values must still be a power of two. Leave this at its default of zero for no zero-padding."}],
        :rates #{:kr}
+       :check [(nth-input-buffer-pow2? 0)
+               (nth-input-power-of-2-or-zero? 5)]
        :doc "fast fourier transform, converts input data from the time to the frequency domain and stores the result in a buffer (audio waveform -> graph equalizer bands)
 
 Output is -1 except when an FFT frame is ready, when the output is the buffer index. This creates a special kind of slower pseudo-rate (built on top of control rate) which all the pv-ugens understand."}

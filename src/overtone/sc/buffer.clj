@@ -98,7 +98,7 @@
 (derive Buffer     ::buffer)
 (derive BufferFile ::file-buffer)
 
-(derive ::buffer ::buffer-info)
+(derive ::buffer      ::buffer-info)
 (derive ::file-buffer ::buffer)
 
 (defn buffer-info?

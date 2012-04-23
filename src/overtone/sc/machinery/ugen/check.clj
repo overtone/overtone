@@ -2,7 +2,8 @@
   ^{:doc "UGen argument validation functions."
      :author "Jeff Rose & Christophe McKeon"}
   overtone.sc.machinery.ugen.check
-  (:use [overtone.sc.machinery.ugen defaults]
+  (:use [overtone.helpers.pow2 :only [power-of-two?]]
+        [overtone.sc.machinery.ugen defaults]
         [overtone.util.lib :only [overtone-ugen-name]]))
 
 (defn rate-name= [obj rate]
@@ -17,21 +18,31 @@
 (defn name-of? [obj name]
   (= (name-of obj) name))
 
+(defn- buffer?
+  "Determines whether the specified object is a buffer"
+  [buf]
+  (isa? (type buf) :overtone.sc.buffer/buffer))
+
+(defn- control-proxy?
+  "Is obj a control proxy?"
+  [obj]
+  (isa? (type obj) :overtone.sc.machinery.ugen.sc-ugen/control-proxy))
+
 (defn ar? [obj] (= (:rate-name obj) :ar))
 (defn kr? [obj] (= (:rate-name obj) :kr))
 (defn ir? [obj] (or (number? obj) (= (:rate-name obj) :ir)))
 (defn dr? [obj] (= (:rate-name obj) :dr))
 
-(defmacro defcheck [name params default-message expr]
+(defmacro defcheck [name params default-message & exprs]
   (let [message (gensym "message")
         params-with-message (conj params message)]
     `(defn ~name
        (~params
         (fn ~'[rate num-outs inputs spec]
-          (when-not ~expr ~default-message)))
+          (when-not (do ~@exprs) (str ~default-message))))
        (~params-with-message
         (fn ~'[rate num-outs inputs spec]
-          (when-not ~expr ~message))))))
+          (when-not (do ~@exprs) (str ~message " -- " ~default-message)))))))
 
 (defcheck same-rate-as-first-input []
   (str "Rate mismatch: "(name-of (first inputs)) " is at rate " (:rate-name (first inputs))  " yet the containing ugen is at " (REVERSE-RATES rate))
@@ -54,16 +65,35 @@
   (every? ar? (drop n inputs)))
 
 (defcheck all-but-first-input-ar []
-  "All but the first input must be audio rate"
+  "All but the first input must be audio rate. Got " (vec inputs)
   (every? ar? (drop 1 inputs)))
 
 (defcheck nth-input-ar [index]
-  (str "The input at index " index " should be audio rate" )
+  (str "The input at index " index " should be audio rate.")
   (ar? (nth inputs index)))
 
 (defcheck num-outs-greater-than [n]
   (str "Must have " (+ n 1) " or more output channels")
-          true)
+  true)
+
+(defcheck nth-input-buffer-pow2? [n]
+  (str "Input with index " n " must be a buffer with size which is a power of 2 an id or a control-proxy.")
+  (let [buf (nth inputs n)]
+    (or (and (buffer? buf)
+             (power-of-two? (:size buf)))
+        (number? buf)
+        (control-proxy? buf))))
+
+(defcheck nth-input-power-of-2-or-zero? [n]
+  (str "Input with index " n " must be a number which is either 0 or a power of 2.")
+  (let [val (nth inputs n)]
+    (or (zero? val)
+        (power-of-two? val))))
+
+(defcheck nth-input-power-of-2? [n]
+  (str "Input with index " n " must be a number which is a power of 2.")
+  (let [val (nth inputs n)]
+    (power-of-two? val)))
 
 (defn- mk-check-all
   "Create a check-all fn which will check all the specified check-fns to see if
