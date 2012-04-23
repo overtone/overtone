@@ -38,7 +38,8 @@
   (.write w (str "#<sc-ugen: " (overtone-ugen-name (:name ug)) (:rate-name ug) " [" (count-ugen-args ug) "]>")))
 
 (defrecord ControlProxy [name value rate rate-name])
-(derive ControlProxy ::sc-ugen)
+(derive ControlProxy ::control-proxy)
+(derive ::control-proxy ::sc-ugen)
 
 (defn control-proxy
   "Create a new control proxy with the specified name, value and rate. Rate
@@ -57,7 +58,8 @@
          (ControlProxy. name value rate rate-name)))))
 
 (defrecord OutputProxy [ugen rate rate-name index])
-(derive OutputProxy ::sc-ugen)
+(derive OutputProxy ::output-proxy)
+(derive ::output-proxy ::sc-ugen)
 
 (defn output-proxy
   "Create a new output proxy. Throws an error if any of the args are nil."
@@ -71,6 +73,10 @@
       (throw (IllegalArgumentException. (str "Attempted to create an OutputProxy with nil args. Got " [ugen rate rate-name index])))
       (OutputProxy. ugen rate rate-name index))))
 
+(defn control-proxy?
+  [obj]
+  (isa? (type obj) ::control-proxy))
 
-(defn control-proxy? [obj] (= ControlProxy (type obj)))
-(defn output-proxy? [obj] (= OutputProxy (type obj)))
+(defn output-proxy?
+  [obj]
+  (isa? (type obj) ::output-proxy))
