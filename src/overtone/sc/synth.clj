@@ -57,9 +57,12 @@
   ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
   (when-not (contains? ugen :args)
-    (throw (IllegalArgumentException.
-             (format "The %s ugen does not have any arguments."
-                     (:name ugen)))))
+    (if-not (sc-ugen? ugen)
+      (throw (IllegalArgumentException.
+              (str "Error: synth expected a ugen. Got: " ugen)))
+      (throw (IllegalArgumentException.
+              (format "The %s ugen does not have any arguments."
+                      (:name ugen))))))
   (when-not (every? #(or (sc-ugen? %) (number? %) (string? %)) (:args ugen))
     (throw (IllegalArgumentException.
              (format "The %s ugen has an invalid argument: %s"
