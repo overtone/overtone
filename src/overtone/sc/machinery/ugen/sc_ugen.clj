@@ -57,7 +57,7 @@
          (throw (IllegalArgumentException. (str "Attempted to create a ControlProxy with nil args. Got " [name value rate rate-name])))
          (ControlProxy. name value rate rate-name)))))
 
-(defrecord OutputProxy [ugen rate rate-name index])
+(defrecord OutputProxy [name ugen rate rate-name index])
 (derive OutputProxy ::output-proxy)
 (derive ::output-proxy ::sc-ugen)
 
@@ -71,7 +71,7 @@
             (nil? rate-name)
             (nil? index))
       (throw (IllegalArgumentException. (str "Attempted to create an OutputProxy with nil args. Got " [ugen rate rate-name index])))
-      (OutputProxy. ugen rate rate-name index))))
+      (OutputProxy. "OutputProxy" ugen rate rate-name index))))
 
 (defn control-proxy?
   [obj]
