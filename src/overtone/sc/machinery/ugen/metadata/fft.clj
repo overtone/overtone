@@ -12,7 +12,8 @@
               {:name "winsize", :default 0 :doc "the windowed audio frames are usually the same size as the buffer. If you wish the FFT to be zero-padded then you can specify a window size smaller than the actual buffer size (e.g. window size 1024 with buffer size 2048). Both values must still be a power of two. Leave this at its default of zero for no zero-padding."}],
        :rates #{:kr}
        :check [(nth-input-buffer-pow2? 0)
-               (nth-input-power-of-2-or-zero? 5)]
+               (nth-input-power-of-2-or-zero? 5)
+               (nth-input-stream? 1)]
        :doc "fast fourier transform, converts input data from the time to the frequency domain and stores the result in a buffer (audio waveform -> graph equalizer bands)
 
 Output is -1 except when an FFT frame is ready, when the output is the buffer index. This creates a special kind of slower pseudo-rate (built on top of control rate) which all the pv-ugens understand."}

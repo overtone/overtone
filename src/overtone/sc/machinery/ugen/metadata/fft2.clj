@@ -22,7 +22,8 @@ See http://mathworld.wolfram.com/ConformalMapping.html"}
               {:name "kernel" :doc "processing kernel."}
               {:name "framesize", :default 512.0 :doc "size of FFT frame, must be a power of two"}],
        :rates #{:ar}
-       :check (nth-input-power-of-2? 2)
+       :check [(nth-input-stream? 0)
+               (nth-input-power-of-2? 2)]
        :doc "Strict convolution of two continuously changing inputs. Also see convolution2 for a cheaper CPU cost alternative for the case of a fixed kernel which can be changed with a trigger message.
 
 See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing: chapter 18:  http:// www.dspguide.com/ch18.htm"}
@@ -33,7 +34,8 @@ See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Process
               {:name "trigger" :doc "update the kernel on a change from <= 0 to > 0"}
               {:name "framesize", :default 512.0 :doc "size of FFT frame, must be a power of two. Convolution uses twice this number internally, maximum value you can give this argument is 2^16 = 65536. Note that it gets progressively more expensive to run for higher powers! 512, 1024, 2048, 4096 standard."}],
        :rates #{:ar}
-       :check (nth-input-power-of-2? 3)
+       :check [(nth-input-stream? 0)
+               (nth-input-power-of-2? 3)]
        :doc "Strict convolution with fixed kernel which can be updated using a trigger signal.
 
 See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing: chapter 18: http:// www.dspguide.com/ch18.htm "}
@@ -46,7 +48,8 @@ See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Process
               {:name "framesize", :default 512.0 :doc "size of FFT frame, must be a power of two. Convolution uses twice this number internally, maximum value you can give this argument is 2^16=65536. Note that it gets progressively more expensive to run for higher powers! 512, 1024, 2048, 4096 standard."}
               {:name "crossfade", :default 1.0 :doc "The number of periods over which a crossfade is made. The default is 1. This must be an integer."}],
        :rates #{:ar}
-       :check (nth-input-power-of-2? 3)
+       :check [(nth-input-stream? 0)
+               (nth-input-power-of-2? 3)]
        :doc "Strict convolution with fixed kernel which can be updated using a trigger signal. There is a linear crossfade between the buffers upon change.
 
 See Steven W Smith, The Scientist and Engineer's Guide to Digital Signal Processing:
@@ -62,7 +65,8 @@ chapter 18: http:// www.dspguide.com/ch18.htm "}
               {:name "crossfade", :default 1.0 :doc "The number of periods over which a crossfade is made. This must be an integer."}],
        :rates #{:ar}
        :num-outs 2
-       :check (nth-input-power-of-2? 4)
+       :check [(nth-input-stream? 0)
+               (nth-input-power-of-2? 4)]
        :doc "Strict convolution with fixed kernel which can be updated using a trigger signal. There is a linear crossfade between the buffers upon change.
 Like convolution2L, but convolves with two buffers and outputs a stereo signal. This saves one FFT transformation per period, as compared to using two copies of convolution2L.
 
@@ -78,7 +82,8 @@ chapter 18:  http:// www.dspguide.com/ch18.htm
               {:name "kernel" :doc "buffer index for the fixed kernel, may be modulated in combination with the trigger"}
               {:name "trigger", :default 0.0 :doc "update the kernel on a change from <= 0 to > 0"}
               {:name "framesize", :default 512.0 :doc "size of FFT frame, does not have to be a power of two."}]
-       :check (nth-input-power-of-2? 3)
+       :check [(nth-input-stream? 0)
+               (nth-input-power-of-2? 3)]
        :doc "Strict convolution with fixed kernel which can be updated using a trigger signal. The convolution is performed in the time domain, which is highly inefficient, and probably only useful for either very short kernel sizes, or for control rate signals. "}
 
       {:name "PV_JensenAndersen",
@@ -119,5 +124,6 @@ Hainsworth metric on it's own gives good results but Foote might be useful in so
       {:name "RunningSum",
        :args [{:name "in" :doc "Input signal"}
               {:name "numsamp", :default 40.0 :doc "How many samples to take the running sum over (initialisation time only, not modulatable."}]
+       :check (nth-input-stream? 0)
        :doc "A running sum over a user specified number of samples, useful for running RMS power windowing. "}
       ])
