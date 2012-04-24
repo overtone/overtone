@@ -100,7 +100,7 @@
                  (fun rate num-outs args spec))]
 
     (if (string? result)
-      (throw (Exception. (str "Error in checker for ugen" (overtone-ugen-name (:name spec)) ":\n" result "\nUgen:\n" (with-out-str (pprint ugen)))))
+      (throw (Exception. (str "Error in checker for ugen " (overtone-ugen-name (:name spec)) ":\n" result "\nUgen:\n" (with-out-str (pprint ugen)))))
       ugen)))
 
 (defn- check-arg-rates [spec ugen]
@@ -122,12 +122,18 @@
                       (= :ar (:rate-name bad-input)))
                  ;; Special case demand rate ugens which may have kr ugens plugged into them
                  (and (= :dr cur-rate)
-                      (= :kr (:rate-name bad-input))))
+                      (= :kr (:rate-name bad-input)))
+                 ;; Special case Amplitude ugen which may have ar ugens plugged into it
+                 (and (= "Amplitude" (:name ugen))
+                      (= :ar (:rate-name bad-input)))
+                 ;; Special case Pitch ugen which may have ar ugens plugged into it
+                 (and (= "Pitch" (:name ugen))
+                      (= :ar (:rate-name bad-input))))
 
-        (let [ugen-name (real-ugen-name ugen)
-              in-name (real-ugen-name bad-input)
+        (let [ugen-name     (real-ugen-name ugen)
+              in-name       (real-ugen-name bad-input)
               cur-rate-name (get HUMAN-RATES cur-rate)
-              in-rate-name (get HUMAN-RATES (:rate-name bad-input))]
+              in-rate-name  (get HUMAN-RATES (:rate-name bad-input))]
           (throw (Exception.
                   (format "Invalid ugen rate.  The %s ugen is %s rate, but it has a %s input ugen running at the faster %s rate.  Besides the a2k ugen and demand rate ugens (which are allowed kr inputs), all ugens must be the same speed or faster than their inputs."
                           ugen-name cur-rate-name
