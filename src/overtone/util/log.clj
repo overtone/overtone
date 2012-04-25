@@ -3,14 +3,16 @@
      :author "Jeff Rose"}
   overtone.util.log
   (:import [java.util.logging Logger Level ConsoleHandler FileHandler
-            StreamHandler SimpleFormatter])
-  (:use [overtone.config store]))
+            StreamHandler Formatter LogRecord]
+           [java.util Date])
+  (:use [overtone.config store]
+        [clojure.pprint :only (pprint)]))
 
 ; Sets up some basic logging infrastructure and helpers for the project.
 
 (defonce LOGGER (Logger/getLogger "overtone"))
 
-(defonce LOG-APPEND false)
+(defonce LOG-APPEND true)
 (defonce LOG-CONSOLE (ConsoleHandler.))
 
 (def LOG-FILE-HANDLER (FileHandler. OVERTONE-LOG-FILE LOG-APPEND))
@@ -19,6 +21,8 @@
              :info  Level/INFO
              :warn  Level/WARNING
              :error Level/SEVERE})
+
+(def REVERSE-LEVELS (apply hash-map (flatten (map reverse LEVELS))))
 
 (def DEFAULT-LEVEL :warn)
 
@@ -29,8 +33,19 @@
       (assert (contains? LEVELS lvl))
       (.setLevel LOGGER (lvl LEVELS)))))
 
+(defn- log-formatter []
+  (proxy [Formatter] []
+    (format [^LogRecord log-rec]
+      (let [lvl (REVERSE-LEVELS (.getLevel log-rec))
+            msg (.getMessage log-rec)
+            ts (.getMillis log-rec)]
+        (with-out-str (pprint {:level lvl
+                               :timestamp ts
+                               :date (Date. (long ts))
+                               :msg msg}))))))
+
 (defn- print-handler []
-  (let [formatter (SimpleFormatter.)]
+  (let [formatter (log-formatter)]
     (proxy [StreamHandler] []
       (publish [msg] (println (.format formatter msg))))))
 
@@ -40,7 +55,7 @@
 (defonce LOG-SETUP?
   (do
     (level DEFAULT-LEVEL)
-    (.setFormatter LOG-FILE-HANDLER (SimpleFormatter.))
+    (.setFormatter LOG-FILE-HANDLER (log-formatter))
     (.addHandler LOGGER LOG-FILE-HANDLER)
     true))
 
