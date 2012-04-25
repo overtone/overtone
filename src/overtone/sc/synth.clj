@@ -11,7 +11,9 @@
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]
         [overtone.sc bindings ugens server node]
-        [overtone.helpers seq])
+        [overtone.helpers seq]
+        [clojure.pprint])
+
   (:require [overtone.util.log :as log]
             [clojure.set :as set]))
 
@@ -106,7 +108,11 @@
       (throw (Exception.
                (format "Cannot connect ugen arguments for %s ugen with args: %s" (:name ugen) (str (seq (:args ugen)))))))
 
-    ugen))
+    ;;Add link back to MaxLocalBufs ugen (always at root of tree) if
+    ;;ugen is a local-buf.
+    (if (= "LocalBuf" (:name ugen))
+      (assoc ugen :inputs (concat (:inputs ugen) {:src 0 :index 0}))
+      ugen)))
 
 ; TODO: Currently the output rate is hard coded to be the same as the
 ; computation rate of the ugen.  We probably need to have some meta-data
@@ -433,8 +439,14 @@
 (defsynth bar [freq 220] (out 0 (rlpf (saw [freq (* 3.013 freq)]) (x-line:kr 20000 2 1 FREE))))
 (definst faz [] (rlpf (saw [220 663]) (x-line:kr 20000 2 1 FREE)))
 (definst baz [freq 220] (rlpf (saw [freq (* 3.013 freq)]) (x-line:kr 20000 2 1 FREE)))
-(run 1 (out 184 (saw (x-line:kr 10000 10 1 FREE))))
-)
+(run 1 (out 184 (saw (x-line:kr 10000 10 1 FREE)))))
+
+(defn count-ugens
+  [ug-tree ug-name]
+  (let [ugens      (flatten  ug-tree)
+        local-bufs (filter #(= ug-name (:name %)) ugens)
+        ids        (set (map :id local-bufs))]
+    (count ids)))
 
 (defmacro pre-synth
   "Resolve a synth def to a list of its name, params, ugens (nested if
@@ -448,12 +460,20 @@
             (let [[ugens# constants#] (gather-ugens-and-constants
                                         (with-overloaded-ugens ~@ugen-form))
                   ugens# (topological-sort-ugens ugens#)
-;;                  _# (println "main-tree[" (count ugens#) "]: " ugens#)
-;;                  _# (println (str "*ugens*: [" (count *ugens*) "] " *ugens*))
+;;                _# (print  (with-out-str (print "main-tree[") (print  (count ugens#)) (print  "]: ") (pprint ugens#)))
+;;                _# (println (str "*ugens*: [" (count *ugens*) "] " *ugens*))
                   main-tree# (set ugens#)
                   side-tree# (filter #(not (main-tree# %)) *ugens*)
-;;                  _# (println "side-tree[" (count side-tree#) "]: " side-tree#)
+;;                _# (println "side-tree[" (count side-tree#) "]: " side-tree#)
                   ugens# (concat ugens# side-tree#)
+                  n-local-bufs# (count-ugens ugens# "LocalBuf")
+;;                _# (println "num local bufs: " n-local-bufs#)
+                  ugens# (if (> n-local-bufs# 0)
+                           (cons (max-local-bufs n-local-bufs#) ugens#)
+                           ugens#)
+                  constants# (if (> n-local-bufs# 0)
+                               (cons n-local-bufs# constants#)
+                               constants#)
                   constants# (into [] (set (concat constants# *constants*)))]
 ;;              (println "all ugens[" (count ugens#) "]: " ugens#)
        [~sname ~params ugens# constants#])))))
