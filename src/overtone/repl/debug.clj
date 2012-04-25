@@ -1,6 +1,5 @@
 (ns overtone.repl.debug
   (:use [clojure.pprint]
-        [overtone.core]
         [overtone.sc.machinery.ugen.defaults]
         [overtone.helpers seq]))
 
