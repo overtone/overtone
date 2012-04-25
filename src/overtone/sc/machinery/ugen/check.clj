@@ -93,9 +93,11 @@
   true)
 
 (defcheck nth-input-number? [n]
-  (str "Input with index " n " must be a number")
+  (str "Input with index " n " must be a number or an ir ugen")
   (let [val (nth inputs n)]
-    (number? val)))
+    (or
+     (number? val)
+     (= :ir (:rate-name val)))))
 
 (defcheck nth-input-buffer? [n]
   (str "Input with index " n " must be a buffer. i.e. a buffer, local-buf or a number. Got:"  (nth inputs n))
