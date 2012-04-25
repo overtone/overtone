@@ -2,8 +2,7 @@
   (:use [overtone.util ns])
   (:require clojure.stacktrace
             [overtone.config store]
-            [overtone.midi]
-            [overtone.osc]
+            [overtone version midi osc speech]
             [overtone.algo chance scaling trig]
             [overtone.sc bindings buffer bus envelope example info
                          ugens defcgen mixer node sample server synth trigger]
@@ -12,7 +11,6 @@
             [overtone.studio mixer inst util fx wavetable]
             [overtone.repl ugens examples shell inst]
             [overtone.libs asset event freesound]
-            [overtone.version]
             [overtone.viz scope]
             [overtone.gui control]))
 
@@ -52,6 +50,7 @@
  'overtone.studio.inst
  'overtone.studio.fx
  'overtone.studio.wavetable
+ 'overtone.speech
  'overtone.repl.ugens
  'overtone.repl.examples
  'overtone.repl.shell
