@@ -111,7 +111,7 @@
     ;;Add link back to MaxLocalBufs ugen (always at root of tree) if
     ;;ugen is a local-buf.
     (if (= "LocalBuf" (:name ugen))
-      (assoc ugen :inputs (concat (:inputs ugen) {:src 0 :index 0}))
+      (assoc ugen :inputs (concat (:inputs ugen) [{:src 0 :index 0}]))
       ugen)))
 
 ; TODO: Currently the output rate is hard coded to be the same as the
