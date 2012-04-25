@@ -6,8 +6,7 @@
         [overtone.util lib]
         [overtone.libs event deps]
         [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server comms]
-        [overtone.sc server synth ugens buffer]
+        [overtone.sc comms server synth ugens buffer]
         [overtone.sc.cgens buf-io io]
         [overtone.helpers.file :only [glob canonical-path resolve-tilde-path mk-path]]))
 

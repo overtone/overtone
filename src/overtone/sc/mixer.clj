@@ -4,11 +4,10 @@
   overtone.sc.mixer
   (:use [overtone.libs deps event]
         [overtone.helpers file]
-        [overtone.sc defaults synth ugens server info node buffer]
-        [overtone.sc.machinery.server comms]))
+        [overtone.sc defaults comms synth ugens server info node buffer]))
 
-(defonce master-vol*  (ref MASTER-VOL))
-(defonce master-gain* (ref MASTER-GAIN))
+(defonce master-vol*  (ref DEFAULT-MASTER-VOLUME))
+(defonce master-gain* (ref DEFAULT-MASTER-GAIN))
 (defonce bus-mixers*  (ref {:in [] :out []}))
 
 (add-watch master-vol*

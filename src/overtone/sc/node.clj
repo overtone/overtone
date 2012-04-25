@@ -1,9 +1,8 @@
 (ns overtone.sc.node
   (:use [overtone.util lib]
         [overtone.libs event deps]
-        [overtone.sc bus server defaults]
+        [overtone.sc comms bus server defaults]
         [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]])
   (:require [overtone.util.log :as log]))
 
