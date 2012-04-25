@@ -10,7 +10,7 @@
             [overtone.sc.cgens oscillators demand mix io buf-io env tap]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio inst mixer util fx wavetable]
-            [overtone.repl ugens examples shell inst]
+            [overtone.repl ugens examples shell inst debug]
             [overtone.libs asset event freesound]
             [overtone.viz scope]
             [overtone.gui control]))
@@ -56,6 +56,7 @@
  'overtone.repl.examples
  'overtone.repl.shell
  'overtone.repl.inst
+ 'overtone.repl.debug
  'overtone.libs.asset
  'overtone.libs.event
  'overtone.libs.freesound
