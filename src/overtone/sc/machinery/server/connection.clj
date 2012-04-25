@@ -6,7 +6,7 @@
         [overtone.libs event deps]
         [overtone version]
         [overtone.util.lib :only [print-ascii-art-overtone-logo]]
-        [overtone.sc.machinery defaults]
+        [overtone.sc defaults]
         [overtone.sc.machinery.server comms]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]

@@ -3,8 +3,8 @@
         [overtone.helpers file]
         [overtone.util lib]
         [overtone.libs event]
-        [overtone.sc server info]
-        [overtone.sc.machinery defaults allocator]
+        [overtone.sc server info defaults]
+        [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms connection]
         [overtone.helpers.audio-file]
         [overtone.sc.util :only [id-mapper]]))

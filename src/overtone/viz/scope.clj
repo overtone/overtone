@@ -10,8 +10,7 @@
   (:use [clojure.stacktrace]
         [overtone.util lib]
         [overtone.libs event deps]
-        [overtone.sc.machinery defaults]
-        [overtone.sc server synth ugens buffer node]
+        [overtone.sc defaults server synth ugens buffer node]
         [overtone.studio.util])
   (:require [clojure.set :as set]
             [overtone.util.log :as log]

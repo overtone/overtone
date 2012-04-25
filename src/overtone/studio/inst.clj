@@ -1,7 +1,7 @@
 (ns overtone.studio.inst
   (:use
-    [overtone.sc bindings server synth ugens envelope node bus]
-    [overtone.sc.machinery defaults synthdef]
+    [overtone.sc defaults bindings server synth ugens envelope node bus]
+    [overtone.sc.machinery synthdef]
     [overtone.sc.util :only (id-mapper)]
     [overtone.studio mixer fx]
     [overtone.util lib]
