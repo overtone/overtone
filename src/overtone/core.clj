@@ -1,5 +1,5 @@
 (ns overtone.core
-  (:use [overtone.util ns])
+  (:use [overtone.helpers.ns])
   (:require clojure.stacktrace
             [overtone.config store]
             [overtone version midi osc speech]

@@ -1,6 +1,6 @@
 (ns overtone.gui.adjustment-popup
   (:use [seesaw core color font]
-        [overtone.util log])
+        [overtone.config log])
   (:require [seesaw.bind :as bind])
   (:import javax.swing.JWindow))
 

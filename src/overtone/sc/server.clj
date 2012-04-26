@@ -8,9 +8,9 @@
   (:use [overtone.libs event deps]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server connection comms]
-        [overtone.util.lib :only [deref!]]
+        [overtone.helpers.lib :only [deref!]]
         [overtone.osc :only [in-osc-bundle]])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 (defonce synth-group* (ref nil))
 (defonce osc-log*     (atom []))

@@ -1,7 +1,7 @@
 (ns overtone.gui.stepinator
   (:use [seesaw core graphics make-widget color]
         [overtone.gui color dial adjustment-popup]
-        [overtone.util log])
+        [overtone.config log])
   (:require [seesaw.bind :as bind]
             [seesaw.font :as font])
   (:import [java.awt Color Paint Stroke BasicStroke GradientPaint
@@ -101,9 +101,9 @@
 (defn stepinator
   "Creates a simple UI for building a sequence of step values.
 
-  A grid is displayed which is :steps columns wide and :slices rows tall. 
+  A grid is displayed which is :steps columns wide and :slices rows tall.
   Click and drag on the ui to change the value at each step. The range of
-  values is [-slices/2, slices/2] with 0 at the center, vertically of the 
+  values is [-slices/2, slices/2] with 0 at the center, vertically of the
   window.
 
   Returns a map with keys:

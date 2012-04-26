@@ -2,7 +2,7 @@
   ^{:doc "A simple event system that processes fired events in a thread pool."
      :author "Jeff Rose, Sam Aaron"}
   overtone.libs.event
-  (:require [overtone.util.log :as log]
+  (:require [overtone.config.log :as log]
             [overtone.libs.handlers :as handlers]))
 
 (defonce handler-pool (handlers/mk-handler-pool "Overtone Event Handlers"))

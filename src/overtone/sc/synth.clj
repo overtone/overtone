@@ -5,7 +5,7 @@
          serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.sc.synth
-  (:use [overtone.util lib old-contrib]
+  (:use [overtone.helpers lib old-contrib]
         [overtone.libs event counters]
         [overtone.music time]
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
@@ -14,7 +14,7 @@
         [overtone.helpers seq]
         [clojure.pprint])
 
-  (:require [overtone.util.log :as log]
+  (:require [overtone.config.log :as log]
             [clojure.set :as set]))
 
 ;; ### Synth
@@ -563,7 +563,7 @@
                    :args arg-names#
                    :params params-with-vals#
                    :instance-fn instance-fn#})
-                 {:overtone.util.live/to-string #(str (name (:type %)) ":" (:name %))})]
+                 {:overtone.live/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
      smap#))

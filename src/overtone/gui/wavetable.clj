@@ -1,6 +1,6 @@
 (ns overtone.gui.wavetable
   (:use [overtone.sc server buffer]
-        [overtone.util log]
+        [overtone.config log]
         [overtone.music time]
         [overtone.studio wavetable]
         [seesaw core graphics color mig meta]
@@ -181,4 +181,3 @@
            {:type ::wavetable-editor}))
        (catch Exception e
          (warning (str "Error creating wavetable-editor: " (with-out-str (print-stack-trace e)))))))))
-

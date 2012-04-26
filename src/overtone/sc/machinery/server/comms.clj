@@ -1,8 +1,8 @@
 (ns overtone.sc.machinery.server.comms
   (:use [overtone.sc.machinery.server osc-validator]
         [overtone.libs event counters]
-        [overtone.util.lib :only [uuid deref!]])
-  (:require [overtone.util.log :as log]))
+        [overtone.helpers.lib :only [uuid deref!]])
+  (:require [overtone.config.log :as log]))
 
 (defonce osc-debug*       (atom false))
 (defonce server-osc-peer* (ref nil))

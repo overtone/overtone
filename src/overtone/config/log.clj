@@ -1,7 +1,7 @@
 (ns
   ^{:doc "Basic logging functionality."
      :author "Jeff Rose"}
-  overtone.util.log
+  overtone.config.log
   (:import [java.util.logging Logger Level ConsoleHandler FileHandler
             StreamHandler Formatter LogRecord]
            [java.util Date])
@@ -80,5 +80,3 @@
        (println "Exception: " ex#)
        (warning (str ~message "\nException: " ex#
                      (with-out-str (clojure.stacktrace/print-stack-trace ex#)))))))
-
-

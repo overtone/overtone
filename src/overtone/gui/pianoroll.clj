@@ -5,7 +5,7 @@
         [overtone.music time]
         [seesaw.border :only [line-border]])
   (:require [seesaw.bind :as bind]
-            [overtone.util.log :as log])
+            [overtone.config.log :as log])
   (:import [javax.swing DefaultBoundedRangeModel]))
 
 (def ^{:private true} NOTE-TYPES
@@ -205,5 +205,3 @@
       (catch Exception e
         (log/warning (str "Exception in piano roll: " e
                           (with-out-str (.printStackTrace e))))))))
-
-

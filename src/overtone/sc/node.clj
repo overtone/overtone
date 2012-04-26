@@ -1,11 +1,11 @@
 (ns overtone.sc.node
-  (:use [overtone.util lib]
+  (:use [overtone.helpers lib]
         [overtone.libs event deps]
         [overtone.sc bus server]
         [overtone.sc.machinery defaults allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 ;; ## Node and Group Management
 

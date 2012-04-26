@@ -5,7 +5,7 @@
   (:use [clojure.core.incubator :only [dissoc-in]]
         [overtone.music rhythm pitch]
         [overtone.libs event deps]
-        [overtone.util lib]
+        [overtone.helpers lib]
         [overtone.sc.machinery defaults synthdef]
         [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
         [overtone.sc.machinery.server comms]
@@ -13,7 +13,7 @@
         [overtone.sc.util :only [id-mapper]]
         [overtone.music rhythm time])
   (:require [overtone.studio fx]
-            [overtone.util.log :as log]))
+            [overtone.config.log :as log]))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
 ; SuperCollider.  Every instance of an instrument will be placed in the same

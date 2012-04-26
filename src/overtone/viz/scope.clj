@@ -8,13 +8,13 @@
            [javax.swing JFrame JPanel JSlider]
            [java.util.concurrent TimeoutException])
   (:use [clojure.stacktrace]
-        [overtone.util lib]
+        [overtone.helpers lib]
         [overtone.libs event deps]
         [overtone.sc.machinery defaults]
         [overtone.sc server synth ugens buffer node]
         [overtone.studio.util])
   (:require [clojure.set :as set]
-            [overtone.util.log :as log]
+            [overtone.config.log :as log]
             [overtone.at-at :as at-at]))
 
 (defonce SCOPE-BUF-SIZE 4096)

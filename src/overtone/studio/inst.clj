@@ -4,7 +4,7 @@
     [overtone.sc.machinery defaults synthdef]
     [overtone.sc.util :only (id-mapper)]
     [overtone.studio mixer fx]
-    [overtone.util lib]
+    [overtone.helpers lib]
     [overtone.libs event]))
 
 (defonce __MIXER-SYNTH__
@@ -100,7 +100,7 @@
                              container-group# instance-group# fx-group#
                              imixer# inst-bus# fx-chain#
                              volume# pan#)
-                      {:overtone.util.lib/to-string #(str (name (:type %)) ":" (:name %))})]
+                      {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
 
      (load-synthdef sdef#)
      (add-instrument inst#)
@@ -173,5 +173,3 @@
 
   IKillable
   {:kill* (fn [this] (group-deep-clear (:instance-group this)))})
-
-

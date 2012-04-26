@@ -4,7 +4,7 @@
     intervals, etc."
       :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
-  (:use [overtone.util old-contrib]
+  (:use [overtone.helpers old-contrib]
         [overtone.algo chance])
   (:require [clojure.string :as string]))
 

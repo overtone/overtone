@@ -4,7 +4,7 @@
   overtone.sc.machinery.ugen.check
   (:use [overtone.helpers.pow2 :only [power-of-two?]]
         [overtone.sc.machinery.ugen defaults sc-ugen]
-        [overtone.util.lib :only [overtone-ugen-name]]))
+        [overtone.helpers.lib :only [overtone-ugen-name]]))
 
 (defn rate-name= [obj rate]
   (= (:rate-name obj) rate))

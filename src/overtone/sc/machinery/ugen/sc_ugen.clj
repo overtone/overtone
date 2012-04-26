@@ -3,7 +3,7 @@
       :author "Sam Aaron"}
     overtone.sc.machinery.ugen.sc-ugen
   (:use [overtone.sc.machinery.ugen defaults]
-        [overtone.util lib]))
+        [overtone.helpers lib]))
 
 (defrecord SCUGen [id name rate rate-name special args n-outputs])
 (derive SCUGen ::sc-ugen)

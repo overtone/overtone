@@ -4,7 +4,7 @@
     [overtone.config.store :only (OVERTONE-DIRS)]
     [clojure.java.shell :only (sh)]
     [overtone.helpers.system :only (get-os)]
-    [overtone.util.lib :only (uuid)]))
+    [overtone.helpers.lib :only (uuid)]))
 
 (def SPEECH-DIR (:speech OVERTONE-DIRS))
 
@@ -55,4 +55,3 @@
   [text & {:as options}]
   (let [file (say text options)]
     (sample file)))
-
