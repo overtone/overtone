@@ -15,7 +15,8 @@
   (if (keyword? val) (name val) val))
 
 (defn to-float
-  "If val is a number or bool, return its float equivalent otherwise return val"
+  "If val is a number or bool, return its float equivalent otherwise
+  return val"
   [val]
   (cond
    (number? val) (float val)
@@ -30,10 +31,10 @@
     val))
 
 (defn floatify-truth
-  "Convert truth values to 0 or 1 using most of the standard Clojure truth
-  semantics:  everything that's not nil or false is 1 otherwise 0. The exception
-  to this allows for the preservation of number truth values, so an input of 0
-  maps to 0, and an input of 1 maps to 1."
+  "Convert truth values to 0 or 1 using most of the standard Clojure
+  truth semantics: everything that's not nil or false is 1 otherwise
+  0. The exception to this allows for the preservation of number truth
+  values, so an input of 0 maps to 0, and an input of 1 maps to 1."
   [obj]
   (let [obj (if (number? obj) (float obj) obj)
         truthy (float 1)
@@ -72,9 +73,10 @@
   (fn [obj] (and (map? obj) (= (:type obj) t))))
 
 (defn uuid
-  "Creates a random, immutable UUID object that is comparable using the '='
-  function."
-  [] (. java.util.UUID randomUUID))
+  "Creates a random, immutable UUID object that is comparable using
+  the '=' function."
+  []
+  (. java.util.UUID randomUUID))
 
 (defn cpu-count
   "Get the number of CPUs on this machine."
@@ -82,7 +84,8 @@
   (.availableProcessors (Runtime/getRuntime)))
 
 (defn map-vals
-  "Takes a map m and returns a new map with all of m's values mapped through f"
+  "Takes a map m and returns a new map with all of m's values mapped
+  through f"
   [f m]
   (zipmap (keys m)
           (map f (vals m))))
@@ -95,8 +98,9 @@
     (getValue [] v)))
 
 (defn callable-map
-  "Create a map-like datastructure which overrides it's behaviour when called as
-  a fn from lookup to an arbitrary fn you specify at creation time."
+  "Create a map-like datastructure which overrides it's behaviour when
+  called as a fn from lookup to an arbitrary fn you specify at
+  creation time."
   ([m fun] (callable-map m fun {}))
   ([m fun metadata]
      (proxy [clojure.lang.Associative clojure.lang.IFn clojure.lang.IObj clojure.lang.IMeta]
@@ -122,9 +126,9 @@
 
 (defmacro defrecord-ifn
   "A helper macro for creating callable records with a var-args function.
-  It generates all arities of invoke, calling the function.  Besides generating
-  the clojure.lang.IFn implementation, you can declare any other implementations
-  as you would normally with defrecord."
+  It generates all arities of invoke, calling the function.  Besides
+  generating the clojure.lang.IFn implementation, you can declare any
+  other implementations as you would normally with defrecord."
   [rec-name fields invoke_fn & body]
   `(defrecord ~rec-name ~fields
      ~@body
@@ -153,21 +157,23 @@
 
 (defn arg-mapper
   "Takes a list of args, expected arg names and map of defaults.
-   Creates a map of arg names to args using the defaults as the starting
-   point.
+   Creates a map of arg names to args using the defaults as the
+   starting point.
 
-   The args should be passed in the order 'ordered params', 'keyword params'
-   such as the following:  [1 2 3 :d 4 :f 5]
-   where 1 2 and 3 are ordered params and
-   4 and 5 are named params (associated with :d and :f respectively).
+   The args should be passed in the order 'ordered params', 'keyword
+   params' such as the following: [1 2 3 :d 4 :f 5] where 1 2 and 3
+   are ordered params and 4 and 5 are named params (associated with :d
+   and :f respectively).
 
-   If the expected args is the list [:a :b :c :d :f] then the resulting map
-   will look as follows: {:a 1 :b 2 :c 3 :d 5 :f 5}. If the defaults contains
-   extra keys, these will be merged in with any clashes being overridden with
-   the result map, so if the default map is {:a 99 :h 2} the final output will
-   be {:a 1 :b 2 :c 3 :d 4 :f 5 :h 2}.
+   If the expected args is the list [:a :b :c :d :f] then the
+   resulting map will look as follows: {:a 1 :b 2 :c 3 :d 5 :f 5}. If
+   the defaults contains extra keys, these will be merged in with any
+   clashes being overridden with the result map, so if the default map
+   is {:a 99 :h 2} the final output will be {:a 1 :b 2 :c 3 :d 4 :f
+   5 :h 2}.
 
-   It is assumed that the values passed in as the args are *not* keywords."
+   It is assumed that the values passed in as the args are *not*
+  keywords."
   [args arg-names default-map]
   (loop [args args
          names arg-names
@@ -205,10 +211,11 @@
            ~@body)))))
 
 (defn invert-map
-  "Takes a map m and returns a new map that's keys are the m's vals and that's
-  vals are m's keys. Assumes that m's keys and vals are both sets (i.e. don't
-  contain any duplicates). If there are duplicate values in the map they will
-  result in key collisions and a smaller result map.
+  "Takes a map m and returns a new map that's keys are the m's vals
+  and that's vals are m's keys. Assumes that m's keys and vals are
+  both sets (i.e. don't contain any duplicates). If there are
+  duplicate values in the map they will result in key collisions and a
+  smaller result map.
 
    (invert-map {:a 1, :b 2, :c 3}) ;=> {1 :a, 2 :b, 3 :c}"
   [m]
@@ -227,13 +234,13 @@
        maps))
 
 (defn update-every-n
-  "Update every nth element in a seq of maps, optionally offset from the start, by
-  applying f to the current value.
+  "Update every nth element in a seq of maps, optionally offset from
+  the start, by applying f to the current value.
 
-  (update-every-n [{:a 1} {:a 2} {:a 3} {:a 4} {:a 5}] 2 1 :a #(* 10 %))
+  (update-every-n [{:a 1} {:a 2} {:a 3} {:a 4} {:a 5}]
+                  2 1 :a #(* 10 %))
 
-  ;=> ({:a 1} {:a 20} {:a 3} {:a 40} {:a 5})
-  "
+  ;=> ({:a 1} {:a 20} {:a 3} {:a 40} {:a 5})"
   ([maps n k f]
    (update-every-n maps n 0 k f))
   ([maps n offset k f]
@@ -250,8 +257,8 @@
 (def DEFAULT-PROMISE-TIMEOUT 5000)
 
 (defn deref!
-  "Read a future or promise waiting for timeout ms for it to be successfully
-  dereferenced. Raises an exception if a timeout occurs"
+  "Read a future or promise waiting for timeout ms for it to be
+  successfully dereferenced. Raises an exception if a timeout occurs"
   ([ref] (deref! ref DEFAULT-PROMISE-TIMEOUT))
   ([ref timeout]
      (let [timeout-indicator (gensym "deref-timeout")
@@ -266,6 +273,18 @@
   [m]
   (into {} (map (fn [[k v]] [k (if (keyword? v) (name v) (str v))]) m)))
 
+(defn- welcome-message
+  [user-name]
+  (let [opts [
+              (str "Hello " user-name ", may this be the start of a beautiful music hacking session...")
+              (str "Cometh the hour, cometh the overtone hacker: " user-name ".")
+              (str "Hello " user-name ", may algorithmic beauty pour forth from your fingertips.")
+              (str "Hey " user-name ", sonic brilliance is only a few functions away...")
+              (str "Hello " user-name ", just pause for a brief moment to summon your creative powers...")
+              (str "Hello " user-name ", hold tight and feel that creativity pump through your veins...")
+              (str "Wub wub sschhrrrweeeeeexxxx Hey " user-name "! kkrrrwwwwuggggg wub wub wub...")]]
+    (nth opts (rand-int (count opts)))))
+
 (defn print-ascii-art-overtone-logo
   [user-name version-str]
   (println (str "
@@ -278,13 +297,14 @@
               Collaborative Programmable Music. "version-str"
 
 
-Hello " user-name ", may this be the start of a beautiful music hacking session...")))
+"(welcome-message user-name))))
 
 (defn normalize-ugen-name
-  "Normalizes both SuperCollider and overtone-style names to squeezed lower-case.
+  "Normalizes both SuperCollider and overtone-style names to squeezed
+  lower-case.
 
-  This produces strings that may be used to represent unique ugen keys that can be
-  generated from both SC and Overtone names.
+  This produces strings that may be used to represent unique ugen keys
+  that can be generated from both SC and Overtone names.
 
   (normalize-ugen-name \"SinOsc\")  ;=> \"sinosc\"
   (normalize-ugen-name \"sin-osc\") ;=> \"sinosc\""
@@ -292,8 +312,9 @@ Hello " user-name ", may this be the start of a beautiful music hacking session.
   (.replaceAll (.toLowerCase (str n)) "[-|_]" ""))
 
 (defn overtone-ugen-name
-  "A basic camelCase to with-dash name converter tuned to convert SuperCollider
-  names to Overtone names. Most likely needs improvement.
+  "A basic camelCase to with-dash name converter tuned to convert
+  SuperCollider names to Overtone names. Most likely needs
+  improvement.
 
   (overtone-ugen-name \"SinOsc\") ;=> \"sin-osc\""
   [n]
@@ -305,8 +326,8 @@ Hello " user-name ", may this be the start of a beautiful music hacking session.
     n))
 
 (defn resolve-gen-name
-  "If the gen is a cgen or ugen returns the :name otherwise returns name
-   unchanged assuming it's a keyword."
+  "If the gen is a cgen or ugen returns the :name otherwise returns
+   name unchanged assuming it's a keyword."
   [gen]
   (if (and (associative? gen)
            (or (= :overtone.sc.machinery.ugen.fn-gen/ugen (:type gen))
