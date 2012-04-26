@@ -31,12 +31,14 @@
   (deps-satisfied? MIXER-BOOT-DEPS))
 
 (defn wait-until-mixer-booted
-  "Makes the current thread sleep until the mixer completed its boot process."
+  "Makes the current thread sleep until the mixer completed its boot
+  process."
   []
   (wait-until-deps-satisfied MIXER-BOOT-DEPS))
 
 (defn boot-mixer
-  "Boots the server and waits until the studio mixer has complete set up"
+  "Boots the server and waits until the studio mixer has complete set
+  up"
   []
   (when-not (mixer-booted?)
     (boot-server)
