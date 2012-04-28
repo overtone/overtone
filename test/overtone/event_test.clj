@@ -1,5 +1,5 @@
 (ns overtone.event-test
-  (:require [overtone.util.log :as log])
+  (:require [overtone.config.log :as log])
   (:use overtone.libs.event
         clojure.test))
 

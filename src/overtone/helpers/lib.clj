@@ -1,12 +1,12 @@
 (ns
     ^{:doc "Library of general purpose utility functions for Overtone internals."
       :author "Jeff Rose and Sam Aaron"}
-  overtone.util.lib
+  overtone.helpers.lib
   (:import [java.util ArrayList Collections]
            [java.util.concurrent TimeUnit TimeoutException])
   (:use [clojure.stacktrace]
         [clojure.pprint]
-        [overtone.util doc]))
+        [overtone.helpers doc]))
 
 
 (defn to-str
