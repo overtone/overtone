@@ -5,8 +5,6 @@
   (:import [java.io FileOutputStream FileInputStream])
   (:use [clojure.pprint]))
 
-
-
 (defonce config*  (ref {}))
 (defonce STORE :file)
 (defonce store-path* (ref false))
@@ -34,17 +32,16 @@
   (save-config @store-path* @config*))
 
 (defn live-config
-  "Use the configuration database located at the given path, restoring the
-  current config values if it already exists, and optionally persisting any
-  config-value changes as they occur.
+  "Use the configuration database located at the given path, restoring
+  the current config values if it already exists, and optionally
+  persisting any config-value changes as they occur.
 
   (live-config \"~/.app-config\")
 
-  Anytime the config* ref is modified it will be written to the config file.  Beyond that
-  it's just a normal old ref.
+  Anytime the config* ref is modified it will be written to the config
+  file.  Beyond that it's just a normal old ref.
   (:n-handlers @config*) ; get the current config setting
-  (dosync (alter config* assoc :n-handlers 10)) ; set it to 10
-  "
+  (dosync (alter config* assoc :n-handlers 10)) ; set it to 10"
   [path & [initial-value]]
   (dosync
     (ref-set config* (or initial-value
