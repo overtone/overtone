@@ -22,6 +22,11 @@
 (def ^:private REVERSE-LOG-LEVELS (apply hash-map (flatten (map reverse LOG-LEVELS))))
 (def ^:private DEFAULT-LOG-LEVEL :warn)
 
+(defn- initial-log-level
+  []
+  (or (config-get :log-level)
+      DEFAULT-LOG-LEVEL))
+
 (defn- log-formatter []
   (proxy [Formatter] []
     (format [^LogRecord log-rec]
@@ -47,10 +52,19 @@
   (.getLevel LOGGER))
 
 (defn set-level!
-  "Set the log level. Use one of :debug, :info, :warn or :error"
+  "Set the log level for this session. Use one of :debug, :info, :warn
+  or :error"
   [level]
   (assert (contains? LOG-LEVELS level))
   (.setLevel LOGGER (get LOG-LEVELS level)))
+
+(defn set-default-level!
+  "Set the log level for this and future sessions - stores level in
+  config. Use one of :debug, :info, :warn or :error"
+  [level]
+  (set-level! level)
+  (config-set! :log-level level)
+  level)
 
 (defn debug
   "Log msg with level debug"
@@ -85,6 +99,6 @@
 ;;setup logger
 (defonce ^:private __setup-logs__
   (do
-    (set-level! DEFAULT-LOG-LEVEL)
+    (set-level! (initial-log-level))
     (.setFormatter LOG-FILE-HANDLER (log-formatter))
     (.addHandler LOGGER LOG-FILE-HANDLER)))
