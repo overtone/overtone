@@ -185,14 +185,14 @@
 (defn sc-debug-on
   "Turn on output from both the Overtone and the audio server."
   []
-  (log/level :debug)
+  (log/set-level! :debug)
   (sc-osc-debug-on)
   (snd "/dumpOSC" 1))
 
 (defn sc-debug-off
   "Turn off debug output from both the Overtone and the audio server."
   []
-  (log/level :error)
+  (log/set-level! :error)
   (sc-osc-debug-off)
   (snd "/dumpOSC" 0))
 

@@ -37,7 +37,7 @@
       (.setStroke g (stroke :width 2.0))
       (.drawPolyline g x-array y-array w))
     (catch Exception ex
-      (warning (str "Error in paint-wavetable: " ex (with-out-str (clojure.stacktrace/print-stack-trace ex)))))))
+      (warn (str "Error in paint-wavetable: " ex (with-out-str (clojure.stacktrace/print-stack-trace ex)))))))
 
 (defn waveform-panel
   "Creates a swing panel that displays the waveform in a buffer."
@@ -94,7 +94,7 @@
           ; repaint from the root so thumbnails get redrawn too
           (.repaint (to-root source)))))
         (catch Exception ex
-          (warning (str "Error in drag-handler:" ex))
+          (warn (str "Error in drag-handler:" ex))
           (.printStackTrace ex))))
 
 (defn- editor-press-handler
@@ -180,4 +180,4 @@
            {:frame f :wavetable table}
            {:type ::wavetable-editor}))
        (catch Exception e
-         (warning (str "Error creating wavetable-editor: " (with-out-str (print-stack-trace e)))))))))
+         (warn (str "Error creating wavetable-editor: " (with-out-str (print-stack-trace e)))))))))

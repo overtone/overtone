@@ -8,35 +8,24 @@
   (:use [overtone.config store]
         [clojure.pprint :only (pprint)]))
 
-; Sets up some basic logging infrastructure and helpers for the project.
+(defonce ^:private LOGGER (Logger/getLogger "overtone"))
 
-(defonce LOGGER (Logger/getLogger "overtone"))
+(defonce ^:private LOG-APPEND true)
+(defonce ^:private LOG-CONSOLE (ConsoleHandler.))
 
-(defonce LOG-APPEND true)
-(defonce LOG-CONSOLE (ConsoleHandler.))
+(def ^:private LOG-LEVELS {:debug Level/FINE
+                           :info  Level/INFO
+                           :warn  Level/WARNING
+                           :error Level/SEVERE})
 
-(def LOG-FILE-HANDLER (FileHandler. OVERTONE-LOG-FILE LOG-APPEND))
-
-(def LEVELS {:debug Level/FINE
-             :info  Level/INFO
-             :warn  Level/WARNING
-             :error Level/SEVERE})
-
-(def REVERSE-LEVELS (apply hash-map (flatten (map reverse LEVELS))))
-
-(def DEFAULT-LEVEL :warn)
-
-(defn level [& [lvl]]
-  (if (nil? lvl)
-    (.getLevel LOGGER)
-    (do
-      (assert (contains? LEVELS lvl))
-      (.setLevel LOGGER (lvl LEVELS)))))
+(def ^:private LOG-FILE-HANDLER (FileHandler. OVERTONE-LOG-FILE LOG-APPEND))
+(def ^:private REVERSE-LOG-LEVELS (apply hash-map (flatten (map reverse LOG-LEVELS))))
+(def ^:private DEFAULT-LOG-LEVEL :warn)
 
 (defn- log-formatter []
   (proxy [Formatter] []
     (format [^LogRecord log-rec]
-      (let [lvl (REVERSE-LEVELS (.getLevel log-rec))
+      (let [lvl (REVERSE-LOG-LEVELS (.getLevel log-rec))
             msg (.getMessage log-rec)
             ts (.getMillis log-rec)]
         (with-out-str (pprint {:level lvl
@@ -52,23 +41,35 @@
 (defn console []
   (.addHandler LOGGER (print-handler)))
 
-(defonce LOG-SETUP?
-  (do
-    (level DEFAULT-LEVEL)
-    (.setFormatter LOG-FILE-HANDLER (log-formatter))
-    (.addHandler LOGGER LOG-FILE-HANDLER)
-    true))
+(defn log-level
+  "Returns the current log level"
+  []
+  (.getLevel LOGGER))
 
-(defn debug [& msg]
+(defn set-level!
+  "Set the log level. Use one of :debug, :info, :warn or :error"
+  [level]
+  (assert (contains? LOG-LEVELS level))
+  (.setLevel LOGGER (get LOG-LEVELS level)))
+
+(defn debug
+  "Log msg with level debug"
+  [& msg]
   (.log LOGGER Level/FINE (apply str msg)))
 
-(defn info [& msg]
+(defn info
+  "Log msg with level info"
+  [& msg]
   (.log LOGGER Level/INFO (apply str msg)))
 
-(defn warning [& msg]
+(defn warn
+  "Log msg with level warn"
+  [& msg]
   (.log LOGGER Level/WARNING (apply str msg)))
 
-(defn error [& msg]
+(defn error
+  "Log msg with level error"
+  [& msg]
   (.log LOGGER Level/SEVERE (apply str msg)))
 
 (defmacro with-error-log
@@ -78,5 +79,12 @@
      ~@body
      (catch Exception ex#
        (println "Exception: " ex#)
-       (warning (str ~message "\nException: " ex#
+       (warn (str ~message "\nException: " ex#
                      (with-out-str (clojure.stacktrace/print-stack-trace ex#)))))))
+
+;;setup logger
+(defonce ^:private __setup-logs__
+  (do
+    (set-level! DEFAULT-LOG-LEVEL)
+    (.setFormatter LOG-FILE-HANDLER (log-formatter))
+    (.addHandler LOGGER LOG-FILE-HANDLER)))

@@ -3,7 +3,7 @@
   (:use overtone.libs.event
         clojure.test))
 
-(log/level :debug)
+(log/set-level! :debug)
 
 (deftest handler-test
   (let [counter (atom 0)]
