@@ -56,7 +56,9 @@
              "C:/Program Files (x86)/SuperCollider/scsynth.exe"
              "D:/Program Files (x86)/SuperCollider/scsynth.exe"
              "E:/Program Files (x86)/SuperCollider/scsynth.exe"]
-   :mac  ["/Applications/SuperCollider/scsynth"] })
+   :mac  ["/Applications/SuperCollider/scsynth"
+          "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth"
+          "/Applications/SuperCollider.app/Contents/Resources/scsynth"] })
 
 (def SC-ARGS
   "Extra arguments required to correctly boot an external SuperCollider server
