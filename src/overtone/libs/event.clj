@@ -102,7 +102,10 @@
   [event-type & args]
   (log/debug "event: " event-type " " args)
   (binding [overtone.libs.handlers/*log-fn* log/error]
-    (let [event-info (apply hash-map args)]
+    (let [event-info (if (and (= 1 (count args))
+                              (map? (first args)))
+                       (first args)
+                       (apply hash-map args))]
       (handlers/event handler-pool event-type event-info))))
 
 (defn sync-event
