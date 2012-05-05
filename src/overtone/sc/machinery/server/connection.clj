@@ -5,12 +5,12 @@
         [overtone.config store]
         [overtone.libs event deps]
         [overtone version]
-        [overtone.util.lib :only [print-ascii-art-overtone-logo]]
         [overtone.sc defaults comms]
+        [overtone.helpers.lib :only [print-ascii-art-overtone-logo]]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
         [overtone.helpers.file :only [file-exists?]])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 (defonce server-thread*       (ref nil))
 (defonce sc-world*            (ref nil))

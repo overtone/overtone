@@ -1,10 +1,10 @@
 (ns overtone.sc.node
-  (:use [overtone.util lib]
+  (:use [overtone.helpers lib]
         [overtone.libs event deps]
         [overtone.sc comms bus server defaults]
         [overtone.sc.machinery allocator]
         [overtone.sc.util :only [id-mapper]])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 ;; ## Node and Group Management
 
@@ -126,7 +126,7 @@
     (free-id :node id 1 #(log/debug (format "node-destroyed: %d - synth-node: %s" id snode)))
     (if snode
       (reset! (:status snode) :destroyed)
-      (log/warning (format "ERROR: The fn node-destroyed can't find synth node: %d" id)))
+      (log/warn (format "ERROR: The fn node-destroyed can't find synth node: %d" id)))
     (swap! active-synth-nodes* dissoc id)))
 
 (defn- node-created
@@ -136,7 +136,7 @@
     (log/debug (format "node-created: %d\nsynth-node: %s" id snode))
     (if snode
       (reset! (:status snode) :live)
-      (log/warning (format "ERROR: The fn node-created can't find synth node: %d" id)))))
+      (log/warn (format "ERROR: The fn node-created can't find synth node: %d" id)))))
 
 (defn- node-paused
   "Called when a node is turned off, but not deallocated."
@@ -145,7 +145,7 @@
     (log/debug (format "node-paused: %d\nsynth-node: %s" id snode))
     (if snode
       (reset! (:status snode) :paused)
-      (log/warning (format "ERROR: The fn node-paused can't find synth node: %d" id)))))
+      (log/warn (format "ERROR: The fn node-paused can't find synth node: %d" id)))))
 
 (defn- node-started
   "Called whena a node is turned on."
@@ -154,7 +154,7 @@
     (log/debug (format "node-started: %d\nsynth-node: %s" id snode))
     (if snode
       (reset! (:status snode) :running)
-      (log/warning (format "ERROR: The fn node-started can't find synth node: %d" id)))))
+      (log/warn (format "ERROR: The fn node-started can't find synth node: %d" id)))))
 
 ; Setup the feedback handlers with the audio server.
 (on-event "/n_end" (fn [info] (node-destroyed (first (:args info)))) ::node-destroyer)

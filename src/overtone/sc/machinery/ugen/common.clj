@@ -2,7 +2,7 @@
   ^{:doc "Code that is common to many ugens."
      :author "Jeff Rose & Christophe McKeon"}
   overtone.sc.machinery.ugen.common
-  (:use [overtone.util lib]
+  (:use [overtone.helpers lib]
         [overtone.sc.machinery.ugen special-ops]))
 
 

@@ -13,7 +13,7 @@
 
 (ns pitch.chord
   (:use [overtone.live]
-        [overtone.util.log]))
+        [overtone.config.log]))
 
 (definst beep [note 60]
   (let [src (sin-osc (midicps note))
@@ -46,4 +46,3 @@
             (find-chord @current-notes))))
 
 (midi-handle-events kb #'midi-player)
-

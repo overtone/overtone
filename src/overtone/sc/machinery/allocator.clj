@@ -3,7 +3,7 @@
       :author "Sam Aaron"}
   overtone.sc.machinery.allocator
   (:use [overtone.sc defaults])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 ;; ## Allocators
 ;;

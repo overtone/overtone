@@ -3,7 +3,7 @@
       :author "Jeff Rose"}
   overtone.sc.machinery.ugen.specs
   (:use [clojure.pprint]
-        [overtone.util lib]
+        [overtone.helpers lib]
         [overtone.sc.machinery.ugen defaults common special-ops categories sc-ugen])
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
 

@@ -4,7 +4,7 @@
       :author "Sam Aaron & Jeff Rose"}
   overtone.libs.deps
   (:require [clojure.set :as set]
-            [overtone.util.log :as log]))
+            [overtone.config.log :as log]))
 
 ;; A representation of the state of the dependencies:
 ;; :satisified - a set of keywords representing ids for each of the satisfied

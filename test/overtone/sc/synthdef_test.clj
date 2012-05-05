@@ -8,7 +8,7 @@
         overtone.sc.machinery.synthdef
         test-utils
         clojure.test)
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 (defn sawzall-raw
   []

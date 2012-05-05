@@ -1,6 +1,6 @@
 (ns overtone.util-test
   (:use clojure.test)
-  (:require [overtone.util.lib :as lib]))
+  (:require [overtone.helpers.lib :as lib]))
 
 (deftest arg-mapper-test
   (let [defaults {:a 1 :b 2 :c 3 :d 4}

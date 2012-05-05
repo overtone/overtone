@@ -85,6 +85,7 @@
        :args [{:name "num-channels" :default 1}
               {:name "num-frames"}]
        :check (nth-input-number? 1)
+       :internal-name true
        :rates #{:ir}}
 
       {:name "MaxLocalBufs"

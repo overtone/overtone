@@ -1,4 +1,4 @@
-(ns overtone.util.ns)
+(ns overtone.helpers.ns)
 
 (defn immigrate
  "Create a public var in this namespace for each public var in the

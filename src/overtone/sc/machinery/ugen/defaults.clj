@@ -1,7 +1,7 @@
 (ns ^{:doc "Default vals and fns required  to manipulate ugens."
       :author "Jeff Rose"}
   overtone.sc.machinery.ugen.defaults
-  (:use [overtone.util lib]))
+  (:use [overtone.helpers lib]))
 
 ;; Outputs have a specified calculation rate
 ;;   0 = scalar rate - one sample is computed at initialization time only.

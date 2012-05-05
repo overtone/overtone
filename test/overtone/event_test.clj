@@ -1,9 +1,9 @@
 (ns overtone.event-test
-  (:require [overtone.util.log :as log])
+  (:require [overtone.config.log :as log])
   (:use overtone.libs.event
         clojure.test))
 
-(log/level :debug)
+(log/set-level! :debug)
 
 (deftest handler-test
   (let [counter (atom 0)]

@@ -1,8 +1,9 @@
 (ns overtone.sc.bus
   (:import [java.util.concurrent TimeoutException])
   (:use [overtone.sc.machinery allocator]
-        [overtone.util lib]
-        [overtone.sc defaults comms server]))
+        [overtone.sc defaults comms server]
+        [overtone.helpers lib]
+        [overtone.sc server]))
 
 ;; ## Busses
 ;;
