@@ -2,7 +2,7 @@
   ^{:doc "Library initialization and configuration."
      :author "Jeff Rose"}
   overtone.config.store
-  (:use [overtone.config file-store]
+  (:use [overtone.config.file-store]
         [overtone.helpers.string :only [capitalize]]
         [overtone.helpers.system :only [get-os system-user-name]]
         [overtone.helpers.file :only [mkdir! file-exists? path-exists? mv!]]
@@ -12,6 +12,9 @@
 (def CONFIG-DEFAULTS
   {:os (get-os)
    :user-name (capitalize (system-user-name))})
+
+(def config* (ref {}))
+(def live-config (partial live-file-store config*))
 
 (defn config-get
   "Get config value"
@@ -40,7 +43,7 @@
        :speech speech}))
 
 (def OVERTONE-CONFIG-FILE (str (:root OVERTONE-DIRS) "/config.clj"))
-(def OVERTONE-LOG-FILE (str (:log OVERTONE-DIRS) "/overtone.log"))
+(def OVERTONE-LOG-FILE    (str (:log  OVERTONE-DIRS) "/overtone.log"))
 
 (defn- ensure-dir-structure
   []
@@ -51,7 +54,7 @@
   "Creates empty config file if one doesn't already exist"
   []
   (when-not (file-exists? OVERTONE-CONFIG-FILE)
-    (save-config OVERTONE-CONFIG-FILE {})))
+    (write-file-store OVERTONE-CONFIG-FILE {})))
 
 (defn- load-config-defaults
   []

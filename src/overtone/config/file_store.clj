@@ -1,50 +1,41 @@
 (ns
-    ^{:doc "Provides a simple key/value configuration system with support for automatically persisting to a file on disk.  The config file is serialized clojure code which is easily editable as a text file."
-      :author "Jeff Rose"}
+    ^{:doc "Provides a simple key/value store which will automatically persist to a file on disk. The file is serialized clojure code which can be easily edited as text."
+      :author "Jeff Rose, Kevin Neaton"}
   overtone.config.file-store
   (:import [java.io FileOutputStream FileInputStream])
   (:use [clojure.pprint]))
 
-(defonce config*  (ref {}))
-(defonce STORE :file)
-(defonce store-path* (ref false))
-
-(defn- storage [& args] STORE)
+;; This should be temporay...
+(def storage (constantly :file))
 
 ;; Store interface:
-(defmulti save-config    storage)
-(defmulti restore-config storage)
+(defmulti write-file-store storage)
+(defmulti read-file-store  storage)
 
 (def F-LOCK :lock)
 
-; Simple flat-file based storage
-(defmethod save-config :file
+;; Simple file-based storage
+(defmethod write-file-store :file
   [path data]
   (locking F-LOCK
     (spit path (with-out-str (pprint data)))))
 
-(defmethod restore-config :file
+(defmethod read-file-store :file
   [path]
   (with-open [file (FileInputStream. path)]
     (read-string (slurp file))))
 
-(defn- config-watcher [k r old-conf new-conf]
-  (save-config @store-path* @config*))
+(defn live-file-store
+  "Uses the file-store located at the given path. Restores the file-store if it
+  already exists and persists any changes to disk as they occur.
 
-(defn live-config
-  "Use the configuration database located at the given path, restoring
-  the current config values if it already exists, and optionally
-  persisting any config-value changes as they occur.
-
-  (live-config \"~/.app-config\")
-
-  Anytime the config* ref is modified it will be written to the config
-  file.  Beyond that it's just a normal old ref.
-  (:n-handlers @config*) ; get the current config setting
-  (dosync (alter config* assoc :n-handlers 10)) ; set it to 10"
-  [path & [initial-value]]
+  (def data (ref {}))
+  (live-store data \"~/.app-data\")"
+  [reference path & [initial-value]]
   (dosync
-    (ref-set config* (or initial-value
-                         (restore-config path)))
-    (ref-set store-path* path))
-  (add-watch config* :live-config config-watcher))
+   (ref-set reference (or initial-value
+                          (read-file-store path))))
+  (add-watch reference ::live-file-store
+             (fn [k r old-state new-state]
+                (when-not (= old-state new-state)
+                  (write-file-store path new-state)))))
