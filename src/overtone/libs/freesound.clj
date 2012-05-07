@@ -90,9 +90,8 @@
                (rest args)
                args)]
     (-> (apply hash-map args)
-        (assoc :ks ks
-               :q (or q "")
-               :sounds_per_page 100))))
+        (assoc :ks ks :sounds_per_page 100)
+        (update-in [:q] #(or q %)))))
 
 (defn- freesound-search*
   [params]
