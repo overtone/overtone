@@ -29,18 +29,20 @@
         prom   (recv "/b_info" (fn [msg]
                                  (= buf-id (first (:args msg)))))]
     (with-server-sync #(snd "/b_query" buf-id))
-    (let [msg                        (deref! prom)
-          [id n-frames n-chans rate] (:args msg)
-          num-samples                (* n-frames n-chans)
-          rate-scale                 (/ rate (server-sample-rate))
-          duration                   (/ n-frames rate)]
+    (let [[id n-frames n-chans rate] (:args (deref! prom))
+          server-rate                (server-sample-rate)
+          n-samples                  (* n-frames n-chans)
+          rate-scale                 (when (> server-rate 0)
+                                       (/ rate server-rate))
+          duration                   (when (> rate 0)
+                                       (/ n-frames rate))]
 
       (map->BufferInfo
        {:id id
         :size n-frames
         :n-channels n-chans
         :rate rate
-        :n-samples num-samples
+        :n-samples n-samples
         :rate-scale rate-scale
         :duration duration}))))
 
