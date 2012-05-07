@@ -1,21 +1,35 @@
 (ns overtone.inst.sampled-piano
   (:use [overtone.core]))
 
-(defn- registered-samples []
-  (->> (registered-assets ::MISStereoPiano)
-       (filter #(.contains % "LOUD"))))
+(defn- registered-samples
+  "Fetch piano samples from the asset store (returns empty list if not
+  previously downloaded"
+  []
+  (filter #(.contains % "LOUD")
+          (registered-assets ::MISStereoPiano)))
 
-(defn- download-samples []
-  (->> (freesound-searchm [:id] "LOUD" :f "pack:MISStereoPiano")
-       (map freesound-path)))
+(defn- download-samples
+  "Download piano samples from freesound and store them in the asset
+  store."
+  []
+  (map freesound-path
+       (freesound-searchm [:id] "LOUD" :f "pack:MISStereoPiano")))
+
+(defn- get-samples
+  "Either fetch samples from the registered store or download them if
+  necessary"
+  []
+  (let [samples (registered-samples)]
+    (if (empty? samples)
+      (download-samples)
+      samples)))
 
 (defonce piano-samples
-  (doall (map load-sample (or (registered-samples)
-                              (download-samples)))))
+  (doall (map load-sample (get-samples))))
 
 (defn- note-index
-  "Returns a map of midi-note values [0-127] to buffer id's. Uses the provided
-  note-fn to determine the midi-note value of a buffer."
+  "Returns a map of midi-note values [0-127] to buffer ids. Uses the
+  provided note-fn to determine the midi-note value of a buffer."
   [buffers note-fn]
   (reduce (fn [index buf]
             (let [note (note-fn buf)
