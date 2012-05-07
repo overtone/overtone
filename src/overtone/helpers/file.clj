@@ -117,9 +117,9 @@
   [path]
   (let [path (resolve-tilde-path path)
         f    (file path)]
-    (if (.isDirectory f)
-      (seq (.listFiles f))
-      (satta-glob/glob path))))
+    (cond (.isFile f)      (seq (cons f nil))
+          (.isDirectory f) (seq (.listFiles f))
+          :else            (satta-glob/glob path))))
 
 (defn ls-paths
   "Given a path to a directory, returns a seq of strings representing the full

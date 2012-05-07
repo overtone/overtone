@@ -42,8 +42,9 @@
        :assets assets
        :speech speech}))
 
-(def OVERTONE-CONFIG-FILE (str (:root OVERTONE-DIRS) "/config.clj"))
-(def OVERTONE-LOG-FILE    (str (:log  OVERTONE-DIRS) "/overtone.log"))
+(def OVERTONE-CONFIG-FILE (str (:root   OVERTONE-DIRS) "/config.clj"))
+(def OVERTONE-ASSETS-FILE (str (:assets OVERTONE-DIRS) "/assets.clj"))
+(def OVERTONE-LOG-FILE    (str (:log    OVERTONE-DIRS) "/overtone.log"))
 
 (defn- ensure-dir-structure
   []
