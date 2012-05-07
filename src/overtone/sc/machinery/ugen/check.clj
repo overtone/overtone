@@ -31,15 +31,20 @@
 
 (defn- local-buffer?
   [buf]
-  (and
-   (sc-ugen? buf)
-   (= "LocalBuf" (:name buf))))
+  (and (sc-ugen? buf)
+       (= "LocalBuf" (:name buf))))
+
+(defn- index?
+  [ug]
+  (and (sc-ugen? ug)
+       (= "Index" (:name ug))))
 
 (defn- buffer-like?
   [buf]
   (or
    (buffer? buf)
    (local-buffer? buf)
+   (index? buf)
    (number? buf)
    (control-proxy? buf)
    (output-proxy? buf)))
