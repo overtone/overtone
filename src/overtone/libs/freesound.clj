@@ -43,7 +43,7 @@
   "Generate a freesound url for fetching a json datastructure representing the
   info for a given id."
   [id]
-  (freesound-url "/sounds/" (str id)))
+  (freesound-url "/sounds/" id))
 
 (defn freesound-info
   "Returns a map containing information pertaining to a particular freesound.
@@ -55,16 +55,41 @@
 (defn- sound-serve-url
   "Generate a freesound url for fetching the original audio file by id."
   [id]
-  (freesound-url "/sounds/" (str id) "/serve"))
+  (freesound-url "/sounds/" id "/serve"))
 
 (defn freesound-path
-  "Returns the path to a cached copy of the freesound audio file on the local
-  filesystem. The freesound id may be specified as an integer or string."
+  "Download, cache, and persist the freesound audio file specified by
+  id. Returns the path to a cached local copy of the audio file."
   [id]
   (let [info (freesound-info id)
         name (:original_filename info)
         url  (sound-serve-url id)]
     (asset/asset-path url name)))
+
+;; ## Pack Info
+(defn pack-info-url
+  [id]
+  (freesound-url "/packs/" id))
+
+(defn freesound-pack-info
+  "Get information about a freesound sample pack. Returns a map of pack
+  properties for the given pack id."
+  [id]
+  (slurp-json-asset (pack-info-url id)))
+
+;; ## Pack Serve
+(defn- pack-serve-url
+  "Freesound url for fetching a zipped sample pack by id."
+  [id]
+  (freesound-url "/packs/" id "/serve"))
+
+(defn freesound-pack-dir
+  "Download, cache, and persist all of the sounds in the freesound sample pack
+  specified by id. Returns the path to a local directory containing the cached
+  audio files."
+  [id]
+  (let [url (pack-serve-url id)]
+  (asset/asset-bundle-dir url)))
 
 ;; ## Sound Search
 (defn- search-url
