@@ -4,7 +4,7 @@
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/core.incubator "0.1.0"]
                  [org.clojure/data.json "0.1.2"]
-                 [overtone/scsynth-jna "0.1.2-SNAPSHOT"]
+                 [clj-native "0.9.1-SNAPSHOT"]
                  [overtone/at-at "1.0.0"]
                  [overtone/osc-clj "0.8.0"]
                  [overtone/byte-spec "0.3.1"]
@@ -13,6 +13,7 @@
                  [clj-glob "1.0.0"]
                  [org.clojure/core.match "0.2.0-alpha9"]
                  [seesaw "1.4.1"]]
+  :native-path "native"
   :jvm-opts
   ["-Xms512m" "-Xmx1g"           ; Minimum and maximum sizes of the heap
    "-XX:+UseParNewGC"            ; Use the new parallel GC in conjunction with

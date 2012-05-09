@@ -12,6 +12,9 @@
 
 (def ^{:dynamic true} *verbose-overtone-file-helpers* false)
 
+(defn get-current-directory []
+  (. (java.io.File. ".") getCanonicalPath))
+
 (defn print-if-verbose
   "Prints the arguments if *verbose-overtone-file-helpers* is bound to true. If
   it is also bound to an integer, will print a corresponding number of spaces at

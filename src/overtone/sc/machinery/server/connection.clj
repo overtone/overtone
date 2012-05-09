@@ -1,6 +1,6 @@
 (ns overtone.sc.machinery.server.connection
   (:import [java.io BufferedInputStream File]
-           [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
+;           [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
   (:use [clojure.java shell]
         [overtone.config store]
         [overtone.libs event deps]
@@ -105,13 +105,8 @@
   (println "--> Connecting to internal SuperCollider server...")
   (log/debug "Connecting to internal SuperCollider server")
   (let [send-fn (fn [peer-obj buffer]
-                  (.send @sc-world* buffer))
+                  (scsynth-send @sc-world* buffer))
         peer (assoc (osc-peer) :send-fn send-fn)]
-    (.addMessageReceivedListener @sc-world*
-                                 (proxy [MessageReceivedListener] []
-                                   (messageReceived [buf size]
-                                     (event :osc-msg-received
-                                            :msg (osc-decode-packet buf)))))
     (dosync (ref-set server-osc-peer* peer))
     (setup-connect-handlers)
     (server-snd "/status")))
@@ -154,7 +149,23 @@
   ([host port]
      (.run (Thread. #(external-connection-runner host port)))))
 
+(defn- osc-msg-decoder
+  "Decodes incoming osc message buffers and then sends them as overtone events."
+  [buf]
+  (event :osc-msg-received :msg (osc-decode-packet buf)))
+
 (defn- internal-booter
+  "Fn to actually boot internal server. Typically called within a thread."
+  []
+  (log/info "booting internal audio server")
+  (on-deps :internal-server-booted ::connect-internal connect-internal)
+  (let [server (scsynth osc-msg-decoder)]
+    (log/info "The internal scsynth server has booted...")
+    (satisfy-deps :internal-server-booted)
+    (dosync (ref-set sc-world* server))
+    (scsynth-run server)))
+
+(comment defn- old-internal-booter
   "Fn to actually boot internal server. Typically called within a thread."
   []
   (log/info "booting internal audio server")
@@ -162,6 +173,7 @@
   (let [server (ScSynth.)
         listener (reify ScSynthStartedListener
                    (started [this]
+                   ;(scSynthStarted [this]
                      (log/info "Boot listener has detected the internal server has booted...")
                      (satisfy-deps :internal-server-booted)))]
     (.addScSynthStartedListener server listener)
