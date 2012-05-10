@@ -17,7 +17,8 @@
   (empty [_]
     (.empty results-seq))
   (equiv [this that]
-    (and (= (.count this)
+    (and (coll? that)
+         (= (.count this)
             (.count that))
          (.equiv results-seq (.results that))))
 
