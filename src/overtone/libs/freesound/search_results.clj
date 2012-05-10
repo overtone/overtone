@@ -16,16 +16,16 @@
     (SearchResults. n-results (.cons results-seq x)))
   (empty [_]
     (.empty results-seq))
-  (equiv [this that]
-    (and (coll? that)
-         (= (.count this)
-            (.count that))
-         (.equiv results-seq (.results that))))
+  (equiv [_ o]
+    (if (instance? SearchResults o)
+      (and (= n-results (.n-results o))
+           (.equiv results-seq (.results-seq o)))
+      (.equiv results-seq o)))
 
   clojure.lang.ISeq
   (first [_]
     (.first results-seq))
-  (next [this]
+  (next [_]
     (when (> n-results 1)
       (SearchResults. (dec n-results) (.next results-seq))))
   (more [_]
@@ -46,7 +46,8 @@
   "Create a new instance of SearchResults."
   [n-results results-seq]
   {:pre [(integer? n-results)
-         (sequential? results-seq)]}
+         (pos? n-results)
+         (seq? results-seq)]}
   (SearchResults. n-results (lazy-seq results-seq)))
 
 (defn next-fn
