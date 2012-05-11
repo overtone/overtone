@@ -99,24 +99,25 @@
   (freesound-url "/sounds/search" params))
 
 (defn- normalize-search-args
-  "Takes a sequence of args and returns a map of params for use with
+  "Takes a sequence of search args and returns a map of params for use with
   freesound-search*"
-  [args]
-  (let [ks (first args)
-        ks (when (coll? ks)
-             ks)
-        args (if ks
-               (rest args)
-               args)
-        q (first args)
-        q (when (string? q)
-            q)
-        args (if q
-               (rest args)
-               args)]
-    (-> (apply hash-map args)
-        (assoc :ks ks :sounds_per_page 100)
-        (update-in [:q] #(or q %)))))
+  ([] (normalize-search-args nil))
+  ([args]
+     (let [ks (first args)
+           ks (when (coll? ks)
+                ks)
+           args (if ks
+                  (rest args)
+                  args)
+           q (first args)
+           q (when (string? q)
+               q)
+           args (if q
+                  (rest args)
+                  args)]
+       (-> (apply hash-map args)
+           (assoc :ks ks :sounds_per_page 100)
+           (update-in [:q] #(or q % ""))))))
 
 (defn- freesound-search*
   [params]
