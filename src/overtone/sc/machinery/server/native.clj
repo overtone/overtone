@@ -125,7 +125,7 @@
     (world-cleanup World_Cleanup [void*])
 
     (world-open-udp-port World_OpenUDP [void* i32] i32)
-    (world-open-tcp-port World_OpenTCP [void* i32] i32)
+    (world-open-tcp-port World_OpenTCP [void* i32 i32 i32] i32)
     (world-send-packet World_SendPacket [void* i32 byte* reply-callback] bool)
     (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* bool bool] i32)))
 
@@ -208,19 +208,33 @@
 (defn scsynth
   "Load libscsynth and start the synthesis server with the given options.  Returns
   the World pointer."
-  ([recv-fn] (scsynth default-options recv-fn))
-  ([options-map recv-fn]
+  ([recv-fn] (scsynth recv-fn default-options))
+  ([recv-fn options-map]
    (let [options (byref world-options)
          cb      (callback reply-callback
                            (fn [addr msg-buf msg-size]
+                             (println "got msg buf: " msg-buf)
                              (recv-fn (.order msg-buf ByteOrder/BIG_ENDIAN) msg-size)))]
      (set-world-options! options options-map)
      {:world (world-new options)
       :callback cb})))
 
+(defn scsynth-listen-udp
+  [sc port]
+  (world-open-udp-port (:world sc) port))
+
+(def SC-MAX-CONNECTIONS 1024)
+(def SC-BACKLOG 64) ; What's this?
+
+(defn scsynth-listen-tcp
+  [sc port]
+  (world-open-tcp-port (:world sc) port SC-MAX-CONNECTIONS SC-BACKLOG))
+
 (defn scsynth-send
-  [{:keys [world callback] :as sc} ^ByteBuffer buf]
-  (world-send-packet world (.limit buf) buf callback))
+  [sc ^ByteBuffer buf]
+  (println "scsynth-send.............. before")
+  (world-send-packet (:world sc) (.limit buf) buf (:callback sc))
+  (println "scsynth-send.............. after"))
 
 (defn scsynth-run
   "Starts the synthesis server main loop, and does not return until the /quit message

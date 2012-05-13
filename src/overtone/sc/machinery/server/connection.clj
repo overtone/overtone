@@ -145,6 +145,7 @@
   (connect \"192.168.1.23\" 57110) ;=> connect to an external server with
                                      ip address 192.168.1.23 listening to
                                      port 57110"
+  ([] (connect "127.0.0.1" 57110))
   ([port] (connect "127.0.0.1" port))
   ([host port]
      (.run (Thread. #(external-connection-runner host port)))))
@@ -160,9 +161,10 @@
   (log/info "booting internal audio server")
   (on-deps :internal-server-booted ::connect-internal connect-internal)
   (let [server (scsynth osc-msg-decoder)]
-    (log/info "The internal scsynth server has booted...")
-    (satisfy-deps :internal-server-booted)
     (dosync (ref-set sc-world* server))
+    (scsynth-listen-udp server 57110)
+    (log/info "The internal scsynth server has booted...")
+    ;(satisfy-deps :internal-server-booted)
     (scsynth-run server)))
 
 (comment defn- old-internal-booter
