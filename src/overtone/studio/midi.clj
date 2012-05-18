@@ -13,12 +13,14 @@
 (defn midi-event
   "Trigger a global midi event."
   [dev msg ts]
-  (event [:midi (msg :command)] msg)
-  (event [:midi-device (dev :vendor) (dev :name) (dev :description) (msg :command)] msg))
+  (let [command (or (:cmd msg)
+                    (:command msg))]
+    (event [:midi command] msg)
+    (event [:midi-device (dev :vendor) (dev :name) (dev :description) command] msg)))
 
 (defn- detect-midi-devices
   "Designed to run periodically and update the midi-devices* atom with
-  the latest list of midi sources."
+  the latest list of midi sources and add event handlers to new devices."
   []
   (try
     (let [old-devs     (set (keys @midi-devices*))
