@@ -13,7 +13,7 @@
 
 (defn midi-event
   "Trigger a global midi event."
-  [msg]
+  [msg ts]
   (event [:midi (:command msg)] msg))
 
 (defn- detect-midi-devices
