@@ -6,6 +6,7 @@
             [overtone.libs.handlers :as handlers]))
 
 (defonce handler-pool (handlers/mk-handler-pool "Overtone Event Handlers"))
+(defonce event-debug* (atom false))
 
 (defn on-event
   "Asynchronously runs handler whenever events of event-type are
@@ -101,6 +102,8 @@
   (event ::filter-sweep-done :instrument :phat-bass)"
   [event-type & args]
   (log/debug "event: " event-type " " args)
+  (when @event-debug*
+    (println "event: " event-type " " args "\n"))
   (binding [overtone.libs.handlers/*log-fn* log/error]
     (let [event-info (if (and (= 1 (count args))
                               (map? (first args)))
@@ -114,7 +117,17 @@
   new threads which generate events, these will revert back to the
   default behaviour of event (i.e. not forced sync). See event."
   [event-type & args]
-  (log/debug "sync-event: " event-type args)
+  (log/debug "sync-event: " event-type " " args)
+  (when @event-debug*
+    (println "sync-event: " event-type " " args "\n"))
   (binding [overtone.libs.handlers/*log-fn* log/error]
     (let [event-info (apply hash-map args)]
       (apply handlers/sync-event handler-pool event-type event-info))))
+
+(defn event-debug-on
+  []
+  (reset! event-debug* true))
+
+(defn event-debug-off
+  []
+  (reset! event-debug* false))
