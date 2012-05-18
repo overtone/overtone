@@ -590,9 +590,26 @@
   [scale]
   (find-name scale SCALE))
 
-(defn find-note-name
+(defn find-pitch-class-name
+  "Given a midi number representing a note, returns the name of the note
+  independent of octave.
+
+  (find-pitch-class-name 62) ;=> :D
+  (find-pitch-class-name 74) ;=> :D
+  (find-pitch-class-name 75) ;=> :Eb"
   [note]
   (REVERSE-NOTES (mod note 12)))
+
+(defn find-note-name
+  [note]
+  "Given a midi number representing a note, returns a keyword
+  representing the note including octave number. Reverse of the fn note.
+
+  (find-note-name 45) ;=> A2
+  (find-note-name 57) ;=> A3
+  (find-note-name 58) ;=> Bb3"
+  (let [octave (dec (int (/ note 12)))]
+    (keyword (str (name (find-pitch-class-name note)) octave))))
 
 (defn- fold-note
   "Folds note intervals into a 2 octave range so that chords using
@@ -644,7 +661,7 @@
     (if (< note (count notes) )
       (let [mod-notes (select-root notes note)
             chord  (find-chord-with-low-root mod-notes)
-            root (find-note-name (first (sort mod-notes)))]
+            root (find-pitch-class-name (first (sort mod-notes)))]
        (if chord
          {:root root :chord-type chord}
          (recur (inc note))))
