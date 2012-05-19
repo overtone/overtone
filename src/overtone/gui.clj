@@ -1,5 +1,5 @@
 (ns overtone.gui
-  (:use [overtone.util ns])
+  (:use [overtone.helpers ns])
   (:require [overtone.gui control
              info mixer transport
              stepinator sequencer pianoroll
