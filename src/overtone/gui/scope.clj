@@ -1,7 +1,7 @@
 (ns
     ^{:doc "An oscilloscope style waveform viewer"
       :author "Jeff Rose & Sam Aaron"}
-  overtone.viz.scope
+  overtone.gui.scope
   (:import [java.awt Graphics Dimension Color BasicStroke BorderLayout RenderingHints]
            [java.awt.event WindowListener ComponentListener]
            [java.awt.geom Rectangle2D$Float Path2D$Float]
@@ -383,6 +383,5 @@
 
   (defn freq-scope-buf [buf]
     )
-
 
   )
