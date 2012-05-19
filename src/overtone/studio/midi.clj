@@ -81,3 +81,45 @@
     {:notes* notes*
      :on-key on-key
      :off-key off-key}))
+
+(defn- midi-control-handler
+  [state-atom handler mapping msg]
+  (let [[ctl-name scale-fn] (get mapping (:note msg))
+        ctl-val  (scale-fn (:velocity msg))]
+    (swap! state-atom assoc ctl-name ctl-val)
+    (handler ctl-name ctl-val)))
+
+(defn midi-inst-controller
+  "Create a midi instrument controller for manipulating the parameters of an instrument
+  using an external device.  Requires an atom to store the state of the parameters, a
+  handler that will be called each time a parameter is modified, and a mapping table to
+  specify how midi control messages should manipulate the parameters.
+
+  (def ding-mapping
+    {22 [:attack     #(* 0.3 (/ % 127.0))]
+     23 [:decay      #(* 0.6 (/ % 127.0))]
+     24 [:sustain    #(/ % 127.0)]
+     25 [:release    #(/ % 127.0)]})
+
+  (def ding-state (atom {}))
+
+  (midi-inst-controller ding-state (partial ctl ding) ding-mapping)
+  "
+  [state-atom handler mapping]
+  (let [ctl-key (keyword (gensym 'control-change))]
+    (on-event [:midi :control-change]
+              #(midi-control-handler state-atom handler mapping %)
+              ctl-key)))
+
+
+; TODO: remove-handler doesn't seem to work... ask Sam
+(defn stop-player
+  [player]
+  (remove-handler (:on-key player))
+  (remove-handler (:off-key player)))
+
+(defn stop-all-players
+  []
+  (remove-event-handlers [:midi :note-on])
+  (remove-event-handlers [:midi :note-off]))
+
