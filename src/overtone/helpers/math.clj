@@ -1,4 +1,10 @@
-(ns overtone.helpers.pow2)
+(ns overtone.helpers.math)
+
+(defn linear-interpolate
+  "Interpolate from a to b over n steps linearly."
+  [a b n]
+  (let [shift (/ (- b a) (float (dec n)))]
+    (concat (take (dec n) (iterate #(+ shift %) a)) [b])))
 
 (def powers-of-two
   "A sorted list of the first 100 powers of two."

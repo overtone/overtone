@@ -2,7 +2,7 @@
   ^{:doc "UGen argument validation functions."
      :author "Jeff Rose & Christophe McKeon"}
   overtone.sc.machinery.ugen.check
-  (:use [overtone.helpers.pow2 :only [power-of-two?]]
+  (:use [overtone.helpers.math :only [power-of-two?]]
         [overtone.sc.machinery.ugen defaults sc-ugen]
         [overtone.helpers.lib :only [overtone-ugen-name]]))
 
