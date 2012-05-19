@@ -32,7 +32,6 @@
                                              :center (flow-panel :align :center :items [val-label]))
                           bindable (or bindable widget)]
                       (doto popup
-                        (.setBackground (color :black))
                         (.add body)
                         (.pack))
                       (bind/bind bindable val-label)
