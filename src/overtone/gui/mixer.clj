@@ -15,7 +15,7 @@
 
 (defn- mixing-channel
   [ins]
-  (let [volume-slider (slider :value (* @(:volume ins) 100.0) :min 0 :max 100
+  (let [volume-slider (slider :value (* @(:volume ins) 100.0) :min 0 :max 120
                     :orientation :vertical)
         vsp (border-panel :center volume-slider)
         pan-dial (dial :size [45 :by 45] :min -100 :max 100 :value (* @(:pan ins)))
@@ -40,26 +40,28 @@
                (bind/transform (fn [p] (/ p 100.0)))
                (bind/b-do [p] (inst-pan ins p)))
     (vertical-panel :size [CHAN-WIDTH :by CHAN-HEIGHT] :border (to-border (inst-name ins))
-                    :items [vsp pan-dial mute-btn solo-btn])))
+                    :items [vsp pan-dial])))
 
-(defn mixing-console
-  ([] (mixing-console (vals @instruments*)))
-  ([insts]
-   (invoke-now
-     (let [f (-> (frame :title "Mixer"
-                        :on-close :dispose
-                        :content (horizontal-panel :id :mix-panel
-                                                   :items (map mixing-channel insts)))
-               pack!
-               show!)]
-       (on-event :new-inst
-                 (fn [event]
-                   (let [ins (:inst event)
-                         dim (config f :size)
-                         width (.getWidth dim)]
-                     (invoke-later
-                       (add! f (mixing-channel ins))
-                       (pack! f))))
-                   :inst-added)
-                 f))))
+; TODO: complete mute and solo, then add these buttons back to the GUI
+; :items [vsp pan-dial mute-btn solo-btn])))
+
+(defn mixer
+  [& insts]
+  (invoke-now
+    (let [f (-> (frame :title "Mixer"
+                       :on-close :dispose
+                       :content (horizontal-panel :id :mix-panel
+                                                  :items (map mixing-channel insts)))
+              pack!
+              show!)]
+      (on-event :new-inst
+                (fn [event]
+                  (let [ins (:inst event)
+                        dim (config f :size)
+                        width (.getWidth dim)]
+                    (invoke-later
+                      (add! f (mixing-channel ins))
+                      (pack! f))))
+                :inst-added)
+      f)))
 
