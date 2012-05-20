@@ -8,7 +8,7 @@
                  [overtone/at-at "1.0.0"]
                  [overtone/osc-clj "0.7.1"]
                  [overtone/byte-spec "0.3.1"]
-                 [overtone/midi-clj "0.3.0"]
+                 [overtone/midi-clj "0.4.0"]
                  [overtone/libs.handlers "0.2.0-SNAPSHOT"]
                  [clj-glob "1.0.0"]
                  [org.clojure/core.match "0.2.0-alpha6"]
