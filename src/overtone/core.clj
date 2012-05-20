@@ -58,7 +58,4 @@
   'overtone.libs.asset
   'overtone.libs.event
   'overtone.libs.freesound
-  'overtone.version
-  'overtone.gui.scope
-  'overtone.gui.mixer
-  'overtone.gui.control)
+  'overtone.version)

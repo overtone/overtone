@@ -11,8 +11,7 @@
             [overtone.music rhythm pitch tuning time]
             [overtone.studio inst mixer midi util fx wavetable]
             [overtone.repl ugens examples shell inst debug]
-            [overtone.libs asset event freesound]
-            [overtone.gui scope control mixer]))
+            [overtone.libs asset event freesound]))
 
 (immigrate 'overtone.osc
            'overtone.midi
@@ -59,10 +58,7 @@
            'overtone.libs.asset
            'overtone.libs.event
            'overtone.libs.freesound
-           'overtone.version
-           'overtone.gui.scope
-           'overtone.gui.mixer
-           'overtone.gui.control)
+           'overtone.version)
 
 (defonce _auto-boot_ (boot-mixer))
 

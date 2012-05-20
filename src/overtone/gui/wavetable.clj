@@ -3,7 +3,7 @@
         [overtone.config log]
         [overtone.music time]
         [overtone.studio wavetable]
-        [overtone.helpers lib]
+        [overtone.helpers math]
         [seesaw core graphics color mig meta]
         [clojure stacktrace])
   (:require [seesaw.bind :as bind]))

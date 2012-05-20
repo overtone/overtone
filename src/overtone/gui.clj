@@ -6,6 +6,7 @@
              surface wavetable]))
 
 (immigrate
+  'overtone.gui.scope
   'overtone.gui.control
   'overtone.gui.info
   'overtone.gui.mixer
@@ -15,3 +16,4 @@
   'overtone.gui.pianoroll
   'overtone.gui.surface
   'overtone.gui.wavetable)
+
