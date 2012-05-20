@@ -12,7 +12,7 @@
 
 (defn midi-event
   "Trigger a global midi event."
-  [dev msg ts]
+  [dev msg & [ts]]
   (let [command (or (:cmd msg)
                     (:command msg))]
     (event [:midi command] msg)
@@ -29,7 +29,7 @@
           receivers    (doall (filter
                                (fn [dev]
                                  (try
-                                   (midi-handle-events (midi-in dev) #(midi-event dev %1 %2))
+                                   (midi-handle-events (midi-in dev) #(midi-event dev %1))
                                    true
                                    (catch Exception e
                                      (log/warn "Can't listen to midi device: " dev "\n" e)
@@ -65,14 +65,15 @@
             env  (env-gen (adsr 0.001 0.1 0.6 0.3) gate :action FREE)]
         (* amp env snd)))
 
-    (def dinger (midi-poly-player ding))"
+    (def dinger (midi-poly-player ding))
+  "
   [play-fn]
   (let [notes*  (atom {})
         on-key  (keyword (gensym 'note-on))
         off-key (keyword (gensym 'note-off))]
     (on-event [:midi :note-on] (fn [{note :note velocity :velocity}]
                                  (swap! notes* assoc note (play-fn note velocity)))
-              on-key)
+    on-key)
     (on-event [:midi :note-off] (fn [{note :note velocity :velocity}]
                                   (let [n (get @notes* note)]
                                     (node-control n :gate 0))
@@ -80,7 +81,8 @@
               off-key)
     {:notes* notes*
      :on-key on-key
-     :off-key off-key}))
+     :off-key off-key
+     :status (atom :playing)}))
 
 (defn- midi-control-handler
   [state-atom handler mapping msg]
@@ -111,15 +113,10 @@
               #(midi-control-handler state-atom handler mapping %)
               ctl-key)))
 
-
 ; TODO: remove-handler doesn't seem to work... ask Sam
-(defn stop-player
+(defn stop-midi-player
   [player]
   (remove-handler (:on-key player))
-  (remove-handler (:off-key player)))
-
-(defn stop-all-players
-  []
-  (remove-event-handlers [:midi :note-on])
-  (remove-event-handlers [:midi :note-off]))
-
+  (remove-handler (:off-key player))
+  (reset! (:status player) :stopped)
+  player)
