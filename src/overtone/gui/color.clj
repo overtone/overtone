@@ -3,8 +3,8 @@
 
 (def theme* (atom
               {
-               :background-fill (color 40 40 40)
-               :background-stroke (color 30 30 30)
+               :background-fill (color 230 230 230)
+               :background-stroke (color 255 255 255)
 
                :highlight (color 100 100 255)
 
