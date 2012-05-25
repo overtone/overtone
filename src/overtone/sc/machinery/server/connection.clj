@@ -164,7 +164,7 @@
     (dosync (ref-set sc-world* server))
     (scsynth-listen-udp server 57110)
     (log/info "The internal scsynth server has booted...")
-    ;(satisfy-deps :internal-server-booted)
+    (satisfy-deps :internal-server-booted)
     (scsynth-run server)))
 
 (comment defn- old-internal-booter

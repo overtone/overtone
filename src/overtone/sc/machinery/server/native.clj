@@ -33,9 +33,9 @@
         :mBufLength                         i32
         :mRealTimeMemorySize                i32
         :mNumSharedControls                 i32
-        :mSharedControls                    float
-        :mRealTime                          bool
-        :mMemoryLocking                     bool
+        :mSharedControls                    float*
+        :mRealTime                          byte
+        :mMemoryLocking                     byte
         :mNonRealTimeCmdFilename            constchar*
         :mNonRealTimeInputFilename          constchar*
         :mNonRealTimeOutputFilename         constchar*
@@ -49,7 +49,7 @@
         :mOutputStreamsEnabled              constchar*
         :mInDeviceName                      constchar*
         :mVerbosity                         i32
-        :mRendezvous                        bool
+        :mRendezvous                        byte
         :mUGensPluginPath                   constchar*
         :mOutDeviceName                     constchar*
         :mRestrictedPath                    constchar*
@@ -99,15 +99,15 @@
       :nrt-lock                 void*
       :num-shared-controls      i32
       :shared-controls          float*
-      :real-time?               bool
-      :running?                 bool
+      :real-time?               byte
+      :running?                 byte
       :dump-osc                 i32
       :driver-lock              void*
       :subsample-offset         float
       :verbosity                i32
       :error-notification       i32
       :local-error-notificaiton i32
-      :rendezvous?              bool
+      :rendezvous?              byte
       :restricted-path          constchar*)
     )
 
@@ -126,8 +126,8 @@
 
     (world-open-udp-port World_OpenUDP [void* i32] i32)
     (world-open-tcp-port World_OpenTCP [void* i32 i32 i32] i32)
-    (world-send-packet World_SendPacket [void* i32 byte* reply-callback] bool)
-    (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* bool bool] i32)))
+    (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
+    (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte] i32)))
 
 (loadlib lib-scsynth)
 
@@ -145,9 +145,9 @@
    :mBufLength                         64
    :mRealTimeMemorySize                8192
    :mNumSharedControls                 0
-   :mSharedControls                    0
-   :mRealTime                          true
-   :mMemoryLocking                     false
+   :mSharedControls                    nil
+   :mRealTime                          1
+   :mMemoryLocking                     0
    :mNonRealTimeCmdFilename            ""
    :mNonRealTimeInputFilename          ""
    :mNonRealTimeOutputFilename         ""
@@ -161,7 +161,7 @@
    :mOutputStreamsEnabled              ""
    :mInDeviceName                      ""
    :mVerbosity                         0
-   :mRendezvous                        true
+   :mRendezvous                        1
    :mUGensPluginPath                   ""
    :mOutDeviceName                     ""
    :mRestrictedPath                    ""
