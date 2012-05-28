@@ -17,6 +17,11 @@
       (re-find #"[Ll]inux" os)   :linux
       (re-find #"[Mm]ac" os)     :mac)))
 
+(defn get-cpu-bits
+  "Return either 32 or 64 for the JVM architecture currently used."
+  []
+  (Integer. (System/getProperty "sun.arch.data.model")))
+
 (defn classpath-seq
   "Return the the classpath as a seq"
   []

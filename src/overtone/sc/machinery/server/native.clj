@@ -1,13 +1,14 @@
 (ns overtone.sc.machinery.server.native
   (:import [java.nio ByteOrder ByteBuffer])
-  (:use [overtone.helpers.file :only (get-current-directory)]
+  (:use [overtone.helpers.file :only (get-current-directory, home-dir)]
         [clj-native.direct :only [defclib loadlib]]
         [clj-native.structs :only [byref]]
         [clj-native.callbacks :only [callback]]))
 
 (def LIBSCSYNTH-PATH "native/macosx/x86_64")
-(System/setProperty "jna.library.path"
-                    (str (get-current-directory) "/" LIBSCSYNTH-PATH))
+(def NATIVE-PATH (str (get-current-directory) "/" LIBSCSYNTH-PATH))
+(def PLUGIN-PATH (str NATIVE-PATH ":" (home-dir) "/Library/Application Support/SuperCollider/Extensions/SC3plugins/"))
+(System/setProperty "jna.library.path" NATIVE-PATH)
 
 (defclib
   lib-scsynth
@@ -109,12 +110,19 @@
       :local-error-notificaiton i32
       :rendezvous?              byte
       :restricted-path          constchar*)
+
+    (reply-address
+      :sockaddr     void*
+      :sockaddr-len i32
+      :socket       i32
+      :reply-func   void*
+      :reply-data   void*)
     )
 
   (:callbacks
 
     ; supercollider/include/common/SC_Reply.h
-   (reply-callback [void* char* i32] void))
+   (reply-callback [reply-address* char* i32] void))
 
   ; TODO: void* here is actually world*
   (:functions
@@ -162,7 +170,7 @@
    :mInDeviceName                      ""
    :mVerbosity                         0
    :mRendezvous                        1
-   :mUGensPluginPath                   ""
+   :mUGensPluginPath                   PLUGIN-PATH
    :mOutDeviceName                     ""
    :mRestrictedPath                    ""
    :mSharedMemoryID                    0})
@@ -241,3 +249,14 @@
   is received."
   [sc]
   (world-run (:world sc)))
+
+(comment
+(use 'overtone.core)
+(use 'overtone.sc.machinery.server.native)
+(def s (scsynth (fn [msg size] (println "got msg: " msg))))
+(future (scsynth-run s))
+(scsynth-listen-udp s 57110)
+(connect-external-server)
+(defsynth foo [] (out 0 (saw [440 443])))
+(foo)
+)
