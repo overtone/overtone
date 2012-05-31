@@ -134,7 +134,7 @@
     matches))
 
 (defn note-map
-  "Takes a match array returned by a regexp match and returns a map of
+  "Takes a string representing a midi note such as C4 and returns a map of
   note info"
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
@@ -146,7 +146,6 @@
      :octave      (Integer. octave)
      :interval    interval
      :midi-note   (octave-note octave interval)}))
-
 
 (defn mk-midi-string
   "Takes a string or keyword representing a pitch and a number
@@ -342,8 +341,10 @@
 
 (defn degree->interval
   "Converts the degree of a scale given as a roman numeral keyword and
-  converts it to the number of intervals (semitones) from the tonic of
+  converts it to the number of semitones from the tonic of
   the specified scale.
+
+  (degree->interval :ii :major) ;=> 2
 
   Trailing #, b, + - represent sharps, flats, octaves up and down
   respectively.  An arbitrary number may be added in any order."
