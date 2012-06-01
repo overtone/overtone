@@ -216,10 +216,10 @@
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
        (let [sc-path (find-sc-path)
-             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (config-get :os))))
+             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (config-get :os)) (config-get :sc-args)))
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
-         (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " cmd))
+         (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
          (.start sc-thread)
          (dosync (ref-set server-thread* sc-thread))
          (connect "127.0.0.1" port)

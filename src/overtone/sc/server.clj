@@ -100,10 +100,10 @@
      :booted-external-server))
 
 (defn boot-server
-  "Boot an internal server."
+  "Boot the default server."
   []
-  (boot :internal)
-  :booted-internal-server)
+  (boot)
+  :booted-default-server)
 
 (defn kill-server
   "Shutdown the running server"
