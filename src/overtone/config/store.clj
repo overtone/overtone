@@ -11,7 +11,9 @@
 
 (def CONFIG-DEFAULTS
   {:os (get-os)
-   :user-name (capitalize (system-user-name))})
+   :user-name (capitalize (system-user-name))
+   :server :internal
+   :sc-args []})
 
 (def config* (ref {}))
 (def live-config (partial live-file-store config*))
