@@ -11,11 +11,13 @@
       {:name "FreeSelf",
        :args [{:name "in" :doc "input signal"}],
        :rates #{:kr}
+       :check (nth-input-stream? 0)
        :doc "Free the enclosing synth when triggered"}
 
       {:name "PauseSelf",
        :args [{:name "in" :doc "input signal"}],
        :rates #{:kr}
+       :check (nth-input-stream? 0)
        :doc "Pause the enclosing synth when triggered"}
 
       {:name "FreeSelfWhenDone",

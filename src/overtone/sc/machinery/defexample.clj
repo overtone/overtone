@@ -2,7 +2,7 @@
     ^{:doc "Examples are stored cgens which serve as explorable documentation. Users may search and query the available examples whilst also being able to easily demo them to immediately hear what they do."
       :author "Sam Aaron"}
   overtone.sc.machinery.defexample
-  (:use [overtone.util lib doc]
+  (:use [overtone.helpers lib doc]
         [overtone.sc.machinery.ugen fn-gen doc]
         [overtone.sc defcgen]))
 

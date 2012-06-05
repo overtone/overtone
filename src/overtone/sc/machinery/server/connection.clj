@@ -5,13 +5,12 @@
         [overtone.config store]
         [overtone.libs event deps]
         [overtone version]
-        [overtone.util.lib :only [print-ascii-art-overtone-logo]]
-        [overtone.sc.machinery defaults]
-        [overtone.sc.machinery.server comms]
+        [overtone.sc defaults comms]
+        [overtone.helpers.lib :only [print-ascii-art-overtone-logo]]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
         [overtone.helpers.file :only [file-exists?]])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 (defonce server-thread*       (ref nil))
 (defonce sc-world*            (ref nil))
@@ -23,7 +22,7 @@
   "Return true if the server was booted by us, whether internally or
   externally."
   []
-  (not-empty @connection-info*))
+  (when (not-empty @connection-info*) true))
 
 (defn- server-notifications-on
   "Turn on notification messages from the audio server.  This lets us free
@@ -75,21 +74,23 @@
          (sh "jack_connect" src dest)
          (log/info "jack_connect " src " " dest)))))
 
-(if (and (= :linux (config-get :os)) (transient-server?))
-  (on-deps :server-connected ::connect-jack-ports #(connect-jack-ports)))
+(if (= :linux (config-get :os))
+  (on-deps :server-connected ::connect-jack-ports
+           #(when (transient-server?)
+              (connect-jack-ports))))
 
 ;; We have to do this to handle the change in SC, where they added a "/" to the
 ;; status.reply messsage, which it should have had in the first place.
 (defn- setup-connect-handlers []
   (let [handler-fn
-        (fn []
+        (fn [event-info]
           (dosync
            (ref-set connection-status* :connected))
           (server-notifications-on) ; turn on notifications now that we can communicate
           (satisfy-deps :server-connected)
           (event :connection-complete)
-          (remove-handler "status.reply" ::connected-handler1)
-          (remove-handler "/status.reply" ::connected-handler2))]
+          (remove-handler ::connected-handler1)
+          (remove-handler ::connected-handler2))]
     (on-sync-event "status.reply" handler-fn ::connected-handler1)
     (on-sync-event "/status.reply" handler-fn ::connected-handler2)))
 
@@ -215,10 +216,10 @@
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
        (let [sc-path (find-sc-path)
-             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (config-get :os))))
+             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (config-get :os)) (config-get :sc-args)))
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
-         (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " cmd))
+         (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
          (.start sc-thread)
          (dosync (ref-set server-thread* sc-thread))
          (connect "127.0.0.1" port)
@@ -250,15 +251,15 @@
        (dosync
         (ref-set connection-status* :connecting))
 
+       (dosync
+        (ref-set connection-info*
+                 (transient-connection-info connection-type port)))
+
        (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
          (case connection-type
            :internal (boot-internal-server)
            :external (boot-external-server port))
-         (wait-until-deps-satisfied :server-ready)
-
-         (dosync
-          (ref-set connection-info*
-                   (transient-connection-info connection-type port)))))))
+         (wait-until-deps-satisfied :server-ready)))))
 
 (defn shutdown-server
   "Quit the SuperCollider synth process."

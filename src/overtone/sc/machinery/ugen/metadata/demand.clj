@@ -176,6 +176,7 @@ By design, a reset trigger only resets the demand ugens; it does not reset the v
        :args [{:name "num-repeats" :doc "number of repeats (can be a demand ugen)"}
               {:name "in" :doc "input ugen"}],
        :rates #{:dr}
+       :check (nth-input-stream? 1)
        :doc "Replicates input values n times on demand.  Both inputs can be demand rate ugens."}
 
       {:name "Donce",
@@ -190,6 +191,7 @@ By design, a reset trigger only resets the demand ugens; it does not reset the v
               {:name "run", :default 1.0 :doc "activation switch 0 or 1 (can be a demand ugen)"}
 ],
        :rates #{:dr}
+       :check (nth-input-stream? 0)
        :doc "Print the value of an input demand ugen. The print-out is in the form: label: value block offset: offset.
 
 WARNING: Printing values from the Server in intensive for the CPU. Poll should be used for debugging purposes.

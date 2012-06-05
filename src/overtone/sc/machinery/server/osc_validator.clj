@@ -6,7 +6,7 @@
       :author "Sam Aaron"}
   overtone.sc.machinery.server.osc-validator
   (:use [overtone.osc])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 (def TYPES
   {
@@ -156,7 +156,7 @@
 
    ;;Synth Commands
    "/s_new"              [:synthdef-name :synth-id :zero-to-four :node-id :ALTERNATING-ctl-handle-THEN-ctl-val*]
-   "/s_get"              [:synth-id :ctl-handle]
+   "/s_get"              [:synth-id :ctl-handle*]
    "/s_getn"             [:synth-id :ctl-handle :count]
    "/s_noid"             [:synth-id]
 

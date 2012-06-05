@@ -10,18 +10,18 @@
 
 ; Lowpass
 (demo 10
-  (lpf (* 0.5 (saw 440))
+  (lpf (* 0.5 (saw [339 440]))
        (mouse-x 10 10000))) ; cutoff frequency
 
 ; Resonant Lowpass
 (demo 10
-  (rlpf (* 0.5 (saw 440))
+  (rlpf (* 0.5 (saw [338 440]))
        (mouse-x 10 10000)
        (mouse-y 0.0001 0.9999))) ; cutoff frequency
 
 ; Highpass
 (demo 10
-  (hpf (* 0.5 (saw 200))
+  (hpf (* 0.5 (saw [203 200]))
        (mouse-x 100 10000))) ; cutoff frequency
 
 ; Bandpass

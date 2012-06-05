@@ -81,66 +81,22 @@
        :rates #{:ar}
        :num-outs 0}
 
-      ;; TODO investigate local bufs system, flesh out LocalBuf
-
-      ;; LocalBuf : UGen {
-      ;; 	*new { arg numFrames = 1, numChannels = 1;
-      ;; 		^this.multiNew('scalar', numChannels, numFrames)
-      ;; 	}
-      ;;
-      ;; 	*new1 { arg rate ... args;
-      ;; 		var maxLocalBufs = UGen.buildSynthDef.maxLocalBufs;
-      ;; 		if(maxLocalBufs.isNil) {
-      ;; 			maxLocalBufs = MaxLocalBufs.new;
-      ;; 			UGen.buildSynthDef.maxLocalBufs = maxLocalBufs;
-      ;; 		};
-      ;; 		maxLocalBufs.increment;
-      ;; 		^super.new.rate_(rate).addToSynth.init( *args ++ maxLocalBufs )
-      ;; 	}
-      ;;
-      ;; 	*newFrom { arg list;
-      ;; 		var shape, buf;
-      ;; 		shape = list.shape;
-      ;; 		if(shape.size == 1) { shape = [1, list.size] };
-      ;; 		if(shape.size > 2) { Error("LocalBuf: list has not the right shape").throw };
-      ;; 		buf = this.new(*shape.reverse);
-      ;; 		buf.set(list.flop.flat);
-      ;; 		^buf
-      ;; 	}
-      ;;
-      ;; 	numFrames { ^inputs[1] }
-      ;; 	numChannels { ^inputs[0] }
-      ;;
-      ;; 	set { arg values, offset = 0;
-      ;; 		SetBuf(this, values.asArray, offset);
-      ;; 	}
-      ;; 	clear {
-      ;; 		ClearBuf(this);
-      ;; 	}
-      ;; }
-
       {:name "LocalBuf"
-       :args [{:name "num-frames" :default 1}
-              {:name "num-channels" :mode :num-outs :default 1}]}
+       :args [{:name "num-channels" :default 1}
+              {:name "num-frames"}]
+       :check (nth-input-number? 1)
+       :internal-name true
+       :rates #{:ir}}
 
-      ;; MaxLocalBufs : UGen {
-      ;; 	*new {
-      ;; 		^this.multiNew('scalar', 0);
-      ;; 	}
-      ;; 	increment {
-      ;; 		inputs[0] = inputs[0] + 1;
-      ;; 	}
-      ;; }
-
-      ;; TODO increment method, what does it do?
       {:name "MaxLocalBufs"
-       :args []
+       :args [{:name "num-local-bufs"}]
+       :check [(nth-input-number? 0)]
        :rates #{:ir}}
 
       ;; SetBuf : UGen {
-      ;; 	*new { arg buf, values, offset = 0;
-      ;; 		^this.multiNewList(['scalar', buf, offset, values.size] ++ values)
-      ;; 	}
+      ;;        *new { arg buf, values, offset = 0;
+      ;;                ^this.multiNewList(['scalar', buf, offset, values.size] ++ values)
+      ;;        }
       ;; }
 
       {:name "SetBuf"
@@ -152,9 +108,9 @@
        }
 
       ;; ClearBuf : UGen {
-      ;; 	*new { arg buf;
-      ;; 		^this.multiNew('scalar', buf)
-      ;; 	}
+      ;;        *new { arg buf;
+      ;;                ^this.multiNew('scalar', buf)
+      ;;        }
       ;; }
 
       {:name "ClearBuf",

@@ -4,7 +4,7 @@
   overtone.sc.machinery.ugen.doc
   (:use [overtone.sc.machinery.ugen defaults]
         [overtone.helpers.string :only [capitalize]]
-        [overtone.util lib doc]))
+        [overtone.helpers lib doc]))
 
 (defn- args-str
   "Returns a string representing the arguments of the ugen spec"

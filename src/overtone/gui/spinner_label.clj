@@ -18,7 +18,7 @@
   (.setText
     this
     (if (number? new-value)
-      (format "%.2f" new-value) ; TODO make format configurable
+      (format "%.2f" (float new-value)) ; TODO make format configurable
       (str new-value))))
 
 (defn- make-initial-state []

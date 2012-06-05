@@ -41,8 +41,9 @@
         ]
     (+ snd beat)))
 
-;;(defonce m (poly/init "/dev/tty.usbserial-m64-0790"))
-(def m beatbox.core/m)
+(def m (poly/init "/dev/tty.usbserial-m64-0790"))
+;;(def m beatbox.core/m)
+;;(poly/disconnect m)
 (poly/remove-all-callbacks m)
 
 (def id->dub-ctl {0 :hi-man
@@ -54,13 +55,16 @@
 (defn toggle-fx
   [x y]
   (when-let [ctl-name (get id->dub-ctl y)]
-    (poly/toggle-led m x y #(ctl dubstep ctl-name %))))
+    (poly/toggle-led m x y)
+    (let [val (poly/led-activation m x y)]
+      (ctl dubstep ctl-name val))))
 
 (defn modulate-pitch-wob
   [x y]
   (let [wob x
         note (nth (scale :g1 :minor-pentatonic) y)]
-    (ctl dubstep :note note :wob wob)))
+    (ctl dubstep :note note)
+    (ctl dubstep  :wob wob)))
 
 (poly/on-press m ::foo (fn [x y s]
                    (match [x y]
@@ -68,7 +72,7 @@
                           [_ _] (modulate-pitch-wob x y))))
 
 (dubstep)
-(stop)
+;;(stop)
 (comment
 
   (ctl dubstep :lo-man-max 1000)

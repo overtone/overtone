@@ -4,7 +4,7 @@
   overtone.sc.info
   (:use [overtone.libs event]
         [overtone.sc synth ugens node server]
-        [overtone.util lib]))
+        [overtone.helpers lib]))
 
 (defonce output-bus-count* (atom nil))
 (defonce input-bus-count* (atom nil))
@@ -38,24 +38,24 @@
   (when (server-disconnected?)
     (throw (Exception. "Please connect to a server before attempting to ask for server-info.")))
   (let [prom (promise)]
-    (on-event "/server-info"
-              (fn [msg]
-                (let [args (:args msg)
-                      [nid nrid sr sd rps cr cd sso nob nib nab ncb nb nrs] args]
-                  (deliver prom
-                           {:sample-rate (long sr)
-                            :sample-dur sd
-                            :radians-per-sample rps
-                            :control-rate cr
-                            :control-dur cd
-                            :subsample-offset sso
-                            :num-output-buses (long nob)
-                            :num-input-buses (long nib)
-                            :num-audio-buses (long nab)
-                            :num-buffers (long nb)
-                            :num-running-synths (long nrs)})
-                  :done))
-              ::server-info)
+    (oneshot-event
+     "/server-info"
+     (fn [msg]
+       (let [args (:args msg)
+             [nid nrid sr sd rps cr cd sso nob nib nab ncb nb nrs] args]
+         (deliver prom
+                  {:sample-rate (long sr)
+                   :sample-dur sd
+                   :radians-per-sample rps
+                   :control-rate cr
+                   :control-dur cd
+                   :subsample-offset sso
+                   :num-output-buses (long nob)
+                   :num-input-buses (long nib)
+                   :num-audio-buses (long nab)
+                   :num-buffers (long nb)
+                   :num-running-synths (long nrs)})))
+     ::server-info)
     (let [synth-id (snd-server-info)
           res (deref! prom)]
       (kill synth-id)
@@ -110,9 +110,9 @@
     (let [info (server-info)]
       (reset! buffer-count*  (:num-buffers info)))))
 
-(on-sync-event :shutdown #(do
-                            (reset! output-bus-count* nil)
-                            (reset! input-bus-count* nil)
-                            (reset! audio-bus-count* nil)
-                            (reset! buffer-count* nil))
+(on-sync-event :shutdown (fn [event-info]
+                           (reset! output-bus-count* nil)
+                           (reset! input-bus-count* nil)
+                           (reset! audio-bus-count* nil)
+                           (reset! buffer-count* nil))
                ::reset-cached-server-info)

@@ -164,21 +164,23 @@ One use of this is to have some precipitating event cause something to happen un
        :doc "outputs the peak signal amplitude, falling with decay over time until reaching signal level"}
 
       {:name "Pitch"
-       :args [{:name "in", :default 0.0 :doc ""}
-              {:name "init-freq", :default 440.0}
-              {:name "min-freq", :default 60.0}
-              {:name "max-freq", :default 4000.0}
-              {:name "exec-freq", :default 100.0}
-              {:name "max-bins-per-octave", :default 16}
-              {:name "median", :default 1}
-              {:name "amp-threshold", :default 0.01}
-              {:name "peak-threshold", :default 0.5}
-              {:name "down-sample", :default 1}]
+       :args [{:name "in" :doc "Input signal"}
+              {:name "init-freq", :default 440.0 :doc "Value of output pitch until first pitch detected."}
+              {:name "min-freq", :default 60.0 :doc "Minimum frequency of execution."}
+              {:name "max-freq", :default 4000.0 :doc "Maximum frequency of execution."}
+              {:name "exec-freq", :default 100.0 :doc "The target rate to periodically execute in cps. Clipped between min-freq and max-freq."}
+              {:name "max-bins-per-octave", :default 16 :doc "Number of lags for course search. A larger value will cause the coarse search to take longer, a smaller value will cause the subsequent fine search to take longer."}
+              {:name "median", :default 1 :doc "Median filter value of length median on the output estimation. Helps eliminate outliers and jitter. Value of 1 means no filter."}
+              {:name "amp-threshold", :default 0.01 :doc "Minum peak to peak amplitude of input signal before pitch estimation is performed."}
+              {:name "peak-threshold", :default 0.5 :doc "Finds the next peak that is above peak-threshold times the amplitude of the peak at lag zero. A value of 0.5 does a pretty good job of eliminating overtones."}
+              {:name "down-sample", :default 1 :doc "Down sample the input signal by an integer factor. Helps reduce CPU overthead. Also reduces pitch resolution."}
+              {:name "clar" :default 0 :doc "Clarity measurement (purity of the pitched signal) if greater than 0."}]
        :rates #{:kr}
        :num-outs 2
-       :doc "Autocorrelation pitch follower
+       :description "Autocorrelation pitch follower"
+       :check (nth-input-stream? 0)
+       :doc "This is a better pitch follower than zero-crossing, but more costly of CPU. For most purposes the default settings can be used and only in needs to be supplied. Pitch returns two values (via an Array of OutputProxys, a freq which is the pitch estimate and has-freq, which tells whether a pitch was found. Some vowels are still problematic, for instance a wide open mouth sound somewhere between a low pitched short 'a' sound as in 'sat', and long 'i' sound as in 'fire', contains enough overtone energy to confuse the algorithm. None of these settings are time variable."}
 
-This is a better pitch follower than ZeroCrossing, but more costly of CPU. For most purposes the default settings can be used and only in needs to be supplied. Pitch returns two values (via an Array of OutputProxys, see the OutputProxy help file), a freq which is the pitch estimate and hasFreq, which tells whether a pitch was found. Some vowels are still problematic, for instance a wide open mouth sound somewhere between a low pitched short 'a' sound as in 'sat', and long 'i' sound as in 'fire', contains enough overtone energy to confuse the algorithm."}
 
       {:name "InRange"
        :args [{:name "in", :default 0.0 :doc "input signal"}

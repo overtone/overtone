@@ -1,12 +1,11 @@
 (ns overtone.sc.buffer
   (:use [clojure.java.io :only [file]]
-        [overtone.helpers file]
-        [overtone.util lib]
         [overtone.libs event]
+        [overtone.sc comms server info defaults]
+        [overtone.sc.machinery allocator]
+        [overtone.sc.machinery.server connection]
         [overtone.sc server info]
-        [overtone.sc.machinery defaults allocator]
-        [overtone.sc.machinery.server comms connection]
-        [overtone.helpers.audio-file]
+        [overtone.helpers audio-file lib file]
         [overtone.sc.util :only [id-mapper]]))
 
 (defrecord BufferInfo [id size n-channels rate n-samples rate-scale duration])
@@ -30,18 +29,20 @@
         prom   (recv "/b_info" (fn [msg]
                                  (= buf-id (first (:args msg)))))]
     (with-server-sync #(snd "/b_query" buf-id))
-    (let [msg                        (deref! prom)
-          [id n-frames n-chans rate] (:args msg)
-          num-samples                (* n-frames n-chans)
-          rate-scale                 (/ rate (server-sample-rate))
-          duration                   (/ n-frames rate)]
+    (let [[id n-frames n-chans rate] (:args (deref! prom))
+          server-rate                (server-sample-rate)
+          n-samples                  (* n-frames n-chans)
+          rate-scale                 (when (> server-rate 0)
+                                       (/ rate server-rate))
+          duration                   (when (> rate 0)
+                                       (/ n-frames rate))]
 
       (map->BufferInfo
        {:id id
         :size n-frames
         :n-channels n-chans
         :rate rate
-        :n-samples num-samples
+        :n-samples n-samples
         :rate-scale rate-scale
         :duration duration}))))
 
@@ -98,7 +99,7 @@
 (derive Buffer     ::buffer)
 (derive BufferFile ::file-buffer)
 
-(derive ::buffer ::buffer-info)
+(derive ::buffer      ::buffer-info)
 (derive ::file-buffer ::buffer)
 
 (defn buffer-info?
@@ -244,7 +245,7 @@
 
     (snd "/b_write" (:id buf) path header samples
                     n-frames start-frame 0)
-    :done))
+    :buffer-saved))
 
 (defrecord BufferOutStream [id size n-channels header samples rate allocated-on-server path open?])
 

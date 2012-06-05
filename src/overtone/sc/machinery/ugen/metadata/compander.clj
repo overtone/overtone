@@ -24,6 +24,7 @@
        :scsynth-location "FilterUgens"
        :sclang-location "Compander"
        :rates #{:ar :kr}
+       :check (nth-input-stream? 0)
        :auto-rate true}
 
       {:name "Compander",
@@ -65,7 +66,7 @@
        :scsynth-location "FilterUgens"
        :sclang-location "Compander"
        :rates #{:ar}
-       :check (first-n-inputs-ar 2)
+       :check [(nth-input-stream? 0) (first-n-inputs-ar 2)]
        :doc "The compander will modify the amplitude of the in signal based on an analysis of the control signal. Typically the in and control signals are the same. The amplitude of the control signal is calcuated using RMS (Root Mean Square) and the final amplitude of the in signal is calculated as a function of the amplitude threshold, and slopes either side (below and above) with some temporal modifications in terms of attack and release phases. It is a hard-knee processor which means that the response curve is a sharp angle rather than a rounded edge.
 
 If the control amplitude is less than the threshold, the slope below is used to calculate the amplitude modification. If this is steep (greater than 1) this will reduce the amplitude of quiet signals (the quieter the control amplitude the greater the reduction affect).  Values < 1.0 are possible, but it means that a very low-level control signal will cause the input signal to be amplified, which would raise the noise floor.
@@ -92,6 +93,7 @@ For more information see: http://en.wikipedia.org/wiki/Audio_level_compression
                :doc "The buffer delay time. Shorter times will produce smaller delays and quicker transient response times, but may introduce amplitude modulation artifacts. (AKA lookAheadTime)"}]
        :summary ""
        :rates #{:ar}
+       :check (nth-input-stream? 0)
        :doc "flattens dynamics. Normalizes the input amplitude to the given level. Normalize will not overshoot
 like Compander will, but it needs to look ahead in the audio. Thus there is a
 delay equal to twice the lookAheadTime."}

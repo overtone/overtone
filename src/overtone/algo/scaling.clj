@@ -4,7 +4,8 @@
   overtone.algo.scaling)
 
 (defn closest-to
-  "Returns either low or hi depending on which is numerically closer to n.
+  "Returns either low or hi depending on which is numerically closer
+  to n.
   (closest-to 4.7 4 6) ;=> 4 (4.7 is closer to 4 than 6"
   [n low hi]
   (let [low-diff  (- n low)
@@ -34,10 +35,11 @@
                     in-max - in-min
 
 
-  The result will be limited to the specified out range. So if the result of
-   f(x) is greater than out-max it is reduced to out-max.
+  The result will be limited to the specified out range. So if the
+  result of f(x) is greater than out-max it is reduced to out-max.
 
-  in-min must be less than in-max and out-min must be less than out-max"
+  in-min must be less than in-max and out-min must be less than
+  out-max"
 
   [x in-min in-max out-min out-max]
   (letfn [(scale [x] (+ (/ (* (- out-max out-min) (- x in-min)) (- in-max in-min)) out-min))]

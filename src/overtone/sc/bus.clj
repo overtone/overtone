@@ -1,8 +1,8 @@
 (ns overtone.sc.bus
   (:import [java.util.concurrent TimeoutException])
-  (:use [overtone.sc.machinery defaults allocator]
-        [overtone.sc.machinery.server comms]
-        [overtone.util lib]
+  (:use [overtone.sc.machinery allocator]
+        [overtone.sc defaults comms server]
+        [overtone.helpers lib]
         [overtone.sc server]))
 
 ;; ## Busses
@@ -87,7 +87,7 @@
     (audio-bus)))
 
 (defn reset-busses
-  []
+  [event-info]
   nil)
 
 ;(on-sync-event :reset reset-busses ::reset-busses)

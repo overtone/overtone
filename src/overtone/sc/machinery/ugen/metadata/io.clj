@@ -7,7 +7,7 @@
        :args [{:name "bufnum" :doc "the number of the buffer to write to (prepared with /b-write)"}
               {:name "channelsArray" :mode :append-sequence :doc "the Array of channels to write to the file."}],
        :rates #{:ar},
-       :check (all-but-first-input-ar "channelsArray must all be audio rate")
+       :check (nth-input-ar 1 "channels-array must be audio rate")
        :doc "stream audio out to disk file
 
 The output of DiskOut is the number of frames written to disk.

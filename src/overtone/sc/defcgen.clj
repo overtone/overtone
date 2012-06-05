@@ -4,9 +4,9 @@
   overtone.sc.defcgen
 
   (:use [clojure.walk :as walk]
-        [overtone.util lib]
+        [overtone.helpers lib]
         [overtone.sc ugens]
-        [overtone.sc.machinery.ugen fn-gen doc defaults]))
+        [overtone.sc.machinery.ugen defaults fn-gen doc]))
 
 (defn parse-cgen-params
   "Parse a defcgen's param list throwing exceptions where it isn't well-formed

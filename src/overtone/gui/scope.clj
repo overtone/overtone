@@ -1,20 +1,19 @@
 (ns
     ^{:doc "An oscilloscope style waveform viewer"
       :author "Jeff Rose & Sam Aaron"}
-  overtone.viz.scope
+  overtone.gui.scope
   (:import [java.awt Graphics Dimension Color BasicStroke BorderLayout RenderingHints]
            [java.awt.event WindowListener ComponentListener]
            [java.awt.geom Rectangle2D$Float Path2D$Float]
            [javax.swing JFrame JPanel JSlider]
            [java.util.concurrent TimeoutException])
   (:use [clojure.stacktrace]
-        [overtone.util lib]
+        [overtone.helpers lib]
         [overtone.libs event deps]
-        [overtone.sc.machinery defaults]
-        [overtone.sc server synth ugens buffer node]
+        [overtone.sc defaults server synth ugens buffer node]
         [overtone.studio.util])
   (:require [clojure.set :as set]
-            [overtone.util.log :as log]
+            [overtone.config.log :as log]
             [overtone.at-at :as at-at]))
 
 (defonce SCOPE-BUF-SIZE 4096)
@@ -122,7 +121,7 @@
   (ensure-internal-server!)
   (dosync
    (when-not @scopes-running?*
-     (at-at/every (/ 1000 FPS) update-scopes :pool scope-pool :description "Scope refresh fn")
+     (at-at/every (/ 1000 FPS) update-scopes scope-pool :desc "Scope refresh fn")
      (ref-set scopes-running?* true))))
 
 (defn- reset-data-arrays
@@ -147,7 +146,7 @@
   "Stop all scopes from running."
   []
   (ensure-internal-server!)
-  (at-at/stop-and-reset-pool! :pool scope-pool)
+  (at-at/stop-and-reset-pool! scope-pool)
   (empty-scope-data)
   (dosync (ref-set scopes-running?* false)))
 
@@ -289,10 +288,11 @@
 
 (on-deps #{:synthdefs-loaded :scope-group-created} ::reset-scopes #(when (internal-server?)
                                                                      (reset-scopes)))
-(on-sync-event :shutdown #(when (internal-server?)
-                            (scopes-stop)
-                            (dorun
-                             (map (fn [s] scope-close s) @scopes*)))
+(on-sync-event :shutdown (fn [event-info]
+                           (when (internal-server?)
+                             (scopes-stop)
+                             (dorun
+                              (map (fn [s] scope-close s) @scopes*))))
                ::stop-scopes)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -383,6 +383,5 @@
 
   (defn freq-scope-buf [buf]
     )
-
 
   )

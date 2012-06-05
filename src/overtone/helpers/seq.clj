@@ -37,3 +37,8 @@
                           (cycle [1 2 3]))) => ([5 1] [5 2] [5 3] [5 1])"
   [seqs]
   (apply map vector seqs))
+
+(defn find-first
+  "Finds first element of seq s for which pred returns true"
+  [pred s]
+  (first (filter pred s)))

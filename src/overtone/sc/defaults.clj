@@ -1,5 +1,21 @@
-(ns overtone.sc.machinery.defaults
+(ns overtone.sc.defaults
   (:require [overtone.at-at :as at-at]))
+
+(def DEFAULT-MASTER-VOLUME
+  "Initial value for the master volume of the mixer"
+  0.8)
+
+(def DEFAULT-MASTER-GAIN
+  "Initial value for the master gain of the mixer"
+  1)
+
+(def DEFAULT-VOICE-VOLUME
+  "Initial value for the volume of a voice"
+  1.0)
+
+(def DEFAULT-VOICE-PAN
+  "Initial value for the pan of a voice (center)"
+  0.0)
 
 (def MAX-NODES
   "Maximum number of executing nodes allowed in the server"
@@ -56,7 +72,9 @@
              "C:/Program Files (x86)/SuperCollider/scsynth.exe"
              "D:/Program Files (x86)/SuperCollider/scsynth.exe"
              "E:/Program Files (x86)/SuperCollider/scsynth.exe"]
-   :mac  ["/Applications/SuperCollider/scsynth"] })
+   :mac  ["/Applications/SuperCollider/scsynth"
+          "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth"
+          "/Applications/SuperCollider.app/Contents/Resources/scsynth"] })
 
 (def SC-ARGS
   "Extra arguments required to correctly boot an external SuperCollider server
@@ -64,12 +82,3 @@
   {:linux []
    :windows []
    :mac   ["-U" "/Applications/SuperCollider/plugins"]})
-
-
-(def MASTER-VOL
-  "Initial value for the master volume of the mixer"
-  0.5)
-
-(def MASTER-GAIN
-  "Initial value for the master gain of the mixer"
-  1)

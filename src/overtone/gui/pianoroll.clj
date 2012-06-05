@@ -1,231 +1,207 @@
 (ns overtone.gui.pianoroll
-  (:use [seesaw core graphics make-widget color])
-  (:require [seesaw.bind :as bind])
+  (:use [seesaw core graphics make-widget color]
+        [overtone.sc server]
+        [overtone.gui spinner-label]
+        [overtone.music time]
+        [seesaw.border :only [line-border]])
+  (:require [seesaw.bind :as bind]
+            [overtone.config.log :as log])
   (:import [javax.swing DefaultBoundedRangeModel]))
 
-(def note-types [:white :black :white :black :white :white :black :white :black :white :black :white])
-(def ^{:private true} MEASURE_WIDTH 150)
-(def ^{:private true} NOTE_HEIGHT 10)
-(def ^{:private true} NUM_MEASURES 4)
-(def ^{:private true} NUM_OCTAVES 4)
-(def ^{:private true} STEPS_PER_BEAT 4)
+(def ^{:private true} NOTE-TYPES
+  [:white :black :white :black :white :white :black :white :black :white :black :white])
 
-(def ^{:private true} ACTIVE_NOTE_PADDING 2)
+(def ^{:private true} NOTE-PADDING 2)
 
-(def ^{:private true} NUM_BEATS 4)
-(def ^{:private true} NUM_BARS 4)
-
-(defn- note-matrix
-  [notes n-octaves n-measures n-bars n-beats n-steps-per-beat]
-  (let [n-keys (* n-octaves 12)
-        n-total-bars (* n-bars n-measures)
-        n-steps (* n-measures (* n-bars (* n-steps-per-beat n-beats)))]
-    (reset! notes (vec (repeat n-steps (vec (repeat n-keys 0.0)))))))
-
-(defn- paint-active-notes
-  [notes active-notes g note-width note-height]
-  (let []
-    (doseq [[k notes] @active-notes]
-      (doseq [[n note-data] notes]
-        (let [x (double (+ ACTIVE_NOTE_PADDING (* k note-width)))
-              y (double (+ ACTIVE_NOTE_PADDING (* n note-height)))
-              w (- (* (note-data :duration) note-width) (* 2 ACTIVE_NOTE_PADDING))
-              h (- note-height (* 2 ACTIVE_NOTE_PADDING))]
-          (draw g
-                (rounded-rect x y w h 3 3)
-                (style :stroke 1.0
-                       :background (color 0 255 0 150)
-                       :foreground (color 0 150 0))))))))
-
-(defn- remove-active-note
-  [matrix x-cell y-cell])
-
+(def MEASURE-STYLE    (style :stroke 2.0 :foreground (color 100 100 100 200)))
+(def BEAT-STYLE       (style :stroke 1.25 :foreground (color 100 100 100 175)))
+(def TICK-STYLE       (style :stroke 1.0 :foreground (color 100 100 100 100)))
+(def WHITE-NOTE-STYLE (style :stroke 0.25
+                             :foreground (color 100 100 100 100)
+                             :background (color 255 255 255)))
+(def BLACK-NOTE-STYLE (style :stroke 0.25
+                             :foreground (color 100 100 100 100)
+                             :background (color 180 180 180)))
+(def NOTE-STYLE       (style :stroke 1.0
+                             :background (color 0 255 0 150)
+                             :foreground (color 0 150 0)))
 (defn- paint-piano-roll
   "Paint the dial widget group"
-  [num-measures num-bars num-beats num-steps-per-beat num-octaves notes active-notes c g]
-  (let [w   (width c)
-        h   (height c)
-        num-octaves num-octaves
-        num-measures num-measures
-        measure-width MEASURE_WIDTH
-        bar-width (/ measure-width 4)
-        beat-width (/ measure-width 4)
-        note-width (/ beat-width 4)
-        note-height NOTE_HEIGHT
-        measure-border           (style :stroke 2.0
-                                        :foreground (color 100 100 100 200))
-        note-border              (style :stroke 1.0
-                                        :foreground (color 100 100 100 100))
-        beat-note-border         (style :stroke 1.25
-                                        :foreground (color 100 100 100 175))
-        white-note-track-border  (style :stroke 0.25
-                                        :foreground (color 100 100 100 100)
-                                        :background (color 255 255 255))
-        black-note-track-border  (style :stroke 0.25
-                                        :foreground (color 100 100 100 100)
-                                        :background (color 180 180 180))
-        num-notes (* num-octaves 12)
-        total-height (* num-notes note-height)
-        resolution 16]
+  [state* c g]
+  (try
+    (let [state @state*
+          {:keys [num-octaves num-measures beats-per-measure steps-per-beat]} state
+          w                        (width c)
+          h                        (height c)
+          num-notes                (* num-octaves 12)
+          measure-width            (/ w num-measures)
+          beat-width               (/ measure-width beats-per-measure)
+          note-width               (/ beat-width steps-per-beat)
+          note-height              (/ h num-notes)
+          num-ticks                (* num-measures beats-per-measure steps-per-beat)]
 
-    (dotimes [i num-measures]
+      ; horizontal row per key
       (dotimes [note-y num-notes]
-        (let [ntx (* i measure-width)
-              nty (* note-y note-height)
-              note-type (nth note-types (mod note-y 12))]
-          (cond
-            (= note-type :black)
-            (draw g
-                  (rect ntx nty measure-width note-height)
-                  black-note-track-border)
-            (= note-type :white)
-            (draw g
-                  (rect ntx nty measure-width note-height)
-                  white-note-track-border))))
-      (dotimes [note-x resolution]
-        (let [nx (+ (* i measure-width) (* note-x note-width))]
-          (if
-            (= 0 (mod note-x num-beats))
-            (draw g
-                  (line nx 0 nx total-height) beat-note-border)
-            (draw g
-                  (line nx 0 nx total-height) note-border))))
-      (draw g
-            (rect (* i measure-width) 0 measure-width (- total-height 1))
-            measure-border))
+        (let [nty       (* note-y note-height)
+              note-type (nth NOTE-TYPES (mod note-y 12))]
+          (draw g (rect 0 nty w note-height)
+                (case note-type
+                  :black BLACK-NOTE-STYLE
+                  :white WHITE-NOTE-STYLE))))
 
-    ;; paint the active notes last
-    (paint-active-notes notes active-notes g note-width note-height)))
+      ; vertical bars
+      (dotimes [measure num-measures]
+        (let [x (* measure measure-width)]
+          (draw g (rect x 0 measure-width h)
+                MEASURE-STYLE)))
 
-(defn get-note [note-map x y note-width]
-  (let [r (atom nil)]
-    (doseq [[note-x notes] note-map]
-      (if (<= note-x x)
-        (do
-          (doseq [[ny data] notes]
-            (let [note-y ny
-                  x-max (+ note-x (data :duration))]
-              ;;just look at notes in this y range
-              (if
-                (and (<= (- x 1) x-max)
-                     (>= (- x 1) note-x)
-                     (= y note-y)) ;; bounds checking
-                (do
-                  (swap! r (fn [_] {note-x {note-y data}})))))))))
-    @r))
+      ; vertical beat and step lines
+      (dotimes [beat num-ticks]
+        (let [x (* beat note-width)]
+          (draw g (line x 0 x h)
+                (if (= 0 (mod beat beats-per-measure))
+                  BEAT-STYLE
+                  TICK-STYLE))))
 
+      ; notes
+      (doseq [[x y] (keys (:notes @state*))]
+        (draw g (rounded-rect (+ NOTE-PADDING (* x note-width))
+                              (+ NOTE-PADDING (* y note-height))
+                              (- note-width (* 2 NOTE-PADDING))
+                              (- note-height (* 2 NOTE-PADDING)))
+              NOTE-STYLE)))
+    (catch Exception e
+      (log/warn (str "Exception in paint-piano-roll: " e
+                     (with-out-str (.printStackTrace e)))))))
 
-(defn- update-active-notes [active-notes-atom active-note x y x-cell y-cell note-width note-height]
-  (let [x (int (/ x note-width))
-        y (int (/ y note-height))
-        length (count @active-notes-atom)
-        return-note (atom (get-note @active-notes-atom x y note-width))
-        new-note-data {:velocity 1.0 :duration 1}]
+(defn- mouse-event->note-coords
+  [{:keys [num-octaves num-measures beats-per-measure steps-per-beat]} e]
+  (let [c (.getSource e)
+        measure-width (/ (width c) num-measures)
+        beat-width (/ measure-width beats-per-measure)
+        note-width (/ beat-width steps-per-beat)
+        note-height (/ (height c) (* 12 num-octaves))
+        x (int (/ (.getX e) note-width))
+        y (int (/ (.getY e) note-height))]
+    [x y]))
 
-    (if (not (nil? @return-note))
-      (do
-        (doseq [[k note] @return-note]
-          (doseq [[n note-data] note]
-            (swap! x-cell (fn [_] k))
-            (swap! y-cell (fn [_] n)))))
-      (do
-        (swap! x-cell (fn [_] x))
-        (swap! y-cell (fn [_] y))
-        (swap! active-notes-atom (fn [notes] (assoc-in notes [x y] new-note-data)))
-        (swap! return-note (fn [note] (assoc-in note [x y] new-note-data)))))
-    @return-note))
-
-
-(defn- update-note [x y active-notes-atom active-note cell-diff]
-  (let [v 1.0
-        cell-x-start (first (keys @active-note))
-        cell-y-start (first (keys (@active-note (first (keys @active-note)))))
-        offset (- x cell-x-start)
-        offset-diff (+ offset cell-diff)]  ;; <<-- NEED TO FIX THIS SO THAT IT GRABS THE CURRENT VELOCITY NOT JUST SETS IT TO 0
-    (swap! active-notes-atom (fn [notes]
-                               (if (>= 0 cell-diff)
-                                 (do
-                                   (update-in notes [cell-x-start] dissoc cell-y-start))
-                                 (do
-                                   (update-in notes [cell-x-start cell-y-start] (fn [_]{:velocity v :duration cell-diff}))))))
-
-    (swap! active-note (fn [_] {cell-x-start {cell-y-start {:velocity v :duration cell-diff}}}))))
-
-(def active-note (atom nil))
+(defn- toggle-note
+  [state coords]
+  (if ((:notes state) coords)
+    (assoc state :notes (dissoc (:notes state) coords))
+    (assoc-in state [:notes coords] true)))
 
 (defn- piano-roll-panel
-  [num-measures num-bars num-beats num-steps-per-beat num-octaves]
-  (let [notes-atom (atom (note-matrix (atom nil)
-                                      num-octaves num-measures num-bars
-                                      num-beats num-steps-per-beat))
-        active-notes-atom (atom {})
-        piano-roll (canvas :id :piano-roll
-                           :paint (partial paint-piano-roll 4 4 4 4 4 notes-atom active-notes-atom))
-        panel (border-panel :center piano-roll)
-        measure-width MEASURE_WIDTH
-        piano-roll-width (* num-measures measure-width)
-        bar-width (/ measure-width 4)
-        beat-width (/ measure-width 4)
-        note-width (/ beat-width 4)
-        note-height NOTE_HEIGHT
-        creating-note (atom false)
-        current-count (atom 0)
-        cell-x-start (atom nil) ;; hold the starting cell location of the current note
-        cell-y-start (atom nil)
-        start-x (atom nil)      ;; hold the starting cell of the current gesture
-        start-y (atom nil)
-        active-note (atom {})]
+  "Returns a panel containing a piano roll sequencer gui."
+  [state*]
+  (try
+    (let [state @state*
+          {:keys [num-octaves num-measures beats-per-measure steps-per-beat]} state
+          piano-roll (canvas :id :piano-roll
+                             :paint (partial paint-piano-roll state*))
+          panel (border-panel :center piano-roll)]
 
-    (listen piano-roll
-            :mouse-pressed
-            (fn [e]
-              (let [x (.getX e)
-                    y (.getY e)]
-                (swap! start-x (fn [_] (int (/ x note-width))))
-                (swap! start-y (fn [_] (int (/ y note-height))))
-                (swap! active-note (fn [n] (update-active-notes active-notes-atom active-note x y cell-x-start cell-y-start note-width note-height)))
-                (.repaint (.getSource e))))
+      (listen piano-roll
+              :mouse-pressed
+              (fn [e]
+                (println "press: " (mouse-event->note-coords state e))
+                (swap! state* toggle-note (mouse-event->note-coords state e))))
+      panel)
+    (catch Exception e
+      (log/warn (str "Exception in piano-roll: " e)))))
 
-            :mouse-dragged
-            (fn [e]
-              (let [x-cell (int (/ (.getX e) note-width))
-                    y-cell (int (/ (.getY e) note-height))
-                    measure (int (/ piano-roll-width MEASURE_WIDTH))
-                    current-x-cell (int (/ (.getX e) note-width))
-                    cell-delta (- current-x-cell @cell-x-start)
-                    diff(+ 1 cell-delta)]
+;              :mouse-dragged
+;              (fn [e]
+;                (let [x-cell (int (/ (.getX e) note-width))
+;                      y-cell (int (/ (.getY e) note-height))
+;                      measure (int (/ piano-roll-width MEASURE-WIDTH))
+;                      current-x-cell (int (/ (.getX e) note-width))
+;                      cell-delta (- current-x-cell @cell-x-start)
+;                      diff(+ 1 cell-delta)]
+;
+;                  (update-note x-cell y-cell active-notes-atom active-note diff)))
+;
+;              :mouse-released
+;              (fn [e]
+;                ;(swap! notes-atom )
+;                ))
 
-                (update-note x-cell y-cell active-notes-atom active-note diff)
-                (.repaint (.getSource e))))
+(defrecord PianoRoll [frame state])
 
-            :mouse-released
-            (fn [e]
-              ; (swap! creating-note (fn [b] false))
-              ; (.repaint (.getSource e)))
-              ))
-    panel))
+(defn- toggle-playing [state]
+  (update-in state [:playing?] not))
 
-(defn- create-piano-roll
-  [& {:keys [measures bars beats steps-per-beat octaves]
-      :or {measures       4
-           bars           4
-           beats          4
-           steps-per-beat 4
-           octaves        4}}]
-      (piano-roll-panel measures bars beats steps-per-beat octaves))
+(defn- piano-player
+  [state-atom beat]
+  (let [state @state-atom]
+    (when (:playing? state)
+      (let [inst (:inst state)
+            metro (:metronome state)
+            notes (:notes state)
+            offset (:offset state)
+            index (mod beat (:steps state))
+            next-beat (inc beat)]
+
+        (swap! state-atom assoc-in [:step] index)
+
+        (doseq [[x y] (keys notes)]
+          (when (= x index)
+            (print "inst: " (+ offset y))
+            (at (metro beat) (inst (+ offset y)))))
+
+        (apply-at (metro next-beat) #'piano-player
+                  [state-atom next-beat])))))
 
 (defn piano-roll
-  [metro inst]
+  [metro inst & {:keys [octaves measures beats-per-measure steps-per-beat offset]
+                 :or {measures          4
+                      beats-per-measure 4
+                      steps-per-beat    4
+                      octaves           4
+                      offset            24}
+                 :as options}]
   (invoke-now
-   (let [state-atom (atom {}) ;;FIXME
-         piano-roll (create-piano-roll)
-         panel (border-panel :id :piano-roll :center piano-roll)
-         f (-> (frame :title "Piano Roll"
-                      :on-close :dispose
-                      :minimum-size [601 :by 502]
-                      :content panel)
-               pack!
-               show!)]
-     (with-meta {:frame f
-                 :state state-atom}
-       {:type :sequencer}))))
+    (try
+      (let [state* (atom {:playing? false
+                          :metronome metro
+                          :inst inst
+                          :num-octaves octaves
+                          :num-measures measures
+                          :beats-per-measure beats-per-measure
+                          :steps-per-beat steps-per-beat
+                          :offset offset
+                          :notes {}
+                          :steps (* measures beats-per-measure steps-per-beat)})
+            play-btn     (button :text "Play")
+            bpm-spinner  (spinner-label :class :sequencer-bpm-spinner
+                                        :halign :center
+                                        :border (line-border :thickness 1 :color :darkgrey)
+                                        :maximum-size [60 :by 100]
+                                        :model (spinner-model (:bpm metro) :from 1 :to 10000 :by 1))
+            control-pane (toolbar :floatable? false
+                                  :items [play-btn    [:fill-h 5]
+                                          bpm-spinner [:fill-h 5] "bpm"])
+            piano-roll (piano-roll-panel state*)
+            panel      (border-panel :id :piano-roll
+                                     :north control-pane
+                                     :center piano-roll)
+            f          (-> (frame :title "Piano Roll"
+                                  :on-close :dispose
+                                  :minimum-size [600 :by 500]
+                                  :content panel)
+                         pack!
+                         show!)]
+        (bind/bind bpm-spinner (bind/b-do [v] (metro :bpm v)))
+        (bind/bind state* (bind/b-do [v] (repaint! piano-roll)))
+        (listen play-btn :action
+                (fn [e]
+                  (let [playing? (:playing? (swap! state* toggle-playing))]
+                    (config! play-btn :text (if playing? "stop" "play"))
+                    (if playing?
+                      (piano-player state* (metro))))))
+        (with-meta
+          (map->PianoRoll {:frame f :state state*})
+          {:type :sequencer}))
+      (catch Exception e
+        (log/warn (str "Exception in piano roll: " e
+                          (with-out-str (.printStackTrace e))))))))

@@ -1,4 +1,4 @@
-(ns overtone.util.ns)
+(ns overtone.helpers.ns)
 
 (defn immigrate
  "Create a public var in this namespace for each public var in the
@@ -10,5 +10,7 @@
    (doseq [[sym var] (ns-publics ns)]
      (let [sym (with-meta sym (assoc (meta var) :orig-ns ns))]
        (if (.isBound var)
-         (intern *ns* sym (var-get var))
+         (intern *ns* sym (if (fn? (var-get var))
+                            var
+                            (var-get var)))
          (intern *ns* sym))))))

@@ -7,11 +7,15 @@
       :author "Sam Aaron"}
   overtone.libs.asset
   (:use [clojure.java.io :only [file]]
-   [clojure.string :only [split]]
+        [clojure.string :only [split]]
         [overtone.helpers file zip string]
-        [overtone.config.store :only [OVERTONE-DIRS]]))
+        [overtone.config.store :only [OVERTONE-DIRS]]
+        [overtone.helpers.ns :only [immigrate]])
+  (:require [overtone.libs.asset.store]))
 
-(def ^{:dynamic true} *cache-root* (:assets OVERTONE-DIRS))
+(immigrate 'overtone.libs.asset.store)
+
+(def ^:dynamic *cache-root* (:assets OVERTONE-DIRS))
 
 (defn- download-asset-file
   "Download file at url to local filesystem at tmp-file verbosely."
@@ -21,13 +25,15 @@
     (download-file url tmp-file 20000 100 5000)))
 
 (defn- safe-url
-  "Replace all non a-z A-Z 0-9 - chars in stringified version of url with _"
+  "Return a version of url safe for use as a file or directory name. Removes
+  http scheme strings, replaces \"/\" with \"-\", and removes all non [a-z]
+  [A-Z] [0-9] except [-._]."
   [url]
   (let [url  (str url)
         safe (.replaceAll url "http://" "")
         safe (.replaceAll safe "https://" "")
         safe (.replaceAll safe "/" "-")
-        safe (.replaceAll safe "[^a-zA-Z0-9-.]" "")]
+        safe (.replaceAll safe "[^a-zA-Z0-9-._]" "")]
     safe))
 
 (defn- url-hash
@@ -36,12 +42,16 @@
   (let [url (str url)]
     (str (hash url))))
 
+(defn- safe-path
+  [path]
+  (let [safe (safe-url path)
+        hsh  (url-hash path)]
+    (str safe "--" hsh)))
+
 (defn- cache-dir
   "Returns the name of a directory to cache an asset with the given url."
   [url]
-  (let [safe (safe-url url)
-        hsh  (url-hash url)]
-    (mk-path *cache-root* (str safe "--" hsh))))
+  (mk-path *cache-root* (safe-path url)))
 
 (defn- mk-cache-dir!
   "Create a new cache dir for the specified url"
@@ -49,24 +59,29 @@
   (let [dir (cache-dir url)]
     (mkdir! dir)))
 
+(defn- cached-path
+  [url name]
+  (mk-path (cache-dir url) (safe-path name)))
+
 (defn- fetch-cached-path
   "Returns the path to the cached asset if present, otherwise nil."
   [url name]
-  (let [path (mk-path (cache-dir url) name)]
+  (let [path (cached-path url name)]
     (when (path-exists? path)
       path)))
 
 (defn- download-and-cache-asset
   "Downloads the file pointed to by url and caches it on the local file system"
   [url name]
-  (let [tmp-dir   (str (mk-tmp-dir!))
+  (let [name      (safe-path name)
+        tmp-dir   (str (mk-tmp-dir!))
         tmp-file  (mk-path tmp-dir name)
         dest-dir  (cache-dir url)
         dest-file (mk-path dest-dir name)]
     (try
       (mk-cache-dir! url)
       (download-asset-file url tmp-file)
-      (mv! tmp-file dest-file )
+      (mv! tmp-file dest-file)
       (rm-rf! tmp-dir)
       dest-file
 

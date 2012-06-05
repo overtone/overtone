@@ -4,11 +4,10 @@
   overtone.sc.mixer
   (:use [overtone.libs deps event]
         [overtone.helpers file]
-        [overtone.sc synth ugens server info node buffer]
-        [overtone.sc.machinery defaults]))
+        [overtone.sc defaults comms synth ugens server info node buffer]))
 
-(defonce master-vol*  (ref MASTER-VOL))
-(defonce master-gain* (ref MASTER-GAIN))
+(defonce master-vol*  (ref DEFAULT-MASTER-VOLUME))
+(defonce master-gain* (ref DEFAULT-MASTER-GAIN))
 (defonce bus-mixers*  (ref {:in [] :out []}))
 
 (add-watch master-vol*
@@ -68,29 +67,30 @@
 (defn- start-mixers
   []
   (ensure-connected!)
-  (let [in-cnt          (server-num-input-buses)
-        out-cnt         (server-num-output-buses)
-        out-mixers      (doall
-                         (map
-                          (fn [out-bus]
-                            (out-bus-mixer :pos :head
-                                           :target (main-mixer-group)
-                                           :out-bus out-bus))
-                          (range out-cnt)))
-        in-mixers       (doall
-                         (map
-                          (fn [in-bus]
-                            (in-bus-mixer :pos :head
-                                          :target (main-input-group)
-                                          :in-bus (+ out-cnt in-bus)))
-                          (range in-cnt)))]
+  (let [in-cnt     (with-server-sync #(server-num-input-buses))
+        out-cnt    (with-server-sync #(server-num-output-buses))
+        out-mixers (doall
+                    (map
+                     (fn [out-bus]
+                       (out-bus-mixer :pos :head
+                                      :target (main-mixer-group)
+                                      :out-bus out-bus))
+                     (range out-cnt)))
+        in-mixers  (doall
+                    (map
+                     (fn [in-bus]
+                       (in-bus-mixer :pos :head
+                                     :target (main-input-group)
+                                     :in-bus (+ out-cnt in-bus)))
+                     (range in-cnt)))]
 
     (dosync
      (ref-set bus-mixers* {:in in-mixers :out out-mixers}))))
 
 (on-deps [:core-groups-created :synthdefs-loaded] ::start-bus-mixers start-mixers)
-(on-sync-event :shutdown ::reset-bus-mixers #(dosync
-                                              (ref-set bus-mixers* {:in [] :out []})))
+(on-sync-event :shutdown ::reset-bus-mixers (fn [event-info]
+                                              (dosync
+                                               (ref-set bus-mixers* {:in [] :out []}))))
 
 (defn volume
   "Set the volume on the master mixer. When called with no params, retrieves the
@@ -114,7 +114,11 @@
 (defn recording-start
   "Start recording a wav file to a new file at wav-path. Be careful -
   may generate very large files. See buffer-stream for a list of
-  output options."
+  output options.
+
+  Note, due to the size of the buffer used for transferring the audio
+  from the audio server to the file, there will be 1.5s of silence at
+  the start of the recording"
   [path & args]
   (if-let [info @recorder-info*]
     (throw (Exception. (str "Recording already taking place to: "

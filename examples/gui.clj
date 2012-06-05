@@ -1,15 +1,33 @@
 (ns examples.gui
   (:use overtone.core
-        [overtone.gui
-           info control wavetable sequencer mixer
-           stepinator]
+        overtone.gui
         [overtone.inst synth drum]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Overtone control panel
+; * server info
+; * master volume control
+; * record button
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; Show the server info window
-(server-info-window)
+(control-panel)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Mixer
+; * adjust volume levels and pan for one or more instruments
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Create a mixer for some instruments
+(mixer rise-fall-pad ks1 ping)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Synth controller
+; * manipulate synth and instrument parameters with sliders
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Create a synth with metadata that can be used to generate a GUI controller
-(defsynth foo [note {:default 60 :min 0 :max 120 :step 1}
+(defsynth foo [note   {:default 60 :min 0 :max 120 :step 1}
                attack {:default 0.002 :min 0.0001 :max 3.0 :step 0.001}
                decay  {:default 0.3 :min 0.0001 :max 3.0 :step 0.001}]
   (out 0 (* [0.8 0.8] (env-gen (perc attack decay) :action FREE)
@@ -43,6 +61,12 @@
 
 (bar-player (m))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Waveform and wavetable editors
+; * edit a single waveform by hand
+; * edit a table of multiple waveforms
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn fill-buffer
   [b f]
   (let [size (:size b)]
@@ -58,17 +82,26 @@
   (out 0 (* [0.8 0.8] (osc buf freq))))
 
 (table-player b 660)
+(stop)
 
 ;(def waves (load-samples "waveforms/AKWF_cello/*.wav"))
 (def table (wavetable 12 1024))
 (wavetable-editor table)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Step sequencer
+; * sequence triggered sounds (typically for rhythmic instruments)
+; * one row per instrument
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; Up the tempo, and try the step sequencer out on a couple of drums
 (m :bpm 128)
 (step-sequencer m 8 ks1 ping)
 
-; Create a mixer for all currently defined instruments
-(mixing-console)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Stepinator
+; * sequence one instrument or parameter value
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Bring up a monophonic step sequencer
 (def pstep (stepinator))
@@ -80,7 +113,6 @@
         env   (env-gen (perc attack release) :action FREE)
         f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- release 0.1)))))
         bfreq (/ freq 2)
-        mod-seq (demand (
         sig   (apply +
                      (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
                              (lpf (saw [freq (* freq 1.01)]) f-env)))
@@ -88,17 +120,21 @@
     audio))
 
 ; You can access the sequence once when creating a synth
-(demo 2
+(demo 20
   (let [note (duty (dseq [0.2 0.1] INF)
                    0
                    (dseq (map #(+ 60 %) (:steps @(:state pstep)))))
-        src (saw (midicps note))]
+        src (sin-osc (midicps note))]
     (* [0.2 0.2] src)))
 
 ; or access the sequence steps in a player function
 (defn step-player [b]
   (at (m b)
-      (bar (+ 60 (nth (:steps @(:state pstep)) (mod b 16)))))
+      (step-pad (+ 60 (nth (:steps @(:state pstep)) (mod b 16)))))
   (apply-at (m (inc b)) #'step-player [(inc b)]))
 
+(:steps @(:state pstep))
+
 (step-player (m))
+
+

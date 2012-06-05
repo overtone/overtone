@@ -6,13 +6,12 @@
   overtone.sc.machinery.synthdef
   (:import [java.net URL])
   (:use [overtone.byte-spec]
-        [overtone.util lib]
+        [overtone.helpers lib]
         [overtone.libs event deps]
-        [overtone.sc server]
-        [overtone.sc.machinery.server comms]
+        [overtone.sc comms server]
         [overtone.helpers.file :only [resolve-tilde-path]]
         [overtone.helpers.system :only [get-os]])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 ;; param-name is :
 ;;   pstring - the name of the parameter
@@ -30,14 +29,14 @@
 ;;   }
 ;; end
 (defspec input-spec
-				 :src   :int16
-				 :index :int16)
+                                 :src   :int16
+                                 :index :int16)
 
 ;; an output-spec is :
 ;;   int8 - calculation rate
 ;; end
 (defspec output-spec
-				 :rate :int8)
+                                 :rate :int8)
 
 ;; ugen-spec is :
 ;;   pstring - the name of the SC unit generator class
@@ -52,12 +51,12 @@
 ;;    - (e.g. UnaryOpUGen and BinaryOpUGen use it to indicate which operator to perform.)
 ;;    - If not used it should be set to zero.
 (defspec ugen-spec
-				 :name      :string
-				 :rate      :int8
-				 :n-inputs  :int16
-				 :n-outputs :int16
+                                 :name      :string
+                                 :rate      :int8
+                                 :n-inputs  :int16
+                                 :n-outputs :int16
          :special   :int16 0
-				 :inputs    [input-spec]
+                                 :inputs    [input-spec]
          :outputs   [output-spec])
 
 ;; variants are a mechanism to store a number of presets for a synthdef

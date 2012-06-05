@@ -25,3 +25,4 @@ pom.xml
 *.dvi
 .lein-deps-sum
 .project
+target/

@@ -1,12 +1,12 @@
 (ns
-  ^{:doc "Library of general purpose utility functions for Overtone internals."
-    :author "Jeff Rose and Sam Aaron"}
-  overtone.util.lib
+    ^{:doc "Library of general purpose utility functions for Overtone internals."
+      :author "Jeff Rose and Sam Aaron"}
+  overtone.helpers.lib
   (:import [java.util ArrayList Collections]
            [java.util.concurrent TimeUnit TimeoutException])
   (:use [clojure.stacktrace]
         [clojure.pprint]
-        [overtone.util doc]))
+        [overtone.helpers doc]))
 
 
 (defn to-str
@@ -18,10 +18,16 @@
   "If val is a number or bool, return its float equivalent otherwise return val"
   [val]
   (cond
-   (number? val) (float val)
-   (true? val)   (float 1)
-   (false? val)  (float 0)
-   :else val))
+    (number? val) (float val)
+    (true? val)   (float 1)
+    (false? val)  (float 0)
+    :else val))
+
+(defn to-keyword
+  [val]
+  (if (string? val)
+    (keyword val)
+    val))
 
 (defn floatify-truth
   "Convert truth values to 0 or 1 using most of the standard Clojure truth
@@ -33,10 +39,10 @@
         truthy (float 1)
         falsey (float 0)]
     (cond
-     (= truthy obj) truthy
-     (= falsey obj) falsey
-     obj truthy
-     :else falsey)))
+      (= truthy obj) truthy
+      (= falsey obj) falsey
+      obj truthy
+      :else falsey)))
 
 (defn stringify
   "Convert all keywords in col to strings without ':' prefixed."
@@ -48,10 +54,14 @@
   [col]
   (map to-float col))
 
+(defn keywordify
+  "Convert all strings to keywords."
+  [col]
+  (map to-keyword col))
 
-; Now available in recent Clojure versions as of Nov. 29, 2009...
-;(defn byte-array [len]
-;  (make-array (. Byte TYPE) len))
+                                        ; Now available in recent Clojure versions as of Nov. 29, 2009...
+                                        ;(defn byte-array [len]
+                                        ;  (make-array (. Byte TYPE) len))
 
 (def BYTE-ARRAY (byte-array 1))
 
@@ -123,11 +133,11 @@
               (let [args (for [i (range n)] (symbol (str "arg" i)))]
                 (if (empty? args)
                   `(~'invoke [this#]
-                           (~invoke_fn this#))
+                             (~invoke_fn this#))
                   `(~'invoke [this# ~@args]
-                           (~invoke_fn this# ~@args))))) (range 21))
+                             (~invoke_fn this# ~@args))))) (range 21))
      (~'applyTo [this# args#]
-                (apply ~invoke_fn this# args#))))
+       (apply ~invoke_fn this# args#))))
 
 (defn- syms-to-keywords [coll]
   (map #(if (symbol? %)
@@ -164,14 +174,14 @@
          arg-map default-map]
     (if (not (empty? args))
       (if (and
-            (keyword? (first args))
-            (even? (count args)))
+           (keyword? (first args))
+           (even? (count args)))
         (merge arg-map (apply hash-map args))
         (recur (next args)
                (next names)
                (assoc arg-map
-                      (first names)
-                      (first args))))
+                 (first names)
+                 (first args))))
       arg-map)))
 
 (defn arg-lister [args arg-names default-map]
@@ -225,11 +235,11 @@
   ;=> ({:a 1} {:a 20} {:a 3} {:a 40} {:a 5})
   "
   ([maps n k f]
-   (update-every-n maps n 0 k f))
+     (update-every-n maps n 0 k f))
   ([maps n offset k f]
-   (concat
-     (take offset maps)
-     (map-indexed
+     (concat
+      (take offset maps)
+      (map-indexed
        (fn [i elem]
          (if (zero? (mod i n))
            (assoc elem k (f (get elem k)))
@@ -265,7 +275,7 @@
        / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
        \\____/ |___/\\___/_/   \\__/\\____/_/ /_/\\___/
 
-                          Programmable Music. "version-str"
+              Collaborative Programmable Music. "version-str "
 
 
 Hello " user-name ", may this be the start of a beautiful music hacking session...")))
@@ -302,4 +312,4 @@ Hello " user-name ", may this be the start of a beautiful music hacking session.
            (or (= :overtone.sc.machinery.ugen.fn-gen/ugen (:type gen))
                (= :overtone.sc.machinery.defcgen/cgen (:type gen))))
     (keyword (:name gen))
-    gen))
+        gen))

@@ -1,11 +1,13 @@
 (ns overtone.gui.sequencer
   (:use [overtone.sc server]
         [overtone.music time]
+        [overtone.gui spinner-label]
         [overtone.gui.control :only [synth-controller]]
         [seesaw core]
         [seesaw.color :only [color]]
         [seesaw.graphics :only [style update-style draw rect rounded-rect line]]
-        [seesaw.mig :only [mig-panel]])
+        [seesaw.mig :only [mig-panel]]
+        [seesaw.border :only [line-border]])
   (:require [seesaw.bind :as bind]))
 
 (defn- make-initial-state [metro steps instruments init-vals]
@@ -172,8 +174,11 @@
   (invoke-now
     (let [state-atom   (atom (make-initial-state metro steps instruments init-vals))
           play-btn     (button :text "Play")
-          bpm-spinner  (spinner :model (spinner-model (metro :bpm) :from 1 :to 10000 :by 1)
-                                :maximum-size [60 :by 100])
+          bpm-spinner  (spinner-label :class :sequencer-bpm-spinner
+                                      :halign :center
+                                      :border (line-border :thickness 1 :color :darkgrey)
+                                      :maximum-size [60 :by 100]
+                                      :model (spinner-model (metro :bpm) :from 1 :to 10000 :by 1))
           controls-btn (button :text "Controls" :tip "Show controls for all insts")
           plus-btn     (button :text "+" :tip "Add a column")
           minus-btn    (button :text "-" :tip "Remove a column")

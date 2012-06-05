@@ -6,11 +6,12 @@
   overtone.sc.server
   (:import [java.util.concurrent TimeoutException])
   (:use [overtone.libs event deps]
+        [overtone.sc comms]
         [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection comms]
-        [overtone.util.lib :only [deref!]]
+        [overtone.sc.machinery.server connection]
+        [overtone.helpers.lib :only [deref!]]
         [overtone.osc :only [in-osc-bundle]])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 (defonce synth-group* (ref nil))
 (defonce osc-log*     (atom []))
@@ -18,7 +19,8 @@
 
 
 (defn connection-info
-  "Returns connection information regarding the currently connected server"
+  "Returns connection information regarding the currently connected
+  server"
   []
   @connection-info*)
 
@@ -43,16 +45,18 @@
   (= :external (:connection-type (connection-info))))
 
 (defmacro at
-  "All messages sent within the body will be sent in the same timestamped OSC
-  bundle.  This bundling is thread-local, so you don't have to worry about
-  accidentally scheduling packets into a bundle started on another thread."
+  "All messages sent within the body will be sent in the same
+  timestamped OSC bundle.  This bundling is thread-local, so you don't
+  have to worry about accidentally scheduling packets into a bundle
+  started on another thread."
   [time-ms & body]
   `(in-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))
 
 (defn snd
-  "Sends an OSC message to the server. If the message path is a known scsynth
-  path, then the types of the arguments will be checked according to what
-  scsynth is expecting. Automatically converts any args which are longs to ints.
+  "Sends an OSC message to the server. If the message path is a known
+  scsynth path, then the types of the arguments will be checked
+  according to what scsynth is expecting. Automatically converts any
+  args which are longs to ints.
 
   (snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
@@ -61,14 +65,15 @@
   (apply server-snd path args))
 
 (defn recv
-  "Register your intent to wait for a message associated with given path to be
-  received from the server. Returns a promise that will contain the message once
-  it has been received. Does not block current thread (this only happens once
-  you try and look inside the promise and the reply has not yet been received).
+  "Register your intent to wait for a message associated with given
+  path to be received from the server. Returns a promise that will
+  contain the message once it has been received. Does not block
+  current thread (this only happens once you try and look inside the
+  promise and the reply has not yet been received).
 
-  If an optional matcher-fn is specified, will only deliver the promise when
-  the matcher-fn returns true. The matcher-fn should accept one arg which is
-  the incoming event info."
+  If an optional matcher-fn is specified, will only deliver the
+  promise when the matcher-fn returns true. The matcher-fn should
+  accept one arg which is the incoming event info."
   ([path] (recv path nil))
   ([path matcher-fn]
      (when-not (server-connected?)
@@ -76,20 +81,8 @@
      (server-recv path matcher-fn)))
 
 (defn connect-external-server
-  "Connect to an externally running SC audio server listening to port on host.
-  Host defaults to localhost.
-
-  (connect-external-server)                        ;=> Connect to an external
-                                                       server on the localhost
-                                                       at the default scsynth
-                                                       port 57110
-  (connect-external-server 5555)                   ;=> Connect to an external
-                                                       server on the localhost
-                                                       listening to port 5555
-  (connect-external-server \"192.168.1.23\" 57110) ;=> Connect to an external
-                                                       server with ip address
-                                                       192.168.1.23 listening to
-                                                       port 57110"
+  "Connect to an externally running SC audio server listening to port
+  on host.  Host defaults to localhost and port defaults to 57110."
   ([] (connect-external-server 57110))
   ([port] (connect-external-server "127.0.0.1" port))
   ([host port]
@@ -107,10 +100,10 @@
      :booted-external-server))
 
 (defn boot-server
-  "Boot an internal server."
+  "Boot the default server."
   []
-  (boot :internal)
-  :booted-internal-server)
+  (boot)
+  :booted-default-server)
 
 (defn kill-server
   "Shutdown the running server"
@@ -156,9 +149,9 @@
   (snd "/clearSched"))
 
 (defn stop
-  "Stop all running synths and metronomes. This does not remove any synths/insts
-  you may have defined, rather it just stops any of them that are currently
-  playing."
+  "Stop all running synths and metronomes. This does not remove any
+  synths/insts you may have defined, rather it just stops any of them
+  that are currently playing."
   []
   (event :reset))
 
@@ -173,7 +166,7 @@
 (defn sc-osc-log-off
   "Turn osc logging off"
   []
-  (remove-handler :osc-msg-received ::osc-logger))
+  (remove-handler ::osc-logger))
 
 (defn sc-osc-log
   "Return the current status of the osc log"
@@ -193,14 +186,14 @@
 (defn sc-debug-on
   "Turn on output from both the Overtone and the audio server."
   []
-  (log/level :debug)
+  (log/set-level! :debug)
   (sc-osc-debug-on)
   (snd "/dumpOSC" 1))
 
 (defn sc-debug-off
   "Turn off debug output from both the Overtone and the audio server."
   []
-  (log/level :error)
+  (log/set-level! :error)
   (sc-osc-debug-off)
   (snd "/dumpOSC" 0))
 
@@ -229,4 +222,3 @@
   []
   (ensure-connected!)
   (:input @core-groups*))
-

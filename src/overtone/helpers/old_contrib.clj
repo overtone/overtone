@@ -1,6 +1,6 @@
 (ns
     ^{:doc "Temporary namespace for functions and macros we depend on from the old Clojure 1.2 contrib. This namespace should be removed when these have been relocated to the new contrib structure."}
-  overtone.util.old-contrib)
+  overtone.helpers.old-contrib)
 
 ;; name-with-attributes by Konrad Hinsen:
 ;;http://code.google.com/p/clojure-contrib/source/browse/trunk/src/clojure/contrib/def.clj?r=889

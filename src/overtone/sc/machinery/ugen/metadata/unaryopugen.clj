@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.unaryopugen
-  (:use [overtone.util lib]))
+  (:use [overtone.helpers lib]))
 
 (def unnormalized-unaryopugen-docspecs
   {"neg" {:summary "Signal inversion"

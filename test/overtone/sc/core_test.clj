@@ -5,7 +5,7 @@
     ; TODO: this is not importable until the server is booted?
     overtone.inst.synth)
   (:require
-    [overtone.util.log :as log]))
+    [overtone.config.log :as log]))
 
 (def ditty-notes [50 50 57 50 48 62 62 50])
 (def ditty-durs  [250 250 500 125 125 250 250 500])

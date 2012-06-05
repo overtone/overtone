@@ -1,25 +1,29 @@
 (ns overtone.studio.wavetable
-  (:use [overtone.sc server buffer]))
+  (:use [overtone.helpers math]
+        [overtone.sc server buffer]))
 
 (def ^{:private true} WAVEFORM-LENGTH 1024)
 
 (defn signal->wavetable
   "Convert a seq of values (-1 to 1) into wavetable format, which is partially
-  interpolated. The signal data must be a power of 2 in length (512, 1024), and the result
-  will be twice as long.
+  interpolated. The signal data should typically be a power of 2 in length (512, 1024),
+  and the result will be twice as long.  (This is not always the case when manipulating
+  partial buffers, but full wavetables must be powers of 2 in length.)
 
   [a0, a1 ,a2, ...] => [(- (* 2 a0) a1), (- a1 a0), (- (* 2 a1) a2), (- a2 a1), ...]
   "
   [signal]
-  (loop [sig (seq signal)
-         res []]
-    (let [a (float (first sig))
-          bs (second sig)
-          b (float (or bs (first signal)))
-          next-res (conj res (- (* 2 a) b) (- b a))]
-      (if (nil? bs)
-        next-res
-        (recur (next sig) next-res)))))
+  (let [sig (seq signal)
+        len (count sig)]
+    (loop [sig sig
+           res []]
+      (let [a (float (first sig))
+            bs (second sig)
+            b (float (or bs (first signal)))
+            next-res (conj res (- (* 2 a) b) (- b a))]
+        (if (nil? bs)
+          next-res
+          (recur (next sig) next-res))))))
 
 (defn wavetable->signal
   [table]
@@ -27,16 +31,13 @@
 
 (defn wavetable
   ([num-waves] (wavetable num-waves WAVEFORM-LENGTH))
-  ([num-waves wavelength]
+  ([num-waves size]
+     (when-not (power-of-two? size)
+       (throw (IllegalArgumentException. (str "size is not a power of 2. Got: " size))))
    (with-meta
      {:size num-waves
-      :waveforms (repeatedly num-waves #(buffer wavelength))}
+      :waveforms (repeatedly num-waves #(buffer size))}
      {:type ::wave-table})))
-
-(defn linear-interpolate
-  [a b steps]
-  (let [shift (/ (- b a) (float (dec steps)))]
-    (concat (take (dec steps) (iterate #(+ shift %) a)) [b])))
 
 (defn linear-interpolate-wavetable
   [table idx-a idx-b]

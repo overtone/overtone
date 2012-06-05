@@ -6,7 +6,8 @@
       {:name "Oscy",
        :args [{:name "buffer" :doc "Lookup buffer"}
               {:name "freq", :default 440.0 :doc "Frequency in Hertz"}
-              {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}],
+              {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}]
+       :check (nth-input-buffer-pow2? 0)
        :doc "Linear interpolating wavetable lookup oscillator with frequency and phase modulation inputs.
 
 This oscillator requires a buffer to be filled with a wavetable format signal.  This preprocesses the Signal into a form which can be used efficiently by the Oscillator.  The buffer size must be a power of 2.
@@ -15,10 +16,11 @@ This can be acheived by creating a Buffer object and sending it one of the b_gen
 
 This can also be acheived by creating a Signal object and sending it the 'asWavetable' message, saving it to disk, and having the server load it from there."}
 
-            {:name "Osc",
+      {:name "Osc",
        :args [{:name "buffer" :doc "Lookup buffer"}
               {:name "freq", :default 440.0 :doc "Frequency in Hertz"}
-              {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}],
+              {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}]
+       :check (nth-input-buffer-pow2? 0)
        :doc "Linear interpolating wavetable lookup oscillator with frequency and phase modulation inputs.
 
 This oscillator requires a buffer to be filled with a wavetable format signal.  This preprocesses the Signal into a form which can be used efficiently by the Oscillator.  The buffer size must be a power of 2.
@@ -42,7 +44,8 @@ This can also be acheived by creating a Signal object and sending it the 'asWave
       {:name "OscN",
        :args [{:name "bufnum" :doc "Buffer index.  The buffer size must be a power of 2.  The buffer should NOT be filled using Wavetable format (b_gen commands should set wavetable flag to false.  Raw signals (not converted with asWavetable) can be saved to disk and loaded into the buffer."}
               {:name "freq", :default 440.0 :doc "Frequency in Hertz"}
-              {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}],
+              {:name "phase", :default 0.0 :doc "Phase offset or modulator in radians"}]
+       :check (nth-input-buffer-pow2? 0)
        :doc "Noninterpolating wavetable lookup oscillator with frequency and phase modulation inputs.
 
 It is usually better to use the interpolating oscillator."}

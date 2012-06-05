@@ -2,7 +2,7 @@
     ^{:doc "Code to generate the ugen fns"
       :author "Jeff Rose, Christophe McKeon and Sam Aaron"}
   overtone.sc.machinery.ugen.fn-gen
-  (:use [overtone.util lib]
+  (:use [overtone.helpers lib]
         [overtone.libs counters]
         [overtone.helpers seq]
         [overtone.sc bindings]

@@ -11,12 +11,12 @@
      (sin-osc freq)))
 
 (definst ping
-  [note {:default 72 :min 0 :max 120 :step 1}
-   attack {:default 0.02 :min 0.001 :max 1 :step 0.001}
-   decay {:default 0.3 :min 0.001 :max 1 :step 0.001}]
+  [note   {:default 72   :min 0     :max 120 :step 1}
+   attack {:default 0.02 :min 0.001 :max 1   :step 0.001}
+   decay  {:default 0.3  :min 0.001 :max 1   :step 0.001}]
   (let [snd (sin-osc (midicps note))
         env (env-gen (perc attack decay) :action FREE)]
-    (* 0.1 env snd)))
+    (* 0.8 env snd)))
 
 (definst tb303
   [note       {:default 60 :min 0 :max 120 :step 1}
@@ -168,7 +168,7 @@
 ; * Two octaves and a fifth over root
 ; * Three octaves over root
 ; Work in progress...  just getting started
-(definst b3
+(comment definst b3
   [note 60 a 0.01 d 3 s 1 r 0.01]
   (let [freq (midicps note)
         waves (sin-osc [(* 0.5 freq)
@@ -186,11 +186,11 @@
 
 ; Experimenting with Karplus Strong synthesis...
 (definst ks1
-  [note {:default 60 :min 10 :max 120 :step 1}
-   amp  {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
-   dur  {:default 2 :min 0.1 :max 4 :step 0.1}
-   decay {:default 30 :min 1 :max 50 :step 1}
-   coef {:default 0.3 :min 0.01 :max 2 :step 0.01}]
+  [note  {:default 60  :min 10   :max 120  :step 1}
+   amp   {:default 0.8 :min 0.01 :max 0.99 :step 0.01}
+   dur   {:default 2   :min 0.1  :max 4    :step 0.1}
+   decay {:default 30  :min 1    :max 50   :step 1}
+   coef  {:default 0.3 :min 0.01 :max 2    :step 0.01}]
   (let [freq (midicps note)
         noize (* 0.8 (white-noise))
         dly (/ 1.0 freq)
@@ -274,7 +274,7 @@
     zout))
 
 ; // Originally from the STK instrument models...
-(definst bowed
+(comment definst bowed
   [note 60 velocity 80 gate 1 amp 1
    bow-offset 0 bow-slope 0.5 bow-position 0.75 vib-freq 6.127 vib-gain 0.2]
   (let [freq         (midicps note)
@@ -298,7 +298,7 @@
    (local-out (+ [bridge-refl nut-refl] new-vel))
    (resonz (* bridge 0.5) 500 0.85)))
 
-(definst flute
+(comment definst flute
   [gate 1 freq 440 amp 1.0 endreflection 0.5 jetreflection 0.5
    jetratio 0.32 noise-gain 0.15 vibfreq 5.925 vib-gain 0.0 amp 1.0]
   (let [nenv           (env-gen (linen 0.2 0.03 0.5 0.5) gate :action FREE)

@@ -2,7 +2,8 @@
     ^{:doc "Read and decorate ugen metadata to create final UGEN-SPECS"
       :author "Jeff Rose"}
   overtone.sc.machinery.ugen.specs
-  (:use [overtone.util lib]
+  (:use [clojure.pprint]
+        [overtone.helpers lib]
         [overtone.sc.machinery.ugen defaults common special-ops categories sc-ugen])
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
 
@@ -91,7 +92,7 @@
                                (if (string? el)
                                  (if (empty? s)
                                    el
-                                   (str s " AND " el))
+                                   (str s "\nAND\n" el))
                                  s))
                              ""
                              results)
@@ -99,7 +100,7 @@
                  (fun rate num-outs args spec))]
 
     (if (string? result)
-      (throw (Exception. (str "Error in checker for ugen " (overtone-ugen-name (:name spec)) ". " result)))
+      (throw (Exception. (str "Error in checker for ugen " (overtone-ugen-name (:name spec)) ":\n" result "\nUgen:\n" (with-out-str (pprint ugen)))))
       ugen)))
 
 (defn- check-arg-rates [spec ugen]
@@ -121,12 +122,18 @@
                       (= :ar (:rate-name bad-input)))
                  ;; Special case demand rate ugens which may have kr ugens plugged into them
                  (and (= :dr cur-rate)
-                      (= :kr (:rate-name bad-input))))
+                      (= :kr (:rate-name bad-input)))
+                 ;; Special case Amplitude ugen which may have ar ugens plugged into it
+                 (and (= "Amplitude" (:name ugen))
+                      (= :ar (:rate-name bad-input)))
+                 ;; Special case Pitch ugen which may have ar ugens plugged into it
+                 (and (= "Pitch" (:name ugen))
+                      (= :ar (:rate-name bad-input))))
 
-        (let [ugen-name (real-ugen-name ugen)
-              in-name (real-ugen-name bad-input)
+        (let [ugen-name     (real-ugen-name ugen)
+              in-name       (real-ugen-name bad-input)
               cur-rate-name (get HUMAN-RATES cur-rate)
-              in-rate-name (get HUMAN-RATES (:rate-name bad-input))]
+              in-rate-name  (get HUMAN-RATES (:rate-name bad-input))]
           (throw (Exception.
                   (format "Invalid ugen rate.  The %s ugen is %s rate, but it has a %s input ugen running at the faster %s rate.  Besides the a2k ugen and demand rate ugens (which are allowed kr inputs), all ugens must be the same speed or faster than their inputs."
                           ugen-name cur-rate-name
@@ -253,7 +260,7 @@
   [ugen]
   (let [args (:args ugen)]
     (when (some nil? args)
-      (throw (IllegalArgumentException. (str "Error - attempted to call the " (:name ugen) " ugen with one or more nil arguments. This usually happens when the ugen contains arguments without defaults which haven't been explicitly called. Got " (vec args))))))
+      (throw (IllegalArgumentException. (str "Error - attempted to call the " (:name ugen) " ugen with one or more nil arguments. This usually happens when the ugen contains arguments without defaults which haven't been explicitly called. \nUgen:\n" (with-out-str (pprint args)))))))
   ugen)
 
 (defn- sanity-checker-fn
@@ -311,12 +318,12 @@
                  initer
                  n-outputer
                  floater
-                 associative->id
                  appender
                  auto-rater
                  nil-arg-checker
-                 rate-checker
                  bespoke-checker
+                 associative->id
+                 rate-checker
                  sanity-checker)))))
 
 (defn- with-fn-names

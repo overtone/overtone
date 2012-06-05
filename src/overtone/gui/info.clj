@@ -113,7 +113,9 @@
     (listen rec-btn :action (fn [e] (toggle-recording rec-btn))))
   frame)
 
-(defn server-info-window
+(defn control-panel
+  "Open the Overtone control panel, giving access to server status information
+  and additional tools to view and manipulate instruments and sounds."
   []
   (invoke-now
     (-> (frame

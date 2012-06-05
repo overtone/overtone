@@ -5,15 +5,14 @@
   (:use [clojure.core.incubator :only [dissoc-in]]
         [overtone.music rhythm pitch]
         [overtone.libs event deps]
-        [overtone.util lib]
-        [overtone.sc.machinery defaults synthdef]
+        [overtone.sc.machinery synthdef]
+        [overtone.helpers lib]
         [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
-        [overtone.sc.machinery.server comms]
-        [overtone.sc server synth ugens envelope node bus]
+        [overtone.sc comms defaults server synth ugens envelope node bus]
         [overtone.sc.util :only [id-mapper]]
         [overtone.music rhythm time])
   (:require [overtone.studio fx]
-            [overtone.util.log :as log]))
+            [overtone.config.log :as log]))
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
 ; SuperCollider.  Every instance of an instrument will be placed in the same
@@ -31,12 +30,14 @@
   (deps-satisfied? MIXER-BOOT-DEPS))
 
 (defn wait-until-mixer-booted
-  "Makes the current thread sleep until the mixer completed its boot process."
+  "Makes the current thread sleep until the mixer completed its boot
+  process."
   []
   (wait-until-deps-satisfied MIXER-BOOT-DEPS))
 
 (defn boot-mixer
-  "Boots the server and waits until the studio mixer has complete set up"
+  "Boots the server and waits until the studio mixer has complete set
+  up"
   []
   (when-not (mixer-booted?)
     (boot-server)
@@ -44,14 +45,16 @@
 
 (defn setup-studio []
   (log/info (str "Creating studio group at head of: " (root-group)))
-  (let [root (root-group)
-        g (with-server-sync #(group :head root))
-        r (group :tail root)
-        insts-with-groups (map-vals #(assoc % :group (group :tail g))
+  (let [root              (root-group)
+        g                 (with-server-sync #(group :head root))
+        insts-with-groups (map-vals (fn [val]
+                                      assoc val
+                                      :group
+                                      (with-server-sync #(group :tail g)))
                                     @instruments*)]
     (dosync
-      (ref-set inst-group* g)
-      (ref-set instruments* insts-with-groups))
+     (ref-set inst-group* g)
+     (ref-set instruments* insts-with-groups))
     (satisfy-deps :studio-setup-completed)))
 
 (on-deps :server-ready ::setup-studio setup-studio)
@@ -60,7 +63,7 @@
 ;; TODO: re-create the instrument groups
 (defn reset-inst-groups
   "Frees all synth notes for each of the current instruments"
-  []
+  [event-info]
   (doseq [[name inst] @instruments*]
     (group-clear (:instance-group inst))))
 
@@ -78,4 +81,3 @@
 
 (defn clear-instruments []
   (dosync (ref-set instruments* {})))
-

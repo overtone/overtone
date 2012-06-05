@@ -1,10 +1,10 @@
 (ns overtone.studio.inst
   (:use
-    [overtone.sc bindings server synth ugens envelope node bus]
-    [overtone.sc.machinery defaults synthdef]
+    [overtone.sc defaults bindings server synth ugens envelope node bus]
+    [overtone.sc.machinery synthdef]
     [overtone.sc.util :only (id-mapper)]
     [overtone.studio mixer fx]
-    [overtone.util lib]
+    [overtone.helpers lib]
     [overtone.libs event]))
 
 (defonce __MIXER-SYNTH__
@@ -16,13 +16,13 @@
 (defn inst-volume
   "Control the volume for a single instrument."
   [inst vol]
-  (ctl inst :volume vol)
+  (ctl (:mixer inst) :volume vol)
   (reset! (:volume inst) vol))
 
 (defn inst-pan
   "Control the pan setting for a single instrument."
   [inst pan]
-  (ctl inst :pan pan)
+  (ctl (:mixer inst) :pan pan)
   (reset! (:pan inst) pan))
 
 (defn inst-fx
@@ -100,7 +100,7 @@
                              container-group# instance-group# fx-group#
                              imixer# inst-bus# fx-chain#
                              volume# pan#)
-                      {:overtone.util.lib/to-string #(str (name (:type %)) ":" (:name %))})]
+                      {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
 
      (load-synthdef sdef#)
      (add-instrument inst#)
@@ -166,12 +166,10 @@
    :node-place node-place*}
 
   IControllableNode
-  {:node-control        node-control*
-   :node-control-range  node-control-range*
-   :node-map-controls   node-map-controls*
-   :node-map-n-controls node-map-n-controls*}
+  {:node-control           node-control*
+   :node-control-range     node-control-range*
+   :node-map-controls      node-map-controls*
+   :node-map-n-controls    node-map-n-controls*}
 
   IKillable
   {:kill* (fn [this] (group-deep-clear (:instance-group this)))})
-
-
