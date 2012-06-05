@@ -20,7 +20,7 @@
           2/3 1/3 2/3 1/3 2
           1/3 1/3 1/3 1/3 1/3 1/3 1/3 1/3 1/3 1/3 1/3 1/3
           2/3 1/3 2/3 1/3 2]
-        times (reductions + 0 durations)]
+        timings (reductions + 0 durations)]
     (map vector timings pitches)))
 
 
