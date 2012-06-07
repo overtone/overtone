@@ -25,12 +25,13 @@
   (when (not-empty @connection-info*) true))
 
 (defn- server-notifications-on
-  "Turn on notification messages from the audio server.  This lets us free
-  synth IDs when they are automatically freed with envelope triggers.  It also
-  lets us receive custom messages from various trigger ugens.
+  "Turn on notification messages from the audio server.  This lets us
+  free synth IDs when they are automatically freed with envelope
+  triggers.  It also lets us receive custom messages from various
+  trigger ugens.
 
-  These messages are sent as notification of some event to all clients who have
-  registered via the /notify command .
+  These messages are sent as notification of some event to all clients
+  who have registered via the /notify command .
 
   All of these have the same arguments:
    int - node ID
@@ -53,9 +54,10 @@
   (server-snd "/notify" 1))
 
 (defn- connect-jack-ports
-  "Connect the jack input and output ports as best we can.  If jack ports are
-  always different names with different drivers or hardware then we need to find
-  a better strategy to auto-connect. (For Linux users)"
+  "Connect the jack input and output ports as best we can.  If jack
+  ports are always different names with different drivers or hardware
+  then we need to find a better strategy to auto-connect. (For Linux
+  users)"
   ([] (connect-jack-ports 2))
   ([n-channels]
      (let [port-list (:out (sh "jack_lsp"))
@@ -137,11 +139,12 @@
 (defn connect
   "Connect to an externally running SC audio server.
 
-  (connect 57710)                  ;=> connect to an external server on the
-                                       localhost listening to port 57710
-  (connect \"192.168.1.23\" 57110) ;=> connect to an external server with ip
-                                       address 192.168.1.23 listening to port
-                                       57110"
+  (connect 57710)                ;=> connect to an external server on
+                                     the localhost listening to port
+                                     57710
+  (connect \"192.168.1.23\" 57110) ;=> connect to an external server with
+                                     ip address 192.168.1.23 listening to
+                                     port 57110"
   ([port] (connect "127.0.0.1" port))
   ([host port]
      (.run (Thread. #(external-connection-runner host port)))))
@@ -196,8 +199,8 @@
     (.destroy proc)))
 
 (defn- find-sc-path
-  "Find the path for SuperCollider. If linux don't check for a file as it should
-  be in the PATH list."
+  "Find the path for SuperCollider. If linux don't check for a file as
+  it should be in the PATH list."
   []
   (let [os    (config-get :os)
         paths (SC-PATHS os)
@@ -210,8 +213,8 @@
     path))
 
 (defn- boot-external-server
-  "Boot the audio server in an external process and tell it to listen on a
-  specific port."
+  "Boot the audio server in an external process and tell it to listen on
+  a specific port."
   ([port]
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
@@ -234,13 +237,14 @@
            :external {:port port :host "127.0.0.1"})))
 
 (defn boot
-  "Boot either the internal or external audio server. If specified port is nil
-  will choose a random port.
+  "Boot either the internal or external audio server. If specified port
+  is nil will choose a random port.
 
    (boot) ; uses the default settings defined in your config
-   (boot :internal) ; boots the internal server
-   (boot :external) ; boots an external server on a random port
-   (boot :external 57110) ; boots an external server listening on port 57110"
+   (boot :internal)       ; boots the internal server
+   (boot :external)       ; boots an external server on a random port
+   (boot :external 57110) ; boots an external server listening on port
+                            57110"
   ([]                (boot (or (config-get :server) :internal) SERVER-PORT))
   ([connection-type] (boot connection-type SERVER-PORT))
   ([connection-type port]
