@@ -243,7 +243,7 @@
    :mixolydian        (rotate-ionian 4)
    :aeolian           (rotate-ionian 5)
    :minor             (rotate-ionian 5)
-   :lochrian          (rotate-ionian 6)
+   :locrian           (rotate-ionian 6)
    :pentatonic        [2 3 2 2 3]
    :major-pentatonic  [2 2 3 2 3]
    :minor-pentatonic  [3 2 2 3 2]
@@ -574,7 +574,7 @@
            :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
 
 (defn find-name
-  "Returnd the name of the first matching thing found in things
+  "Return the name of the first matching thing found in things
   or nil if not found"
   ([thing things]
      (if (= (val (first things)) thing)
@@ -621,7 +621,7 @@
      note ))
 
 (defn- simplify-chord
-  "expects notes to contain 0 (the root note) Reduces all notes into 2
+  "Expects notes to contain 0 (the root note) Reduces all notes into 2
   octaves. This will allow identification of fancy jazz chords, but
   will miss some simple chords if they are spread over more than 1
   octave."
@@ -629,9 +629,9 @@
   (set (map (fn [x] (fold-note x)) notes)))
 
 (defn- compress-chord
-  "expects notes to contain 0 (the root note) Reduces all notes into 1
+  "Expects notes to contain 0 (the root note) Reduces all notes into 1
   octave. This will lose all the fancy jazz chords but recognise
-  sparse multiple octave smple chords"
+  sparse multiple octave simple chords"
   [notes]
   (set (map (fn [x] (mod x 12)) notes)))
 
