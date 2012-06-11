@@ -574,7 +574,7 @@
            :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
 
 (defn find-name
-  "Returnd the name of the first matching thing found in things
+  "Return the name of the first matching thing found in things
   or nil if not found"
   ([thing things]
      (if (= (val (first things)) thing)
