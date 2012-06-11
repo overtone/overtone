@@ -1,6 +1,5 @@
-(ns overtunes.songs.row-row-row-your-boat
-  (:use
-    [overtone.live]))
+(ns examples.row-row-row-your-boat
+    (:use [overtone.live]))
 
 (definst harpsichord [freq 440]
   (let [duration 1]
@@ -40,3 +39,4 @@
 
 ;(play (metronome 120) melody)
 ;(play-round (metronome 120) melody)
+
