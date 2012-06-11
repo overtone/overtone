@@ -243,7 +243,7 @@
    :mixolydian        (rotate-ionian 4)
    :aeolian           (rotate-ionian 5)
    :minor             (rotate-ionian 5)
-   :lochrian          (rotate-ionian 6)
+   :locrian          (rotate-ionian 6)
    :pentatonic        [2 3 2 2 3]
    :major-pentatonic  [2 2 3 2 3]
    :minor-pentatonic  [3 2 2 3 2]
