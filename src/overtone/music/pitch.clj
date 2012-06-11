@@ -621,7 +621,7 @@
      note ))
 
 (defn- simplify-chord
-  "expects notes to contain 0 (the root note) Reduces all notes into 2
+  "Expects notes to contain 0 (the root note) Reduces all notes into 2
   octaves. This will allow identification of fancy jazz chords, but
   will miss some simple chords if they are spread over more than 1
   octave."
@@ -629,9 +629,9 @@
   (set (map (fn [x] (fold-note x)) notes)))
 
 (defn- compress-chord
-  "expects notes to contain 0 (the root note) Reduces all notes into 1
+  "Expects notes to contain 0 (the root note) Reduces all notes into 1
   octave. This will lose all the fancy jazz chords but recognise
-  sparse multiple octave smple chords"
+  sparse multiple octave simple chords"
   [notes]
   (set (map (fn [x] (mod x 12)) notes)))
 
