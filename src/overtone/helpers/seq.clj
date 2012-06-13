@@ -1,7 +1,8 @@
 (ns
     ^{:doc "Helper functions for manipulating and testing sequences"
       :author "Sam Aaron"}
-  overtone.helpers.seq)
+  overtone.helpers.seq
+  (:require [clojure.zip :as zip]))
 
 (defn consecutive-ints?
   "Checks whether seq s consists of consecutive integers
@@ -42,3 +43,11 @@
   "Finds first element of seq s for which pred returns true"
   [pred s]
   (first (filter pred s)))
+
+(defn zipper-seq
+  "Returns a lazy sequence of a depth-first traversal of zipper z"
+  [z]
+  (lazy-seq
+    (if (zip/end? z)
+      nil
+      (cons (zip/node z) (zipper-seq (zip/next z))))))
