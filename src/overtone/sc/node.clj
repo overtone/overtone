@@ -1,10 +1,12 @@
 (ns overtone.sc.node
   (:use [overtone.helpers lib]
+        [overtone.helpers.seq :only [zipper-seq]]
         [overtone.libs event deps]
         [overtone.sc comms bus server defaults]
         [overtone.sc.machinery allocator]
         [overtone.sc.util :only [id-mapper]])
-  (:require [overtone.config.log :as log]))
+  (:require [clojure.zip :as zip]
+            [overtone.config.log :as log]))
 
 ;; ## Node and Group Management
 
@@ -494,6 +496,33 @@
   the root group."
   []
   (group-node-tree 0))
+
+(defn node-tree-zipper
+  "Returns a zipper representing the tree of the specified node or
+  defaults to the current node tree"
+  ([] (node-tree-zipper 0))
+  ([root]
+     (zip/zipper map? :children #(assoc %1 :children %2) (group-node-tree root))))
+
+(defn node-tree-seq
+  "Returns a lazy seq of a depth-first traversal of the tree of the
+  specified node defaulting to the current node tree"
+  ([] (node-tree-zipper 0))
+  ([root] (zipper-seq (node-tree-zipper root))))
+
+(defn node-tree-matching-synth-ids
+  "Returns a seq of synth ids in the node tree with specific
+  root (defaulting to the entire node tree) that match regexp or
+  strign."
+  ([re-or-str] (node-tree-matching-synth-ids re-or-str 0))
+  ([re-or-str root]
+     (let [matcher-fn (if (string? re-or-str)
+                        =
+                        re-matches)]
+       (map :id
+            (filter #(and (:name %)
+                          (matcher-fn re-or-str (:name %)))
+                    (node-tree-seq root))))))
 
 (on-deps :core-groups-created ::create-synth-group #(dosync
                                                      (log/debug (str "Creating synth group at head of group with id: " (root-group)))
