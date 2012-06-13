@@ -48,6 +48,5 @@
   "Returns a lazy sequence of a depth-first traversal of zipper z"
   [z]
   (lazy-seq
-    (if (zip/end? z)
-      nil
+    (when-not (zip/end? z)
       (cons (zip/node z) (zipper-seq (zip/next z))))))
