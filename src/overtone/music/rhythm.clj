@@ -24,7 +24,7 @@
 
 (defprotocol IMetronome
   (start [this] [this start-beat]
-    "Returns the start time of the metronome. Also restart's the metronome at
+    "Returns the start time of the metronome. Also restarts the metronome at
      'start-beat' if given.")
   (tick [this]
     "Returns the duration of one metronome 'tick' in milleseconds.")
