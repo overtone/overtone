@@ -19,9 +19,13 @@
 (def live-config (partial live-file-store config*))
 
 (defn config-get
-  "Get config value"
-  [key]
-  (get @config* key))
+  "Get config value. Returns default if specified and the config does
+  not contain key."
+  ([key]
+     (get @config* key))
+  ([key not-found]
+     (let [c @config*]
+       (get @config* key not-found))))
 
 (defn config-set!
   "Set config key to val"
