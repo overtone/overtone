@@ -351,8 +351,17 @@
    :node-map-controls      node-map-controls*
    :node-map-n-controls    node-map-n-controls*})
 
-(defn ctl [node & args]
-  (apply node-control node args))
+(defn ctl
+  "Send a node control messages specified in pairs of :arg-name val. It
+  is possible to pass a sequence of nodes in which case the same control
+  messages will be sent to all nodes.  i.e.
+  (ctl 34 :freq 440 :vol 0.2)
+  (ctl [34 37] :freq 440 :vol 0.2)"
+  [node & args]
+  (if (sequential? node)
+    (doseq [n node]
+      (apply node-control n args))
+    (apply node-control node args)))
 
 (defprotocol IKillable
   (kill* [this] "Kill a synth element (node, or group, or ...)."))
