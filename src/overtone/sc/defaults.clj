@@ -69,7 +69,7 @@
 (def SC-ARG-INFO
   "Default arguments for starting up a SuperCollider process. Does not
   include -u or -t which should be determined by analysing :port
-  and :udp?. Also does not include -N."
+  and :udp?."
   {:port             {:default 57710            :desc "Port number"}
    :udp?             {:default 1                :desc "1 means use UDP, 0 means use TCP"}
    :user-ugens-paths {:default nil              :desc "A list of paths to additional ugen directories. This list will be prepended to the default ugens list"}
@@ -90,6 +90,10 @@
    :rendezvous?      {:default 1     :flag "-R" :desc "Publish to rendezvous? 0 or 1"}
    :max-logins       {:default 64    :flag "-l" :desc "Maximum number of named return addresses stored - also maximum number of txp connections accepted."}
    :pwd              {:default nil   :flag "-p" :desc "When using TCP, the session password must be the first command sent."}
+   :non-realtime     {:default nil   :flag "-N" :desc "Non-realtime mode. Requires a space separated string of <cmd-fielname> <input-filename> <output-filename> <sample-rate> <header-format> <sample-format>"}
+   :in-streams       {:default nil   :flag "-I" :desc "Input streams enabled"}
+   :out-streams      {:default nil   :flag "-O" :desc "Output streams enabled"}
+   :hw-device-name   {:default nil   :flag "-H" :desc "Hardware device name"}
    :verbosity        {:default 0     :flag "-v" :desc "Verbosity mode. 0 is normal behaviour, -1 suppress information messages, -2 suppresses informational and many error messages"}
    :ugens-paths      {:default nil   :flag "-U" :desc "A list of paths of ugen directories. If specified, the standard paths are NOT searched for plugins."}
    :restricted-path  {:default nil   :flag "-P" :desc "Prevents file-accesing OSC commands from accessing files outside the specified path."}})
