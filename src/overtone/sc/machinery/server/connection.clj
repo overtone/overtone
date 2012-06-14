@@ -9,7 +9,7 @@
         [overtone.helpers.lib :only [print-ascii-art-overtone-logo]]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
-        [overtone.helpers.file :only [file-exists?]])
+        [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]])
   (:require [overtone.config.log :as log]))
 
 (defonce server-thread*       (ref nil))
@@ -188,10 +188,10 @@
   STDOUT for log messages."
   [cmd]
   (log/debug "booting external audio server...")
-  (let [proc (.exec (Runtime/getRuntime) cmd)
-        in-stream (BufferedInputStream. (.getInputStream proc))
+  (let [proc       (.exec (Runtime/getRuntime) cmd)
+        in-stream  (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
-        read-buf (make-array Byte/TYPE 256)]
+        read-buf   (make-array Byte/TYPE 256)]
     (while (not (= :disconnected @connection-status*))
       (sc-log-external in-stream read-buf)
       (sc-log-external err-stream read-buf)
@@ -212,14 +212,66 @@
 
     path))
 
+(defn- sc-default-args
+  "Return a map of keyword to default value for each scsynth arg. Reads
+  info from SC-ARG-INFO"
+  []
+  (reduce (fn [res [arg-name {default :default}]]
+            (if default
+              (merge res {arg-name default})
+              res))
+          {}
+          SC-ARG-INFO))
+
+(defn- merge-sc-args
+  [args]
+  (merge (sc-default-args)
+         (SC-OS-SPECIFIC-ARGS (config-get :os))
+         args
+         (config-get :sc-args {})))
+
+(defn- sc-arg-flag
+  [sc-arg]
+  (-> sc-arg SC-ARG-INFO :flag))
+
+(defn- scsynth-arglist
+  "Returns a sequence of args suitable for use as arguments to the scsynth command"
+  [args]
+  (let [udp?             (:udp? args)
+        port             (:port args)
+        user-ugens-paths (or (:user-ugens-path args) [])
+        ugens-paths      (or (:ugens-path args) [])
+        args             (select-keys args (keys SC-ARG-INFO))
+        args             (dissoc args :udp? :port :user-ugens-path)
+        port-arg         (if (= 1 udp?)
+                           ["-u" port]
+                           ["-t" port])
+        ugens-paths      (concat user-ugens-paths ugens-paths)
+        ugens-paths      (map resolve-tilde-path ugens-paths)
+        ugens-paths      (filter dir-exists? ugens-paths)
+        ugens-paths      (apply str (interpose ":" ugens-paths))
+        args             (assoc args :ugens-paths ugens-paths)
+        arg-list         (reduce
+                          (fn [res [flag val]] (if val
+                                                (concat res [(sc-arg-flag flag) val])
+                                                res))
+                          []
+                          args)]
+    (map str (concat port-arg arg-list))))
+
+(defn- sc-command
+  "Creates a sctring array representing the sc command to execute in an
+  external process (typically with #'external-booter)"
+  [port]
+  (into-array String (cons (find-sc-path) (scsynth-arglist (merge-sc-args {:port port})))))
+
 (defn- boot-external-server
   "Boot the audio server in an external process and tell it to listen on
   a specific port."
   ([port]
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
-       (let [sc-path (find-sc-path)
-             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (config-get :os)) (config-get :sc-args)))
+       (let [cmd       (sc-command port)
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
          (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))

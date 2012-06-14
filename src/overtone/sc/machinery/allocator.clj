@@ -19,10 +19,10 @@
   (vec (repeat size false)))
 
 (defonce allocator-bits
-  {:node         (ref (mk-bitset MAX-NODES))
-   :audio-buffer (ref (mk-bitset MAX-BUFFERS))
-   :audio-bus    (ref (mk-bitset MAX-AUDIO-BUS))
-   :control-bus  (ref (mk-bitset MAX-CONTROL-BUS))})
+  {:node         (ref (mk-bitset (sc-arg-default :max-nodes)))
+   :audio-buffer (ref (mk-bitset (sc-arg-default :max-buffers)))
+   :audio-bus    (ref (mk-bitset (sc-arg-default :max-audio-bus)))
+   :control-bus  (ref (mk-bitset (sc-arg-default :max-control-bus)))})
 
 (defn- fill-gaps
   "Returns a new vector similar to bs except filled with with size consecutive vals from idx
