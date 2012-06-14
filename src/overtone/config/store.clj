@@ -15,8 +15,8 @@
    :server :internal
    :sc-args []})
 
-(def config* (ref {}))
-(def live-config (partial live-file-store config*))
+(defonce config* (ref {}))
+(defonce live-config (partial live-file-store config*))
 
 (defn config-get
   "Get config value. Returns default if specified and the config does
