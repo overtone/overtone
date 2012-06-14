@@ -13,7 +13,7 @@
   {:os (get-os)
    :user-name (capitalize (system-user-name))
    :server :internal
-   :sc-args []})
+   :sc-args {}})
 
 (defonce config* (ref {}))
 (defonce live-config (partial live-file-store config*))
@@ -81,6 +81,19 @@
 
      (alter config* assoc :versions-seen new-val))))
 
+(defn- migrate-sc-args
+  "Previously the sc-args default was [], it's now {}"
+  []
+  (dosync
+   (let [val (get @config* :sc-args)]
+     (when-not (map? val)
+       (alter config* assoc :sc-args {})))))
+
+(defn- migrate-up
+  "Migrate old configs gracefully."
+  []
+  (migrate-sc-args))
+
 
 (defonce __MOVE-OLD-ROOT-DIR__
   (let [root (:root OVERTONE-DIRS)]
@@ -99,6 +112,7 @@
     (do
       (live-config OVERTONE-CONFIG-FILE)
       (load-config-defaults)
-      (update-seen-versions))
+      (update-seen-versions)
+      (migrate-up))
     (catch Exception e
       (throw (Exception. (str "Unable to load config file - it doesn't appear to be valid clojure. Perhaps it has been modified externally? You may reset it by deleting " OVERTONE-CONFIG-FILE " and restarting Overtone. Error: " (.printStackTrace e)))))))
