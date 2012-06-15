@@ -84,8 +84,8 @@
    :max-nodes        {:default 1024  :flag "-n" :desc "Max number of executing nodes allowed in the server"}
    :max-sdefs        {:default 1024  :flag "-d" :desc "Max number of synthdefs allowed"}
    :rt-mem-size      {:default 8192  :flag "-m" :desc "Real time memory size"}
-   :max-w-buffers    {:default 64    :flag "-w" :desc"Number of wire buffers"}
-   :num-rand-seeds   {:default 64    :flag "-r" :desc"Number of random seeds"}
+   :max-w-buffers    {:default 64    :flag "-w" :desc "Number of wire buffers"}
+   :num-rand-seeds   {:default 64    :flag "-r" :desc "Number of random seeds"}
    :load-sdefs?      {:default 1     :flag "-D" :desc "Load synthdefs on boot? 0 or 1"}
    :rendezvous?      {:default 1     :flag "-R" :desc "Publish to rendezvous? 0 or 1"}
    :max-logins       {:default 64    :flag "-l" :desc "Maximum number of named return addresses stored - also maximum number of txp connections accepted."}
