@@ -254,7 +254,9 @@
         ugens-paths      (map resolve-tilde-path ugens-paths)
         ugens-paths      (filter dir-exists? ugens-paths)
         ugens-paths      (apply str (interpose ":" ugens-paths))
-        args             (assoc args :ugens-paths ugens-paths)
+        args             (if (empty? ugens-paths)
+                           (dissoc args :ugens-paths)
+                           (assoc args :ugens-paths ugens-paths))
         arg-list         (reduce
                           (fn [res [flag val]] (if val
                                                 (concat res [(sc-arg-flag flag) val])
