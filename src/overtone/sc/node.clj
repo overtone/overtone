@@ -58,11 +58,11 @@
   (node-place  [this position dest-node]))
 
 (defprotocol IControllableNode
-  (node-control         [this & params]
+  (node-control         [this params]
     "Modify control parameters of the synth node.")
-  (node-control-range   [this ctl-start & ctl-vals]
+  (node-control-range   [this ctl-start ctl-vals]
     "Modify a range of control parameters of the synth node.")
-  (node-map-controls    [this & names-busses]
+  (node-map-controls    [this names-busses]
     "Connect a node's controls to a control bus.")
   (node-map-n-controls  [this start-control start-bus n]
     "Connect N controls of a node to a set of sequential control busses,
@@ -223,18 +223,18 @@
 
 (defn node-control*
   "Set control values for a node."
-  [node & name-values]
+  [node name-values]
   {:pre [(server-connected?)]}
   (let [node-id (to-synth-id node)]
-        (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
-        node-id))
+              (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
+              node-id))
 
 (defn node-get-control
   "Get one or more synth control values by name.  Returns a map of
   key/value pairs, for example:
 
   {:freq 440.0 :attack 0.2}"
-  [node & names]
+  [node names]
   (let [res (recv "/n_set")
         _ (apply snd "/s_get" (to-synth-id node) (stringify names))
         cvals (:args (deref! res))]
@@ -244,7 +244,7 @@
 (defn node-control-range*
   "Set a range of controls all at once, or if node is a group control
   all nodes in the group."
-  [node ctl-start & ctl-vals]
+  [node ctl-start ctl-vals]
   {:pre [(server-connected?)]}
   (let [node-id (to-synth-id node)]
     (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals)))
@@ -268,7 +268,7 @@
 
 (defn node-map-controls*
   "Connect a node's controls to a control bus."
-  [node & names-busses]
+  [node names-busses]
   {:pre [(server-connected?)]}
   (let [node-id (to-synth-id node)
         names-busses (bussify (stringify names-busses))]
@@ -287,7 +287,7 @@
   "Posts a representation of this group's node subtree, i.e. all the
   groups and synths contained within it, optionally including the
   current control values for synths."
-  [id & [with-args?]]
+  [id with-args?]
   {:pre [(server-connected?)]}
   (snd "/g_dumpTree" id with-args?))
 
@@ -360,8 +360,8 @@
   [node & args]
   (if (sequential? node)
     (doseq [n node]
-      (apply node-control n args))
-    (apply node-control node args)))
+      (node-control n args))
+    (node-control node args)))
 
 (defprotocol IKillable
   (kill* [this] "Kill a synth element (node, or group, or ...)."))
@@ -475,7 +475,7 @@
   (group-append-node  [group node])
   (group-clear        [group])
   (group-deep-clear   [group])
-  (group-post-tree    [group & [with-args?]])
+  (group-post-tree    [group with-args?])
   (group-node-tree    [group]))
 
 (extend SynthGroup

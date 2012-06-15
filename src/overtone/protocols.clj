@@ -47,5 +47,4 @@
   (get-value    [this idx] "Get a single value in the buffer."))
 
 (defprotocol ISaveable
-  (save [this] [this path] [this path & options] "Save to a default location"))
-
+  (save [this] [this path] [this path options] "Save to a default location"))
