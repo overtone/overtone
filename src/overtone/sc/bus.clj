@@ -49,9 +49,6 @@
     bus
     (:id bus)))
 
-; TODO: In order to allocate multi-channel busses we actually need to
-; allocate multiple, adjacent busses, which the current bitset based
-; allocator doesn't support.
 (defn control-bus
   "Allocate one or more control busses."
   ([] (control-bus 1))
