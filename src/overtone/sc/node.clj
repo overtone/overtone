@@ -555,10 +555,10 @@
 
 (defn- setup-core-groups
   []
-  (let [input-group   (with-server-sync #(group 0 0))
-        root-group    (with-server-sync #(group 3 input-group))
-        mixer-group   (with-server-sync #(group 3 root-group))
-        monitor-group (with-server-sync #(group 3 mixer-group))]
+  (let [input-group   (with-server-sync #(group :head 0))
+        root-group    (with-server-sync #(group :after input-group))
+        mixer-group   (with-server-sync #(group :after root-group))
+        monitor-group (with-server-sync #(group :after mixer-group))]
     (dosync
       (alter core-groups* assoc
              :input   input-group
