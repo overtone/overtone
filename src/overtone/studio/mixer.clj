@@ -35,7 +35,7 @@
   []
   (wait-until-deps-satisfied MIXER-BOOT-DEPS))
 
-(defn boot-mixer
+(defn boot-server-and-mixer
   "Boots the server and waits until the studio mixer has complete set
   up"
   []

@@ -1,5 +1,6 @@
 (ns overtone.live
-  (:use [overtone.helpers lib ns])
+  (:use [overtone.libs.boot-msg]
+        [overtone.helpers lib ns])
   (:require clojure.stacktrace
             [overtone.config store]
             [overtone midi osc speech version]
@@ -60,6 +61,4 @@
            'overtone.libs.freesound
            'overtone.version)
 
-(defonce _auto-boot_ (boot-mixer))
-
-(print-ascii-art-overtone-logo (overtone.config.store/config-get :user-name) OVERTONE-VERSION-STR)
+(defonce _auto-boot_ (boot-server-and-mixer))

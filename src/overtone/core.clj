@@ -1,5 +1,6 @@
 (ns overtone.core
-  (:use [overtone.helpers.ns])
+  (:use [overtone.libs.boot-msg]
+        [overtone.helpers.ns])
   (:require clojure.stacktrace
             [overtone.config store]
             [overtone version midi osc speech]
@@ -59,3 +60,10 @@
   'overtone.libs.event
   'overtone.libs.freesound
   'overtone.version)
+
+(println "--> Please boot a server to start making noise:
+    * (boot-server)             ; boot default server (honours config)
+    * (boot-internal-server)    ; boot an internal server
+    * (boot-external-server)    ; boot an external server
+    * (connect-external-server) ; connect to an existing external server
+")

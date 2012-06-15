@@ -6,9 +6,9 @@
         [overtone.libs event deps]
         [overtone version]
         [overtone.sc defaults comms]
-        [overtone.helpers.lib :only [print-ascii-art-overtone-logo]]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
+        [overtone.helpers.lib :only [print-ascii-art-overtone-logo]]
         [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]])
   (:require [overtone.config.log :as log]))
 
@@ -92,12 +92,15 @@
           (satisfy-deps :server-connected)
           (event :connection-complete)
           (remove-handler ::connected-handler1)
-          (remove-handler ::connected-handler2))]
+          (remove-handler ::connected-handler2)
+          (log/debug "Server connection established")
+          (println "--> Connection established"))]
     (on-sync-event "status.reply" handler-fn ::connected-handler1)
     (on-sync-event "/status.reply" handler-fn ::connected-handler2)))
 
 (defn- connect-internal
   []
+  (println "--> Connecting to internal SuperCollider server...")
   (log/debug "Connecting to internal SuperCollider server")
   (let [send-fn (fn [peer-obj buffer]
                   (.send @sc-world* buffer))
@@ -113,6 +116,7 @@
 
 (defn- external-connection-runner
   [host port]
+  (println  "--> Connecting to external SuperCollider server:" (str host ":" port))
   (log/debug "Connecting to external SuperCollider server: " host ":" port)
   (let [sc-server (osc-client host port)]
     (osc-listen sc-server #(event :osc-msg-received :msg %))
@@ -132,8 +136,7 @@
             (server-snd "/status")
             (Thread/sleep 100)
             (recur (inc cnt)))
-          (throw (Exception. (str "Error: unable to connect to externally booted server after " N-RETRIES " attempts.")))))))
-  (print-ascii-art-overtone-logo (config-get :user-name) OVERTONE-VERSION-STR))
+          (throw (Exception. (str "Error: unable to connect to externally booted server after " N-RETRIES " attempts."))))))))
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
@@ -168,6 +171,7 @@
   []
   (let [sc-thread (Thread. internal-booter)]
     (.setDaemon sc-thread true)
+    (println "--> Booting internal SuperCollider server...")
     (log/debug "Booting SuperCollider internal server (scsynth)...")
     (.start sc-thread)
     (dosync (ref-set server-thread* sc-thread))
@@ -274,6 +278,7 @@
        (let [cmd       (sc-command port)
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
+         (println "--> Booting external SuperCollider server...")
          (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
          (.start sc-thread)
          (dosync (ref-set server-thread* sc-thread))
@@ -315,7 +320,8 @@
          (case connection-type
            :internal (boot-internal-server)
            :external (boot-external-server port))
-         (wait-until-deps-satisfied :server-ready)))))
+         (wait-until-deps-satisfied :server-ready)))
+     (print-ascii-art-overtone-logo (overtone.config.store/config-get :user-name) OVERTONE-VERSION-STR)))
 
 (defn shutdown-server
   "Quit the SuperCollider synth process."
