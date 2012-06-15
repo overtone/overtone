@@ -14,7 +14,7 @@
 ;; and group zero is the root of the graph.  Nodes can be added to a group in
 ;; one of these 5 positions relative to either the full list, or a specified node.
 
-(def POSITION
+(def NODE-POSITION
   {:head         0
    :tail         1
    :before       2
@@ -99,7 +99,7 @@
      (if (not (server-connected?))
        (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
      (let [id       (alloc-id :node)
-           position (or ((get location :position :tail) POSITION) 1)
+           position (or ((get location :position :tail) NODE-POSITION) 1)
            target   (to-synth-id (get location :target 0))
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
@@ -185,11 +185,12 @@
   ([] (group :tail (root-group)))
   ([position target] (group (alloc-id :node) position target))
   ([id position target]
-     (let [pos (if (keyword? position) (get POSITION position) position)
+     (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
            target (to-synth-id target)
-           pos (or pos 1)
-           snode    (SynthGroup. id target position (atom :loading))]
-       (snd "/g_new" id pos target)
+           pos    (or pos 1)
+           snode  (SynthGroup. id target position (atom :loading))]
+       (if (server-connected?)
+         (snd "/g_new" id pos target))
        (swap! active-synth-nodes* assoc id snode)
        snode)))
 
