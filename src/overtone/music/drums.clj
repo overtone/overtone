@@ -19,8 +19,8 @@
 ;-- returns true if it should play on the next beat?
 ;-- modify the ref and you get a new beat on the fly
 
-(def *drums (ref []))
-(def *drum-count (ref 0))
+(defonce *drums (ref []))
+(defonce *drum-count (ref 0))
 
 (defn drum [voice pattern]
   (dosync (alter *drums conj [voice pattern])))

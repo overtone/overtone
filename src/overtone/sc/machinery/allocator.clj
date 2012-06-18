@@ -53,7 +53,7 @@
          (let [gap-found (if (not (get bs idx)) (inc gap-found) 0)]
            (find-gap bs size (inc idx) gap-found))))))
 
-(def action-fn-executor* (agent nil))
+(defonce action-fn-executor* (agent nil))
 
 (defn- execute-action-fn
   "Execute action-fn and catch all exceptions - outputting them to the error
