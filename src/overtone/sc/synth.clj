@@ -333,11 +333,10 @@
    and the ugen form from the supplied arglist resorting to defaults
    if necessary."
   [args]
-  (let [[sname args] (cond
-                       (or (string? (first args))
-                           (symbol? (first args))) [(str (first args)) (rest args)]
-                           :default                    [(gen-synth-name) args])
-
+  (let [[sname args]       (if (or (string? (first args))
+                                   (symbol? (first args)))
+                             [(str (first args)) (rest args)]
+                             [(gen-synth-name) args])
         [params ugen-form] (if (vector? (first args))
                              [(first args) (rest args)]
                              [[] args])

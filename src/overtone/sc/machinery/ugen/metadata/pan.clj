@@ -50,7 +50,7 @@
 
        {:name "Pan4",
         :args [{:name "in", :doc "input signal"}
-               {:name "xpos", :default 0.0, :doc "x  pan position from -1 to +1(left to right)"}
+               {:name "xpos", :default 0.0, :doc "x pan position from -1 to +1 (left to right)"}
                {:name "ypos", :default 0.0, :doc "y pan position from -1 to +1 (back to front)"}
                {:name "level", :default 1.0, :doc "a control rate level input."}]
         :num-outs 4
@@ -64,8 +64,7 @@
                {:name "pos", :default 0.0, :doc "pan position, -1 is left, +1 is right"}
                {:name "level", :default 1.0, :doc "a control rate level input."}]
         :num-outs 2
-        :doc "Equal power panning balances two channels; by panning, you are favouring one or other channel in the mix, and the other loses power. The middle pan position (pos=0.0) corresponds to the original stereo mix; full left (pos of -1) is essentially just left channel playing, full right (pos of 1) just the right. The output of Balance2 remains a stereo signal."
-        }
+        :doc "Equal power panning balances two channels; by panning, you are favouring one or other channel in the mix, and the other loses power. The middle pan position (pos=0.0) corresponds to the original stereo mix; full left (pos of -1) is essentially just left channel playing, full right (pos of 1) just the right. The output of Balance2 remains a stereo signal."}
 
 
        {:name "Rotate2",
