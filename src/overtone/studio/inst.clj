@@ -146,6 +146,7 @@
 
 (defmacro inst
   [sname & args]
+  (ensure-connected!)
   `(let [[sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
          new-inst# (get @instruments* sname#)
          container-group# (or (:group new-inst#)
