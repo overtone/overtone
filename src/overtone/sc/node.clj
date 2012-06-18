@@ -190,8 +190,8 @@
            target (to-synth-id target)
            pos    (or pos 1)
            snode  (SynthGroup. id target position (atom :loading))]
-       (snd "/g_new" id pos target)
        (swap! active-synth-nodes* assoc id snode)
+       (snd "/g_new" id pos target)
        snode)))
 
 (defn- group-free*
