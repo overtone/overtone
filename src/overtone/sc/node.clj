@@ -185,37 +185,37 @@
   ([] (group :tail (root-group)))
   ([position target] (group (alloc-id :node) position target))
   ([id position target]
+     (ensure-connected!)
      (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
            target (to-synth-id target)
            pos    (or pos 1)
            snode  (SynthGroup. id target position (atom :loading))]
-       (if (server-connected?)
-         (snd "/g_new" id pos target))
+       (snd "/g_new" id pos target)
        (swap! active-synth-nodes* assoc id snode)
        snode)))
 
 (defn- group-free*
   "Free synth groups, releasing their resources."
   [& group-ids]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (apply node-free group-ids))
 
 (defn node-pause*
   "Pause a running synth node."
-  {:pre [(server-connected?)]}
   [node]
+  (ensure-connected!)
   (snd "/n_run" (to-synth-id node) 0))
 
 (defn node-start*
   "Start a paused synth node."
   [node]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (snd "/n_run" (to-synth-id node) 1))
 
 (defn node-place*
   "Place a node :before or :after another node."
   [node position target]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (let [node-id (to-synth-id node)
         target-id (to-synth-id target)]
     (cond
@@ -225,7 +225,7 @@
 (defn node-control*
   "Set control values for a node."
   [node name-values]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (let [node-id (to-synth-id node)]
               (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
               node-id))
@@ -236,6 +236,7 @@
 
   {:freq 440.0 :attack 0.2}"
   [node names]
+  (ensure-connected!)
   (let [res (recv "/n_set")
         _ (apply snd "/s_get" (to-synth-id node) (stringify names))
         cvals (:args (deref! res))]
@@ -246,7 +247,7 @@
   "Set a range of controls all at once, or if node is a group control
   all nodes in the group."
   [node ctl-start ctl-vals]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (let [node-id (to-synth-id node)]
     (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals)))
 
@@ -254,6 +255,7 @@
   "Get a range of n controls starting at a given name or index.
   Returns a vector of values."
   [node name-index n]
+  (ensure-connected!)
   (let [res (recv "/n_setn")
         _ (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
         cvals (:args (deref! res))]
@@ -270,7 +272,7 @@
 (defn node-map-controls*
   "Connect a node's controls to a control bus."
   [node names-busses]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (let [node-id (to-synth-id node)
         names-busses (bussify (stringify names-busses))]
     (apply snd "/n_map" node-id names-busses)))
@@ -279,7 +281,7 @@
   "Connect N controls of a node to a set of sequential control busses,
   starting at the given control name."
   [node start-control start-bus n]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (assert (bus? start-bus) "Invalid start-bus")
   (let [node-id (to-synth-id node)]
     (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n)))
@@ -289,12 +291,13 @@
   groups and synths contained within it, optionally including the
   current control values for synths."
   [id with-args?]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (snd "/g_dumpTree" id with-args?))
 
 (defn- group-prepend-node*
   "Add a synth node to the end of a group list."
   [group node]
+  (ensure-connected!)
   (let [group-id (to-synth-id group)
         node-id (to-synth-id node)]
     (snd "/g_head" group-id node-id)))
@@ -302,6 +305,7 @@
 (defn- group-append-node*
   "Add a synth node to the end of a group list."
   [group node]
+  (ensure-connected!)
   (let [group-id (to-synth-id group)
         node-id (to-synth-id node)]
   (snd "/g_tail" group-id node-id)))
@@ -309,6 +313,7 @@
 (defn- group-clear*
   "Free all child synth nodes in a group."
   [group]
+  (ensure-connected!)
   (snd "/g_freeAll" (to-synth-id group))
   :clear)
 
@@ -316,6 +321,7 @@
   "Free all child synth nodes in and below this group in other child
   groups."
   [group]
+  (ensure-connected!)
   (snd "/g_deepFree" (to-synth-id group))
   :clear)
 
@@ -359,6 +365,7 @@
   (ctl 34 :freq 440 :vol 0.2)
   (ctl [34 37] :freq 440 :vol 0.2)"
   [node & args]
+  (ensure-connected!)
   (if (sequential? node)
     (doseq [n node]
       (node-control n args))
@@ -384,6 +391,7 @@
   (kill [(hit) (hit) (hit)])
   "
   [& nodes]
+  (ensure-connected!)
   (doseq [node (flatten nodes)]
     (kill* node)))
 
@@ -464,12 +472,13 @@
   groups and synthesizer instances residing on the audio server."
   ([] (group-node-tree* 0))
   ([id & [ctls?]]
-   (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
-     (let [reply-p (recv "/g_queryTree.reply")
-           _ (snd "/g_queryTree" id ctls?)
-          tree (:args (deref! reply-p))]
-       (with-meta (parse-node-tree tree)
-         {:type ::node-tree})))))
+     (ensure-connected!)
+     (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
+       (let [reply-p (recv "/g_queryTree.reply")
+             _ (snd "/g_queryTree" id ctls?)
+             tree (:args (deref! reply-p))]
+         (with-meta (parse-node-tree tree)
+           {:type ::node-tree})))))
 
 (defprotocol ISynthGroup
   (group-prepend-node [group node])
@@ -505,6 +514,7 @@
   "Returns a data representation of the synth node tree starting at
   the root group."
   []
+  (ensure-connected!)
   (group-node-tree 0))
 
 (defn node-tree-zipper
