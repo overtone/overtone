@@ -1,29 +1,79 @@
 (ns overtone.studio.inst
-  (:use
-    [overtone.sc defaults bindings server synth ugens envelope node bus]
-    [overtone.sc.machinery synthdef]
-    [overtone.sc.util :only (id-mapper)]
-    [overtone.studio mixer fx]
-    [overtone.helpers lib]
-    [overtone.libs event]))
+  (:use [overtone.sc defaults bindings server synth ugens envelope node bus]
+        [overtone.sc.machinery synthdef]
+        [overtone.sc.util :only (id-mapper)]
+        [overtone.studio mixer fx]
+        [overtone.helpers lib]
+        [overtone.libs event]))
 
-(defonce __MIXER-SYNTH__
-  (defsynth inst-mixer [in-bus 10 out-bus 0
-                        volume DEFAULT-VOLUME pan DEFAULT-PAN]
-    (let [snd (in in-bus)]
-      (out out-bus (pan2 snd pan volume)))))
+(defonce __MIXER-SYNTHS__
+  (do
+    (defsynth mono-inst-mixer
+      [in-bus  10
+       out-bus 0
+       volume  DEFAULT-VOLUME
+       pan     DEFAULT-PAN]
+      (let [snd (in in-bus)]
+        (out out-bus (pan2 snd pan volume))))
 
-(defn inst-volume
-  "Control the volume for a single instrument."
+    (defsynth stereo-inst-mixer
+      [in-bus  10
+       out-bus 0
+       volumel DEFAULT-VOLUME
+       volumer DEFAULT-VOLUME
+       panl    DEFAULT-PAN-LEFT
+       panr    DEFAULT-PAN-RIGHT]
+      (let [snd (in in-bus 2)]
+        (out out-bus
+             (+ (pan2 (select 0 snd) panl volumel)
+                (pan2 (select 1 snd) panr volumer)))))))
+
+(defn inst-mixer
+  "Instantiate a mono or stereo inst-mixer synth."
+  [n-chans & args]
+  (if (> n-chans 1)
+    (apply stereo-inst-mixer args)
+    (apply mono-inst-mixer args)))
+
+(defn- inst-channels
+  "Internal fn used for multimethod dispatch on Insts."
+  [inst & args]
+  (let [n-chans (:n-chans inst)]
+    (if (> n-chans 1) :stereo :mono)))
+
+(defmulti inst-volume
+  "Control the volume of a single instrument."
+  inst-channels)
+
+(defmethod inst-volume :mono
   [inst vol]
   (ctl (:mixer inst) :volume vol)
-  (reset! (:volume inst) vol))
+  (reset! (first (:volume inst)) vol))
 
-(defn inst-pan
-  "Control the pan setting for a single instrument."
+(defmethod inst-volume :stereo
+  ([inst vol]
+     (inst-volume inst vol vol))
+  ([inst voll volr]
+     (ctl (:mixer inst) :volumel voll :volumer volr)
+     (let [volume (:volume inst)]
+       (reset! (nth volume 0) voll)
+       (reset! (nth volume 1) volr))))
+
+(defmulti inst-pan
+  "Control the pan setting of a single instrument."
+  inst-channels)
+
+(defmethod inst-pan :mono
   [inst pan]
   (ctl (:mixer inst) :pan pan)
-  (reset! (:pan inst) pan))
+  (reset! (first (:pan inst)) pan))
+
+(defmethod inst-pan :stereo
+  [inst panl panr]
+  (ctl (:mixer inst) :panl panl :panr panr)
+  (let [pan (:pan inst)]
+    (reset! (nth pan 0) panl)
+    (reset! (nth pan 1) panr)))
 
 (defn inst-fx
   "Append an effect to an instrument channel."
@@ -66,7 +116,8 @@
 (defrecord-ifn Inst [name params args ugens sdef
                      group instance-group fx-group
                      mixer bus fx-chain
-                     volume pan]
+                     volume pan
+                     n-chans]
   (fn [this & args] (apply synth-player name params this :tgt instance-group args))
 
   to-synth-id*
@@ -76,6 +127,22 @@
   "Returns true if o is an instrument, false otherwise"
   [o]
   (= overtone.studio.inst.Inst (type o)))
+
+(defn default-volume [n]
+  "Returns a vector of 0, 1, or 2 atoms for holding the volume
+  settings of an Inst."
+  (cond
+    (= n 0) []
+    (= n 1) [(atom DEFAULT-VOLUME)]
+    (> n 1) (vec (repeat 2 (atom DEFAULT-VOLUME)))))
+
+(defn default-pan [n]
+  "Returns a vector of 0, 1, or 2 atoms for holding the pan settings
+  an Inst."
+  (cond
+    (= n 0) []
+    (= n 1) [(atom DEFAULT-PAN)]
+    (> n 1) [(atom DEFAULT-PAN-LEFT) (atom DEFAULT-PAN-RIGHT)]))
 
 (defmacro inst
   [sname & args]
@@ -88,18 +155,22 @@
          fx-group#        (or (:fx-group new-inst#)
                               (group :tail container-group#))
          imixer#    (or (:mixer new-inst#)
-                        (inst-mixer :tgt container-group# :pos :tail :in-bus inst-bus#))
+                        (inst-mixer n-chans#
+                                    :tgt container-group#
+                                    :pos :tail
+                                    :in-bus inst-bus#))
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
          fx-chain#  []
-         volume#    (atom DEFAULT-VOLUME)
-         pan#       (atom DEFAULT-PAN)
+         volume#    (default-volume n-chans#)
+         pan#       (default-pan n-chans#)
          inst#      (with-meta
                       (Inst. sname# params-with-vals# arg-names# ugens# sdef#
                              container-group# instance-group# fx-group#
                              imixer# inst-bus# fx-chain#
-                             volume# pan#)
+                             volume# pan#
+                             n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
 
      (load-synthdef sdef#)
@@ -136,7 +207,7 @@
 
   (kill inst-name)
 
-  A doc string may also be included between the instrument's name ant
+  A doc string may also be included between the instrument's name and
   parameter list:
 
   (definst lucille
