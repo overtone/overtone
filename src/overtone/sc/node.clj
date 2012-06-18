@@ -72,7 +72,7 @@
   to-synth-id*
   (to-synth-id [this] (:id this)))
 
-(def active-synth-nodes* (atom {}))
+(defonce active-synth-nodes* (atom {}))
 
 ;; ### Node
 ;;
@@ -431,7 +431,7 @@
 ;		] * M
 ;	] * the number of nodes in the subtree
 
-(def ^{:dynamic true} *node-tree-data* nil)
+(defonce ^{:dynamic true} *node-tree-data* nil)
 
 (defn- parse-synth-tree
   [id ctls?]
