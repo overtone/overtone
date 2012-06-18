@@ -546,7 +546,7 @@
 
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen
-  functions provided by overtone.sc.ugen.  This will return callable
+  functions provided by overtone.sc.ugen. This will return callable
   record which can be used to trigger the synthesizer.
   "
   [& args]
@@ -585,17 +585,18 @@
     [(with-meta s-name md) params ugen-form]))
 
 (defmacro defsynth
-  "Define a synthesizer and return a player function.  The synth
+  "Define a synthesizer and return a player function. The synth
   definition will be loaded immediately, and a :new-synth event will
-  be emitted.
+  be emitted. Expects a name, an optional doc-string, a vector of
+  synth params, and a ugen-form as it's arguments.
 
   (defsynth foo [freq 440]
-    (sin-osc freq))
+    (out 0 (sin-osc freq)))
 
   is equivalent to:
 
   (def foo
-    (synth [freq 440] (sin-osc freq)))
+    (synth [freq 440] (out 0 (sin-osc freq))))
 
   A doc string can also be included:
   (defsynth bar
@@ -603,6 +604,7 @@
     [] (...))
   "
   [s-name & s-form]
+  {:arglists '([name doc-string? params ugen-form])}
   (let [[s-name params ugen-form] (synth-form s-name s-form)]
     `(def ~s-name (synth ~s-name ~params ~ugen-form))))
 
