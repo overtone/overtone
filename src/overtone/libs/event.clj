@@ -8,6 +8,12 @@
 (defonce handler-pool (handlers/mk-handler-pool "Overtone Event Handlers"))
 (defonce event-debug* (atom false))
 
+(defn- log-event
+  "Log event on separate thread to ensure logging doesn't interfere with
+  event handling latency"
+  [msg & args]
+  (future (apply log/debug msg args)))
+
 (defn on-event
   "Asynchronously runs handler whenever events of event-type are
   fired. This asynchronous behaviour can be overridden if required -
@@ -28,7 +34,7 @@
   Handlers can return :overtone/remove-handler to be removed from the
   handler list after execution."
   [event-type handler key]
-  (log/debug "Registering async event handler:: " event-type key)
+  (log-event "Registering async event handler:: " event-type key)
   (handlers/add-handler! handler-pool event-type key handler ))
 
 (defn on-sync-event
@@ -51,19 +57,19 @@
   Handlers can return :overtone/remove-handler to be removed from the
   handler list after execution."
   [event-type handler key]
-  (log/debug "Registering sync event handler:: " event-type key)
+  (log-event "Registering sync event handler:: " event-type key)
   (handlers/add-sync-handler! handler-pool event-type key handler))
 
 (defn oneshot-event
   ""
   [event-type handler key]
-  (log/debug "Registering async self-removing event handler:: " event-type key)
+  (log-event "Registering async self-removing event handler:: " event-type key)
   (handlers/add-one-shot-handler! handler-pool event-type key handler))
 
 (defn oneshot-sync-event
   ""
   [event-type handler key]
-  (log/debug "Registering sync self-removing event handler:: " event-type key)
+  (log-event "Registering sync self-removing event handler:: " event-type key)
   (handlers/add-one-shot-sync-handler! handler-pool event-type key handler))
 
 (defn remove-handler
@@ -81,11 +87,6 @@
   [key]
   (handlers/remove-handler! handler-pool key))
 
-(defn remove-event-handlers
-  "Remove all handlers for events of type event-type."
-  [event-type]
-  (handlers/remove-event-handlers! handler-pool event-type))
-
 (defn remove-all-handlers
   "Remove all handlers."
   []
@@ -101,7 +102,7 @@
   (event ::my-event)
   (event ::filter-sweep-done :instrument :phat-bass)"
   [event-type & args]
-  (log/debug "event: " event-type " " args)
+  (log-event "event: " event-type " " args)
   (when @event-debug*
     (println "event: " event-type " " args "\n"))
   (binding [overtone.libs.handlers/*log-fn* log/error]
@@ -117,7 +118,7 @@
   new threads which generate events, these will revert back to the
   default behaviour of event (i.e. not forced sync). See event."
   [event-type & args]
-  (log/debug "sync-event: " event-type " " args)
+  (log-event "sync-event: " event-type " " args)
   (when @event-debug*
     (println "sync-event: " event-type " " args "\n"))
   (binding [overtone.libs.handlers/*log-fn* log/error]

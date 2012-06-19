@@ -1,10 +1,48 @@
 (ns overtone.sc.node
   (:use [overtone.helpers lib]
+        [overtone.helpers.seq :only [zipper-seq]]
         [overtone.libs event deps]
         [overtone.sc comms bus server defaults]
         [overtone.sc.machinery allocator]
         [overtone.sc.util :only [id-mapper]])
-  (:require [overtone.config.log :as log]))
+  (:require [clojure.zip :as zip]
+            [overtone.config.log :as log]))
+
+(defonce ^{:private true}
+  _PROTOCOLS_
+  (do
+    (defprotocol to-synth-id* (to-synth-id [v]))
+
+    (defprotocol ISynthNode
+      (node-free   [this])
+      (node-pause  [this])
+      (node-start  [this])
+      (node-place  [this position dest-node]))
+
+    (defprotocol IControllableNode
+      (node-control         [this params]
+        "Modify control parameters of the synth node.")
+      (node-control-range   [this ctl-start ctl-vals]
+        "Modify a range of control parameters of the synth node.")
+      (node-map-controls    [this names-busses]
+        "Connect a node's controls to a control bus.")
+      (node-map-n-controls  [this start-control start-bus n]
+        "Connect N controls of a node to a set of sequential control busses,
+    starting at the given control name."))
+
+    (defprotocol IKillable
+      (kill* [this] "Kill a synth element (node, or group, or ...)."))
+
+    (defprotocol ISynthGroup
+      (group-prepend-node [group node])
+      (group-append-node  [group node])
+      (group-clear        [group])
+      (group-deep-clear   [group])
+      (group-post-tree    [group with-args?])
+      (group-node-tree    [group]))))
+
+(extend-type java.lang.Long to-synth-id*    (to-synth-id [v] v))
+(extend-type java.lang.Integer to-synth-id* (to-synth-id [v] v))
 
 ;; ## Node and Group Management
 
@@ -12,7 +50,7 @@
 ;; and group zero is the root of the graph.  Nodes can be added to a group in
 ;; one of these 5 positions relative to either the full list, or a specified node.
 
-(def POSITION
+(def NODE-POSITION
   {:head         0
    :tail         1
    :before       2
@@ -43,34 +81,11 @@
     (zipmap (map name-fn (keys arg-map))
             (map val-fn (vals arg-map)))))
 
-
-(defprotocol to-synth-id* (to-synth-id [v]))
-
-(extend-type java.lang.Long to-synth-id*    (to-synth-id [v] v))
-(extend-type java.lang.Integer to-synth-id* (to-synth-id [v] v))
-
-(defprotocol ISynthNode
-  (node-free   [this])
-  (node-pause  [this])
-  (node-start  [this])
-  (node-place  [this position dest-node]))
-
-(defprotocol IControllableNode
-  (node-control         [this & params]
-    "Modify control parameters of the synth node.")
-  (node-control-range   [this ctl-start & ctl-vals]
-    "Modify a range of control parameters of the synth node.")
-  (node-map-controls    [this & names-busses]
-    "Connect a node's controls to a control bus.")
-  (node-map-n-controls  [this start-control start-bus n]
-    "Connect N controls of a node to a set of sequential control busses,
-    starting at the given control name."))
-
 (defrecord SynthNode [synth id target position status]
   to-synth-id*
   (to-synth-id [this] (:id this)))
 
-(def active-synth-nodes* (atom {}))
+(defonce active-synth-nodes* (atom {}))
 
 ;; ### Node
 ;;
@@ -97,7 +112,7 @@
      (if (not (server-connected?))
        (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
      (let [id       (alloc-id :node)
-           position (or ((get location :position :tail) POSITION) 1)
+           position (or ((get location :position :tail) NODE-POSITION) 1)
            target   (to-synth-id (get location :target 0))
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
@@ -183,36 +198,37 @@
   ([] (group :tail (root-group)))
   ([position target] (group (alloc-id :node) position target))
   ([id position target]
-     (let [pos (if (keyword? position) (get POSITION position) position)
+     (ensure-connected!)
+     (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
            target (to-synth-id target)
-           pos (or pos 1)
-           snode    (SynthGroup. id target position (atom :loading))]
-       (snd "/g_new" id pos target)
+           pos    (or pos 1)
+           snode  (SynthGroup. id target position (atom :loading))]
        (swap! active-synth-nodes* assoc id snode)
+       (snd "/g_new" id pos target)
        snode)))
 
 (defn- group-free*
   "Free synth groups, releasing their resources."
   [& group-ids]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (apply node-free group-ids))
 
 (defn node-pause*
   "Pause a running synth node."
-  {:pre [(server-connected?)]}
   [node]
+  (ensure-connected!)
   (snd "/n_run" (to-synth-id node) 0))
 
 (defn node-start*
   "Start a paused synth node."
   [node]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (snd "/n_run" (to-synth-id node) 1))
 
 (defn node-place*
   "Place a node :before or :after another node."
   [node position target]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (let [node-id (to-synth-id node)
         target-id (to-synth-id target)]
     (cond
@@ -221,18 +237,19 @@
 
 (defn node-control*
   "Set control values for a node."
-  [node & name-values]
-  {:pre [(server-connected?)]}
+  [node name-values]
+  (ensure-connected!)
   (let [node-id (to-synth-id node)]
-        (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
-        node-id))
+              (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
+              node-id))
 
 (defn node-get-control
   "Get one or more synth control values by name.  Returns a map of
   key/value pairs, for example:
 
   {:freq 440.0 :attack 0.2}"
-  [node & names]
+  [node names]
+  (ensure-connected!)
   (let [res (recv "/n_set")
         _ (apply snd "/s_get" (to-synth-id node) (stringify names))
         cvals (:args (deref! res))]
@@ -242,8 +259,8 @@
 (defn node-control-range*
   "Set a range of controls all at once, or if node is a group control
   all nodes in the group."
-  [node ctl-start & ctl-vals]
-  {:pre [(server-connected?)]}
+  [node ctl-start ctl-vals]
+  (ensure-connected!)
   (let [node-id (to-synth-id node)]
     (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals)))
 
@@ -251,6 +268,7 @@
   "Get a range of n controls starting at a given name or index.
   Returns a vector of values."
   [node name-index n]
+  (ensure-connected!)
   (let [res (recv "/n_setn")
         _ (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
         cvals (:args (deref! res))]
@@ -266,8 +284,8 @@
 
 (defn node-map-controls*
   "Connect a node's controls to a control bus."
-  [node & names-busses]
-  {:pre [(server-connected?)]}
+  [node names-busses]
+  (ensure-connected!)
   (let [node-id (to-synth-id node)
         names-busses (bussify (stringify names-busses))]
     (apply snd "/n_map" node-id names-busses)))
@@ -276,7 +294,7 @@
   "Connect N controls of a node to a set of sequential control busses,
   starting at the given control name."
   [node start-control start-bus n]
-  {:pre [(server-connected?)]}
+  (ensure-connected!)
   (assert (bus? start-bus) "Invalid start-bus")
   (let [node-id (to-synth-id node)]
     (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n)))
@@ -285,13 +303,14 @@
   "Posts a representation of this group's node subtree, i.e. all the
   groups and synths contained within it, optionally including the
   current control values for synths."
-  [id & [with-args?]]
-  {:pre [(server-connected?)]}
+  [id with-args?]
+  (ensure-connected!)
   (snd "/g_dumpTree" id with-args?))
 
 (defn- group-prepend-node*
   "Add a synth node to the end of a group list."
   [group node]
+  (ensure-connected!)
   (let [group-id (to-synth-id group)
         node-id (to-synth-id node)]
     (snd "/g_head" group-id node-id)))
@@ -299,6 +318,7 @@
 (defn- group-append-node*
   "Add a synth node to the end of a group list."
   [group node]
+  (ensure-connected!)
   (let [group-id (to-synth-id group)
         node-id (to-synth-id node)]
   (snd "/g_tail" group-id node-id)))
@@ -306,6 +326,7 @@
 (defn- group-clear*
   "Free all child synth nodes in a group."
   [group]
+  (ensure-connected!)
   (snd "/g_freeAll" (to-synth-id group))
   :clear)
 
@@ -313,6 +334,7 @@
   "Free all child synth nodes in and below this group in other child
   groups."
   [group]
+  (ensure-connected!)
   (snd "/g_deepFree" (to-synth-id group))
   :clear)
 
@@ -349,11 +371,20 @@
    :node-map-controls      node-map-controls*
    :node-map-n-controls    node-map-n-controls*})
 
-(defn ctl [node & args]
-  (apply node-control node args))
+(defn ctl
+  "Send a node control messages specified in pairs of :arg-name val. It
+  is possible to pass a sequence of nodes in which case the same control
+  messages will be sent to all nodes.  i.e.
+  (ctl 34 :freq 440 :vol 0.2)
+  (ctl [34 37] :freq 440 :vol 0.2)"
+  [node & args]
+  (ensure-connected!)
+  (if (sequential? node)
+    (doseq [n node]
+      (node-control n args))
+    (node-control node args)))
 
-(defprotocol IKillable
-  (kill* [this] "Kill a synth element (node, or group, or ...)."))
+
 
 (defn kill
   "Free one or more synth nodes.
@@ -372,6 +403,7 @@
   (kill [(hit) (hit) (hit)])
   "
   [& nodes]
+  (ensure-connected!)
   (doseq [node (flatten nodes)]
     (kill* node)))
 
@@ -411,7 +443,7 @@
 ;		] * M
 ;	] * the number of nodes in the subtree
 
-(def ^{:dynamic true} *node-tree-data* nil)
+(defonce ^{:dynamic true} *node-tree-data* nil)
 
 (defn- parse-synth-tree
   [id ctls?]
@@ -452,20 +484,13 @@
   groups and synthesizer instances residing on the audio server."
   ([] (group-node-tree* 0))
   ([id & [ctls?]]
-   (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
-     (let [reply-p (recv "/g_queryTree.reply")
-           _ (snd "/g_queryTree" id ctls?)
-          tree (:args (deref! reply-p))]
-       (with-meta (parse-node-tree tree)
-         {:type ::node-tree})))))
-
-(defprotocol ISynthGroup
-  (group-prepend-node [group node])
-  (group-append-node  [group node])
-  (group-clear        [group])
-  (group-deep-clear   [group])
-  (group-post-tree    [group & [with-args?]])
-  (group-node-tree    [group]))
+     (ensure-connected!)
+     (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
+       (let [reply-p (recv "/g_queryTree.reply")
+             _ (snd "/g_queryTree" id ctls?)
+             tree (:args (deref! reply-p))]
+         (with-meta (parse-node-tree tree)
+           {:type ::node-tree})))))
 
 (extend SynthGroup
   ISynthGroup
@@ -493,7 +518,35 @@
   "Returns a data representation of the synth node tree starting at
   the root group."
   []
+  (ensure-connected!)
   (group-node-tree 0))
+
+(defn node-tree-zipper
+  "Returns a zipper representing the tree of the specified node or
+  defaults to the current node tree"
+  ([] (node-tree-zipper 0))
+  ([root]
+     (zip/zipper map? :children #(assoc %1 :children %2) (group-node-tree root))))
+
+(defn node-tree-seq
+  "Returns a lazy seq of a depth-first traversal of the tree of the
+  specified node defaulting to the current node tree"
+  ([] (node-tree-zipper 0))
+  ([root] (zipper-seq (node-tree-zipper root))))
+
+(defn node-tree-matching-synth-ids
+  "Returns a seq of synth ids in the node tree with specific
+  root (defaulting to the entire node tree) that match regexp or
+  strign."
+  ([re-or-str] (node-tree-matching-synth-ids re-or-str 0))
+  ([re-or-str root]
+     (let [matcher-fn (if (string? re-or-str)
+                        =
+                        re-matches)]
+       (map :id
+            (filter #(and (:name %)
+                          (matcher-fn re-or-str (:name %)))
+                    (node-tree-seq root))))))
 
 (on-deps :core-groups-created ::create-synth-group #(dosync
                                                      (log/debug (str "Creating synth group at head of group with id: " (root-group)))
@@ -517,10 +570,10 @@
 
 (defn- setup-core-groups
   []
-  (let [input-group   (with-server-sync #(group 0 0))
-        root-group    (with-server-sync #(group 3 input-group))
-        mixer-group   (with-server-sync #(group 3 root-group))
-        monitor-group (with-server-sync #(group 3 mixer-group))]
+  (let [input-group   (with-server-sync #(group :head 0))
+        root-group    (with-server-sync #(group :after input-group))
+        mixer-group   (with-server-sync #(group :after root-group))
+        monitor-group (with-server-sync #(group :after mixer-group))]
     (dosync
       (alter core-groups* assoc
              :input   input-group

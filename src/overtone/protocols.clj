@@ -37,15 +37,17 @@
 ; * trigger, control and kill
 ; * bus allocation and automatic append of out ugen
 ; * automatic instance placement
-; * group allocation and fx/mixer setup
+                                        ; * group allocation and fx/mixer setup
 
-(defprotocol ISynthBuffer
-  (info         [this] "Returns a map containing the properties of this buffer (e.g. size, n-channels...)")
-  (sample-array [this] [this start len] "Returns a float array with values read from this buffer.")
-  (write!       [this data] [this start-idx data] "Write float values into the buffer.")
-  (set-value!   [this idx value] "Set a single value in the buffer.")
-  (get-value    [this idx] "Get a single value in the buffer."))
+(defonce ^{:private true}
+  _PROTOCOLS_
+  (do
+    (defprotocol ISynthBuffer
+      (info         [this] "Returns a map containing the properties of this buffer (e.g. size, n-channels...)")
+      (sample-array [this] [this start len] "Returns a float array with values read from this buffer.")
+      (write!       [this data] [this start-idx data] "Write float values into the buffer.")
+      (set-value!   [this idx value] "Set a single value in the buffer.")
+      (get-value    [this idx] "Get a single value in the buffer."))
 
-(defprotocol ISaveable
-  (save [this] [this path] [this path & options] "Save to a default location"))
-
+    (defprotocol ISaveable
+      (save [this] [this path] [this path options] "Save to a default location"))))

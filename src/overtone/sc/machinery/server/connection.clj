@@ -6,10 +6,10 @@
         [overtone.libs event deps]
         [overtone version]
         [overtone.sc defaults comms]
-        [overtone.helpers.lib :only [print-ascii-art-overtone-logo]]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
-        [overtone.helpers.file :only [file-exists?]])
+        [overtone.helpers.lib :only [print-ascii-art-overtone-logo]]
+        [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]])
   (:require [overtone.config.log :as log]))
 
 (defonce server-thread*       (ref nil))
@@ -25,12 +25,13 @@
   (when (not-empty @connection-info*) true))
 
 (defn- server-notifications-on
-  "Turn on notification messages from the audio server.  This lets us free
-  synth IDs when they are automatically freed with envelope triggers.  It also
-  lets us receive custom messages from various trigger ugens.
+  "Turn on notification messages from the audio server.  This lets us
+  free synth IDs when they are automatically freed with envelope
+  triggers.  It also lets us receive custom messages from various
+  trigger ugens.
 
-  These messages are sent as notification of some event to all clients who have
-  registered via the /notify command .
+  These messages are sent as notification of some event to all clients
+  who have registered via the /notify command .
 
   All of these have the same arguments:
    int - node ID
@@ -53,9 +54,10 @@
   (server-snd "/notify" 1))
 
 (defn- connect-jack-ports
-  "Connect the jack input and output ports as best we can.  If jack ports are
-  always different names with different drivers or hardware then we need to find
-  a better strategy to auto-connect. (For Linux users)"
+  "Connect the jack input and output ports as best we can.  If jack
+  ports are always different names with different drivers or hardware
+  then we need to find a better strategy to auto-connect. (For Linux
+  users)"
   ([] (connect-jack-ports 2))
   ([n-channels]
      (let [port-list (:out (sh "jack_lsp"))
@@ -90,12 +92,15 @@
           (satisfy-deps :server-connected)
           (event :connection-complete)
           (remove-handler ::connected-handler1)
-          (remove-handler ::connected-handler2))]
+          (remove-handler ::connected-handler2)
+          (log/debug "Server connection established")
+          (println "--> Connection established"))]
     (on-sync-event "status.reply" handler-fn ::connected-handler1)
     (on-sync-event "/status.reply" handler-fn ::connected-handler2)))
 
 (defn- connect-internal
   []
+  (println "--> Connecting to internal SuperCollider server...")
   (log/debug "Connecting to internal SuperCollider server")
   (let [send-fn (fn [peer-obj buffer]
                   (.send @sc-world* buffer))
@@ -111,6 +116,7 @@
 
 (defn- external-connection-runner
   [host port]
+  (println  "--> Connecting to external SuperCollider server:" (str host ":" port))
   (log/debug "Connecting to external SuperCollider server: " host ":" port)
   (let [sc-server (osc-client host port)]
     (osc-listen sc-server #(event :osc-msg-received :msg %))
@@ -130,18 +136,18 @@
             (server-snd "/status")
             (Thread/sleep 100)
             (recur (inc cnt)))
-          (throw (Exception. (str "Error: unable to connect to externally booted server after " N-RETRIES " attempts.")))))))
-  (print-ascii-art-overtone-logo (config-get :user-name) OVERTONE-VERSION-STR))
+          (throw (Exception. (str "Error: unable to connect to externally booted server after " N-RETRIES " attempts."))))))))
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
   "Connect to an externally running SC audio server.
 
-  (connect 57710)                  ;=> connect to an external server on the
-                                       localhost listening to port 57710
-  (connect \"192.168.1.23\" 57110) ;=> connect to an external server with ip
-                                       address 192.168.1.23 listening to port
-                                       57110"
+  (connect 57710)                ;=> connect to an external server on
+                                     the localhost listening to port
+                                     57710
+  (connect \"192.168.1.23\" 57110) ;=> connect to an external server with
+                                     ip address 192.168.1.23 listening to
+                                     port 57110"
   ([port] (connect "127.0.0.1" port))
   ([host port]
      (.run (Thread. #(external-connection-runner host port)))))
@@ -165,6 +171,7 @@
   []
   (let [sc-thread (Thread. internal-booter)]
     (.setDaemon sc-thread true)
+    (println "--> Booting internal SuperCollider server...")
     (log/debug "Booting SuperCollider internal server (scsynth)...")
     (.start sc-thread)
     (dosync (ref-set server-thread* sc-thread))
@@ -185,10 +192,10 @@
   STDOUT for log messages."
   [cmd]
   (log/debug "booting external audio server...")
-  (let [proc (.exec (Runtime/getRuntime) cmd)
-        in-stream (BufferedInputStream. (.getInputStream proc))
+  (let [proc       (.exec (Runtime/getRuntime) cmd)
+        in-stream  (BufferedInputStream. (.getInputStream proc))
         err-stream (BufferedInputStream. (.getErrorStream proc))
-        read-buf (make-array Byte/TYPE 256)]
+        read-buf   (make-array Byte/TYPE 256)]
     (while (not (= :disconnected @connection-status*))
       (sc-log-external in-stream read-buf)
       (sc-log-external err-stream read-buf)
@@ -196,8 +203,8 @@
     (.destroy proc)))
 
 (defn- find-sc-path
-  "Find the path for SuperCollider. If linux don't check for a file as it should
-  be in the PATH list."
+  "Find the path for SuperCollider. If linux don't check for a file as
+  it should be in the PATH list."
   []
   (let [os    (config-get :os)
         paths (SC-PATHS os)
@@ -209,17 +216,72 @@
 
     path))
 
+(defn- sc-default-args
+  "Return a map of keyword to default value for each scsynth arg. Reads
+  info from SC-ARG-INFO"
+  []
+  (reduce (fn [res [arg-name {default :default}]]
+            (if default
+              (merge res {arg-name default})
+              res))
+          {}
+          SC-ARG-INFO))
+
+(defn- merge-sc-args
+  [args]
+  (merge (sc-default-args)
+         (SC-OS-SPECIFIC-ARGS (config-get :os))
+         args
+         (config-get :sc-args {})))
+
+(defn- sc-arg-flag
+  [sc-arg]
+  (-> sc-arg SC-ARG-INFO :flag))
+
+(defn- scsynth-arglist
+  "Returns a sequence of args suitable for use as arguments to the scsynth command"
+  [args]
+  (let [udp?             (:udp? args)
+        port             (:port args)
+        user-ugens-paths (or (:user-ugens-path args) [])
+        ugens-paths      (or (:ugens-path args) [])
+        args             (select-keys args (keys SC-ARG-INFO))
+        args             (dissoc args :udp? :port :user-ugens-path)
+        port-arg         (if (= 1 udp?)
+                           ["-u" port]
+                           ["-t" port])
+        ugens-paths      (concat user-ugens-paths ugens-paths)
+        ugens-paths      (map resolve-tilde-path ugens-paths)
+        ugens-paths      (filter dir-exists? ugens-paths)
+        ugens-paths      (apply str (interpose ":" ugens-paths))
+        args             (if (empty? ugens-paths)
+                           (dissoc args :ugens-paths)
+                           (assoc args :ugens-paths ugens-paths))
+        arg-list         (reduce
+                          (fn [res [flag val]] (if val
+                                                (concat res [(sc-arg-flag flag) val])
+                                                res))
+                          []
+                          args)]
+    (map str (concat port-arg arg-list))))
+
+(defn- sc-command
+  "Creates a sctring array representing the sc command to execute in an
+  external process (typically with #'external-booter)"
+  [port]
+  (into-array String (cons (find-sc-path) (scsynth-arglist (merge-sc-args {:port port})))))
+
 (defn- boot-external-server
-  "Boot the audio server in an external process and tell it to listen on a
-  specific port."
+  "Boot the audio server in an external process and tell it to listen on
+  a specific port."
   ([port]
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
-       (let [sc-path (find-sc-path)
-             cmd (into-array String (concat [sc-path "-u" (str port)] (SC-ARGS (config-get :os))))
+       (let [cmd       (sc-command port)
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
-         (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " cmd))
+         (println "--> Booting external SuperCollider server...")
+         (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
          (.start sc-thread)
          (dosync (ref-set server-thread* sc-thread))
          (connect "127.0.0.1" port)
@@ -234,13 +296,14 @@
            :external {:port port :host "127.0.0.1"})))
 
 (defn boot
-  "Boot either the internal or external audio server. If specified port is nil
-  will choose a random port.
+  "Boot either the internal or external audio server. If specified port
+  is nil will choose a random port.
 
    (boot) ; uses the default settings defined in your config
-   (boot :internal) ; boots the internal server
-   (boot :external) ; boots an external server on a random port
-   (boot :external 57110) ; boots an external server listening on port 57110"
+   (boot :internal)       ; boots the internal server
+   (boot :external)       ; boots an external server on a random port
+   (boot :external 57110) ; boots an external server listening on port
+                            57110"
   ([]                (boot (or (config-get :server) :internal) SERVER-PORT))
   ([connection-type] (boot connection-type SERVER-PORT))
   ([connection-type port]
@@ -259,7 +322,8 @@
          (case connection-type
            :internal (boot-internal-server)
            :external (boot-external-server port))
-         (wait-until-deps-satisfied :server-ready)))))
+         (wait-until-deps-satisfied :server-ready)))
+     (print-ascii-art-overtone-logo (overtone.config.store/config-get :user-name) OVERTONE-VERSION-STR)))
 
 (defn shutdown-server
   "Quit the SuperCollider synth process."

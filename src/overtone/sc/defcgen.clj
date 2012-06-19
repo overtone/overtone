@@ -210,8 +210,7 @@
                                         c-name (with-meta c-name metadata)]
                                     `(def ~c-name ~cgen))))]
 
-    `(do ~@cgen-defs)))
-  )
+    `(do ~@cgen-defs))))
 
 (defmethod print-method ::cgen [cgen w]
   (let [info (meta cgen)]

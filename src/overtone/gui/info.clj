@@ -6,7 +6,7 @@
 
 (native!)
 
-(def ^{:private true} update-timer (atom nil))
+(defonce ^{:private true} update-timer (atom nil))
 
 (def ^{:private true} divider-color "#aaaaaa")
 (def ^{:private true} normal-font   "ARIAL-12-PLAIN")
@@ -133,4 +133,3 @@
                      :south (label :id :status :text "Ready")))
       (add-behaviors)
       (show!))))
-

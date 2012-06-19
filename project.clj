@@ -4,6 +4,7 @@
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/core.incubator "0.1.0"]
                  [org.clojure/data.json "0.1.2"]
+                 [org.clojure/math.numeric-tower "0.0.1"]
                  [overtone/scsynth-jna "0.1.2-SNAPSHOT"]
                  [overtone/at-at "1.0.0"]
                  [overtone/osc-clj "0.7.1"]
@@ -11,7 +12,7 @@
                  [overtone/midi-clj "0.4.0"]
                  [overtone/libs.handlers "0.2.0-SNAPSHOT"]
                  [clj-glob "1.0.0"]
-                 [org.clojure/core.match "0.2.0-alpha6"]
+                 [org.clojure/core.match "0.2.0-alpha9"]
                  [seesaw "1.4.0"]]
   :jvm-opts
   ["-Xms512m" "-Xmx1g"           ; Minimum and maximum sizes of the heap

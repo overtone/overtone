@@ -88,7 +88,7 @@
   ([host port]
      (connect host port)
      (wait-until-deps-satisfied :server-ready)
-     :connected-to-external-server))
+     :happy-hacking))
 
 (defn boot-external-server
   "Boot an external server by starting up an external process and connecting to
@@ -97,13 +97,20 @@
   ([] (boot-external-server (+ (rand-int 50000) 2000)))
   ([port]
      (boot :external port)
-     :booted-external-server))
+     :happy-hacking))
 
-(defn boot-server
-  "Boot an internal server."
+(defn boot-internal-server
+  "Boot an internal server in the same process as overtone itself. Not
+  currently available on all platforms"
   []
   (boot :internal)
-  :booted-internal-server)
+  :happy-hacking)
+
+(defn boot-server
+  "Boot the default server."
+  []
+  (boot)
+  :happy-hacking)
 
 (defn kill-server
   "Shutdown the running server"

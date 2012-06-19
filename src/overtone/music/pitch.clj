@@ -134,7 +134,7 @@
     matches))
 
 (defn note-map
-  "Takes a match array returned by a regexp match and returns a map of
+  "Takes a string representing a midi note such as C4 and returns a map of
   note info"
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
@@ -146,7 +146,6 @@
      :octave      (Integer. octave)
      :interval    interval
      :midi-note   (octave-note octave interval)}))
-
 
 (defn mk-midi-string
   "Takes a string or keyword representing a pitch and a number
@@ -244,7 +243,7 @@
    :mixolydian        (rotate-ionian 4)
    :aeolian           (rotate-ionian 5)
    :minor             (rotate-ionian 5)
-   :lochrian          (rotate-ionian 6)
+   :locrian           (rotate-ionian 6)
    :pentatonic        [2 3 2 2 3]
    :major-pentatonic  [2 2 3 2 3]
    :minor-pentatonic  [3 2 2 3 2]
@@ -342,8 +341,10 @@
 
 (defn degree->interval
   "Converts the degree of a scale given as a roman numeral keyword and
-  converts it to the number of intervals (semitones) from the tonic of
+  converts it to the number of semitones from the tonic of
   the specified scale.
+
+  (degree->interval :ii :major) ;=> 2
 
   Trailing #, b, + - represent sharps, flats, octaves up and down
   respectively.  An arbitrary number may be added in any order."
@@ -573,7 +574,7 @@
            :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
 
 (defn find-name
-  "Returnd the name of the first matching thing found in things
+  "Return the name of the first matching thing found in things
   or nil if not found"
   ([thing things]
      (if (= (val (first things)) thing)
@@ -620,7 +621,7 @@
      note ))
 
 (defn- simplify-chord
-  "expects notes to contain 0 (the root note) Reduces all notes into 2
+  "Expects notes to contain 0 (the root note) Reduces all notes into 2
   octaves. This will allow identification of fancy jazz chords, but
   will miss some simple chords if they are spread over more than 1
   octave."
@@ -628,9 +629,9 @@
   (set (map (fn [x] (fold-note x)) notes)))
 
 (defn- compress-chord
-  "expects notes to contain 0 (the root note) Reduces all notes into 1
+  "Expects notes to contain 0 (the root note) Reduces all notes into 1
   octave. This will lose all the fancy jazz chords but recognise
-  sparse multiple octave smple chords"
+  sparse multiple octave simple chords"
   [notes]
   (set (map (fn [x] (mod x 12)) notes)))
 

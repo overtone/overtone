@@ -36,7 +36,7 @@
          (cond
            (coll? i) (i2p i scale root)
            (nil? i) nil
-           :default (+ root (degree->interval scale i))))
+           :default (+ root (degree->interval i scale))))
        intervals))
 
 (defn play-over

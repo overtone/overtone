@@ -8,7 +8,7 @@
 (defn choose
   "Choose a random element from col."
   [col]
-  (nth col (rand-int (count col))))
+  (rand-nth col))
 
 (defn choose-n
   "Choose n random elements from col."

@@ -25,6 +25,8 @@
 (def MIXER-BOOT-DEPS [:server-ready :studio-setup-completed])
 (def DEFAULT-VOLUME 1.0)
 (def DEFAULT-PAN 0.0)
+(def DEFAULT-PAN-LEFT -1.0)
+(def DEFAULT-PAN-RIGHT 1.0)
 
 (defn mixer-booted? []
   (deps-satisfied? MIXER-BOOT-DEPS))
@@ -35,7 +37,7 @@
   []
   (wait-until-deps-satisfied MIXER-BOOT-DEPS))
 
-(defn boot-mixer
+(defn boot-server-and-mixer
   "Boots the server and waits until the studio mixer has complete set
   up"
   []

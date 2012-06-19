@@ -4,6 +4,21 @@
   overtone.music.rhythm
   (:use [overtone.music time]))
 
+(defonce ^{:private true}
+  _PROTOCOLS_
+  (do
+    (defprotocol IMetronome
+      (start [this] [this start-beat]
+        "Returns the start time of the metronome. Also restarts the metronome at
+     'start-beat' if given.")
+      (tick [this]
+        "Returns the duration of one metronome 'tick' in milleseconds.")
+      (beat [this] [this beat]
+        "Returns the next beat number or the timestamp (in milliseconds) of the
+     given beat.")
+      (bpm [this] [this new-bpm]
+        "Get the current bpm or change the bpm to 'new-bpm'."))))
+
 ; Rhythm
 
 ; * a resting heart rate is 60-80 bpm
@@ -21,18 +36,6 @@
 ;  "Convert b bars to milliseconds at the current bpm."
 ;  ([] (bar 1))
 ;  ([b] (* (bar 1) (first @*signature) b)))
-
-(defprotocol IMetronome
-  (start [this] [this start-beat]
-    "Returns the start time of the metronome. Also restart's the metronome at
-     'start-beat' if given.")
-  (tick [this]
-    "Returns the duration of one metronome 'tick' in milleseconds.")
-  (beat [this] [this beat]
-    "Returns the next beat number or the timestamp (in milliseconds) of the
-     given beat.")
-  (bpm [this] [this new-bpm]
-    "Get the current bpm or change the bpm to 'new-bpm'."))
 
 (deftype Metronome [start bpm]
 
