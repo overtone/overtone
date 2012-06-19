@@ -492,31 +492,27 @@
          (with-meta (parse-node-tree tree)
            {:type ::node-tree})))))
 
-(defonce _CHEESE_
-  (do
+(extend SynthGroup
+  ISynthGroup
+  {:group-prepend-node group-prepend-node*
+   :group-append-node  group-append-node*
+   :group-clear        group-clear*
+   :group-deep-clear   group-deep-clear*
+   :group-post-tree    group-post-tree*
+   :group-node-tree    group-node-tree*}
+
+  IKillable
+  {:kill* group-deep-clear*})
 
 
-    (extend SynthGroup
-      ISynthGroup
-      {:group-prepend-node group-prepend-node*
-       :group-append-node  group-append-node*
-       :group-clear        group-clear*
-       :group-deep-clear   group-deep-clear*
-       :group-post-tree    group-post-tree*
-       :group-node-tree    group-node-tree*}
-
-      IKillable
-      {:kill* group-deep-clear*})
-
-
-    (extend java.lang.Long
-      ISynthGroup
-      {:group-prepend-node group-prepend-node*
-       :group-append-node  group-append-node*
-       :group-clear        group-clear*
-       :group-deep-clear   group-deep-clear*
-       :group-post-tree    group-post-tree*
-       :group-node-tree    group-node-tree*})))
+(extend java.lang.Long
+  ISynthGroup
+  {:group-prepend-node group-prepend-node*
+   :group-append-node  group-append-node*
+   :group-clear        group-clear*
+   :group-deep-clear   group-deep-clear*
+   :group-post-tree    group-post-tree*
+   :group-node-tree    group-node-tree*})
 
 (defn node-tree
   "Returns a data representation of the synth node tree starting at
