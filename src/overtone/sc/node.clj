@@ -8,6 +8,42 @@
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]))
 
+(defonce ^{:private true}
+  _PROTOCOLS_
+  (do
+    (defprotocol to-synth-id* (to-synth-id [v]))
+
+    (defprotocol ISynthNode
+      (node-free   [this])
+      (node-pause  [this])
+      (node-start  [this])
+      (node-place  [this position dest-node]))
+
+    (defprotocol IControllableNode
+      (node-control         [this params]
+        "Modify control parameters of the synth node.")
+      (node-control-range   [this ctl-start ctl-vals]
+        "Modify a range of control parameters of the synth node.")
+      (node-map-controls    [this names-busses]
+        "Connect a node's controls to a control bus.")
+      (node-map-n-controls  [this start-control start-bus n]
+        "Connect N controls of a node to a set of sequential control busses,
+    starting at the given control name."))
+
+    (defprotocol IKillable
+      (kill* [this] "Kill a synth element (node, or group, or ...)."))
+
+    (defprotocol ISynthGroup
+      (group-prepend-node [group node])
+      (group-append-node  [group node])
+      (group-clear        [group])
+      (group-deep-clear   [group])
+      (group-post-tree    [group with-args?])
+      (group-node-tree    [group]))))
+
+(extend-type java.lang.Long to-synth-id*    (to-synth-id [v] v))
+(extend-type java.lang.Integer to-synth-id* (to-synth-id [v] v))
+
 ;; ## Node and Group Management
 
 ;; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists
@@ -44,29 +80,6 @@
 
     (zipmap (map name-fn (keys arg-map))
             (map val-fn (vals arg-map)))))
-
-
-(defprotocol to-synth-id* (to-synth-id [v]))
-
-(extend-type java.lang.Long to-synth-id*    (to-synth-id [v] v))
-(extend-type java.lang.Integer to-synth-id* (to-synth-id [v] v))
-
-(defprotocol ISynthNode
-  (node-free   [this])
-  (node-pause  [this])
-  (node-start  [this])
-  (node-place  [this position dest-node]))
-
-(defprotocol IControllableNode
-  (node-control         [this params]
-    "Modify control parameters of the synth node.")
-  (node-control-range   [this ctl-start ctl-vals]
-    "Modify a range of control parameters of the synth node.")
-  (node-map-controls    [this names-busses]
-    "Connect a node's controls to a control bus.")
-  (node-map-n-controls  [this start-control start-bus n]
-    "Connect N controls of a node to a set of sequential control busses,
-    starting at the given control name."))
 
 (defrecord SynthNode [synth id target position status]
   to-synth-id*
@@ -371,8 +384,7 @@
       (node-control n args))
     (node-control node args)))
 
-(defprotocol IKillable
-  (kill* [this] "Kill a synth element (node, or group, or ...)."))
+
 
 (defn kill
   "Free one or more synth nodes.
@@ -480,35 +492,31 @@
          (with-meta (parse-node-tree tree)
            {:type ::node-tree})))))
 
-(defprotocol ISynthGroup
-  (group-prepend-node [group node])
-  (group-append-node  [group node])
-  (group-clear        [group])
-  (group-deep-clear   [group])
-  (group-post-tree    [group with-args?])
-  (group-node-tree    [group]))
-
-(extend SynthGroup
-  ISynthGroup
-  {:group-prepend-node group-prepend-node*
-   :group-append-node  group-append-node*
-   :group-clear        group-clear*
-   :group-deep-clear   group-deep-clear*
-   :group-post-tree    group-post-tree*
-   :group-node-tree    group-node-tree*}
-
-  IKillable
-  {:kill* group-deep-clear*})
+(defonce _CHEESE_
+  (do
 
 
-(extend java.lang.Long
-  ISynthGroup
-  {:group-prepend-node group-prepend-node*
-   :group-append-node  group-append-node*
-   :group-clear        group-clear*
-   :group-deep-clear   group-deep-clear*
-   :group-post-tree    group-post-tree*
-   :group-node-tree    group-node-tree*})
+    (extend SynthGroup
+      ISynthGroup
+      {:group-prepend-node group-prepend-node*
+       :group-append-node  group-append-node*
+       :group-clear        group-clear*
+       :group-deep-clear   group-deep-clear*
+       :group-post-tree    group-post-tree*
+       :group-node-tree    group-node-tree*}
+
+      IKillable
+      {:kill* group-deep-clear*})
+
+
+    (extend java.lang.Long
+      ISynthGroup
+      {:group-prepend-node group-prepend-node*
+       :group-append-node  group-append-node*
+       :group-clear        group-clear*
+       :group-deep-clear   group-deep-clear*
+       :group-post-tree    group-post-tree*
+       :group-node-tree    group-node-tree*})))
 
 (defn node-tree
   "Returns a data representation of the synth node tree starting at
