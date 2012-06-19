@@ -8,19 +8,19 @@
   (:use [overtone.config store]
         [clojure.pprint :only (pprint)]))
 
-(defonce ^:private LOGGER (Logger/getLogger "overtone"))
-
-(defonce ^:private LOG-APPEND true)
-(defonce ^:private LOG-CONSOLE (ConsoleHandler.))
-
+(def ^:private LOG-APPEND true)
+(def ^:private LOG-LIMIT 5000000)
+(def ^:private LOG-COUNT 2)
+(def ^:private DEFAULT-LOG-LEVEL :warn)
 (def ^:private LOG-LEVELS {:debug Level/FINE
                            :info  Level/INFO
                            :warn  Level/WARNING
                            :error Level/SEVERE})
-
-(def ^:private LOG-FILE-HANDLER (FileHandler. OVERTONE-LOG-FILE LOG-APPEND))
 (def ^:private REVERSE-LOG-LEVELS (apply hash-map (flatten (map reverse LOG-LEVELS))))
-(def ^:private DEFAULT-LOG-LEVEL :warn)
+
+(defonce ^:private LOGGER (Logger/getLogger "overtone"))
+(defonce ^:private LOG-CONSOLE (ConsoleHandler.))
+(defonce ^:private LOG-FILE-HANDLER (FileHandler. OVERTONE-LOG-FILE LOG-LIMIT LOG-COUNT LOG-APPEND))
 
 (defn- initial-log-level
   []
@@ -102,3 +102,10 @@
     (set-level! (initial-log-level))
     (.setFormatter LOG-FILE-HANDLER (log-formatter))
     (.addHandler LOGGER LOG-FILE-HANDLER)))
+
+(defonce ^:private __cleanup-logger-on-shutdown__
+  (.addShutdownHook (Runtime/getRuntime)
+                    (Thread. (fn []
+                               (info "Shutting down - cleaning up logger")
+                               (.removeHandler LOGGER LOG-FILE-HANDLER)
+                               (.close LOG-FILE-HANDLER)))))
