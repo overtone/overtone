@@ -328,6 +328,12 @@
         f (file path)]
     (.exists f)))
 
+(defn ensure-path-exists!
+  "Throws an exception if path does not exist."
+  [path]
+  (when-not (path-exists? path)
+    (throw (Exception. (str "Error: unable locate path: " path)))))
+
 (defn file-exists?
   "Returns true if a file specified by path exists"
   [path]
