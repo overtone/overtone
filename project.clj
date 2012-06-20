@@ -13,7 +13,7 @@
                  [overtone/libs.handlers "0.2.0"]
                  [clj-glob "1.0.0"]
                  [org.clojure/core.match "0.2.0-alpha9"]
-                 [seesaw "1.4.0"]]
+                 [seesaw "1.4.1"]]
   :jvm-opts
   ["-Xms512m" "-Xmx1g"           ; Minimum and maximum sizes of the heap
    "-XX:+UseParNewGC"            ; Use the new parallel GC in conjunction with
