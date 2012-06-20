@@ -6,9 +6,9 @@
     [overtone.helpers.system :only (get-os)]
     [overtone.helpers.lib :only (uuid)]))
 
-(def SPEECH-DIR (:speech OVERTONE-DIRS))
+(def ^:private SPEECH-DIR (:speech OVERTONE-DIRS))
 
-(def VOICES
+(def ^:private VOICES
   {:agnes "Agnes"
    :kathy "Kathy"
    :princess "Princess"
@@ -39,10 +39,9 @@
    :pipe-organ "Pipe Organ"        ; awesome ;-)
    })
 
+(defmulti ^:private say (fn [& args] (get-os)))
 
-(defmulti say (fn [& args] (get-os)))
-
-(defmethod say :mac
+(defmethod ^:private say :mac
   [text {:keys [voice]
          :or {voice :vicki}
          :as options}]
@@ -52,6 +51,18 @@
     out-file))
 
 (defn speech-buffer
+  "Takes a string and returns an audio buffer with containing that text
+  read by one of the available voices defaulting to vicki.
+
+  (speech-buffer \"a nice cup of tea, please\" :voice :alex)
+
+  Voices to choose from are
+  :agnes, :kathy, :princess, :vicki, :victoria, :bruce, :fred, :junior,
+  :ralph, :alex, :albert, :zarvox, :trinoids, :whisper, :bahh, :boing,
+  :bubbles, :bad-news, :good-news, :deranged, :hysterical, :bells,
+  :cellos, :pipe-organ.
+
+  Currently available on OS X only."
   [text & {:as options}]
   (let [file (say text options)]
     (sample file)))
