@@ -111,13 +111,13 @@
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
 (def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
 
-(defn midi-string-matcher
+(defn- midi-string-matcher
   "Determines whether a midi keyword is valid or not. If valid,
   returns a regexp match object"
   [mk]
   (re-find ONLY-MIDI-NOTE-RE (name mk)))
 
-(defn validate-midi-string!
+(defn- validate-midi-string!
   "Throws a friendly exception if midi-keyword mk is not
   valid. Returns matches if valid."
   [mk]
