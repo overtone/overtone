@@ -324,7 +324,7 @@
 (defn path-exists?
   "Returns true if file or dir specified by path exists"
   [path]
-  (let [path (resolve-tilde-path path)
+  (let [path (canonical-path path)
         f (file path)]
     (.exists f)))
 
