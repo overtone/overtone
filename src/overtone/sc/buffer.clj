@@ -82,21 +82,20 @@
   ([path start]
      (buffer-alloc-read path start -1))
   ([path start n-frames]
+     (ensure-path-exists! path)
      (let [path (canonical-path path)
-           f    (file path)]
-       (when-not (.exists f)
-         (throw (Exception. (str "Unable to read file - file does not exist: " path))))
-       (let [id (alloc-id :audio-buffer)]
-         (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
-         (let [info                              (buffer-info id)
-               {:keys [id size rate n-channels]} info]
-           (when (every? zero? [size rate n-channels])
-             (free-id :audio-buffer id)
-             (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
+           f    (file path)
+           id   (alloc-id :audio-buffer)]
+       (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
+       (let [info                              (buffer-info id)
+             {:keys [id size rate n-channels]} info]
+         (when (every? zero? [size rate n-channels])
+           (free-id :audio-buffer id)
+           (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
 
-           (map->BufferFile
-            (assoc info
-              :allocated-on-server (atom true))))))))
+         (map->BufferFile
+          (assoc info
+            :allocated-on-server (atom true)))))))
 
 (derive BufferInfo ::buffer-info)
 (derive Buffer     ::buffer)
