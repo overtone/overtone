@@ -5,6 +5,7 @@
       :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
   (:use [overtone.helpers old-contrib]
+        [overtone.helpers.map :only [reverse-get]]
         [overtone.algo chance])
   (:require [clojure.string :as string]))
 
@@ -573,15 +574,6 @@
      (case tuning
            :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
 
-(defn find-name
-  "Return the name of the first matching thing found in things
-  or nil if not found"
-  ([thing things]
-     (if (= (val (first things)) thing)
-       (key (first things))
-       (if (< 1 (count things))
-         (find-name thing (rest things))))))
-
 (defn find-scale-name
   "Return the name of the first matching scale found in SCALE
   or nil if not found
@@ -589,7 +581,7 @@
   ie: (find-scale-name [2 1 2 2 2 2 1]
   :melodic-minor-asc"
   [scale]
-  (find-name scale SCALE))
+  (reverse-get SCALE scale))
 
 (defn find-pitch-class-name
   "Given a midi number representing a note, returns the name of the note
@@ -653,8 +645,8 @@
   (if (< 0 (count notes))
     (let [root (first (sort notes))
           adjusted-notes (set (map (fn [x] (- x root)) notes ))]
-      (or (find-name (simplify-chord adjusted-notes) CHORD)
-          (find-name (compress-chord adjusted-notes) CHORD)))))
+      (or (reverse-get CHORD (simplify-chord adjusted-notes))
+          (reverse-get CHORD (compress-chord adjusted-notes))))))
 
 (defn find-chord
   [notes]
