@@ -135,8 +135,8 @@
     matches))
 
 (defn note-map
-  "Takes a string representing a midi note such as C4 and returns a map of
-  note info"
+  "Takes a string representing a midi note such as C4 and returns a map
+  of note info"
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
