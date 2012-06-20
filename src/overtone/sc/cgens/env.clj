@@ -11,8 +11,9 @@
                  :default 0.01}
    done         {:doc "action to take after release"
                  :default nil}]
-  "Hold an input source for a set period of time and then stop by applying a
-   simple envelope. Takes a hold-time, a release-time, and a done action."
+  "Hold an input source for a set period of time and then stop by
+   applying a simple envelope. Takes a hold-time, a release-time, and a
+   done action."
   (:ar (let [gate (trig 1 hold-time)
              env  (linen gate 0 1 release-time done)]
          (* in env))))
