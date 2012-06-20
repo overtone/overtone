@@ -33,125 +33,148 @@
 
 
 ;; Helper Functions
-(defn list-flatten-first [x]
-    (first (flatten (list x))))
+(defn- list-flatten-first
+  [x]
+  (first (flatten (list x))))
 
-(defn get-or-fn [map key func]
+(defn- get-or-fn
+  [map key func]
     (if-let [result (map key)]
         result
         (func key)))
 
-(defn map-or-fn [m keys func]
+(defn- map-or-fn
+  [m keys func]
     (map #(get-or-fn m % func) keys))
 
-(defn perfmap [note initial freq notemap]
-    (let [pos (mod (- note initial) (count notemap))
-          octave (quot (- note initial (- (count notemap) 1 )) (count notemap))]
-        (* freq (nth notemap pos) (expt (ceil (reduce max notemap)) octave))))
+(defn- perfmap
+  [note initial freq notemap]
+  (let [pos    (mod (- note initial) (count notemap))
+        octave (quot (- note initial (- (count notemap) 1 )) (count notemap))]
+    (* freq (nth notemap pos) (expt (ceil (reduce max notemap)) octave))))
 
-(defn collapse-to-ntave [number ntave]
-    (condp > number
-             1 (recur (* number ntave) ntave)
-             ntave number
-             (recur (/ number ntave) ntave)))
+(defn- collapse-to-ntave
+  [number ntave]
+  (condp > number
+    1 (recur (* number ntave) ntave)
+    ntave number
+    (recur (/ number ntave) ntave)))
 
-(defn note-set-from-generator [generator initpower finpower ntave]
-    (let [tempset (for [exponent (range initpower finpower)] (expt generator exponent))]
-        (sort (map #(collapse-to-ntave % ntave) tempset))))
+(defn- note-set-from-generator
+  [generator initpower finpower ntave]
+  (let [tempset (for [exponent (range initpower finpower)] (expt generator exponent))]
+    (sort (map #(collapse-to-ntave % ntave) tempset))))
 
-(defn parsemodifiers
-    "Parses standard modifiers b, #, es, eh, ih and is for note names. Returns shifts where 1 is equivalent to a semitone.
+(defn- parsemodifiers
+  "Parses standard modifiers b, #, es, eh, ih and is for note names.
+   Returns shifts where 1 is equivalent to a semitone.
 
-    Please note that this function fails spectacularly when asked to parse anything but standard Western and Arabic music. That is, anything that doesn't equate sharp and tone + flat, or halfsharp and semitone + halfflat."
-    [modifiers]
-    (let [matches (map first (concat (re-seq #"([ie][sh])" modifiers) (re-seq #"([b#])" modifiers)))]
-        (+
-            (- (count (filter #(= "b" %) matches)))
-            (- (count (filter #(= "es" %) matches)))
-            (* -0.5 (count (filter #(= "eh" %) matches)))
-            (* 0.5 (count (filter #(= "ih" %) matches)))
-            (count (filter #(= "is" %) matches))
-            (count (filter #(= "#" %) matches)))))
+   Please note that this function fails spectacularly when asked to
+   parse anything but standard Western and Arabic music. That is,
+   anything that doesn't equate sharp and tone + flat, or halfsharp and
+   semitone + halfflat."
+  [modifiers]
+  (let [matches (map first (concat (re-seq #"([ie][sh])" modifiers) (re-seq #"([b#])" modifiers)))]
+    (+
+     (- (count (filter #(= "b" %) matches)))
+     (- (count (filter #(= "es" %) matches)))
+     (* -0.5 (count (filter #(= "eh" %) matches)))
+     (* 0.5 (count (filter #(= "ih" %) matches)))
+     (count (filter #(= "is" %) matches))
+     (count (filter #(= "#" %) matches)))))
 
-(def lilypondpattern (re-pattern "([a-gA-G])([#bB(is)(ih)(es)(eh)]*)([-0-9]+)"))
-
+(def ^:private lilypondpattern (re-pattern "([a-gA-G])([#bB(is)(ih)(es)(eh)]*)([-0-9]+)"))
 
 ;; Public Face - the tuning multimethods.
 
 (defmulti perfn
-    "Multimethod that returns a function taking note numbers to frequencies in \\s^{-1}\\"
-    list-flatten-first)
+  "Multimethod that returns a function taking note numbers to
+  frequencies in \\s^{-1}\\"
+  list-flatten-first)
 
 (defmulti tunednotes
-    "Multimethod that returns a function taking note keywords to note numbers.
+  "Multimethod that returns a function taking note keywords to note numbers.
 
-    A note keyword is usually of the form :[notename][pitchmodifiers][ntave], for example, :A4, :cb6 or :Bbb0, however this is entirely dependent on the kind of scale.
+   A note keyword is usually of the
+   form :[notename][pitchmodifiers][ntave], for example, :A4, :cb6
+   or :Bbb0, however this is entirely dependent on the kind of scale.
 
-    Tunednotes functions should ideally return nonmatching symbols or numbers unmodified. Particularly numbers, which could be note numbers.
+   Tunednotes functions should ideally return nonmatching symbols or
+   numbers unmodified. Particularly numbers, which could be note
+   numbers.
 
-    When using keywords of the form :c[modifier]0, :c0 should be mapped to [initial]. This is purely arbitrary, but it makes me feel good in my happy place. Convention over configuration, bitchez."
-    list-flatten-first)
+   When using keywords of the form :c[modifier]0, :c0 should be mapped
+   to [initial]. This is purely arbitrary, but it makes me feel good in
+   my happy place. Convention over configuration, bitchez."
+  list-flatten-first)
 
 (defmulti reversenotes
-    "Multimethod that returns a function taking note numbers to note symbols."
-    list-flatten-first)
+  "Multimethod that returns a function taking note numbers to note
+   symbols."
+  list-flatten-first)
 
 (defn perform [[opts & notes]]
-    "Takes a set of options and a list of note numbers/keywords, and runs the notes through the appropriate tuning system to give frequencies."
-    (map (perfn opts) (map-or-fn (tunednotes opts) notes identity)))
+  "Takes a set of options and a list of note numbers/keywords, and runs
+   the notes through the appropriate tuning system to give frequencies."
+  (map (perfn opts) (map-or-fn (tunednotes opts) notes identity)))
 
 (defn canonical-note-names [argz]
-    "Returns a function that takes note names to their canonical selves within the relevant tuning system."
-    (fn [note]
-        ((reversenotes argz) ((tunednotes argz) note))))
+  "Returns a function that takes note names to their canonical selves
+  within the relevant tuning system."
+  (fn [note]
+    ((reversenotes argz) ((tunednotes argz) note))))
 
 
 ;;Implementation of some tuning systems.
 
 (defmethod perfn :ed [[_ divisions multiplier initial freq]]
-    "Divides a multiplier-tave (e.g. 2-tave = octave, 3-tave, &c.) into divisions divisions. Maps initial to a note with frequency freq."
-    (fn [note]
-        (* freq (Math/pow multiplier (/ (- note initial) divisions)))))
+  "Divides a multiplier-tave (e.g. 2-tave = octave, 3-tave, &c.) into
+  divisions divisions. Maps initial to a note with frequency freq."
+  (fn [note]
+    (* freq (Math/pow multiplier (/ (- note initial) divisions)))))
 
 (defmethod perfn :edo [[_ divisions initial freq]]
-    "Equal divisions of the octave."
-    (perfn (list :ed divisions 2 initial freq)))
+  "Equal divisions of the octave."
+  (perfn (list :ed divisions 2 initial freq)))
 
 (defmethod perfn :midi [_]
-    (perfn (list :edo 12 69 440)))
+  (perfn (list :edo 12 69 440)))
 
 (defmethod tunednotes :midi [_]
-    "Returns a function that resolves notes to MIDI number format. Resolves upper and lower-case keywords and strings in MIDI note format. If given a string or keyword in a different format, throws an exception. Anything else is returned unmodified.
+  "Returns a function that resolves notes to MIDI number format.
+   Resolves upper and lower-case keywords and strings in MIDI note
+   format. If given a string or keyword in a different format, throws an
+   exception. Anything else is returned unmodified.
 
-     Usage examples:
-     ((tunednotes :midi) :F#7)    ;=> 102
-     ((tunednotes :midi) :db5)    ;=> 73"
-    (fn [n]
-        (if (or (keyword? n) (string? n))
-            (let [match (re-find (re-pattern "([a-gA-G])([#bB]*)([-0-9]+)") (name n))
-                  _ (when (nil? match)
-                        (throw (IllegalArgumentException.
-                            (str "Unable to resolve note: " n ". Does not appear to be in MIDI format i.e. C#4"))))
-                  [_ pitchclass modifiers octavestr] match
-                  shift (parsemodifiers modifiers)
-                  octave (Integer. octavestr)
-                  _ (when (< octave -1)
-                        (throw (IllegalArgumentException.
-                            (str "Unable to resolve note: " n ". Octave is out of range. Lowest octave value for midi is -1"))))]
-                (+ (get {"c"  0, "d"  2, "e"  4, "f"  5, "g"  7, "a"  9, "b"  11} (clojure.string/lower-case pitchclass))
-                   (int (floor shift))
-                   (* 12 octave)
-                   12))
-            n)))
+   Usage examples:
+   ((tunednotes :midi) :F#7)    ;=> 102
+   ((tunednotes :midi) :db5)    ;=> 73"
+  (fn [n]
+    (if (or (keyword? n) (string? n))
+      (let [match (re-find (re-pattern "([a-gA-G])([#bB]*)([-0-9]+)") (name n))
+            _ (when (nil? match)
+                (throw (IllegalArgumentException.
+                        (str "Unable to resolve note: " n ". Does not appear to be in MIDI format i.e. C#4"))))
+            [_ pitchclass modifiers octavestr] match
+            shift (parsemodifiers modifiers)
+            octave (Integer. octavestr)
+            _ (when (< octave -1)
+                (throw (IllegalArgumentException.
+                        (str "Unable to resolve note: " n ". Octave is out of range. Lowest octave value for midi is -1"))))]
+        (+ (get {"c"  0, "d"  2, "e"  4, "f"  5, "g"  7, "a"  9, "b"  11} (clojure.string/lower-case pitchclass))
+           (int (floor shift))
+           (* 12 octave)
+           12))
+      n)))
 
 (defmethod reversenotes :midi [_]
-    (fn [note]
-        (let [degree (rem note 12)
-              octave (- (floor (/ note 12)) 1)
-              _ (when (< octave -1)
-                    (throw (IllegalArgumentException.
-                           (str "Unable to resolve note: " note ". Octave is out of range. Lowest octave value for midi is -1"))))]
-            (keyword (str (nth '("c" "c#" "d" "d#" "e" "f" "f#" "g" "g#" "a" "a#" "b") degree) octave)))))
+  (fn [note]
+    (let [degree (rem note 12)
+          octave (- (floor (/ note 12)) 1)
+          _ (when (< octave -1)
+              (throw (IllegalArgumentException.
+                      (str "Unable to resolve note: " note ". Octave is out of range. Lowest octave value for midi is -1"))))]
+      (keyword (str (nth '("c" "c#" "d" "d#" "e" "f" "f#" "g" "g#" "a" "a#" "b") degree) octave)))))
 
 (defmethod perfn :default [_]
     (perfn :midi))
@@ -163,32 +186,31 @@
 ;; Some other tuning systems
 
 (defmethod perfn :arabic [[symb initial freq]]
-    (perfn (list :edo 24 initial freq)))
+  (perfn (list :edo 24 initial freq)))
 
 (defmethod tunednotes :arabic [[symb initial _]]
-    (fn [n]
-        (if (or (keyword? n) (string? n))
-            (let [match (re-find lilypondpattern (name n))
-                  _ (when (nil? match)
-                    (throw (IllegalArgumentException.
-                               (str "Unable to resolve note: " n ". Does not appear to be in Arabic format i.e. C#4"))))
-                  [_ pitchclass modifiers octavestr] match
-                  shift (parsemodifiers modifiers)
-                  octave (Integer. octavestr)]
-                (int (+ (* 2 (get {"c"  0, "d"  2, "e"  4, "f"  5, "g"  7, "a"  9, "b"  11} (clojure.string/lower-case pitchclass)))
-                        (* 2 shift)
-                        (* 24 octave)
-                        initial)))
-            n)))
+  (fn [n]
+    (if (or (keyword? n) (string? n))
+      (let [match (re-find lilypondpattern (name n))
+            _ (when (nil? match)
+                (throw (IllegalArgumentException.
+                        (str "Unable to resolve note: " n ". Does not appear to be in Arabic format i.e. C#4"))))
+            [_ pitchclass modifiers octavestr] match
+            shift (parsemodifiers modifiers)
+            octave (Integer. octavestr)]
+        (int (+ (* 2 (get {"c"  0, "d"  2, "e"  4, "f"  5, "g"  7, "a"  9, "b"  11} (clojure.string/lower-case pitchclass)))
+                (* 2 shift)
+                (* 24 octave)
+                initial)))
+      n)))
 
 (defmethod reversenotes :arabic [[symb initial _]]
-    (fn [n]
-        (let [note (- n initial)
-              degree (rem note 24)
-              octave (floor (/ note 24))]
-            (keyword (str (nth '("c" "cih" "c#" "deh" "d" "dih" "d#" "eeh" "e" "eih" "f" "fih" "f#" "geh" "g" "gih" "g#" "aeh" "a" "aih" "a#" "beh" "b" "ceh") degree) octave)))))
+  (fn [n]
+    (let [note (- n initial)
+          degree (rem note 24)
+          octave (floor (/ note 24))]
+      (keyword (str (nth '("c" "cih" "c#" "deh" "d" "dih" "d#" "eeh" "e" "eih" "f" "fih" "f#" "geh" "g" "gih" "g#" "aeh" "a" "aih" "a#" "beh" "b" "ceh") degree) octave)))))
 
 (defmethod perfn :qcmeantone [[symb initial freq]]
-    (fn [note]
-        (perfmap note initial freq (note-set-from-generator (expt 5 1/4) -5 7 2))))
-
+  (fn [note]
+    (perfmap note initial freq (note-set-from-generator (expt 5 1/4) -5 7 2))))
