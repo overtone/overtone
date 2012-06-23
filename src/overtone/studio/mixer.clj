@@ -48,11 +48,11 @@
 (defn setup-studio []
   (log/info (str "Creating studio group at head of: " (root-group)))
   (let [root              (root-group)
-        g                 (with-server-sync #(group :head root))
+        g                 (with-server-sync #(group "Studio" :head root))
         insts-with-groups (map-vals (fn [val]
                                       assoc val
                                       :group
-                                      (with-server-sync #(group :tail g)))
+                                      (with-server-sync #(group (str "Recreated Inst Group") :tail g)))
                                     @instruments*)]
     (dosync
      (ref-set inst-group* g)

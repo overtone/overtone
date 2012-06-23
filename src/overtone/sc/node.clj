@@ -188,7 +188,7 @@
 ;; group' with an ID of 1 which is the default target for all new Nodes. See
 ;; RootNode and default_group for more info.
 
-(defrecord SynthGroup [id target position status]
+(defrecord SynthGroup [group id target position status]
   to-synth-id*
   (to-synth-id [_] id))
 
@@ -196,13 +196,19 @@
   "Create a new synth group as a child of the target group. By default
   creates a new group at the tail of the root group."
   ([] (group :tail (root-group)))
-  ([position target] (group (alloc-id :node) position target))
-  ([id position target]
+  ([name] (group name :tail (root-group)))
+  ([position target]
+     (let [id (alloc-id :node)]
+       (group (str "Group-" id) id position target)))
+  ([name position target]
+     (let []
+       (group name (alloc-id :node) position target)))
+  ([name id position target]
      (ensure-connected!)
      (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
            target (to-synth-id target)
            pos    (or pos 1)
-           snode  (SynthGroup. id target position (atom :loading))]
+           snode  (SynthGroup. name id target position (atom :loading))]
        (swap! active-synth-nodes* assoc id snode)
        (snd "/g_new" id pos target)
        snode)))
@@ -550,7 +556,7 @@
 
 (on-deps :core-groups-created ::create-synth-group #(dosync
                                                      (log/debug (str "Creating synth group at head of group with id: " (root-group)))
-                                                     (ref-set synth-group* (group :head (root-group)))))
+                                                     (ref-set synth-group* (group "Synths" :head (root-group)))))
 
 (on-sync-event :reset
   (fn [event-info]
@@ -570,10 +576,10 @@
 
 (defn- setup-core-groups
   []
-  (let [input-group   (with-server-sync #(group :head 0))
-        root-group    (with-server-sync #(group :after input-group))
-        mixer-group   (with-server-sync #(group :after root-group))
-        monitor-group (with-server-sync #(group :after mixer-group))]
+  (let [input-group   (with-server-sync #(group "Input"   :head 0))
+        root-group    (with-server-sync #(group "Root"    :after input-group))
+        mixer-group   (with-server-sync #(group "Mixer"   :after root-group))
+        monitor-group (with-server-sync #(group "Monitor" :after mixer-group))]
     (dosync
       (alter core-groups* assoc
              :input   input-group
