@@ -112,12 +112,13 @@
      (if (not (server-connected?))
        (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
      (let [id       (alloc-id :node)
-           position (or ((get location :position :tail) NODE-POSITION) 1)
+           position (get location :position :tail)
+           pos-id   (get NODE-POSITION position 1)
            target   (to-synth-id (get location :target 0))
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
            snode    (SynthNode. synth-name id target position (atom :loading))]
-       (apply snd "/s_new" synth-name id position (to-synth-id target) args)
+       (apply snd "/s_new" synth-name id pos-id (to-synth-id target) args)
        (swap! active-synth-nodes* assoc id snode)
        snode)))
 
