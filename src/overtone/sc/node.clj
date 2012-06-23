@@ -473,10 +473,19 @@
   (let [[id n-children & new-data] *node-tree-data*]
     (set! *node-tree-data* new-data)
     (cond
-      (neg? n-children) (parse-synth-tree id ctls?) ; synth
-      (= 0 n-children) {:type :group :id id :children nil}
+      (neg? n-children)
+      (parse-synth-tree id ctls?) ; synth
+
+      (= 0 n-children)
+      {:type :group
+       :id id
+       :name (get-in @active-synth-nodes* [id :group] "Unknown Group")
+       :children nil}
+
       (pos? n-children)
-      {:type :group :id id
+      {:type     :group
+       :id       id
+       :name     (get-in @active-synth-nodes* [id :group] "Unknown Group")
        :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
 
 (defn- parse-node-tree
