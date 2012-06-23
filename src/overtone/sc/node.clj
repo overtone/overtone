@@ -201,9 +201,7 @@
   ([position target]
      (let [id (alloc-id :node)]
        (group (str "Group-" id) id position target)))
-  ([name position target]
-     (let []
-       (group name (alloc-id :node) position target)))
+  ([name position target] (group name (alloc-id :node) position target))
   ([name id position target]
      (ensure-connected!)
      (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
