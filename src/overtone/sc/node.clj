@@ -532,28 +532,29 @@
 (defn node-tree
   "Returns a data representation of the synth node tree starting at
   the root group."
-  []
-  (ensure-connected!)
-  (group-node-tree 0))
+  ([] (node-tree (root-group)))
+  ([root]
+     (ensure-connected!)
+     (group-node-tree (to-synth-id root))))
 
 (defn node-tree-zipper
   "Returns a zipper representing the tree of the specified node or
   defaults to the current node tree"
-  ([] (node-tree-zipper 0))
+  ([] (node-tree-zipper (root-group)))
   ([root]
      (zip/zipper map? :children #(assoc %1 :children %2) (group-node-tree root))))
 
 (defn node-tree-seq
   "Returns a lazy seq of a depth-first traversal of the tree of the
   specified node defaulting to the current node tree"
-  ([] (node-tree-zipper 0))
+  ([] (node-tree-zipper (root-group)))
   ([root] (zipper-seq (node-tree-zipper root))))
 
 (defn node-tree-matching-synth-ids
   "Returns a seq of synth ids in the node tree with specific
   root (defaulting to the entire node tree) that match regexp or
   strign."
-  ([re-or-str] (node-tree-matching-synth-ids re-or-str 0))
+  ([re-or-str] (node-tree-matching-synth-ids re-or-str (root-group)))
   ([re-or-str root]
      (let [matcher-fn (if (string? re-or-str)
                         =
