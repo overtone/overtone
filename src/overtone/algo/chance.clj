@@ -16,13 +16,13 @@
   (take n (shuffle col)))
 
 (defn weighted-choose
-  "Returns an element from list vals based on the corresponding probabilities
-  list. The length of vals and probabilities should be similar and the sum
-  of all the probabilities should be 1. It is also possible to pass a map of
-  val -> prob pairs as a param.
+  "Returns an element from list vals based on the corresponding
+  probabilities list. The length of vals and probabilities should be
+  similar and the sum of all the probabilities should be 1. It is also
+  possible to pass a map of val -> prob pairs as a param.
 
-  The following will return one of the following vals with the corresponding
-  probabilities:
+  The following will return one of the following vals with the
+  corresponding probabilities:
   1 -> 50%
   2 -> 30%
   3 -> 12.5%
@@ -61,8 +61,9 @@
            (recur (rest summed)))))))
 
 (defn weighted-coin
-  "Returns true or false. Probability of true is weighted by n which should be
-   within the range 0 - 1. n will be truncated to range 0 - 1 if it isn't"
+  "Returns true or false. Probability of true is weighted by n which
+   should be within the range 0 - 1. n will be truncated to range 0 - 1
+   if it isn't"
   [n]
   (let [n (float n)
         n (if (< n 0) 0 n)
