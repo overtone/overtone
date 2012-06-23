@@ -6,8 +6,8 @@
         [overtone.libs event])
   (:require [seesaw.bind :as bind]))
 
-(def ^{:private true} CHAN-WIDTH  100)
-(def ^{:private true} CHAN-HEIGHT 300)
+(def ^:private CHAN-WIDTH  100)
+(def ^:private CHAN-HEIGHT 300)
 
 (defn- inst-name
   [ins]
@@ -16,7 +16,7 @@
 (defn- mixing-channel
   [ins]
   (let [volume-slider (slider :value (* @(:volume ins) 100.0) :min 0 :max 120
-                    :orientation :vertical)
+                              :orientation :vertical)
         vsp (border-panel :center volume-slider)
         pan-dial (dial :size [45 :by 45] :min -100 :max 100 :value (* @(:pan ins)))
         mute-state (atom false)
@@ -64,4 +64,3 @@
                       (pack! f))))
                 :inst-added)
       f)))
-

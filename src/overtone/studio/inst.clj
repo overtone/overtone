@@ -104,11 +104,14 @@
   `(let [[sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
          new-inst# (get @instruments* sname#)
          container-group# (or (:group new-inst#)
-                              (group (str "Inst " sname# " Container") :tail @inst-group*))
+                              (group (str "Inst " sname# " Container")
+                                     :tail @inst-group*))
          instance-group#  (or (:instance-group new-inst#)
-                              (group (str "Inst " sname#) :head container-group#))
+                              (group (str "Inst " sname#)
+                                     :head container-group#))
          fx-group#        (or (:fx-group new-inst#)
-                              (group (str "Inst " sname# " FX"):tail container-group#))
+                              (group (str "Inst " sname# " FX")
+                                     :tail container-group#))
          imixer#    (or (:mixer new-inst#)
                         (inst-mixer n-chans#
                                     :tgt container-group#
