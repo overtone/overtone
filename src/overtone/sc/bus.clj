@@ -60,7 +60,7 @@
          {:type ::control-bus}))))
 
 (defn audio-bus
-  "Allocate one ore more audio busses."
+  "Allocate one or more audio busses."
   ([] (audio-bus 1))
   ([n-channels]
      (let [id (alloc-id :audio-bus n-channels)]
