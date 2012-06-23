@@ -19,14 +19,12 @@
     (defsynth stereo-inst-mixer
       [in-bus  10
        out-bus 0
-       volumel DEFAULT-VOLUME
-       volumer DEFAULT-VOLUME
-       panl    DEFAULT-PAN-LEFT
-       panr    DEFAULT-PAN-RIGHT]
-      (let [snd (in in-bus 2)]
-        (out out-bus
-             (+ (pan2 (select 0 snd) panl volumel)
-                (pan2 (select 1 snd) panr volumer)))))))
+       volume  DEFAULT-VOLUME
+       pan     DEFAULT-PAN]
+      (let [snd  (in in-bus 2)
+            sndl (select 0 snd)
+            sndr (select 1 snd)]
+        (out out-bus (balance2 sndl sndr pan volume))))))
 
 (defn inst-mixer
   "Instantiate a mono or stereo inst-mixer synth."
@@ -35,45 +33,17 @@
     (apply stereo-inst-mixer args)
     (apply mono-inst-mixer args)))
 
-(defn- inst-channels
-  "Internal fn used for multimethod dispatch on Insts."
-  [inst & args]
-  (let [n-chans (:n-chans inst)]
-    (if (> n-chans 1) :stereo :mono)))
-
-(defmulti inst-volume
+(defn inst-volume!
   "Control the volume of a single instrument."
-  inst-channels)
-
-(defmethod inst-volume :mono
   [inst vol]
   (ctl (:mixer inst) :volume vol)
-  (reset! (first (:volume inst)) vol))
+  (reset! (:volume inst) vol))
 
-(defmethod inst-volume :stereo
-  ([inst vol]
-     (inst-volume inst vol vol))
-  ([inst voll volr]
-     (ctl (:mixer inst) :volumel voll :volumer volr)
-     (let [volume (:volume inst)]
-       (reset! (nth volume 0) voll)
-       (reset! (nth volume 1) volr))))
-
-(defmulti inst-pan
+(defn inst-pan!
   "Control the pan setting of a single instrument."
-  inst-channels)
-
-(defmethod inst-pan :mono
   [inst pan]
   (ctl (:mixer inst) :pan pan)
-  (reset! (first (:pan inst)) pan))
-
-(defmethod inst-pan :stereo
-  [inst panl panr]
-  (ctl (:mixer inst) :panl panl :panr panr)
-  (let [pan (:pan inst)]
-    (reset! (nth pan 0) panl)
-    (reset! (nth pan 1) panr)))
+  (reset! (:pan inst) pan))
 
 (defn inst-fx
   "Append an effect to an instrument channel."
@@ -128,22 +98,6 @@
   [o]
   (= overtone.studio.inst.Inst (type o)))
 
-(defn default-volume [n]
-  "Returns a vector of 0, 1, or 2 atoms for holding the volume
-  settings of an Inst."
-  (cond
-    (= n 0) []
-    (= n 1) [(atom DEFAULT-VOLUME)]
-    (> n 1) (vec (repeat 2 (atom DEFAULT-VOLUME)))))
-
-(defn default-pan [n]
-  "Returns a vector of 0, 1, or 2 atoms for holding the pan settings
-  an Inst."
-  (cond
-    (= n 0) []
-    (= n 1) [(atom DEFAULT-PAN)]
-    (> n 1) [(atom DEFAULT-PAN-LEFT) (atom DEFAULT-PAN-RIGHT)]))
-
 (defmacro inst
   [sname & args]
   (ensure-connected!)
@@ -164,8 +118,8 @@
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
          fx-chain#  []
-         volume#    (default-volume n-chans#)
-         pan#       (default-pan n-chans#)
+         volume#    (atom DEFAULT-VOLUME)
+         pan#       (atom DEFAULT-PAN)
          inst#      (with-meta
                       (Inst. sname# params-with-vals# arg-names# ugens# sdef#
                              container-group# instance-group# fx-group#
