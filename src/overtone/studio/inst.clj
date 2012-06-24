@@ -33,6 +33,12 @@
     (apply stereo-inst-mixer args)
     (apply mono-inst-mixer args)))
 
+(defn inst-channels
+  "Internal fn used for multimethod dispatch on Insts."
+  [inst & args]
+  (let [n-chans (:n-chans inst)]
+    (if (> n-chans 1) :stereo :mono)))
+
 (defn inst-volume!
   "Control the volume of a single instrument."
   [inst vol]
@@ -45,13 +51,26 @@
   (ctl (:mixer inst) :pan pan)
   (reset! (:pan inst) pan))
 
-(defn inst-fx
-  "Append an effect to an instrument channel."
+(defmulti inst-fx!
+  "Append an effect to an instrument channel. Returns a SynthNode or a
+  vector of SynthNodes representing the the effect instance."
+  inst-channels)
+
+(defmethod inst-fx! :mono
   [inst fx]
   (let [fx-group (:fx-group inst)
         bus (:bus inst)
         fx-id (fx :tgt fx-group :pos :tail :bus bus)]
     fx-id))
+
+(defmethod inst-fx! :stereo
+  [inst fx]
+  (let [fx-group (:fx-group inst)
+        bus-l (:id (:bus inst))
+        bus-r (inc bus-l)
+        fx-ids [(fx :tgt fx-group :pos :tail :bus bus-l)
+                (fx :tgt fx-group :pos :tail :bus bus-r)]]
+    fx-ids))
 
 (defn clear-fx
   [inst]
