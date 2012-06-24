@@ -30,7 +30,7 @@
 (on-deps :studio-setup-completed
          ::create-scope-group #(dosync
                                 (ref-set scope-group*
-                                         (group :tail (main-monitor-group)))
+                                         (group "Scope" :tail (main-monitor-group)))
                                 (satisfy-deps :scope-group-created)))
 
 (defn- ensure-internal-server!

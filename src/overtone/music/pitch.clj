@@ -5,6 +5,7 @@
       :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
   (:use [overtone.helpers old-contrib]
+        [overtone.helpers.map :only [reverse-get]]
         [overtone.algo chance])
   (:require [clojure.string :as string]))
 
@@ -110,13 +111,13 @@
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
 (def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
 
-(defn midi-string-matcher
+(defn- midi-string-matcher
   "Determines whether a midi keyword is valid or not. If valid,
   returns a regexp match object"
   [mk]
   (re-find ONLY-MIDI-NOTE-RE (name mk)))
 
-(defn validate-midi-string!
+(defn- validate-midi-string!
   "Throws a friendly exception if midi-keyword mk is not
   valid. Returns matches if valid."
   [mk]
@@ -134,8 +135,8 @@
     matches))
 
 (defn note-map
-  "Takes a string representing a midi note such as C4 and returns a map of
-  note info"
+  "Takes a string representing a midi note such as C4 and returns a map
+  of note info"
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
@@ -573,15 +574,6 @@
      (case tuning
            :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
 
-(defn find-name
-  "Return the name of the first matching thing found in things
-  or nil if not found"
-  ([thing things]
-     (if (= (val (first things)) thing)
-       (key (first things))
-       (if (< 1 (count things))
-         (find-name thing (rest things))))))
-
 (defn find-scale-name
   "Return the name of the first matching scale found in SCALE
   or nil if not found
@@ -589,7 +581,7 @@
   ie: (find-scale-name [2 1 2 2 2 2 1]
   :melodic-minor-asc"
   [scale]
-  (find-name scale SCALE))
+  (reverse-get SCALE scale))
 
 (defn find-pitch-class-name
   "Given a midi number representing a note, returns the name of the note
@@ -653,8 +645,8 @@
   (if (< 0 (count notes))
     (let [root (first (sort notes))
           adjusted-notes (set (map (fn [x] (- x root)) notes ))]
-      (or (find-name (simplify-chord adjusted-notes) CHORD)
-          (find-name (compress-chord adjusted-notes) CHORD)))))
+      (or (reverse-get CHORD (simplify-chord adjusted-notes))
+          (reverse-get CHORD (compress-chord adjusted-notes))))))
 
 (defn find-chord
   [notes]

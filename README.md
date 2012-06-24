@@ -227,25 +227,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 ## Contributors
 
-* Jeff Rose
-* Sam Aaron
-* Fabian Aussems
-* Christophe McKeon
-* Pepijn de Vos
-* Marius Kempe
-* Nicolas Buduroi
-* Iain Wood
-* Marmaduke Woodman
-* Thomas Karolski
-* Nick Orton
-* Kevin Neaton
-* Chris Ford
-* Philip Potter
-* Matthew Gilliard
-* Dave Ray
-* Harold Hausman
-* Jennifer Smith
-* Jacob Lee
-* Jon Rose
-* Fabian Steeg
-* Michael Bernstein
+See: https://github.com/overtone/overtone/graphs/contributors

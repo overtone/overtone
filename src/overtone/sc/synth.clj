@@ -601,6 +601,20 @@
   (defsynth bar
     \"The phatest space pad ever!\"
     [] (...))
+
+  The function generated will accept two optional arguments that must
+  come first, the :position and :target (see the node function docs).
+  (foo)
+  (foo :position :tail :target 0)
+
+  Or if foo has two arguments:
+  (foo 440 0.3)
+  (foo :position :tail :target 0 440 0.3)
+  at the head of group 2:
+  (foo :position :head :target 2 440 0.3)
+
+  These can also be abbreviated:
+  (foo :tgt 2 :pos :head)
   "
   [s-name & s-form]
   {:arglists '([name doc-string? params ugen-form])}

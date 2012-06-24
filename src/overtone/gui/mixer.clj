@@ -6,8 +6,8 @@
         [overtone.libs event])
   (:require [seesaw.bind :as bind]))
 
-(def ^{:private true} CHAN-WIDTH  100)
-(def ^{:private true} CHAN-HEIGHT 300)
+(def ^:private CHAN-WIDTH  100)
+(def ^:private CHAN-HEIGHT 300)
 
 (defn- inst-name
   [ins]
@@ -16,17 +16,17 @@
 (defn- mixing-channel
   [ins]
   (let [volume-slider (slider :value (* @(:volume ins) 100.0) :min 0 :max 120
-                    :orientation :vertical)
+                              :orientation :vertical)
         vsp (border-panel :center volume-slider)
         pan-dial (dial :size [45 :by 45] :min -100 :max 100 :value (* @(:pan ins)))
         mute-state (atom false)
         mute-toggle #(if @mute-state
                        (do
-                         (inst-volume ins @mute-state)
+                         (inst-volume! ins @mute-state)
                          (reset! mute-state false))
                        (do
                          (reset! mute-state @(:volume ins))
-                         (inst-volume ins 0)))
+                         (inst-volume! ins 0)))
         mute-btn (border-panel :center
                                (button :text "M"
                                        :listen [:action mute-toggle]))
@@ -35,10 +35,10 @@
     (adjustment-popup :widget pan-dial :label "Pan:")
     (bind/bind volume-slider
                (bind/transform (fn [v] (/ v 100.0)))
-               (bind/b-do [v] (inst-volume ins v)))
+               (bind/b-do [v] (inst-volume! ins v)))
     (bind/bind pan-dial
                (bind/transform (fn [p] (/ p 100.0)))
-               (bind/b-do [p] (inst-pan ins p)))
+               (bind/b-do [p] (inst-pan! ins p)))
     (vertical-panel :size [CHAN-WIDTH :by CHAN-HEIGHT] :border (to-border (inst-name ins))
                     :items [vsp pan-dial])))
 
@@ -64,4 +64,3 @@
                       (pack! f))))
                 :inst-added)
       f)))
-

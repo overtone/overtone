@@ -324,9 +324,15 @@
 (defn path-exists?
   "Returns true if file or dir specified by path exists"
   [path]
-  (let [path (resolve-tilde-path path)
+  (let [path (canonical-path path)
         f (file path)]
     (.exists f)))
+
+(defn ensure-path-exists!
+  "Throws an exception if path does not exist."
+  [path]
+  (when-not (path-exists? path)
+    (throw (Exception. (str "Error: unable locate path: " path)))))
 
 (defn file-exists?
   "Returns true if a file specified by path exists"

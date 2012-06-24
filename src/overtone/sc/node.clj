@@ -112,12 +112,13 @@
      (if (not (server-connected?))
        (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
      (let [id       (alloc-id :node)
-           position (or ((get location :position :tail) NODE-POSITION) 1)
+           position (get location :position :tail)
+           pos-id   (get NODE-POSITION position 1)
            target   (to-synth-id (get location :target 0))
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
            snode    (SynthNode. synth-name id target position (atom :loading))]
-       (apply snd "/s_new" synth-name id position (to-synth-id target) args)
+       (apply snd "/s_new" synth-name id pos-id (to-synth-id target) args)
        (swap! active-synth-nodes* assoc id snode)
        snode)))
 
@@ -188,7 +189,7 @@
 ;; group' with an ID of 1 which is the default target for all new Nodes. See
 ;; RootNode and default_group for more info.
 
-(defrecord SynthGroup [id target position status]
+(defrecord SynthGroup [group id target position status]
   to-synth-id*
   (to-synth-id [_] id))
 
@@ -196,13 +197,17 @@
   "Create a new synth group as a child of the target group. By default
   creates a new group at the tail of the root group."
   ([] (group :tail (root-group)))
-  ([position target] (group (alloc-id :node) position target))
-  ([id position target]
+  ([name] (group name :tail (root-group)))
+  ([position target]
+     (let [id (alloc-id :node)]
+       (group (str "Group-" id) id position target)))
+  ([name position target] (group name (alloc-id :node) position target))
+  ([name id position target]
      (ensure-connected!)
      (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
            target (to-synth-id target)
            pos    (or pos 1)
-           snode  (SynthGroup. id target position (atom :loading))]
+           snode  (SynthGroup. name id target position (atom :loading))]
        (swap! active-synth-nodes* assoc id snode)
        (snd "/g_new" id pos target)
        snode)))
@@ -467,10 +472,19 @@
   (let [[id n-children & new-data] *node-tree-data*]
     (set! *node-tree-data* new-data)
     (cond
-      (neg? n-children) (parse-synth-tree id ctls?) ; synth
-      (= 0 n-children) {:type :group :id id :children nil}
+      (neg? n-children)
+      (parse-synth-tree id ctls?) ; synth
+
+      (= 0 n-children)
+      {:type :group
+       :id id
+       :name (get-in @active-synth-nodes* [id :group] "Unknown Group")
+       :children nil}
+
       (pos? n-children)
-      {:type :group :id id
+      {:type     :group
+       :id       id
+       :name     (get-in @active-synth-nodes* [id :group] "Unknown Group")
        :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
 
 (defn- parse-node-tree
@@ -517,28 +531,29 @@
 (defn node-tree
   "Returns a data representation of the synth node tree starting at
   the root group."
-  []
-  (ensure-connected!)
-  (group-node-tree 0))
+  ([] (node-tree (root-group)))
+  ([root]
+     (ensure-connected!)
+     (group-node-tree (to-synth-id root))))
 
 (defn node-tree-zipper
   "Returns a zipper representing the tree of the specified node or
   defaults to the current node tree"
-  ([] (node-tree-zipper 0))
+  ([] (node-tree-zipper (root-group)))
   ([root]
      (zip/zipper map? :children #(assoc %1 :children %2) (group-node-tree root))))
 
 (defn node-tree-seq
   "Returns a lazy seq of a depth-first traversal of the tree of the
   specified node defaulting to the current node tree"
-  ([] (node-tree-zipper 0))
+  ([] (node-tree-zipper (root-group)))
   ([root] (zipper-seq (node-tree-zipper root))))
 
 (defn node-tree-matching-synth-ids
   "Returns a seq of synth ids in the node tree with specific
   root (defaulting to the entire node tree) that match regexp or
   strign."
-  ([re-or-str] (node-tree-matching-synth-ids re-or-str 0))
+  ([re-or-str] (node-tree-matching-synth-ids re-or-str (root-group)))
   ([re-or-str root]
      (let [matcher-fn (if (string? re-or-str)
                         =
@@ -550,7 +565,7 @@
 
 (on-deps :core-groups-created ::create-synth-group #(dosync
                                                      (log/debug (str "Creating synth group at head of group with id: " (root-group)))
-                                                     (ref-set synth-group* (group :head (root-group)))))
+                                                     (ref-set synth-group* (group "Synths" :head (root-group)))))
 
 (on-sync-event :reset
   (fn [event-info]
@@ -570,10 +585,10 @@
 
 (defn- setup-core-groups
   []
-  (let [input-group   (with-server-sync #(group :head 0))
-        root-group    (with-server-sync #(group :after input-group))
-        mixer-group   (with-server-sync #(group :after root-group))
-        monitor-group (with-server-sync #(group :after mixer-group))]
+  (let [input-group   (with-server-sync #(group "Input"   :head 0))
+        root-group    (with-server-sync #(group "Root"    :after input-group))
+        mixer-group   (with-server-sync #(group "Mixer"   :after root-group))
+        monitor-group (with-server-sync #(group "Monitor" :after mixer-group))]
     (dosync
       (alter core-groups* assoc
              :input   input-group
