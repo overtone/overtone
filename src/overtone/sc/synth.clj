@@ -475,7 +475,7 @@
                                constants#)
                   constants# (into [] (set (concat constants# *constants*)))]
 ;;              (println "all ugens[" (count ugens#) "]: " ugens#)
-       [~sname ~params ugens# constants#])))))
+              [~sname ~params ugens# constants#])))))
 
 (defn synth-player
   [name params this & args]
@@ -497,13 +497,8 @@
     These can also be abbreviated:
     (foo :tgt 2 :pos :head)
     "
-    (let [arg-names (map keyword (map :name params))
-          args (if (and (= 1 (count args))
-                        (map? (first args))
-                        (not (id-able-type? (first args))))
-                 (flatten (seq (first args)))
-
-                 args)
+    (let [arg-names     (map keyword (map :name params))
+          args (or args [])
           [args sgroup] (if (or (= :target (first args))
                                 (= :tgt    (first args)))
                           [(drop 2 args) (second args)]
@@ -516,16 +511,21 @@
                                 (= :tgt    (first args)))
                           [(drop 2 args) (second args)]
                           [args sgroup])
+          args          (mapcat (fn [x] (if (and (map? x)
+                                                (not (id-able-type? x)))
+                                         (flatten (seq x))
+                                         [x]))
+                                args)
           args          (map #(if (id-able-type? %)
                                 (:id %) %) args)
-          defaults (into {} (map (fn [{:keys [name value]}]
-                                   [(keyword name) @value])
-                                 params))
-          arg-map  (arg-mapper args arg-names defaults)
-          synth-node (node name arg-map {:position pos :target sgroup })
-          synth-node (if (:instance-fn this)
-                       ((:instance-fn this) synth-node)
-                       synth-node)]
+          defaults      (into {} (map (fn [{:keys [name value]}]
+                                        [(keyword name) @value])
+                                      params))
+          arg-map       (arg-mapper args arg-names defaults)
+          synth-node    (node name arg-map {:position pos :target sgroup })
+          synth-node    (if (:instance-fn this)
+                          ((:instance-fn this) synth-node)
+                          synth-node)]
       (when (:instance-fn this)
         (swap! active-synth-nodes* assoc (:id synth-node) synth-node))
       synth-node))
