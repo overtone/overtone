@@ -1,5 +1,112 @@
 # Overtone Change Log
 
+## Version 0.7 (26th June 2012)
+
+### New Committers
+* Damion Junk
+* Jacob Lee
+* Fabian Steeg
+* Michael Bernstein
+* Ian Davies
+
+### New fns
+* `overtone.sc.buffer/buffer-alloc-read` - read a audio file from path into a buffer
+* `overtone.sc.mixer/recording?` - returns true if Overtone is currently recording audio
+* `overtone.sc.buffer/buffer-info?` - determins whether the arg is buffer information
+* `overtone.sc.sample/free-sample` - free buffer associated with a loaded sample
+* `overtone.sc.sample/free-all-loaded-samples` - frees buffers associated with all loaded samples
+* `overtone.sc.buffer/file-buffer?` - returns true if arg is a file buffer
+* `overtone.music.pitch/find-scale-name` - discover the name of a scale
+* `overtone.music.pitch/find-note-name` - discover the name of a note
+* `overtone.music.pitch/find-chord` - discover the name of a chord
+* `overtone.music.pitch/note-info` - return an info map representing a note
+* `overtone.music.pitch/mk-midi-string` - returns a validated midi note string
+* `overtone.lib.at-at/show-schedule` - displays a list of currently scheduled jobs
+* `overtone.sc.node/node-get-control` - get a set of named synth control values
+* `overtone.sc.node/node-get-control-range` - getn synth control values starting at a given control name or index
+* `overtone.libs.freesound/freesound-search` search freesound.org
+* `overtone.libs.freesound/freesound-searchm` search freesound.org and expand results at macro expansion time
+* `overtone.libs.freesound/freesound-search-paths` search and download from freesound.org
+* `overtone.sc.node/node-tree-zipper` - return a zipper over the node-tree
+* `overtone.sc.node/node-tree-seq` - return a seq of node-tree nodes
+* `overtone.sc.node/node-tree-matching-synth-ids` - return a seq of node-tree nodes matching a string or regexp
+* `overtone.studio.inst/inst-volume` - control the volume of a specific inst
+* `overtone.studio.inst/inst-pan` - control the pan of a specific inst
+
+### Renamed fns
+* `buffer-cue-close` -> `buffer-stream-close`
+* `find-note-name` -> `find-pitch-class-name`
+
+### New cgens
+* `tap`- Listen in to values flowing through scsynth and have them periodically update atoms associated with a synth instance for easy reading from Clojure.
+* `scaled-play-buf` - similar to `play-buf` but auto-scales rate
+* `scaled-v-disk` - similar to `v-disk-in` but auto-scales rate
+* `hold` - hold input source for set period of time, then stop safely
+* `local-buf` - now supports SCLang's argument ordering
+
+### Improvements
+* defsynths now no longer need only one root - therefore they now support side-effecting ugen trees.
+* Varied welcome messages
+* definsts and friends now accept a single arg map
+* Instruments are now stereo and panned with controls for each
+* You can supply a map of options for the scsynth binary as a `:sc-args` key in the config
+* Store and read default log level from config as `:log-level`
+* `config-get` now supports a default value
+* `ctl` can now handle a sequence of nodes to control as its first argument.
+* Log event debug messages on a separate thread to ensure logging doesn't interfere with event handling latency
+* Using `overtone.live` now consults the config to determine whether t* boot an internal or external synth
+* All midi events are now broadcasted on the event stream
+* Connected midi devices are automatically detected on boot
+* Add support for local buffers in synths through local-buf
+* Log output is now Clojure data
+* Update logging to log to `~/.overtone.log` with two separate rolling files of max 5mb each.
+* Immigrate fns as vars, not vals - allows modifications to core fns to propogate immediately. Helpful for hacking on Overtone :-)
+* Add received OSC messages to debug output
+* Soften release of `demo` - no more clicks or pops!
+* Allow cgens to perform multichannel-expansion - similar to ugens
+* Increase amount of info stored in buffer-info and sample-info records
+* Improve interaction with external servers
+* `buffer-cue` now auto-allocates a buffer
+* Callable-maps now preserve metadata on `assoc` and `cons`
+* `defsynth` now supports cgen-like argument maps
+* New helper ns for internal helper fns
+* Safety system now uses a standard limiter
+* Groups may now be created with no params - defaulting to the tail of the root-group
+* Store names with groups and make them visible in node-tree
+* Add buffer size checking fns with sensible error messages.
+* Improve ugen error checking
+* Add additional SuperCollider paths for 3.5.1 version of SC
+
+### New protocols
+* `IMetronome`
+* `ISynthNode`
+* `ISynthGroup`
+* `ISynthBuffer`
+* `ISaveable`
+* `IControllableNode`
+* `IKillable`
+
+### New Examples
+* `examples/piano_phase.clj`
+* `examples/row_row_row_your_boat.clj`
+
+### Bugfixes
+* Sampled-piano link now points to a hopefully more persistent freesound version of samples
+* Allow creation of a buffer within the body of an at macro
+* Fix race condition by updating active-synth-nodes* before sending OSC message.
+* Fix divide-by-zero error in `buffer-info`
+* Only allow a-zA-Z0-9 chars in asset filenames. Fixes issue with bad filenames on Windows.
+* Fix startup race condition by thread-syncing retreival of in and out bus counts
+* Fix arg positioning in `buffer-cue`
+* Simplify safety system and fx using replace-out ugen correctly
+* Allocator now allows for the correct allocation of multi-channel busses.
+* `buffer-write` now handles start-idx argument correctly
+* Fix `weighted-choose`
+* Remove metronome glitches when changing bpm
+* Fix blues example
+* Fix issue caused by node not returning the synthdef
+* Fix OutputProxy printing errors by adding name field to record
+
 ## Version 0.6 (19th Dec 2011)
 
 ### New Committers
