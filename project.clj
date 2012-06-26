@@ -1,5 +1,5 @@
-(defproject overtone "0.7.0"
-  :description "Programmable Music."
+(defproject overtone "0.7.1"
+  :description "Collaborative Programmable Music."
   :url "http://project-overtone.org"
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/core.incubator "0.1.0"]
