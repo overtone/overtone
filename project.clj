@@ -4,7 +4,6 @@
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/core.incubator "0.1.0"]
                  [org.clojure/data.json "0.1.2"]
-                 [org.clojure/math.numeric-tower "0.0.1"]
                  [overtone/scsynth-jna "0.1.2-SNAPSHOT"]
                  [overtone/at-at "1.0.0"]
                  [overtone/osc-clj "0.8.0"]
