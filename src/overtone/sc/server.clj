@@ -99,8 +99,9 @@
   it. Requires SuperCollider to be installed in the standard location for your
   OS."
   ([] (boot-external-server (+ (rand-int 50000) 2000)))
-  ([port]
-     (boot :external port)
+  ([port] (boot-external-server port {}))
+  ([port opts]
+     (boot :external port opts)
      :happy-hacking))
 
 (defn boot-internal-server

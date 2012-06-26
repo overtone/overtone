@@ -228,11 +228,12 @@
           SC-ARG-INFO))
 
 (defn- merge-sc-args
-  [args]
+  [default-opts user-opts]
   (merge (sc-default-args)
          (SC-OS-SPECIFIC-ARGS (config-get :os))
-         args
-         (config-get :sc-args {})))
+         default-opts
+         (config-get :sc-args {})
+         user-opts))
 
 (defn- sc-arg-flag
   [sc-arg]
@@ -268,16 +269,16 @@
 (defn- sc-command
   "Creates a sctring array representing the sc command to execute in an
   external process (typically with #'external-booter)"
-  [port]
-  (into-array String (cons (find-sc-path) (scsynth-arglist (merge-sc-args {:port port})))))
+  [port opts]
+  (into-array String (cons (find-sc-path) (scsynth-arglist (merge-sc-args {:port port} opts)))))
 
 (defn- boot-external-server
   "Boot the audio server in an external process and tell it to listen on
   a specific port."
-  ([port]
+  ([port opts]
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
-       (let [cmd       (sc-command port)
+       (let [cmd       (sc-command port opts)
              sc-thread (Thread. #(external-booter cmd))]
          (.setDaemon sc-thread true)
          (println "--> Booting external SuperCollider server...")
@@ -306,7 +307,8 @@
                             57110"
   ([]                (boot (or (config-get :server) :internal) SERVER-PORT))
   ([connection-type] (boot connection-type SERVER-PORT))
-  ([connection-type port]
+  ([connection-type port] (boot connection-type port {}))
+  ([connection-type port opts]
      (locking connection-info*
        (when-not (= :disconnected @connection-status*)
          (throw (Exception. "Can't boot as a server is already connected/connecting!")))
@@ -321,7 +323,7 @@
        (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
          (case connection-type
            :internal (boot-internal-server)
-           :external (boot-external-server port))
+           :external (boot-external-server port opts))
          (wait-until-deps-satisfied :server-ready)))
      (print-ascii-art-overtone-logo (overtone.config.store/config-get :user-name) OVERTONE-VERSION-STR)))
 
