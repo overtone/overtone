@@ -50,7 +50,7 @@
   are also able to specify player by job id - see print-schedule."
   [sched-fn] (at-at/kill sched-fn player-pool))
 
-(def ^{:dynamic true} *apply-ahead*
+(def ^{:dynamic true :private true} *apply-ahead*
   "Amount of time apply-at is scheduled to execute *before* it was
   scheduled by the user. This is to give room for any computation/gc
   cycles and to allow the executing fn to schedule actions on scsynth
