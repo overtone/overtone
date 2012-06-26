@@ -32,9 +32,11 @@
                                  ;  evaluating tenured objects. Technically, this
                                  ;  setting promotes all live objects to the older
                                  ;  generation, rather than copying them.
-;  "-XX:CompileThreshold=1"      ; JIT each function after one execution
-;  "-XX:+PrintGC"                ; Print GC info to stdout
-;  "-XX:+PrintGCDetails"         ;  - with details
-;  "-XX:+PrintGCTimeStamps"      ;  - and timestamps
+;;  "-XX:TieredCompilation"      ; JVM7 - combine both client and server compilation
+;;                               ;  strategies
+;;  "-XX:CompileThreshold=1"     ; JIT each function after one execution
+;;  "-XX:+PrintGC"               ; Print GC info to stdout
+;;  "-XX:+PrintGCDetails"        ;  - with details
+;;  "-XX:+PrintGCTimeStamps"     ;  - and timestamps
 ]
 )
