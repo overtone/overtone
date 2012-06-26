@@ -126,9 +126,11 @@
       (apply handlers/sync-event handler-pool event-type event-info))))
 
 (defn event-debug-on
+  "Prints out all incoming events to stdout. May slow things down."
   []
   (reset! event-debug* true))
 
 (defn event-debug-off
+  "Stops debug info from being printed out."
   []
   (reset! event-debug* false))
