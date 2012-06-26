@@ -134,7 +134,7 @@
                      ". Octave is out of range. Lowest octave value is -1")))))
     matches))
 
-(defn note-map
+(defn note-info
   "Takes a string representing a midi note such as C4 and returns a map
   of note info"
   [midi-string]
@@ -150,12 +150,12 @@
 
 (defn mk-midi-string
   "Takes a string or keyword representing a pitch and a number
-  representing an integer and returns a new keyword which is a
+  representing an integer and returns a new string which is a
   concatanation of the two. Throws an error if the resulting midi
   string is invalid.
 
-  (midi-string :F 7)  ;=> :F7
-  (midi-string :Eb 3) ;=> :Eb3"
+  (midi-string :F 7)  ;=> \"F7\"
+  (midi-string :Eb 3) ;=> \"Eb3\""
   [pitch-key octave]
   (let [res (str (name pitch-key) octave)]
     (validate-midi-string! res)
@@ -186,7 +186,7 @@
                                 n
                                 ". Value is out of range. Lowest value is 0"))))
     (keyword? n) (note (name n))
-    (string? n) (:midi-note (note-map n))
+    (string? n) (:midi-note (note-info n))
     :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
 
 (defn match-note
@@ -200,7 +200,7 @@
            match       (re-find (re-pattern (str look-behind MIDI-NOTE-RE-STR look-ahead)) s)]
        (when match
          (let [[match pitch-class octave] match]
-           (note-map match))))))
+           (note-info match))))))
 
 
 
