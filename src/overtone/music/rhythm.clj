@@ -8,15 +8,15 @@
   _PROTOCOLS_
   (do
     (defprotocol IMetronome
-      (start [this] [this start-beat]
+      (metro-start [this] [this start-beat]
         "Returns the start time of the metronome. Also restarts the metronome at
      'start-beat' if given.")
-      (tick [this]
+      (metro-tick [this]
         "Returns the duration of one metronome 'tick' in milleseconds.")
-      (beat [this] [this beat]
+      (metro-beat [this] [this beat]
         "Returns the next beat number or the timestamp (in milliseconds) of the
      given beat.")
-      (bpm [this] [this new-bpm]
+      (metro-bpm [this] [this new-bpm]
         "Get the current bpm or change the bpm to 'new-bpm'."))))
 
 ; Rhythm
@@ -40,19 +40,19 @@
 (deftype Metronome [start bpm]
 
   IMetronome
-  (start [this] @start)
-  (start [this start-beat]
-    (let [new-start (- (now) (* start-beat (tick this)))]
+  (metro-start [metro] @start)
+  (metro-start [metro start-beat]
+    (let [new-start (- (now) (* start-beat (metro-tick this)))]
       (reset! start new-start)
       new-start))
-  (tick  [this] (beat-ms 1 @bpm))
-  (beat  [this] (inc (long (/ (- (now) @start) (tick this)))))
-  (beat  [this b] (+ (* b (tick this)) @start))
-  (bpm   [this] @bpm)
-  (bpm   [this new-bpm]
-    (let [cur-beat (beat this)
+  (metro-tick  [metro] (beat-ms 1 @bpm))
+  (metro-beat  [metro] (inc (long (/ (- (now) @start) (metro-tick this)))))
+  (metro-beat  [metro b] (+ (* b (metro-tick this)) @start))
+  (metro-bpm   [metro] @bpm)
+  (metro-bpm   [metro new-bpm]
+    (let [cur-beat (metro-beat this)
           new-tick (beat-ms 1 new-bpm)
-          new-start (- (beat this cur-beat) (* new-tick cur-beat))]
+          new-start (- (metro-beat this cur-beat) (* new-tick cur-beat))]
       (reset! start new-start)
       (reset! bpm new-bpm))
     [:bpm new-bpm])
@@ -65,10 +65,10 @@
           :else not-found))
 
   clojure.lang.IFn
-  (invoke [this] (beat this))
+  (invoke [this] (metro-beat this))
   (invoke [this arg]
     (cond
-     (number? arg) (beat this arg)
+     (number? arg) (metro-beat this arg)
      (= :bpm arg) (.bpm this) ;; (bpm this) fails.
      :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
   (invoke [this _ new-bpm] (.bpm this new-bpm)))
