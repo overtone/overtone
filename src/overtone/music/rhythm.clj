@@ -8,15 +8,15 @@
   _PROTOCOLS_
   (do
     (defprotocol IMetronome
-      (metro-start [this] [this start-beat]
+      (metro-start [metro] [metro start-beat]
         "Returns the start time of the metronome. Also restarts the metronome at
      'start-beat' if given.")
-      (metro-tick [this]
+      (metro-tick [metro]
         "Returns the duration of one metronome 'tick' in milleseconds.")
-      (metro-beat [this] [this beat]
+      (metro-beat [metro] [metro beat]
         "Returns the next beat number or the timestamp (in milliseconds) of the
      given beat.")
-      (metro-bpm [this] [this new-bpm]
+      (metro-bpm [metro] [metro new-bpm]
         "Get the current bpm or change the bpm to 'new-bpm'."))))
 
 ; Rhythm
@@ -42,17 +42,17 @@
   IMetronome
   (metro-start [metro] @start)
   (metro-start [metro start-beat]
-    (let [new-start (- (now) (* start-beat (metro-tick this)))]
+    (let [new-start (- (now) (* start-beat (metro-tick metro)))]
       (reset! start new-start)
       new-start))
   (metro-tick  [metro] (beat-ms 1 @bpm))
-  (metro-beat  [metro] (inc (long (/ (- (now) @start) (metro-tick this)))))
-  (metro-beat  [metro b] (+ (* b (metro-tick this)) @start))
+  (metro-beat  [metro] (inc (long (/ (- (now) @start) (metro-tick metro)))))
+  (metro-beat  [metro b] (+ (* b (metro-tick metro)) @start))
   (metro-bpm   [metro] @bpm)
   (metro-bpm   [metro new-bpm]
-    (let [cur-beat (metro-beat this)
+    (let [cur-beat (metro-beat metro)
           new-tick (beat-ms 1 new-bpm)
-          new-start (- (metro-beat this cur-beat) (* new-tick cur-beat))]
+          new-start (- (metro-beat metro cur-beat) (* new-tick cur-beat))]
       (reset! start new-start)
       (reset! bpm new-bpm))
     [:bpm new-bpm])
