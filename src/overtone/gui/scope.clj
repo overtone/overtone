@@ -34,9 +34,9 @@
                                 (satisfy-deps :scope-group-created)))
 
 (defn- ensure-internal-server!
-  "Throws an exception if the server isn't internal - scope relies on fast
-  access to shared buffers with the server which is currently only available
-  with the internal server. Also ensures server is connected."
+  "Throws an exception if the server isn't internal - scope relies on
+  fast access to shared buffers with the server which is currently only
+  available with the internal server. Also ensures server is connected."
   []
   (when (server-disconnected?)
     (throw (Exception. "Cannot use scopes until a server has been booted or connected")))
@@ -45,10 +45,11 @@
 
 (defn- update-scope-data
   "Updates the scope by reading the current status of the buffer and repainting.
-  Currently only updates bus scope as there's a bug in scsynth-jna which crashes
-  the server after too many calls to buffer-data for a large buffer. As buffers
-  tend to be large, updating the scope frequently will cause the crash to happen
-  sooner. Need to remove this limitation when scsynth-jna is fixed."
+  Currently only updates bus scope as there's a bug in scsynth-jna which
+  crashes the server after too many calls to buffer-data for a large
+  buffer. As buffers tend to be large, updating the scope frequently
+  will cause the crash to happen sooner. Need to remove this limitation
+  when scsynth-jna is fixed."
   [s]
   (let [{:keys [buf size width height panel y-arrays x-array panel]} s
         frames    (if @(:update? s) (buffer-data buf) @(:frames s))
@@ -99,7 +100,8 @@
     panel))
 
 (defn- scope-frame
-  "Display scope window. If you specify keep-on-top to be true, the window will stay on top of the other windows in your environment."
+  "Display scope window. If you specify keep-on-top to be true, the
+  window will stay on top of the other windows in your environment."
   ([panel slider title keep-on-top width height]
      (let [f (JFrame. title)
            cp (.getContentPane f)
@@ -115,8 +117,8 @@
          (.setAlwaysOnTop keep-on-top)))))
 
 (defn scopes-start
-  "Schedule the scope to be updated every (/ 1000 FPS) ms (unless the scopes are
-  already running in which case it does nothing."
+  "Schedule the scope to be updated every (/ 1000 FPS) ms (unless the
+  scopes are already running in which case it does nothing."
   []
   (ensure-internal-server!)
   (dosync
@@ -173,8 +175,8 @@
       :buf  info)))
 
 (defn scope-close
-  "Close a given scope. Copes with the case where the server has crashed by
-  handling timeout errors when killing the scope's bus-synth."
+  "Close a given scope. Copes with the case where the server has crashed
+  by handling timeout errors when killing the scope's bus-synth."
   [s]
   (log/info (str "Closing scope: \n" s))
   (let [{:keys [id bus-synth buf]} s]
@@ -265,7 +267,8 @@
        (scopes-start))))
 
 (defn pscope
-  "Creates a 'perminent' scope, i.e. one where the window is always kept on top of other OS windows. See scope."
+  "Creates a 'perminent' scope, i.e. one where the window is always kept
+  on top of other OS windows. See scope."
   ([& args]
      (ensure-internal-server!)
      (apply scope (concat args [:keep-on-top true]))))
