@@ -1,4 +1,4 @@
-(defproject overtone "0.7.0-SNAPSHOT"
+(defproject overtone "0.7.0"
   :description "Programmable Music."
   :url "http://project-overtone.org"
   :dependencies [[org.clojure/clojure "1.3.0"]
