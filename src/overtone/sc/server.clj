@@ -6,9 +6,8 @@
   overtone.sc.server
   (:import [java.util.concurrent TimeoutException])
   (:use [overtone.libs event deps]
-        [overtone.sc comms]
         [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection]
+        [overtone.sc.machinery.server connection comms]
         [overtone.helpers.lib :only [deref!]]
         [overtone.osc :only [in-osc-bundle without-osc-bundle]])
   (:require [overtone.config.log :as log]))

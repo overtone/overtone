@@ -2,8 +2,9 @@
   (:use [overtone.helpers lib]
         [overtone.helpers.seq :only [zipper-seq]]
         [overtone.libs event deps]
-        [overtone.sc comms bus server defaults]
+        [overtone.sc bus server defaults]
         [overtone.sc.machinery allocator]
+        [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]])
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]))

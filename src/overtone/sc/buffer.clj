@@ -1,9 +1,9 @@
 (ns overtone.sc.buffer
   (:use [clojure.java.io :only [file]]
         [overtone.libs event]
-        [overtone.sc comms server info defaults]
+        [overtone.sc server info defaults]
         [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection]
+        [overtone.sc.machinery.server connection comms]
         [overtone.sc server info]
         [overtone.helpers audio-file lib file]
         [overtone.sc.util :only [id-mapper]]))
