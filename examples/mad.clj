@@ -207,16 +207,18 @@
   (map #(assoc % :pitch (+ (:pitch %) shift)) pat))
 
 ; Bach would have had a blast :-)
-(comment do
-  (p (concat
-       (glp 20)
-       (reverse (glp 20))
-       (transpose (glp 20) 4)
-       (glp 20)
-       ))
-  (p (concat
-       (grp 20)
-       (transpose (reverse (grp 20)) -12)
-       (grp 20)
-       (grp 20)
-       )))
+(comment
+  (do
+    (p (concat
+        (glp 20)
+        (reverse (glp 20))
+        (transpose (glp 20) 4)
+        (glp 20)
+        ))
+    (p (concat
+        (grp 20)
+        (transpose (reverse (grp 20)) -12)
+        (grp 20)
+        (grp 20)
+        )))
+  )

@@ -15,6 +15,7 @@
       (apply-at t-next #'player [t-next speed notes]))))
 
 (def num-notes 1000)
+
 (do
   (player (now) 338 (take num-notes (cycle piece)))
   (player (now) 328 (take num-notes (cycle piece))))

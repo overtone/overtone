@@ -10,7 +10,7 @@
 ;; Output a 440 hz sin wave to the left channel:
 (defsynth beep [] (out 0 (* 0.1 (sin-osc 440))))
 
-;; (foo) plays synth and returns an integer ID of a synth instance
+;; (beep) plays synth and returns an integer ID of a synth instance
 ;; (kill <id>) kills a specific synth instance
 ;; (stop) kills all synths
 
@@ -22,9 +22,9 @@
 (defsynth beep2 [freq 440 amp 0.1]
   (out 0 (* amp (sin-osc freq))))
 
-;; (amp)
-;; (amp 220 0.4)
-;; (amp 120 0.8)
+;; (beep2)
+;; (beep2 220 0.4)
+;; (beep2 80 0.8)
 ;; (stop)
 
 ;; ## Multi-channel output
@@ -39,6 +39,9 @@
         b (* amp (sin-osc freq))]
     (out 0 [a b])))
 
+;; (beep3)
+;; (stop)
+
 ;; It would be annoying to have to duplicate everything anytime we want multi-channel
 ;; output, so Overtone also supports something called multi-channel expansion, which
 ;; is borrowed from sclang.  Expansion lets you pass a seq of arguments to any ugen
@@ -50,6 +53,9 @@
 (defsynth beep4 [freq 440 amp 0.1]
   (out 0 (* amp (sin-osc [freq freq]))))
 
+;; (beep4)
+;; (stop)
+
 ;; This can be used in all sorts of ways, for example, here we slightly offset
 ;; the frequency in one channel:
 
@@ -60,29 +66,33 @@
 ;; from the main frequency.  You can adjust parameters of a running synth instance
 ;; using the (ctl <id> <:param> <val>) function like this:
 ;;
-;; (beep5) ; => 12
-;; (ctl 12 :offset 3)
-;; (ctl 12 :offset 30)
-;; (ctl 12 :offset 300)
+;; (def b (beep5))
+;; (ctl b :offset 3)
+;; (ctl b :offset 30)
+;; (ctl b :offset 300)
+;; (stop)
 
 ;; ## Delay
 (defsynth beep6 [freq 440 amp 0.1 offset 7 delay 0.4]
-  (let [src (* (env-gen (perc)) (sin-osc [freq (+ offset freq)]))
+  (let [src (* (env-gen (perc) :action FREE) (sin-osc [freq (+ offset freq)]))
         del (delay-n src delay delay)]
     (out 0 (* amp (+ src del)))))
 
+;; (beep6)
 
 ;; ## Flanger
 ;;
 ;; A flanger is created by a signal added to a delayed copy of itself, where
 ;; the amount of the delay is varied over time.
 
-(defsynth beep6 [freq 440 amp 0.1 offset 3 rate 4 depth 0.2 delay 0.3]
+(defsynth beep7 [freq 440 amp 0.1 offset 3 rate 4 depth 0.2 delay 0.3]
   (let [src (* (env-gen (perc 0.2 0.4) (dust 1)) (sin-osc [freq (+ offset freq)]))
         lfo (* depth (abs (sin-osc rate)))
         del (delay-n src 2 (* lfo delay))]
     (out 0 (distort (* amp (+ src del))))))
 
+;; (beep7)
+;; (stop)
 
 ;; ## Chorus
 ;;
@@ -104,3 +114,6 @@
         src (* 0.6 (dust (repeat n 2)))
         del (comb-l src 0.1 (repeatedly n #(+ (rand 0.004) 0.003)) 4)]
     (out 0 (splay del :spread 0.8))))
+
+;; (voices)
+;; (stop)

@@ -93,11 +93,12 @@
                      (mouse-x 80 10000) ; frequency value
                      3))))             ; lag time
 
-(demo 10
-  (klank [(repeatedly 12 #(+ 200.0 (rand 4000)))
-          (repeat 12 0.8)
-          (repeatedly 12 #(+ 0.1 (rand 2)))]
-         (* (clip-noise) 0.01 (decay (impulse 4) 0.03))))
+;; FIXME
+;; (demo 10
+;;   (klank [(repeatedly 12 #(+ 200.0 (rand 4000)))
+;;           (repeat 12 0.8)
+;;           (repeatedly 12 #(+ 0.1 (rand 2)))]
+;;          (* (clip-noise) 0.01 (decay (impulse 4) 0.03))))
 
 ; Amplitude compensation
 ; - to account for higher pitches seeming louder

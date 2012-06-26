@@ -3,6 +3,8 @@
         overtone.gui
         [overtone.inst synth drum]))
 
+;;Work in progress
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Overtone control panel
 ; * server info
@@ -136,5 +138,3 @@
 (:steps @(:state pstep))
 
 (step-player (m))
-
-

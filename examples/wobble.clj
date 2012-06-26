@@ -33,9 +33,3 @@
       (auto-wobble
        (apply + (saw (* 50 [1.01 0.99]))) 5))
 (stop)
-
-(definst foo [freq 440]
-  (sin-osc freq))
-
-
-(def s)

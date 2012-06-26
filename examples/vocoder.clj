@@ -6,7 +6,7 @@
 
 (demo 10
       (let [input  (sound-in) ; mic
-            src    (white-nose) ; synth - try replacing this with other sound sources
+            src    (white-noise) ; synth - try replacing this with other sound sources
             formed (pv-mul (fft a input) (fft b src))
             audio  (ifft formed)]
     (* 0.1 audio)))
