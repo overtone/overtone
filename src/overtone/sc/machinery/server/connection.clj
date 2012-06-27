@@ -245,14 +245,12 @@
   [args]
   (let [udp?             (:udp? args)
         port             (:port args)
-        user-ugens-paths (or (:user-ugens-path args) [])
-        ugens-paths      (or (:ugens-path args) [])
+        ugens-paths      (or (:ugens-paths args) [])
         args             (select-keys args (keys SC-ARG-INFO))
-        args             (dissoc args :udp? :port :user-ugens-path)
+        args             (dissoc args :udp? :port)
         port-arg         (if (= 1 udp?)
                            ["-u" port]
                            ["-t" port])
-        ugens-paths      (concat user-ugens-paths ugens-paths)
         ugens-paths      (map resolve-tilde-path ugens-paths)
         ugens-paths      (filter dir-exists? ugens-paths)
         ugens-paths      (apply str (interpose ":" ugens-paths))
