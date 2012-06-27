@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.server.connection
-  (:import [java.io BufferedInputStream]
+  (:import [java.io BufferedInputStream File]
            [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
   (:use [clojure.java shell]
         [overtone.config store]
@@ -9,8 +9,9 @@
         [overtone.sc.machinery.server comms]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
-        [overtone.helpers.lib :only [print-ascii-art-overtone-logo]]
-        [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]])
+        [overtone.helpers.lib :only [print-ascii-art-overtone-logo windows-sc-path]]
+        [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]]
+        [overtone.helpers.system :only [windows-os?]])
   (:require [overtone.config.log :as log]))
 
 (defonce server-thread*       (ref nil))
@@ -191,17 +192,19 @@
 (defn- external-booter
   "Boot thread to start the external audio server process and hook up to
   STDOUT for log messages."
-  [cmd]
-  (log/debug "booting external audio server...")
-  (let [proc       (.exec (Runtime/getRuntime) cmd)
-        in-stream  (BufferedInputStream. (.getInputStream proc))
-        err-stream (BufferedInputStream. (.getErrorStream proc))
-        read-buf   (make-array Byte/TYPE 256)]
-    (while (not (= :disconnected @connection-status*))
-      (sc-log-external in-stream read-buf)
-      (sc-log-external err-stream read-buf)
-      (Thread/sleep 250))
-    (.destroy proc)))
+  ([cmd] (external-booter cmd "."))
+  ([cmd working-dir]
+     (log/debug "booting external audio server...")
+     (let [working-dir (File. working-dir)
+           proc        (.exec (Runtime/getRuntime) cmd nil working-dir)
+           in-stream   (BufferedInputStream. (.getInputStream proc))
+           err-stream  (BufferedInputStream. (.getErrorStream proc))
+           read-buf    (make-array Byte/TYPE 256)]
+       (while (not (= :disconnected @connection-status*))
+         (sc-log-external in-stream read-buf)
+         (sc-log-external err-stream read-buf)
+         (Thread/sleep 250))
+       (.destroy proc))))
 
 (defn- find-sc-path
   "Find the path for SuperCollider. If linux don't check for a file as
@@ -278,7 +281,9 @@
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
        (let [cmd       (sc-command port opts)
-             sc-thread (Thread. #(external-booter cmd))]
+             sc-thread (if (windows-os?)
+                         (Thread. #(external-booter cmd (windows-sc-path)))
+                         (Thread. #(external-booter cmd)))]
          (.setDaemon sc-thread true)
          (println "--> Booting external SuperCollider server...")
          (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
