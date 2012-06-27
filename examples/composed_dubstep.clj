@@ -1,6 +1,5 @@
 (ns examples.composed-dubstep
-  (:use [overtone.live]
-        [overtone.sc.defcgen]))
+  (:use overtone.live))
 
 (defcgen kick-drum
   "basic synthesised kick drum"
