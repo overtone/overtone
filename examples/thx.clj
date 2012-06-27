@@ -1,5 +1,5 @@
 (ns examples.thx
-  (use [overtone.live]))
+  (:use [overtone.live]))
 
 ;;Original THX sound simulation by Geirmund Simonsen:
 ;;{
