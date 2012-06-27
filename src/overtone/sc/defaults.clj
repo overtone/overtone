@@ -76,7 +76,6 @@
   and :udp?."
   {:port             {:default 57710            :desc "Port number"}
    :udp?             {:default 1                :desc "1 means use UDP, 0 means use TCP"}
-   :user-ugens-paths {:default nil              :desc "A list of paths to additional ugen directories. This list will be prepended to the default ugens list"}
    :max-control-bus  {:default 4096  :flag "-c" :desc "Number of control bus channels"}
    :max-audio-bus    {:default 128   :flag "-a" :desc "Number of audio bus channels"}
    :max-input-bus    {:default 8     :flag "-i" :desc "Number of input bus channels"}
