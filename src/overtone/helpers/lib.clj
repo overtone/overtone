@@ -328,12 +328,14 @@
         gen))
 
 (defn windows-sc-path
-  "Returns a string representing the path for SuperCollider on Windows"[]
-  (let [p-files-dir (System/getenv "PROGRAMFILES(X86)")
-        p-files-dir (or p-files-dir (System/getenv "PROGRAMFILES"))
-        p-files-dir (File. p-files-dir)
-        p-files     (map str (.listFiles p-files-dir))
-        sc-files    (filter #(.contains % "SuperCollider") p-files)
-        recent-sc   (last (sort (seq sc-files)))
-        ]
-      recent-sc))
+  "Returns a string representing the path for SuperCollider on Windows,
+   or nil if not on Windows."
+  []
+  (when (windows-os?)
+    (let [p-files-dir (System/getenv "PROGRAMFILES(X86)")
+          p-files-dir (or p-files-dir (System/getenv "PROGRAMFILES"))
+          p-files-dir (File. p-files-dir)
+          p-files     (map str (.listFiles p-files-dir))
+          sc-files    (filter #(.contains % "SuperCollider") p-files)
+          recent-sc   (last (sort (seq sc-files)))]
+      recent-sc)))
