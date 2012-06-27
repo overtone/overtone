@@ -7,7 +7,8 @@
            [java.io File])
   (:use [clojure.stacktrace]
         [clojure.pprint]
-        [overtone.helpers doc]))
+        [overtone.helpers doc]
+        [overtone.helpers.system :only [windows-os?]]))
 
 
 (defn to-str
