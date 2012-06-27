@@ -1,7 +1,6 @@
 (ns overtone.sc.defaults
   (:use [overtone.helpers.file :only [dir-exists?]]
-        [overtone.helpers.lib :only [windows-sc-path]]
-        [overtone.repl.shell :only [ls grep]])
+        [overtone.helpers.lib :only [windows-sc-path]])
   (:require [overtone.at-at :as at-at]))
 
 (def DEFAULT-MASTER-VOLUME
@@ -49,7 +48,7 @@
   "Default system paths to an externally installed SuperCollider server for
   various operating systems."
   {:linux ["scsynth"]
-   :windows [(windows-sc-path)]
+   :windows [(str (windows-sc-path) "\\scsynth.exe")]
    :mac  ["/Applications/SuperCollider/scsynth"
           "/Applications/SuperCollider.app/Contents/Resources/scsynth"
           "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth"]})
