@@ -1,5 +1,6 @@
 (ns overtone.sc.defaults
   (:use [overtone.helpers.file :only [dir-exists?]]
+        [overtone.helpers.lib :only [windows-sc-path]]
         [overtone.repl.shell :only [ls grep]])
   (:require [overtone.at-at :as at-at]))
 
@@ -44,19 +45,11 @@
   "make an at-at pool for all default scheduling"
   (at-at/mk-pool))
 
-(defn- lookup-windows-sc-path []
-  (let [p-files-dir (System/getenv "PROGRAMFILES(X86)")
-        p-files-dir (or p-files-dir (System/getenv "PROGRAMFILES"))
-        p-files     (ls p-files-dir)
-        sc-files    (grep p-files "SuperCollider")
-        recent-sc   (last (sort (seq sc-files)))]
-    (str p-files-dir "\\" recent-sc "\\scsynth.exe")))
-
 (def SC-PATHS
   "Default system paths to an externally installed SuperCollider server for
   various operating systems."
   {:linux ["scsynth"]
-   :windows [(lookup-windows-sc-path)]
+   :windows [(windows-sc-path)]
    :mac  ["/Applications/SuperCollider/scsynth"
           "/Applications/SuperCollider.app/Contents/Resources/scsynth"
           "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth"]})

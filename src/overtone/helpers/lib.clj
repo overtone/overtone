@@ -325,3 +325,12 @@
                (= :overtone.sc.machinery.defcgen/cgen (:type gen))))
     (keyword (:name gen))
         gen))
+
+(defn windows-sc-path
+  "Returns a string representing the path for SuperCollider on Windows"[]
+  (let [p-files-dir (System/getenv "PROGRAMFILES(X86)")
+        p-files-dir (or p-files-dir (System/getenv "PROGRAMFILES"))
+        p-files     (ls p-files-dir)
+        sc-files    (grep p-files "SuperCollider")
+        recent-sc   (last (sort (seq sc-files)))]
+    (str p-files-dir "\\" recent-sc "\\scsynth.exe")))
