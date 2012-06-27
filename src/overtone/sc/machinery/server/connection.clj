@@ -271,7 +271,7 @@
   "Creates a sctring array representing the sc command to execute in an
   external process (typically with #'external-booter)"
   [port opts]
-  (into-array String (cons (find-sc-path) (scsynth-arglist (merge-sc-args {:port port} opts)))))
+  (into-array String (cons (or (config-get :sc-path) (find-sc-path)) (scsynth-arglist (merge-sc-args {:port port} opts)))))
 
 (defn- boot-external-server
   "Boot the audio server in an external process and tell it to listen on
