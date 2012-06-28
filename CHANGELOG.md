@@ -1,5 +1,15 @@
 # Overtone Change Log
 
+## Version 0.7.1 (27th June 2012)
+
+### Improvements
+
+* Improve booting of external server on Windows.
+* Working dir is now set on Windows machines for `scsynth`
+* `scsynth` path is now discovered on Windows rather than hardcoded
+* Users may set :sc-path in their config to point to their scsynth
+  executable if it's not to be found in the default locations.
+
 ## Version 0.7 (26th June 2012)
 
 ### New Committers
