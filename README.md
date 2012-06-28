@@ -177,7 +177,7 @@ Overtone has generated quite a bit of interest. Here's a list of available inter
 
 For a quick glance at all the exciting functionality Overtone puts at your musical fingertips check out the cheat sheet:
 
-  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
+https://github.com/overtone/overtone/raw/master/docs/cheatsheet/overtone-cheat-sheet.pdf
 
 ## Project Info
 
