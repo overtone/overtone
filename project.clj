@@ -17,7 +17,6 @@
   ["-Xms512m" "-Xmx1g"           ; Minimum and maximum sizes of the heap
    "-XX:+UseParNewGC"            ; Use the new parallel GC in conjunction with
    "-XX:+UseConcMarkSweepGC"     ;  the concurrent garbage collector
-   "-XX:ConcGCThreads=2"         ; Use 2 threads with concurrent gc collections
    "-XX:+CMSConcurrentMTEnabled" ; Enable multi-threaded concurrent gc work (ParNewGC)
    "-XX:MaxGCPauseMillis=20"     ; Specify a target of 20ms for max gc pauses
    "-XX:+CMSIncrementalMode"     ; Do many small GC cycles to minimize pauses
@@ -30,7 +29,8 @@
                                  ;  cycle, and reduces the pause time by not
                                  ;  evaluating tenured objects. Technically, this
                                  ;  setting promotes all live objects to the older
-                                 ;  generation, rather than copying them.
+                                        ;  generation, rather than copying them.
+;;  "-XX:ConcGCThreads=2"        ; Use 2 threads with concurrent gc collections
 ;;  "-XX:TieredCompilation"      ; JVM7 - combine both client and server compilation
 ;;                               ;  strategies
 ;;  "-XX:CompileThreshold=1"     ; JIT each function after one execution
