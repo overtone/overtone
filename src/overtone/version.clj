@@ -2,7 +2,7 @@
 
 (def OVERTONE-VERSION {:major 0
                        :minor 7
-                       :patch 0
+                       :patch 1
                        :snapshot false})
 
 (def OVERTONE-VERSION-STR
@@ -11,5 +11,5 @@
          (:major version)
          "."
          (:minor version)
-         (if-not (= 0 (:patch version)) (:patch version) "")
+         (if-not (= 0 (:patch version)) (str "." (:patch version)) "")
          (if (:snapshot version) "-dev" ""))))
