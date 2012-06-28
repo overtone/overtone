@@ -11,5 +11,5 @@
          (:major version)
          "."
          (:minor version)
-         (if-not (= 0 (:patch version)) (:patch version) "")
+         (if-not (= 0 (:patch version)) (str "." (:patch version)) "")
          (if (:snapshot version) "-dev" ""))))
