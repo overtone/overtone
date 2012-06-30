@@ -1,15 +1,17 @@
 (ns overtone.sc.machinery.server.connection
-  (:import [java.io BufferedInputStream]
+  (:import [java.io BufferedInputStream File]
            [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
   (:use [clojure.java shell]
         [overtone.config store]
         [overtone.libs event deps]
         [overtone version]
-        [overtone.sc defaults comms]
+        [overtone.sc defaults]
+        [overtone.sc.machinery.server comms]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
-        [overtone.helpers.lib :only [print-ascii-art-overtone-logo]]
-        [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]])
+        [overtone.helpers.lib :only [print-ascii-art-overtone-logo windows-sc-path]]
+        [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]]
+        [overtone.helpers.system :only [windows-os?]])
   (:require [overtone.config.log :as log]))
 
 (defonce server-thread*       (ref nil))
@@ -190,17 +192,19 @@
 (defn- external-booter
   "Boot thread to start the external audio server process and hook up to
   STDOUT for log messages."
-  [cmd]
-  (log/debug "booting external audio server...")
-  (let [proc       (.exec (Runtime/getRuntime) cmd)
-        in-stream  (BufferedInputStream. (.getInputStream proc))
-        err-stream (BufferedInputStream. (.getErrorStream proc))
-        read-buf   (make-array Byte/TYPE 256)]
-    (while (not (= :disconnected @connection-status*))
-      (sc-log-external in-stream read-buf)
-      (sc-log-external err-stream read-buf)
-      (Thread/sleep 250))
-    (.destroy proc)))
+  ([cmd] (external-booter cmd "."))
+  ([cmd working-dir]
+     (log/debug "booting external audio server...")
+     (let [working-dir (File. working-dir)
+           proc        (.exec (Runtime/getRuntime) cmd nil working-dir)
+           in-stream   (BufferedInputStream. (.getInputStream proc))
+           err-stream  (BufferedInputStream. (.getErrorStream proc))
+           read-buf    (make-array Byte/TYPE 256)]
+       (while (not (= :disconnected @connection-status*))
+         (sc-log-external in-stream read-buf)
+         (sc-log-external err-stream read-buf)
+         (Thread/sleep 250))
+       (.destroy proc))))
 
 (defn- find-sc-path
   "Find the path for SuperCollider. If linux don't check for a file as
@@ -228,11 +232,12 @@
           SC-ARG-INFO))
 
 (defn- merge-sc-args
-  [args]
+  [default-opts user-opts]
   (merge (sc-default-args)
          (SC-OS-SPECIFIC-ARGS (config-get :os))
-         args
-         (config-get :sc-args {})))
+         default-opts
+         (config-get :sc-args {})
+         user-opts))
 
 (defn- sc-arg-flag
   [sc-arg]
@@ -243,14 +248,12 @@
   [args]
   (let [udp?             (:udp? args)
         port             (:port args)
-        user-ugens-paths (or (:user-ugens-path args) [])
-        ugens-paths      (or (:ugens-path args) [])
+        ugens-paths      (or (:ugens-paths args) [])
         args             (select-keys args (keys SC-ARG-INFO))
-        args             (dissoc args :udp? :port :user-ugens-path)
+        args             (dissoc args :udp? :port)
         port-arg         (if (= 1 udp?)
                            ["-u" port]
                            ["-t" port])
-        ugens-paths      (concat user-ugens-paths ugens-paths)
         ugens-paths      (map resolve-tilde-path ugens-paths)
         ugens-paths      (filter dir-exists? ugens-paths)
         ugens-paths      (apply str (interpose ":" ugens-paths))
@@ -268,17 +271,19 @@
 (defn- sc-command
   "Creates a sctring array representing the sc command to execute in an
   external process (typically with #'external-booter)"
-  [port]
-  (into-array String (cons (find-sc-path) (scsynth-arglist (merge-sc-args {:port port})))))
+  [port opts]
+  (into-array String (cons (or (config-get :sc-path) (find-sc-path)) (scsynth-arglist (merge-sc-args {:port port} opts)))))
 
 (defn- boot-external-server
   "Boot the audio server in an external process and tell it to listen on
   a specific port."
-  ([port]
+  ([port opts]
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
-       (let [cmd       (sc-command port)
-             sc-thread (Thread. #(external-booter cmd))]
+       (let [cmd       (sc-command port opts)
+             sc-thread (if (windows-os?)
+                         (Thread. #(external-booter cmd (windows-sc-path)))
+                         (Thread. #(external-booter cmd)))]
          (.setDaemon sc-thread true)
          (println "--> Booting external SuperCollider server...")
          (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
@@ -306,7 +311,8 @@
                             57110"
   ([]                (boot (or (config-get :server) :internal) SERVER-PORT))
   ([connection-type] (boot connection-type SERVER-PORT))
-  ([connection-type port]
+  ([connection-type port] (boot connection-type port {}))
+  ([connection-type port opts]
      (locking connection-info*
        (when-not (= :disconnected @connection-status*)
          (throw (Exception. "Can't boot as a server is already connected/connecting!")))
@@ -321,7 +327,7 @@
        (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
          (case connection-type
            :internal (boot-internal-server)
-           :external (boot-external-server port))
+           :external (boot-external-server port opts))
          (wait-until-deps-satisfied :server-ready)))
      (print-ascii-art-overtone-logo (overtone.config.store/config-get :user-name) OVERTONE-VERSION-STR)))
 

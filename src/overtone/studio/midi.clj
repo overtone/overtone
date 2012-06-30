@@ -76,7 +76,7 @@
     on-key)
     (on-event [:midi :note-off] (fn [{note :note velocity :velocity}]
                                   (let [n (get @notes* note)]
-                                    (node-control n :gate 0))
+                                    (node-control n {:gate 0}))
                                   (swap! notes* dissoc note))
               off-key)
     {:notes* notes*

@@ -1,88 +1,77 @@
 (ns examples.samples
-  (:use overtone.live))
+  (:use overtone.live
+        [overtone.gui.scope :only [pscope]]))
 
-;;; Read me, and evaluate line by line as you go.  To evaluate a form highlight it with the mouse
-;;; and type <control-e>, using the "e" for evaluate.  The repl window below will show the output
-;;; of everything you evaluate.  This is helpful for documentation too.  All ugen functions
-;;; have doc strings.  Try evaluating these:
+;;; Read me, and evaluate line by line as you go.  To evaluate a form
+;;; highlight it with the mouse and type <control-e>, using the "e" for
+;;; evaluate.  The repl window below will show the output of everything
+;;; you evaluate.  This is helpful for documentation too.  All ugen
+;;; functions have doc strings.  Try evaluating these:
 
-(doc buf-rd)
-(doc buf-frames)
-(doc sin-osc)
-(doc lf-tri)
-(doc phasor)
+(odoc buf-rd)
+(odoc buf-frames)
+(odoc sin-osc)
+(odoc lf-tri)
+(odoc phasor)
 
-; In order to play samples instantly they have to be in memory.  (You use memory
-; buffers for other synths too, for example in an echo effect.)
+;; In order to play samples instantly they have to be in memory.  (You
+;; use memory buffers for other synths too, for example in an echo
+;; effect.)
 
-; Load a sample into a buffer. You'll need to change this file path to point to a
-; wav file on your machine.
-(def flute-buf (load-sample "/home/rosejn/studio/samples/flutes/flutey-echo-intro-blast.wav"))
+;; Load a sample into a buffer. If this is the first time you're using
+;; sample 35809 from freesound, then it'll take a few seconds to
+;; download...
 
-; Now the audio data for the sample is loaded into a buffer.  You can view the buffer in the
-; scope window too.  Click in the scope tab on the right, and evaluate this.
-(scope :buf flute-buf)
+(def flute-buf (load-sample (freesound-path 35809)))
 
-; If you just want to play a buffer and adjust the speed or looping
-; play-buf is probably the easiest way.
-(doc play-buf)
+;; Now the audio data for the sample is loaded into a buffer.  You can
+;; view the buffer in the scope window too.  Click in the scope tab on
+;; the right, and evaluate this.
+(pscope :buf flute-buf)
 
+;; If you just want to play a buffer and adjust the speed or looping
+;; play-buf is probably the easiest way.
+(odoc sample-player)
 
-(synth (play-buf 1 flute-buf 1 1 0 0 FREE))
+(sample-player flute-buf)
 
-; Try layering these looped versions, eval each line
-(synth (play-buf 1 flute-buf 1 1 0 1))
-(*1)
-(synth (play-buf 1 flute-buf 0.5 1 0 1))
-(*1)
-(synth (play-buf 1 flute-buf 1.5 1 0 1))
-(*1)
-(synth (play-buf 1 flute-buf 0.25 1 0 1))
-(*1)
-(synth (play-buf 1 flute-buf 2 1 0 1))
-(*1)
-(reset)
+;; to stop, just use the (stop) fn:
+(stop)
 
 
-; buf-rd takes an oscillator as the index into the buffer its reading.  This lets you sweep
-; back and forth across a buffer in any direction and at any rate.
+;; Try layering these looped versions, eval each line
+;; [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
+(sample-player flute-buf :rate 1 :loop? true)
+(sample-player flute-buf :rate 0.5 :loop? true)
+(sample-player flute-buf :rate 1.5 :loop? true)
+(sample-player flute-buf :rate 0.25 :loop? true)
+(sample-player flute-buf :rate 2 :loop? true)
 
-; zip back and forth across the buffer with a sin wave
-(synth (buf-rd 1 flute-buf (* (sin-osc 0.1) (buf-frames flute-buf))))
-(*1)
-(reset)
+;; When you've had enough, then stop them:
+(stop)
 
-; randomly play at different rates
-(synth (buf-rd 1 flute-buf (* (lf-noise1 1) (buf-frames flute-buf))))
-(*1)
-(reset)
-(synth (buf-rd 1 flute-buf (* (lf-noise1 10) (buf-frames flute-buf))))
-(*1)
-(reset)
+;;sample-player uses the ugen play-buf behind the scenes to play the
+;;buffer. This plays the sample linearly with options such as rate and
+;;loop? However, we're not just limited to playing back buffers
+;;linearly, we can do all sorts of crazy stuff...
 
-; the triangle waves give a sense of building
-(synth (buf-rd 1 flute-buf (+ (lf-tri 0.1) (* (lf-tri 0.23) (buf-frames flute-buf)))))
-(*1)
-(reset)
 
-; experiment with different ways of modulating the rate
-(synth (buf-rd 1 flute-buf (* (sin-osc (* 0.1 (sin-osc 0.02))) (buf-frames:ir 0))))
-(*1)
-(reset)
+;; buf-rd takes an oscillator as the index into the buffer its reading.
+;; This lets you sweep back and forth across a buffer in any direction
+;; and at any rate.
 
-; this would be a typical way to play back at normal rates, using a phasor.
-; phasors just count from a start value to an end value. Using buf-frames
-; we can get the size of the buffer, and buf-rate-scale figures out any
-; sampling rate difference.
+;; zip back and forth across the buffer with a sin wave
+(demo 10 (buf-rd 2 flute-buf (* (sin-osc 0.1) (buf-frames flute-buf))))
 
-(defsynth buf-player [buf 0 rate 1 loop? 0]
-  (buf-rd 1 buf (phasor 0 (* rate (buf-rate-scale 0)) 0 (buf-frames:ir 0))
-          loop? 2))
 
-; evaluate these one on top of another to layer the sample at different pitches
-(buf-player (:id flute-buf) 1)
-(buf-player (:id flute-buf) 0.5)
-(buf-player (:id flute-buf) 1.5)
-(buf-player (:id flute-buf) 3)
-(buf-player (:id flute-buf) 0.25)
-(reset)
+;; randomly play at different rates
+(demo 10 (buf-rd 2 flute-buf (* (lf-noise1 1) (buf-frames flute-buf))))
+(demo 10 (buf-rd 2 flute-buf (* (lf-noise1 10) (buf-frames flute-buf))))
+
+
+;; the triangle waves give a sense of building
+(demo 10 (buf-rd 2 flute-buf (+ (lf-tri 0.1) (* (lf-tri 0.23) (buf-frames flute-buf)))))
+
+
+;; experiment with different ways of modulating the rate
+(demo 10 (buf-rd 2 flute-buf (* (sin-osc (* 0.1 (sin-osc 0.02))) (buf-frames:ir 0))))

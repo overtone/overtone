@@ -3,6 +3,8 @@
         [overtone.gui.surface core button monome fader dial])
   (:require [overtone.gui.sg :as sg]))
 
+;; requires GUI stuff which is still in development
+
 (defsynth tb303 [note 60 wave 1
                  cutoff 100 r 0.9
                  attack 0.101 decay 1.8 sustain 0.2 release 0.2

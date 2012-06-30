@@ -8,7 +8,8 @@
   (:use [overtone.byte-spec]
         [overtone.helpers lib]
         [overtone.libs event deps]
-        [overtone.sc comms server]
+        [overtone.sc server]
+        [overtone.sc.machinery.server comms]
         [overtone.helpers.file :only [resolve-tilde-path]]
         [overtone.helpers.system :only [get-os]])
   (:require [overtone.config.log :as log]))

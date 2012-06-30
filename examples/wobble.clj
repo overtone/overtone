@@ -2,7 +2,8 @@
   (:use [overtone.live]))
 
 (defcgen wobble
-  "wobble an input source to a specified wobble val (which is designed to be remotely modulated"
+  "wobble an input source to a specified wobble val (which is designed
+  to be remotely modulated"
   [src {:doc "input source"}
    wobble-amount {:doc "Amount of wobble to apply (-1 to 1)" :default 0}
    min {:doc "minimum freq to always let through" :default 40}
@@ -33,9 +34,3 @@
       (auto-wobble
        (apply + (saw (* 50 [1.01 0.99]))) 5))
 (stop)
-
-(definst foo [freq 440]
-  (sin-osc freq))
-
-
-(def s)

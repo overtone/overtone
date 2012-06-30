@@ -3,10 +3,12 @@
       :author "Jeff Rose and Sam Aaron"}
   overtone.helpers.lib
   (:import [java.util ArrayList Collections]
-           [java.util.concurrent TimeUnit TimeoutException])
+           [java.util.concurrent TimeUnit TimeoutException]
+           [java.io File])
   (:use [clojure.stacktrace]
         [clojure.pprint]
-        [overtone.helpers doc]))
+        [overtone.helpers doc]
+        [overtone.helpers.system :only [windows-os?]]))
 
 
 (defn to-str
@@ -266,6 +268,17 @@
   [m]
   (into {} (map (fn [[k v]] [k (if (keyword? v) (name v) (str v))]) m)))
 
+(defn- welcome-message
+  [user-name]
+  (let [opts [(str "Hello " user-name ", may this be the start of a beautiful music hacking session...")
+              (str "Cometh the hour, cometh " user-name ", the overtone hacker.")
+              (str "Hello " user-name ", may algorithmic beauty pour forth from your fingertips today.")
+              (str "Hey " user-name ", I feel something magical is only just beyond the horizon...")
+              (str "Hello " user-name ", just take a moment to pause and focus your creative powers...")
+              (str "Hello " user-name ". Do you feel it? I do. Creativity is rushing through your veins today!")]]
+    (rand-nth opts)))
+
+
 (defn print-ascii-art-overtone-logo
   [user-name version-str]
   (println (str "
@@ -278,7 +291,8 @@
               Collaborative Programmable Music. "version-str "
 
 
-Hello " user-name ", may this be the start of a beautiful music hacking session...")))
+" (welcome-message user-name) "
+")))
 
 (defn normalize-ugen-name
   "Normalizes both SuperCollider and overtone-style names to squeezed lower-case.
@@ -313,3 +327,16 @@ Hello " user-name ", may this be the start of a beautiful music hacking session.
                (= :overtone.sc.machinery.defcgen/cgen (:type gen))))
     (keyword (:name gen))
         gen))
+
+(defn windows-sc-path
+  "Returns a string representing the path for SuperCollider on Windows,
+   or nil if not on Windows."
+  []
+  (when (windows-os?)
+    (let [p-files-dir (System/getenv "PROGRAMFILES(X86)")
+          p-files-dir (or p-files-dir (System/getenv "PROGRAMFILES"))
+          p-files-dir (File. p-files-dir)
+          p-files     (map str (.listFiles p-files-dir))
+          sc-files    (filter #(.contains % "SuperCollider") p-files)
+          recent-sc   (last (sort (seq sc-files)))]
+      recent-sc)))

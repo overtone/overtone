@@ -145,7 +145,7 @@
 ;; write demand sequence into a buffer
 ;;create and fill the buffer:
 (def b (buffer 24 1))
-(buffer-write! b 0 24 (repeat 24 210))
+(buffer-write! b 0 (repeat 24 210))
 ;;play this and click around the screen. y is freq, x is buf pos
 (demo 60
       (let [val (mouse-y 1000 200 1)

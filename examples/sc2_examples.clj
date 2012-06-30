@@ -34,13 +34,9 @@
              0.2)
        0.3 [0.2 0.25] 2))
 
-;;moto-rev
-(demo 10
-  (clip2 (rlpf (lf-pulse (mul-add (sin-osc:kr 0.2 0) 10 21) 0.1) 100 0.1) 0.4))
-
 ;;scratchy
 (demo
-  (rhpf (* (maximum (brown-noise [0.5 0.5] -0.49) 0) 20)
+  (rhpf (* (max (brown-noise [0.5 0.5] -0.49) 0) 20)
         5000
         1))
 
@@ -48,3 +44,8 @@
 ;;sprinkler
 (demo
   (bpz2:ar (white-noise:ar (mul-add (lf-pulse:kr (mouse-x:kr 0.2 50) 0 0.25) 0.1 0))))
+
+;;FIXME
+;;moto-rev
+;; (demo 10
+;;   (clip2 (rlpf (lf-pulse (mul-add (sin-osc:kr 0.2 0) 10 21) 0.1) 100 0.1) 0.4))

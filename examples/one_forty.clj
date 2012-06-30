@@ -15,4 +15,4 @@
   (sin-osc (+ 200 (* [30 30] (brown-noise))) (+ (lf-noise1:kr [1 1]) 1) ))
 
 ; Originally by Jose Padovani
-(demo 10 (sin-osc (* (trig (saw 165 1)) 165)))
+(demo 10 (sin-osc (* (trig (lf-saw:kr 165 1)) 165)))

@@ -1,7 +1,8 @@
 (ns examples.synthesis
-  (:use overtone.live))
+  (:use overtone.live
+        [overtone.gui.scope :only [pscope]]))
 
-(scope)
+(pscope)
 
 ; FM synthesis
 (definst fma [freq-a 440 amp-a 0.7 freq-b 150 amp-b 0.7]

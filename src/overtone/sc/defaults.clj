@@ -1,5 +1,6 @@
 (ns overtone.sc.defaults
-  (:use [overtone.helpers.file :only [dir-exists?]])
+  (:use [overtone.helpers.file :only [dir-exists?]]
+        [overtone.helpers.lib :only [windows-sc-path]])
   (:require [overtone.at-at :as at-at]))
 
 (def DEFAULT-MASTER-VOLUME
@@ -47,24 +48,7 @@
   "Default system paths to an externally installed SuperCollider server for
   various operating systems."
   {:linux ["scsynth"]
-   :windows ["C:/Program Files/SuperCollider-3.5.2/scsynth.exe"
-             "D:/Program Files/SuperCollider-3.5.2/scsynth.exe"
-             "E:/Program Files/SuperCollider-3.5.2/scsynth.exe"
-             "C:/Program Files (x86)/SuperCollider-3.5.2/scsynth.exe"
-             "D:/Program Files (x86)/SuperCollider-3.5.2/scsynth.exe"
-             "E:/Program Files (x86)/SuperCollider-3.5.2/scsynth.exe"
-             "C:/Program Files/SuperCollider-3.5.1/scsynth.exe"
-             "D:/Program Files/SuperCollider-3.5.1/scsynth.exe"
-             "E:/Program Files/SuperCollider-3.5.1/scsynth.exe"
-             "C:/Program Files (x86)/SuperCollider-3.5.1/scsynth.exe"
-             "D:/Program Files (x86)/SuperCollider-3.5.1/scsynth.exe"
-             "E:/Program Files (x86)/SuperCollider-3.5.1/scsynth.exe"
-             "C:/Program Files/SuperCollider/scsynth.exe"
-             "D:/Program Files/SuperCollider/scsynth.exe"
-             "E:/Program Files/SuperCollider/scsynth.exe"
-             "C:/Program Files (x86)/SuperCollider/scsynth.exe"
-             "D:/Program Files (x86)/SuperCollider/scsynth.exe"
-             "E:/Program Files (x86)/SuperCollider/scsynth.exe"]
+   :windows [(str (windows-sc-path) "\\scsynth.exe")]
    :mac  ["/Applications/SuperCollider/scsynth"
           "/Applications/SuperCollider.app/Contents/Resources/scsynth"
           "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth"]})
@@ -84,7 +68,6 @@
   and :udp?."
   {:port             {:default 57710            :desc "Port number"}
    :udp?             {:default 1                :desc "1 means use UDP, 0 means use TCP"}
-   :user-ugens-paths {:default nil              :desc "A list of paths to additional ugen directories. This list will be prepended to the default ugens list"}
    :max-control-bus  {:default 4096  :flag "-c" :desc "Number of control bus channels"}
    :max-audio-bus    {:default 128   :flag "-a" :desc "Number of audio bus channels"}
    :max-input-bus    {:default 8     :flag "-i" :desc "Number of input bus channels"}
@@ -99,7 +82,7 @@
    :max-w-buffers    {:default 64    :flag "-w" :desc "Number of wire buffers"}
    :num-rand-seeds   {:default 64    :flag "-r" :desc "Number of random seeds"}
    :load-sdefs?      {:default 1     :flag "-D" :desc "Load synthdefs on boot? 0 or 1"}
-   :rendezvous?      {:default 1     :flag "-R" :desc "Publish to rendezvous? 0 or 1"}
+   :rendezvous?      {:default 0     :flag "-R" :desc "Publish to rendezvous? 0 or 1"}
    :max-logins       {:default 64    :flag "-l" :desc "Maximum number of named return addresses stored - also maximum number of txp connections accepted."}
    :pwd              {:default nil   :flag "-p" :desc "When using TCP, the session password must be the first command sent."}
    :non-realtime     {:default nil   :flag "-N" :desc "Non-realtime mode. Requires a space separated string of <cmd-fielname> <input-filename> <output-filename> <sample-rate> <header-format> <sample-format>"}

@@ -44,7 +44,7 @@ Overtone is an Open Source toolkit for designing synthesizers and collaborating 
 
     # add the following dependencies to insane-noises/project.clj
     # [org.clojure/clojure "1.3.0"]
-    # [overtone "0.6.0"]
+    # [overtone "0.7.0"]
 
     $ cd insane-noises
     $ lein deps
@@ -177,7 +177,7 @@ Overtone has generated quite a bit of interest. Here's a list of available inter
 
 For a quick glance at all the exciting functionality Overtone puts at your musical fingertips check out the cheat sheet:
 
-  https://github.com/downloads/overtone/overtone/overtone-cheat-sheet.pdf
+https://github.com/overtone/overtone/raw/master/docs/cheatsheet/overtone-cheat-sheet.pdf
 
 ## Project Info
 
@@ -212,7 +212,7 @@ to submit a patch then fork your own copy and do a pull request.
 Overtone and its dependencies are on http://clojars.org, and the dependency for
 your project.clj is:
 
-    [overtone "0.6.0"]
+    [overtone "0.7.0"]
 
 ## Acknowledgements
 

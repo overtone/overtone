@@ -15,7 +15,7 @@
   (let [params (assoc params :api_key *api-key*)]
     (build-url url params)))
 
-(def base-url "http://www.freesound.org/api")
+(def ^:private base-url "http://www.freesound.org/api")
 
 (defn- freesound-url
   "Generate a freesound.org api url. Accepts an optional map of query-params as the last argument."
@@ -67,7 +67,7 @@
     (asset/asset-path url name)))
 
 ;; ## Pack Info
-(defn pack-info-url
+(defn- pack-info-url
   [id]
   (freesound-url "/packs/" id))
 

@@ -6,11 +6,10 @@
   overtone.sc.server
   (:import [java.util.concurrent TimeoutException])
   (:use [overtone.libs event deps]
-        [overtone.sc comms]
         [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection]
+        [overtone.sc.machinery.server connection comms]
         [overtone.helpers.lib :only [deref!]]
-        [overtone.osc :only [in-osc-bundle]])
+        [overtone.osc :only [in-osc-bundle without-osc-bundle]])
   (:require [overtone.config.log :as log]))
 
 (defonce synth-group* (ref nil))
@@ -51,6 +50,10 @@
   started on another thread."
   [time-ms & body]
   `(in-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))
+
+(defmacro snd-immediately
+  [& body]
+  `(without-osc-bundle @server-osc-peer* ~@body))
 
 (defn snd
   "Sends an OSC message to the server. If the message path is a known
@@ -95,8 +98,9 @@
   it. Requires SuperCollider to be installed in the standard location for your
   OS."
   ([] (boot-external-server (+ (rand-int 50000) 2000)))
-  ([port]
-     (boot :external port)
+  ([port] (boot-external-server port {}))
+  ([port opts]
+     (boot :external port opts)
      :happy-hacking))
 
 (defn boot-internal-server

@@ -216,7 +216,7 @@
         (when (pos? size)
           (do (.write out-stream buffer 0 size)
               (recur (+ size bytes-copied))))))
-    (print-if-verbose "Download successful")))
+    (print-if-verbose "--> Download successful")))
 
 (defn- download-file-without-timeout
   "Downloads remote file at url to local file specified by target path. Has
@@ -398,7 +398,7 @@
   (let [size     (remote-file-size url)
         p-size   (pretty-file-size size)
         size-str (if (<= size 0) "" (str "(" p-size ")"))]
-    (print-if-verbose (str "Downloading file " size-str " - "  url))))
+    (print-if-verbose (str "--> Downloading file " size-str " - "  url))))
 
 (defn download-file
   "Downloads the file pointed to by url to local path. If no timeout

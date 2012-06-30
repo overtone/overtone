@@ -1,5 +1,6 @@
 (ns examples.experiments
-  (:use overtone.live))
+  (:use overtone.live
+        [overtone.helpers.seq :only [parallel-seqs]]))
 
 (definst saw-sin [freq-a 443
                    freq-b 440]
@@ -42,14 +43,6 @@
           (+ (* 0.8 freq) (* f-env 2 freq)) 3/4)))
 
 ;(resonant-pad)
-
-(defsynth pan-test [note 60]
-  (let [freq (midicps note)
-        waves (saw [freq (* 1.5 freq)])
-        pans (pan2 waves (saw 0.2))]
-    (out 0 (map + (overtone.sc.ugen/parallel-seqs (pan2 waves pans))))))
-
-;(pan-test)
 
 (defsynth splay-test [note 60]
   (let [freq  (midicps note)

@@ -5,10 +5,11 @@
   (:use [clojure.core.incubator :only [dissoc-in]]
         [overtone.music rhythm pitch]
         [overtone.libs event deps]
-        [overtone.sc.machinery synthdef]
         [overtone.helpers lib]
+        [overtone.sc defaults server synth ugens envelope node bus]
+        [overtone.sc.machinery synthdef]
         [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
-        [overtone.sc comms defaults server synth ugens envelope node bus]
+        [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]]
         [overtone.music rhythm time])
   (:require [overtone.studio fx]

@@ -1,9 +1,9 @@
 (ns overtone.sc.buffer
   (:use [clojure.java.io :only [file]]
         [overtone.libs event]
-        [overtone.sc comms server info defaults]
+        [overtone.sc server info defaults]
         [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection]
+        [overtone.sc.machinery.server connection comms]
         [overtone.sc server info]
         [overtone.helpers audio-file lib file]
         [overtone.sc.util :only [id-mapper]]))
@@ -76,7 +76,10 @@
   requested ('n-frames') into the buffer, or fewer if the file is
   smaller than requested. Reads sound file data from the given starting
   frame ('start') in the file. If 'n-frames' is less than or equal to
-  zero, the entire file is read."
+  zero, the entire file is read.
+
+  May not be scheduled with the at macro. All inner OSC calls are sent
+  immediately."
   ([path]
      (buffer-alloc-read path 0 -1))
   ([path start]
@@ -86,16 +89,17 @@
      (let [path (canonical-path path)
            f    (file path)
            id   (alloc-id :audio-buffer)]
-       (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
-       (let [info                              (buffer-info id)
-             {:keys [id size rate n-channels]} info]
-         (when (every? zero? [size rate n-channels])
-           (free-id :audio-buffer id)
-           (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
+       (snd-immediately
+         (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
+         (let [info                              (buffer-info id)
+               {:keys [id size rate n-channels]} info]
+           (when (every? zero? [size rate n-channels])
+             (free-id :audio-buffer id)
+             (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
 
-         (map->BufferFile
-          (assoc info
-            :allocated-on-server (atom true)))))))
+           (map->BufferFile
+            (assoc info
+              :allocated-on-server (atom true))))))))
 
 (derive BufferInfo ::buffer-info)
 (derive Buffer     ::buffer)
