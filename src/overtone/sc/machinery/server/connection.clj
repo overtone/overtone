@@ -138,9 +138,12 @@
 (defn connect
   "Connect to an externally running SC audio server.
 
-  (connect 57710)                ;=> connect to an external server on
+  (connect)                      ;=> connect to an external server on
+                                     localhost listening to the default
+                                     port for scsynth 57710
+  (connect 55555)                ;=> connect to an external server on
                                      the localhost listening to port
-                                     57710
+                                     55555
   (connect \"192.168.1.23\" 57110) ;=> connect to an external server with
                                      ip address 192.168.1.23 listening to
                                      port 57110"
