@@ -1,4 +1,6 @@
-(ns examples.monotron)
+(ns examples.monotron
+  (:use overtone.live))
+
 ;; Monotron Clone Attempt by Roger Allen.
 ;;
 ;; My first definst, so much could easily be wrong below...
@@ -13,9 +15,6 @@
 ;;
 ;; found filter discussion here
 ;; http://www.timstinchcombe.co.uk/index.php?pge=mono
-
-;; ----------------------------------------------------------------------
-(use 'overtone.live)
 
 (defsynth monotron
   "Korg Monotron from website diagram: http://korg.com/services/products/monotron/monotron_Block_diagram.jpg."
