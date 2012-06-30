@@ -69,6 +69,9 @@
       :coord      i32
       :sndfile    void*)
 
+    (bool-val
+      :value byte)
+
     ; supercollider/include/plugin_interface/SC_World.h
     (world
       :hidden-world void*
@@ -122,7 +125,7 @@
   (:callbacks
 
     ; supercollider/include/common/SC_Reply.h
-   (reply-callback [reply-address* char* i32] void))
+   (reply-callback [void* void* i32] void))
 
   ; TODO: void* here is actually world*
   (:functions
@@ -135,7 +138,7 @@
     (world-open-udp-port World_OpenUDP [void* i32] i32)
     (world-open-tcp-port World_OpenTCP [void* i32 i32 i32] i32)
     (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
-    (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte] i32)))
+    (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
 (loadlib lib-scsynth)
 
@@ -221,8 +224,8 @@
    (let [options (byref world-options)
          cb      (callback reply-callback
                            (fn [addr msg-buf msg-size]
-                             (println "got msg buf: " msg-buf)
-                             (recv-fn (.order msg-buf ByteOrder/BIG_ENDIAN) msg-size)))]
+                             (let [byte-buf (.getByteBuffer msg-buf 0 msg-size)]
+                               (recv-fn (.order byte-buf ByteOrder/BIG_ENDIAN)))))]
      (set-world-options! options options-map)
      {:world (world-new options)
       :callback cb})))
@@ -240,9 +243,7 @@
 
 (defn scsynth-send
   [sc ^ByteBuffer buf]
-  (println "scsynth-send.............. before")
-  (world-send-packet (:world sc) (.limit buf) buf (:callback sc))
-  (println "scsynth-send.............. after"))
+  (world-send-packet (:world sc) (.limit buf) buf (:callback sc)))
 
 (defn scsynth-run
   "Starts the synthesis server main loop, and does not return until the /quit message
@@ -250,13 +251,10 @@
   [sc]
   (world-run (:world sc)))
 
-(comment
-(use 'overtone.core)
-(use 'overtone.sc.machinery.server.native)
-(def s (scsynth (fn [msg size] (println "got msg: " msg))))
-(future (scsynth-run s))
-(scsynth-listen-udp s 57110)
-(connect-external-server)
-(defsynth foo [] (out 0 (saw [440 443])))
-(foo)
-)
+(defn scsynth-get-buffer-data
+  "Get a an array of floats for the synthesis sound buffer with the given ID."
+  [sc buf-id]
+  (let [buf (byref sound-buffer)
+        changed? (byref bool-val)]
+    (world-copy-sound-buffer (:world sc) buf-id buf 0 changed?)
+    buf))

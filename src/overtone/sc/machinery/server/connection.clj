@@ -1,12 +1,11 @@
 (ns overtone.sc.machinery.server.connection
-  (:import [java.io BufferedInputStream File]
-;           [supercollider ScSynth ScSynthStartedListener MessageReceivedListener])
+  (:import [java.io BufferedInputStream File])
   (:use [clojure.java shell]
         [overtone.config store]
         [overtone.libs event deps]
         [overtone version]
         [overtone.sc defaults]
-        [overtone.sc.machinery.server comms]
+        [overtone.sc.machinery.server comms native]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
         [overtone.helpers.lib :only [print-ascii-art-overtone-logo windows-sc-path]]
@@ -166,21 +165,6 @@
     (log/info "The internal scsynth server has booted...")
     (satisfy-deps :internal-server-booted)
     (scsynth-run server)))
-
-(comment defn- old-internal-booter
-  "Fn to actually boot internal server. Typically called within a thread."
-  []
-  (log/info "booting internal audio server")
-  (on-deps :internal-server-booted ::connect-internal connect-internal)
-  (let [server (ScSynth.)
-        listener (reify ScSynthStartedListener
-                   (started [this]
-                   ;(scSynthStarted [this]
-                     (log/info "Boot listener has detected the internal server has booted...")
-                     (satisfy-deps :internal-server-booted)))]
-    (.addScSynthStartedListener server listener)
-    (dosync (ref-set sc-world* server))
-    (.run server)))
 
 (defn- boot-internal-server
   "Boots internal server by executing it on a daemon thread."
