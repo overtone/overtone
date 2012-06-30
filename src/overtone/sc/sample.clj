@@ -160,8 +160,9 @@
   sample-player)
 
 (defn sample
-  "Loads a .wav or .aiff file into a memory buffer. Returns a function capable
-   of playing that sample.
+  "Loads a .wav or .aiff file into a memory buffer. Returns a function
+   capable of playing that sample. Memoizes result and returns same
+   sample on subsequent calls.
 
    ; e.g.
    (sample \"~/music/samples/flibble.wav\")
