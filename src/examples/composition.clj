@@ -8,10 +8,11 @@
      (pluck (* (white-noise) (env-gen (perc 0.001 5) :action FREE))
             1 1 (/ 1 freq) (* duration 2) 0.25))))
 
+; NOTE: the duration is so short because otherwise we max out the internal
+; server's memory allocator.
 (definst harpsichord [freq 440]
-    (let [duration 0.5
+    (let [duration 0.1
           snd  (string freq duration)
-;          ]
           t1   (* 0.2 (string (* 2/1 freq) duration))
           t2   (* 0.15 (string (* 3/2 freq) duration))
           t3   (* 0.1 (string (* 4/3 freq) duration))
@@ -46,4 +47,4 @@
           (play (after 16 metro) notes)))
 
 ;(play (metronome 120) melody)
-;;(play-round (metronome 120) melody)
+;(play-round (metronome 120) melody)
