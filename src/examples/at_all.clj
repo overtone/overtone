@@ -13,11 +13,11 @@
   #(timing (+ offset %)))
 
 (defn speed-up [metro factor]
-  (bpm metro (* factor (bpm metro)))
+  (metro-bpm metro (* factor (metro-bpm metro)))
   metro)
 
-(def scale 60)
-(defn ground [note] (+ scale note))
+(def base 60)
+(defn ground [note] (+ base note))
 
 (def note# (comp sampled-piano ground))
 (defn chord# [chord] (doseq [note (vals chord)] (note# note)))
@@ -107,4 +107,4 @@
 (defn play# [] (-> (metronome 160) (from 2) intro# first-bit#
                  (speed-up 3/2) variation# final-chord#))
 
- (play#)
+(play#)
