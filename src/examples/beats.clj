@@ -1,23 +1,7 @@
 (ns examples.beats
-  (:use overtone.live
-        [overtone.gui sequencer control stepinator]))
+  (:use overtone.live))
 
-(comment
-  * kick
-  * snare
-  * rim click
-  * crash symbal
-  * foot hi-hat
-  * close hi-hat
-  * half-open hi-hat
-  * open hi-hat
-  * ride cymbal
-  * high tom
-  * mid tom
-  * low tom
-)
-
- (defn ugen-cents
+(defn ugen-cents
   "Returns a frequency computed by adding n-cents to freq.  A cent is a
   logarithmic measurement of pitch, where 1-octave equals 1200 cents."
   [freq n-cents]
@@ -41,19 +25,19 @@
         dist (clip2 (* 2 (tanh (* 2 (distort (* 2 snd))))) 0.2)
         snd (b-peak-eq snd 55.38 1 36.4)]
     (* amp (+ dist snd))))
-(kick :noise-decay 4)
+;(kick :noise-decay 4)
 
 (definst hat
   [freq   {:default 44.77 :min 20 :max 400 :step 1}
    attack {:default 0.036 :min 0.00001 :max 2 :step 0.0001}
-   decay  {:default 1.284 :min 0.00001 :max 2 :step 0.0001}
+   decay  {:default 0.484 :min 0.00001 :max 2 :step 0.0001}
    rq     {:default 0.08 :min 0.01 :max 1 :step 0.01}
    amp    {:default 0.8 :min 0.01 :max 1 :step 0.01}]
   (let [noiz (white-noise)
         filt (rhpf noiz 4064.78 rq)
         env  (x-line 1 0.001 decay :action FREE)]
     (* amp env filt)))
-(hat)
+;(hat)
 
 (definst haziti-clap
   [freq   {:default 44.77 :min 20 :max 400 :step 1}
@@ -70,36 +54,7 @@
         skip (* wave wenv)]
     (* amp (+ (* env filt) skip))))
 
-(haziti-clap)
-
-(synth-controller hat)
-(synth-controller kick)
-
-(def m (metronome 128))
-(def step-seq (step-sequencer m 16 [kick hat]))
-
-;(def step (stepinator))
-(defn player
-  [beat]
-  (let [next-beat (inc beat)]
-    (at (m beat)
-        (kick :amp 0.5)
-        (if (zero? (mod beat 2))
-          (haziti :amp 0.3)))
-    (at (m (+ 0.5 beat))
-        (haziti-clap :decay 0.05 :amp 0.7))
-
-    (when (zero? (mod beat 3))
-      (at (m (+ 0.75 beat))
-          (haziti :decay 0.03 :amp 0.2)))
-
-    (when (zero? (mod beat 8))
-      (at (m (+ 1.25 beat))
-          (haziti :decay 0.03)))
-
-    (apply-at (m next-beat) #'player [next-beat])))
-
-(player (m))
+;(haziti-clap)
 
 (definst dance-kick
   [freq {:default 50.24 :min 20 :max 400 :step 1}
@@ -115,7 +70,7 @@
         dist (clip2 (* 2 (tanh (* 3 (distort (* 1.5 src))))) 0.8)
         eq (b-peak-eq dist 37.67 1 10.4)]
     (* amp eq)))
-(dance-kick)
+;(dance-kick)
 
 (definst quick-kick
   [freq {:default 20.0 :min 20 :max 400 :step 1}
@@ -131,32 +86,28 @@
         dist (clip2 (* 2 (tanh (* 3 (distort (* 1.5 src))))) 0.8)
         eq (b-peak-eq dist 57.41 1 44)]
     (* amp eq)))
-(quick-kick)
+;(quick-kick)
 
-(definst shzzz
-  [freq   {:default 44.77 :min 20 :max 400 :step 1}
-   attack {:default 0.004 :min 0.00001 :max 2 :step 0.0001}
-   decay  {:default 2.784 :min 0.00001 :max 2 :step 0.0001}
-   rq     {:default 0.9 :min 0.01 :max 1 :step 0.01}
-   amp    {:default 0.8 :min 0.01 :max 1 :step 0.01}
-   clap   {:default 0.1 :min 0.01 :max 1 :step 0.01}
-   clap-decay {:default 0.01 :min 0.01 :max 1 :step 0.01}]
-  (let [noiz (white-noise)
-        filt (rlpf noiz 2992 rq)
-        dist (clip2 (* 2 (tanh (* 3 (distort (* 1.5 filt))))) 0.8)
-        clap-trig (t-delay:kr (trig1:kr 1 10) clap-decay)
-        env  (decay:kr clap-trig decay)
-        clap-env (decay:kr (gate:kr (impulse:kr 60) (not-pos? clap-trig)) clap-decay)
-        eq (b-peak-eq dist 796 1 -44)
-        snd (+ (* clap-env filt) (* filt env))]
-    (detect-silence (* amp snd) 0.11 (+ attack decay clap-decay) :action FREE)
-    snd (* amp snd)))
-(shzzz)
-(stop)
+(def m (metronome 128))
+
 (defn player
-  [event _]
-  (println event))
+  [beat]
+  (let [next-beat (inc beat)]
+    (at (m beat)
+        (quick-kick :amp 0.5)
+        (if (zero? (mod beat 2))
+          (hat :amp 0.1)))
+    (at (m (+ 0.5 beat))
+        (haziti-clap :decay 0.05 :amp 0.3))
 
-(def mpk (midi-in "MPK"))
+    (when (zero? (mod beat 3))
+      (at (m (+ 0.75 beat))
+          (hat :decay 0.03 :amp 0.2)))
 
-(midi-handle-events mpk #'player)
+    (when (zero? (mod beat 8))
+      (at (m (+ 1.25 beat))
+          (hat :decay 0.03)))
+
+    (apply-at (m next-beat) #'player [next-beat])))
+
+;(player (m))
