@@ -5,7 +5,7 @@
         [overtone.libs event deps]
         [overtone version]
         [overtone.sc defaults]
-        [overtone.sc.machinery.server comms native]
+        [overtone.sc.machinery.server comms native args]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
         [overtone.helpers.lib :only [print-ascii-art-overtone-logo windows-sc-path]]
@@ -221,25 +221,6 @@
 
     path))
 
-(defn- sc-default-args
-  "Return a map of keyword to default value for each scsynth arg. Reads
-  info from SC-ARG-INFO"
-  []
-  (reduce (fn [res [arg-name {default :default}]]
-            (if default
-              (merge res {arg-name default})
-              res))
-          {}
-          SC-ARG-INFO))
-
-(defn- merge-sc-args
-  [default-opts user-opts]
-  (merge (sc-default-args)
-         (SC-OS-SPECIFIC-ARGS (config-get :os))
-         default-opts
-         (config-get :sc-args {})
-         user-opts))
-
 (defn- sc-arg-flag
   [sc-arg]
   (-> sc-arg SC-ARG-INFO :flag))
@@ -273,7 +254,7 @@
   "Creates a sctring array representing the sc command to execute in an
   external process (typically with #'external-booter)"
   [port opts]
-  (into-array String (cons (or (config-get :sc-path) (find-sc-path)) (scsynth-arglist (merge-sc-args {:port port} opts)))))
+  (into-array String (cons (or (config-get :sc-path) (find-sc-path)) (scsynth-arglist (merge-sc-args opts {:port port})))))
 
 (defn- boot-external-server
   "Boot the audio server in an external process and tell it to listen on

@@ -1,14 +1,11 @@
 (ns overtone.sc.machinery.server.native
   (:import [java.nio ByteOrder ByteBuffer])
+  (:require [overtone.jna-path])
   (:use [overtone.helpers.file :only (get-current-directory, home-dir)]
+        [overtone.sc.machinery.server args]
         [clj-native.direct :only [defclib loadlib]]
         [clj-native.structs :only [byref]]
         [clj-native.callbacks :only [callback]]))
-
-(def LIBSCSYNTH-PATH "native/macosx/x86_64")
-(def NATIVE-PATH (str (get-current-directory) "/" LIBSCSYNTH-PATH))
-(def PLUGIN-PATH (str NATIVE-PATH ":" (home-dir) "/Library/Application Support/SuperCollider/Extensions/SC3plugins/"))
-(System/setProperty "jna.library.path" NATIVE-PATH)
 
 (defclib
   lib-scsynth
@@ -140,62 +137,27 @@
     (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
     (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
-(loadlib lib-scsynth)
-
-(def default-options
-  {:mPassword                          ""
-   :mNumBuffers                        1024
-   :mMaxLogins                         64
-   :mMaxNodes                          1024
-   :mMaxGraphDefs                      1024
-   :mMaxWireBufs                       64
-   :mNumAudioBusChannels               128
-   :mNumInputBusChannels               8
-   :mNumOutputBusChannels              8
-   :mNumControlBusChannels             4096
-   :mBufLength                         64
-   :mRealTimeMemorySize                8192
-   :mNumSharedControls                 0
-   :mSharedControls                    nil
-   :mRealTime                          1
-   :mMemoryLocking                     0
-   :mNonRealTimeCmdFilename            ""
-   :mNonRealTimeInputFilename          ""
-   :mNonRealTimeOutputFilename         ""
-   :mNonRealTimeOutputHeaderFormat     ""
-   :mNonRealTimeOutputSampleFormat     ""
-   :mPreferredSampleRate               0
-   :mNumRGens                          64
-   :mPreferredHardwareBufferFrameSize  0
-   :mLoadGraphDefs                     1
-   :mInputStreamsEnabled               ""
-   :mOutputStreamsEnabled              ""
-   :mInDeviceName                      ""
-   :mVerbosity                         0
-   :mRendezvous                        1
-   :mUGensPluginPath                   PLUGIN-PATH
-   :mOutDeviceName                     ""
-   :mRestrictedPath                    ""
-   :mSharedMemoryID                    0})
+(defonce __LOAD_SCSYNTH_NATIVE_LIB__
+  (loadlib lib-scsynth))
 
 ; Most likely there is a better way to do this...
 (defn set-world-options!
   [ptr option-map]
-   (set! (.mPassword ptr) (:mPassword option-map))
-   (set! (.mNumBuffers ptr) (:mNumBuffers option-map))
-   (set! (.mMaxLogins ptr) (:mMaxLogins option-map))
-   (set! (.mMaxNodes ptr) (:mMaxNodes option-map))
-   (set! (.mMaxGraphDefs ptr) (:mMaxGraphDefs option-map))
-   (set! (.mMaxWireBufs ptr) (:mMaxWireBufs option-map))
-   (set! (.mNumAudioBusChannels ptr) (:mNumAudioBusChannels option-map))
-   (set! (.mNumInputBusChannels ptr) (:mNumInputBusChannels option-map))
-   (set! (.mNumOutputBusChannels ptr) (:mNumOutputBusChannels option-map))
-   (set! (.mNumControlBusChannels ptr) (:mNumControlBusChannels option-map))
+   (set! (.mPassword ptr) (:pwd option-map))
+   (set! (.mNumBuffers ptr) (:max-buffers option-map))
+   (set! (.mMaxLogins ptr) (:max-logins option-map))
+   (set! (.mMaxNodes ptr) (:max-nodes option-map))
+   (set! (.mMaxGraphDefs ptr) (:max-sdefs option-map))
+   (set! (.mMaxWireBufs ptr) (:max-w-buffers option-map))
+   (set! (.mNumAudioBusChannels ptr) (:max-audio-bus option-map))
+   (set! (.mNumInputBusChannels ptr) (:max-input-bus option-map))
+   (set! (.mNumOutputBusChannels ptr) (:max-output-bus option-map))
+   (set! (.mNumControlBusChannels ptr) (:max-control-bus option-map))
    (set! (.mBufLength ptr) (:mBufLength option-map))
-   (set! (.mRealTimeMemorySize ptr) (:mRealTimeMemorySize option-map))
+   (set! (.mRealTimeMemorySize ptr) (:rt-mem-size option-map))
    (set! (.mNumSharedControls ptr) (:mNumSharedControls option-map))
    (set! (.mSharedControls ptr) (:mSharedControls option-map))
-   (set! (.mRealTime ptr) (:mRealTime option-map))
+   (set! (.mRealTime ptr) (:realtime? option-map))
    (set! (.mMemoryLocking ptr) (:mMemoryLocking option-map))
    (set! (.mNonRealTimeCmdFilename ptr) (:mNonRealTimeCmdFilename option-map))
    (set! (.mNonRealTimeInputFilename ptr) (:mNonRealTimeInputFilename option-map))
@@ -203,32 +165,38 @@
    (set! (.mNonRealTimeOutputHeaderFormat ptr) (:mNonRealTimeOutputHeaderFormat option-map))
    (set! (.mNonRealTimeOutputSampleFormat ptr) (:mNonRealTimeOutputSampleFormat option-map))
    (set! (.mPreferredSampleRate ptr) (:mPreferredSampleRate option-map))
-   (set! (.mNumRGens ptr) (:mNumRGens option-map))
+   (set! (.mNumRGens ptr) (:num-rand-seeds option-map))
    (set! (.mPreferredHardwareBufferFrameSize ptr) (:mPreferredHardwareBufferFrameSize option-map))
-   (set! (.mLoadGraphDefs ptr) (:mLoadGraphDefs option-map))
-   (set! (.mInputStreamsEnabled ptr) (:mInputStreamsEnabled option-map))
-   (set! (.mOutputStreamsEnabled ptr) (:mOutputStreamsEnabled option-map))
-   (set! (.mInDeviceName ptr) (:mInDeviceName option-map))
-   (set! (.mVerbosity ptr) (:mVerbosity option-map))
-   (set! (.mRendezvous ptr) (:mRendezvous option-map))
+   (set! (.mLoadGraphDefs ptr) (:load-sdefs? option-map))
+   (set! (.mInputStreamsEnabled ptr) (:in-streams option-map))
+   (set! (.mOutputStreamsEnabled ptr) (:out-streams option-map))
+   (set! (.mInDeviceName ptr) (:hw-device-name option-map))
+   (set! (.mVerbosity ptr) (:verbosity option-map))
+   (set! (.mRendezvous ptr) (:rendezvous? option-map))
    (set! (.mUGensPluginPath ptr) (:mUGensPluginPath option-map))
-   (set! (.mOutDeviceName ptr) (:mOutDeviceName option-map))
+   (set! (.mOutDeviceName ptr) (:hw-out-device-name option-map))
    (set! (.mRestrictedPath ptr) (:mRestrictedPath option-map))
    (set! (.mSharedMemoryID ptr) (:mSharedMemoryID option-map)))
+
+(use 'clojure.pprint)
 
 (defn scsynth
   "Load libscsynth and start the synthesis server with the given options.  Returns
   the World pointer."
-  ([recv-fn] (scsynth recv-fn default-options))
+  ([recv-fn] (scsynth recv-fn {}))
   ([recv-fn options-map]
-   (let [options (byref world-options)
-         cb      (callback reply-callback
-                           (fn [addr msg-buf msg-size]
-                             (let [byte-buf (.getByteBuffer msg-buf 0 msg-size)]
-                               (recv-fn (.order byte-buf ByteOrder/BIG_ENDIAN)))))]
-     (set-world-options! options options-map)
-     {:world (world-new options)
-      :callback cb})))
+     (println "setting up worldoptions")
+     (let [options (byref world-options)
+           cb      (callback reply-callback
+                             (fn [addr msg-buf msg-size]
+                               (let [byte-buf (.getByteBuffer msg-buf 0 msg-size)]
+                                 (recv-fn (.order byte-buf ByteOrder/BIG_ENDIAN)))))
+
+           args    (merge-native-sc-args options-map)]
+       (pprint args)
+       (set-world-options! options args)
+       {:world (world-new options)
+        :callback cb})))
 
 (defn scsynth-listen-udp
   [sc port]

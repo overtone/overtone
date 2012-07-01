@@ -2,7 +2,8 @@
     ^{:doc "ID allocator system. Used to return new unique integer IDs in a threadsafe manner. IDs may be freed and therefore reused. Allows action fns to be executed in synchronisation with allocation and deallocation."
       :author "Sam Aaron"}
   overtone.sc.machinery.allocator
-  (:use [overtone.sc defaults])
+  (:use [overtone.sc defaults]
+        [overtone.sc.machinery.server args])
   (:require [overtone.config.log :as log]))
 
 ;; ## Allocators

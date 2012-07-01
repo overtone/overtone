@@ -21,3 +21,8 @@
   (when (> num (last powers-of-two))
     (throw (Exception. (str "Oh Wow! You're using a value far higher than we imagined! Please submit an issue explaining what you were trying to do. The future must be a cool place. I do hope more people are cycling and are free to be creative."))))
   (some #{(int num)} powers-of-two))
+
+(defn next-power-of-two
+  "If x is not a power of two, returns the next power of two above x."
+  [num]
+  (some (fn [x] (when (>= x num) x)) powers-of-two))
