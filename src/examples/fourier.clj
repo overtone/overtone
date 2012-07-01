@@ -12,7 +12,6 @@
   (ifft filtered)))
 
 ; Cut off noise at a wall
-; HELP ME!
 (demo 15
     (let [src (* 0.2 (white-noise))
           freqs (fft (:id buf) src)
@@ -28,7 +27,6 @@
         filtered (pv-local-max (:id buf) thresh)]
       (ifft filtered)))
 
-;;TODO blows up - figure out why
 (demo
   (let [in (* [0.1 0.1] (white-noise))
         chain (fft (local-buf 2048 2) in)

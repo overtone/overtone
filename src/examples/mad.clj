@@ -208,7 +208,7 @@
 
 ; Bach would have had a blast :-)
 (comment
-  (do
+(do
     (p (concat
         (glp 20)
         (reverse (glp 20))

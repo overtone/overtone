@@ -2,7 +2,7 @@
   (:use overtone.live))
 
 ; Depending on your audio setup (external interfaces, etc...) you might need
-; to try a couple different buses before finding what you are looking for.  
+; to try a couple different buses before finding what you are looking for.
 ; Start at index zero and go upward.
 
 (definst guitar
