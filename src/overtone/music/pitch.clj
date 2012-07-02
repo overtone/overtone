@@ -495,9 +495,9 @@
 
 (defn chord
   "Returns a set of notes for the specified chord. The root must be in
-  midi note format i.e. :C3.
+  midi note format i.e. :C4.
 
-  (chord :c3 :major)  ; c major           -> #{60 64 67}
+  (chord :c4 :major)  ; c major           -> #{60 64 67}
   (chord :a4 :minor)  ; a minor           -> #{57 60 64}
   (chord :Bb4 :dim)   ; b flat diminished -> #{70 73 76}
   "
