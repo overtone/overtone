@@ -5,8 +5,8 @@
   (:require [overtone.config.log :as log]
             [overtone.libs.handlers :as handlers]))
 
-(defonce handler-pool (handlers/mk-handler-pool "Overtone Event Handlers"))
-(defonce event-debug* (atom false))
+(defonce ^:private handler-pool (handlers/mk-handler-pool "Overtone Event Handlers"))
+(defonce ^:private event-debug* (atom false))
 
 (defn- log-event
   "Log event on separate thread to ensure logging doesn't interfere with
