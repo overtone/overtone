@@ -83,7 +83,8 @@
             (REVERSE-RATES rate)
             special
             args
-            (or (:num-outs spec) 1))
+            (or (:num-outs spec) 1)
+            spec)
         ug (if (contains? spec :init) ((:init spec) ug) ug)]
     (when (and *ugens* *constants*)
       (set! *ugens* (conj *ugens* ug))

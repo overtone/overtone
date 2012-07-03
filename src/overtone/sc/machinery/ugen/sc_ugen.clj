@@ -5,23 +5,24 @@
   (:use [overtone.sc.machinery.ugen defaults]
         [overtone.helpers lib]))
 
-(defrecord SCUGen [id name rate rate-name special args n-outputs])
+(defrecord SCUGen [id name rate rate-name special args n-outputs spec])
 (derive SCUGen ::sc-ugen)
 
 (defn sc-ugen? [obj] (isa? (type obj) ::sc-ugen))
 
 (defn sc-ugen
   "Create a new SCUGen instance. Throws an error if any of the args are nil."
-  [id name rate rate-name special args n-outputs]
+  [id name rate rate-name special args n-outputs spec]
   (if (or (nil? id)
           (nil? name)
           (nil? rate)
           (nil? rate-name)
           (nil? special)
           (nil? args)
-          (nil? n-outputs))
-    (throw (IllegalArgumentException. (str "Attempted to create an SCUGen with nil args. Got " [id name rate rate-name special args n-outputs])))
-    (SCUGen. id name rate rate-name special args n-outputs)))
+          (nil? n-outputs)
+          (nil? spec))
+    (throw (IllegalArgumentException. (str "Attempted to create an SCUGen with nil args. Got " [id name rate rate-name special args n-outputs spec])))
+    (SCUGen. id name rate rate-name special args n-outputs spec)))
 
 (defn count-ugen-args
   "Count the number of ugens in the args of ug (and their args recursively)"
