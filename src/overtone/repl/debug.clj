@@ -88,3 +88,10 @@
   [synth]
   (pprint
    (:sdef synth)))
+
+(defmacro opp
+  "Pretty-print x (or *1 if no argument is passed)"
+  ([& args]
+     (if (empty? args)
+       `(pprint *1)
+       `(pprint ~(first args)))))
