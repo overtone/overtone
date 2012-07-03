@@ -178,8 +178,6 @@
    (set! (.mRestrictedPath ptr) (:mRestrictedPath option-map))
    (set! (.mSharedMemoryID ptr) (:mSharedMemoryID option-map)))
 
-(use 'clojure.pprint)
-
 (defn scsynth
   "Load libscsynth and start the synthesis server with the given options.  Returns
   the World pointer."
@@ -193,7 +191,6 @@
                                  (recv-fn (.order byte-buf ByteOrder/BIG_ENDIAN)))))
 
            args    (merge-native-sc-args options-map)]
-       (pprint args)
        (set-world-options! options args)
        {:world (world-new options)
         :callback cb})))
