@@ -13,13 +13,13 @@
 
 (defn- unify-ugen
   [ugen ugens sdef]
-  (sorted-map
-   :name (:name ugen)
+  {:name (:name ugen)
    :rate (REVERSE-RATES (:rate ugen))
    :special (:special ugen)
    :inputs (map #(unify-input % ugens (:constants sdef)) (:inputs ugen))
+   :n-outputs (count (:outputs ugen))
    :outputs (:outputs ugen)
-   :id (:id ugen)))
+   :id (:id ugen)})
 
 (defn- fix-input-refs
   [inputs ugens]
@@ -31,12 +31,22 @@
        inputs))
 
 (defn- unify-ugens
-  [ugens sdef]
-  (let [ugens (map (fn [ug idx] (assoc ug :id idx)) ugens (range))
+  [orig-ugens sdef]
+  (let [ugens (map (fn [ug idx] (assoc ug :id idx)) orig-ugens (range))
         ugens (map #(unify-ugen % ugens sdef) ugens)
-        ugens (sort #(compare (:name %1) (:name %2)) ugens)
-        ]
-    (map (fn [ug idx] (assoc ug :id idx :inputs (fix-input-refs (:inputs ug) ugens))) ugens (range))))
+        ugens (map (fn [ug o-ug idx]
+                     (assoc ug
+                       :id idx
+                       :inputs (into {}
+                                     (map (fn [clean-input input]
+                                            [(keyword (:name input))
+                                             clean-input])
+                                          (fix-input-refs (:inputs ug) ugens)
+                                          (-> o-ug :spec :args)))))
+                   ugens
+                   orig-ugens
+                   (range))]
+    (sort #(compare (:name %1) (:name %2)) ugens)))
 
 (defn unify-synthdef
   "Munge synthdef into a readable 'unified' format - ensures that two
@@ -44,11 +54,11 @@
   order. Useful for comparing two ugen synthdefs (i.e. an Overtone and
   SCLang synthdef) side-by-side."
   [sdef]
-  {:ugens   (unify-ugens (:ugens sdef) sdef)
-   :name    (:name sdef)
+  {:name    (:name sdef)
    :params  (:params sdef)
    :pnames  (:pnames sdef)
-   :n-ugens (count (:ugens sdef))})
+   :n-ugens (count (:ugens sdef))
+   :ugens   (unify-ugens (:ugens sdef) sdef)})
 
 (defn pp-unified-sc-synth
   "Pretty print a unified version of an sc synth based on the name of
