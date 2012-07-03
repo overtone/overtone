@@ -7,6 +7,8 @@
 
 (defonce ^:private handler-pool (handlers/mk-handler-pool "Overtone Event Handlers"))
 (defonce ^:private event-debug* (atom false))
+(defonce ^:private monitoring?* (atom false))
+(defonce ^:private monitor* (atom {}))
 
 (defn- log-event
   "Log event on separate thread to ensure logging doesn't interfere with
@@ -105,6 +107,8 @@
   (log-event "event: " event-type " " args)
   (when @event-debug*
     (println "event: " event-type " " args "\n"))
+  (when @monitoring?*
+    (swap! monitor* assoc event-type args))
   (binding [overtone.libs.handlers/*log-fn* log/error]
     (let [event-info (if (and (= 1 (count args))
                               (map? (first args)))
@@ -121,6 +125,8 @@
   (log-event "sync-event: " event-type " " args)
   (when @event-debug*
     (println "sync-event: " event-type " " args "\n"))
+  (when @monitoring?*
+    (swap! monitor* assoc event-type args))
   (binding [overtone.libs.handlers/*log-fn* log/error]
     (let [event-info (apply hash-map args)]
       (apply handlers/sync-event handler-pool event-type event-info))))
@@ -134,3 +140,45 @@
   "Stops debug info from being printed out."
   []
   (reset! event-debug* false))
+
+(defn event-monitor-on
+  "Start recording new incoming events into a map which can be examined
+  with #'event-monitor"
+  []
+  (reset! monitor* {})
+  (println "Event monitoring enabled")
+  (reset! monitoring?* true))
+
+(defn event-monitor-off
+  "Stop recording new incoming events"
+  []
+  (println "Event monitoring disabled")
+  (reset! monitoring?* false))
+
+(defn event-monitor-timer
+  "Record events for a specific period of time in seconds (defaults to
+  5)."
+  ([] (event-monitor-timer 5))
+  ([seconds]
+     (event-monitor-on)
+     (loop [i seconds]
+       (when (and @monitoring?* (pos? i))
+         (println (str "Event monitor activated for "
+                       (- seconds i)
+                       " more second"
+                       (when (> (- seconds i) 1)
+                         "s")))
+         (Thread/sleep 1000)
+         (recur (dec i))))
+     (event-monitor-off)))
+
+(defn event-monitor
+  "Return a map of the most recently seen events. This is reset every
+  time #'event-monitor-on is called."
+  ([] @monitor*)
+  ([event-key] (get @monitor* event-key)))
+
+(defn event-monitor-keys
+  "Return a seq of all the keys of most recently seen events."
+  []
+  (keys @monitor*))
