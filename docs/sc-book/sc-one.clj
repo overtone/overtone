@@ -37,7 +37,7 @@
                speed 1000]
            (* (mix
                (map #(pan2 (* (sin-osc (* % 100))
-                              (maximum 0 (+ (lf-noise1:kr speed) (line:kr 1 -1 30))))
+                              (max 0 (+ (lf-noise1:kr speed) (line:kr 1 -1 30))))
                            (- (clojure.core/rand 2) 1))
                     (range sines)))
               (/ 1 sines))))
@@ -571,7 +571,7 @@ chooston
   (defsynth mod-syn [] (out delay-b (* (in mod-b 2) (sin-osc (+ 1100 (* 500 (in:kr k5-b)))))))
   (def m-syn (mod-syn :pos :before :tgt d-syn))
 
-  (defsynth gate-syn [] (out [0 mod-b] (* (in gate-b 2) (maximum 0 (in:kr k5-b)))))
+  (defsynth gate-syn [] (out [0 mod-b] (* (in gate-b 2) (max 0 (in:kr k5-b)))))
   (def g-syn (gate-syn :pos :before :tgt m-syn ))
 
   (def pb-group (group :before c-syn))
@@ -665,19 +665,19 @@ chooston
 
 (demo 15
       (* 0.3
-         (+ (* (sin-osc 220)  (maximum 0 (lf-noise1:kr 12)) 1)
-            (* (sin-osc 440)  (maximum 0 (lf-noise1:kr 12)) 1/2)
-            (* (sin-osc 660)  (maximum 0 (lf-noise1:kr 12)) 1/3)
-            (* (sin-osc 880)  (maximum 0 (lf-noise1:kr 12)) 1/4 )
-            (* (sin-osc 1110) (maximum 0 (lf-noise1:kr 12)) 1/5)
-            (* (sin-osc 1320) (maximum 0 (lf-noise1:kr 12)) 1/6))))
+         (+ (* (sin-osc 220)  (max 0 (lf-noise1:kr 12)) 1)
+            (* (sin-osc 440)  (max 0 (lf-noise1:kr 12)) 1/2)
+            (* (sin-osc 660)  (max 0 (lf-noise1:kr 12)) 1/3)
+            (* (sin-osc 880)  (max 0 (lf-noise1:kr 12)) 1/4 )
+            (* (sin-osc 1110) (max 0 (lf-noise1:kr 12)) 1/5)
+            (* (sin-osc 1320) (max 0 (lf-noise1:kr 12)) 1/6))))
 
 ;; or the more compact but equivalent:
 
 (demo 15
       (let [freqs [220 440 660 880 1110 1320]
             muls  [1   1/2 1/3 1/4 1/5  1/6]
-            mk-sin #(* (sin-osc %1) (maximum 0 (lf-noise1 12)) %2)
+            mk-sin #(* (sin-osc %1) (max 0 (lf-noise1 12)) %2)
             sins  (map mk-sin freqs muls)]
         (* (mix sins) 0.3)))
 
@@ -703,7 +703,7 @@ chooston
           (for [count (range 12)]
             (let [harm (* (inc count) 110)]
               (* (sin-osc harm)
-                 (maximum [0 0] (sin-osc:kr (/ (inc count) 4)))
+                 (max [0 0] (sin-osc:kr (/ (inc count) 4)))
                  (/ 1 (inc count))))))))
 
 
