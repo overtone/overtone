@@ -54,6 +54,14 @@
   []
   (server-snd "/notify" 1))
 
+(defn- logged-sh
+  "Run a shell command an log any errors. Returns stdout."
+  [cmd & args]
+  (let [res (apply sh cmd args)]
+    (when-not (zero? (:exit res))
+      (log/error "Subprocess error: " (:err res)))
+    (:out res)))
+
 (defn- connect-jack-ports
   "Connect the jack input and output ports as best we can.  If jack
   ports are always different names with different drivers or hardware
@@ -61,7 +69,7 @@
   users)"
   ([] (connect-jack-ports 2))
   ([n-channels]
-     (let [port-list (:out (sh "jack_lsp"))
+     (let [port-list      (logged-sh "jack_lsp")
            sc-ins         (re-seq #"SuperCollider.*:in_[0-9]*" port-list)
            sc-outs        (re-seq #"SuperCollider.*:out_[0-9]*" port-list)
            system-ins     (re-seq #"system:capture_[0-9]*" port-list)
@@ -74,7 +82,7 @@
                                      (interleave system-ins sc-ins)
                                      (interleave interface-ins sc-ins)))]
        (doseq [[src dest] connections]
-         (sh "jack_connect" src dest)
+         (logged-sh "jack_connect" src dest)
          (log/info "jack_connect " src " " dest)))))
 
 (if (= :linux (config-get :os))
