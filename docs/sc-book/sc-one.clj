@@ -18,7 +18,7 @@
 ;;///////////// Figure 1.1 Example of additive synthesis
 ;;
 ;;play({
-;;        var sines = 100, speed = 6;
+;;        var sines = 5, speed = 6;
 ;;        Mix.fill(sines,
 ;;        	{arg x;
 ;;        		Pan2.ar(
@@ -34,7 +34,7 @@
 
 
 (demo 2 (let [sines 5
-               speed 1000]
+              speed 6]
            (* (mix
                (map #(pan2 (* (sin-osc (* % 100))
                               (max 0 (+ (lf-noise1:kr speed) (line:kr 1 -1 30))))
@@ -75,7 +75,8 @@
 
 
 ;;;;;;;;;
-;;page 16
+;;Pages 15-16
+;;(PMOsc.ar(440, MouseY.kr(1, 550), MouseX.kr(1, 15))}.play
 ;;{PMOsc.ar(100, 500, 10, 0, 0.5)}.play
 ;;
 ;;PMOsc isn't an actual ugen, it's actually a pseudo ugen defined for backwards
@@ -97,7 +98,7 @@
 ;;we can use the pm-osc cgen provided by overtone:
 
 (demo (* 0.5 (pm-osc 100 500 10 0)))
-
+(demo 10 (pm-osc 440 (mouse-y:kr 1 550) (mouse-x:kr 1 15)))
 
 
 ;;Page 17
@@ -329,13 +330,12 @@
         src (* (pm-osc freq (* mod freq) (env-gen:kr env :timeScale art, :levelScale tone) 0)
                (env-gen:kr env :timeScale art, :levelScale 0.3))
         src (pan2 src pan)
-        src (* src (env-gen:kr env :timeScale (* art 1.3) :levelScale (rrand 0.1 0.5) :action :free))]
+        src (* src (env-gen:kr env :timeScale (* art 1.3) :levelScale (ranged-rand 0.1 0.5) :action FREE))]
     (out 0 src)))
 
 ;;Synth("PMCrotale", ["midi", rrand(48, 72).round(1), "tone", rrand(1, 6)])
 
 (pmc-rotale :midi (ranged-rand 48 72) :tone (ranged-rand 1 6))
-
 
 ;;Page 25
 ;;
