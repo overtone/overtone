@@ -330,13 +330,12 @@
         src (* (pm-osc freq (* mod freq) (env-gen:kr env :timeScale art, :levelScale tone) 0)
                (env-gen:kr env :timeScale art, :levelScale 0.3))
         src (pan2 src pan)
-        src (* src (env-gen:kr env :timeScale (* art 1.3) :levelScale (rrand 0.1 0.5) :action :free))]
+        src (* src (env-gen:kr env :timeScale (* art 1.3) :levelScale (ranged-rand 0.1 0.5) :action FREE))]
     (out 0 src)))
 
 ;;Synth("PMCrotale", ["midi", rrand(48, 72).round(1), "tone", rrand(1, 6)])
 
 (pmc-rotale :midi (ranged-rand 48 72) :tone (ranged-rand 1 6))
-
 
 ;;Page 25
 ;;
