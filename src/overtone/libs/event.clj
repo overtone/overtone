@@ -164,9 +164,9 @@
      (loop [i seconds]
        (when (and @monitoring?* (pos? i))
          (println (str "Event monitor activated for "
-                       (- seconds i)
+                       i
                        " more second"
-                       (when (> (- seconds i) 1)
+                       (when (> i 1)
                          "s")))
          (Thread/sleep 1000)
          (recur (dec i))))
