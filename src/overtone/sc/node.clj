@@ -82,7 +82,7 @@
     (zipmap (map name-fn (keys arg-map))
             (map val-fn (vals arg-map)))))
 
-(defrecord SynthNode [synth id target position status]
+(defrecord SynthNode [synth id target position args sdef status]
   to-synth-id*
   (to-synth-id [this] (:id this)))
 
@@ -109,7 +109,8 @@
   "
   ([synth-name] (node synth-name {} {:position :tail, :target 0}))
   ([synth-name arg-map] (node synth-name arg-map {:position :tail, :target 0}))
-  ([synth-name arg-map location]
+  ([synth-name arg-map location] (node synth-name arg-map location nil))
+  ([synth-name arg-map location sdef]
      (if (not (server-connected?))
        (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
      (let [id       (alloc-id :node)
@@ -118,7 +119,7 @@
            target   (to-synth-id (get location :target 0))
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
-           snode    (SynthNode. synth-name id target position (atom :loading))]
+           snode    (SynthNode. synth-name id target position arg-map sdef (atom :loading))]
        (apply snd "/s_new" synth-name id pos-id (to-synth-id target) args)
        (swap! active-synth-nodes* assoc id snode)
        snode)))
