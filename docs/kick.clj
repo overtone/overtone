@@ -1,5 +1,7 @@
 (ns doc.kick
-  (:use [overtone.live]))
+  (:use [overtone.live])
+  (:use [overtone.sc.machinery.synthdef])
+  (:use [clojure.pprint]))
 
 ;;This is an annotated version of this synth definition to help in understanding
 ;; some basics about synths and the synthdef data structure used in Overtone.
@@ -8,7 +10,7 @@
 ;; sin wave, which is like turning the volume knob up and down really quick while playing
 ;; a low tone.
 (defsynth kick [amp 0.5 decay 0.6 freq 65]
-  (let [env (env-gen (perc 0 decay) 1 1 0 1 :free)
+  (let [env (env-gen (perc 0 decay) 1 1 0 1 FREE)
         snd (sin-osc freq (* Math/PI 0.5) amp)]
     (out 0 (pan2 (* snd env) 0))))
 
@@ -19,7 +21,7 @@
 ;; which get added by default to synths that are rooted by an audio rate ugen that isn't out.
 (definst kick [amp 0.5 decay 0.6 freq 65]
   (* (sin-osc freq (* Math/PI 0.5) amp)
-     (env-gen (perc 0 decay) 1 1 0 1 :free)))
+     (env-gen (perc 0 decay) 1 1 0 1 FREE)))
 
 ;; Similarly this is also triggered using the name as a function call:
 (kick)

@@ -18,7 +18,7 @@
 ;;///////////// Figure 1.1 Example of additive synthesis
 ;;
 ;;play({
-;;        var sines = 100, speed = 6;
+;;        var sines = 5, speed = 6;
 ;;        Mix.fill(sines,
 ;;        	{arg x;
 ;;        		Pan2.ar(
@@ -34,10 +34,10 @@
 
 
 (demo 2 (let [sines 5
-               speed 1000]
+              speed 6]
            (* (mix
                (map #(pan2 (* (sin-osc (* % 100))
-                              (maximum 0 (+ (lf-noise1:kr speed) (line:kr 1 -1 30))))
+                              (max 0 (+ (lf-noise1:kr speed) (line:kr 1 -1 30))))
                            (- (clojure.core/rand 2) 1))
                     (range sines)))
               (/ 1 sines))))
@@ -75,7 +75,8 @@
 
 
 ;;;;;;;;;
-;;page 16
+;;Pages 15-16
+;;(PMOsc.ar(440, MouseY.kr(1, 550), MouseX.kr(1, 15))}.play
 ;;{PMOsc.ar(100, 500, 10, 0, 0.5)}.play
 ;;
 ;;PMOsc isn't an actual ugen, it's actually a pseudo ugen defined for backwards
@@ -97,7 +98,7 @@
 ;;we can use the pm-osc cgen provided by overtone:
 
 (demo (* 0.5 (pm-osc 100 500 10 0)))
-
+(demo 10 (pm-osc 440 (mouse-y:kr 1 550) (mouse-x:kr 1 15)))
 
 
 ;;Page 17
@@ -329,13 +330,12 @@
         src (* (pm-osc freq (* mod freq) (env-gen:kr env :timeScale art, :levelScale tone) 0)
                (env-gen:kr env :timeScale art, :levelScale 0.3))
         src (pan2 src pan)
-        src (* src (env-gen:kr env :timeScale (* art 1.3) :levelScale (rrand 0.1 0.5) :action :free))]
+        src (* src (env-gen:kr env :timeScale (* art 1.3) :levelScale (ranged-rand 0.1 0.5) :action FREE))]
     (out 0 src)))
 
 ;;Synth("PMCrotale", ["midi", rrand(48, 72).round(1), "tone", rrand(1, 6)])
 
 (pmc-rotale :midi (ranged-rand 48 72) :tone (ranged-rand 1 6))
-
 
 ;;Page 25
 ;;
@@ -571,7 +571,7 @@ chooston
   (defsynth mod-syn [] (out delay-b (* (in mod-b 2) (sin-osc (+ 1100 (* 500 (in:kr k5-b)))))))
   (def m-syn (mod-syn :pos :before :tgt d-syn))
 
-  (defsynth gate-syn [] (out [0 mod-b] (* (in gate-b 2) (maximum 0 (in:kr k5-b)))))
+  (defsynth gate-syn [] (out [0 mod-b] (* (in gate-b 2) (max 0 (in:kr k5-b)))))
   (def g-syn (gate-syn :pos :before :tgt m-syn ))
 
   (def pb-group (group :before c-syn))
@@ -665,19 +665,19 @@ chooston
 
 (demo 15
       (* 0.3
-         (+ (* (sin-osc 220)  (maximum 0 (lf-noise1:kr 12)) 1)
-            (* (sin-osc 440)  (maximum 0 (lf-noise1:kr 12)) 1/2)
-            (* (sin-osc 660)  (maximum 0 (lf-noise1:kr 12)) 1/3)
-            (* (sin-osc 880)  (maximum 0 (lf-noise1:kr 12)) 1/4 )
-            (* (sin-osc 1110) (maximum 0 (lf-noise1:kr 12)) 1/5)
-            (* (sin-osc 1320) (maximum 0 (lf-noise1:kr 12)) 1/6))))
+         (+ (* (sin-osc 220)  (max 0 (lf-noise1:kr 12)) 1)
+            (* (sin-osc 440)  (max 0 (lf-noise1:kr 12)) 1/2)
+            (* (sin-osc 660)  (max 0 (lf-noise1:kr 12)) 1/3)
+            (* (sin-osc 880)  (max 0 (lf-noise1:kr 12)) 1/4 )
+            (* (sin-osc 1110) (max 0 (lf-noise1:kr 12)) 1/5)
+            (* (sin-osc 1320) (max 0 (lf-noise1:kr 12)) 1/6))))
 
 ;; or the more compact but equivalent:
 
 (demo 15
       (let [freqs [220 440 660 880 1110 1320]
             muls  [1   1/2 1/3 1/4 1/5  1/6]
-            mk-sin #(* (sin-osc %1) (maximum 0 (lf-noise1 12)) %2)
+            mk-sin #(* (sin-osc %1) (max 0 (lf-noise1 12)) %2)
             sins  (map mk-sin freqs muls)]
         (* (mix sins) 0.3)))
 
@@ -703,7 +703,7 @@ chooston
           (for [count (range 12)]
             (let [harm (* (inc count) 110)]
               (* (sin-osc harm)
-                 (maximum [0 0] (sin-osc:kr (/ (inc count) 4)))
+                 (max [0 0] (sin-osc:kr (/ (inc count) 4)))
                  (/ 1 (inc count))))))))
 
 
