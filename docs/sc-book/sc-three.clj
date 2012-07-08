@@ -21,13 +21,13 @@
              (linen:kr gate 0.01 0.7 0.3 2))]
     (offset-out out (pan2 z pan amp))))
 
-(defn wait-release
-  ([x releaseTime] (if @x (release @x releaseTime) (recur x releaseTime)))
-  ([x] (wait-release x 0.0)))
-
 (defn release
   ([x releaseTime] (ctl x :gate (- releaseTime)))
   ([x] (release x 0.0)))
+
+(defn wait-release
+  ([x releaseTime] (if @x (release @x releaseTime) (recur x releaseTime)))
+  ([x] (wait-release x 0.0)))
 
 (defn generator [& thunks]
   (let [r (agent thunks)]
@@ -171,3 +171,47 @@ r.next; // stop loop and fade
 (go)
 (go)
 (go)
+
+;; Page 89
+///////////////////////////////////////////////////////////////
+// Figure 3.4 Using patterns within a task
+(comment
+(// random notes from lydian b7 scale
+p = Pxrand([64, 66, 68, 70, 71, 73, 74, 76], inf).asStream;
+// ordered sequence of durations
+q = Pseq([1, 2, 0.5], inf).asStream;
+t = Task({
+        loop({
+                x.release(2);
+                x = Synth(\default, [freq: p.value.midicps]);
+                q.value.wait;
+        });
+});
+t.start;
+)
+t.stop; x.release(2);
+)
+
+(do
+  (def p (cycle [64 66 68 70 71 73 74 76]))
+  (def q (cycle [1000 2000 500]))
+
+  (def cont (atom true))
+  (def x (atom nil))
+
+  (defn task [p q]
+    (when @x (release @x 2))
+    (when @cont
+      (reset! x (s :freq (midi->hz (first p))))
+      (apply-at
+       (+ (now) (first q))
+       #'task (rest p) (rest q) [])))
+
+  (defn start-task []
+    (task p q))
+
+  (defn stop-task []
+    (reset! cont false))
+)
+(start-task)
+(stop-task)
