@@ -211,6 +211,7 @@ t.stop; x.release(2);
        #'task (rest p) (rest q) [])))
 
   (defn start-task []
+    (reset! cont true)
     (task p q))
 
   (defn stop-task []
@@ -240,3 +241,31 @@ p = Pseq([64, 66, 68], inf).asStream; // to a Pattern: do re mi
 p = { rrand(64, 76) }; // to a Function: random notes from a chromatic octave
 t.stop; x.release(2);
 )
+
+(do
+  (def p (atom (fn [] 64)))
+  (def q (cycle [1000 2000 500]))
+
+  (def cont (atom true))
+  (def x (atom nil))
+
+  (defn task [q]
+    (when @x (release @x 2))
+    (when @cont
+      (reset! x (s :freq (midi->hz (@p))))
+      (apply-at
+       (+ (now) (first q))
+       #'task (rest q) [])))
+
+  (defn start-task []
+    (reset! cont true)
+    (task q))
+
+  (defn stop-task []
+    (reset! cont false))
+)
+(start-task)
+(reset! p (let [s (atom (cycle [64 66 68]))]
+            (fn [] (first (swap! s rest)))))
+(reset! p (fn [] (ranged-rand 64 77)))
+(stop-task)
