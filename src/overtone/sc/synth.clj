@@ -478,7 +478,7 @@
               [~sname ~params ugens# constants#])))))
 
 (defn synth-player
-  [name params this & args]
+  [name sdef params this & args]
     "Returns a player function for a named synth.  Used by (synth ...)
     internally, but can be used to generate a player for a
     pre-compiled synth.  The function generated will accept two
@@ -522,7 +522,7 @@
                                         [(keyword name) @value])
                                       params))
           arg-map       (arg-mapper args arg-names defaults)
-          synth-node    (node name arg-map {:position pos :target sgroup })
+          synth-node    (node name arg-map {:position pos :target sgroup} sdef)
           synth-node    (if (:instance-fn this)
                           ((:instance-fn this) synth-node)
                           synth-node)]
@@ -531,7 +531,7 @@
       synth-node))
 
 (defrecord-ifn Synth [name ugens sdef args params instance-fn]
-               (partial synth-player name params))
+               (partial synth-player name sdef params))
 
 (defn update-tap-data
   [msg]
