@@ -192,8 +192,11 @@ t.start;
 t.stop; x.release(2);
 )
 
+(defn no-twice-in-a-row [s]
+  (filter identity (map (fn [a b] (and (not= a b) a)) s (rest s))))
+
 (do
-  (def p (cycle [64 66 68 70 71 73 74 76]))
+  (def p (no-twice-in-a-row (chosen-from [64 66 68 70 71 73 74 76])))
   (def q (cycle [1000 2000 500]))
 
   (def cont (atom true))
