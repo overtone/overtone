@@ -73,18 +73,13 @@ For a more detailed set of setup instructions (including details
 specific to Windows and Linux) head over to the
 [Overtone wiki installation page](https://github.com/overtone/overtone/wiki/Installing-Overtone)
 
-
-### Getting Started
-
-We will try to maintain documentation for all aspects of the system in
-the [project wiki](https://github.com/overtone/overtone/wiki/Home),
-you'll find tutorials and examples on topics such as synthesizing new
-sounds from scratch, live-coding and generating musical scores on the
-fly. If you see anything missing, please feel free to add it yourself,
-or hit us up on the
-[mailing list](http://groups.google.com/group/overtone) and we'll sort
-somethign out.
-
+We maintain documentation for all aspects of the system in the
+[project wiki](https://github.com/overtone/overtone/wiki/Home), you'll
+find tutorials and examples on topics such as synthesizing new sounds
+from scratch, live-coding and generating musical scores on the fly. If
+you see anything missing, please feel free to add it yourself, or hit us
+up on the [mailing list](http://groups.google.com/group/overtone) and
+we'll sort something out.
 
 ##  Videos
 
