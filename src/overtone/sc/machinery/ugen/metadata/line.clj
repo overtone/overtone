@@ -28,16 +28,6 @@
        :doc "Convert from a linear range to an exponential range. The dstlo and dsthi arguments must be nonzero and have the same sign."
        :auto-rate true}
 
-      {:name "LinLin",
-       :args [{:name "in", :default 0.0 :doc "Input to convert"}
-              {:name "srclo", :default 0.0 :doc "Lower limit of input range"}
-              {:name "srchi", :default 1.0 :doc "Upper limit of input range"}
-              {:name "dstlo", :default 1.0 :doc "Lower limit of output range"}
-              {:name "dsthi", :default 2.0 :doc "Upper limit of output range"}]
-       :check (nth-input-stream? 0)
-       :doc "Map values from one linear range to another"
-       :auto-rate true}
-
       {:name "AmpComp",
        :args [{:name "freq", :default 261.6256 :doc "Input frequency value. For freq == root, the output is 1.0."} ; default value of (midicps 60)
               {:name "root", :default 261.6256 :doc "Root freq relative to which the curve is calculated (usually lowest freq)"}
