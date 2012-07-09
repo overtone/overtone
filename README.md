@@ -50,7 +50,7 @@ collaborating with music.  It provides:
 
     $ cd insane-noises
     $ lein repl
-
+```
 
 ### Making sounds
 
