@@ -6,7 +6,7 @@
             [overtone version midi osc speech]
             [overtone.algo chance scaling trig]
             [overtone.sc bindings buffer bus envelope example info
-                         ugens defcgen mixer node sample server synth trigger]
+                         ugens defcgen node sample server synth trigger]
             [overtone.sc.cgens oscillators demand mix io buf-io env tap line]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio mixer inst util fx wavetable midi]
@@ -27,7 +27,6 @@
   'overtone.sc.envelope
   'overtone.sc.example
   'overtone.sc.info
-  'overtone.sc.mixer
   'overtone.sc.node
   'overtone.sc.sample
   'overtone.sc.server
@@ -43,15 +42,15 @@
   'overtone.sc.cgens.env
   'overtone.sc.cgens.tap
   'overtone.sc.cgens.line
-  'overtone.music.rhythm
-  'overtone.music.pitch
-  'overtone.music.tuning
-  'overtone.music.time
   'overtone.studio.mixer
   'overtone.studio.inst
   'overtone.studio.fx
   'overtone.studio.wavetable
   'overtone.studio.midi
+  'overtone.music.rhythm
+  'overtone.music.pitch
+  'overtone.music.tuning
+  'overtone.music.time
   'overtone.speech
   'overtone.repl.ugens
   'overtone.repl.examples
