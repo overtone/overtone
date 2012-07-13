@@ -48,7 +48,8 @@
 (def MIDI-POLL-RATE 2000)
 
 (defonce __DEVICE-POLLER__
-  (every MIDI-POLL-RATE #'detect-midi-devices MIDI-POOL :desc "Check for new midi devices"))
+  (detect-midi-devices))
+;  (every MIDI-POLL-RATE #'detect-midi-devices MIDI-POOL :desc "Check for new midi devices"))
 
 (defn midi-poly-player
   "Sets up the event handlers and manages synth instances to easily play
