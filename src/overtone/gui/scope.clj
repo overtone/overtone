@@ -11,7 +11,7 @@
         [overtone.helpers lib]
         [overtone.libs event deps]
         [overtone.sc defaults server synth ugens buffer node]
-        [overtone.studio.util])
+        [overtone.studio core util])
   (:require [clojure.set :as set]
             [overtone.config.log :as log]
             [overtone.at-at :as at-at]))

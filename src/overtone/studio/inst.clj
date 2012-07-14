@@ -2,9 +2,12 @@
   (:use [overtone.sc defaults bindings server synth ugens envelope node bus]
         [overtone.sc.machinery synthdef]
         [overtone.sc.util :only (id-mapper)]
-        [overtone.studio mixer fx]
+        [overtone.studio core mixer fx]
         [overtone.helpers lib]
         [overtone.libs event]))
+
+(def DEFAULT-VOLUME 1.0)
+(def DEFAULT-PAN    0.0)
 
 (defonce __MIXER-SYNTHS__
   (do
@@ -88,7 +91,7 @@
                  n-chans# (if (seq? form#)
                             (count form#)
                             1)
-                 inst-bus# (or (:bus (get @instruments* ~sname)) (audio-bus n-chans#))
+                 inst-bus# (or (:bus (get (:instruments @studio*) ~sname)) (audio-bus n-chans#))
                  [ugens# constants#] (gather-ugens-and-constants (out inst-bus# form#))
                  ugens# (topological-sort-ugens ugens#)
                  main-tree# (set ugens#)
@@ -107,7 +110,8 @@
                      mixer bus fx-chain
                      volume pan
                      n-chans]
-  (fn [this & args] (apply synth-player name sdef params this :tgt instance-group args))
+  (fn [this & args]
+    (apply synth-player name sdef params this :tgt instance-group args))
 
   to-synth-id*
   (to-synth-id [_] (to-synth-id instance-group)))
@@ -121,10 +125,10 @@
   [sname & args]
   (ensure-connected!)
   `(let [[sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
-         new-inst# (get @instruments* sname#)
+         new-inst# (get (:instruments @studio*) sname#)
          container-group# (or (:group new-inst#)
                               (group (str "Inst " sname# " Container")
-                                     :tail @inst-group*))
+                                     :tail (:instrument-group @studio*)))
          instance-group#  (or (:instance-group new-inst#)
                               (group (str "Inst " sname#)
                                      :head container-group#))
@@ -149,7 +153,6 @@
                              volume# pan#
                              n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
-
      (load-synthdef sdef#)
      (add-instrument inst#)
      (event :new-inst :inst inst#)

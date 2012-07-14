@@ -12,10 +12,6 @@
         [overtone.osc :only [in-osc-bundle without-osc-bundle]])
   (:require [overtone.config.log :as log]))
 
-(defonce synth-group* (ref nil))
-(defonce osc-log*     (atom []))
-(defonce core-groups* (ref {}))
-
 
 (defn connection-info
   "Returns connection information regarding the currently connected
@@ -166,24 +162,6 @@
   []
   (event :reset))
 
-(defn sc-osc-log-on
-  "Turn osc logging on"
-  []
-  (on-sync-event :osc-msg-received
-                 (fn [{:keys [path args] :as msg}]
-                   (swap! osc-log* #(conj % msg)))
-                 ::osc-logger))
-
-(defn sc-osc-log-off
-  "Turn osc logging off"
-  []
-  (remove-handler ::osc-logger))
-
-(defn sc-osc-log
-  "Return the current status of the osc log"
-  []
-  @osc-log*)
-
 (defn sc-osc-debug-on
   "Log and print out all outgoing OSC messages"
   []
@@ -213,23 +191,3 @@
   []
   (when-not (server-connected?)
     (throw (Exception. "Server needs to be connected before you can perform this action."))))
-
-(defn root-group
-  []
-  (ensure-connected!)
-  (:root @core-groups*))
-
-(defn main-mixer-group
-  []
-  (ensure-connected!)
-  (:mixer @core-groups*))
-
-(defn main-monitor-group
-  []
-  (ensure-connected!)
-  (:monitor @core-groups*))
-
-(defn main-input-group
-  []
-  (ensure-connected!)
-  (:input @core-groups*))

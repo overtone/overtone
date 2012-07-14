@@ -11,6 +11,7 @@
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]
         [overtone.sc bindings ugens server node]
+        [overtone.studio.core :only (studio*)]
         [overtone.helpers seq]
         [clojure.pprint])
 
@@ -74,7 +75,6 @@
                               #(not (or (sc-ugen? %) (number? %)))
                               (:args ugen)))))))
 
-;  (println "with-inputs: " ugen)
   (let [inputs (flatten
                  (map (fn [arg]
                         (cond
@@ -95,11 +95,8 @@
                           (sc-ugen? arg)
                           (let [src (ugen-index ugens arg)
                                 updated-ugen (nth ugens src)]
-                            ;(println "child ugen: " arg)
-                            ;(println "src: " src)
                             (inputs-from-outputs src updated-ugen))))
                       (:args ugen)))
-;        _ (println "inputs: " inputs)
         ugen (assoc ugen :inputs inputs)]
     (when-not (every? (fn [{:keys [src index]}]
                     (and (not (nil? src))
@@ -399,9 +396,6 @@
                         ugens))
          sorted-ugens []
          rec-count 0]
-    ;(println "\n------------\nugens: " ugens)
-    ;(println "leaves: " leaves)
-    ;(println "sorted-ugens: " sorted-ugens)
 
     ; bail out after 1000 iterations, either a bug in this code, or a bad synth graph
     (when (= 1000 rec-count)
@@ -416,7 +410,6 @@
             [next-ugen leaves] (if next-ugen
                                  [next-ugen (disj leaves next-ugen)]
                                  [(first leaves) (next leaves)])
-            ;_ (println "next-ugen: " next-ugen)
             sorted-ugens (conj sorted-ugens next-ugen)
             sorted-ugen-set (set sorted-ugens)
             ugens (set/difference ugens sorted-ugen-set leaves)
@@ -424,7 +417,6 @@
                      (reduce
                        (fn [rleaves ug]
                          (let [children (ugen-children ug)]
-                           ;(println ug ": " children)
                            (if (set/subset? children sorted-ugen-set)
                              (conj rleaves ug)
                              rleaves)))
@@ -459,14 +451,10 @@
             (let [[ugens# constants#] (gather-ugens-and-constants
                                         (with-overloaded-ugens ~@ugen-form))
                   ugens# (topological-sort-ugens ugens#)
-;;                _# (print  (with-out-str (print "main-tree[") (print  (count ugens#)) (print  "]: ") (pprint ugens#)))
-;;                _# (println (str "*ugens*: [" (count *ugens*) "] " *ugens*))
                   main-tree# (set ugens#)
                   side-tree# (filter #(not (main-tree# %)) *ugens*)
-;;                _# (println "side-tree[" (count side-tree#) "]: " side-tree#)
                   ugens# (concat ugens# side-tree#)
                   n-local-bufs# (count-ugens ugens# "LocalBuf")
-;;                _# (println "num local bufs: " n-local-bufs#)
                   ugens# (if (> n-local-bufs# 0)
                            (cons (max-local-bufs n-local-bufs#) ugens#)
                            ugens#)
@@ -474,7 +462,6 @@
                                (cons n-local-bufs# constants#)
                                constants#)
                   constants# (into [] (set (concat constants# *constants*)))]
-;;              (println "all ugens[" (count ugens#) "]: " ugens#)
               [~sname ~params ugens# constants#])))))
 
 (defn synth-player
@@ -502,7 +489,7 @@
           [args sgroup] (if (or (= :target (first args))
                                 (= :tgt    (first args)))
                           [(drop 2 args) (second args)]
-                          [args @synth-group*])
+                          [args (:synth-group @studio*)])
           [args pos]    (if (or (= :position (first args))
                                 (= :pos      (first args)))
                           [(drop 2 args) (second args)]

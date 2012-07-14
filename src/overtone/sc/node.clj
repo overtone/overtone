@@ -5,7 +5,8 @@
         [overtone.sc bus server defaults]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
-        [overtone.sc.util :only [id-mapper]])
+        [overtone.sc.util :only [id-mapper]]
+        [overtone.studio.core :only (root-group)])
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]))
 
@@ -571,45 +572,3 @@
                           (matcher-fn re-or-str (:name %)))
                     (node-tree-seq root))))))
 
-(on-deps :core-groups-created ::create-synth-group #(dosync
-                                                     (log/debug (str "Creating synth group at head of group with id: " (root-group)))
-                                                     (ref-set synth-group* (group "Synths" :head (root-group)))))
-
-(on-sync-event :reset
-  (fn [event-info]
-    (clear-msg-queue)
-    (group-clear @synth-group*)) ; clear the synth group
-  ::reset-base)
-
-(defn- clear-msg-queue-and-groups
-  "Clear message queue and groups. Catches exceptions in case the
-  server has died. Meant for use in a :shutdown callback"
-  [event-info]
-  (try
-    (clear-msg-queue)
-    (group-clear 0)
-    (catch Exception e
-      (log/error "Can't clear message queue and groups - server might have died."))))
-
-(defn- setup-core-groups
-  []
-  (let [input-group   (with-server-sync #(group "Input"   :head 0))
-        root-group    (with-server-sync #(group "Root"    :after input-group))
-        mixer-group   (with-server-sync #(group "Mixer"   :after root-group))
-        monitor-group (with-server-sync #(group "Monitor" :after mixer-group))]
-    (dosync
-      (alter core-groups* assoc
-             :input   input-group
-             :root    root-group
-             :mixer   mixer-group
-             :monitor monitor-group))
-    (satisfy-deps :core-groups-created)))
-
-(on-deps :server-connected ::setup-core-groups setup-core-groups)
-(on-sync-event :shutdown ::reset-core-groups #(dosync
-                                               (ref-set core-groups* {})))
-
-(on-deps [:server-connected :core-groups-created] ::signal-server-ready #(satisfy-deps :server-ready))
-(on-sync-event :shutdown
-               clear-msg-queue-and-groups
-               ::free-all-nodes)

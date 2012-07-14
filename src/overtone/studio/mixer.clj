@@ -1,5 +1,5 @@
 (ns
-  ^{:doc "Higher level instrument and studio abstractions."
+  ^{:doc "A virtual studio mixing table."
      :author "Jeff Rose & Sam Aaron"}
   overtone.studio.mixer
   (:use [clojure.core.incubator :only [dissoc-in]]
@@ -12,44 +12,15 @@
         [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
         [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]]
-        [overtone.music rhythm time])
+        [overtone.music rhythm time]
+        overtone.studio.core)
   (:require [overtone.studio fx]
             [overtone.config.log :as log]))
-
-(def MIXER-BOOT-DEPS [:server-ready :studio-setup-completed])
-(def DEFAULT-VOLUME 1.0)
-(def DEFAULT-PAN 0.0)
-(def DEFAULT-PAN-LEFT -1.0)
-(def DEFAULT-PAN-RIGHT 1.0)
 
 ; An instrument abstracts the more basic concept of a synthesizer used by
 ; SuperCollider.  Every instance of an instrument will be placed in the same
 ; group, so if you later call (kill my-inst) it will be able to stop all the
 ; instances of that group.  (Likewise for controlling them...)
-
-(defonce master-vol*  (ref DEFAULT-MASTER-VOLUME))
-(defonce master-gain* (ref DEFAULT-MASTER-GAIN))
-(defonce bus-mixers*  (ref {:in [] :out []}))
-
-(defonce instruments*  (ref {}))
-(defonce inst-group*   (ref nil))
-
-(defonce studio* (atom {:instruments {}
-                        :inst-group nil
-                        :master-volume DEFAULT-MASTER-VOLUME
-                        :master-gain DEFAULT-MASTER-GAIN
-                        :bus-mixers {:in []
-                                     :out []}}))
-
-(add-watch master-vol*
-           ::update-vol-on-server
-           (fn [k r old new-vol]
-             (ctl (main-mixer-group) :master-volume new-vol)))
-
-(add-watch master-gain*
-           ::update-gain-on-server
-           (fn [k r old new-gain]
-             (ctl (main-input-group) :master-gain new-gain)))
 
 (on-event "/server-audio-clipping-rogue-vol"
           (fn [msg]
@@ -61,7 +32,7 @@
 (defonce __BUS-MIXERS__
   (do
     (defsynth out-bus-mixer [out-bus 0
-                             volume 0.5 master-volume @master-vol*
+                             volume 0.5 master-volume (:master-volume @studio*)
                              safe-recovery-time 3]
       (let [source    (in out-bus)
             source    (* volume master-volume source)
@@ -73,7 +44,7 @@
         (replace-out out-bus safe-snd)))
 
     (comment defsynth out-bus-mixer [out-bus 0
-                             volume 0.5 master-volume @master-vol*
+                             volume 0.5 master-volume (volume)
                              safe-recovery-time 3]
       (let [source    (in out-bus)
             source    (* volume master-volume source)
@@ -89,10 +60,60 @@
         (replace-out out-bus safe-snd)))
 
     (defsynth in-bus-mixer [in-bus 0
-                            gain 1 master-gain @master-gain*]
+                            gain 1 master-gain (:input-gain @studio*)]
       (let [source  (in in-bus)
             source  (* gain master-gain source)]
         (replace-out in-bus source)))))
+
+(defn- setup-core-groups
+  []
+  (let [input-group   (with-server-sync #(group "Input"   :head 0))
+        root-group    (with-server-sync #(group "Root"    :after input-group))
+        mixer-group   (with-server-sync #(group "Mixer"   :after root-group))
+        monitor-group (with-server-sync #(group "Monitor" :after mixer-group))
+        synth-group   (with-server-sync #(group "Synths"  :head root-group))]
+      (swap! studio* assoc
+             :input-group   input-group
+             :root-group    root-group
+             :mixer-group   mixer-group
+             :monitor-group monitor-group
+             :synth-group   synth-group)
+    (satisfy-deps :core-groups-created)))
+
+(on-deps :server-connected ::setup-core-groups setup-core-groups)
+
+(defn- clear-core-groups
+  []
+  (swap! studio* assoc
+         :input-group   nil
+         :root-group    nil
+         :mixer-group   nil
+         :monitor-group nil))
+
+(on-sync-event :shutdown ::reset-core-groups clear-core-groups)
+
+(defn- clear-synth-group
+  []
+    (clear-msg-queue)
+    (group-clear (:synth-group @studio*)))
+
+(on-sync-event :reset (fn [event-info] (clear-synth-group)) ::reset-base)
+
+(defn- clear-msg-queue-and-groups
+  "Clear message queue and groups. Catches exceptions in case the
+  server has died. Meant for use in a :shutdown callback"
+  [event-info]
+  (try
+    (clear-msg-queue)
+    (group-clear 0)
+    (catch Exception e
+      (log/error "Can't clear message queue and groups - server might have died."))))
+
+(on-deps [:server-connected :core-groups-created] ::signal-server-ready
+         #(satisfy-deps :server-ready))
+
+(on-sync-event :shutdown clear-msg-queue-and-groups ::free-all-nodes)
+
 
 
 (defn- start-io-mixers
@@ -128,21 +149,23 @@
 (defn volume
   "Set the volume on the master mixer. When called with no params, retrieves the
    current value"
-  ([] @master-vol*)
-  ([vol] (dosync (ref-set master-vol* vol))))
+  ([] (:master-volume @studio*))
+  ([vol]
+   (ctl (main-mixer-group) :master-volume vol)
+   (swap! studio* :master-volume vol)))
 
 (defn input-gain
   "Set the input gain on the master mixer. When called with no params, retrieves
   the current value"
-  ([] @master-gain*)
-  ([gain] (dosync (ref-set master-gain* gain))))
+  ([] (:master-gain @studio*))
+  ([gain]
+   (ctl (main-input-group) :input-gain gain)
+   (swap! studio* assoc :input-gain gain)))
 
 (defonce __RECORDER__
   (defsynth master-recorder
     [out-buf 0]
     (disk-out out-buf (in 0 2))))
-
-(defonce recorder-info* (ref nil))
 
 (defn recording-start
   "Start recording a wav file to a new file at wav-path. Be careful -
@@ -153,35 +176,36 @@
   from the audio server to the file, there will be 1.5s of silence at
   the start of the recording"
   [path & args]
-  (if-let [info @recorder-info*]
+  (if-let [info (:recorder @studio*)]
     (throw (Exception. (str "Recording already taking place to: "
                             (get-in info [:buf-stream :path])))))
 
   (let [path (resolve-tilde-path path)
         bs   (apply buffer-stream path args)
         rec  (master-recorder :target (main-monitor-group) bs)]
-    (dosync
-     (ref-set recorder-info* {:rec-id rec
-                              :buf-stream bs}))
+    (swap! studio* :recorder {:rec-id rec
+                              :buf-stream bs})
     :recording-started))
 
 (defn recording-stop
   "Stop system-wide recording. This frees the file and writes the wav headers.
   Returns the path of the file created."
   []
-  (when-let [info (dosync
-                   (let [old @recorder-info*]
-                     (ref-set recorder-info* nil)
-                     old))]
+  (when-let [info (:recorder @studio*)]
     (kill (:rec-id info))
     (buffer-stream-close (:buf-stream info))
+    (swap! studio* assoc :recorder nil)
     (get-in info [:buf-stream :path])))
 
 (defn recording?
   []
-  (not (nil? @recorder-info*)))
+  (not (nil? (:recorder @studio*))))
 
-(defn mixer-booted? []
+(def MIXER-BOOT-DEPS   [:server-ready :studio-setup-completed])
+
+(defn mixer-booted?
+  "Check if the mixer has successfully booted yet."
+  []
   (deps-satisfied? MIXER-BOOT-DEPS))
 
 (defn wait-until-mixer-booted
@@ -198,7 +222,9 @@
     (boot-server)
     (wait-until-mixer-booted)))
 
-(defn setup-studio []
+(defn- setup-studio-groups
+  "Setup the studio groups."
+  []
   (log/info (str "Creating studio group at head of: " (root-group)))
   (let [root              (root-group)
         g                 (with-server-sync #(group "Studio" :head root))
@@ -206,33 +232,34 @@
                                       assoc val
                                       :group
                                       (with-server-sync #(group (str "Recreated Inst Group") :tail g)))
-                                    @instruments*)]
-    (dosync
-     (ref-set inst-group* g)
-     (ref-set instruments* insts-with-groups))
+                                    (:instruments @studio*))]
+    (swap! studio* assoc
+           :instrument-group g
+           :instruments insts-with-groups)
     (satisfy-deps :studio-setup-completed)))
 
-(on-deps :server-ready ::setup-studio setup-studio)
+(on-deps :server-ready ::setup-studio-groups setup-studio-groups)
 
-;; Clear and re-create the instrument groups after a reset
-;; TODO: re-create the instrument groups
-(defn reset-inst-groups
+(defn reset-instruments
   "Frees all synth notes for each of the current instruments"
   [event-info]
-  (doseq [[name inst] @instruments*]
+  (doseq [[name inst] (:instruments @studio*)]
     (group-clear (:instance-group inst))))
 
-(on-sync-event :reset reset-inst-groups ::reset-instruments)
+(on-sync-event :reset reset-instruments ::reset-instruments)
 
-; Add instruments to the session when defined
 (defn add-instrument [inst]
+  "Add an instrument to the session."
   (let [i-name (:name inst)]
-    (dosync (alter instruments* assoc i-name inst))
+    (swap! studio* update-in [:instruments i-name] (fn [_] inst))
     i-name))
 
 (defn remove-instrument [i-name]
-  (dosync (alter instruments* dissoc (name i-name)))
+  "Remove an instrument from the session."
+  (swap! studio* dissoc-in [:instruments (name i-name)])
   (event :inst-removed :inst-name i-name))
 
 (defn clear-instruments []
-  (dosync (ref-set instruments* {})))
+  "Clear all instruments from the session."
+  (swap! studio* assoc :instruments {}))
+
