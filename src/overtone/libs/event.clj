@@ -23,10 +23,9 @@
   the fns event and sync-event.
 
   Takes an event-type (name of the event), a handler fn and a key (to
-  refer back to this handler in the future). The handler can
-  optionally accept a single event argument, which is a map containing
-  the :event-type property and any other properties specified when it
-  was fired.
+  refer back to this handler in the future). The handler must accept a
+  single event argument, which is a map containing the :event-type
+  property and any other properties specified when it was fired.
 
   (on-event \"/tr\" handler ::status-check )
   (on-event :midi-note-down (fn [event]
@@ -41,15 +40,16 @@
 
 (defn on-sync-event
   "Synchronously runs handler whenever events of type event-type are
-  fired on the event handling thread i.e. causes the event handling
-  thread to block until all sync events have been handled. Events may
-  be triggered with the fns event and sync-event.
+  fired on the thread that generated the event (by calling ether event
+  or event-sync). Note, this causes the event-generating thread to block
+  whilst this handler is being handled. For a non-blocking event handler
+  see on-event.
+
 
   Takes an event-type (name of the event), a handler fn and a key (to
-  refer back to this handler in the future). The handler can
-  optionally accept a single event argument, which is a map containing
-  the :event-type property and any other properties specified when it
-  was fired.
+  refer back to this handler in the future). The handler accept a single
+  event argument, which is a map containing the :event-type property and
+  any other properties specified when it was fired.
 
   (on-event \"/tr\" handler ::status-check )
   (on-event :midi-note-down (fn [event]
