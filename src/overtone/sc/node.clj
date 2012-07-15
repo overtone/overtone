@@ -518,7 +518,8 @@
   ([] (group-node-tree* 0))
   ([id & [ctls?]]
      (ensure-connected!)
-     (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
+     (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)
+           id (to-synth-id id)]
        (let [reply-p (recv "/g_queryTree.reply")
              _ (snd "/g_queryTree" id ctls?)
              tree (:args (deref! reply-p))]
