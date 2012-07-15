@@ -121,3 +121,17 @@
   (remove-handler (:off-key player))
   (reset! (:status player) :stopped)
   player)
+
+
+(defn midi-capture-next-control-input
+  "Returns a simple map representing next modified controller. Useful
+  for detecting controller information."
+  []
+  (let [p (promise)]
+    (oneshot-event [:midi :control-change]
+                   (fn [msg]
+                     (let [{controller :data1 val :data2} msg
+                           device-name                    (get-in msg [:device :name])]
+                       (deliver p {:device device-name, :controller controller :value val})))
+                   ::print-next-control-input)
+    @p))
