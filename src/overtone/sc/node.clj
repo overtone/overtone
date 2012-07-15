@@ -204,7 +204,17 @@
 
 (defn group
   "Create a new synth group as a child of the target group. By default
-  creates a new group at the tail of the root group."
+  creates a new group at the tail of the root group.
+
+  The position can be one of :head, :tail :before, :after, or :replace.
+
+  (group)                  ;=> Creates a new group at the tail of the
+                               root-group
+  (group \"foo\")            ;=> Creates a group named foo
+  (group :tail my-g)       ;=> Creates a group at the tail of group
+                               my-g
+  (group \"bar\" :head my-g) ;=> Creates a named group at the head of
+                               group my-g"
   ([] (group :tail (root-group)))
   ([name] (group name :tail (root-group)))
   ([position target]
@@ -571,4 +581,3 @@
             (filter #(and (:name %)
                           (matcher-fn re-or-str (:name %)))
                     (node-tree-seq root))))))
-
