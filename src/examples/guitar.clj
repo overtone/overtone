@@ -15,8 +15,8 @@
 ; Checkout the built-in fx in overtone/studio/fx.clj
 
 ; add fx to an instrument chain with inst-fx
-(inst-fx guitar fx-distortion2)
-(inst-fx guitar fx-reverb2)
+(inst-fx! guitar fx-distortion2)
+(inst-fx! guitar fx-reverb2)
 
 ; keep an fx instance id if you want to control it later
 (def lowpass (inst-fx guitar fx-rlpf))
