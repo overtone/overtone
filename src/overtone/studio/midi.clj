@@ -13,8 +13,7 @@
 (defn midi-event
   "Trigger a global midi event."
   [dev msg & [ts]]
-  (let [command (or (:cmd msg)
-                    (:command msg))]
+  (let [command (:command msg)]
     (event [:midi command] msg)
     (event [:midi-device (dev :vendor) (dev :name) (dev :description) command] msg)))
 
