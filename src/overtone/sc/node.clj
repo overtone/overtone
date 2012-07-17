@@ -29,8 +29,8 @@
       (node-map-controls    [this names-busses]
         "Connect a node's controls to a control bus.")
       (node-map-n-controls  [this start-control start-bus n]
-        "Connect N controls of a node to a set of sequential control busses,
-    starting at the given control name."))
+        "Connect N controls of a node to a set of sequential control
+        busses, starting at the given control name."))
 
     (defprotocol IKillable
       (kill* [this] "Kill a synth element (node, or group, or ...)."))
@@ -264,8 +264,8 @@
   [node name-values]
   (ensure-connected!)
   (let [node-id (to-synth-id node)]
-              (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
-              node-id))
+    (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
+    node-id))
 
 (defn node-get-control
   "Get one or more synth control values by name.  Returns a map of
@@ -345,7 +345,7 @@
   (ensure-connected!)
   (let [group-id (to-synth-id group)
         node-id (to-synth-id node)]
-  (snd "/g_tail" group-id node-id)))
+    (snd "/g_tail" group-id node-id)))
 
 (defn- group-clear*
   "Free all child synth nodes in a group."
@@ -504,7 +504,8 @@
       {:type     :group
        :id       id
        :name     (get-in @active-synth-nodes* [id :group] "Unknown Group")
-       :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
+       :children (doall (map (fn [i] (parse-node-tree-helper ctls?))
+                             (range n-children)))})))
 
 (defn- parse-node-tree
   [data]
