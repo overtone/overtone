@@ -71,14 +71,19 @@
   (let [notes*  (atom {})
         on-key  (keyword (gensym 'note-on))
         off-key (keyword (gensym 'note-off))]
+
     (on-event [:midi :note-on] (fn [{note :note velocity :velocity}]
                                  (swap! notes* assoc note (play-fn note velocity)))
-    on-key)
+              on-key)
+
     (on-event [:midi :note-off] (fn [{note :note velocity :velocity}]
-                                  (let [n (get @notes* note)]
-                                    (node-control n {:gate 0}))
-                                  (swap! notes* dissoc note))
+                                  (when-let [n (get @notes* note)]
+                                    (node-control n [:gate 0])
+                                    (swap! notes* dissoc note)))
               off-key)
+
+    ;; TODO listen for '/n_end' event for nodes that free themselves
+    ;; before recieving a note-off message.
     {:notes* notes*
      :on-key on-key
      :off-key off-key
