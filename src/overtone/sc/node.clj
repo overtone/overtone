@@ -275,8 +275,8 @@
   [node names]
   (ensure-connected!)
   (let [res (recv "/n_set")
-        _ (apply snd "/s_get" (to-synth-id node) (stringify names))
-        cvals (:args (deref! res))]
+        cvals (do (apply snd "/s_get" (to-synth-id node) (stringify names))
+                  (:args (deref! res)))]
     (apply hash-map (keywordify (drop 1 cvals)))))
 
 ; This can be extended to support setting multiple ranges at once if necessary...
@@ -294,8 +294,8 @@
   [node name-index n]
   (ensure-connected!)
   (let [res (recv "/n_setn")
-        _ (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
-        cvals (:args (deref! res))]
+        cvals (do (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
+                  (:args (deref! res)))]
     (vec (drop 3 cvals))))
 
 (defn- bussify
