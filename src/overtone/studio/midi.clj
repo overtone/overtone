@@ -137,7 +137,8 @@
 (defn midi-capture-next-control-input
   "Returns a simple map representing next modified controller. Useful
   for detecting controller information. If the argument with-key? is set
-  to true, the full event key will associated with the resulting map."
+  to true, the full event key will be associated with the resulting
+  map."
   ([] (midi-capture-next-control-input false))
   ([with-key?]
      (let [p (promise)]
