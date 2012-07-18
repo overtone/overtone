@@ -154,3 +154,9 @@
                           (deliver p res)))
                       ::print-next-control-input)
        @p)))
+
+(defn midi-capture-next-controller-key
+  "Returns a vector representing the unique key for the next modified
+  controller."
+  []
+  (:key (midi-capture-next-control-input true)))
