@@ -176,9 +176,9 @@
   (let [next-input (midi-capture-next-control-input true)]
     (concat (:key next-input) [(:controller next-input)])))
 
-(defn- mk-control-key-keyword
+(defn- mk-agent-for-control-keyword
   [control-key]
-  (keyword (str "overtone.studio.midi/update-atom-for-control-" control-key)))
+  (keyword (str "overtone.studio.midi/update-agent-for-control-" control-key)))
 
 (defn midi-agent-for-control
   "Returns an agent representing the current value of a
@@ -204,6 +204,6 @@
                                                (send new-control-agent
                                                      (fn [old-val]
                                                        (:data2 msg))))
-                                             (mk-control-key-keyword control-key))
+                                             (mk-agent-for-control-keyword control-key))
                                    (assoc prev control-key new-control-atom)))))]
     (get control-agents control-key)))
