@@ -29,8 +29,8 @@
       (node-map-controls    [this names-busses]
         "Connect a node's controls to a control bus.")
       (node-map-n-controls  [this start-control start-bus n]
-        "Connect N controls of a node to a set of sequential control busses,
-    starting at the given control name."))
+        "Connect N controls of a node to a set of sequential control
+        busses, starting at the given control name."))
 
     (defprotocol IKillable
       (kill* [this] "Kill a synth element (node, or group, or ...)."))
@@ -204,7 +204,17 @@
 
 (defn group
   "Create a new synth group as a child of the target group. By default
-  creates a new group at the tail of the root group."
+  creates a new group at the tail of the root group.
+
+  The position can be one of :head, :tail :before, :after, or :replace.
+
+  (group)                  ;=> Creates a new group at the tail of the
+                               root-group
+  (group \"foo\")            ;=> Creates a group named foo
+  (group :tail my-g)       ;=> Creates a group at the tail of group
+                               my-g
+  (group \"bar\" :head my-g) ;=> Creates a named group at the head of
+                               group my-g"
   ([] (group :tail (root-group)))
   ([name] (group name :tail (root-group)))
   ([position target]
@@ -254,8 +264,8 @@
   [node name-values]
   (ensure-connected!)
   (let [node-id (to-synth-id node)]
-              (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
-              node-id))
+    (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
+    node-id))
 
 (defn node-get-control
   "Get one or more synth control values by name.  Returns a map of
@@ -265,8 +275,8 @@
   [node names]
   (ensure-connected!)
   (let [res (recv "/n_set")
-        _ (apply snd "/s_get" (to-synth-id node) (stringify names))
-        cvals (:args (deref! res))]
+        cvals (do (apply snd "/s_get" (to-synth-id node) (stringify names))
+                  (:args (deref! res)))]
     (apply hash-map (keywordify (drop 1 cvals)))))
 
 ; This can be extended to support setting multiple ranges at once if necessary...
@@ -284,8 +294,8 @@
   [node name-index n]
   (ensure-connected!)
   (let [res (recv "/n_setn")
-        _ (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
-        cvals (:args (deref! res))]
+        cvals (do (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
+                  (:args (deref! res)))]
     (vec (drop 3 cvals))))
 
 (defn- bussify
@@ -335,7 +345,7 @@
   (ensure-connected!)
   (let [group-id (to-synth-id group)
         node-id (to-synth-id node)]
-  (snd "/g_tail" group-id node-id)))
+    (snd "/g_tail" group-id node-id)))
 
 (defn- group-clear*
   "Free all child synth nodes in a group."
@@ -494,7 +504,8 @@
       {:type     :group
        :id       id
        :name     (get-in @active-synth-nodes* [id :group] "Unknown Group")
-       :children (doall (map (fn [i] (parse-node-tree-helper ctls?)) (range n-children)))})))
+       :children (doall (map (fn [i] (parse-node-tree-helper ctls?))
+                             (range n-children)))})))
 
 (defn- parse-node-tree
   [data]
@@ -508,7 +519,8 @@
   ([] (group-node-tree* 0))
   ([id & [ctls?]]
      (ensure-connected!)
-     (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)]
+     (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)
+           id (to-synth-id id)]
        (let [reply-p (recv "/g_queryTree.reply")
              _ (snd "/g_queryTree" id ctls?)
              tree (:args (deref! reply-p))]
@@ -571,4 +583,3 @@
             (filter #(and (:name %)
                           (matcher-fn re-or-str (:name %)))
                     (node-tree-seq root))))))
-

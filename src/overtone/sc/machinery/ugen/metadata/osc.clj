@@ -182,16 +182,17 @@ A sawtooth wave that is hard synched to a fundamental pitch. This produces an ef
        :doc "select the output signal from an array of inputs"}
 
       {:name "Vibrato",
-       :args [{:name "freq", :default 440.0}
-              {:name "rate", :default 6}
-              {:name "depth", :default 0.02}
-              {:name "delay", :default 0.0}
-              {:name "onset", :default 0.0}
-              {:name "rate-variation", :default 0.04}
-              {:name "depth-variation", :default 0.1}
-              {:name "iphase", :default 0.0}]
-       :doc ""}
-      ])
+       :args [{:name "freq", :default 440.0 :doc "Fundamental frequency in Hertz. If the Vibrato UGen is running at audio rate, this must not be a constant, but an actual audio rate UGen"}
+              {:name "rate", :default 6 :doc "Vibrato rate, speed of wobble in Hertz. Note that if this is set to a low value (and definitely with 0.0), you may never get vibrato back, since the rate input is only checked at the end of a cycle."}
+              {:name "depth", :default 0.02 :doc "Size of vibrato frequency deviation around the fundamental, as a proportion of the fundamental. 0.02 = 2% of the fundamental."}
+              {:name "delay", :default 0.0 :doc "Delay before vibrato is established in seconds (a singer tends to attack a note and then stabilise with vibrato, for instance)."}
+              {:name "onset", :default 0.0 :doc "Transition time in seconds from no vibrato to full vibrato after the initial delay time."}
+              {:name "rate-variation", :default 0.04 :doc "Noise on the rate, expressed as a proportion of the rate; can change once per cycle of vibrato."}
+              {:name "depth-variation", :default 0.1 :doc "Noise on the depth of modulation, expressed as a proportion of the depth; can change once per cycle of vibrato. The noise affects independently the up and the down part of vibrato shape within a cycle."}
+              {:name "iphase", :default 0.0 :doc "Initial phase of vibrato modulation, allowing starting above or below the fundamental rather than on it."}]
+       :summary "Models a slow frequency modulation."
+       :doc "Vibrato is a slow frequency modulation. Consider the systematic deviation in pitch of a singer around a fundamental frequency, or a violinist whose finger wobbles in position on the fingerboard, slightly tightening and loosening the string to add shimmer to the pitch. There is often also a delay before vibrato is established on a note. This UGen models these processes; by setting more extreme settings, you can get back to the timbres of FM synthesis. You can also add in some noise to the vibrato rate and vibrato size (modulation depth) to make for a more realistic motor pattern.
+The vibrato output is a waveform based on a squared envelope shape with four stages marking out 0.0 to 1.0, 1.0 to 0.0, 0.0 to -1.0, and -1.0 back to 0.0. Vibrato rate determines how quickly you move through these stages."}])
 
 (def specs-collide
   [{:name "Index",

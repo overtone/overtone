@@ -152,7 +152,8 @@
   ([] (:master-volume @studio*))
   ([vol]
    (ctl (main-mixer-group) :master-volume vol)
-   (swap! studio* :master-volume vol)))
+   (swap! studio* assoc :master-volume vol)
+   vol))
 
 (defn input-gain
   "Set the input gain on the master mixer. When called with no params, retrieves
@@ -262,4 +263,3 @@
 (defn clear-instruments []
   "Clear all instruments from the session."
   (swap! studio* assoc :instruments {}))
-

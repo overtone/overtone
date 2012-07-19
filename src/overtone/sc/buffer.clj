@@ -52,10 +52,12 @@
 
 (defn buffer
   "Synchronously allocate a new zero filled buffer for storing audio
-  data with the specified size and num-channels."
+  data with the specified size and num-channels. Size will be
+  automatically floored and converted to a Long - i.e. 2.7 -> 2"
   ([size] (buffer size 1))
   ([size num-channels]
-     (let [id   (with-server-self-sync
+     (let [size (long size)
+           id   (with-server-self-sync
                   (fn [uid]
                     (alloc-id :audio-buffer
                               1
