@@ -108,12 +108,14 @@
   (log-event "Registering sync event handler:: " event-type key)
   (handlers/add-sync-handler! handler-pool event-type key handler))
 
-(defn on-lossy-event
+(defn on-latest-event
   "Runs handler on a separate thread to the thread that generated the
   event - however event order is preserved per thread similar to
   on-sync-event. However, only the last matching event will trigger the
   handler with all intermediate events being dropped if the handler fn
   is still executing.
+
+  *Warning* - is not guaranteed to be triggered for all matching events.
 
   Useful for low-latency sequential handling of events despite
   potentially long-running handler fns where handling the most recent
