@@ -177,7 +177,7 @@
   specific MIDI events."
   []
   (let [next-input (midi-capture-next-control-input true)]
-    (concat (:key next-input) [(:controller next-input)])))
+    (vec (concat (:key next-input) [(:controller next-input)]))))
 
 (defn midi-mk-control-key-keyword
   [prefix control-key]

@@ -2,6 +2,8 @@
   ^{:doc "A simple event system that processes fired events in a thread pool."
      :author "Jeff Rose, Sam Aaron"}
   overtone.libs.event
+  (:import [java.util.concurrent LinkedBlockingQueue])
+  (:use [overtone.helpers.ref :only [swap-returning-prev!]])
   (:require [overtone.config.log :as log]
             [overtone.libs.handlers :as handlers]))
 
@@ -9,12 +11,56 @@
 (defonce ^:private event-debug* (atom false))
 (defonce ^:private monitoring?* (atom false))
 (defonce ^:private monitor* (atom {}))
+(defonce ^:private lossy-workers* (atom {}))
 
 (defn- log-event
   "Log event on separate thread to ensure logging doesn't interfere with
   event handling latency"
   [msg & args]
   (future (apply log/debug msg args)))
+
+(defrecord LossyWorker [queue worker current-val])
+
+(defn- lossy-worker
+  "Create a lossy worker which will call update-fn on a separate thread
+  when lossy-send is called. Calls to update-fn happen sequentially,
+  however unlike an agent, update-fn is not guaranteed to be called for
+  every lossy-send. Whilst update-fn is executing, if n lossy-sends are
+  received, only the latest lossy-send results in a new call to
+  update-fn - all the intermediate lossy-sends are dropped. update-fn is
+  also not called if the new-val sent with lossy-send is the same as the
+  previous value. This allows update-fn to be always responsive of the
+  latest value.
+
+  Do not place any watchers on the current-val atom of the returned
+  LossyWorker as the intention is to not block the calling thread any
+  more than necessary."
+  [update-fn]
+  (let [current-val* (atom nil)
+        last-val*    (atom (gensym))
+        queue        (LinkedBlockingQueue.)
+        work         (fn []
+                       (while (not= (.take queue) :die)
+                         (let [current @current-val*
+                               last @last-val*]
+                           (when (not= current last)
+                             (update-fn current)
+                             (reset! last-val* current))))
+                       (log-event "Killing Lossy worker"))
+        worker       (Thread. work)]
+    (.start worker)
+    (LossyWorker. queue worker current-val*)))
+
+(defn- lossy-send
+  "Send a new value to a lossy worker. May or may not result in the
+  lossy worker calling its update-fn depending on its current load as
+  intermediate calls may be dropped. Also, duplicate new-vals will also
+  be dropped. The last non-duplicate val sent to the lossy-worker is
+  guaranteed to trigger the update-fn provided it isn't perpetually
+  blocked."
+  [lossy-worker new-val]
+  (reset! (:current-val lossy-worker) new-val)
+  (.put (:queue lossy-worker) :job))
 
 (defn on-event
   "Asynchronously runs handler whenever events of event-type are
@@ -62,6 +108,30 @@
   (log-event "Registering sync event handler:: " event-type key)
   (handlers/add-sync-handler! handler-pool event-type key handler))
 
+(defn on-latest-event
+  "Runs handler on a separate thread to the thread that generated the
+  event - however event order is preserved per thread similar to
+  on-sync-event. However, only the last matching event will trigger the
+  handler with all intermediate events being dropped if the handler fn
+  is still executing.
+
+  *Warning* - is not guaranteed to be triggered for all matching events.
+
+  Useful for low-latency sequential handling of events despite
+  potentially long-running handler fns where handling the most recent
+  event is all that matters."
+  [event-type handler key]
+  (log-event "Registering lossy event handler:: " event-type key)
+  (let [worker (lossy-worker (fn [val]
+                               (handler val)))
+        [old _] (swap-returning-prev! lossy-workers* assoc key worker)]
+    (when-let [old-worker (get old key)]
+      (.put (:queue old-worker) :die))
+    (on-sync-event event-type
+                   (fn [msg]
+                     (lossy-send worker msg))
+                   key)))
+
 (defn oneshot-event
   ""
   [event-type handler key]
@@ -87,11 +157,17 @@
   (remove-handler :foo ::bar-key)
   (event :foo :val 200) ; my-foo-handler no longer called"
   [key]
+  (let [[old new] (swap-returning-prev! lossy-workers* dissoc key)]
+    (when-let [old-worker (get old key)]
+      (.put (:queue old-worker) :die)))
   (handlers/remove-handler! handler-pool key))
 
 (defn remove-all-handlers
   "Remove all handlers."
   []
+  (let [[old new] (swap-returning-prev! lossy-workers* (fn [_] {}))]
+    (doseq [old-worker (vals old)]
+      (.put (:queue old-worker) :die)))
   (handlers/remove-all-handlers! handler-pool))
 
 (defn event
