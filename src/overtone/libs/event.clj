@@ -113,7 +113,7 @@
   event - however event order is preserved per thread similar to
   on-sync-event. However, only the last matching event will trigger the
   handler with all intermediate events being dropped if the handler fn
-  is still executing.
+  is still busy executing.
 
   *Warning* - is not guaranteed to be triggered for all matching events.
 
