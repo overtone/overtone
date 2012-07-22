@@ -53,7 +53,7 @@
                :default 2
                :doc "1 means no interpolation, 2 is linear, 4 is cubic interpolation"}]
        :summary "Read the contents of a buffer at a specified index"
-       :check (when-ar (nth-input-ar 2))
+       ;; :check (when-ar (nth-input-ar 2))
        :doc "reads the contents of a buffer at a given index."}
 
       {:name "BufWr",
