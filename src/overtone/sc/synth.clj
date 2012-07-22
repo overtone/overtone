@@ -306,6 +306,8 @@
 (defn- control-proxies
   "Returns a list of param name symbols and control proxies"
   [params]
+  (when (not (even? (count params)))
+    (throw (Exception. "Error: odd number of synth parameters.  Note, synth parameters require default values. (e.g. (synth [freq 440] ...))")))
   (mapcat (fn [param] [(symbol (:name param))
                       `(control-proxy ~(:name param) ~(:default param) ~(:rate param))])
           params))
