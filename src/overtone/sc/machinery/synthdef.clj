@@ -10,6 +10,7 @@
         [overtone.libs event deps]
         [overtone.sc server]
         [overtone.sc.machinery.server comms]
+        [overtone.sc.machinery.ugen common specs]
         [overtone.helpers.file :only [resolve-tilde-path]]
         [overtone.helpers.system :only [get-os]])
   (:require [overtone.config.log :as log]))
@@ -238,6 +239,56 @@
   (let [path (resolve-tilde-path path)]
     (snd "/d_recv" (synthdef-bytes (synthdef-read path)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Synthdef de-compilation
+;;   The eventual goal is to be able to take any SuperCollider scsyndef
+;;   file, and produce equivalent clojure code that can be re-edited.
+
+(defn- param-vector [params pnames]
+  "Create a synthdef parameter vector."
+  (vec (flatten
+         (map #(list (symbol (:name %1))
+                     (nth params (:index %1)))
+              pnames))))
+
+(defn- ugen-form
+  "Create a ugen form."
+  [ug]
+  (let [uname (real-ugen-name ug)
+        ugen (get-ugen uname)
+        uname (if (and
+                    (zero? (:special ug))
+                    (not= (:rate-name ug) (:default-rate ugen)))
+                (str uname (:rate-name ug))
+                uname)
+        uname (symbol uname)]
+  (apply list uname (:inputs ug))))
+
+(defn- ugen-constant-inputs
+  "Replace constant ugen inputs with the constant values."
+  [constants ug]
+  (assoc ug :inputs
+         (map
+           (fn [{:keys [src index] :as input}]
+             (if (= src -1)
+               (nth constants index)
+               input))
+           (:inputs ug))))
+
+(defn- reverse-ugen-inputs
+  "Replace ugen inputs that are other ugens with their generated
+  symbolic name."
+  [pnames ugens ug]
+  (assoc ug :inputs
+         (map
+           (fn [{:keys [src index] :as input}]
+             (if src
+               (let [u-in (nth ugens src)]
+                 (if (= "Control" (:name u-in))
+                   (nth pnames index)
+                   (:sname (nth ugens src))))
+               input))
+           (:inputs ug))))
 
 ; In order to do this correctly is a big project because you also have to
 ; reverse the process of the various ugen modes.  For example, you need

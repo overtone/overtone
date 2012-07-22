@@ -111,7 +111,7 @@
                      volume pan
                      n-chans]
   (fn [this & args]
-    (apply synth-player name sdef params this :tgt instance-group args))
+    (apply synth-player sdef params this :tgt instance-group args))
 
   to-synth-id*
   (to-synth-id [_] (to-synth-id instance-group)))

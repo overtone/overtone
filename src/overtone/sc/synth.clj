@@ -465,7 +465,7 @@
               [~sname ~params ugens# constants#])))))
 
 (defn synth-player
-  [name sdef params this & args]
+  [sdef params this & args]
     "Returns a player function for a named synth.  Used by (synth ...)
     internally, but can be used to generate a player for a
     pre-compiled synth.  The function generated will accept two
@@ -509,7 +509,7 @@
                                         [(keyword name) @value])
                                       params))
           arg-map       (arg-mapper args arg-names defaults)
-          synth-node    (node name arg-map {:position pos :target sgroup} sdef)
+          synth-node    (node (:name sdef) arg-map {:position pos :target sgroup} sdef)
           synth-node    (if (:instance-fn this)
                           ((:instance-fn this) synth-node)
                           synth-node)]
@@ -518,7 +518,7 @@
       synth-node))
 
 (defrecord-ifn Synth [name ugens sdef args params instance-fn]
-               (partial synth-player name sdef params))
+               (partial synth-player sdef params))
 
 (defn update-tap-data
   [msg]
@@ -612,57 +612,6 @@
   "Returns true if s is a synth, false otherwise."
   [s]
   (= overtone.sc.synth.Synth (type s)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Synthdef de-compilation
-;;   The eventual goal is to be able to take any SuperCollider scsyndef
-;;   file, and produce equivalent clojure code that can be re-edited.
-
-(defn- param-vector [params pnames]
-  "Create a synthdef parameter vector."
-  (vec (flatten
-         (map #(list (symbol (:name %1))
-                     (nth params (:index %1)))
-              pnames))))
-
-(defn- ugen-form
-  "Create a ugen form."
-  [ug]
-  (let [uname (real-ugen-name ug)
-        ugen (get-ugen uname)
-        uname (if (and
-                    (zero? (:special ug))
-                    (not= (:rate-name ug) (:default-rate ugen)))
-                (str uname (:rate-name ug))
-                uname)
-        uname (symbol uname)]
-  (apply list uname (:inputs ug))))
-
-(defn- ugen-constant-inputs
-  "Replace constant ugen inputs with the constant values."
-  [constants ug]
-  (assoc ug :inputs
-         (map
-           (fn [{:keys [src index] :as input}]
-             (if (= src -1)
-               (nth constants index)
-               input))
-           (:inputs ug))))
-
-(defn- reverse-ugen-inputs
-  "Replace ugen inputs that are other ugens with their generated
-  symbolic name."
-  [pnames ugens ug]
-  (assoc ug :inputs
-         (map
-           (fn [{:keys [src index] :as input}]
-             (if src
-               (let [u-in (nth ugens src)]
-                 (if (= "Control" (:name u-in))
-                   (nth pnames index)
-                   (:sname (nth ugens src))))
-               input))
-           (:inputs ug))))
 
 (def ^{:dynamic true} *demo-time* 2000)
 
