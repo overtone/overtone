@@ -687,7 +687,7 @@
   Useful for experimentation.  If the root node is not an out ugen,
   then it will add one automatically.  You can specify a timeout in
   seconds as the first argument otherwise it defaults to *demo-time*
-  ms.
+  ms. See #'run for a version of demo that does not add an out ugen.
 
   (demo (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
   (demo 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"

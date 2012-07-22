@@ -53,7 +53,7 @@
                :default 2
                :doc "1 means no interpolation, 2 is linear, 4 is cubic interpolation"}]
        :summary "Read the contents of a buffer at a specified index"
-       :check (when-ar (nth-input-ar 2))
+       ;; :check (when-ar (nth-input-ar 2))
        :doc "reads the contents of a buffer at a given index."}
 
       {:name "BufWr",
@@ -61,7 +61,7 @@
               {:name "bufnum", :default 0 :doc "the index of the buffer to use"}
               {:name "phase", :default 0.0 :doc "modulatable index into the buffer (has to be audio rate)."}
               {:name "loop", :default 1.0 :doc "1 means true, 0 means false.  This is modulatable"}]
-       :check (when-ar (nth-input-ar 1))
+;;       :check (when-ar (nth-input-ar 1))
        :doc "writes to a buffer at a given index. Note, buf-wr (in difference to buf-rd) does not do multichannel expansion, because input is an array."}
 
       {:name "RecordBuf",

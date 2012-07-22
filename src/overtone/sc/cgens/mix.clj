@@ -3,11 +3,17 @@
         [overtone.helpers lib]
         [overtone.helpers stereo]))
 
-(defcgen mix
-  "Mix down (sum) a list of input channels into a single channel."
-  [ins {:default [] :doc "list of input channels to mix"}]
-  "Mixes down the list of input channels by summing them together. Be careful about mixing too many channels together as the resulting signal will be progressively amplified."
+(defcgen sum
+  "sum a list of input channels into a single channel."
+  [ins {:default [] :doc "list of input channels to sum"}]
+  "Sum the list of input channels by summing them together. Be careful about summing too many channels together as the resulting signal will be progressively amplified."
   (:ar (apply + ins)))
+
+(defcgen mix
+  "Mix a list of input channels into a single channel."
+  [ins {:default [] :doc "list of input channels to mix"}]
+  "Mix the list of input channels by summing them together and dividing by the number of input signals. See sum if you wish to just add the signals together."
+  (:ar (* (apply + ins) (/ 1 (count ins)))))
 
 (defcgen splay
   "Spread input channels across a stereo field"
