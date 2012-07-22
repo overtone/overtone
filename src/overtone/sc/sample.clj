@@ -16,35 +16,35 @@
   (do
     (defsynth mono-player
       "Plays a single channel audio buffer."
-      [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
-      (out 0 (* vol
-                (pan2
-                 (scaled-play-buf 1 buf rate
-                                  1 start-pos loop?
-                                  FREE)))))
+      [out-bus 0 buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
+      (out out-bus (* vol
+                      (pan2
+                       (scaled-play-buf 1 buf rate
+                                        1 start-pos loop?
+                                        FREE)))))
 
     (defsynth stereo-player
       "Plays a dual channel audio buffer."
-      [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
-      (out 0 (* vol
-                (scaled-play-buf 2 buf rate
-                                 1 start-pos loop?
-                                 FREE))))
+      [out-bus 0 buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
+      (out out-bus (* vol
+                      (scaled-play-buf 2 buf rate
+                                       1 start-pos loop?
+                                       FREE))))
 
     (defsynth mono-stream-player
       "Plays a single channel streaming buffer-cue. Must be freed manually when
       done."
-      [buf 0 rate 1 loop? 0 vol 1]
-      (out 0 (* vol
-                (pan2
-                 (scaled-v-disk-in 1 buf rate loop?)))))
+      [out-bus 0 buf 0 rate 1 loop? 0 vol 1]
+      (out out-bus (* vol
+                      (pan2
+                       (scaled-v-disk-in 1 buf rate loop?)))))
 
     (defsynth stereo-stream-player
       "Plays a dual channel streaming buffer-cue. Must be freed manually when
       done."
-      [buf 0 rate 1 loop? 0 vol 1]
-      (out 0 (* vol
-                (scaled-v-disk-in 2 buf rate loop?))))))
+      [out-bus 0 buf 0 rate 1 loop? 0 vol 1]
+      (out out-bus (* vol
+                      (scaled-v-disk-in 2 buf rate loop?))))))
 
 (defonce loaded-samples* (ref {}))
 
