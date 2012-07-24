@@ -16,7 +16,8 @@
                  [seesaw "1.4.1"]]
   :native-path "native"
   :jvm-opts
-  ["-Xms512m" "-Xmx1g"           ; Minimum and maximum sizes of the heap
+  ["-Xdock:name=Overtone"
+   "-Xms512m" "-Xmx1g"           ; Minimum and maximum sizes of the heap
    "-XX:+UseParNewGC"            ; Use the new parallel GC in conjunction with
    "-XX:+UseConcMarkSweepGC"     ;  the concurrent garbage collector
    "-XX:+CMSConcurrentMTEnabled" ; Enable multi-threaded concurrent gc work (ParNewGC)

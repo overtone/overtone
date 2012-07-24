@@ -2,10 +2,11 @@
   ^{:doc "A virtual studio mixing table."
      :author "Jeff Rose & Sam Aaron"}
   overtone.studio.mixer
+  (:import (java.awt Toolkit))
   (:use [clojure.core.incubator :only [dissoc-in]]
         [overtone.music rhythm pitch]
         [overtone.libs event deps]
-        [overtone.helpers lib file]
+        [overtone.helpers lib file system]
         [overtone.sc defaults server synth info
          ugens envelope node bus buffer]
         [overtone.sc.machinery synthdef]
@@ -239,7 +240,24 @@
            :instruments insts-with-groups)
     (satisfy-deps :studio-setup-completed)))
 
-(on-deps :server-ready ::setup-studio-groups setup-studio-groups)
+(defn- set-osx-icon
+  [icon]
+  (try
+    (import 'com.apple.eawt.Application)
+    (.setDockIconImage (com.apple.eawt.Application/getApplication) icon)
+    (catch Exception e
+      false))
+  true)
+
+(defn- setup-studio
+  []
+  (setup-studio-groups)
+  (when (= :mac (get-os))
+    (let [icon-url (clojure.java.io/resource "overtone-logo.png")
+          icon (.createImage (Toolkit/getDefaultToolkit) icon-url)]
+      (set-osx-icon icon))))
+
+(on-deps :server-ready ::setup-studio-groups setup-studio)
 
 (defn reset-instruments
   "Frees all synth notes for each of the current instruments"
