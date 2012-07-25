@@ -5,13 +5,13 @@
          serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.sc.synth
-  (:use [overtone.helpers lib old-contrib]
+  (:use [overtone.helpers lib old-contrib synth]
         [overtone.libs event counters]
         [overtone.music time]
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]
         [overtone.sc bindings ugens server node]
-        [overtone.studio.core :only (studio*)]
+        [overtone.studio.core :only (studio* main-synth-group)]
         [overtone.helpers seq]
         [clojure.pprint])
 
@@ -484,35 +484,24 @@
     These can also be abbreviated:
     (foo :tgt 2 :pos :head)
     "
-    (let [arg-names     (map keyword (map :name params))
-          args (or args [])
-          [args sgroup] (if (or (= :target (first args))
-                                (= :tgt    (first args)))
-                          [(drop 2 args) (second args)]
-                          [args (:synth-group @studio*)])
-          [args pos]    (if (or (= :position (first args))
-                                (= :pos      (first args)))
-                          [(drop 2 args) (second args)]
-                          [args :tail])
-          [args sgroup] (if (or (= :target (first args))
-                                (= :tgt    (first args)))
-                          [(drop 2 args) (second args)]
-                          [args sgroup])
-          args          (mapcat (fn [x] (if (and (map? x)
-                                                (not (id-able-type? x)))
-                                         (flatten (seq x))
-                                         [x]))
-                                args)
-          args          (map #(if (id-able-type? %)
-                                (:id %) %) args)
-          defaults      (into {} (map (fn [{:keys [name value]}]
-                                        [(keyword name) @value])
-                                      params))
-          arg-map       (arg-mapper args arg-names defaults)
-          synth-node    (node (:name sdef) arg-map {:position pos :target sgroup} sdef)
-          synth-node    (if (:instance-fn this)
-                          ((:instance-fn this) synth-node)
-                          synth-node)]
+    (let [arg-names         (map keyword (map :name params))
+          args              (or args [])
+          [target pos args] (extract-target-pos-args args (main-synth-group) :tail)
+          args              (mapcat (fn [x] (if (and (map? x)
+                                                    (not (id-able-type? x)))
+                                             (flatten (seq x))
+                                             [x]))
+                                    args)
+          args              (map #(if (id-able-type? %)
+                                    (:id %) %) args)
+          defaults          (into {} (map (fn [{:keys [name value]}]
+                                            [(keyword name) @value])
+                                          params))
+          arg-map           (arg-mapper args arg-names defaults)
+          synth-node        (node (:name sdef) arg-map {:position pos :target target} sdef)
+          synth-node        (if (:instance-fn this)
+                              ((:instance-fn this) synth-node)
+                              synth-node)]
       (when (:instance-fn this)
         (swap! active-synth-nodes* assoc (:id synth-node) synth-node))
       synth-node))
