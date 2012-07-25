@@ -240,22 +240,9 @@
            :instruments insts-with-groups)
     (satisfy-deps :studio-setup-completed)))
 
-(defn- set-osx-icon
-  [icon]
-  (try
-    (import 'com.apple.eawt.Application)
-    (.setDockIconImage (com.apple.eawt.Application/getApplication) icon)
-    (catch Exception e
-      false))
-  true)
-
 (defn- setup-studio
   []
-  (setup-studio-groups)
-  (when (= :mac (get-os))
-    (let [icon-url (clojure.java.io/resource "overtone-logo.png")
-          icon (.createImage (Toolkit/getDefaultToolkit) icon-url)]
-      (set-osx-icon icon))))
+  (setup-studio-groups))
 
 (on-deps :server-ready ::setup-studio-groups setup-studio)
 

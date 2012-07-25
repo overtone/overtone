@@ -1,5 +1,5 @@
 (ns overtone.live
-  (:use [overtone.libs.boot-msg]
+  (:use [overtone.libs boot-msg app-icon]
         [overtone.helpers.ns])
   (:require clojure.stacktrace
             [overtone.config store]
