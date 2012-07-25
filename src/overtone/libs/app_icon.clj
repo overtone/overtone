@@ -1,6 +1,6 @@
 (ns overtone.libs.app-icon
   (:use [clojure.java.io]
-        [overtone.helpers.system :only [get-os]])
+        [overtone.helpers.system :only [mac-os?]])
   (:import [com.apple.eawt.Application]
            [java.awt.Toolkit]))
 
@@ -17,7 +17,7 @@
   (let [icon-url (clojure.java.io/resource "overtone-logo.png")
         icon     (.createImage (java.awt.Toolkit/getDefaultToolkit) icon-url)]
     (cond
-      (= :mac (get-os)) (set-osx-icon icon))))
+      (mac-os?) (set-osx-icon icon))))
 
 (defonce __INIT-ICON__
   (setup-icon))
