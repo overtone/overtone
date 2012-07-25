@@ -38,3 +38,7 @@
   (ensure-connected!)
   (:input-group @studio*))
 
+(defn main-synth-group
+  []
+  (ensure-connected!)
+  (:synth-group @studio*))
