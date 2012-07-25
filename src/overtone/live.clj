@@ -9,7 +9,7 @@
                          ugens defcgen node sample server synth trigger]
             [overtone.sc.cgens oscillators demand mix io buf-io env tap line]
             [overtone.music rhythm pitch tuning time]
-            [overtone.studio mixer inst util fx wavetable midi]
+            [overtone.studio mixer inst util fx wavetable midi core]
             [overtone.repl ugens examples shell inst debug]
             [overtone.libs asset event freesound]
             [overtone.gui scope mixer control]))
@@ -47,6 +47,7 @@
   'overtone.studio.fx
   'overtone.studio.wavetable
   'overtone.studio.midi
+  'overtone.studio.core
   'overtone.music.rhythm
   'overtone.music.pitch
   'overtone.music.tuning
