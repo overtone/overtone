@@ -360,4 +360,5 @@
                   (butlast clauses)
                   clauses)]
     (get (apply hash-map clauses)
-         (eval e))))
+         (eval e)
+         default)))
