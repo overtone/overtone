@@ -1,23 +1,24 @@
 (ns overtone.libs.app-icon
   (:use [clojure.java.io]
-        [overtone.helpers.system :only [mac-os?]])
-  (:import [com.apple.eawt.Application]
-           [java.awt.Toolkit]))
+        [overtone.helpers.lib :only [branch]]
+        [overtone.helpers.system :only [get-os]])
+  (:import [java.awt.Toolkit]))
 
-(defn- set-osx-icon
-  [icon]
-  (try
-    (.setDockIconImage (com.apple.eawt.Application/getApplication) icon)
-    (catch Exception e
-      false))
-  true)
+(defn- load-icon [path]
+  (let [icon-url (clojure.java.io/resource path)]
+    (-> (java.awt.Toolkit/getDefaultToolkit)
+        (.createImage icon-url))))
 
-(defn- setup-icon
-  []
-  (let [icon-url (clojure.java.io/resource "overtone-logo.png")
-        icon     (.createImage (java.awt.Toolkit/getDefaultToolkit) icon-url)]
-    (cond
-      (mac-os?) (set-osx-icon icon))))
+(defn- set-icon [icon]
+  (branch (get-os)
+    :mac (try
+           (import 'com.apple.eawt.Application)
+           (-> (com.apple.eawt.Application/getApplication)
+               (.setDockIconImage icon))
+           (catch Exception e))))
+
+(defn- setup-icon []
+  (set-icon (load-icon "overtone-logo.png")))
 
 (defonce __INIT-ICON__
   (setup-icon))

@@ -340,3 +340,24 @@
           sc-files    (filter #(.contains % "SuperCollider") p-files)
           recent-sc   (last (sort (seq sc-files)))]
       recent-sc)))
+
+(defmacro branch
+  "Expansion time branching. Takes a test-expression and a set of
+  clauses of the following form:
+
+  clauses => clause1 ... clauseN, default-clause*
+  clause => test-constant result-expr
+  default-clause* => result-expr
+
+  Evaluates the test-expression 'e' and looks for a matching
+  test-constant in the clauses. Expands to the result-expression of
+  the matching clause or nil if no match is found and no
+  default-expression is provided."
+  [e & clauses]
+  (let [default (when (odd? (count clauses))
+                  (last clauses))
+        clauses (if (odd? (count clauses))
+                  (butlast clauses)
+                  clauses)]
+    (get (apply hash-map clauses)
+         (eval e))))
