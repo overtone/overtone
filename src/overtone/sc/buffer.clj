@@ -190,6 +190,22 @@
          (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index.")))
          (apply snd "/b_setn" (:id buf) start-idx size doubles)))))
 
+
+(defn buffer-write-relay!
+  "Similar to buffer-write! except it is capable of handling very large
+  buffers by slicing them up and writing each slice separately. Can be
+  very slow."
+  ([buf data] (buffer-write-relay! buf 0 data))
+  ([buf start-idx data]
+     (assert (buffer? buf))
+     (loop [data-left data
+            idx       0]
+       (let [to-write  (take MAX-OSC-SAMPLES data-left)
+             data-left (drop MAX-OSC-SAMPLES data-left)]
+         (when-not (empty? to-write)
+           (buffer-write! buf idx to-write)
+           (recur data-left (+ idx (count to-write))))))))
+
 (defn buffer-fill!
   "Fill a buffer range with a single value. Modifies the buffer in place
   on the server. Defaults to filling in the full buffer unless start and
