@@ -448,21 +448,21 @@
     `(let [~@param-proxies]
           (binding [*ugens* []
                     *constants* #{}]
-            (let [[ugens# constants#] (gather-ugens-and-constants
-                                        (with-overloaded-ugens ~@ugen-form))
-                  ugens# (topological-sort-ugens ugens#)
-                  main-tree# (set ugens#)
-                  side-tree# (filter #(not (main-tree# %)) *ugens*)
-                  ugens# (concat ugens# side-tree#)
-                  n-local-bufs# (count-ugens ugens# "LocalBuf")
-                  ugens# (if (> n-local-bufs# 0)
-                           (cons (max-local-bufs n-local-bufs#) ugens#)
-                           ugens#)
-                  constants# (if (> n-local-bufs# 0)
-                               (cons n-local-bufs# constants#)
-                               constants#)
-                  constants# (into [] (set (concat constants# *constants*)))]
-              [~sname ~params ugens# constants#])))))
+            (let [[ugens# consts#] (gather-ugens-and-constants
+                                    (with-overloaded-ugens ~@ugen-form))
+                  ugens#           (topological-sort-ugens ugens#)
+                  main-tree#       (set ugens#)
+                  side-tree#       (filter #(not (main-tree# %)) *ugens*)
+                  ugens#           (concat ugens# side-tree#)
+                  n-local-bufs#    (count-ugens ugens# "LocalBuf")
+                  ugens#           (if (> n-local-bufs# 0)
+                                     (cons (max-local-bufs n-local-bufs#) ugens#)
+                                     ugens#)
+                  consts#          (if (> n-local-bufs# 0)
+                                     (cons n-local-bufs# consts#)
+                                     consts#)
+                  consts#       (into [] (set (concat consts# *constants*)))]
+              [~sname ~params ugens# consts#])))))
 
 (defn synth-player
   [sdef params this & args]
