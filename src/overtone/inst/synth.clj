@@ -27,7 +27,8 @@
    sustain    {:default 0.6 :min 0.001 :max 0.99 :step 0.001}
    release    {:default 0.01 :min 0.001 :max 4 :step 0.001}
    cutoff     {:default 100 :min 1 :max 20000 :step 1}
-   env-amount {:default 0.01 :min 0.001 :max 4 :step 0.001}]
+   env-amount {:default 0.01 :min 0.001 :max 4 :step 0.001}
+   amp        {:default 0.5 :min 0 :max 1 :step 0.01}]
   (let [freq       (midicps note)
         freqs      [freq (* 1.01 freq)]
         vol-env    (env-gen (adsr attack decay sustain release)
@@ -41,7 +42,7 @@
                       (lf-tri freqs)])
         selector   (select wave waves)
         filt       (rlpf selector fil-cutoff r)]
-    (* 0.5 filt)))
+    (* amp filt)))
 
 (definst mooger
   "Choose 0, 1, or 2 for saw, sin, or pulse"
