@@ -57,8 +57,7 @@
 ;   UGen that is higher up in the list.
 (defn- with-inputs
   "Returns ugen object with its input ports connected to constants and
-  upstream ugens according to the arguments in the initial
-  definition."
+  upstream ugens according to the arguments in the initial definition."
   [ugen ugens constants grouped-params]
   (when-not (contains? ugen :args)
     (if-not (sc-ugen? ugen)
@@ -69,41 +68,41 @@
                       (:name ugen))))))
   (when-not (every? #(or (sc-ugen? %) (number? %) (string? %)) (:args ugen))
     (throw (IllegalArgumentException.
-             (format "The %s ugen has an invalid argument: %s"
-                     (:name ugen)
-                     (first (filter
-                              #(not (or (sc-ugen? %) (number? %)))
-                              (:args ugen)))))))
+            (format "The %s ugen has an invalid argument: %s"
+                    (:name ugen)
+                    (first (filter
+                            #(not (or (sc-ugen? %) (number? %)))
+                            (:args ugen)))))))
 
   (let [inputs (flatten
-                 (map (fn [arg]
-                        (cond
-                          ; constant
-                          (number? arg)
-                          {:src -1 :index (index-of constants (float arg))}
+                (map (fn [arg]
+                       (cond
+                                        ; constant
+                         (number? arg)
+                         {:src -1 :index (index-of constants (float arg))}
 
-                          ; control
-                          (control-proxy? arg)
-                          (param-input-spec grouped-params arg)
+                                        ; control
+                         (control-proxy? arg)
+                         (param-input-spec grouped-params arg)
 
-                          ; output proxy
-                          (output-proxy? arg)
-                          (let [src (ugen-index ugens (:ugen arg))]
-                            {:src src :index (:index arg)})
+                                        ; output proxy
+                         (output-proxy? arg)
+                         (let [src (ugen-index ugens (:ugen arg))]
+                           {:src src :index (:index arg)})
 
-                          ; child ugen
-                          (sc-ugen? arg)
-                          (let [src (ugen-index ugens arg)
-                                updated-ugen (nth ugens src)]
-                            (inputs-from-outputs src updated-ugen))))
-                      (:args ugen)))
+                                        ; child ugen
+                         (sc-ugen? arg)
+                         (let [src (ugen-index ugens arg)
+                               updated-ugen (nth ugens src)]
+                           (inputs-from-outputs src updated-ugen))))
+                     (:args ugen)))
         ugen (assoc ugen :inputs inputs)]
     (when-not (every? (fn [{:keys [src index]}]
-                    (and (not (nil? src))
-                         (not (nil? index))))
-                  (:inputs ugen))
+                        (and (not (nil? src))
+                             (not (nil? index))))
+                      (:inputs ugen))
       (throw (Exception.
-               (format "Cannot connect ugen arguments for %s ugen with args: %s" (:name ugen) (str (seq (:args ugen)))))))
+              (format "Cannot connect ugen arguments for %s ugen with args: %s" (:name ugen) (str (seq (:args ugen)))))))
 
     ;;Add link back to MaxLocalBufs ugen (always at root of tree) if
     ;;ugen is a local-buf.
@@ -163,8 +162,8 @@
         (recur (assoc done group-rate ctl-proxy) (rest todo) (+ offset group-size))))))
 
 (defn- group-params
-  "Groups params by rate.  Groups a list of parameters into a
-   list of lists, one per rate."
+  "Groups params by rate.  Groups a list of parameters into a list of
+   lists, one per rate."
   [params]
   (let [by-rate (reduce (fn [mem param]
                           (let [rate (:rate param)
@@ -200,11 +199,10 @@
     (throw (IllegalArgumentException. (str "Your synth argument list is not a vector. Instead I found " (type l) ": " l)))))
 
 (defn- mapify-params
-  "Converts a list of param name val pairs to a param map. If the val
-  of a param is a vector, it assumes it's a pair of [val rate] and
-  sets the rate of the param accordingly. If the val is a plain
-  number, it sets the rate to DEFAULT-RATE. All names are converted to
-  strings"
+  "Converts a list of param name val pairs to a param map. If the val of
+  a param is a vector, it assumes it's a pair of [val rate] and sets the
+  rate of the param accordingly. If the val is a plain number, it sets
+  the rate to DEFAULT-RATE. All names are converted to strings"
   [params]
   (for [[p-name p-val] (partition 2 params)]
     (let [param-map
@@ -328,8 +326,8 @@
 
 (defn normalize-synth-args
   "Pull out and normalize the synth name, parameters, control proxies
-   and the ugen form from the supplied arglist resorting to defaults
-   if necessary."
+   and the ugen form from the supplied arglist resorting to defaults if
+   necessary."
   [args]
   (let [[sname args]       (if (or (string? (first args))
                                    (symbol? (first args)))
@@ -562,9 +560,9 @@
 
 (defmacro defsynth
   "Define a synthesizer and return a player function. The synth
-  definition will be loaded immediately, and a :new-synth event will
-  be emitted. Expects a name, an optional doc-string, a vector of
-  synth params, and a ugen-form as it's arguments.
+  definition will be loaded immediately, and a :new-synth event will be
+  emitted. Expects a name, an optional doc-string, a vector of synth
+  params, and a ugen-form as it's arguments.
 
   (defsynth foo [freq 440]
     (out 0 (sin-osc freq)))
@@ -598,9 +596,7 @@
   (foo :position :head :target 2 440 0.3)
 
   These can also be abbreviated:
-  (foo :tgt 2 :pos :head)
-
-  "
+  (foo :tgt 2 :pos :head)"
   [s-name & s-form]
   {:arglists '([name doc-string? params ugen-form])}
   (let [[s-name params ugen-form] (synth-form s-name s-form)]
@@ -615,8 +611,8 @@
 
 (defmacro run
   "Run an anonymous synth definition for a fixed period of time.
-  Useful for experimentation. Does NOT add an out ugen - see #'demo
-  for that. You can specify a timeout in seconds as the first argument
+  Useful for experimentation. Does NOT add an out ugen - see #'demo for
+  that. You can specify a timeout in seconds as the first argument
   otherwise it defaults to *demo-time* ms.
 
   (run (send-reply (impulse 1) \"/foo\" [1] 43)) ;=> send OSC messages"
@@ -631,10 +627,10 @@
 
 (defmacro demo
   "Listen to an anonymous synth definition for a fixed period of time.
-  Useful for experimentation.  If the root node is not an out ugen,
-  then it will add one automatically.  You can specify a timeout in
-  seconds as the first argument otherwise it defaults to *demo-time*
-  ms. See #'run for a version of demo that does not add an out ugen.
+  Useful for experimentation.  If the root node is not an out ugen, then
+  it will add one automatically.  You can specify a timeout in seconds
+  as the first argument otherwise it defaults to *demo-time* ms. See
+  #'run for a version of demo that does not add an out ugen.
 
   (demo (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
   (demo 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
@@ -650,9 +646,8 @@
     `((synth "audition-synth" ~body))))
 
 (defn active-synths
-  "Return a seq of the actively running synth nodes.  If a synth or
-  inst are passed as the filter it will only return nodes of that
-  type.
+  "Return a seq of the actively running synth nodes.  If a synth or inst
+  are passed as the filter it will only return nodes of that type.
 
   (active-synths) ;=> [{:type synth :name \"mixer\" :id 12} {:type
                         synth :name \"my-synth\" :id 24}]
