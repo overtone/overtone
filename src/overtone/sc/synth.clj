@@ -230,6 +230,7 @@
    name default pairs, name [default rate] pairs or a vector of maps:
 
   (defsynth foo [freq 440] ...)
+  (defsynth foo [freq [440 :ar]] ...)
   (defsynth foo [freq {:default 440 :rate :ar}] ...)
 
   Returns a vec of param maps"
@@ -573,6 +574,13 @@
   (def foo
     (synth [freq 440] (out 0 (sin-osc freq))))
 
+  Params can also be given rates. By default, they are :kr, however
+  another rate can be specified by using either a pair of [default rate]
+  or a map with keys :default and rate:
+
+  (defsynth foo [freq [440 :kr] gate [0 :tr]] ...)
+  (defsynth foo [freq {:default 440 :rate :kr}] ...)
+
   A doc string can also be included:
   (defsynth bar
     \"The phatest space pad ever!\"
@@ -591,6 +599,7 @@
 
   These can also be abbreviated:
   (foo :tgt 2 :pos :head)
+
   "
   [s-name & s-form]
   {:arglists '([name doc-string? params ugen-form])}
