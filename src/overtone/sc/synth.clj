@@ -673,7 +673,7 @@
           (throw (IllegalArgumentException. (str "Invalid control parameter: " param))))))))
 
 (defn reset-synth-defaults
-  "Reset a synth to it's default settings defined at definition time."
+  "Reset a synth to its default settings defined at definition time."
   [synth]
   (doseq [param (:params synth)]
     (reset! (:value param) (:default param))))
