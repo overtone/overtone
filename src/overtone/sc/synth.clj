@@ -18,6 +18,11 @@
   (:require [overtone.config.log :as log]
             [clojure.set :as set]))
 
+
+(defn- valid-control-proxy-rate?
+  [rate]
+  (some #{rate} CONTROL-PROXY-RATES))
+
 ;; ### Synth
 ;;
 ;; A Synth is a collection of unit generators that run together. They can be
@@ -198,6 +203,16 @@
   (when-not (vector? l)
     (throw (IllegalArgumentException. (str "Your synth argument list is not a vector. Instead I found " (type l) ": " l)))))
 
+(defn- ensure-valid-control-proxy-vec!
+  [val]
+  (when-not (= 2 (count val))
+    (throw (IllegalArgumentException. (str "Control Proxy vector must have only 2 elements i.e. [0 :tr]"))))
+  (when-not (number? (first val))
+    (throw (IllegalArgumentException. (str "Control Proxy vector must have a number as the first element i.e. [0 :tr]"))))
+  (when-not (valid-control-proxy-rate? (second val))
+    (throw (IllegalArgumentException. (str "Control Proxy rate not valid. Expecting one of " CONTROL-PROXY-RATES))))
+  val)
+
 (defn- mapify-params
   "Converts a list of param name val pairs to a param map. If the val of
   a param is a vector, it assumes it's a pair of [val rate] and sets the
@@ -206,13 +221,20 @@
   [params]
   (for [[p-name p-val] (partition 2 params)]
     (let [param-map
-          (if (associative? p-val)
-            (merge
-              {:name  (str p-name)
-               :rate  DEFAULT-RATE} p-val)
-            {:name (str p-name)
-             :default `(float ~p-val)
-             :rate DEFAULT-RATE})]
+          (cond
+            (vector? p-val) (do
+                              (ensure-valid-control-proxy-vec! p-val)
+                              {:name (str p-name)
+                               :default (first p-val)
+                               :rate (second p-val)})
+
+            (associative? p-val) (merge
+                                  {:name  (str p-name)
+                                   :rate  DEFAULT-RATE} p-val)
+
+            :else {:name (str p-name)
+                   :default `(float ~p-val)
+                   :rate DEFAULT-RATE})]
       (ensure-param-keys! param-map)
       param-map)))
 

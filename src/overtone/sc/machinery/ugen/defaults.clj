@@ -13,6 +13,9 @@
             :dr 3
             :auto :auto})
 
+(def CONTROL-PROXY-RATES
+  [:ir :ar :kr :tr])
+
 (def UGEN-RATE-SPEED {:ir 0
                       :dr 1
                       :kr 2
