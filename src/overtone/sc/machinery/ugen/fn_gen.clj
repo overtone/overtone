@@ -220,15 +220,22 @@
           (every? #(or (sc-ugen? %) (number? %) (sequential? %) (keyword? %)) args))
      (args-list-is-a-map? args))))
 
+(defn- unary-compatible-binary-ugen?
+  [ugen-name args]
+  (and (= 1 (count args)) (contains? binary-op-unary-modes (str ugen-name))))
+
+(defn- binary-ugen->unary
+  [ugen-name ugen-fn args]
+  (let [unary-impl (get binary-op-unary-modes (str ugen-name))]
+    (unary-impl ugen-fn (first args))))
 
 (defn- foldable-binary-ugen
   "Create a foldable binary ugen - a binary ugen which may accept more than two
   args - each additional arg will result in an extra ugen added/folded into the
   chain of ugens."
-  [ugen-fn args]
+  [ugen-name ugen-fn args]
   (when (< (count args) 2)
-    (throw (IllegalArgumentException. (str "Attempted to call foldable binary op ugen with fewer than 2 args (" (count args) "). You passed: " [args] ))))
-
+      (throw (IllegalArgumentException. (str "Attempted to call foldable binary op ugen with fewer than 2 args (" (count args) "). You passed: " [args] ))))
   (let [x    (first args)
         y    (second args)
         more (drop 2 args)]
@@ -240,9 +247,10 @@
   that there are only 2 params."
   [ugen-name ugen-fn]
   (fn [& args]
-    (if (foldable-binary-ugen? ugen-name args)
-        (foldable-binary-ugen ugen-fn args)
-        (apply ugen-fn args))))
+    (cond
+      (unary-compatible-binary-ugen? ugen-name args) (binary-ugen->unary ugen-name ugen-fn args)
+      (foldable-binary-ugen? ugen-name args) (foldable-binary-ugen ugen-name ugen-fn args)
+      :else (apply ugen-fn args))))
 
 (defn- mk-multi-ugen-fn
   "Create a fn which representing an overloaded ugen which checks its args to
