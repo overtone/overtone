@@ -241,11 +241,13 @@
 (defn- scsynth-arglist
   "Returns a sequence of args suitable for use as arguments to the scsynth command"
   [args]
+  (when (not= 1 (:realtime? args))
+    (throw (Exception. "Non-realtime server mode not currently supported. Patches accepted - please contact the mailing list.")))
   (let [udp?             (:udp? args)
         port             (:port args)
         ugens-paths      (or (:ugens-paths args) [])
         args             (select-keys args (keys SC-ARG-INFO))
-        args             (dissoc args :udp? :port)
+        args             (dissoc args :udp? :port :realtime? :nrt-cmd-filename :nrt-output-filename :nrt-output-header-format :nrt-output-sample-format)
         port-arg         (if (= 1 udp?)
                            ["-u" port]
                            ["-t" port])
