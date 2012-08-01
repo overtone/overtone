@@ -210,7 +210,7 @@
   (when-not (number? (first val))
     (throw (IllegalArgumentException. (str "Control Proxy vector must have a number as the first element i.e. [0 :tr]"))))
   (when-not (valid-control-proxy-rate? (second val))
-    (throw (IllegalArgumentException. (str "Control Proxy rate not valid. Expecting one of " CONTROL-PROXY-RATES))))
+    (throw (IllegalArgumentException. (str "Control Proxy rate " (second val) " not valid. Expecting one of " CONTROL-PROXY-RATES))))
   val)
 
 (defn- mapify-params
