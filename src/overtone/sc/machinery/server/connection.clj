@@ -266,7 +266,7 @@
     (map str (concat port-arg arg-list))))
 
 (defn- sc-command
-  "Creates a sctring array representing the sc command to execute in an
+  "Creates a string array representing the sc command to execute in an
   external process (typically with #'external-booter)"
   [port opts]
   (into-array String (cons (or (config-get :sc-path) (find-sc-path)) (scsynth-arglist (merge-sc-args opts {:port port})))))
