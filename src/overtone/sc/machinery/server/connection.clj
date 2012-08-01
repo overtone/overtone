@@ -229,9 +229,14 @@
 
     path))
 
-(defn- sc-arg-flag
+(defn- find-sc-arg-flag!
+  "Retrieves the SC argument flag for sc-arg. Throws exception if flag
+   can't be found."
   [sc-arg]
-  (-> sc-arg SC-ARG-INFO :flag))
+  (let [flag (-> sc-arg SC-ARG-INFO :flag)]
+    (when-not flag
+      (throw (Exception. (str "Error booting external SuperCollider server: unable to find flag for SC argument: " sc-arg))))
+    flag))
 
 (defn- scsynth-arglist
   "Returns a sequence of args suitable for use as arguments to the scsynth command"
@@ -252,7 +257,7 @@
                            (assoc args :ugens-paths ugens-paths))
         arg-list         (reduce
                           (fn [res [flag val]] (if val
-                                                (concat res [(sc-arg-flag flag) val])
+                                                (concat res [(find-sc-arg-flag! flag) val])
                                                 res))
                           []
                           args)]
