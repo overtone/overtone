@@ -6,7 +6,7 @@
       :author "Sam Aaron"}
   overtone.sc.machinery.server.osc-validator
   (:use [overtone.osc])
-  (:require [overtone.util.log :as log]))
+  (:require [overtone.config.log :as log]))
 
 (def TYPES
   {

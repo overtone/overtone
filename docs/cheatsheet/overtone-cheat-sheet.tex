@@ -71,7 +71,7 @@
 
                \begin{document}
 
-               {\Large{\textbf{Overtone Cheat Sheet (Overtone 0.6.0)}}}
+               {\Large{\textbf{Overtone Cheat Sheet (Overtone 0.7.0)}}}
 
                \colouredbox{pink}{
                  \section{REPL helpers}
@@ -96,7 +96,7 @@
                \colouredbox{grey}{
                  \section{Server}
                  \begin{tabularx}{\hsize}{lX}
-                   Startup&\cmd{boot-server boot-external-server connect-external-server}\\
+                   Startup&\cmd{boot-server boot-internal-server boot-external-server connect-external-server}\\
                    Shutdown&\cmd{kill-server}\\
                    Control& \cmd{stop}\\
                    OSC Communication& \cmd{snd recv clear-msg-queue}\\
@@ -110,8 +110,9 @@
                  \begin{tabularx}{\hsize}{lX}
                    Add & \cmd{on-event on-sync-event} \\
                    Remove & \cmd{remove-handler remove-all-handlers}\\
-                   Trigger & \cmd{event sync-event}\\
-                   Synth Triggers & \cmd{on-trigger remove-trigger}
+                   Trigger & \cmd{event sync-event oneshot-event oneshot-sync-event}\\
+                   Synth Triggers & \cmd{on-trigger remove-trigger}\\
+                   Debug& \cmd{event-debug-on event-debug-off}
                  \end{tabularx}
                }
 
@@ -119,11 +120,12 @@
                  \section{Sound Data}
                  \subsection{Buffers}
                  \begin{tabularx}{\hsize}{lX}
-                   Create \& Free & \cmd{buffer buffer-free} \\
+                   Create \& Free & \cmd{buffer buffer-free buffer-alloc-read} \\
                    Generate Buffer Data & \cmd{data->wavetable create-buffer-data}\\
                    Read \& Write To Server & \cmd{buffer-read buffer-write! buffer-fill! buffer-set! buffer-get buffer-save buffer-data buffer-read}\\
                    Write To Filesystem & \cmd{write-wav}\\
-                   Streaming In \& Out&\cmd{buffer-stream buffer-stream? buffer-stream-close buffer-cue buffer-cue? buffer-cue-pos buffer-cue-close}\\
+                   Streaming In \& Out&\cmd{buffer-stream buffer-stream? buffer-stream-close buffer-cue buffer-cue? buffer-cue-pos buffer-stream-close}\\
+                   Query & \cmd{buffer? buffer-info? file-buffer? buffer-out-stream? buffer-in-stream?}\\
                    Info & \cmd{buffer-info num-frames buffer-id}\\
                  \end{tabularx}
                  \subsection{Samples}
@@ -135,16 +137,51 @@
                  \subsection{Busses}
                  \begin{tabularx}{\hsize}{lX}
                    Create \& Free & \cmd{control-bus audio-bus free-bus}\\
-                   Modify & \cmd{bus-set! bus-set-range!}\\
+                   Modify \& Read & \cmd{bus-set! bus-set-range! bus-get bus-get-range}\\
+                   Query & \cmd{bus? control-bus?}\\
+                   Info & \cmd{bus-id}
                  \end{tabularx}
                }
 
-               \colouredbox{orange}{
-                 \section{Nodes \& Groups}
+               \colouredbox{green}{
+                 \section{Studio}
+                 \subsection{Instruments}
                  \begin{tabularx}{\hsize}{lX}
-                   Create  & \cmd{node group node-free group-free group-clear}\\
-                   Manipulate & \cmd{node-run node-stop  node-place node-control node-control-range node-map-controls node-map-n-controls prepend-node append-node }\\
-                   Info & \cmd{node-tree}\\
+                   Drums & \cmd{kick kick2 kick3 kick4 dub-kick dry-kick small-hat closed-hat close-hat2 open-hat hat3 soft-hat noise-hat round-kick snare snare2 noise-snare tone-snare tom clap bing } \\
+                   Piano & \cmd{piano}\\
+                   Sampled Piano & \cmd{sampled-piano}\\
+                   Sampler & \cmd{granular}\\
+                   Synth& \cmd{ticker ping tb303 mooger rise-fall-pad pad overpad buzz bass grunge-bass vintage-bass ks1 ks-stringer fm-demo harmonic-swimming whoahaha bubbles}\\
+                   IO & \cmd{mic}
+                 \end{tabularx}
+
+                 \subsection{Mixer}
+                 \begin{tabularx}{\hsize}{lX}
+                   Control &\cmd{volume input-gain}\\
+                 \end{tabularx}
+
+                 \subsection{Effects}
+                 \begin{tabularx}{\hsize}{lX}
+                   Instrument &\cmd{inst-volume inst-out-bus inst-fx! clear-fx}\\
+                   FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-freeverb fx-reverb fx-echo fx-chorus fx-distortion fx-distortion2 fx-distortion-tubescreamer bitcrusher fx-rlpf fx-rhpf fx-feedback fx-feedback-distortion } \\
+                 \end{tabularx}
+
+                 \subsection{Metronome}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create & \cmd{metronome } \\
+                   Manipulate & \cmd{metro-start metro-tick metro-beat metro-bpm}\\
+                   bps & \cmd{beat-ms}\\
+                 \end{tabularx}
+
+                 \subsection{Scope}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create \& Reset&\cmd{scope pscope reset-scopes } \\
+                 \end{tabularx}
+
+                 \subsection{Recording}
+                 \begin{tabularx}{\hsize}{lX}
+                   Stop \& Start&\cmd{recording-start recording-stop} \\
+                   Query & \cmd{recording?}\\
                  \end{tabularx}
                }
 
@@ -168,61 +205,14 @@
                  \end{tabularx}
                }
 
-               \colouredbox{purple}{
-                 \section{Music}
-                 \subsection{Pitch}
+               \colouredbox{orange}{
+                 \section{Nodes \& Groups}
                  \begin{tabularx}{\hsize}{lX}
-                   Ratios& \cmd{unison octave fifth sixth third fourth min-third min-sixth}\\
-                   Note Shifting& \cmd{shift flat sharp invert invert-chord inc-first dec-last}\\
-                   Notes &\cmd{note octave-note nth-octave nth-equal-tempered-freq canonical-pitch-class-name }\\
-                   Scales &\cmd{resolve-scale scale-field nth-interval resolve-degree degree->interval degrees->pitches resolve-degrees scale interval-freq}\\
-                   Chords &\cmd{resolve-chord chord rand-chord}\\
-                   Frequencies& \cmd{cent midi->hz hz->midi }\\
-                   Amplitude& \cmd{db->amp}
+                   Create \& Free  & \cmd{node group node-free group-free group-clear group-deep-clear}\\
+                   Manipulate & \cmd{node-start node-pause node-place node-control node-control-range node-map-controls node-map-n-controls group-prepend-node group-append-node }\\
+                   Info & \cmd{node-tree}\\
                  \end{tabularx}
                }
-
-               \colouredbox{green}{
-                 \section{Studio}
-                 \subsection{Instruments}
-                 \begin{tabularx}{\hsize}{lX}
-                   Drums & \cmd{kick small-hat c-hat o-hat round-kick snare snare2 tom } \\
-                   Piano & \cmd{piano}\\
-                   Sampled Piano & \cmd{sampled-piano}\\
-                   Sampler & \cmd{granular}\\
-                   Synth& \cmd{tick ping tb303 mooger rise-fall-pad pad buzz bass grunge-bass ks1 ks-stringer fm-demo harmonic-swimming whoahaha bubbles}\\
-                   IO & \cmd{mic}
-                 \end{tabularx}
-
-                 \subsection{Mixer}
-                 \begin{tabularx}{\hsize}{lX}
-                   Control &\cmd{volume input-gain}\\
-                 \end{tabularx}
-
-                 \subsection{Effects}
-                 \begin{tabularx}{\hsize}{lX}
-
-                   Instrument &\cmd{inst-volume inst-out-bus inst-fx clear-fx}\\
-                   FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-reverb fx-echo fx-chorus fx-distortion fx-rlpf fx-rhpf } \\
-                 \end{tabularx}
-
-                 \subsection{Metronome}
-                 \begin{tabularx}{\hsize}{lX}
-                   Create & \cmd{metronome } \\
-                   bps & \cmd{beat-ms}\\
-                 \end{tabularx}
-
-                 \subsection{Scope}
-                 \begin{tabularx}{\hsize}{lX}
-                   Create \& Reset&\cmd{scope pscope reset-scopes } \\
-                 \end{tabularx}
-
-                 \subsection{Recording}
-                 \begin{tabularx}{\hsize}{lX}
-                   Stop \& Start&\cmd{recording-start recording-stop} \\
-                 \end{tabularx}
-               }
-
 
                \colouredbox{red}{
                  \section{External Assets}
@@ -233,16 +223,35 @@
 
                  \subsection{Freesound.org}
                  \begin{tabularx}{\hsize}{lX}
-                    Auto cache \& Query&\cmd{freesound-info freesound-path} \\
+                    Auto cache \& Query&\cmd{freesound-info freesound-path freesound-pack-info freesound-pack-dir freesound-search freesound-searchm freesound-search-paths} \\
                  \end{tabularx}
                }
+
+               \colouredbox{purple}{
+                 \section{Music}
+                 \subsection{Pitch}
+                 \begin{tabularx}{\hsize}{lX}
+                   Ratios& \cmd{unison octave fifth sixth third fourth min-third min-sixth}\\
+                   Note Shifting& \cmd{shift flat sharp invert inc-first dec-last}\\
+                   Notes & \cmd{note octave-note nth-octave nth-equal-tempered-freq canonical-pitch-class-name note-info mk-midi-string match-note }\\
+                   Scales & \cmd{scale resolve-scale scale-field nth-interval resolve-degree degree->int degree->interval degrees->pitches resolve-degree resolve-degrees interval-freq}\\
+                   Chords & \cmd{chord resolve-chord rand-chord invert-chord}\\
+                   Discovery & \cmd{find-scale-name find-note-name find-pitch-class-name find-chord}\\
+                   Frequencies & \cmd{cents midi->hz hz->midi}\\
+                   Amplitude & \cmd{db->amp}\\
+                 \end{tabularx}
+               }
+
 
                \colouredbox{blue2}{
                  \section{CGens}
                  \begin{tabularx}{\hsize}{lX}
                    Audio In & \cmd{sound-in}\\
+                   Buffer Playback & \cmd{scaled-play-buf scaled-v-disk}\\
+                   Control & \cmd{hold}\\
                    Oscillators & \cmd{pm-osc square}\\
                    Mix & \cmd{mix splay}\\
+                   Tapping & \cmd {tap}\\
                  \end{tabularx}
                }
 
@@ -452,7 +461,7 @@
                \begin{flushright}
                  \footnotesize
                  \rule{0.7\linewidth}{0.25pt}
-                 \verb!$Revision: 0.6.0.1, $Date: 20th December, 2011!\\
+                 \verb!Revision: 0.7.0.1, Date: 27th June, 2012!\\
                  \verb!Sam Aaron (sam.aaron gmail com)!
                \end{flushright}
 

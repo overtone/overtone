@@ -2,7 +2,7 @@
     ^{:doc "Code to generate the ugen fns"
       :author "Jeff Rose, Christophe McKeon and Sam Aaron"}
   overtone.sc.machinery.ugen.fn-gen
-  (:use [overtone.util lib]
+  (:use [overtone.helpers lib]
         [overtone.libs counters]
         [overtone.helpers seq]
         [overtone.sc bindings]
@@ -75,7 +75,7 @@
   "Create a SCUGen with the specified spec, rate, special and args"
   [spec rate special args]
   (let [rate (or (get RATES rate) rate)
-        args (if args args [])
+        args (or args [])
         ug (sc-ugen
             (next-id ::ugen)
             (:name spec)
@@ -83,9 +83,10 @@
             (REVERSE-RATES rate)
             special
             args
-            (or (:num-outs spec) 1))
+            (or (:num-outs spec) 1)
+            spec)
         ug (if (contains? spec :init) ((:init spec) ug) ug)]
-     (when (and *ugens* *constants*)
+    (when (and *ugens* *constants*)
       (set! *ugens* (conj *ugens* ug))
       (doseq [const (filter number? (:args ug))]
         (set! *constants* (conj *constants* const))))

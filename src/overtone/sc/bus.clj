@@ -1,8 +1,9 @@
 (ns overtone.sc.bus
   (:import [java.util.concurrent TimeoutException])
-  (:use [overtone.sc.machinery defaults allocator]
+  (:use [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
-        [overtone.util lib]
+        [overtone.sc defaults server]
+        [overtone.helpers lib]
         [overtone.sc server]))
 
 ;; ## Busses
@@ -49,9 +50,6 @@
     bus
     (:id bus)))
 
-; TODO: In order to allocate multi-channel busses we actually need to
-; allocate multiple, adjacent busses, which the current bitset based
-; allocator doesn't support.
 (defn control-bus
   "Allocate one or more control busses."
   ([] (control-bus 1))
@@ -63,7 +61,7 @@
          {:type ::control-bus}))))
 
 (defn audio-bus
-  "Allocate one ore more audio busses."
+  "Allocate one or more audio busses."
   ([] (audio-bus 1))
   ([n-channels]
      (let [id (alloc-id :audio-bus n-channels)]

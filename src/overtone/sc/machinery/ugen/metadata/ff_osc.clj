@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.ff-osc
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 (def specs
      [
@@ -44,6 +44,7 @@
                      fats                  (map vector freqs amps times)
                      new-args              (concat [fats] (rest args))]
                  new-args))
+       :check (nth-input-stream? 1)
        :doc "Klank is a bank of fixed frequency resonators which can be used to simulate the resonant modes of an object. Each mode is given a ring time, which is the time for the mode to decay by 60 dB.
 
   The specs can't be changed after it has been started.

@@ -1,10 +1,11 @@
-(ns
-    ^{:doc "Functions to help generate and manipulate frequencies and sets of
-           related frequencies. This is the place for functions representing
-           general musical knowledge, like scales, chords, intervals, etc."
+(ns ^{:doc "Functions to help generate and manipulate frequencies and
+    sets of related frequencies. This is the place for functions
+    representing general musical knowledge, like scales, chords,
+    intervals, etc."
       :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
-  (:use [overtone.util old-contrib]
+  (:use [overtone.helpers old-contrib]
+        [overtone.helpers.map :only [reverse-get]]
         [overtone.algo chance])
   (:require [clojure.string :as string]))
 
@@ -30,8 +31,9 @@
 (defratio min-sixth 8/5)
 
 (defn cents
-  "Returns a frequency computed by adding n-cents to freq.  A cent is a
-  logarithmic measurement of pitch, where 1-octave equals 1200 cents."
+  "Returns a frequency computed by adding n-cents to freq.  A cent is
+  a logarithmic measurement of pitch, where 1-octave equals 1200
+  cents."
   [freq n-cents]
   (* freq (java.lang.Math/pow 2 (/ n-cents 1200))))
 
@@ -61,8 +63,8 @@
   (shift phrase notes +1))
 
 (defn invert
-  "Invert a sequence of notes using either the first note as the stationary
-  pivot point or the optional second argument."
+  "Invert a sequence of notes using either the first note as the
+  stationary pivot point or the optional second argument."
   [notes & [pivot]]
   (let [pivot (or pivot (first notes))]
     (for [n notes] (- pivot (- n pivot)))))
@@ -118,13 +120,13 @@
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
 (def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
 
-(defn midi-string-matcher
+(defn- midi-string-matcher
   "Determines whether a midi keyword is valid or not. If valid,
   returns a regexp match object"
   [mk]
   (re-find ONLY-MIDI-NOTE-RE (name mk)))
 
-(defn validate-midi-string!
+(defn- validate-midi-string!
   "Throws a friendly exception if midi-keyword mk is not
   valid. Returns matches if valid."
   [mk]
@@ -141,8 +143,9 @@
                      ". Octave is out of range. Lowest octave value is -1")))))
     matches))
 
-(defn note-map
-  "Takes a match array returned by a regexp match and returns a map of note info"
+(defn note-info
+  "Takes a string representing a midi note such as C4 and returns a map
+  of note info"
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
@@ -154,24 +157,24 @@
      :interval    interval
      :midi-note   (octave-note octave interval)}))
 
-
 (defn mk-midi-string
   "Takes a string or keyword representing a pitch and a number
-  representing an integer and returns a new keyword which is a
+  representing an integer and returns a new string which is a
   concatanation of the two. Throws an error if the resulting midi
   string is invalid.
 
-  (midi-string :F 7)  ;=> :F7
-  (midi-string :Eb 3) ;=> :Eb3"
+  (midi-string :F 7)  ;=> \"F7\"
+  (midi-string :Eb 3) ;=> \"Eb3\""
   [pitch-key octave]
   (let [res (str (name pitch-key) octave)]
     (validate-midi-string! res)
     res))
 
 (defn note
-  "Resolves note to MIDI number format. Resolves upper and lower-case keywords
-  and strings in MIDI note format. If given an integer or nil, returns them
-  unmodified. All other inputs will raise an exception.
+  "Resolves note to MIDI number format. Resolves upper and lower-case
+  keywords and strings in MIDI note format. If given an integer or
+  nil, returns them unmodified. All other inputs will raise an
+  exception.
 
   Usage examples:
 
@@ -192,13 +195,13 @@
                                 n
                                 ". Value is out of range. Lowest value is 0"))))
     (keyword? n) (note (name n))
-    (string? n) (:midi-note (note-map n))
+    (string? n) (:midi-note (note-info n))
     :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
 
 (defn match-note
-  "Returns the first midi-note formatted substring in s. If passed optional prev
-   and pos strings will use them to generate positive look ahead and behind
-   matchers. "
+  "Returns the first midi-note formatted substring in s. If passed
+   optional prev and pos strings will use them to generate positive
+   look ahead and behind matchers. "
   ([s] (match-note s "" ""))
   ([s prev-str post-str]
      (let [look-behind (if prev-str (str "(?<=" prev-str ")") "")
@@ -206,7 +209,7 @@
            match       (re-find (re-pattern (str look-behind MIDI-NOTE-RE-STR look-ahead)) s)]
        (when match
          (let [[match pitch-class octave] match]
-           (note-map match))))))
+           (note-info match))))))
 
 
 
@@ -250,7 +253,7 @@
    :mixolydian        (rotate-ionian 4)
    :aeolian           (rotate-ionian 5)
    :minor             (rotate-ionian 5)
-   :lochrian          (rotate-ionian 6)
+   :locrian           (rotate-ionian 6)
    :pentatonic        [2 3 2 2 3]
    :major-pentatonic  [2 2 3 2 3]
    :minor-pentatonic  [3 2 2 3 2]
@@ -269,19 +272,22 @@
    :messiaen7         [1 1 1 2 1 1 1 1 2 1]}))
 
 (defn resolve-scale
-  "Either looks the scale up in the map of SCALEs if it's a keyword or simply
-  returns it unnmodified. Allows users to specify a scale either as a seq
-  such as [2 2 1 2 2 2 1] or by keyword such as :aeolian"
+  "Either looks the scale up in the map of SCALEs if it's a keyword or
+  simply returns it unnmodified. Allows users to specify a scale
+  either as a seq such as [2 2 1 2 2 2 1] or by keyword such
+  as :aeolian"
   [scale]
   (if (keyword? scale)
     (SCALE scale)
     scale))
 
-(defn scale-field [skey & [sname]]
-  "Create the note field for a given scale.  Scales are specified with a keyword
-  representing the key and an optional scale name (defaulting to :major):
+(defn scale-field
+  "Create the note field for a given scale.  Scales are specified with
+  a keyword representing the key and an optional scale
+  name (defaulting to :major):
   (scale-field :g)
   (scale-field :g :minor)"
+  [skey & [sname]]
   (let [base (NOTES skey)
         sname (or sname :major)
         intervals (SCALE sname)]
@@ -293,12 +299,13 @@
             (take (* 8 12) (cycle intervals)))))))
 
 (defn nth-interval
-  "Return the count of semitones for the nth degree from the start of the
-  diatonic scale in the specific mode (or ionian/major by default).
+  "Return the count of semitones for the nth degree from the start of
+  the diatonic scale in the specific mode (or ionian/major by
+  default).
 
-  i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
-       therefore the 4th degree is (+ 2 2 1 2) semitones from the start of the
-       scale."
+  i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2
+       1 therefore the 4th degree is (+ 2 2 1 2) semitones from the
+       start of the scale."
   ([n] (nth-interval :diatonic n))
   ([scale n]
      (reduce + (take n (cycle (scale SCALE))))))
@@ -373,27 +380,30 @@
        rf))
 
 (defn degree->interval
-  "Converts the degree of a scale given as a roman numeral keyword and converts
-  it to the number of intervals (semitones) from the tonic of the specified
-  scale.
+  "Converts the degree of a scale given as a roman numeral keyword and
+  converts it to the number of semitones from the tonic of
+  the specified scale.
 
-  Trailing #, b, + - represent sharps, flats, octaves up and down respectively.
-  An arbitrary number may be added in any order."
-  ([degree scale]
-     (cond
-      (nil? degree) nil
-      (= :_ degree) nil
+  (degree->interval :ii :major) ;=> 2
 
-      (number? degree) (nth-interval scale (dec degree))
+  Trailing #, b, + - represent sharps, flats, octaves up and down
+  respectively.  An arbitrary number may be added in any order."
+  [degree scale]
+  (cond
+    (nil? degree) nil
+    (= :_ degree) nil
 
-      (keyword? degree) (let [degree     (resolve-degree degree)
-                              interval   (nth-interval scale (dec (:degree degree)))
-                              oct-shift  (* 12 (:octave-shift degree))
-                              semi-shift (:semitone-shift degree)]
-                          (+ interval oct-shift semi-shift)))))
+    (number? degree) (nth-interval scale (dec degree))
+
+    (keyword? degree) (let [degree     (resolve-degree degree)
+                            interval   (nth-interval scale (dec (:degree degree)))
+                            oct-shift  (* 12 (:octave-shift degree))
+                            semi-shift (:semitone-shift degree)]
+                        (+ interval oct-shift semi-shift))))
 
 (defn degrees->pitches
-  "Convert intervals to pitches in MIDI number format.  Supports nested collections."
+  "Convert intervals to pitches in MIDI number format.  Supports
+  nested collections."
   [degrees scale root]
   (let [root (note root)]
     (when (nil? root)
@@ -413,8 +423,8 @@
   (map #(if (keyword? %) (DEGREE %) %) degrees))
 
 (defn scale
-  "Returns a list of notes for the specified scale. The root must be in
-   midi note format i.e. :C4 or :Bb4
+  "Returns a list of notes for the specified scale. The root must be
+   in midi note format i.e. :C4 or :Bb4
 
 
    (scale :c4 :major)  ; c major      -> (60 62 64 65 67 69 71 72)
@@ -489,9 +499,9 @@
      :i7         dim7}))
 
 (defn resolve-chord
-  "Either looks the chord up in the map of CHORDs if it's a keyword or simply
-  returns it unnmodified. Allows users to specify a chord either with a set
-  such as #{0 4 7} or by keyword such as :major"
+  "Either looks the chord up in the map of CHORDs if it's a keyword or
+  simply returns it unnmodified. Allows users to specify a chord
+  either with a set such as #{0 4 7} or by keyword such as :major"
   [chord]
   (if (keyword? chord)
     (CHORD chord)
@@ -523,10 +533,10 @@
     (zero? shift) notes))
 
 (defn chord
-  "Returns a set of notes for the specified chord. The root must be in midi note
-  format i.e. :C3.
+  "Returns a set of notes for the specified chord. The root must be in
+  midi note format i.e. :C4.
 
-  (chord :c3 :major)  ; c major           -> #{60 64 67}
+  (chord :c4 :major)  ; c major           -> #{60 64 67}
   (chord :a4 :minor)  ; a minor           -> #{57 60 64}
   (chord :Bb4 :dim)   ; b flat diminished -> #{70 73 76}
   "
@@ -539,9 +549,10 @@
        (invert-chord notes inversion))))
 
 (defn rand-chord
-  "Generates a random list of MIDI notes with cardinality num-pitches bound
-  within the range of the specified root and pitch-range and only containing
-  pitches within the specified chord-name. Similar to Impromptu's pc:make-chord"
+  "Generates a random list of MIDI notes with cardinality num-pitches
+  bound within the range of the specified root and pitch-range and
+  only containing pitches within the specified chord-name. Similar to
+  Impromptu's pc:make-chord"
   [root chord-name num-pitches pitch-range]
   (let [chord (chord root chord-name)
         root (note root)
@@ -581,21 +592,22 @@
 (defn nth-octave
   "Returns the freq n octaves from the supplied reference freq
 
-   i.e. (nth-ocatve 440 1) will return 880 which is the freq of the next octave
-   from 440."
+   i.e. (nth-ocatve 440 1) will return 880 which is the freq of the
+   next octave from 440."
   [freq n]
   (* freq (java.lang.Math/pow 2 n)))
 
 (defn nth-equal-tempered-freq
-  "Returns the frequency of a given scale interval using an equal-tempered
-  tuning i.e. dividing all 12 semi-tones equally across an octave. This is
-  currently the standard tuning."
+  "Returns the frequency of a given scale interval using an
+  equal-tempered tuning i.e. dividing all 12 semi-tones equally across
+  an octave. This is currently the standard tuning."
   [base-freq interval]
   (* base-freq (java.lang.Math/pow 2 (/ interval 12))))
 
 (defn interval-freq
-  "Returns the frequency of the given interval using the specified mode and
-  tuning (defaulting to ionian and equal-tempered respectively)."
+  "Returns the frequency of the given interval using the specified
+  mode and tuning (defaulting to ionian and equal-tempered
+  respectively)."
   ([base-freq n] (interval-freq base-freq n :ionian :equal-tempered))
   ([base-freq n mode tuning]
      (case tuning
@@ -608,34 +620,53 @@
   ie: (find-scale-name [2 1 2 2 2 2 1]
   :melodic-minor-asc"
   [scale]
-  (find-name scale SCALE))
+  (reverse-get SCALE scale))
 
 (defn find-degree-name
   [degree]
   (find-name degree DEGREE ))
 
-(defn find-note-name
+(defn find-pitch-class-name
+  "Given a midi number representing a note, returns the name of the note
+  independent of octave.
+
+  (find-pitch-class-name 62) ;=> :D
+  (find-pitch-class-name 74) ;=> :D
+  (find-pitch-class-name 75) ;=> :Eb"
   [note]
   (REVERSE-NOTES (mod note 12)))
 
+(defn find-note-name
+  [note]
+  "Given a midi number representing a note, returns a keyword
+  representing the note including octave number. Reverse of the fn note.
+
+  (find-note-name 45) ;=> A2
+  (find-note-name 57) ;=> A3
+  (find-note-name 58) ;=> Bb3"
+  (let [octave (dec (int (/ note 12)))]
+    (keyword (str (name (find-pitch-class-name note)) octave))))
+
 (defn- fold-note
-  "Folds note intervals into a 2 octave range so that chords using notes
-  spread across multiple octaves can be correctly recognised."
+  "Folds note intervals into a 2 octave range so that chords using
+  notes spread across multiple octaves can be correctly recognised."
   [note]
   (if (or (< 21 note) (contains? #{20 19 16 12} note))
     (fold-note (- note 12))
      note ))
 
 (defn- simplify-chord
-  "expects notes to contain 0 (the root note) Reduces all notes into 2 octaves. This will allow
-  identification of fancy jazz chords, but will miss some simple chords if they are spread over
-  more than 1 octave."
+  "Expects notes to contain 0 (the root note) Reduces all notes into 2
+  octaves. This will allow identification of fancy jazz chords, but
+  will miss some simple chords if they are spread over more than 1
+  octave."
   [notes]
   (set (map (fn [x] (fold-note x)) notes)))
 
 (defn- compress-chord
-  "expects notes to contain 0 (the root note) Reduces all notes into 1 octave. This will lose
-  all the fancy jazz chords but recognise sparse multiple octave smple chords"
+  "Expects notes to contain 0 (the root note) Reduces all notes into 1
+  octave. This will lose all the fancy jazz chords but recognise
+  sparse multiple octave simple chords"
   [notes]
   (set (map (fn [x] (mod x 12)) notes)))
 
@@ -657,8 +688,8 @@
   (if (< 0 (count notes))
     (let [root (first (sort notes))
           adjusted-notes (set (map (fn [x] (- x root)) notes ))]
-      (or (find-name (simplify-chord adjusted-notes) CHORD)
-          (find-name (compress-chord adjusted-notes) CHORD)))))
+      (or (reverse-get CHORD (simplify-chord adjusted-notes))
+          (reverse-get CHORD (compress-chord adjusted-notes))))))
 
 (defn find-chord
   [notes]
@@ -666,44 +697,8 @@
     (if (< note (count notes) )
       (let [mod-notes (select-root notes note)
             chord  (find-chord-with-low-root mod-notes)
-            root (find-note-name (first (sort mod-notes)))]
+            root (find-pitch-class-name (first (sort mod-notes)))]
        (if chord
          {:root root :chord-type chord}
          (recur (inc note))))
       nil)))
-
-;; * shufflers (randomize a sequence, or notes within a scale, etc.)
-;; *
-;;* Sequence generators
-;; - probabilistic arpeggiator
-;; - take a rhythym seq, note seq, and groove seq
-;; - latin sounds
-;; - house sounds
-;; - minimal techno sounds
-;; - drum and bass sounds
-;;
-;;* create a library of sequence modifiers and harmonizers
-
-;;; ideas:
-
-;;; represent all notes with midi numbers
-;;; represent sequences of notes (i.e. scales) with vectors/lists
-;;; represent sequences of durations with vectors/lists
-;;; [1 3 5 7]
-;;; represent chords with sets
-;;; #{1 3 5}
-;;
-;;[1 3 5 #{1 4 5} 7]
-;;[1 1 2     6    3]
-
-
-;; chromatic notes -> 0-11
-;; degrees -> i -> vii
-
-;; chord - concrete: (60 64 67)
-;; chord - concrete - chromatic notes: (4 7 12)
-
-
-;; chord - abstract - chromatic notes: (0 4 7)
-;; chord - abstract - chromatic notes: (0 4 7)
-;; chord - abstract - degrees: (i iii v)

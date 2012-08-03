@@ -2,8 +2,9 @@
     ^{:doc "ID allocator system. Used to return new unique integer IDs in a threadsafe manner. IDs may be freed and therefore reused. Allows action fns to be executed in synchronisation with allocation and deallocation."
       :author "Sam Aaron"}
   overtone.sc.machinery.allocator
-  (:use [overtone.sc.machinery defaults])
-  (:require [overtone.util.log :as log]))
+  (:use [overtone.sc defaults]
+        [overtone.sc.machinery.server args])
+  (:require [overtone.config.log :as log]))
 
 ;; ## Allocators
 ;;
@@ -19,10 +20,10 @@
   (vec (repeat size false)))
 
 (defonce allocator-bits
-  {:node         (ref (mk-bitset MAX-NODES))
-   :audio-buffer (ref (mk-bitset MAX-BUFFERS))
-   :audio-bus    (ref (mk-bitset MAX-AUDIO-BUS))
-   :control-bus  (ref (mk-bitset MAX-CONTROL-BUS))})
+  {:node         (ref (mk-bitset (sc-arg-default :max-nodes)))
+   :audio-buffer (ref (mk-bitset (sc-arg-default :max-buffers)))
+   :audio-bus    (ref (mk-bitset (sc-arg-default :max-audio-bus)))
+   :control-bus  (ref (mk-bitset (sc-arg-default :max-control-bus)))})
 
 (defn- fill-gaps
   "Returns a new vector similar to bs except filled with with size consecutive vals from idx
@@ -53,7 +54,7 @@
          (let [gap-found (if (not (get bs idx)) (inc gap-found) 0)]
            (find-gap bs size (inc idx) gap-found))))))
 
-(def action-fn-executor* (agent nil))
+(defonce action-fn-executor* (agent nil))
 
 (defn- execute-action-fn
   "Execute action-fn and catch all exceptions - outputting them to the error

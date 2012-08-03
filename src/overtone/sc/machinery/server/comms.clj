@@ -1,8 +1,8 @@
 (ns overtone.sc.machinery.server.comms
   (:use [overtone.sc.machinery.server osc-validator]
         [overtone.libs event counters]
-        [overtone.util.lib :only [uuid deref!]])
-  (:require [overtone.util.log :as log]))
+        [overtone.helpers.lib :only [uuid deref!]])
+  (:require [overtone.config.log :as log]))
 
 (defonce osc-debug*       (atom false))
 (defonce server-osc-peer* (ref nil))
@@ -83,12 +83,10 @@
   (let [id (next-id ::server-sync-id)
         prom (promise)
         key (uuid)]
-    (on-event "/synced"
-              (fn [msg] (when (= id (first (:args msg)))
-                         (do
-                           (deliver prom true)
-                           :overtone/remove-handler)))
-              key)
+    (oneshot-event "/synced"
+                   (fn [msg] (when (= id (first (:args msg)))
+                              (deliver prom true)))
+                   key)
     (let [res (action-fn id)]
       (deref! prom)
       res)))
@@ -132,4 +130,4 @@
                           (deliver p info)
                           :overtone/remove-handler))
                       key)
-    p)))
+       p)))

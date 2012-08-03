@@ -1,27 +1,28 @@
 (ns overtone.sc.buffer
   (:use [clojure.java.io :only [file]]
-        [overtone.helpers file]
-        [overtone.util lib]
         [overtone.libs event]
+        [overtone.sc server info defaults]
+        [overtone.sc.machinery allocator]
+        [overtone.sc.machinery.server connection comms]
         [overtone.sc server info]
-        [overtone.sc.machinery defaults allocator]
-        [overtone.sc.machinery.server comms connection]
-        [overtone.helpers.audio-file]
+        [overtone.helpers audio-file lib file]
         [overtone.sc.util :only [id-mapper]]))
 
 (defrecord BufferInfo [id size n-channels rate n-samples rate-scale duration])
 
 (defn buffer-info
-  "Fetch the information for buffer associated with buf-id (either an integer or
-  an associative with an :id key). Synchronous.
+  "Fetch the information for buffer associated with buf-id (either an
+  integer or an associative with an :id key). Synchronous.
 
   Information returned is as follows:
 
   :size       - number of frames in the buffer
   :n-channels - number of audio channels stored in the buffer
-  :rate       - rate of the buffer (typical rate is 44100 samples per second)
+  :rate       - rate of the buffer (typical rate is 44100 samples per
+                second)
   :n-samples  - total number of samples in the buffer (* size n-channels)
-  :rate-scale - rate to specify in order to play the buffer correctly according
+  :rate-scale - rate to specify in order to play the buffer correctly
+                according
                 to the server's sample rate (/ rate (server-sample-rate))
   :duration   - duration of the buffer in seconds
   :id         - unique id for the buffer"
@@ -30,29 +31,33 @@
         prom   (recv "/b_info" (fn [msg]
                                  (= buf-id (first (:args msg)))))]
     (with-server-sync #(snd "/b_query" buf-id))
-    (let [msg                        (deref! prom)
-          [id n-frames n-chans rate] (:args msg)
-          num-samples                (* n-frames n-chans)
-          rate-scale                 (/ rate (server-sample-rate))
-          duration                   (/ n-frames rate)]
+    (let [[id n-frames n-chans rate] (:args (deref! prom))
+          server-rate                (server-sample-rate)
+          n-samples                  (* n-frames n-chans)
+          rate-scale                 (when (> server-rate 0)
+                                       (/ rate server-rate))
+          duration                   (when (> rate 0)
+                                       (/ n-frames rate))]
 
       (map->BufferInfo
        {:id id
         :size n-frames
         :n-channels n-chans
         :rate rate
-        :n-samples num-samples
+        :n-samples n-samples
         :rate-scale rate-scale
         :duration duration}))))
 
 (defrecord Buffer [id size n-channels rate allocated-on-server])
 
 (defn buffer
-  "Synchronously allocate a new zero filled buffer for storing audio data with
-  the specified size and num-channels."
+  "Synchronously allocate a new zero filled buffer for storing audio
+  data with the specified size and num-channels. Size will be
+  automatically floored and converted to a Long - i.e. 2.7 -> 2"
   ([size] (buffer size 1))
   ([size num-channels]
-     (let [id   (with-server-self-sync
+     (let [size (long size)
+           id   (with-server-self-sync
                   (fn [uid]
                     (alloc-id :audio-buffer
                               1
@@ -68,21 +73,25 @@
 (defrecord BufferFile [id size n-channels rate allocated-on-server path])
 
 (defn buffer-alloc-read
-  "Synchronously allocates a buffer with the same number of channels as the
-  audio file given by 'path'. Reads the number of samples requested ('n-frames')
-  into the buffer, or fewer if the file is smaller than requested. Reads sound
-  file data from the given starting frame ('start') in the file. If 'n-frames'
-  is less than or equal to zero, the entire file is read."
+  "Synchronously allocates a buffer with the same number of channels as
+  the audio file given by 'path'. Reads the number of samples
+  requested ('n-frames') into the buffer, or fewer if the file is
+  smaller than requested. Reads sound file data from the given starting
+  frame ('start') in the file. If 'n-frames' is less than or equal to
+  zero, the entire file is read.
+
+  May not be scheduled with the at macro. All inner OSC calls are sent
+  immediately."
   ([path]
      (buffer-alloc-read path 0 -1))
   ([path start]
      (buffer-alloc-read path start -1))
   ([path start n-frames]
+     (ensure-path-exists! path)
      (let [path (canonical-path path)
-           f    (file path)]
-       (when-not (.exists f)
-         (throw (Exception. (str "Unable to read file - file does not exist: " path))))
-       (let [id (alloc-id :audio-buffer)]
+           f    (file path)
+           id   (alloc-id :audio-buffer)]
+       (snd-immediately
          (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
          (let [info                              (buffer-info id)
                {:keys [id size rate n-channels]} info]
@@ -98,7 +107,7 @@
 (derive Buffer     ::buffer)
 (derive BufferFile ::file-buffer)
 
-(derive ::buffer ::buffer-info)
+(derive ::buffer      ::buffer-info)
 (derive ::file-buffer ::buffer)
 
 (defn buffer-info?
@@ -131,11 +140,12 @@
     buf))
 
 (defn buffer-read
-  "Read a section of an audio buffer. Defaults to reading the full buffer if no
-  start and len vals are specified. Returns a float array of vals.
+  "Read a section of an audio buffer. Defaults to reading the full
+  buffer if no start and len vals are specified. Returns a float array
+  of vals.
 
-  This is extremely slow for large portions of data. For more efficient reading
-  of buffer data with the internal server, see buffer-data."
+  This is extremely slow for large portions of data. For more efficient
+  reading of buffer data with the internal server, see buffer-data."
   ([buf] (buffer-read buf 0 (:size buf)))
   ([buf start len]
      (assert (buffer? buf))
@@ -163,10 +173,11 @@
            samples)))))
 
 (defn buffer-write!
-  "Write into a section of an audio buffer which modifies the buffer in place on
-  the server. Data can either be a single number or a collection of numbers.
-  Accepts an optional param start-idx which specifies an initial offset into the
-  buffer from which to start writing the data (defaults to 0)."
+  "Write into a section of an audio buffer which modifies the buffer in
+  place on the server. Data can either be a single number or a
+  collection of numbers.  Accepts an optional param start-idx which
+  specifies an initial offset into the buffer from which to start
+  writing the data (defaults to 0)."
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
      (assert (buffer? buf))
@@ -180,9 +191,9 @@
          (apply snd "/b_setn" (:id buf) start-idx size doubles)))))
 
 (defn buffer-fill!
-  "Fill a buffer range with a single value. Modifies the buffer in place on the
-  server. Defaults to filling in the full buffer unless start and len vals are
-  specified. Asynchronous."
+  "Fill a buffer range with a single value. Modifies the buffer in place
+  on the server. Defaults to filling in the full buffer unless start and
+  len vals are specified. Asynchronous."
   ([buf val]
      (assert (buffer? buf))
      (buffer-fill! buf 0 (:size buf) val))
@@ -191,8 +202,8 @@
      (snd "/b_fill" (:id buf) start len (double val))))
 
 (defn buffer-set!
-  "Write a single value into a buffer. Modifies the buffer in place on the
-  server. Index defaults to 0 if not specified."
+  "Write a single value into a buffer. Modifies the buffer in place on
+  the server. Index defaults to 0 if not specified."
   ([buf val] (buffer-set! buf 0 val))
   ([buf index val]
      (assert (buffer? buf))
@@ -244,14 +255,15 @@
 
     (snd "/b_write" (:id buf) path header samples
                     n-frames start-frame 0)
-    :overtone/remove-handler))
+    :buffer-saved))
 
 (defrecord BufferOutStream [id size n-channels header samples rate allocated-on-server path open?])
 
 (defn buffer-stream
-  "Returns a buffer-stream which is similar to a regular buffer but may be used
-  with the disk-out ugen to stream to a specific file on disk.
-  Use #'buffer-stream-close to close the stream to finish recording to disk.
+  "Returns a buffer-stream which is similar to a regular buffer but may
+  be used with the disk-out ugen to stream to a specific file on disk.
+  Use #'buffer-stream-close to close the stream to finish recording to
+  disk.
 
   Options:
 
@@ -295,8 +307,8 @@
   (isa? (type bs) ::buffer-out-stream))
 
 (defn buffer-stream-close
-  "Close a buffer stream created with #'buffer-stream. Also frees the internal
-  buffer. Returns the path of the newly created file."
+  "Close a buffer stream created with #'buffer-stream. Also frees the
+  internal buffer. Returns the path of the newly created file."
   [buf-stream]
   (assert (file-buffer? buf-stream))
   (when-not @(:open? buf-stream)
@@ -310,8 +322,8 @@
 (defrecord BufferInStream [id size n-channels rate allocated-on-server path open?])
 
 (defn buffer-cue
-  "Returns a buffer-cue which is similar to a regular buffer but may be used
-  with the disk-in ugen to stream from a specific file on disk.
+  "Returns a buffer-cue which is similar to a regular buffer but may be
+  used with the disk-in ugen to stream from a specific file on disk.
   Use #'buffer-cue-close to close the stream when finished.
 
   Options:
@@ -391,9 +403,9 @@
 
 (defn create-buffer-data
   "Create a sequence of floats for use as a buffer.  Result will contain
-   values obtained by calling f with values linearly interpolated between
-   range-min (inclusive) and range-max (exclusive).  For most purposes size
-   must be a power of 2.
+   values obtained by calling f with values linearly interpolated
+   between range-min (inclusive) and range-max (exclusive).  For most
+   purposes size must be a power of 2.
 
    Examples:
 
@@ -420,8 +432,9 @@
 
 (defmulti write-wav
   "Write data as a wav file. Accepts either a buffer or a sequence of values.
-  When passing a sequence, you also need to specify the frame-rate and n-channels.
-  For both, you need to pass the path of the new file as the 2nd arg.
+  When passing a sequence, you also need to specify the frame-rate and
+  n-channels.  For both, you need to pass the path of the new file as
+  the 2nd arg.
 
   Required args:
   buffer [data path]

@@ -12,6 +12,9 @@
 
 (def ^{:dynamic true} *verbose-overtone-file-helpers* false)
 
+(defn get-current-directory []
+  (. (java.io.File. ".") getCanonicalPath))
+
 (defn print-if-verbose
   "Prints the arguments if *verbose-overtone-file-helpers* is bound to true. If
   it is also bound to an integer, will print a corresponding number of spaces at
@@ -117,9 +120,9 @@
   [path]
   (let [path (resolve-tilde-path path)
         f    (file path)]
-    (if (.isDirectory f)
-      (seq (.listFiles f))
-      (satta-glob/glob path))))
+    (cond (.isFile f)      (seq (cons f nil))
+          (.isDirectory f) (seq (.listFiles f))
+          :else            (satta-glob/glob path))))
 
 (defn ls-paths
   "Given a path to a directory, returns a seq of strings representing the full
@@ -216,7 +219,7 @@
         (when (pos? size)
           (do (.write out-stream buffer 0 size)
               (recur (+ size bytes-copied))))))
-    (print-if-verbose "Download successful")))
+    (print-if-verbose "--> Download successful")))
 
 (defn- download-file-without-timeout
   "Downloads remote file at url to local file specified by target path. Has
@@ -317,14 +320,22 @@
         dest   (resolve-tilde-path dest)
         f-src  (file src)
         f-dest (file dest)]
-    (.renameTo f-src f-dest)))
+    (when-not (.renameTo f-src f-dest)
+      (copy f-src f-dest)
+      (delete-file f-src))))
 
 (defn path-exists?
   "Returns true if file or dir specified by path exists"
   [path]
-  (let [path (resolve-tilde-path path)
+  (let [path (canonical-path path)
         f (file path)]
     (.exists f)))
+
+(defn ensure-path-exists!
+  "Throws an exception if path does not exist."
+  [path]
+  (when-not (path-exists? path)
+    (throw (Exception. (str "Error: unable locate path: " path)))))
 
 (defn file-exists?
   "Returns true if a file specified by path exists"
@@ -390,7 +401,7 @@
   (let [size     (remote-file-size url)
         p-size   (pretty-file-size size)
         size-str (if (<= size 0) "" (str "(" p-size ")"))]
-    (print-if-verbose (str "Downloading file " size-str " - "  url))))
+    (print-if-verbose (str "--> Downloading file " size-str " - "  url))))
 
 (defn download-file
   "Downloads the file pointed to by url to local path. If no timeout

@@ -11,7 +11,8 @@
               {:name "time-dispersion", :default 0.0, :doc "A random offset of from zero to timeDispersion seconds is added to the delay
 of each grain. Use of some dispersion can alleviate a hard comb filter effect due to uniform grain placement. It can also be an effect in itself. timeDispersion can be no larger than windowSize."}],
        :rates #{:ar}
-       :check (same-rate-as-first-input)
+       :check [(same-rate-as-first-input)
+               (nth-input-stream? 0)]
        :doc "A time domain granular pitch shifter. Grains have a triangular amplitude envelope and an overlap of 4:1."}
 
       {:name "Pluck",
@@ -22,6 +23,7 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "decaytime", :default 1.0, :doc "Time for the echoes to decay by 60 decibels. Negative times emphasize odd partials."}
               {:name "coef", :default 0.5, :doc "The coef of the internal OnePole filter. Values should be between -1 and +1 (larger values will be unstable... so be careful!)."}],
        :rates #{:ar}
+       :check (nth-input-stream? 0)
        :doc "Implements the Karplus-Strong style of synthesis, where a delay line (normally starting with noise) is filtered and fed back on itself so that over time it becomes periodic."}
 
       ;; TODO write some functions implementing these classand buffer  methods
@@ -58,11 +60,13 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "fftsize", :doc "Spectral convolution partition size (twice partition size). You must ensure that the blocksize divides the partition size and there are at least two blocks per partition (to allow for amortisation)"}
               {:name "irbufnum", :doc "Prepared buffer of spectra for each partition of the inpulse response"}],
        :rates #{:ar}
+       :check (nth-input-stream? 0)
        :doc "Partitioned convolution. Various additional buffers must be supplied. Mono impulse response only! If inputting multiple channels, you'll need independent PartConvs, one for each channel. But the charm is: impulse response can be as large as you like (CPU load increases with IR size. Various tradeoffs based on fftsize choice, due to rarer but larger FFTs. This plug-in uses amortisation to spread processing and avoid spikes). Normalisation factors difficult to anticipate; convolution piles up multiple copies of the input on top of itself, so can easily overload. "}
 
       {:name "Hilbert",
        :args [{:name "in"}],
        :rates #{:ar},
+       :check (nth-input-stream? 0)
        :num-outs 2}
 
       {:name "FreqShift",
@@ -70,6 +74,7 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "freq", :default 0.0, :doc "Amount of shift in cycles per second"}
               {:name "phase", :default 0.0, :doc "Phase of the frequency shift (0 - 2pi)"}],
        :rates #{:ar},
+       :check (nth-input-stream? 0)
        :doc "FreqShift implements single sideband amplitude modulation, also known as frequency shifting, but not to be confused with pitch shifting.  Frequency shifting moves all the components of a signal by a fixed amount but does not preserve the original harmonic relationships."}
 
       {:name "GVerb",
@@ -85,6 +90,7 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "maxroomsize", :default 300.0, :doc "to set the size of the delay lines."}],
        :rates #{:ar},
        :num-outs 2,
+       :check (nth-input-stream? 0)
        :doc "A two-channel reverb UGen, based on the \"GVerb\" LADSPA effect by Juhana Sadeharju (kouhia at nic.funet.fi)."}
 
       {:name "FreeVerb",
@@ -93,6 +99,7 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "room", :default 0.5, :doc "Room size. rage 0..1"}
               {:name "damp", :default 0.5, :doc "Reverb HF damp. range 0..1"}],
        :rates #{:ar}
+       :check (nth-input-stream? 0)
        :doc "A reverb coded from experiments with faust. Valid parameter range from 0 to 1. Values outside this range are clipped by the UGen."}
 
       {:name "FreeVerb2",
@@ -103,14 +110,17 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
               {:name "damp", :default 0.5, :doc "Reverb HF damp. range 0..1"}],
        :rates #{:ar},
        :num-outs 2,
+       :check [(nth-input-stream? 0)
+               (nth-input-stream? 1)]
        :doc "A two-channel reverb coded from experiments with faust. Valid parameter range from 0 to 1. Values outside this range are clipped by the UGen."}
 
       {:name "MoogFF",
-       :args [{:name "in", :default 0.0 :doc "The imput signal"}
+       :args [{:name "in", :default 0.0 :doc "The input signal"}
               {:name "freq", :default 100.0, :doc "The cutoff frequency"}
               {:name "gain", :default 2.0, :doc "The filter resonance gain, between zero and 4"}
               {:name "reset", :default 0.0, :doc "When greater than zero, this will reset the state of the digital filters at the beginning of a computational block."}]
        :rates #{:ar :kr}
+       :check (nth-input-stream? 0)
        :doc "A digital implementation of the Moog VCF (filter)."}
 
       {:name "Spring",

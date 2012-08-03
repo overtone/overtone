@@ -53,6 +53,7 @@
               {:name "envbufnum" :default -1 :doc "the buffer number containing a singal to use for the grain envelope. -1 uses a built-in Hanning envelope."}
               {:name "max-grains" :default 512 :doc " the maximum number of overlapping grains that can be used at a given time. This value is set at the UGens init time and can't be modified. This can be set lower for more	efficient use of memory."}]
        :rates #{:ar}
+       :check (nth-input-stream? 3)
        :doc "Granulate an input signal"}
 
 

@@ -5,14 +5,17 @@
          serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}
   overtone.sc.synth
-  (:use [overtone.util lib old-contrib]
+  (:use [overtone.helpers lib old-contrib synth]
         [overtone.libs event counters]
         [overtone.music time]
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]
         [overtone.sc bindings ugens server node]
-        [overtone.helpers seq])
-  (:require [overtone.util.log :as log]
+        [overtone.studio.core :only (studio* main-synth-group)]
+        [overtone.helpers seq]
+        [clojure.pprint])
+
+  (:require [overtone.config.log :as log]
             [clojure.set :as set]))
 
 ;; ### Synth
@@ -53,13 +56,17 @@
 ; * *All* inputs must refer to either a constant or the output of another
 ;   UGen that is higher up in the list.
 (defn- with-inputs
-  "Returns ugen object with its input ports connected to constants and upstream
-  ugens according to the arguments in the initial definition."
+  "Returns ugen object with its input ports connected to constants and
+  upstream ugens according to the arguments in the initial
+  definition."
   [ugen ugens constants grouped-params]
   (when-not (contains? ugen :args)
-    (throw (IllegalArgumentException.
-             (format "The %s ugen does not have any arguments."
-                     (:name ugen)))))
+    (if-not (sc-ugen? ugen)
+      (throw (IllegalArgumentException.
+              (str "Error: synth expected a ugen. Got: " ugen)))
+      (throw (IllegalArgumentException.
+              (format "The %s ugen does not have any arguments."
+                      (:name ugen))))))
   (when-not (every? #(or (sc-ugen? %) (number? %) (string? %)) (:args ugen))
     (throw (IllegalArgumentException.
              (format "The %s ugen has an invalid argument: %s"
@@ -68,7 +75,6 @@
                               #(not (or (sc-ugen? %) (number? %)))
                               (:args ugen)))))))
 
-;  (println "with-inputs: " ugen)
   (let [inputs (flatten
                  (map (fn [arg]
                         (cond
@@ -89,11 +95,8 @@
                           (sc-ugen? arg)
                           (let [src (ugen-index ugens arg)
                                 updated-ugen (nth ugens src)]
-                            ;(println "child ugen: " arg)
-                            ;(println "src: " src)
                             (inputs-from-outputs src updated-ugen))))
                       (:args ugen)))
-;        _ (println "inputs: " inputs)
         ugen (assoc ugen :inputs inputs)]
     (when-not (every? (fn [{:keys [src index]}]
                     (and (not (nil? src))
@@ -102,13 +105,18 @@
       (throw (Exception.
                (format "Cannot connect ugen arguments for %s ugen with args: %s" (:name ugen) (str (seq (:args ugen)))))))
 
-    ugen))
+    ;;Add link back to MaxLocalBufs ugen (always at root of tree) if
+    ;;ugen is a local-buf.
+    (if (= "LocalBuf" (:name ugen))
+      (assoc ugen :inputs (concat (:inputs ugen) [{:src 0 :index 0}]))
+      ugen)))
 
 ; TODO: Currently the output rate is hard coded to be the same as the
 ; computation rate of the ugen.  We probably need to have some meta-data
 ; capabilities for supporting varying output rates...
 (defn- with-outputs
-  "Returns a ugen with its output port connections setup according to the spec."
+  "Returns a ugen with its output port connections setup according to
+  the spec."
   [ugen]
   {:post [(every? (fn [val] (not (nil? val))) (:outputs %))]}
   (if (contains? ugen :outputs)
@@ -130,9 +138,10 @@
     (doall final)))
 
 (defn- make-control-ugens
-  "Controls are grouped by rate, so that a single Control ugen represents
-  each rate present in the params.  The Control ugens are always the top nodes
-  in the graph, so they can be prepended to the topologically sorted tree.
+  "Controls are grouped by rate, so that a single Control ugen
+  represents each rate present in the params.  The Control ugens are
+  always the top nodes in the graph, so they can be prepended to the
+  topologically sorted tree.
 
   Specifically handles control proxies at :tr, :ar, :kr and :ir"
   [grouped-params]
@@ -168,7 +177,8 @@
 (def DEFAULT-RATE :kr)
 
 (defn- ensure-param-keys!
-  "throws an error if map m doesn't contain the correct keys: :name, :default and :rate"
+  "Throws an error if map m doesn't contain the correct
+  keys: :name, :default and :rate"
   [m]
   (when-not (and
              (contains? m :name)
@@ -177,22 +187,24 @@
     (throw (IllegalArgumentException. (str "Invalid synth param map. Expected to find the keys :name, :default, :rate, got: " m)))))
 
 (defn- ensure-paired-params!
-  "throws an error if list l does not contain an even number of elements"
+  "Throws an error if list l does not contain an even number of
+  elements"
   [l]
   (when-not (even? (count l))
     (throw (IllegalArgumentException. (str "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5] or a list of maps. You passed " (count l) " args: " l)))))
 
 (defn- ensure-vec!
-  "throws an error if list l is not a vector"
+  "Throws an error if list l is not a vector"
   [l]
   (when-not (vector? l)
     (throw (IllegalArgumentException. (str "Your synth argument list is not a vector. Instead I found " (type l) ": " l)))))
 
 (defn- mapify-params
-  "converts a list of param name val pairs to a param map. If the val of a param
-  is a vector, it assumes it's a pair of [val rate] and sets the rate of the
-  param accordingly. If the val is a plain number, it sets the rate to
-  DEFAULT-RATE. All names are converted to strings"
+  "Converts a list of param name val pairs to a param map. If the val
+  of a param is a vector, it assumes it's a pair of [val rate] and
+  sets the rate of the param accordingly. If the val is a plain
+  number, it sets the rate to DEFAULT-RATE. All names are converted to
+  strings"
   [params]
   (for [[p-name p-val] (partition 2 params)]
     (let [param-map
@@ -207,7 +219,7 @@
       param-map)))
 
 (defn- stringify-names
-  "takes a map and converts the val of key :name to a string"
+  "Takes a map and converts the val of key :name to a string"
   [m]
   (into {} (for [[k v] m] (if (= :name k) [k (str v)] [k v]))))
 
@@ -274,16 +286,16 @@
 ;  or through buses.
 ;
 (defn synthdef
-  "Transforms a synth definition (ugen-graph) into a form that's ready to save
-  to disk or send to the server.
+  "Transforms a synth definition (ugen-graph) into a form that's ready
+  to save to disk or send to the server.
 
     (synthdef \"pad-z\" [
   "
   [sname params ugens constants]
-  (let [grouped-params (group-params params)
-       [params pnames] (make-params grouped-params)
-        with-ctl-ugens (concat (make-control-ugens grouped-params) ugens)
-        detailed (detail-ugens with-ctl-ugens constants grouped-params)]
+  (let [grouped-params  (group-params params)
+        [params pnames] (make-params grouped-params)
+        with-ctl-ugens  (concat (make-control-ugens grouped-params) ugens)
+        detailed        (detail-ugens with-ctl-ugens constants grouped-params)]
     (with-meta {:name (str sname)
                 :constants constants
                 :params params
@@ -299,9 +311,10 @@
           params))
 
 (defn- gen-synth-name
-  "Auto generate an anonymous synth name. Intended for use in synths that have not
-   been defined with an explicit name. Has the form \"anon-id\" where id is a unique
-   integer across all anonymous synths."
+  "Auto generate an anonymous synth name. Intended for use in synths
+   that have not been defined with an explicit name. Has the form
+   \"anon-id\" where id is a unique integer across all anonymous
+   synths."
   []
   (str "anon-" (next-id ::anonymous-synth)))
 
@@ -313,14 +326,14 @@
       (isa? (type o) :overtone.sc.bus/control-bus)))
 
 (defn normalize-synth-args
-  "Pull out and normalize the synth name, parameters, control proxies and the ugen form
-   from the supplied arglist resorting to defaults if necessary."
+  "Pull out and normalize the synth name, parameters, control proxies
+   and the ugen form from the supplied arglist resorting to defaults
+   if necessary."
   [args]
-  (let [[sname args] (cond
-                       (or (string? (first args))
-                           (symbol? (first args))) [(str (first args)) (rest args)]
-                           :default                    [(gen-synth-name) args])
-
+  (let [[sname args]       (if (or (string? (first args))
+                                   (symbol? (first args)))
+                             [(str (first args)) (rest args)]
+                             [(gen-synth-name) args])
         [params ugen-form] (if (vector? (first args))
                              [(first args) (rest args)]
                              [[] args])
@@ -328,7 +341,8 @@
     [sname params param-proxies ugen-form]))
 
 (defn gather-ugens-and-constants
-  "Traverses a ugen tree and returns a vector of two sets [#{ugens} #{constants}]."
+  "Traverses a ugen tree and returns a vector of two sets [#{ugens}
+  #{constants}]."
   [root]
   (if (seq? root)
     (reduce
@@ -343,7 +357,8 @@
           cur-ugens (filter (comp not control-proxy?) cur-ugens)
           cur-ugens (map #(if (output-proxy? %)
                             (:ugen %)
-                            %) cur-ugens)
+                            %)
+                         cur-ugens)
           cur-consts (filter number? args)
           [child-ugens child-consts] (gather-ugens-and-constants cur-ugens)
           ugens (conj (set child-ugens) root)
@@ -351,7 +366,8 @@
       [ugens (vec constants)])))
 
 (defn- ugen-children
-  "Returns the children (arguments) of this ugen that are themselves upstream ugens."
+  "Returns the children (arguments) of this ugen that are themselves
+  upstream ugens."
   [ug]
   (mapcat
     #(cond
@@ -367,8 +383,8 @@
       (:args ug))))
 
 (defn topological-sort-ugens
-  "Sort into a vector where each node in the directed graph of ugens will always
-  be preceded by its upstream dependencies."
+  "Sort into a vector where each node in the directed graph of ugens
+  will always be preceded by its upstream dependencies."
   [ugens]
   (loop [ugens ugens
          ; start with leaf nodes that don't have any dependencies
@@ -380,9 +396,6 @@
                         ugens))
          sorted-ugens []
          rec-count 0]
-    ;(println "\n------------\nugens: " ugens)
-    ;(println "leaves: " leaves)
-    ;(println "sorted-ugens: " sorted-ugens)
 
     ; bail out after 1000 iterations, either a bug in this code, or a bad synth graph
     (when (= 1000 rec-count)
@@ -397,7 +410,6 @@
             [next-ugen leaves] (if next-ugen
                                  [next-ugen (disj leaves next-ugen)]
                                  [(first leaves) (next leaves)])
-            ;_ (println "next-ugen: " next-ugen)
             sorted-ugens (conj sorted-ugens next-ugen)
             sorted-ugen-set (set sorted-ugens)
             ugens (set/difference ugens sorted-ugen-set leaves)
@@ -405,7 +417,6 @@
                      (reduce
                        (fn [rleaves ug]
                          (let [children (ugen-children ug)]
-                           ;(println ug ": " children)
                            (if (set/subset? children sorted-ugen-set)
                              (conj rleaves ug)
                              rleaves)))
@@ -419,8 +430,14 @@
 (defsynth bar [freq 220] (out 0 (rlpf (saw [freq (* 3.013 freq)]) (x-line:kr 20000 2 1 FREE))))
 (definst faz [] (rlpf (saw [220 663]) (x-line:kr 20000 2 1 FREE)))
 (definst baz [freq 220] (rlpf (saw [freq (* 3.013 freq)]) (x-line:kr 20000 2 1 FREE)))
-(run 1 (out 184 (saw (x-line:kr 10000 10 1 FREE))))
-)
+(run 1 (out 184 (saw (x-line:kr 10000 10 1 FREE)))))
+
+(defn count-ugens
+  [ug-tree ug-name]
+  (let [ugens      (flatten  ug-tree)
+        local-bufs (filter #(= ug-name (:name %)) ugens)
+        ids        (set (map :id local-bufs))]
+    (count ids)))
 
 (defmacro pre-synth
   "Resolve a synth def to a list of its name, params, ugens (nested if
@@ -434,22 +451,26 @@
             (let [[ugens# constants#] (gather-ugens-and-constants
                                         (with-overloaded-ugens ~@ugen-form))
                   ugens# (topological-sort-ugens ugens#)
-;;                  _# (println "main-tree[" (count ugens#) "]: " ugens#)
-;;                  _# (println (str "*ugens*: [" (count *ugens*) "] " *ugens*))
                   main-tree# (set ugens#)
                   side-tree# (filter #(not (main-tree# %)) *ugens*)
-;;                  _# (println "side-tree[" (count side-tree#) "]: " side-tree#)
                   ugens# (concat ugens# side-tree#)
+                  n-local-bufs# (count-ugens ugens# "LocalBuf")
+                  ugens# (if (> n-local-bufs# 0)
+                           (cons (max-local-bufs n-local-bufs#) ugens#)
+                           ugens#)
+                  constants# (if (> n-local-bufs# 0)
+                               (cons n-local-bufs# constants#)
+                               constants#)
                   constants# (into [] (set (concat constants# *constants*)))]
-;;              (println "all ugens[" (count ugens#) "]: " ugens#)
-       [~sname ~params ugens# constants#])))))
+              [~sname ~params ugens# constants#])))))
 
 (defn synth-player
-  [name params this & args]
+  [sdef params this & args]
     "Returns a player function for a named synth.  Used by (synth ...)
-    internally, but can be used to generate a player for a pre-compiled
-    synth.  The function generated will accept two optional arguments that
-    must come first, the :position and :target (see the node function docs).
+    internally, but can be used to generate a player for a
+    pre-compiled synth.  The function generated will accept two
+    optional arguments that must come first, the :position
+    and :target (see the node function docs).
 
     (foo)
     (foo :position :tail :target 0)
@@ -463,41 +484,30 @@
     These can also be abbreviated:
     (foo :tgt 2 :pos :head)
     "
-    (let [arg-names (map keyword (map :name params))
-          args (if (and (= 1 (count args))
-                        (map? (first args))
-                        (not (id-able-type? (first args))))
-                 (flatten (seq (first args)))
-
-                 args)
-          [args sgroup] (if (or (= :target (first args))
-                                (= :tgt    (first args)))
-                          [(drop 2 args) (second args)]
-                          [args @synth-group*])
-          [args pos]    (if (or (= :position (first args))
-                                (= :pos      (first args)))
-                          [(drop 2 args) (second args)]
-                          [args :tail])
-          [args sgroup] (if (or (= :target (first args))
-                                (= :tgt    (first args)))
-                          [(drop 2 args) (second args)]
-                          [args sgroup])
-          args          (map #(if (id-able-type? %)
-                                (:id %) %) args)
-          defaults (into {} (map (fn [{:keys [name value]}]
-                                   [(keyword name) @value])
-                                 params))
-          arg-map  (arg-mapper args arg-names defaults)
-          synth-node (node name arg-map {:position pos :target sgroup })
-          synth-node (if (:instance-fn this)
-                       ((:instance-fn this) synth-node)
-                       synth-node)]
+    (let [arg-names         (map keyword (map :name params))
+          args              (or args [])
+          [target pos args] (extract-target-pos-args args (main-synth-group) :tail)
+          args              (mapcat (fn [x] (if (and (map? x)
+                                                    (not (id-able-type? x)))
+                                             (flatten (seq x))
+                                             [x]))
+                                    args)
+          args              (map #(if (id-able-type? %)
+                                    (:id %) %) args)
+          defaults          (into {} (map (fn [{:keys [name value]}]
+                                            [(keyword name) @value])
+                                          params))
+          arg-map           (arg-mapper args arg-names defaults)
+          synth-node        (node (:name sdef) arg-map {:position pos :target target} sdef)
+          synth-node        (if (:instance-fn this)
+                              ((:instance-fn this) synth-node)
+                              synth-node)]
       (when (:instance-fn this)
         (swap! active-synth-nodes* assoc (:id synth-node) synth-node))
       synth-node))
 
 (defrecord-ifn Synth [name ugens sdef args params instance-fn]
-               (partial synth-player name params))
+               (partial synth-player sdef params))
 
 (defn update-tap-data
   [msg]
@@ -511,7 +521,7 @@
 
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen
-  functions provided by overtone.sc.ugen.  This will return callable
+  functions provided by overtone.sc.ugen. This will return callable
   record which can be used to trigger the synthesizer.
   "
   [& args]
@@ -528,7 +538,7 @@
                    :args arg-names#
                    :params params-with-vals#
                    :instance-fn instance-fn#})
-                 {:overtone.util.live/to-string #(str (name (:type %)) ":" (:name %))})]
+                 {:overtone.live/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
      smap#))
@@ -550,23 +560,40 @@
     [(with-meta s-name md) params ugen-form]))
 
 (defmacro defsynth
-  "Define a synthesizer and return a player function.  The synth definition
-  will be loaded immediately, and a :new-synth event will be emitted.
+  "Define a synthesizer and return a player function. The synth
+  definition will be loaded immediately, and a :new-synth event will
+  be emitted. Expects a name, an optional doc-string, a vector of
+  synth params, and a ugen-form as it's arguments.
 
   (defsynth foo [freq 440]
-    (sin-osc freq))
+    (out 0 (sin-osc freq)))
 
   is equivalent to:
 
   (def foo
-    (synth [freq 440] (sin-osc freq)))
+    (synth [freq 440] (out 0 (sin-osc freq))))
 
   A doc string can also be included:
   (defsynth bar
     \"The phatest space pad ever!\"
     [] (...))
+
+  The function generated will accept two optional arguments that must
+  come first, the :position and :target (see the node function docs).
+  (foo)
+  (foo :position :tail :target 0)
+
+  Or if foo has two arguments:
+  (foo 440 0.3)
+  (foo :position :tail :target 0 440 0.3)
+  at the head of group 2:
+  (foo :position :head :target 2 440 0.3)
+
+  These can also be abbreviated:
+  (foo :tgt 2 :pos :head)
   "
   [s-name & s-form]
+  {:arglists '([name doc-string? params ugen-form])}
   (let [[s-name params ugen-form] (synth-form s-name s-form)]
     `(def ~s-name (synth ~s-name ~params ~ugen-form))))
 
@@ -575,95 +602,15 @@
   [s]
   (= overtone.sc.synth.Synth (type s)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Synthdef de-compilation
-;;   The eventual goal is to be able to take any SuperCollider scsyndef
-;;   file, and produce equivalent clojure code that can be re-edited.
-
-(defn- param-vector [params pnames]
-  "Create a synthdef parameter vector."
-  (vec (flatten
-         (map #(list (symbol (:name %1))
-                     (nth params (:index %1)))
-              pnames))))
-
-(defn- ugen-form
-  "Create a ugen form."
-  [ug]
-  (let [uname (real-ugen-name ug)
-        ugen (get-ugen uname)
-        uname (if (and
-                    (zero? (:special ug))
-                    (not= (:rate-name ug) (:default-rate ugen)))
-                (str uname (:rate-name ug))
-                uname)
-        uname (symbol uname)]
-  (apply list uname (:inputs ug))))
-
-(defn- ugen-constant-inputs
-  "Replace constant ugen inputs with the constant values."
-  [constants ug]
-  (assoc ug :inputs
-         (map
-           (fn [{:keys [src index] :as input}]
-             (if (= src -1)
-               (nth constants index)
-               input))
-           (:inputs ug))))
-
-(defn- reverse-ugen-inputs
-  "Replace ugen inputs that are other ugens with their generated symbolic name."
-  [pnames ugens ug]
-  (assoc ug :inputs
-         (map
-           (fn [{:keys [src index] :as input}]
-             (if src
-               (let [u-in (nth ugens src)]
-                 (if (= "Control" (:name u-in))
-                   (nth pnames index)
-                   (:sname (nth ugens src))))
-               input))
-           (:inputs ug))))
-
-; In order to do this correctly is a big project because you also have to
-; reverse the process of the various ugen modes.  For example, you need
-; to recognize the ugens that have array arguments which will be
-; appended, and then you need to gather up the inputs and place them into
-; an array at the correct argument location.
-(defn synthdef-decompile
-  "Decompile a parsed SuperCollider synth definition back into clojure code
-  that could be used to generate an identical synth.
-
-  While this probably won't create a synth definition that can directly compile,
-  it can still be helpful when trying to reverse engineer a synth."
-  [{:keys [name constants params pnames ugens] :as sdef}]
-  (let [sname (symbol name)
-        param-vec (param-vector params pnames)
-        ugens (map #(assoc % :sname %2)
-                   ugens
-                   (map (comp symbol #(str "ug-" %) char) (range 97 200)))
-        ugens (map (partial ugen-constant-inputs constants) ugens)
-        pnames (map (comp symbol :name) pnames)
-        ugens (map (partial reverse-ugen-inputs pnames ugens) ugens)
-        ugens (filter #(not= "Control" (:name %)) ugens)
-        ugen-forms (map vector
-                     (map :sname ugens)
-                     (map ugen-form ugens))]
-      (print (format "(defsynth %s %s\n  (let [" sname param-vec))
-      (println (ffirst ugen-forms) (second (first ugen-forms)))
-      (doseq [[uname uform] (drop 1 ugen-forms)]
-        (println "       " uname uform))
-      (println (str "       ]\n   " (first (last ugen-forms)) ")"))))
-
 (def ^{:dynamic true} *demo-time* 2000)
 
 (defmacro run
-  "Run an anonymous synth definition for a fixed period of time.  Useful for
-  experimentation. Does NOT add  an out ugen - see #'demo for that. You can
-  specify a timeout in seconds as the first argument otherwise it defaults to
-  *demo-time* ms.
+  "Run an anonymous synth definition for a fixed period of time.
+  Useful for experimentation. Does NOT add an out ugen - see #'demo
+  for that. You can specify a timeout in seconds as the first argument
+  otherwise it defaults to *demo-time* ms.
 
-  (run (send-reply (impulse 1) \"/foo\" [1] 43)) ;=> send OSC messages out"
+  (run (send-reply (impulse 1) \"/foo\" [1] 43)) ;=> send OSC messages"
   [& body]
   (let [[demo-time body] (if (number? (first body))
                            [(* 1000 (first body)) (second body)]
@@ -674,10 +621,11 @@
        note#)))
 
 (defmacro demo
-  "Listen to an anonymous synth definition for a fixed period of time.  Useful
-  for experimentation.  If the root node is not an out ugen, then it will add
-  one automatically.  You can specify a timeout in seconds as the first argument
-  otherwise it defaults to *demo-time* ms.
+  "Listen to an anonymous synth definition for a fixed period of time.
+  Useful for experimentation.  If the root node is not an out ugen,
+  then it will add one automatically.  You can specify a timeout in
+  seconds as the first argument otherwise it defaults to *demo-time*
+  ms. See #'run for a version of demo that does not add an out ugen.
 
   (demo (sin-osc 440))      ;=> plays a sine wave for *demo-time* ms
   (demo 0.5 (sin-osc 440))  ;=> plays a sine wave for half a second"
@@ -693,11 +641,13 @@
     `((synth "audition-synth" ~body))))
 
 (defn active-synths
-  "Return a seq of the actively running synth nodes.  If a synth or inst are passed as the filter it will only return nodes of that type.
+  "Return a seq of the actively running synth nodes.  If a synth or
+  inst are passed as the filter it will only return nodes of that
+  type.
 
-    (active-synths) ; => [{:type synth :name \"mixer\" :id 12}
-                          {:type synth :name \"my-synth\" :id 24}]
-    (active-synths my-synth) ; => [{:type synth :name \"my-synth\" :id 24}]
+  (active-synths) ;=> [{:type synth :name \"mixer\" :id 12} {:type
+                        synth :name \"my-synth\" :id 24}]
+  (active-synths my-synth) ;=>[{:type synth :name \"my-synth\" :id 24}]
   "
   [& [synth-filter]]
   (let [active-nodes (filter #(= overtone.sc.node.SynthNode (type %))
@@ -712,7 +662,8 @@
 
 ; TODO: pull out the default param atom stuff into a separate mechanism
 (defn modify-synth-params
-  "Update synth parameter value atoms storing the current default settings."
+  "Update synth parameter value atoms storing the current default
+  settings."
   [s & params-vals]
   (let [params (:params s)]
     (for [[param value] (partition 2 params-vals)]

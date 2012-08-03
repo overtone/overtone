@@ -39,10 +39,10 @@
         click-out (* click-osc click-env)]
     (* amp (+ sub-out click-out))))
 
-(definst round-kick
+(definst kick4
   [freq   {:default 80 :min 40 :max 140 :step 1}
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.001}
-   attack {:default 0.8 :min 0.001 :max 1.0 :step 0.001}
+   attack {:default 0.001 :min 0.001 :max 1.0 :step 0.001}
    decay  {:default 0.4 :min 0.001 :max 1 :step 0.001}]
   (let [env (env-gen (perc attack decay) :action FREE)
         snd (sin-osc freq (* Math/PI 0.5))

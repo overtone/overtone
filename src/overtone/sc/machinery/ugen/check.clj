@@ -2,8 +2,9 @@
   ^{:doc "UGen argument validation functions."
      :author "Jeff Rose & Christophe McKeon"}
   overtone.sc.machinery.ugen.check
-  (:use [overtone.sc.machinery.ugen defaults]
-        [overtone.util.lib :only [overtone-ugen-name]]))
+  (:use [overtone.helpers.math :only [power-of-two?]]
+        [overtone.sc.machinery.ugen defaults sc-ugen]
+        [overtone.helpers.lib :only [overtone-ugen-name]]))
 
 (defn rate-name= [obj rate]
   (= (:rate-name obj) rate))
@@ -17,21 +18,52 @@
 (defn name-of? [obj name]
   (= (name-of obj) name))
 
+(defn- input-stream?
+  [ug]
+  (or (= :kr (:rate-name ug))
+      (= :ar (:rate-name ug))))
+
+(defn- buffer?
+  "Determines whether the specified object is a buffer. Copying fn
+  here to avoid cyclic dependencies."
+  [buf]
+  (isa? (type buf) :overtone.sc.buffer/buffer))
+
+(defn- local-buffer?
+  [buf]
+  (and (sc-ugen? buf)
+       (= "LocalBuf" (:name buf))))
+
+(defn- index?
+  [ug]
+  (and (sc-ugen? ug)
+       (= "Index" (:name ug))))
+
+(defn- buffer-like?
+  [buf]
+  (or
+   (buffer? buf)
+   (local-buffer? buf)
+   (index? buf)
+   (number? buf)
+   (control-proxy? buf)
+   (output-proxy? buf)))
+
 (defn ar? [obj] (= (:rate-name obj) :ar))
 (defn kr? [obj] (= (:rate-name obj) :kr))
 (defn ir? [obj] (or (number? obj) (= (:rate-name obj) :ir)))
 (defn dr? [obj] (= (:rate-name obj) :dr))
 
-(defmacro defcheck [name params default-message expr]
+(defmacro defcheck [name params default-message & exprs]
   (let [message (gensym "message")
         params-with-message (conj params message)]
     `(defn ~name
        (~params
         (fn ~'[rate num-outs inputs spec]
-          (when-not ~expr ~default-message)))
+          (when-not (do ~@exprs) (str ~default-message))))
        (~params-with-message
         (fn ~'[rate num-outs inputs spec]
-          (when-not ~expr ~message))))))
+          (when-not (do ~@exprs) (str ~message " -- " ~default-message)))))))
 
 (defcheck same-rate-as-first-input []
   (str "Rate mismatch: "(name-of (first inputs)) " is at rate " (:rate-name (first inputs))  " yet the containing ugen is at " (REVERSE-RATES rate))
@@ -54,16 +86,54 @@
   (every? ar? (drop n inputs)))
 
 (defcheck all-but-first-input-ar []
-  "All but the first input must be audio rate"
+  "All but the first input must be audio rate. Got " (vec inputs)
   (every? ar? (drop 1 inputs)))
 
 (defcheck nth-input-ar [index]
-  (str "The input at index " index " should be audio rate" )
+  (str "The input at index " index " should be audio rate.")
   (ar? (nth inputs index)))
 
 (defcheck num-outs-greater-than [n]
   (str "Must have " (+ n 1) " or more output channels")
-          true)
+  true)
+
+(defcheck nth-input-number? [n]
+  (str "Input with index " n " must be a number or an ir ugen")
+  (let [val (nth inputs n)]
+    (or
+     (number? val)
+     (= :ir (:rate-name val)))))
+
+(defcheck nth-input-buffer? [n]
+  (str "Input with index " n " must be a buffer. i.e. a buffer, local-buf or a number. Got:"  (nth inputs n))
+  (let [val (nth inputs n)]
+    (buffer-like? val)))
+
+(defcheck nth-input-buffer-pow2? [n]
+  (str "Input with index " n " must be a buffer with size which is a power of 2 an id or a control-proxy.")
+  (let [buf (nth inputs n)]
+    (or (or (and (buffer? buf)
+                 (power-of-two? (:size buf)))
+            (and (local-buffer? buf)
+                 (power-of-two? (first (:args buf)))))
+        (number? buf)
+        (control-proxy? buf))))
+
+(defcheck nth-input-power-of-2-or-zero? [n]
+  (str "Input with index " n " must be a number which is either 0 or a power of 2.")
+  (let [val (nth inputs n)]
+    (or (zero? val)
+        (power-of-two? val))))
+
+(defcheck nth-input-power-of-2? [n]
+  (str "Input with index " n " must be a number which is a power of 2.")
+  (let [val (nth inputs n)]
+    (power-of-two? val)))
+
+(defcheck nth-input-stream? [n]
+  (str "Input with index " n " must be an input stream i.e. a ugen at :kr or :ar")
+  (let [val (nth inputs n)]
+    (input-stream? val)))
 
 (defn- mk-check-all
   "Create a check-all fn which will check all the specified check-fns to see if

@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.info
-  (:use [overtone.sc.machinery.ugen common]))
+  (:use [overtone.sc.machinery.ugen common check]))
 
 (def specs
   [
@@ -54,31 +54,37 @@
    {:name "BufSampleRate"
     :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
+    :check (nth-input-buffer? 0)
     :doc "returns the buffers current sample rate"}
 
    {:name "BufRateScale"
     :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
+    :check (nth-input-buffer? 0)
     :doc "returns a ratio by which the playback of a buffer is to be scaled"}
 
    {:name "BufFrames"
     :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
+    :check (nth-input-buffer? 0)
     :doc "returns the current number of allocated frames"}
 
    {:name "BufSamples"
     :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
+    :check (nth-input-buffer? 0)
     :doc "current number of samples allocated in the buffer"}
 
    {:name "BufDur"
     :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
+    :check (nth-input-buffer? 0)
     :doc "returns the current duration of a buffer"}
 
    {:name "BufChannels"
     :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
+    :check (nth-input-buffer? 0)
     :doc "current number of channels of soundfile in buffer"}
 
    {:name "CheckBadValues"

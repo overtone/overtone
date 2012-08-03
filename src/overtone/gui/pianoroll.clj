@@ -5,7 +5,7 @@
         [overtone.music time]
         [seesaw.border :only [line-border]])
   (:require [seesaw.bind :as bind]
-            [overtone.util.log :as log])
+            [overtone.config.log :as log])
   (:import [javax.swing DefaultBoundedRangeModel]))
 
 (def ^{:private true} NOTE-TYPES
@@ -71,8 +71,8 @@
                               (- note-height (* 2 NOTE-PADDING)))
               NOTE-STYLE)))
     (catch Exception e
-      (log/warning (str "Exception in paint-piano-roll: " e
-                        (with-out-str (.printStackTrace e)))))))
+      (log/warn (str "Exception in paint-piano-roll: " e
+                     (with-out-str (.printStackTrace e)))))))
 
 (defn- mouse-event->note-coords
   [{:keys [num-octaves num-measures beats-per-measure steps-per-beat]} e]
@@ -108,7 +108,7 @@
                 (swap! state* toggle-note (mouse-event->note-coords state e))))
       panel)
     (catch Exception e
-      (log/warning (str "Exception in piano-roll: " e)))))
+      (log/warn (str "Exception in piano-roll: " e)))))
 
 ;              :mouse-dragged
 ;              (fn [e]
@@ -203,7 +203,5 @@
           (map->PianoRoll {:frame f :state state*})
           {:type :sequencer}))
       (catch Exception e
-        (log/warning (str "Exception in piano roll: " e
+        (log/warn (str "Exception in piano roll: " e
                           (with-out-str (.printStackTrace e))))))))
-
-

@@ -4,6 +4,31 @@
   overtone.music.rhythm
   (:use [overtone.music time]))
 
+(defonce ^{:private true}
+  _PROTOCOLS_
+  (do
+    (defprotocol IMetronome
+      (metro-start [metro] [metro start-beat]
+        "Returns the start time of the metronome. Also restarts the metronome at
+     'start-beat' if given.")
+      (metro-tick [metro]
+        "Returns the duration of one metronome 'tick' in milleseconds.")
+      (metro-beat [metro] [metro beat]
+        "Returns the next beat number or the timestamp (in milliseconds) of the
+     given beat.")
+      (metro-bpm [metro] [metro new-bpm]
+        "Get the current bpm or change the bpm to 'new-bpm'.")
+
+      (metro-bar-start [metro] [metro start-bar])
+      (metro-tock [metro]
+        "Returns the duration of one bar in milliseconds.")
+      (metro-bar [metro] [metro new-bar]
+    "Returns the next bar number or the timestamp (in milliseconds) of the
+     given bar")
+      (metro-bpb [metro] [metro new-bpb]
+    "Get the current beats per bar or change it to new-bpb")
+      )))
+
 ; Rhythm
 
 ; * a resting heart rate is 60-80 bpm
@@ -22,58 +47,38 @@
 ;  ([] (bar 1))
 ;  ([b] (* (bar 1) (first @*signature) b)))
 
-(defprotocol IMetronome
-  (start [this] [this start-beat]
-    "Returns the start time of the metronome. Also restart's the metronome at
-     'start-beat' if given.")
-  (bar-start [this] [this start-bar])
-  (tick [this]
-    "Returns the duration of one metronome 'tick' in milleseconds.")
-  (tock [this]
-    "Returns the duration of one bar in milliseconds.")
-  (beat [this] [this beat]
-    "Returns the next beat number or the timestamp (in milliseconds) of the
-     given beat.")
-  (bar [this] [this new-bar]
-    "Returns the next bar number or the timestamp (in milliseconds) of the
-     given bar")
-  (bpb [this] [this new-bpb]
-    "Get the current beats per bar or change it to new-bpb")
-  (bpm [this] [this new-bpm]
-    "Get the current bpm or change the bpm to 'new-bpm'."))
 
-(deftype Metronome [start bar-start bpm bpb]
-
+(deftype Metronome ([start bar-start bpm bpb]
   IMetronome
-  (start [this] @start)
-  (start [this start-beat]
-    (let [new-start (- (now) (* start-beat (tick this)))]
+  (metro-start [metro] @start)
+  (metro-start [metro start-beat]
+    (let [new-start (- (now) (* start-beat (metro-tick metro)))]
       (reset! start new-start)
       new-start))
-  (bar-start [this] @bar-start)
-  (bar-start [this start-bar]
-    (let [new-bar-start (- (now) (* start-bar (tock this)))]
+  (metro-bar-start [metro] @bar-start)
+  (metro-bar-start [metro start-bar]
+    (let [new-bar-start (- (now) (* start-bar (tock metro)))]
       (reset! bar-start new-bar-start)
       new-bar-start))
-  (tick  [this] (beat-ms 1 @bpm))
-  (tock  [this] (beat-ms @bpb @bpm))
-  (beat  [this] (inc (long (/ (- (now) @start) (tick this)))))
-  (beat  [this b] (+ (* b (tick this)) @start))
-  (bar   [this] (inc (long (/ (- (now) @bar-start) (tock this)))))
-  (bar   [this b] (+ (* b (tock this)) @bar-start))
-  (bpm   [this] @bpm)
-  (bpm   [this new-bpm]
-    (let [cur-beat (beat this)
-          cur-bar  (bar this)
-          new-tick (beat-ms 1 new-bpm)
-          new-tock (* @bpb new-tick)
-          new-start (- (beat this cur-beat) (* new-tick cur-beat))
-          new-bar-start ( - (bar this cur-bar) (* new-tock cur-bar))]
+  (metro-tock  [metro] (beat-ms @bpb @bpm))
+  (metro-bar   [metro] (inc (long (/ (- (now) @bar-start) (metro-tock metro)))))
+  (metro-bar   [metro b] (+ (* b (tock metro)) @bar-start))
+  (metro-tick  [metro] (beat-ms 1 @bpm))
+  (metro-beat  [metro] (inc (long (/ (- (now) @start) (metro-tick metro)))))
+  (metro-beat  [metro b] (+ (* b (metro-tick metro)) @start))
+  (metro-bpm   [metro] @bpm)
+  (metro-bpm   [metro new-bpm]
+     (let [cur-beat (metro-beat metro)
+           cur-bar (metro-bar metro)
+           new-tick (beat-ms 1 new-bpm)
+           new-tock (* @bpb new-tick)
+          new-start (- (metro-beat metro cur-beat) (* new-tick cur-beat))
+          new-bar-start (- (metro-bar metro cur-bar) (* new-tock cur-bar))]
       (reset! start new-start)
       (reset! bpm new-bpm))
     [:bpm new-bpm])
-  (bpb   [this] @bpb)
-  (bpb   [this new-bpb]
+  (metro-bpb   [metro] @bpb)
+  (metro-bpb   [metro new-bpb]
     (let [cur-bar (bar this)
           new-tock (beat-ms new-bpb @bpm)
           new-bar-start (- (bar this cur-bar) (* new-tock cur-bar))]
@@ -91,10 +96,10 @@
           :else not-found))
 
   clojure.lang.IFn
-  (invoke [this] (beat this))
+  (invoke [this] (metro-beat this))
   (invoke [this arg]
     (cond
-     (number? arg) (beat this arg)
+     (number? arg) (metro-beat this arg)
      (= :bpm arg) (.bpm this) ;; (bpm this) fails.
      (= :bpb arg) (.bpb this)
      :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))

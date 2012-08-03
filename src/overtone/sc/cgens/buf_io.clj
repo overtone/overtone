@@ -13,3 +13,10 @@
   "Uses buf-rate-scale to determine the rate with which to play back the specified buffer."
   (:ar (play-buf:ar num-channels buf-num (* rate (buf-rate-scale:kr buf-num)) trigger start-pos loop action))
   (:kr (play-buf:kr num-channels buf-num (* rate (buf-rate-scale:kr buf-num)) trigger start-pos loop action)))
+
+(defcgen local-buf
+  "Create a synth-local buffer."
+  [num-frames {:doc "The number of frames the buffer should contain."}
+   num-channels {:default 1 :doc "The number of channels for the buffer."}]
+  "A given local-buf may only be used within the synth it is defined in. More efficient than using a standard buffer"
+  (:ir (internal:local-buf:ir num-channels num-frames)))

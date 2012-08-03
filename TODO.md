@@ -1,3 +1,10 @@
+* sc.synth currently places all synth instances into the synth-group by default,
+which is an Overtone specific feature that should probably be done in studio.
+Maybe we should have the creation of synthdefs be on overtone.sc.synth, but
+the live creation of them and specialization in studio?  Discuss on list.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 * create a couple functions to append a ugen to the root of a synth, for
 attaching out, pan, etc...
 
@@ -14,35 +21,14 @@ corresponding to perception.
 
 ## Studio
 
-* route all synths and samplers to a main mixer bus, providing panning, EQ, and
-volume controls.
-  - figure out how FX should work into this
-
 * have a mechanism to route sound to a preview channel for listening to
 something in headphones to try it out.
 
 * create a basic EQ that can be used on any track
 
-* basic record functionality for root group
- - Sam's disk-out examples
-
-* create a basic volume and pan control node that can be used for the master
-volume and per synth-track control
-
-* implementing some basic midi mapping
-
-* fill out metronome functionality
-
-* hook up the sequencer
-
 * implement a portamento helper on top of slew
 
-* Instrument groups are nil if they're created before the server is booted
-
 ## General
-
-* create a function that prints out the currently running synths
- - maybe use node-tree + info from the synth-groups
 
 * view a table or tree of running synths with the ability to kill and maybe
 modify control params
@@ -58,16 +44,6 @@ operate immediately on numbers, but generate ugens on input proxy or ugen
 arguments.
 
 * add docs to Unary and Binary op ugens
-
-* add another argument mode to ugens so that buffers and samples can be passed
-to ugens as arguments and their :id property will be used
-  - get rid of UGen wrapper function currently doing this for all ugens
-
-* implement the rest of the argument modes for ugens, as described in
-  docs/dev/core/ugen_definition.mdml.
- (currently there is just :append-seq)
-
-## Ugens
 
 ## SC Tweets:
 

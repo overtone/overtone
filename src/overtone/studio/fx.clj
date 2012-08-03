@@ -57,7 +57,7 @@
         verbed (free-verb source wet-dry room-size dampening)]
     (replace-out bus (* 1.4 verbed))))
 
-(defsynth fx-reverb2
+(defsynth fx-reverb
   "Implements Schroeder reverb using delays."
   [bus 0]
   (let [input (in bus)

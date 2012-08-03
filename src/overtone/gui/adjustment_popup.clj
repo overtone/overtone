@@ -1,14 +1,16 @@
 (ns overtone.gui.adjustment-popup
   (:use [seesaw core color font]
-        [overtone.util log])
+        [overtone.config log])
   (:require [seesaw.bind :as bind])
   (:import javax.swing.JWindow))
 
 (def ^{:private true} OFFSET 12)
 (def ^{:private true} BORDER 8)
 
-(def ^{:private true} label-font (font :name "Arial" :size 14 :style :bold))
-(def ^{:private true} value-font (font :name "Arial" :size 14 :style :bold))
+(def ^{:private true} label-font (font :name "Arial" :size 16 :style :bold))
+(def ^{:private true} value-font (font :name "Arial" :size 16 :style :bold))
+
+(def ^{:private true} OVERTONE-BLUE (color 0 140 236))
 
 (defn adjustment-popup
   "Create a temporary popup window showing a changing value for a bindable widget.
@@ -24,13 +26,12 @@
                           txt-label (seesaw.core/label :id :popup-label :text label :font label-font)
                           val-label (seesaw.core/label :id :popup-value :text value
                                                        :font value-font
-                                                       :foreground (color 0 140 236))
+                                                       :foreground OVERTONE-BLUE)
                           body (border-panel :border BORDER
                                              :north txt-label
                                              :center (flow-panel :align :center :items [val-label]))
                           bindable (or bindable widget)]
                       (doto popup
-                        (.setBackground (color :black))
                         (.add body)
                         (.pack))
                       (bind/bind bindable val-label)
@@ -44,8 +45,7 @@
                                                  (move! popup :to [popup-x popup-y])
                                                  (show! popup)))
                               :mouse-released (fn [_]
-                                                (hide! popup)))
-                      ;(bind/bind bindable (bind/b-do [_] (repaint! widget)))
+                                                (hide! popup))) ;(bind/bind bindable (bind/b-do [_] (repaint! widget)))
                       popup))))
 
 (comment

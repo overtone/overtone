@@ -2,9 +2,10 @@
   (:use [seesaw core color]))
 
 (def theme* (atom
-              {
-               :background-fill (color 40 40 40)
-               :background-stroke (color 30 30 30)
+              {:background-fill (color 230 230 230)
+               :background-stroke (color 255 255 255)
+               ;:background-fill (color 40 40 40)
+               ;:background-stroke (color 30 30 30)
 
                :highlight (color 100 100 255)
 
@@ -51,5 +52,3 @@
          g (.getGreen col)
          b (.getBlue col)]
      (color r g b (- (.getTransparency col) (* factor 10))))))
-
-

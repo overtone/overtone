@@ -1,5 +1,5 @@
 (ns overtone.sc.machinery.ugen.metadata.binaryopugen
-  (:use [overtone.util lib]))
+  (:use [overtone.helpers lib]))
 
 (def unnormalized-binaryopugen-docspecs
 

@@ -24,16 +24,8 @@
               {:name "srchi", :default 1.0 :doc "Upper limit of input range"}
               {:name "dstlo", :default 1.0 :doc "Lower limit of output range"}
               {:name "dsthi", :default 2.0 :doc "Upper limit of output range"}]
+       :check (nth-input-stream? 0)
        :doc "Convert from a linear range to an exponential range. The dstlo and dsthi arguments must be nonzero and have the same sign."
-       :auto-rate true}
-
-      {:name "LinLin",
-       :args [{:name "in", :default 0.0 :doc "Input to convert"}
-              {:name "srclo", :default 0.0 :doc "Lower limit of input range"}
-              {:name "srchi", :default 1.0 :doc "Upper limit of input range"}
-              {:name "dstlo", :default 1.0 :doc "Lower limit of output range"}
-              {:name "dsthi", :default 2.0 :doc "Upper limit of output range"}]
-       :doc "Map values from one linear range to another"
        :auto-rate true}
 
       {:name "AmpComp",
@@ -55,12 +47,14 @@
       {:name "K2A",
        :args [{:name "in", :default 0.0 :doc "input signal"}],
        :rates #{:ar}
+       :check (nth-input-stream? 0)
        :doc "control rate to audio rate converter via linear interpolation."}
 
 
       {:name "A2K",
        :args [{:name "in", :default 0.0 :doc "input signal"}],
        :rates #{:kr}
+       :check (nth-input-stream? 0)
        :doc "audio rate to control rate converter via linear interpolation"}
 
 
@@ -72,6 +66,7 @@
        :args [{:name "in", :default 0.0 :doc "input signal"}
               {:name "offset", :default 0 :doc "sample offset within control period"}],
        :rates #{:ar}
+       :check (nth-input-stream? 0)
        :doc "control rate trigger to audio rate trigger converter (maximally one per control period)."}
 
       {:name "DC",

@@ -1,8 +1,9 @@
 (ns overtone.gui.wavetable
   (:use [overtone.sc server buffer]
-        [overtone.util log]
+        [overtone.config log]
         [overtone.music time]
         [overtone.studio wavetable]
+        [overtone.helpers math]
         [seesaw core graphics color mig meta]
         [clojure stacktrace])
   (:require [seesaw.bind :as bind]))
@@ -12,7 +13,7 @@
 ;; TODO: figure out a nicer way to pull out the wavetable conversions to make this more general
 ;; purpose.
 (defn- paint-wavetable
-  "Paint the dial widget group"
+  "Low-level draw function that is called every refresh."
   [wavetable? buf c g]
   (try
     (let [w (width c)
@@ -37,7 +38,7 @@
       (.setStroke g (stroke :width 2.0))
       (.drawPolyline g x-array y-array w))
     (catch Exception ex
-      (warning (str "Error in paint-wavetable: " ex (with-out-str (clojure.stacktrace/print-stack-trace ex)))))))
+      (warn (str "Error in paint-wavetable: " ex (with-out-str (clojure.stacktrace/print-stack-trace ex)))))))
 
 (defn waveform-panel
   "Creates a swing panel that displays the waveform in a buffer."
@@ -50,6 +51,21 @@
                   :center display
                   :minimum-size [64 :by 48])))
 
+(defn clamp
+  "Constrain a value between min and max."
+  [v v-min v-max]
+  (max v-min (min v v-max)))
+
+(defn pixel-y-to-amplitude
+  "Convert from a pixel y-value, (inverted 0-height) to an amplitude
+  between -1 and 1."
+  [v h]
+  (* -1
+     (- (* 2
+           (* v
+              (/ 1.0 h)))
+        1)))
+
 (defn- editor-drag-handler
   [wavetable? buf last-drag event]
   (try
@@ -58,43 +74,50 @@
           h (height source)
           cx (.getX event)
           cy (.getY event)]
-      (when (and (>= cx 0) (< cx w) (>= cy 0) (< cy h))
+      (when (and (>= cx 0) (< cx w)
+                 (>= cy 0) (< cy h))
         (let [buf-size (if wavetable?
                          (/ (:size buf) 2)
                          (:size buf))
               step (/ buf-size (float w))
               [last-x last-y] @last-drag
 
-              x1 (max 0 (min last-x cx))
-              x2 cx
-              x3 (min w (max last-x cx))
-
-              x1-idx (Math/round (* x1 step))
-              x2-idx (Math/round (* x2 step))
-              x3-idx (Math/round (* x3 step))
-
-              cy-val (* -1 (- (* 2 (* cy (/ 1.0 h))) 1))
+              ; Convert from pixel y-value, (inverted 0-height) to
+              ; an amplitude between -1 and 1
+              cy-val (pixel-y-to-amplitude cy h)
 
               buf-data (if wavetable?
                          (wavetable->signal (buffer-data buf))
                          (buffer-data buf))
-              [start-idx y-vals] (if (< x1 x2)
-                                   [x1-idx (linear-interpolate (nth buf-data x1-idx) cy-val
-                                                        (inc (- x2-idx x1-idx)))]
-                                   [x2-idx [cy-val]])
-              y-vals (if (> x3-idx x2-idx)
-                       (concat y-vals (linear-interpolate cy-val (nth buf-data x3-idx)
-                                                   (inc (- x3-idx x2-idx))))
-                       y-vals)]
-          (reset! last-drag [cx cy])
+
+              ; Determine the left-most, center, and right-most points
+              [x1 x2 x3] (if (> cx last-x)
+                           [last-x cx (inc cx)]
+                           [(dec cx) cx last-x])
+              x1 (max x1 0)
+              x3 (min x3 (dec w))
+
+              ; Convert from pixel space to buffer index
+              x1-idx (int (Math/floor (* x1 step)))
+              x2-idx (int (Math/floor (* x2 step)))
+              x3-idx (int (Math/floor (* x3 step)))
+
+              x1-val (nth buf-data x1-idx)
+              x2-val cy-val
+              x3-val (nth buf-data x3-idx)
+
+              y-vals (linear-interpolate x1-val x2-val (inc (- x2-idx x1-idx)))
+              y-vals (concat y-vals
+                             (linear-interpolate x2-val x3-val (inc (- x3-idx x2-idx))))]
           (if wavetable?
-            (buffer-write! buf (* 2 start-idx) (signal->wavetable y-vals))
-            (buffer-write! buf start-idx y-vals))
+            (buffer-write! buf (* 2 x1-idx) (signal->wavetable y-vals))
+            (buffer-write! buf x1-idx y-vals))
 
           ; repaint from the root so thumbnails get redrawn too
-          (.repaint (to-root source)))))
+          (.repaint (to-root source))))
+      (reset! last-drag [cx cy]))
         (catch Exception ex
-          (warning (str "Error in drag-handler:" ex))
+          (warn (str "Error in drag-handler:" ex))
           (.printStackTrace ex))))
 
 (defn- editor-press-handler
@@ -134,7 +157,7 @@
   [table]
   (let [panels (map (partial waveform-panel true) (:waveforms table))
         panels (map #(config! % :class :thumbnail) panels)
-        panels (partition 2 (interleave panels (repeat "height 80, width 120")))]
+        panels (partition 2 (interleave panels (repeat "height 60, width 80")))]
     (scrollable
       (mig-panel :constraints ["gap 2px" "" ""]
                  :items panels)
@@ -157,7 +180,7 @@
              split (top-bottom-split
                      editor
                      (wavetable-thumbnailer table)
-                     :divider-location 0.9)
+                     :divider-location 0.8)
              change-wave-fn (fn [buf]
                               (invoke-later
                                 (try
@@ -172,13 +195,12 @@
                                     (error "Exception in wave change: " ex)))))
              f (frame :title "Wave Table Editor"
                       :content split
-                      :width 1024 :height 760
-                      :minimum-size [640 :by 480])]
+                      :width 600 :height 400
+                      :minimum-size [300 :by 200])]
          (add-thumbnail-behavior f change-wave-fn)
          (-> f pack! show!)
          (with-meta
            {:frame f :wavetable table}
            {:type ::wavetable-editor}))
        (catch Exception e
-         (warning (str "Error creating wavetable-editor: " (with-out-str (print-stack-trace e)))))))))
-
+         (warn (str "Error creating wavetable-editor: " (with-out-str (print-stack-trace e)))))))))

@@ -3,7 +3,7 @@
      :author "Jeff Rose and Sam Aaron"}
   overtone.music.time
   (:use [overtone.libs event]
-        [overtone.util lib])
+        [overtone.helpers lib])
   (:require [overtone.at-at :as at-at]))
 
 ;;Scheduled thread pool (created by at-at) which is to be used by default for
@@ -50,7 +50,7 @@
   are also able to specify player by job id - see print-schedule."
   [sched-fn] (at-at/kill sched-fn player-pool))
 
-(def ^{:dynamic true} *apply-ahead*
+(def ^{:dynamic true :private true} *apply-ahead*
   "Amount of time apply-at is scheduled to execute *before* it was
   scheduled by the user. This is to give room for any computation/gc
   cycles and to allow the executing fn to schedule actions on scsynth
