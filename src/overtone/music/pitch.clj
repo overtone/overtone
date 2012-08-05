@@ -660,6 +660,25 @@
          (recur (inc note))))
       nil)))
 
+
+(defn chord-degree
+  "Returns the notes constructed by picking thirds in the given mode of a given scale
+   Useful if you want to try out playing standard chord progressions. For example:
+
+  (definst basic-sin [freq 440] (let [env (env-gen (perc 0.1) :action FREE)] (* env (sin-osc freq))))
+  (defn play-chord [ts notes] (doseq [n notes] (at ts (basic-sin (midi->hz n)))))
+
+  (let [progression [:iv :v :i]
+        scale :c4 scale-mode :dorian]
+    (doall (map-indexed #(play-chord (+ (* 1000.0 %1) (now)) (chord-degree %2 scale scale-mode)) progression)))
+  "
+  ([degree root mode]
+    (chord-degree degree root mode 4))
+  ([degree root mode num-notes]
+    (let [d-int (degree->int degree)
+          num-degrees (- (+ d-int (* num-notes 2)) 1)]
+          (take-nth 2 (drop (degree->int degree) (scale root mode (range num-degrees)))))))
+
 ;; * shufflers (randomize a sequence, or notes within a scale, etc.)
 ;; *
 ;;* Sequence generators
