@@ -200,12 +200,12 @@
    "tanh"        {:summary "Hyperbolic tangent function"
                   :doc "Outputs the hyperbolic tangent of input a.
 
-                  Acts similar to clip2 with a value of 1 in that it
-                  ensures that the output never exceeds +1 or
-                  -1. However, it differs from clip2 in that it massages
-                  the whole of the input rather than the values which
-                  exceed the limits such that the angles near the
-                  clipping ranges are rounder.
+                        Acts similar to clip2 with a value of 1 in that
+                        it ensures that the output never exceeds +1 or
+                        -1. However, it differs from clip2 in that it
+                        massages the whole of the input rather than the
+                        values which exceed the limits such that the
+                        angles near the clipping ranges are rounder.
 
                         i.e. 0 -> 0 and 1 -> 0.761594"}
 
