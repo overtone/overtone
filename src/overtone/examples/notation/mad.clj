@@ -1,4 +1,4 @@
-(ns overtone.examples.mad
+(ns overtone.examples.notation.mad
   (:use overtone.live
         overtone.inst.synth))
 

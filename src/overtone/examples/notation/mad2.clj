@@ -1,4 +1,4 @@
-(ns overtone.examples.mad2
+(ns overtone.examples.notation.mad2
   (:use overtone.live
         overtone.inst.synth))
 
@@ -82,17 +82,16 @@
 
 (comment
 
-(play ks1-demo (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]] :diatonic f4) metro)
+  (play ks1-demo (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]] :diatonic f4) metro)
 
-(do
-(play grunge-bass
-      (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]]
-           :diatonic f2))
-      metro)
+  (do
+    (play grunge-bass
+          (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]]
+                      :diatonic f2))
+          metro)
 
-(play pad
-      (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]]
-           :diatonic f3))
-      metro)
-)
+    (play pad
+          (cycle (i2p [[:i [:v _ :v] :i] [:i [:i :iv] :i _ :v _ :i]]
+                      :diatonic f3))
+          metro))
 )

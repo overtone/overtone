@@ -1,4 +1,4 @@
-(ns overtone.examples.piano-phase
+(ns overtone.examples.compositions.piano-phase
   (:use overtone.live
         overtone.inst.sampled-piano))
 

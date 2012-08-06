@@ -1,4 +1,4 @@
-(ns overtone.examples.bells
+(ns overtone.examples.compositions.bells
   (:use [overtone.live]))
 
 ;;http://computermusicresource.com/Simple.bell.tutorial.html

@@ -1,4 +1,4 @@
-(ns overtone.examples.extemp-piano
+(ns overtone.examples.compositions.extemp-piano
   (:use [overtone.live]
         [overtone.inst synth sampled-piano]))
 

@@ -1,4 +1,4 @@
-(ns overtone.examples.blues
+(ns overtone.examples.compositions.blues
   (:use overtone.live)
   (:use [overtone.inst synth drum]))
 
