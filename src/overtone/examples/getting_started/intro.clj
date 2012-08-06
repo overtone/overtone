@@ -1,4 +1,4 @@
-(ns overtone.examples.intro
+(ns overtone.examples.getting-started.intro
   (:use overtone.live))
 
 ;; ## Outputting sound

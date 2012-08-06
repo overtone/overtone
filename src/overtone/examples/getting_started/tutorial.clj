@@ -1,4 +1,4 @@
-(ns overtone.examples.tutorial
+(ns overtone.examples.getting-started.tutorial
   (:use overtone.live))
 
 ; Welcome to Project Overtone!

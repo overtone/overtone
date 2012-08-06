@@ -1,4 +1,4 @@
-(ns overtone.examples.basic
+(ns overtone.examples.getting-started.basic
   (:use overtone.live))
 
 ; Some of the examples gathered here were found on this page:
