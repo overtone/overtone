@@ -111,6 +111,8 @@
   with no arguments to get the next beat number, or pass it a beat number
   to get the timestamp to play a note at that beat.
 
+  A metronome can also work with bars.
+
   (def m (metronome 128))
   (m)          ; => <next beat number>
   (m 200)      ; => <timestamp of beat 200>
