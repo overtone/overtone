@@ -2,12 +2,14 @@
   (:use overtone.live
         overtone.inst.sampled-piano))
 
+;; Steve Reich's Piano Phase
+
 (def piece [:E4 :F#4 :B4 :C#5 :D5 :F#4 :E4 :C#5 :B4 :F#4 :D5 :C#5])
 
 (defn player
   [t speed notes]
-  (let [n     (first notes)
-        notes (next notes)
+  (let [n      (first notes)
+        notes  (next notes)
         t-next (+ t speed)]
     (when n
       (at t
