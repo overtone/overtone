@@ -1,4 +1,4 @@
-(ns overtone.examples.midi
+(ns overtone.examples.midi.keyboard
   (:use overtone.live))
 
 (definst ding

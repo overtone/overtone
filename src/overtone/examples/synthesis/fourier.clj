@@ -1,4 +1,4 @@
-(ns overtone.examples.fourier
+(ns overtone.examples.synthesis.fourier
   (:use overtone.live))
 
 (def buf (buffer 2048))

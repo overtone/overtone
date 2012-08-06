@@ -1,4 +1,4 @@
-(ns overtone.examples.monotron
+(ns overtone.examples.instruments.monotron
   (:use overtone.live))
 
 ;; Monotron Clone Attempt by Roger Allen.

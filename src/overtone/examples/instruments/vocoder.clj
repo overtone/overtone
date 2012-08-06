@@ -1,4 +1,4 @@
-(ns overtone.examples.vocoder
+(ns overtone.examples.instruments.vocoder
   (:use overtone.live))
 
 (def a (buffer 2048))

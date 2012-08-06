@@ -1,4 +1,4 @@
-(ns overtone.examples.midi
+(ns overtone.examples.midi.basic
   (:use overtone.live))
 
 ;; Use (midi-in) with no parameters in the repl to find out the details

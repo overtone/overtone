@@ -1,4 +1,4 @@
-(ns overtone.examples.at-all
+(ns overtone.examples.compositions.at-all
   (:use
     overtone.live
     [overtone.inst.sampled-piano :only [sampled-piano]]))

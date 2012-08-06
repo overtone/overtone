@@ -1,4 +1,4 @@
-(ns overtone.examples.thx
+(ns overtone.examples.instruments.thx
   (:use [overtone.live]))
 
 ;;Original THX sound simulation by Geirmund Simonsen:

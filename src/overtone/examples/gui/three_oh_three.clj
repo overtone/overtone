@@ -1,4 +1,4 @@
-(ns overtone.examples.three-oh-three
+(ns overtone.examples.gui.three-oh-three
   (:use overtone.live
         [overtone.gui.surface core button monome fader dial])
   (:require [overtone.gui.sg :as sg]))

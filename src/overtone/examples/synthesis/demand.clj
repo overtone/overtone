@@ -1,4 +1,4 @@
-(ns overtone.examples.demand
+(ns overtone.examples.synthesis.demand
   (:use overtone.live))
 
 ; Unlike the audio and control rate ugens, which produce a constant

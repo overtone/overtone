@@ -1,4 +1,4 @@
-(ns overtone.examples.poll
+(ns overtone.examples.synthesis.poll
   (:use [overtone.live]))
 
 ;;With poll you can get scsynth to output debug messages containing the contents of a given stream to stdout.

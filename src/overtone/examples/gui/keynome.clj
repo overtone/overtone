@@ -1,4 +1,4 @@
-(ns overtone.examples.keynome
+(ns overtone.examples.gui.keynome
   (:use overtone.live)
   (:import [java.awt GridLayout Dimension]
            [java.awt.event ActionListener KeyListener KeyEvent]

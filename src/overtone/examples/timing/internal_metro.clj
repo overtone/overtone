@@ -1,4 +1,4 @@
-(ns overtone.examples.internal-metro
+(ns overtone.examples.timing.internal-metro
   (:use [overtone.live]))
 
 ;; A basic demo of how you can use internal impulses to drive the rhythm of a synth

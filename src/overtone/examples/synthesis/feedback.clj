@@ -1,4 +1,4 @@
-(ns overtone.examples.feedback
+(ns overtone.examples.synthesis.feedback
   (:use overtone.core))
 
 ; The local-out and local-in ugens can be used to pipe signal data back

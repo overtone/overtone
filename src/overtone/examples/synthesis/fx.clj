@@ -1,4 +1,4 @@
-(ns overtone.examples.fx
+(ns overtone.examples.synthesis.fx
   (:use overtone.live))
 
 ; All of these are based off the compander ugen.  Of course you can just use it

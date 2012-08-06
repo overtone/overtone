@@ -1,4 +1,4 @@
-(ns overtone.examples.gui
+(ns overtone.examples.gui.basic
   (:use overtone.core
         overtone.gui
         [overtone.inst synth drum]))

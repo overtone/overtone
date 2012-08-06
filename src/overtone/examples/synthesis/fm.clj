@@ -1,4 +1,4 @@
-(ns overtone.examples.fm-synthesis
+(ns overtone.examples.synthesis.fm
   (:use overtone.live))
 
 (definst fm [carrier 440 divisor 2.0 depth 1.0]

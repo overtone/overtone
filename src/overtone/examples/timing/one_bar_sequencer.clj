@@ -1,4 +1,4 @@
-(ns overtone.examples.one-bar-sequencer
+(ns overtone.examples.timing.one-bar-sequencer
   (:use [overtone.live]
         [overtone.inst drum]))
 

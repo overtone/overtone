@@ -1,4 +1,4 @@
-(ns overtone.examples.composed-dubstep
+(ns overtone.examples.synthesis.cgen-example
   (:use overtone.live))
 
 (defcgen kick-drum

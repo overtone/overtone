@@ -1,4 +1,4 @@
-(ns overtone.examples.samples
+(ns overtone.examples.synthesis.samples
   (:use overtone.live
         [overtone.gui.scope :only [pscope]]))
 

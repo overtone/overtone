@@ -1,4 +1,4 @@
-(ns overtone.examples.filters
+(ns overtone.examples.synthesis.filters
   (:use overtone.live))
 
 ; Filter examples, mostly ported from SC docs

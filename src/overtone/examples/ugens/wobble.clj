@@ -1,4 +1,4 @@
-(ns overtone.examples.wobble
+(ns overtone.examples.ugens.wobble
   (:use [overtone.live]))
 
 (defcgen wobble

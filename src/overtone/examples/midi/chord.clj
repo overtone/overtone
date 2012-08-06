@@ -1,4 +1,4 @@
-(ns overtone.examples.chord
+(ns overtone.examples.midi.chord
   (:use [overtone.live]
         [overtone.config.log]))
 

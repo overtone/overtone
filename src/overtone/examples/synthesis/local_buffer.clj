@@ -1,4 +1,4 @@
-(ns overtone.examples.local-buffer
+(ns overtone.examples.synthesis.local-buffer
   (:use overtone.live))
 
 ;;original sc lang:

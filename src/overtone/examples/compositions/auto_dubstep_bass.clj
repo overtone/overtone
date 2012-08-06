@@ -1,4 +1,4 @@
-(ns overtone.examples.dubstepbass
+(ns overtone.examples.compositions.auto-dubstep-bass
   (:use [overtone.live]))
 
 ;;Dan Stowell's dubstep bass
