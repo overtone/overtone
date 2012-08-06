@@ -13,7 +13,7 @@
         t-next (+ t speed)]
     (when n
       (at t
-          (sampled-piano (note n)))
+        (sampled-piano (note n)))
       (apply-at t-next #'player [t-next speed notes]))))
 
 (def num-notes 1000)
