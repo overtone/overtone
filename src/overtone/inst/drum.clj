@@ -59,6 +59,21 @@
         mixed (* (+ noiz snd) (env-gen amp-env :action FREE))]
     mixed))
 
+(definst dance-kick
+  [freq {:default 50.24 :min 20 :max 400 :step 1}
+   attack {:default 0.0001 :min 0.00001 :max 2 :step 0.0001}
+   decay  {:default 0.484 :min 0.00001 :max 2 :step 0.0001}
+   fattack {:default 0.0001 :min 0.00001 :max 2 :step 0.0001}
+   fdecay {:default 0.012 :min 0.00001 :max 2 :step 0.0001}
+   amp {:default 0.8 :min 0.01 :max 1 :step 0.01}]
+  (let [freq-env (env-gen:kr (perc fattack fdecay))
+        wave (sin-osc (+ freq (* 8 freq freq-env)))
+        env  (env-gen:kr (perc attack decay) :action FREE)
+        src (* env wave)
+        dist (clip2 (* 2 (tanh (* 3 (distort (* 1.5 src))))) 0.8)
+        eq (b-peak-eq dist 37.67 1 10.4)]
+    (* amp eq)))
+
 (definst dry-kick
   [freq   {:default 60 :min 40 :max 140 :step 1}
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.01}
@@ -68,6 +83,21 @@
         snd (mix (sin-osc [freq (* 2 freq) (- freq 15)] (* Math/PI 0.5)))
         snd (* amp env snd)]
     snd))
+
+(definst quick-kick
+  [freq {:default 20.0 :min 20 :max 400 :step 1}
+   attack {:default 0.0001 :min 0.00001 :max 2 :step 0.0001}
+   decay  {:default 0.374 :min 0.00001 :max 2 :step 0.0001}
+   fattack {:default 0.001 :min 0.00001 :max 2 :step 0.0001}
+   fdecay {:default 0.282 :min 0.00001 :max 2 :step 0.0001}
+   amp {:default 0.8 :min 0.01 :max 1 :step 0.01}]
+  (let [freq-env (env-gen:kr (perc fattack fdecay))
+        wave (sin-osc (+ (* 0.5 freq) (* 14 freq freq-env)))
+        env  (x-line:kr 1 0 decay)
+        src (* env wave)
+        dist (clip2 (* 2 (tanh (* 3 (distort (* 1.5 src))))) 0.8)
+        eq (b-peak-eq dist 57.41 1 44)]
+    (* amp eq)))
 
 ;; Hi-hats
 
@@ -159,27 +189,27 @@
   )
 
 ; SynthDef("hat",
-; 	{arg out = 0, freq = 6000, sustain = 0.1, amp = 0.8;
-; 	var root_cymbal, root_cymbal_square, root_cymbal_pmosc;
-; 	var initial_bpf_contour, initial_bpf, initial_env;
-; 	var body_hpf, body_env;
-; 	var cymbal_mix;
+;       {arg out = 0, freq = 6000, sustain = 0.1, amp = 0.8;
+;       var root_cymbal, root_cymbal_square, root_cymbal_pmosc;
+;       var initial_bpf_contour, initial_bpf, initial_env;
+;       var body_hpf, body_env;
+;       var cymbal_mix;
 ;
-; 	root_cymbal_square = Pulse.ar(freq, 0.5, mul: 1);
-; 	root_cymbal_pmosc = PMOsc.ar(root_cymbal_square,
-; 					[freq*1.34, freq*2.405, freq*3.09, freq*1.309],
-; 					[310/1.3, 26/0.5, 11/3.4, 0.72772],
-; 					mul: 1,
-; 					add: 0);
-; 	root_cymbal = Mix.new(root_cymbal_pmosc);
-; 	initial_bpf_contour = Line.kr(15000, 9000, 0.1);
-; 	initial_env = EnvGen.ar(Env.perc(0.005, 0.1), 1.0);
-; 	initial_bpf = BPF.ar(root_cymbal, initial_bpf_contour, mul:initial_env);
-; 	body_env = EnvGen.ar(Env.perc(0.005, sustain, 1, -2), 1.0, doneAction: 2);
-; 	body_hpf = HPF.ar(in: root_cymbal, freq: Line.kr(9000, 12000, sustain),mul: body_env, add: 0);
-; 	cymbal_mix = Mix.new([initial_bpf, body_hpf]) * amp;
-; 	Out.ar(out, [cymbal_mix, cymbal_mix])
-; 	}).store
+;       root_cymbal_square = Pulse.ar(freq, 0.5, mul: 1);
+;       root_cymbal_pmosc = PMOsc.ar(root_cymbal_square,
+;                                       [freq*1.34, freq*2.405, freq*3.09, freq*1.309],
+;                                       [310/1.3, 26/0.5, 11/3.4, 0.72772],
+;                                       mul: 1,
+;                                       add: 0);
+;       root_cymbal = Mix.new(root_cymbal_pmosc);
+;       initial_bpf_contour = Line.kr(15000, 9000, 0.1);
+;       initial_env = EnvGen.ar(Env.perc(0.005, 0.1), 1.0);
+;       initial_bpf = BPF.ar(root_cymbal, initial_bpf_contour, mul:initial_env);
+;       body_env = EnvGen.ar(Env.perc(0.005, sustain, 1, -2), 1.0, doneAction: 2);
+;       body_hpf = HPF.ar(in: root_cymbal, freq: Line.kr(9000, 12000, sustain),mul: body_env, add: 0);
+;       cymbal_mix = Mix.new([initial_bpf, body_hpf]) * amp;
+;       Out.ar(out, [cymbal_mix, cymbal_mix])
+;       }).store
 ; Synth("hat")
 
 ;; Snares
@@ -298,6 +328,22 @@
         claps      (apply + (* noise (map env-gen noise-envs)))]
     (* claps clap-env)))
 
+(definst haziti-clap
+  [freq   {:default 44.77 :min 20 :max 400 :step 1}
+   attack {:default 0.036 :min 0.00001 :max 2 :step 0.0001}
+   decay  {:default 1.884 :min 0.00001 :max 2 :step 0.0001}
+   rq     {:default 0.08 :min 0.01 :max 1 :step 0.01}
+   amp    {:default 0.8 :min 0.01 :max 1 :step 0.01}]
+  (let [noiz (white-noise)
+        bfreq (* 400 (abs (lf-noise0 80)))
+        filt (* 4 (bpf (rhpf noiz 4064.78 rq) bfreq (* 1 rq)))
+        env  (x-line 1 0.001 decay :action FREE)
+        wave (lf-tri (* (abs (lf-noise0:kr 699)) 4400))
+        wenv (env-gen (perc 0.00001 0.008))
+        skip (* wave wenv)]
+    (* amp (+ (* env filt) skip))))
+
+
 (definst bing
   [freq {:default 440 :min 110 :max 880 :step 1}
    amp {:default 0.3 :min 0.001 :max 1 :step 0.01}
@@ -306,4 +352,3 @@
   (let [env (env-gen (perc attack decay) :action FREE)
         snd (sin-osc freq)]
     (* amp env snd)))
-
