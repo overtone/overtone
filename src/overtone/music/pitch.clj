@@ -662,15 +662,12 @@
 
 
 (defn chord-degree
-  "Returns the notes constructed by picking thirds in the given mode of a given scale
-   Useful if you want to try out playing standard chord progressions. For example:
+  "Returns the notes constructed by picking thirds in a given scale
+  from in a given root. Useful if you want to try out playing standard
+  chord progressions. For example:
 
-  (definst basic-sin [freq 440] (let [env (env-gen (perc 0.1) :action FREE)] (* env (sin-osc freq))))
-  (defn play-chord [ts notes] (doseq [n notes] (at ts (basic-sin (midi->hz n)))))
-
-  (let [progression [:iv :v :i]
-        scale :c4 scale-mode :dorian]
-    (doall (map-indexed #(play-chord (+ (* 1000.0 %1) (now)) (chord-degree %2 scale scale-mode)) progression)))
+  (chord-degree :i :c4 :ionian) ;=> (60 64 67 71)
+  (chord-degree :ii :c4 :melodic-minor-asc) ;=> (62 65 69 72)
   "
   ([degree root mode]
     (chord-degree degree root mode 4))
