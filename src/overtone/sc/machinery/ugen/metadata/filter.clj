@@ -131,9 +131,20 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"
 
    {:name "LeakDC",
     :args [{:name "in", :default 0.0 :doc "input signal"}
-           {:name "coef", :default 0.995 :doc "leak coefficient. Good starting point values are to 0.995 for audiorate and  0.9 for controlrate"}]
+           {:name "coef", :default 0.995
+            :doc "leak coefficient. A value of 1 indicates no leakage
+                 and 0 indicates high leakage - essentially the rate at
+                 which the offset will return back to 0"}]
     :check (nth-input-stream? 0)
-    :doc "removes a DC offset from signal"
+    :doc "removes a DC offset from signal. For example, a square wave
+          contains prolonged sections of the cycle which are at +1 and
+          -1 (the top and bottom of the square sections). If you were to
+          pass this wave through leak-dc, then these top parts would
+          taper back towards 0 with a greater slope as you move coef
+          from 1 to 0..
+
+          Good starting point coef values are to 0.995 for audio rate and 0.9
+          for control rate"
     :auto-rate true}
 
    {:name "RLPF"
