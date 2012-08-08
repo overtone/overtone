@@ -146,6 +146,14 @@
         filt (resonz (rlpf src (* 4.4 freq) 0.09) (* 2.0 freq) 2.9)]
     (* env amp (fold:ar (distort (* 1.3 (+ filt sub))) 0.08))))
 
+(definst daf-bass [freq 440 gate 1 amp 1 out-bus 0]
+  (let [harm [1 1.01 2 2.02 3.5 4.01 5.501]
+        harm (concat harm (map #(* 2 %) harm))
+        snd  (* 2 (distort (sum (sin-osc (* freq harm)))))
+        snd  (+ snd (repeat 2 (sum (sin-osc (/ freq [1 2])))))
+        env  (env-gen (adsr 0.001 0.2 0.9 0.25) gate amp :action FREE)]
+    (* snd env)))
+
 (definst grunge-bass
   [note 48 amp 0.5 dur 0.1 a 0.01 d 0.01 s 0.4 r 0.01]
   (let [freq (midicps note)
