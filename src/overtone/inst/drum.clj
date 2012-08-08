@@ -93,7 +93,7 @@
    amp {:default 0.8 :min 0.01 :max 1 :step 0.01}]
   (let [freq-env (env-gen:kr (perc fattack fdecay))
         wave (sin-osc (+ (* 0.5 freq) (* 14 freq freq-env)))
-        env  (x-line:kr 1 0 decay)
+        env  (x-line:kr 1 0 decay :action FREE)
         src (* env wave)
         dist (clip2 (* 2 (tanh (* 3 (distort (* 1.5 src))))) 0.8)
         eq (b-peak-eq dist 57.41 1 44)]
