@@ -170,11 +170,14 @@
 
 (defn- internal-booter
   "Fn to actually boot internal server. Typically called within a thread."
-  []
+  [opts]
   (log/info "booting internal audio server")
   (on-deps :internal-server-booted ::connect-internal connect-internal)
-  (let [server (scsynth osc-msg-decoder)]
-    (dosync (ref-set sc-world* server))
+  (let [server    (scsynth osc-msg-decoder opts)
+        full-opts (merge-sc-args opts)]
+    (dosync (ref-set sc-world* server)
+            (alter connection-info* assoc :opts full-opts))
+
     (scsynth-listen-udp server 57110)
     (log/info "The internal scsynth server has booted...")
     (satisfy-deps :internal-server-booted)
@@ -182,8 +185,8 @@
 
 (defn- boot-internal-server
   "Boots internal server by executing it on a daemon thread."
-  []
-  (let [sc-thread (Thread. internal-booter)]
+  [opts]
+  (let [sc-thread (Thread. #(internal-booter opts))]
     (.setDaemon sc-thread true)
     (println "--> Booting internal SuperCollider server...")
     (log/debug "Booting SuperCollider internal server (scsynth)...")
@@ -271,8 +274,8 @@
 (defn- sc-command
   "Creates a string array representing the sc command to execute in an
   external process (typically with #'external-booter)"
-  [port opts]
-  (into-array String (cons (or (config-get :sc-path) (find-sc-path)) (scsynth-arglist (merge-sc-args opts {:port port})))))
+  [opts]
+  (into-array String (cons (or (config-get :sc-path) (find-sc-path)) (scsynth-arglist opts))))
 
 (defn- boot-external-server
   "Boot the audio server in an external process and tell it to listen on
@@ -280,7 +283,9 @@
   ([port opts]
      (when-not (= :connected @connection-status*)
        (log/debug "booting external server")
-       (let [cmd       (sc-command port opts)
+       (let [full-opts (merge-sc-args opts {:port port})
+             cmd       (sc-command full-opts)
+
              sc-thread (if (windows-os?)
                          (Thread. #(external-booter cmd (windows-sc-path)))
                          (Thread. #(external-booter cmd)))]
@@ -288,7 +293,8 @@
          (println "--> Booting external SuperCollider server...")
          (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
          (.start sc-thread)
-         (dosync (ref-set server-thread* sc-thread))
+         (dosync (ref-set server-thread* sc-thread)
+                 (alter connection-info* assoc :opts full-opts))
          (connect "127.0.0.1" port)
          :booting))))
 
@@ -326,7 +332,7 @@
 
        (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
          (case connection-type
-           :internal (boot-internal-server)
+           :internal (boot-internal-server opts)
            :external (boot-external-server port opts))
          (wait-until-deps-satisfied :server-ready)))
      (print-ascii-art-overtone-logo
