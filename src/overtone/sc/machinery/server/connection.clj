@@ -15,9 +15,11 @@
 
 (defonce server-thread*       (ref nil))
 (defonce sc-world*            (ref nil))
-(defonce external-server-log* (ref []))
 (defonce connection-info*     (ref {}))
 (defonce connection-status*   (ref :disconnected))
+
+(defonce external-server-log* (atom []))
+
 
 (defn transient-server?
   "Return true if the server was booted by us, whether internally or
@@ -196,7 +198,7 @@
     (let [n (min (count read-buf) (.available stream))
           _ (.read stream read-buf 0 n)
           msg (String. read-buf 0 n)]
-      (dosync (alter external-server-log* conj msg))
+      (swap! external-server-log* conj msg)
       (log/info (String. read-buf 0 n)))))
 
 (defn- external-booter
