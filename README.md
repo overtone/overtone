@@ -33,6 +33,7 @@ collaborating with music.  It provides:
 * Pre-cache - a system for locally caching external assets such as .wav
   files
 * An API for querying and fetching sounds from http://freesound.org
+* A global concurrent event stream
 
 ## Quick Start
 
@@ -95,6 +96,11 @@ synthesized instruments in Overtone checkout Philip Potter's 20 minute
 workshop:
 
   http://skillsmatter.com/podcast/scala/clojurex-unpanel-2894
+  
+Chris Ford also delivers a beautifully paced introduction to fundamental music 
+concepts from basic sine waves to Bach's Goldberg Variations with live examples throughout:
+
+  http://skillsmatter.com/podcast/home/functional-composition
 
 There are also the following tutorials:
 
@@ -117,6 +123,13 @@ philosophy of Overtone:
 * http://codebassradio.net/2011/11/29/runtime-expectations-episode-13-hot-clojure-conj/
   (scroll down to the section with Sam Aaron, Ghadi Shayban, and Daniel Spiewak)
 * http://clojure.com/blog/2012/01/04/take5-sam-aaron.html
+
+### Performances
+
+Sam Aaron performs with Overtone Live @ Arnolfini:
+
+  https://vimeo.com/46867490
+ 
 
 
 ## Cheat Sheet
