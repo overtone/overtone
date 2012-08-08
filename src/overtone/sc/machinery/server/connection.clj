@@ -55,7 +55,7 @@
   (server-snd "/notify" 1))
 
 (defn- logged-sh
-  "Run a shell command an log any errors. Returns stdout."
+  "Run a shell command and log any errors. Returns stdout."
   [cmd & args]
   (let [res (apply sh cmd args)]
     (when-not (zero? (:exit res))
