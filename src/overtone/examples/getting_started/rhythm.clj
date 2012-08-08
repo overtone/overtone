@@ -1,6 +1,6 @@
 (ns overtone.examples.getting-started.rhythm
   (:use [overtone.live]
-        [overtone.inst.drum :only [quick-kick haziti-clap soft-hat]]))
+        [overtone.inst.drum :only [quick-kick haziti-clap soft-hat open-hat]]))
 
 (def m (metronome 128))
 
@@ -10,7 +10,7 @@
     (at (m beat)
         (quick-kick :amp 0.5)
         (if (zero? (mod beat 2))
-          (hat :amp 0.1)))
+          (open-hat :amp 0.1)))
     (at (m (+ 0.5 beat))
         (haziti-clap :decay 0.05 :amp 0.3))
 
