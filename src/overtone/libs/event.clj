@@ -12,6 +12,7 @@
 (defonce ^:private monitoring?* (atom false))
 (defonce ^:private monitor* (atom {}))
 (defonce ^:private lossy-workers* (atom {}))
+(defonce ^:private log-events? (atom false))
 
 (defn- log-event
   "Log event on separate thread to ensure logging doesn't interfere with
@@ -81,7 +82,7 @@
   Handlers can return :overtone/remove-handler to be removed from the
   handler list after execution."
   [event-type handler key]
-  (log-event "Registering async event handler:: " event-type key)
+  (log-event "Registering async event handler:: " event-type " with key: " key)
   (handlers/add-handler! handler-pool event-type key handler ))
 
 (defn on-sync-event
@@ -105,7 +106,7 @@
   Handlers can return :overtone/remove-handler to be removed from the
   handler list after execution."
   [event-type handler key]
-  (log-event "Registering sync event handler:: " event-type key)
+  (log-event "Registering sync event handler:: " event-type " with key: " key)
   (handlers/add-sync-handler! handler-pool event-type key handler))
 
 (defn on-latest-event
@@ -121,7 +122,7 @@
   potentially long-running handler fns where handling the most recent
   event is all that matters."
   [event-type handler key]
-  (log-event "Registering lossy event handler:: " event-type key)
+  (log-event "Registering lossy event handler:: " event-type " with key:" key)
   (let [worker (lossy-worker (fn [val]
                                (handler val)))
         [old _] (swap-returning-prev! lossy-workers* assoc key worker)]
@@ -135,13 +136,13 @@
 (defn oneshot-event
   ""
   [event-type handler key]
-  (log-event "Registering async self-removing event handler:: " event-type key)
+  (log-event "Registering async self-removing event handler:: " event-type " with key: " key)
   (handlers/add-one-shot-handler! handler-pool event-type key handler))
 
 (defn oneshot-sync-event
   ""
   [event-type handler key]
-  (log-event "Registering sync self-removing event handler:: " event-type key)
+  (log-event "Registering sync self-removing event handler:: " event-type " with key: " key)
   (handlers/add-one-shot-sync-handler! handler-pool event-type key handler))
 
 (defn remove-handler
@@ -160,6 +161,7 @@
   (let [[old new] (swap-returning-prev! lossy-workers* dissoc key)]
     (when-let [old-worker (get old key)]
       (.put (:queue old-worker) :die)))
+  (log-event "Removing event handler associated with key: " key)
   (handlers/remove-handler! handler-pool key))
 
 (defn remove-all-handlers
@@ -168,6 +170,7 @@
   (let [[old new] (swap-returning-prev! lossy-workers* (fn [_] {}))]
     (doseq [old-worker (vals old)]
       (.put (:queue old-worker) :die)))
+  (log-event "Removing all event handlers!")
   (handlers/remove-all-handlers! handler-pool))
 
 (defn event
@@ -180,7 +183,8 @@
   (event ::my-event)
   (event ::filter-sweep-done :instrument :phat-bass)"
   [event-type & args]
-  (log-event "event: " event-type " " args)
+  (when @log-events?
+    (log-event "event: " event-type " " args))
   (when @event-debug*
     (println "event: " event-type " " args "\n"))
   (when @monitoring?*
@@ -198,7 +202,8 @@
   new threads which generate events, these will revert back to the
   default behaviour of event (i.e. not forced sync). See event."
   [event-type & args]
-  (log-event "sync-event: " event-type " " args)
+  (when @log-events?
+    (log-event "sync-event: " event-type " " args))
   (when @event-debug*
     (println "sync-event: " event-type " " args "\n"))
   (when @monitoring?*
