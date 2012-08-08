@@ -329,7 +329,9 @@
            :internal (boot-internal-server)
            :external (boot-external-server port opts))
          (wait-until-deps-satisfied :server-ready)))
-     (print-ascii-art-overtone-logo (overtone.config.store/config-get :user-name) OVERTONE-VERSION-STR)))
+     (print-ascii-art-overtone-logo
+      (overtone.config.store/config-get :user-name)
+      OVERTONE-VERSION-STR)))
 
 (defn shutdown-server
   "Quit the SuperCollider synth process."
