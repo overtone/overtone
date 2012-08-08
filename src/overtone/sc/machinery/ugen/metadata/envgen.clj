@@ -55,7 +55,8 @@
   Note:
 
 The actual minimum duration of a segment is not zero, but one sample step for audio rate and one block for control rate. This may result in asynchronicity when in two envelopes of different number of levels, the envelope times add up to the same total duration. Similarly, when modulating times, the new time is only updated at the end of the current segment - this may lead to asynchronicity of two envelopes with modulated times.
-"}
+"
+       :default-rate :kr}
                ;(let [envec (TODO turn env object into vector)]
 
       {:name "Linen",
