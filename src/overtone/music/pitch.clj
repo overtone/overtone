@@ -69,6 +69,15 @@
   (let [pivot (or pivot (first notes))]
     (for [n notes] (- pivot (- n pivot)))))
 
+(defn find-name
+  "Returnd the name of the first matching thing found in things
+  or nil if not found"
+  ([thing things]
+     (if (= (val (first things)) thing)
+       (key (first things))
+       (if (< 1 (count things))
+         (find-name thing (rest things))))))
+
 (defn octave-note
   "Convert an octave and interval to a midi note."
   [octave interval]
@@ -340,6 +349,36 @@
          :octave-shift octave-shift
          :semitone-shift semitone-shift}))))
 
+(defn make-degree
+  "returns a roman numeral in the range :i -> :vii with trailing + or - character(s) when given
+  an integer representing the degree and an octave shift
+
+  i.e.  (make-degree 3)   -> :iii
+        (make-degree 9)   -> :ii+
+        (make-degree 4 2) -> :iv++"
+
+  ([degree-int] (make-degree degree-int 0))
+  ([degree-int octave-shift]
+     (let [deg-int   (- degree-int 1)
+           oct-shift (+ octave-shift (quot deg-int 7))
+           oct-sh    (if (< deg-int 0) (- oct-shift 1) oct-shift)
+           deg-str   (name (find-name (+ 1 (mod deg-int 7)) DEGREE))
+           shift-str (cond
+                      (= oct-sh 0) ""
+                      (> oct-sh 0) (apply str (repeat oct-sh \+))
+                      (< oct-sh 0) (apply str (repeat (* -1 oct-sh) \-))) ]
+       (keyword (str deg-str shift-str)))))
+
+(defn move-degrees
+  "Shifts each degree in degrees by offset.
+
+  i.e.(move-degrees [:i :iii :vi] 2) -> (:iii :v :vi)"
+
+  [rf offset]
+  (map (fn [nt]
+         (make-degree (+ offset ((resolve-degree nt) :degree)) ((resolve-degree nt) :octave-shift)))
+       rf))
+
 (defn degree->interval
   "Converts the degree of a scale given as a roman numeral keyword and
   converts it to the number of semitones from the tonic of
@@ -583,6 +622,10 @@
   [scale]
   (reverse-get SCALE scale))
 
+(defn find-degree-name
+  [degree]
+  (find-name degree DEGREE ))
+
 (defn find-pitch-class-name
   "Given a midi number representing a note, returns the name of the note
   independent of octave.
@@ -659,39 +702,3 @@
          {:root root :chord-type chord}
          (recur (inc note))))
       nil)))
-
-;; * shufflers (randomize a sequence, or notes within a scale, etc.)
-;; *
-;;* Sequence generators
-;; - probabilistic arpeggiator
-;; - take a rhythym seq, note seq, and groove seq
-;; - latin sounds
-;; - house sounds
-;; - minimal techno sounds
-;; - drum and bass sounds
-;;
-;;* create a library of sequence modifiers and harmonizers
-
-;;; ideas:
-
-;;; represent all notes with midi numbers
-;;; represent sequences of notes (i.e. scales) with vectors/lists
-;;; represent sequences of durations with vectors/lists
-;;; [1 3 5 7]
-;;; represent chords with sets
-;;; #{1 3 5}
-;;
-;;[1 3 5 #{1 4 5} 7]
-;;[1 1 2     6    3]
-
-
-;; chromatic notes -> 0-11
-;; degrees -> i -> vii
-
-;; chord - concrete: (60 64 67)
-;; chord - concrete - chromatic notes: (4 7 12)
-
-
-;; chord - abstract - chromatic notes: (0 4 7)
-;; chord - abstract - chromatic notes: (0 4 7)
-;; chord - abstract - degrees: (i iii v)

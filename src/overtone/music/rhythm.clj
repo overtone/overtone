@@ -17,7 +17,17 @@
         "Returns the next beat number or the timestamp (in milliseconds) of the
      given beat.")
       (metro-bpm [metro] [metro new-bpm]
-        "Get the current bpm or change the bpm to 'new-bpm'."))))
+        "Get the current bpm or change the bpm to 'new-bpm'.")
+
+      (metro-bar-start [metro] [metro start-bar])
+      (metro-tock [metro]
+        "Returns the duration of one bar in milliseconds.")
+      (metro-bar [metro] [metro new-bar]
+    "Returns the next bar number or the timestamp (in milliseconds) of the
+     given bar")
+      (metro-bpb [metro] [metro new-bpb]
+    "Get the current beats per bar or change it to new-bpb")
+      )))
 
 ; Rhythm
 
@@ -37,31 +47,52 @@
 ;  ([] (bar 1))
 ;  ([b] (* (bar 1) (first @*signature) b)))
 
-(deftype Metronome [start bpm]
 
+(deftype Metronome ([start bar-start bpm bpb]
   IMetronome
   (metro-start [metro] @start)
   (metro-start [metro start-beat]
     (let [new-start (- (now) (* start-beat (metro-tick metro)))]
       (reset! start new-start)
       new-start))
+  (metro-bar-start [metro] @bar-start)
+  (metro-bar-start [metro start-bar]
+    (let [new-bar-start (- (now) (* start-bar (tock metro)))]
+      (reset! bar-start new-bar-start)
+      new-bar-start))
+  (metro-tock  [metro] (beat-ms @bpb @bpm))
+  (metro-bar   [metro] (inc (long (/ (- (now) @bar-start) (metro-tock metro)))))
+  (metro-bar   [metro b] (+ (* b (tock metro)) @bar-start))
   (metro-tick  [metro] (beat-ms 1 @bpm))
   (metro-beat  [metro] (inc (long (/ (- (now) @start) (metro-tick metro)))))
   (metro-beat  [metro b] (+ (* b (metro-tick metro)) @start))
   (metro-bpm   [metro] @bpm)
   (metro-bpm   [metro new-bpm]
-    (let [cur-beat (metro-beat metro)
-          new-tick (beat-ms 1 new-bpm)
-          new-start (- (metro-beat metro cur-beat) (* new-tick cur-beat))]
+     (let [cur-beat (metro-beat metro)
+           cur-bar (metro-bar metro)
+           new-tick (beat-ms 1 new-bpm)
+           new-tock (* @bpb new-tick)
+          new-start (- (metro-beat metro cur-beat) (* new-tick cur-beat))
+          new-bar-start (- (metro-bar metro cur-bar) (* new-tock cur-bar))]
       (reset! start new-start)
       (reset! bpm new-bpm))
     [:bpm new-bpm])
+  (metro-bpb   [metro] @bpb)
+  (metro-bpb   [metro new-bpb]
+    (let [cur-bar (bar this)
+          new-tock (beat-ms new-bpb @bpm)
+          new-bar-start (- (bar this cur-bar) (* new-tock cur-bar))]
+      (reset! bar-start new-bar-start)
+      (reset! bpb new-bpb))
+    [:bpb new-bpb])
 
   clojure.lang.ILookup
   (valAt [this key] (.valAt this key nil))
   (valAt [this key not-found]
     (cond (= key :start) @start
+          (= key :bar-start) @start
           (= key :bpm) @bpm
+          (= key :bpb) @bpb
           :else not-found))
 
   clojure.lang.IFn
@@ -70,6 +101,7 @@
     (cond
      (number? arg) (metro-beat this arg)
      (= :bpm arg) (.bpm this) ;; (bpm this) fails.
+     (= :bpb arg) (.bpb this)
      :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
   (invoke [this _ new-bpm] (.bpm this new-bpm)))
 
@@ -79,6 +111,8 @@
   with no arguments to get the next beat number, or pass it a beat number
   to get the timestamp to play a note at that beat.
 
+  A metronome can also work with bars.
+
   (def m (metronome 128))
   (m)          ; => <next beat number>
   (m 200)      ; => <timestamp of beat 200>
@@ -86,8 +120,10 @@
   (m :bpm 140) ; => set bpm to 140"
   [bpm]
   (let [start (atom (now))
-        bpm   (atom bpm)]
-    (Metronome. start bpm)))
+        bar-start (atom @start)
+        bpm   (atom bpm)
+        bpb   (atom 4)]
+    (Metronome. start bar-start bpm bpb)))
 
 ;== Grooves
 ;
@@ -98,3 +134,21 @@
 ; * jazz groove, latin groove
 ; * techno grooves (hard on beat one)
 ; * make something more driving, or more layed back...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
