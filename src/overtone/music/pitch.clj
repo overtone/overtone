@@ -660,6 +660,22 @@
          (recur (inc note))))
       nil)))
 
+
+(defn chord-degree
+  "Returns the notes constructed by picking thirds in a given scale
+  from in a given root. Useful if you want to try out playing standard
+  chord progressions. For example:
+
+  (chord-degree :i :c4 :ionian) ;=> (60 64 67 71)
+  (chord-degree :ii :c4 :melodic-minor-asc) ;=> (62 65 69 72)
+  "
+  ([degree root mode]
+    (chord-degree degree root mode 4))
+  ([degree root mode num-notes]
+    (let [d-int (degree->int degree)
+          num-degrees (- (+ d-int (* num-notes 2)) 1)]
+          (take-nth 2 (drop (degree->int degree) (scale root mode (range num-degrees)))))))
+
 ;; * shufflers (randomize a sequence, or notes within a scale, etc.)
 ;; *
 ;;* Sequence generators
