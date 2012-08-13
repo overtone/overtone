@@ -119,7 +119,7 @@
    })
 
 (def FOLDABLE-BINARY-OPS
-  #{"+" "-" "*" "/" "<" ">" "<=" ">=" "min" "max"})
+  #{"+" "-" "*" "/" "<" ">" "<=" ">=" "min" "max" "and" "or"})
 
 ;;the following are Clojure fns that can only take numerical args
 (def NUMERICAL-CLOJURE-FNS
