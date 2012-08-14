@@ -324,7 +324,7 @@
   [gen]
   (if (and (associative? gen)
            (or (= :overtone.sc.machinery.ugen.fn-gen/ugen (:type gen))
-               (= :overtone.sc.machinery.defcgen/cgen (:type gen))))
+               (= :overtone.sc.defcgen/cgen (:type gen))))
     (keyword (:name gen))
         gen))
 
