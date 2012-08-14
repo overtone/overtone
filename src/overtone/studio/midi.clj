@@ -25,11 +25,12 @@
   (concat (midi-mk-full-device-event-key dev command) [control-id]))
 
 (defn midi-event
-  "Trigger a global midi event."
+  "Place incoming midi-event onto the global event stream."
   [dev msg & [ts]]
   (let [command (:command msg)]
     (event [:midi command] msg)
-    (event (midi-mk-full-control-event-key dev command (:data1 msg)) msg)))
+    (event (midi-mk-full-control-event-key dev command (:data1 msg)) msg)
+    (event (midi-mk-full-device-event-key dev command) msg)))
 
 (defn- detect-midi-devices
   "Designed to run periodically and update the midi-devices* atom with
