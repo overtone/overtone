@@ -94,8 +94,13 @@
 (def WPHASE      5)
 (def MKL         6)
 
-(def INFINITE    Float/POSITIVE_INFINITY)
-(def INF         Float/POSITIVE_INFINITY)
+(def INFINITE
+  "Positive infinity - abbreviation for Float/POSITIVE_INFINITY"
+  Float/POSITIVE_INFINITY)
+
+(def INF
+  "Positive infinity - abbreviation for Float/POSITIVE_INFINITY"
+  Float/POSITIVE_INFINITY)
 
 
 (defmacro with-overloaded-ugens
