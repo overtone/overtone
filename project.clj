@@ -47,7 +47,7 @@
                  [org.clojure/data.json "0.1.2"]
                  [clj-native "0.9.2-SNAPSHOT"]
                  [overtone/at-at "1.0.0"]
-                 [overtone/osc-clj "0.8.0"]
+                 [overtone/osc-clj "0.8.1"]
                  [overtone/byte-spec "0.3.1"]
                  [overtone/midi-clj "0.4.0"]
                  [overtone/libs.handlers "0.2.0"]
