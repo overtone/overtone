@@ -5,6 +5,37 @@
         [overtone.music pitch]
         [overtone.studio mixer inst]))
 
+;;modified version of: https://github.com/supercollider-quarks/SynthDefPool/blob/master/pool/cs80lead_mh.scd
+(definst cs80lead
+  [freq 880
+   amp 0.5
+   att 0.75
+   decay 0.5
+   sus 0.8
+   rel 1.0
+   fatt 0.75
+   fdecay 0.5
+   fsus 0.8
+   frel 1.0
+   cutoff 200
+   dtune 0.002
+   vibrate 4
+   vibdepth 0.015
+   gate 1
+   ratio 1
+   cbus 1
+   freq-lag 0.1]
+  (let [freq (lag freq freq-lag)
+        cuttoff (in:kr cbus)
+        env     (env-gen (adsr att decay sus rel) gate :action FREE)
+        fenv    (env-gen (adsr fatt fdecay fsus frel 2) gate :action FREE)
+
+        vib     (+ 1 (lin-lin:kr (sin-osc:kr vibrate) -1 1 (- vibdepth) vibdepth))
+
+        freq    (* freq vib)
+        sig     (mix (* env amp (saw [freq (* freq (+ dtune 1))])))]
+    sig))
+
 (definst supersaw [freq 440 amp 1]
   (let [input  (lf-saw freq)
         shift1 (lf-saw 4)
