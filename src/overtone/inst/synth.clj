@@ -1,9 +1,10 @@
 (ns overtone.inst.synth
   (:use [overtone.sc ugens envelope]
-        [overtone.sc.cgens mix]
+        [overtone.sc.cgens mix line]
         [overtone.sc.machinery.ugen.fn-gen]
         [overtone.music pitch]
-        [overtone.studio mixer inst]))
+        [overtone.studio mixer inst]
+        [overtone.algo.chance :only [ranged-rand]]))
 
 ;; translated from: https://github.com/supercollider-quarks/SynthDefPool/blob/master/pool/apad_mh.scd
 (definst simple-flute [freq 880
