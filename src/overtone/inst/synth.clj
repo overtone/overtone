@@ -15,12 +15,12 @@
                        release 1
                        gate 1
                        out 0]
-  (let [env  (env-gen (adsr attack decay sustain release) gate amp :action FREE)
+  (let [env  (env-gen (adsr attack decay sustain release) gate :action FREE)
         mod1 (lin-lin:kr (sin-osc:kr 6) -1 1 (* freq 0.99) (* freq 1.01))
         mod2 (lin-lin:kr (lf-noise2:kr 1) -1 1 0.2 1)
         mod3 (lin-lin:kr (sin-osc:kr (ranged-rand 4 6)) -1 1 0.5 1)
         sig (distort (* env (sin-osc [freq mod1])))
-        sig (* sig mod2 mod3)]
+        sig (* amp sig mod2 mod3)]
     sig))
 
 ;;modified version of: https://github.com/supercollider-quarks/SynthDefPool/blob/master/pool/cs80lead_mh.scd
