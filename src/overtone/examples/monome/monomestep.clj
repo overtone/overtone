@@ -3,7 +3,9 @@
         [clojure.core.match :only [match]]
         [polynome.core :as poly]))
 
-(definst dubstep [note 40 wob 2 hi-man 0 lo-man 0 sweep-man 0 deci-man 0 tan-man 0 shape 0 sweep-max-freq 3000 hi-man-max 1000 lo-man-max 500 beat-vol 0]
+(defonce dub-vol (atom 1))
+
+(definst dubstep [note 40 wob 2 hi-man 0 lo-man 0 sweep-man 0 deci-man 0 tan-man 0 shape 0 sweep-max-freq 3000 hi-man-max 1000 lo-man-max 500 beat-vol 0 amp 1]
   (let [bpm 300
         shape (select shape [(lf-tri wob) (lf-saw wob)])
         sweep (lin-exp shape -1 1 40 sweep-max-freq)
@@ -39,7 +41,7 @@
         snare (clip2 snare 1)
        beat (* beat-vol (+ kick snare))
         ]
-    (+ snd beat)))
+    (* amp (+ (pan2 snd shape) beat))))
 
 (def m (poly/init "/dev/tty.usbserial-m64-0790"))
 ;;(def m beatbox.core/m)
@@ -51,6 +53,10 @@
                   2 :deci-man
                   3 :tan-man
                   4 :beat-vol})
+
+(defn toggle-vol
+  []
+  (ctl dubstep :amp (swap! dub-vol #(mod (inc %) 2))))
 
 (defn toggle-fx
   [x y]
@@ -67,9 +73,10 @@
     (ctl dubstep  :wob wob)))
 
 (poly/on-press m ::foo (fn [x y s]
-                   (match [x y]
-                          [0 _] (toggle-fx x y)
-                          [_ _] (modulate-pitch-wob x y))))
+                         (match [x y]
+                           [0 7] (toggle-vol)
+                           [0 _] (toggle-fx x y)
+                           [_ _] (modulate-pitch-wob x y))))
 
 (dubstep)
 ;;(stop)
@@ -81,3 +88,4 @@
   (ctl dubstep :note 30)
   (stop)
   )
+;;(poly/disconnect m)
