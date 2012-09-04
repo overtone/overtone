@@ -375,6 +375,19 @@
    :node-map-controls      node-map-controls*
    :node-map-n-controls    node-map-n-controls*})
 
+(extend java.lang.Integer
+  ISynthNode
+  {:node-free  node-free*
+   :node-pause node-pause*
+   :node-start node-start*
+   :node-place node-place*}
+
+  IControllableNode
+  {:node-control           node-control*
+   :node-control-range     node-control-range*
+   :node-map-controls      node-map-controls*
+   :node-map-n-controls    node-map-n-controls*})
+
 (extend SynthNode
   ISynthNode
   {:node-free  node-free*
