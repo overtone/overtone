@@ -46,7 +46,7 @@
   (let [freq (lag freq freq-lag)
         cuttoff (in:kr cbus)
         env     (env-gen (adsr att decay sus rel) gate :action FREE)
-        fenv    (env-gen (adsr fatt fdecay fsus frel 2) gate :action FREE)
+        fenv    (env-gen (adsr fatt fdecay fsus frel 2) gate)
 
         vib     (+ 1 (lin-lin:kr (sin-osc:kr vibrate) -1 1 (- vibdepth) vibdepth))
 
