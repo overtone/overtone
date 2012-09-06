@@ -96,9 +96,9 @@
   (invoke [this arg]
     (cond
      (number? arg) (metro-beat this arg)
-     (= :bpm arg) (.bpm this) ;; (bpm this) fails.
+     (= :bpm arg) (metro-bpm this) ;; (bpm this) fails.
      :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
-  (invoke [this _ new-bpm] (.bpm this new-bpm)))
+  (invoke [this _ new-bpm] (metro-bpm this new-bpm)))
 
 (defn metronome
   "A metronome is a beat management function.  Tell it what BPM you want,
