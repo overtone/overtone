@@ -282,13 +282,13 @@
 (defn print-ascii-art-overtone-logo
   [user-name version-str]
   (println (str "
-          _____                 __
-         / __  /_  _____  _____/ /_____  ____  ___
-        / / / / | / / _ \\/ ___/ __/ __ \\/ __ \\/ _ \\
-       / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
-       \\____/ |___/\\___/_/   \\__/\\____/_/ /_/\\___/
+    _____                 __
+   / __  /_  _____  _____/ /_____  ____  ___
+  / / / / | / / _ \\/ ___/ __/ __ \\/ __ \\/ _ \\
+ / /_/ /| |/ /  __/ /  / /_/ /_/ / / / /  __/
+ \\____/ |___/\\___/_/   \\__/\\____/_/ /_/\\___/
 
-              Collaborative Programmable Music. "version-str "
+   Collaborative Programmable Music. "version-str "
 
 
 " (welcome-message user-name) "
