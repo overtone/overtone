@@ -52,6 +52,7 @@
                  [overtone/midi-clj "0.4.0"]
                  [overtone/libs.handlers "0.2.0"]
                  [overtone/scsynth "3.5.3-SNAPSHOT"]
+                 [overtone/scsynth-extras "3.5.2-SNAPSHOT"]
                  [clj-glob "1.0.0"]
                  [org.clojure/core.match "0.2.0-alpha9"]
                  [seesaw "1.4.1"]]
