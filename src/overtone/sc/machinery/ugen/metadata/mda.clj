@@ -23,5 +23,9 @@
            {:name "sustain", :default 0.1 :doc "If positive, act as if the piano's sustain pedal is pressed."}],
     :rates #{:ar}
     :num-outs 2
-    :doc "Piano ugen"}
-   ])
+    :summary "Synthesised piano"
+    :doc "A piano synthesiser (originally a VST plugin by Paul Kellett,
+          ported to SC by Dan Stowell). This UGen is not polyphonic (but
+          can be retriggered to play notes in sequence). Note: This UGen
+          is stereo - it returns two channels, with a stereo 'wideness'
+          effect controlled by the stereo argument."}])
