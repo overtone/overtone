@@ -98,8 +98,6 @@
             :default 0.0
             :doc "Notch filter output level 0.0 - 1.0"}]
     :rates #{:ar :kr}
-    :doc "Total, 100% Plastic..."
-   }
+    :doc "Total, 100% Plastic..."}
   
-
 ])
