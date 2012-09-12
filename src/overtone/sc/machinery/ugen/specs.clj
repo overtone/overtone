@@ -10,7 +10,7 @@
 (def UGEN-NAMESPACES
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
-    ff-osc fft info noise pan trig line input filter random mda stk])
+    ff-osc fft info noise pan trig line input filter random extras.mda extras.stk])
 
 (defn- specs-from-namespaces
   "Gathers all ugen spec metadata (stored in the vars spec and specs-collide)
