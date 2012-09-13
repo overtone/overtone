@@ -41,9 +41,9 @@
            {:name "mode"
             :default 0.0
             :doc "Filter mode:
-                < 1 - low pass filter.
-                < 2 - high pass filter.
-                < 3 - bandpass filter.
+                < 1 - low pass filter;
+                < 2 - high pass filter;
+                < 3 - bandpass filter;
                 Defaults to lowpass"}]
    :rates #{:ar}
    :doc "BlackRain's yet 'nother moog impersonation.  Oh yes.  See also: SOS RLPF RHPF BLowPass BLowPass4 BHiPass BHiPass4 BLowShelf BHiShelf BBandPass BBandStop BAllPass IIRFilter"}
