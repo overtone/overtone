@@ -12,7 +12,13 @@
     io machine-listening misc osc beq-suite chaos control demand
     ff-osc fft info noise pan trig line input filter random
 
-    extras.mda extras.stk extras.glitch extras.bhob extras.blackrain])
+    extras.mda
+    extras.stk
+    extras.glitch
+    extras.bhob
+    extras.blackrain
+    extras.distortion
+    ])
 
 (defn- specs-from-namespaces
   "Gathers all ugen spec metadata (stored in the vars spec and specs-collide)

@@ -21,4 +21,9 @@
            {:name "res" :default 0 :doc "Resonance (0 -> 1)"}]
     :doc "Moog Filter."}
 
-   ])
+   {:name "GaussTrig"
+    :summary "Impulses around a certain frequency"
+    :args [{:name "freq" :default 440  :doc "mean frequency"}
+           {:name "dev" :default 0.3 :doc "random deviation from mean (0 <= dev < 1)"}]
+    :rates #{:ar :kr}
+    :doc "Impulses around a certain frequency"}])
