@@ -1,7 +1,7 @@
 (ns overtone.sc.example
   (:use [overtone.sc.machinery defexample]
         [overtone.helpers lib])
-  (:require [overtone.sc.examples demand osc trig compander audio-in]))
+  (:require [overtone.sc.examples demand osc trig compander audio-in blackrain]))
 
 (defn example
   "Fetch and call specific example for gen with key
