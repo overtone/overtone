@@ -20,4 +20,4 @@
 
 (do
   (player (now) 338 (take num-notes (cycle piece)))
-  (player (now) 328 (take num-notes (cycle piece))))
+  (player (now) 335 (take num-notes (cycle piece))))
