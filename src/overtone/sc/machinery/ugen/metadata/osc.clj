@@ -129,7 +129,7 @@ where x is to vary in the range -1 to 1 over the period dur. minval is the initi
       {:name "VarSaw",
        :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz"}
               {:name "iphase", :default 0.0 :doc "Initial phase offset in cycles ( 0..1 )"}
-              {:name "width", :default 0.5 :doc "Duty cycle from zero to one."}]
+              {:name "width", :default 0.5 :doc "Duty cycle from zero to one. (0 = downward sawtooth, 0.5 = triangle, 1 = upward sawtooth)"}]
        :rates #{:ar :kr}
        :doc "a variable duty cycle saw wave oscillator"}
 
