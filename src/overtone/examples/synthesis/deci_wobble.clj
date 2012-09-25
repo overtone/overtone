@@ -1,7 +1,7 @@
 (ns overtone.examples.synthesis.deci-wobble
   (:use overtone.live))
 
-;; Adapted from the Decimator Wobble Base described here:
+;; Adapted from the Decimator Wobble Bass described here:
 ;; http://www.phrontist.org/2010/06/decimator-wobble-bass/
 
 (defsynth deci-wobble []
