@@ -31,11 +31,32 @@
 
 
       {:name "Klank",
-       :args [{:name "specs", :mode :append-sequence :doc "An array of three arrays: frequencies, amplitudes and ring times: *all arrays should have the same length*  1) an Array of filter frequencies. 2)  an Array of filter amplitudes, or nil. If nil, then amplitudes default to 1.0 3) an Array of 60 dB decay times for the filters."}
-              {:name "input" :doc "the excitation input to the resonant filter bank."}
-              {:name "freqscale", :default 1.0 :doc "a scale factor multiplied by all frequencies at initialization time."}
-              {:name "freqoffset", :default 0.0 :doc "an offset added to all frequencies at initialization time."}
-              {:name "decayscale", :default 1.0 :doc "a scale factor multiplied by all ring times at initialization time."}],
+       :args [{:name "specs"
+               :mode :append-sequence
+               :doc "An array of three arrays: frequencies, amplitudes
+                     and ring times: *all arrays should have the same
+                     length* 1) an Array of filter frequencies. 2) an
+                     Array of filter amplitudes, or nil. If nil, then
+                     amplitudes default to 1.0 3) an Array of 60 dB
+                     decay times for the filters." }
+
+              {:name "input"
+               :doc "the excitation input to the resonant filter bank."}
+
+              {:name "freqscale",
+               :default 1.0
+               :doc "a scale factor multiplied by all frequencies at
+                     initialization time."}
+
+              {:name "freqoffset"
+               :default 0.0
+               :doc "an offset added to all frequencies at
+                     initialization time."}
+
+              {:name "decayscale"
+               :default 1.0
+               :doc "a scale factor multiplied by all ring times at
+                     initialization time."}]
        :rates #{:ar}
        :init (fn [rate args spec]
                (let [[[ freqs amps times]] args
@@ -44,11 +65,14 @@
                      fats                  (map vector freqs amps times)
                      new-args              (concat [fats] (rest args))]
                  new-args))
-       :check (nth-input-stream? 1)
-       :doc "Klank is a bank of fixed frequency resonators which can be used to simulate the resonant modes of an object. Each mode is given a ring time, which is the time for the mode to decay by 60 dB.
+       :check (nth-input-stream? 0)
+       :doc "Klank is a bank of fixed frequency resonators which can be
+             used to simulate the resonant modes of an object. Each mode
+             is given a ring time, which is the time for the mode to
+             decay by 60 dB.
 
-  The specs can't be changed after it has been started.
-  For a modulatable but less efficient version, see dyn-klank."}
+             The specs can't be changed after it has been started.  For
+             a modulatable but less efficient version, see dyn-klank." }
 
       {:name "Blip",
        :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz (control rate)"}
