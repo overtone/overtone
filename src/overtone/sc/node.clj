@@ -102,9 +102,9 @@
 (defn node
   "Instantiate a synth node on the audio server.  Takes the synth name
   and a map of argument name/value pairs.  Optionally use target
-  <node/group-id> and position <pos> to specify where the node should
-  be located.  The position can be one
-  of :head, :tail :before, :after, or :replace.
+  <node/group-id> and position <pos> to specify where the node should be
+  located.  The position can be one of :head, :tail :before, :after,
+  or :replace.
 
   (node \"foo\")
   (node \"foo\" {:pitch 60})
@@ -253,7 +253,7 @@
   "Place a node :before or :after another node."
   [node position target]
   (ensure-connected!)
-  (let [node-id (to-synth-id node)
+  (let [node-id   (to-synth-id node)
         target-id (to-synth-id target)]
     (cond
       (= :before position) (snd "/n_before" node-id target-id)
@@ -274,7 +274,7 @@
   {:freq 440.0 :attack 0.2}"
   [node names]
   (ensure-connected!)
-  (let [res (recv "/n_set")
+  (let [res   (recv "/n_set")
         cvals (do (apply snd "/s_get" (to-synth-id node) (stringify names))
                   (:args (deref! res)))]
     (apply hash-map (keywordify (drop 1 cvals)))))
@@ -293,7 +293,7 @@
   Returns a vector of values."
   [node name-index n]
   (ensure-connected!)
-  (let [res (recv "/n_setn")
+  (let [res   (recv "/n_setn")
         cvals (do (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
                   (:args (deref! res)))]
     (vec (drop 3 cvals))))
@@ -310,7 +310,7 @@
   "Connect a node's controls to a control bus."
   [node names-busses]
   (ensure-connected!)
-  (let [node-id (to-synth-id node)
+  (let [node-id      (to-synth-id node)
         names-busses (bussify (stringify names-busses))]
     (apply snd "/n_map" node-id names-busses)))
 
@@ -336,7 +336,7 @@
   [group node]
   (ensure-connected!)
   (let [group-id (to-synth-id group)
-        node-id (to-synth-id node)]
+        node-id  (to-synth-id node)]
     (snd "/g_head" group-id node-id)))
 
 (defn- group-append-node*
@@ -344,7 +344,7 @@
   [group node]
   (ensure-connected!)
   (let [group-id (to-synth-id group)
-        node-id (to-synth-id node)]
+        node-id  (to-synth-id node)]
     (snd "/g_tail" group-id node-id)))
 
 (defn- group-clear*
@@ -486,9 +486,9 @@
   [id ctls?]
   (let [sname (first *node-tree-data*)]
     (if ctls?
-      (let [n-ctls (second *node-tree-data*)
+      (let [n-ctls              (second *node-tree-data*)
             [ctl-data new-data] (split-at (* 2 n-ctls) (nnext *node-tree-data*))
-            ctls (apply hash-map ctl-data)]
+            ctls                (apply hash-map ctl-data)]
         (set! *node-tree-data* new-data)
         {:type :synth
          :name sname
@@ -504,21 +504,21 @@
   (let [[id n-children & new-data] *node-tree-data*]
     (set! *node-tree-data* new-data)
     (cond
-      (neg? n-children)
-      (parse-synth-tree id ctls?) ; synth
+     (neg? n-children)
+     (parse-synth-tree id ctls?)        ; synth
 
-      (= 0 n-children)
-      {:type :group
-       :id id
-       :name (get-in @active-synth-nodes* [id :group] "Unknown Group")
-       :children nil}
+     (= 0 n-children)
+     {:type :group
+      :id id
+      :name (get-in @active-synth-nodes* [id :group] "Unknown Group")
+      :children nil}
 
-      (pos? n-children)
-      {:type     :group
-       :id       id
-       :name     (get-in @active-synth-nodes* [id :group] "Unknown Group")
-       :children (doall (map (fn [i] (parse-node-tree-helper ctls?))
-                             (range n-children)))})))
+     (pos? n-children)
+     {:type     :group
+      :id       id
+      :name     (get-in @active-synth-nodes* [id :group] "Unknown Group")
+      :children (doall (map (fn [i] (parse-node-tree-helper ctls?))
+                            (range n-children)))})))
 
 (defn- parse-node-tree
   [data]
@@ -533,10 +533,10 @@
   ([id & [ctls?]]
      (ensure-connected!)
      (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)
-           id (to-synth-id id)]
+           id    (to-synth-id id)]
        (let [reply-p (recv "/g_queryTree.reply")
-             _ (snd "/g_queryTree" id ctls?)
-             tree (:args (deref! reply-p))]
+             _       (snd "/g_queryTree" id ctls?)
+             tree    (:args (deref! reply-p))]
          (with-meta (parse-node-tree tree)
            {:type ::node-tree})))))
 
