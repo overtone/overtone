@@ -4,26 +4,50 @@
 (def specs
   [
    {:name "Dbrown2"
-    :args [{:name "lo" :doc "minimum value"}
-           {:name "hi" :doc "maximum value"}
-           {:name "step" :doc "maximum step for each new value"}
-           {:name "dist" :doc "gendyn distribution (see gendy1)"}
-           {:name "length" :doc "number of values to create"}]
-    :rates #{:dr}
     :summary "demand rate brownian movement with Gendyn distributions"
+    :args [{:name "lo"
+            :doc "minimum value"}
+
+           {:name "hi"
+            :doc "maximum value"}
+
+           {:name "step"
+            :doc "maximum step for each new value"}
+
+           {:name "dist"
+            :doc "gendyn distribution (see gendy1)"}
+
+           {:name "length"
+            :doc "number of values to create"}]
+
+    :rates #{:dr}
     :doc "Dbrown2 returns numbers in the continuous range between lo and
           hi. The arguments can be a number or any other ugen."}
 
+
    {:name "MoogLadder"
     :summary "Moog Filter Emulation"
-    :args [{:name "input" :doc "Audio input"}
-           {:name "ffreq" :default 440 :doc "Cutoff freq"}
-           {:name "res" :default 0 :doc "Resonance (0 -> 1)"}]
+    :args [{:name "input"
+            :doc "Audio input"}
+
+           {:name "ffreq"
+            :default 440
+            :doc "Cutoff freq"}
+
+           {:name "res"
+            :default 0
+            :doc "Resonance (0 -> 1)"}]
     :doc "Moog Filter."}
+
 
    {:name "GaussTrig"
     :summary "Impulses around a certain frequency"
-    :args [{:name "freq" :default 440  :doc "mean frequency"}
-           {:name "dev" :default 0.3 :doc "random deviation from mean (0 <= dev < 1)"}]
+    :args [{:name "freq"
+            :default 440
+            :doc "mean frequency"}
+
+           {:name "dev"
+            :default 0.3
+            :doc "random deviation from mean (0 <= dev < 1)"}]
     :rates #{:ar :kr}
     :doc "Impulses around a certain frequency"}])
