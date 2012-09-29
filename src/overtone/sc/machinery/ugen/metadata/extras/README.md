@@ -76,11 +76,7 @@ Metadata for these ugens needs to be created for them to be available from Overt
         - TGrains3
     [*] BlackrainUGens
     [ ] ConcatUGens
-    [P] DistortionUGens
-        - CrossoverDistortion
-        - SmoothDecimator
-        - SineShaper
-        - Disintigrator
+    [*] DistortionUGens
     [*] GlitchUGens
     [ ] JoshUGens
     [ ] LadspaUGen
