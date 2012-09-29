@@ -70,7 +70,7 @@
           smooth transitions between clean and lofi signals."}
 
 
-   {:name "Disintigrator"
+   {:name "Disintegrator"
     :summary "Port of ladspa disintigrator"
     :args [{:name "in"
             :doc "The input signal"}
