@@ -90,8 +90,7 @@ Metadata for these ugens needs to be created for them to be available from Overt
     [ ] MembraneUGens
     [ ] NCAnalysisUGens
     [ ] PitchDetection
-    [P] RFWUGens
-        - AverageOutput
+    [*] RFWUGens
     [ ] RMEQSuiteUGens
     [ ] SLUGens
     [*] StkUGens

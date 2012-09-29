@@ -44,4 +44,14 @@
           switch-and-ramp technique seeks to neutralise these artefacts
           and allow switching with minimal clicks."}
 
-   ])
+
+   {:name "AverageOutput"
+    :summary "Average output between triggers."
+    :args [{:name "in"
+            :doc "Input signal"}
+
+           {:name "trig"
+            :default 1
+            :doc "if changes from <= 0 to > 0, resets average and count to zero."}]
+    :rates #{:ar :kr}
+    :doc "The mean average output since the last received trigger."}])
