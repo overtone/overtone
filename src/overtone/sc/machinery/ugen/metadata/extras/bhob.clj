@@ -3,6 +3,136 @@
 
 (def specs
   [
+
+   {:name "DoubleNestedAllpassN"
+    :summary "Double Nested Allpass Filter N"
+    :args [{:name "in"
+            :doc "Input signal"}
+
+           {:name "max-delay1"
+            :default 0.0047
+            :doc ""}
+
+           {:name "delay1"
+            :default 0.0047
+            :doc ""}
+
+           {:name "gain1"
+            :default 0.15
+            :doc ""}
+
+           {:name "max-delay2"
+            :default 0.022
+            :doc ""}
+
+           {:name "delay2"
+            :default 0.022
+            :doc ""}
+
+           {:name "gain2"
+            :default 0.25
+            :doc ""}
+
+           {:name "max-delay3"
+            :default 0.0083
+            :doc ""}
+
+           {:name "delay3"
+            :default 0.0083
+            :doc ""}
+
+           {:name "gain3"
+            :default 0.3
+            :doc ""}]
+    :rates #{:ar}
+    :doc ""}
+
+   {:name "DoubleNestedAllpassL"
+    :summary "Double Nested Allpass Filter L"
+    :args [{:name "in"
+            :doc "Input signal"}
+
+           {:name "max-delay1"
+            :default 0.0047
+            :doc ""}
+
+           {:name "delay1"
+            :default 0.0047
+            :doc ""}
+
+           {:name "gain1"
+            :default 0.15
+            :doc ""}
+
+           {:name "max-delay2"
+            :default 0.022
+            :doc ""}
+
+           {:name "delay2"
+            :default 0.022
+            :doc ""}
+
+           {:name "gain2"
+            :default 0.25
+            :doc ""}
+
+           {:name "max-delay3"
+            :default 0.0083
+            :doc ""}
+
+           {:name "delay3"
+            :default 0.0083
+            :doc ""}
+
+           {:name "gain3"
+            :default 0.3
+            :doc ""}]
+    :rates #{:ar}
+       :doc ""}
+
+   {:name "DoubleNestedAllpassC"
+    :summary "Double Nested Allpass Filter C"
+    :args [{:name "in"
+            :doc "Input signal"}
+
+           {:name "max-delay1"
+            :default 0.0047
+            :doc ""}
+
+           {:name "delay1"
+            :default 0.0047
+            :doc ""}
+
+           {:name "gain1"
+            :default 0.15
+            :doc ""}
+
+           {:name "max-delay2"
+            :default 0.022
+            :doc ""}
+
+           {:name "delay2"
+            :default 0.022
+            :doc ""}
+
+           {:name "gain2"
+            :default 0.25
+            :doc ""}
+
+           {:name "max-delay3"
+            :default 0.0083
+            :doc ""}
+
+           {:name "delay3"
+            :default 0.0083
+            :doc ""}
+
+           {:name "gain3"
+            :default 0.3
+            :doc ""}]
+    :rates #{:ar}
+    :doc ""}
+
    {:name "Dbrown2"
     :summary "demand rate brownian movement with Gendyn distributions"
     :args [{:name "lo"

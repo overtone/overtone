@@ -22,9 +22,6 @@ Metadata for these ugens needs to be created for them to be available from Overt
     [ ] BerlachUGens
     [ ] BetablockerUGens
     [P] BhobUGens
-        - DoubleNestedAllpassC
-        - DoubleNestedAllpassL
-        - DoubleNestedAllpassN
         - EQ
         - Fhn2DC
         - Fhn2DL
