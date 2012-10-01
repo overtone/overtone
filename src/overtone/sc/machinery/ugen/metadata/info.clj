@@ -67,7 +67,9 @@
     :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
     :check (nth-input-buffer? 0)
-    :doc "returns the current number of allocated frames"}
+    :doc "returns the current number of allocated frames i.e. the size
+          of the buffer. This is the equivalent of Clojure's count on a
+          seq." }
 
    {:name "BufSamples"
     :args [{:name "buf" :default 0 :doc "a buffer"}]
@@ -79,7 +81,7 @@
     :args [{:name "buf" :default 0 :doc "a buffer"}]
     :rates #{:kr :ir}
     :check (nth-input-buffer? 0)
-    :doc "returns the current duration of a buffer"}
+    :doc "returns the current duration of a buffer in seconds."}
 
    {:name "BufChannels"
     :args [{:name "buf" :default 0 :doc "a buffer"}]
