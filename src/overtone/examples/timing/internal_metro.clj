@@ -64,3 +64,41 @@
 (on-event "/tr" #(println "trigger: " %) ::metro-synth)
 
 (metro-synth)
+
+
+;; Here's a simple little melody-playing synth which reads a series of
+;; notes from a buffer (which you can change in real-time) and which
+;; also allows you to modulate the rates and rate ratios of the
+;; arpeggiator and cymbol sound:
+
+;; create a buffer for the notes
+(def notes-b (buffer 5))
+
+;; fillt he buffer with a nice chord
+(buffer-write! notes-b (take 5 (cycle (chord :Cb2 :minor))) )
+
+;; here's our swanky synth:
+
+(defsynth arpeg-click [rate 10 buf 0 arp-div 2 beat-div 1]
+  (let [tik   (impulse rate)
+        a-tik (pulse-divider tik arp-div)
+        b-tik (pulse-divider tik beat-div)
+        cnt   (mod (pulse-count tik) (buf-frames buf))
+        note  (buf-rd:kr 1 notes-b cnt)
+        freq  (midicps note)
+        snd   (white-noise)
+        snd   (rhpf snd 2000 0.4)
+        snd   (normalizer snd)
+        b-env (env-gen (perc 0.01 0.1) b-tik)
+        a-env (env-gen (perc 0.01 0.4) a-tik)]
+    (out 0 (pan2 (+ (* 0.5 snd b-env)
+                    (* (sin-osc freq) a-env)
+                    (* (sin-osc (* 2 freq)) a-env))))))
+
+;; have fun!
+;; (def s (arpeg-click))
+;; (ctl s :rate 20)
+;; (ctl s :rate 5)
+;; (buffer-write! notes-b (take 5 (cycle (chord :Eb3 :minor))))
+;; (buffer-write! notes-b (take 5 (cycle (chord :F#2 :minor))) )
+;; (stop)
