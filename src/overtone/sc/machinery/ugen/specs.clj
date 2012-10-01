@@ -20,6 +20,7 @@
     extras.distortion
     extras.sl
     extras.ay
+    extras.bbcut2u
     ])
 
 (defn- specs-from-namespaces
