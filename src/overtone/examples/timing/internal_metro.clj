@@ -83,7 +83,7 @@
   (let [tik   (impulse rate)
         a-tik (pulse-divider tik arp-div)
         b-tik (pulse-divider tik beat-div)
-        cnt   (mod (pulse-count tik) (buf-frames buf))
+        cnt   (mod (pulse-count a-tik) (buf-frames buf))
         note  (buf-rd:kr 1 notes-b cnt)
         freq  (midicps note)
         snd   (white-noise)
