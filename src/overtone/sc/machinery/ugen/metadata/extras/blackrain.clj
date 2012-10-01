@@ -29,7 +29,7 @@
     :args [{:name "in"
             :default :none
             :doc "Input signal to be processed"}
-           
+
            {:name "freq"
             :default 440.0
             :doc "Cutoff frequency"}
@@ -53,7 +53,7 @@
     :args [{:name "in"
             :default :none
             :doc "Input signal to be processed"}
-          
+
            {:name "freq"
             :default 440.0
             :doc "Cutoff frequency"}
@@ -99,5 +99,5 @@
             :doc "Notch filter output level 0.0 - 1.0"}]
     :rates #{:ar :kr}
     :doc "Total, 100% Plastic..."}
-  
+
 ])
