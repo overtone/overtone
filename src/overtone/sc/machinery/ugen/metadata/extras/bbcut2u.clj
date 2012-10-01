@@ -3,43 +3,7 @@
 
 (def specs
   [
-   {:name "AutoTrack"
-    :summary "Autocorrelation beat tracker"
-    :args [{:name "in"
-            :doc "Audio input to track"}
-
-           {:name "lock"
-            :default 0
-            :doc "If this argument is greater than 0.5, the tracker will
-                  lock at its current periodicity and continue from the
-                  current phase. Whilst it updates the model's phase and
-                  period, this is not reflected in the output until lock
-                  goes back below 0.5.  "} ]
-    :rates #{:kr}
-    :doc "Autocorrelation beat tracker by Nick Collins, following:
-
-          M. E. P. Davies and M. D. Plumbley. Beat Tracking With A Two
-          State Model. Proceedings of the IEEE International Conference
-          on Acoustics, Speech and Signal Processing (ICASSP 2005),
-          Philadelphia, USA, March 19-23, 2005
-
-          There are four k-rate outputs, being ticks at quarter, eighth
-          and sixteenth level from the determined beat, and the current
-          detected tempo.
-
-          Note the following restrictions:
-
-          This beat tracker determines the beat, biased to the midtempo
-          range by weighting functions. It does not determine the
-          measure level, only a tactus. It is also slow reacting, using
-          a 6 second temporal window for it's autocorrelation
-          maneouvres. Don't expect human musician level predictive
-          tracking.
-
-          On the other hand, it is tireless, relatively general (though
-          obviously best at transient 4/4 heavy material without much
-          expressive tempo variation), and can form the basis of
-          computer processing that is decidedly faster than human. "}
+   ;;AutoTrack is now BeatTrack (included in the core set of ugens)
 
    {:name "AnalyseEvents2"
     :summary "On-the-fly event analyser"
