@@ -93,7 +93,10 @@ Metadata for these ugens needs to be created for them to be available from Overt
     [P] RFWUGens
         - AverageOutput
     [ ] RMEQSuiteUGens
-    [ ] SLUGens
+    [P] SLUGens
+        - Breakcore
+        - Brusselator
+        - DoubleWell
     [*] StkUGens
     [ ] SummerUGens
     [ ] TJUGens
