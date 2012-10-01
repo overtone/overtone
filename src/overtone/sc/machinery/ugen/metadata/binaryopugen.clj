@@ -23,9 +23,9 @@
                   :doc "Outputs a modulo b. The modulo is the remainder
                         after dividing a by b.
 
-                        i.e. (modulo 5 2) ;=> 1, (modulo 5 3) ;=> 2,
-                        (modulo 5 1) ;=> 0, (modulo 1 100) ;=> 1,
-                        (modulo 150 99) ;=> 51"}
+                        i.e. (mod 5 2) ;=> 1, (mod 5 3) ;=> 2,
+                        (mod 5 1) ;=> 0, (mod 1 100) ;=> 1,
+                        (mod 150 99) ;=> 51"}
 
    "="           {:summary "Signal comparison - equality"
                   :doc "Compares the two input signals a and b. If they
