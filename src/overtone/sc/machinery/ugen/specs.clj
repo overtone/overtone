@@ -19,6 +19,7 @@
     extras.blackrain
     extras.distortion
     extras.sl
+    extras.ay
     ])
 
 (defn- specs-from-namespaces

@@ -16,7 +16,7 @@ Metadata for these ugens needs to be created for them to be available from Overt
     metadata is given.
 
     [ ] ATK
-    [ ] AYUGens
+    [*] AYUGens
     [ ] BBCut2UGens
     [ ] BatUGens
     [ ] BerlachUGens
