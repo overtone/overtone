@@ -18,6 +18,7 @@
     extras.bhob
     extras.blackrain
     extras.distortion
+    extras.sl
     ])
 
 (defn- specs-from-namespaces
