@@ -5,7 +5,7 @@
   (:use [clojure.java.io :only [file]]
         [overtone.helpers lib synth]
         [overtone.libs event deps]
-        [overtone.sc server synth ugens buffer]
+        [overtone.sc server synth ugens buffer foundation-groups]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc.cgens buf-io io]
@@ -153,7 +153,7 @@
   (let [{:keys [path args]}     smpl
         {:keys [id n-channels]} (get @loaded-samples* [path args])
         [target pos pargs]      (extract-target-pos-args pargs
-                                                               (main-synth-group)
+                                                               (foundation-default-group)
                                                                :tail)]
     (cond
       (= n-channels 1) (apply mono-player :tgt target :pos pos id pargs)

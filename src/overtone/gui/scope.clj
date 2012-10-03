@@ -10,7 +10,7 @@
   (:use [clojure.stacktrace]
         [overtone.helpers lib]
         [overtone.libs event deps]
-        [overtone.sc defaults server synth ugens buffer node]
+        [overtone.sc defaults server synth ugens buffer node foundation-groups]
         [overtone.studio core util])
   (:require [clojure.set :as set]
             [overtone.config.log :as log]
@@ -30,7 +30,7 @@
 (on-deps :studio-setup-completed
          ::create-scope-group #(dosync
                                 (ref-set scope-group*
-                                         (group "Scope" :tail (main-monitor-group)))
+                                         (group "Scope" :tail (foundation-monitor-group)))
                                 (satisfy-deps :scope-group-created)))
 
 (defn- ensure-internal-server!

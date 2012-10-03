@@ -9,6 +9,10 @@
         [overtone.helpers lib file system]
         [overtone.sc defaults server synth info
          ugens envelope node bus buffer]
+        [overtone.sc.foundation-groups :only [foundation-input-group
+                                              foundation-output-group
+                                              foundation-root-group
+                                              foundation-monitor-group]]
         [overtone.sc.machinery synthdef]
         [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
         [overtone.sc.machinery.server comms]
@@ -66,56 +70,21 @@
             source  (* gain master-gain source)]
         (replace-out in-bus source)))))
 
-(defn- setup-core-groups
-  []
-  (let [input-group   (with-server-sync #(group "Input"   :head 0))
-        root-group    (with-server-sync #(group "Root"    :after input-group))
-        mixer-group   (with-server-sync #(group "Mixer"   :after root-group))
-        monitor-group (with-server-sync #(group "Monitor" :after mixer-group))
-        synth-group   (with-server-sync #(group "Synths"  :head root-group))]
-      (swap! studio* assoc
-             :input-group   input-group
-             :root-group    root-group
-             :mixer-group   mixer-group
-             :monitor-group monitor-group
-             :synth-group   synth-group)
-    (satisfy-deps :core-groups-created)))
-
-(on-deps :server-connected ::setup-core-groups setup-core-groups)
-
-(defn- clear-core-groups
-  []
-  (swap! studio* assoc
-         :input-group   nil
-         :root-group    nil
-         :mixer-group   nil
-         :monitor-group nil))
-
-(on-sync-event :shutdown ::reset-core-groups clear-core-groups)
-
-(defn- clear-synth-group
-  []
-    (clear-msg-queue)
-    (group-clear (:synth-group @studio*)))
-
-(on-sync-event :reset (fn [event-info] (clear-synth-group)) ::reset-base)
 
 (defn- clear-msg-queue-and-groups
-  "Clear message queue and groups. Catches exceptions in case the
+  "Clear message queue and ALL groups. Catches exceptions in case the
   server has died. Meant for use in a :shutdown callback"
   [event-info]
   (try
     (clear-msg-queue)
-    (group-clear 0)
+    (group-deep-clear 0)
     (catch Exception e
       (log/error "Can't clear message queue and groups - server might have died."))))
 
-(on-deps [:server-connected :core-groups-created] ::signal-server-ready
+(on-deps [:server-connected :foundation-groups-created] ::signal-server-ready
          #(satisfy-deps :server-ready))
 
 (on-sync-event :shutdown clear-msg-queue-and-groups ::free-all-nodes)
-
-
 
 (defn- start-io-mixers
   []
@@ -126,14 +95,14 @@
                     (map
                      (fn [out-bus]
                        (out-bus-mixer :pos :head
-                                      :target (main-mixer-group)
+                                      :target (foundation-output-group)
                                       :out-bus out-bus))
                      (range out-cnt)))
         in-mixers  (doall
                     (map
                      (fn [in-bus]
                        (in-bus-mixer :pos :head
-                                     :target (main-input-group)
+                                     :target (foundation-input-group)
                                      :in-bus (+ out-cnt in-bus)))
                      (range in-cnt)))]
 
@@ -144,7 +113,7 @@
   (swap! studio* assoc :bus-mixers {:in [] :out []}))
 
 ; Setup mixers automatically when the base
-(on-deps [:core-groups-created :synthdefs-loaded] ::start-bus-mixers start-io-mixers)
+(on-deps [:foundation-groups-created :synthdefs-loaded] ::start-bus-mixers start-io-mixers)
 (on-sync-event :shutdown ::reset-bus-mixers (fn [_] (clear-io-mixers)))
 
 (defn volume
@@ -152,7 +121,7 @@
    current value"
   ([] (:master-volume @studio*))
   ([vol]
-   (ctl (main-mixer-group) :master-volume vol)
+   (ctl (foundation-output-group) :master-volume vol)
    (swap! studio* assoc :master-volume vol)
    vol))
 
@@ -161,7 +130,7 @@
   the current value"
   ([] (:master-gain @studio*))
   ([gain]
-   (ctl (main-input-group) :input-gain gain)
+   (ctl (foundation-input-group) :input-gain gain)
    (swap! studio* assoc :input-gain gain)))
 
 (defonce __RECORDER__
@@ -184,7 +153,7 @@
 
   (let [path (resolve-tilde-path path)
         bs   (apply buffer-stream path args)
-        rec  (master-recorder :target (main-monitor-group) bs)]
+        rec  (master-recorder :target (foundation-monitor-group) bs)]
     (swap! studio* :recorder {:rec-id rec
                               :buf-stream bs})
     :recording-started))
@@ -227,8 +196,8 @@
 (defn- setup-studio-groups
   "Setup the studio groups."
   []
-  (log/info (str "Creating studio group at head of: " (root-group)))
-  (let [root              (root-group)
+  (log/info (str "Creating studio group  " (foundation-root-group)))
+  (let [root              (foundation-root-group)
         g                 (with-server-sync #(group "Studio" :head root))
         insts-with-groups (map-vals (fn [val]
                                       assoc val

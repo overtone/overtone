@@ -3,6 +3,18 @@
         [overtone.helpers.lib :only [windows-sc-path]])
   (:require [overtone.at-at :as at-at]))
 
+(def empty-foundation-groups {:overtone-group          nil
+                              :input-group             nil
+                              :root-group              nil
+                              :user-group              nil
+                              :safe-pre-default-group  nil
+                              :default-group           nil
+                              :safe-post-default-group nil
+                              :mixer-group             nil
+                              :monitor-group           nil})
+
+(defonce foundation-groups* (atom empty-foundation-groups))
+
 (def DEFAULT-MASTER-VOLUME
   "Initial value for the master volume of the mixer"
   0.8)
