@@ -7,4 +7,4 @@
   [in {:doc "Input signal"}
    pregain {:default 1 :doc ""}]
   ""
-  (:ar (softclip:ar (* in pregain))))
+  (:ar (softclip (* in pregain))))

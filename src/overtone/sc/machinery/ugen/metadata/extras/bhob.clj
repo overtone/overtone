@@ -1425,7 +1425,7 @@
     :summary ""
     :args [
            {:name "length"
-            :default INF
+            :default Float/POSITIVE_INFINITY
             :doc ""}
 
            {:name "lo"
