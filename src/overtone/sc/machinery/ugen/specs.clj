@@ -23,6 +23,7 @@
     extras.bbcut2u
     extras.bat
     extras.vosim
+    extras.berlach
     ])
 
 (defn- specs-from-namespaces
