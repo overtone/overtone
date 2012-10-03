@@ -36,12 +36,26 @@
       (kill* [this] "Kill a synth element (node, or group, or ...)."))
 
     (defprotocol ISynthGroup
-      (group-prepend-node [group node])
-      (group-append-node  [group node])
-      (group-clear        [group])
-      (group-deep-clear   [group])
-      (group-post-tree    [group with-args?])
-      (group-node-tree    [group]))))
+      (group-prepend-node [group node]
+        "Adds the node to the head (first to be executed) of the group.")
+      (group-append-node  [group node]
+        "Adds the node to the tail (last to be executed) of the group.")
+      (group-clear        [group]
+        "Nukes all nodes in the group. This completely clears out all
+         subgroups and frees all subsynths." )
+      (group-deep-clear   [group]
+        "Traverses all groups below this group and frees all the
+         synths. Group structure is left unaffected." )
+      (group-post-tree    [group with-args?]
+        "Posts a representation of this group's node subtree, i.e. all
+         the groups and synths contained within it, optionally including
+         the current control values for synths." )
+      (group-node-tree    [group]
+        "Request a representation of this group's node subtree, i.e. all
+         the groups and synths contained within it.
+
+         Low-level functionality. See node-tree for something more
+         usable." ))))
 
 (extend-type java.lang.Long to-synth-id*    (to-synth-id [v] v))
 (extend-type java.lang.Integer to-synth-id* (to-synth-id [v] v))
