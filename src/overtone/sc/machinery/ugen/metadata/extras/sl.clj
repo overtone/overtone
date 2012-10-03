@@ -106,4 +106,88 @@
     D2x + delta*Dx - x + x^3 = F*cos(w*t)
 
 
-    All inputs can have .kr rate UGens plugged in.)"}])
+    All inputs can have .kr rate UGens plugged in."}
+
+   {:name "DoubleWell2"
+    :summary "Forced Double Well Oscillator"
+    :args [{:name "reset"
+            :default 0
+            :doc "Restart with new initial conditions sampled from initx, inity"}
+
+           {:name "ratex"
+            :default 0.01
+            :doc "Update rate for x"}
+
+           {:name "ratey"
+            :default 0.01
+            :doc "Update rate for y"}
+
+           {:name "f"
+            :default 1
+            :doc "Equation constant"}
+
+           {:name "w"
+            :default 0.001
+            :doc "Equation constant"}
+
+           {:name "delta"
+            :default 1
+            :doc "Equation constant"}
+
+           {:name "initx"
+            :default 0
+            :doc "Reset value for x"}
+
+           {:name "inity"
+            :default 0
+            :doc "Reset value for y"}]
+   
+   :rates #{:ar}
+   :doc "Improved Euler ODE solver implementation of the chaotic Forced Double Well Oscillator (see Strogatz, Steven H. (1994) Nonlinear Dynamics and Chaos. Addison-Wesley, Reading, MA. pp441-7)
+
+
+   D2x + delta*Dx - x + x^3 = F*cos(w*t)
+   
+
+   y = Dx
+   
+
+   All input can have .kr rate UGens plugged in"}
+
+   {:name "DoubleWell3"
+    :summary "Forced Double Well Oscillator"
+    :args [{:name "reset"
+            :default 0
+            :doc "Restart with new initial conditions sampled from initx, inity"}
+
+           {:name "rate"
+            :default 0.01
+            :doc "Update rate for x and y"}
+
+           {:name "f"
+            :default 0
+            :doc "Forcing term, an arbitrary audio rate input"}
+
+           {:name "delta"
+            :default 0.25
+            :doc "Equation constant"}
+
+           {:name "initx"
+            :default 0
+            :doc "Reset value for x"}
+
+           {:name "inity"
+            :default 0
+            :doc "Reset value for y"}]
+
+    :rates #{:ar}
+    :doc "Runge-Kutta ODE solver implementation of the chaotic Forced Double Well Oscillator (see Strogatz, Steven H. (1994) Nonlinear Dynamics and Chaos. Addison-Wesley, Reading, MA. pp441-7).
+    
+
+    D2x + delta*Dx - x + x^3 = F
+    
+
+    y = Dx
+    
+
+    All inputs can have .kr rate UGens plugged in. F is itself an arbitrary audio rate UGen input forcing term"}])

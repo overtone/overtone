@@ -89,6 +89,8 @@ Metadata for these ugens needs to be created for them to be available from Overt
         - Breakcore
         - Brusselator
         - DoubleWell
+        - DoubleWell2
+        - DoubleWell3
     [*] StkUGens
     [ ] SummerUGens
     [ ] TJUGens
