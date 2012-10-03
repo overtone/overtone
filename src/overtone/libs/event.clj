@@ -94,9 +94,9 @@
 
 
   Takes an event-type (name of the event), a handler fn and a key (to
-  refer back to this handler in the future). The handler accept a single
-  event argument, which is a map containing the :event-type property and
-  any other properties specified when it was fired.
+  refer back to this handler in the future). The handler must accept a
+  single event argument, which is a map containing the :event-type
+  property and any other properties specified when it was fired.
 
   (on-event \"/tr\" handler ::status-check )
   (on-event :midi-note-down (fn [event]
