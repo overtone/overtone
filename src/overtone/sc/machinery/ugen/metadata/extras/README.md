@@ -21,54 +21,7 @@ Metadata for these ugens needs to be created for them to be available from Overt
     [*] BatUGens
     [*] BerlachUGens
     [ ] BetablockerUGens
-    [P] BhobUGens
-        - EQ
-        - Fhn2DC
-        - Fhn2DL
-        - Fhn2DN
-        - Filter Comparisons
-        - Gbman2DC
-        - Gbman2DL
-        - Gbman2DN
-        - Gendy4
-        - Gendy5
-        - Henon2DC
-        - Henon2DL
-        - Henon2DN
-        - LFBrownNoise0
-        - LFBrownNoise1
-        - LFBrownNoise2
-        - Latoocarfian2DC
-        - Latoocarfian2DL
-        - Latoocarfian2DN
-        - Lorenz2DC
-        - Lorenz2DL
-        - Lorenz2DN
-        - NLFiltC
-        - NLFiltL
-        - NLFiltN
-        - NestedAllpassC
-        - NestedAllpassL
-        - NestedAllpassN
-        - PV_CommonMag
-        - PV_CommonMul
-        - PV_Compander
-        - PV_Cutoff
-        - PV_MagGate
-        - PV_MagMinus
-        - PV_Morph
-        - PV_SoftWipe
-        - PV_XFade
-        - RLPFD
-        - Standard2DC
-        - Standard2DL
-        - Standard2DN
-        - Streson
-        - TBetaRand
-        - TBrownRand
-        - TGaussRand
-        - TGrains2
-        - TGrains3
+    [*] BhobUGens (still docstring work to do)
     [*] BlackrainUGens
     [ ] ConcatUGens
     [*] DistortionUGens
