@@ -80,7 +80,7 @@
   frame ('start') in the file. If 'n-frames' is less than or equal to
   zero, the entire file is read.
 
-  May not be scheduled with the at macro. All inner OSC calls are sent
+  Ignores OSC scheduling via the at macro; all inner OSC calls are sent
   immediately."
   ([path]
      (buffer-alloc-read path 0 -1))
@@ -188,7 +188,8 @@
            doubles (map double data)]
        (if (> (+ start-idx size) (:size buf))
          (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index.")))
-         (apply snd "/b_setn" (:id buf) start-idx size doubles)))))
+         (apply snd "/b_setn" (:id buf) start-idx size doubles)))
+     buf))
 
 
 (defn buffer-write-relay!
@@ -204,7 +205,8 @@
              data-left (drop MAX-OSC-SAMPLES data-left)]
          (when-not (empty? to-write)
            (buffer-write! buf idx to-write)
-           (recur data-left (+ idx (count to-write))))))))
+           (recur data-left (+ idx (count to-write))))))
+     buf))
 
 (defn buffer-fill!
   "Fill a buffer range with a single value. Modifies the buffer in place
@@ -215,7 +217,8 @@
      (buffer-fill! buf 0 (:size buf) val))
   ([buf start len val]
      (assert (buffer? buf))
-     (snd "/b_fill" (:id buf) start len (double val))))
+     (snd "/b_fill" (:id buf) start len (double val))
+     buf))
 
 (defn buffer-set!
   "Write a single value into a buffer. Modifies the buffer in place on
@@ -223,7 +226,8 @@
   ([buf val] (buffer-set! buf 0 val))
   ([buf index val]
      (assert (buffer? buf))
-     (snd "/b_set" (:id buf) index (double val))))
+     (snd "/b_set" (:id buf) index (double val))
+     buf))
 
 (defn buffer-get
   "Read a single value from a buffer. Index defaults to 0 if not specified."

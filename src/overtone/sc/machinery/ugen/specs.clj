@@ -21,6 +21,7 @@
     extras.sl
     extras.ay
     extras.bbcut2u
+    extras.bat
     extras.vosim
     ])
 
