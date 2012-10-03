@@ -138,8 +138,8 @@
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
            snode    (SynthNode. synth-name id target position arg-map sdef (atom :loading))]
-       (apply snd "/s_new" synth-name id pos-id (to-synth-id target) args)
        (swap! active-synth-nodes* assoc id snode)
+       (apply snd "/s_new" synth-name id pos-id (to-synth-id target) args)
        snode)))
 
 ;; ### Synth node callbacks
