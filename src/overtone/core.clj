@@ -8,7 +8,7 @@
             [overtone.sc bindings buffer bus envelope example info
                          ugens defcgen node sample server synth trigger]
             [overtone.sc.cgens oscillators demand mix io buf-io env tap
-                               line freq beq-suite berlach]
+                               line freq beq-suite berlach bhob]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio mixer inst util fx wavetable midi core]
             [overtone.repl ugens examples shell inst debug]
@@ -47,6 +47,7 @@
    'overtone.sc.cgens.freq
    'overtone.sc.cgens.beq-suite
    'overtone.sc.cgens.berlach
+   'overtone.sc.cgens.bhob
    'overtone.studio.mixer
    'overtone.studio.inst
    'overtone.studio.fx
