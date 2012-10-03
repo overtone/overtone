@@ -27,7 +27,6 @@ Metadata for these ugens needs to be created for them to be available from Overt
         - Fhn2DL
         - Fhn2DN
         - Filter Comparisons
-        - GaussTrig
         - Gbman2DC
         - Gbman2DL
         - Gbman2DN
@@ -45,7 +44,6 @@ Metadata for these ugens needs to be created for them to be available from Overt
         - Lorenz2DC
         - Lorenz2DL
         - Lorenz2DN
-        - MoogLadder
         - NLFiltC
         - NLFiltL
         - NLFiltN
