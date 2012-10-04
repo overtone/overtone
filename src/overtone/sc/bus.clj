@@ -91,8 +91,7 @@
 ;(on-sync-event :reset reset-busses ::reset-busses)
 
 (defn bus-set!
-  "Takes a list of control bus indices and values and sets the buses to those values.
-  Modifies bus(ses) in place on the server.
+  "Updates bus to new val. Modification takes place on the server asynchronously.
 
   (bus-set! my-bus 3) ;=> Sets my-bus to the value 3"
   [bus val]
