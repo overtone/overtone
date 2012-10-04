@@ -269,7 +269,6 @@
                note      (:note v)
                handle    (concat event-handle [note])
                update-fn (fn [{:keys [data2-f]}]
-                           (println "updating bus: " (busses k) data2-f)
                            (bus-set! (busses k) data2-f)
 
                            (reset! (state k) data2-f))]
