@@ -69,12 +69,12 @@
 ;; Here's a simple little melody-playing synth which reads a series of
 ;; notes from a buffer (which you can change in real-time) and which
 ;; also allows you to modulate the rates and rate ratios of the
-;; arpeggiator and cymbol sound:
+;; arpeggiator and cymbal sound:
 
 ;; create a buffer for the notes
 (def notes-b (buffer 5))
 
-;; fillt he buffer with a nice chord
+;; fill the buffer with a nice chord
 (buffer-write! notes-b (take 5 (cycle (chord :Cb2 :minor))) )
 
 ;; here's our swanky synth:

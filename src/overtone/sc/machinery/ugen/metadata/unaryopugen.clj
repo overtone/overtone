@@ -268,7 +268,7 @@
                        0.7 -> 0.809017 and 0.9 -> 0.309017"}
 
    "tri-window"  {:summary "Triangle window function"
-                  :doc "Maps input a onto a triangle window which spance
+                  :doc "Maps input a onto a triangle window which spans
                         between 0 and 1 with a peak at 0.5. Any input
                         between 0 and 1 is mapped to the corresponding
                         val in the triangle window. All other input vals
