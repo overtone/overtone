@@ -1,6 +1,6 @@
 (ns overtone.live
-  (:require [overtone.core]))
+  (:require [overtone.api]))
 
-(overtone.core/immigrate-overtone-core)
+(overtone.api/immigrate-overtone-api)
 
 (defonce __AUTO-BOOT__ (boot-server-and-mixer))

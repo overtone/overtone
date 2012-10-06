@@ -5,199 +5,125 @@
 (def specs
   [
    {:name "Henon2DN"
-    :summary ""
+    :summary "hénon map 2D chaotic generator with no interpolation"
     :args [{:name "minfreq"
             :default 11025
             :default:kr 40
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "maxfreq"
             :default 22050
             :default:kr 100
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "a"
             :default 1.4
-            :doc ""}
+            :doc "equation variable"}
 
            {:name "b"
             :default 0.3
-            :doc ""}
+            :doc "equation variable"}
 
            {:name "x0"
             :default 0.30501993062401
-            :doc ""}
+            :doc "initial value of x"}
 
            {:name "y0"
             :default 0.20938865431933
-            :doc ""}]
+            :doc "initial value of y"}]
 
     :rates #{:ar :kr}
-    :doc ""}
+    :doc "The Hénon map is a discrete-time dynamical system. It is one
+          of the most studied examples of dynamical systems that exhibit
+          chaotic behaviour.
+
+          The map depends on two parameters, a and b, which for the
+          canonical Hénon map have values of a = 1.4 and b = 0.3. For
+          the canonical values the Hénon map is chaotic. For other
+          values of a and b the map may be chaotic, intermittent, or
+          converge to a periodic orbit. An overview of the type of
+          behaviour of the map at different parameter values may be
+          obtained from its orbit diagram.
+
+          For more information see the wikipedia article:
+
+          http://en.wikipedia.org/wiki/Hénon_map" }
 
    {:name "Henon2DL"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "a"
-            :default 1.4
-            :doc ""}
-
-           {:name "b"
-            :default 0.3
-            :doc ""}
-
-           {:name "x0"
-            :default 0.30501993062401
-            :doc ""}
-
-           {:name "y0"
-            :default 0.20938865431933
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Henon2DN"
+    :summary "hénon map 2D chaotic generator with linear interpolation"}
 
    {:name "Henon2DC"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "a"
-            :default 1.4
-            :doc ""}
-
-           {:name "b"
-            :default 0.3
-            :doc ""}
-
-           {:name "x0"
-            :default 0.30501993062401
-            :doc ""}
-
-           {:name "y0"
-            :default 0.20938865431933
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Henon2DN"
+    :summary "hénon map 2D chaotic generator with cubic interpolation"}
 
    {:name "HenonTrig"
-    :summary ""
+    :extends "Henon2DN"
+    :summary "hénon map 2D chaotic trigger"
     :args [{:name "minfreq"
             :default 5
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "maxfreq"
             :default 10
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "a"
             :default 1.4
-            :doc ""}
+            :doc "Hénon equation variable"}
 
            {:name "b"
             :default 0.3
-            :doc ""}
+            :doc "Hénon equation variable"}
 
            {:name "x0"
             :default 0.30501993062401
-            :doc ""}
+            :doc "initial value of x"}
 
            {:name "y0"
             :default 0.20938865431933
-            :doc ""}]
+            :doc "initial value of y"}]
 
-    :rates #{:ar :kr}
-    :doc ""}
+    :rates #{:ar :kr}}
 
 
    {:name "Gbman2DN"
-    :summary ""
+    :summary "gingerbreadman map 2D chaotic generator with no interpolation"
     :args [{:name "minfreq"
             :default 11025
             :default:kr 40
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "maxfreq"
             :default 22050
             :default:kr 100
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "x0"
             :default 1.2
-            :doc ""}
+            :doc "initial value of x"}
 
            {:name "y0"
             :default 2.1
-            :doc ""}]
+            :doc "initial value of y"}]
 
     :rates #{:ar :kr}
-    :doc ""}
+    :doc "A two-dimensional piecewise linear chaotic 2D map. See
+          wikipedia article for more information:
+
+          http://en.wikipedia.org/wiki/Gingerbreadman_map"}
 
    {:name "Gbman2DL"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "x0"
-            :default 1.2
-            :doc ""}
-
-           {:name "y0"
-            :default 2.1
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Gbman2DN"
+    :summary "gingerbreadman map 2D chaotic generator with linear interpolation"}
 
    {:name "Gbman2DC"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "x0"
-            :default 1.2
-            :doc ""}
-
-           {:name "y0"
-            :default 2.1
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Gbman2DN"
+    :summary "gingerbreadman map 2D chaotic generator with cubic interpolation"}
 
    {:name "GbmanTrig"
-    :summary ""
+    :extends "Gbman2DN"
+    :summary "gingerbreadman map 2D chaotic trigger"
     :args [{:name "minfreq"
             :default 5
             :doc ""}
@@ -212,631 +138,365 @@
 
            {:name "y0"
             :default 2.1
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+            :doc ""}]}
 
    {:name "Standard2DN"
-    :summary ""
+    :summary "standard map 2D chaotic generator with no interpolation"
     :args [{:name "minfreq"
             :default 11025
             :default:kr 40
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "maxfreq"
             :default 22050
             :default:kr 100
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "k"
             :default 1.4
-            :doc ""}
+            :doc "perturbation amount"}
 
            {:name "x0"
             :default 4.9789799812499
-            :doc ""}
+            :doc "initial value of x"}
 
            {:name "y0"
             :default 5.7473416156381
-            :doc ""}]
+            :doc "initial value of y"}]
 
     :rates #{:ar :kr}
-    :doc ""}
+    :doc "The standard map is an area-preserving chaotic map from a
+          square with side 2pi onto itself. This map is also known as
+          the Chirikov–Taylor map or as the Chirikov standard map. For
+          more information see the wikipedia article:
+
+          http://en.wikipedia.org/wiki/Standard_map"}
 
    {:name "Standard2DL"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "k"
-            :default 1.4
-            :doc ""}
-
-           {:name "x0"
-            :default 4.9789799812499
-            :doc ""}
-
-           {:name "y0"
-            :default 5.7473416156381
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Standard2DN"
+    :summary "standard map 2D chaotic generator with linear interpolation"}
 
    {:name "Standard2DC"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "k"
-            :default 1.4
-            :doc ""}
-
-           {:name "x0"
-            :default 4.9789799812499
-            :doc ""}
-
-           {:name "y0"
-            :default 5.7473416156381
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Standard2DN"
+    :summary "standard map 2D chaotic generator with cubic interpolation"}
 
    {:name "StandardTrig"
-    :summary ""
+    :extends "Standard2DN"
+    :summary "standard map 2D chaotic trigger"
     :args [{:name "minfreq"
             :default 5
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "maxfreq"
             :default 10
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "k"
             :default 1.4
-            :doc ""}
+            :doc "perturbation amount"}
 
            {:name "x0"
             :default 4.9789799812499
-            :doc ""}
+            :doc "initial value of x"}
 
            {:name "y0"
             :default 5.7473416156381
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+            :doc "initial value of y"}]}
 
 
    {:name "Latoocarfian2DN"
-    :summary ""
+    :summary "latoocarfian 2D chaotic generator with no interpolation"
     :args [{:name "minfreq"
             :default 11025
             :default:kr 40
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "maxfreq"
             :default 22050
             :default:kr 100
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "a"
             :default 1
-            :doc ""}
+            :doc "Latoocarfian equation variable"}
 
            {:name "b"
             :default 3
-            :doc ""}
+            :doc "Latoocarfian equation variable"}
 
            {:name "c"
             :default 0.5
-            :doc ""}
+            :doc "Latoocarfian equation variable"}
 
            {:name "d"
             :default 0.5
-            :doc ""}
+            :doc "Latoocarfian equation variable"}
 
            {:name "x0"
             :default 0.34082301375036
-            :doc ""}
+            :doc "initial value of x"}
 
            {:name "y0"
             :default -0.38270086971332
-            :doc ""}]
+            :doc "initial value of y"}]
 
     :rates #{:ar :kr}
-    :doc ""}
+    :doc "This is a function given in Clifford Pickover's book Chaos In
+          Wonderland, pg 26.
+
+          The function has four parameters a, b, c, and d. The function is:
+
+          xnew = sin(y * b) + c * sin(x * b);
+
+          ynew = sin(x * a) + d * sin(y * a);
+
+          x = xnew;
+
+          y = ynew;
+
+          output = x;
+
+          x values determine frequencies; y values determine amplitudes.
+          Stable ranges for a & b tend to be between -3 to + 3. c & d
+          between 0.5 and 1.5.  There are combinations within these
+          ranges that are unstable, so be prepared to tweak this
+          oscillator." }
 
    {:name "Latoocarfian2DL"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "a"
-            :default 1
-            :doc ""}
-
-           {:name "b"
-            :default 3
-            :doc ""}
-
-           {:name "c"
-            :default 0.5
-            :doc ""}
-
-           {:name "d"
-            :default 0.5
-            :doc ""}
-
-           {:name "x0"
-            :default 0.34082301375036
-            :doc ""}
-
-           {:name "y0"
-            :default -0.38270086971332
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
-
+    :extends "Latoocarfian2DN"
+    :summary "latoocarfian 2D chaotic generator with linear interpolation"}
 
    {:name "Latoocarfian2DC"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "a"
-            :default 1
-            :doc ""}
-
-           {:name "b"
-            :default 3
-            :doc ""}
-
-           {:name "c"
-            :default 0.5
-            :doc ""}
-
-           {:name "d"
-            :default 0.5
-            :doc ""}
-
-           {:name "x0"
-            :default 0.34082301375036
-            :doc ""}
-
-           {:name "y0"
-            :default -0.38270086971332
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Latoocarfian2DN"
+    :summary "latoocarfian 2D chaotic generator with cubic interpolation"}
 
    {:name "LatoocarfianTrig"
-    :summary ""
+    :extends "Latoocarfian2DN"
+    :summary "latoocarfian 2D chaotic trigger"
     :args [{:name "minfreq"
             :default 5
             :doc ""}
 
            {:name "maxfreq"
             :default 10
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "a"
             :default 1
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "b"
             :default 3
-            :doc ""}
+            :doc "Latoocarfian equation variable"}
 
            {:name "c"
             :default 0.5
-            :doc ""}
+            :doc "Latoocarfian equation variable"}
 
            {:name "d"
             :default 0.5
-            :doc ""}
+            :doc "Latoocarfian equation variable"}
 
            {:name "x0"
             :default 0.34082301375036
-            :doc ""}
+            :doc "intial value of x"}
 
            {:name "y0"
             :default -0.38270086971332
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+            :doc "initial value of y"}]}
 
    {:name "Lorenz2DN"
-    :summary ""
+    :summary "lorenz 2D chaotic generator with no interpolation"
     :args [{:name "minfreq"
             :default 11025
             :default:kr 40
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "maxfreq"
             :default 22050
             :default:kr 100
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "s"
             :default 10
-            :doc ""}
+            :doc "Lorenz equation variable"}
 
            {:name "r"
             :default 28
-            :doc ""}
+            :doc "Lorenz equation variable"}
 
            {:name "b"
             :default 2.6666667
-            :doc ""}
+            :doc "Lorenz equation variable"}
 
            {:name "h"
             :default 0.02
-            :doc ""}
+            :doc "Lorenz equation variable"}
 
            {:name "x0"
             :default 0.090879182417163
-            :doc ""}
+            :doc "initial value of x"}
 
            {:name "y0"
             :default 2.97077458055
-            :doc ""}
+            :doc "initial value of y"}
 
            {:name "z0"
             :default 24.282041054363
-            :doc ""}]
+            :doc "initial value of z"}]
 
     :rates #{:ar :kr}
-    :doc ""}
+    :doc "The Lorenz system is a system of ordinary differential
+          equations (the Lorenz equations) first studied by Edward
+          Lorenz. It is notable for having chaotic solutions for certain
+          parameter values and initial conditions. In particular, the
+          Lorenz attractor is a set of chaotic solutions of the Lorenz
+          system which, when plotted, resemble a butterfly or figure
+          eight.
+
+          The equation is as follows:
+
+          x' = s(y - x)
+
+          y' = x(r - z) - y
+
+          z' = xy - bz
+
+          The time step amount determines the rate at which the ODE is
+          evaluated.  Higher values will increase the rate, but cause
+          more instability.  This generator uses a different algorithm
+          than the LorenzN/L/C ugen included with current distributions.
+          The resulting sound is somewhat different, and it also means
+          that becomes unstable around 0.02." }
 
    {:name "Lorenz2DL"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "s"
-            :default 10
-            :doc ""}
-
-           {:name "r"
-            :default 28
-            :doc ""}
-
-           {:name "b"
-            :default 2.6666667
-            :doc ""}
-
-           {:name "h"
-            :default 0.02
-            :doc ""}
-
-           {:name "x0"
-            :default 0.090879182417163
-            :doc ""}
-
-           {:name "y0"
-            :default 2.97077458055
-            :doc ""}
-
-           {:name "z0"
-            :default 24.282041054363
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Lorenz2DN"
+    :summary "lorenz 2D chaotic generator with linear interpolation"}
 
    {:name "Lorenz2DC"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "s"
-            :default 10
-            :doc ""}
-
-           {:name "r"
-            :default 28
-            :doc ""}
-
-           {:name "b"
-            :default 2.6666667
-            :doc ""}
-
-           {:name "h"
-            :default 0.02
-            :doc ""}
-
-           {:name "x0"
-            :default 0.090879182417163
-            :doc ""}
-
-           {:name "y0"
-            :default 2.97077458055
-            :doc ""}
-
-           {:name "z0"
-            :default 24.282041054363
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Lorenz2DN"
+    :summary "lorenz 2D chaotic generator with cubic interpolation"}
 
    {:name "LorenzTrig"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "s"
-            :default 10
-            :doc ""}
-
-           {:name "r"
-            :default 28
-            :doc ""}
-
-           {:name "b"
-            :default 2.6666667
-            :doc ""}
-
-           {:name "h"
-            :default 0.02
-            :doc ""}
-
-           {:name "x0"
-            :default 0.090879182417163
-            :doc ""}
-
-           {:name "y0"
-            :default 2.97077458055
-            :doc ""}
-
-           {:name "z0"
-            :default 24.282041054363
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Lorenz2DN"
+    :summary "lorenz 2D chaotic trigger"}
 
    {:name "Fhn2DN"
-    :summary ""
+    :summary "FitzHughNagumo Neuron Firing Oscillator with no interpolation"
     :args [{:name "minfreq"
             :default 11025
             :default:kr 40
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "maxfreq"
             :default 22050
             :default:kr 100
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "urate"
             :default 0.1
-            :doc ""}
+            :doc "update rate for u"}
 
            {:name "wrate"
             :default 0.1
-            :doc ""}
+            :doc "update rate for w"}
 
            {:name "b0"
             :default 0.6
-            :doc ""}
+            :doc "equation constant"}
 
            {:name "b1"
             :default 0.8
-            :doc ""}
+            :doc "equation constant"}
 
            {:name "i"
             :default 0
-            :doc ""}
+            :doc "arbitrary external impulse; i.e. pulse wave, trigger,
+                 lfnoise, or nothing." }
 
            {:name "u0"
             :default 0
-            :doc ""}
+            :doc "reset value for u"}
 
            {:name "w0"
             :default 0
-            :doc ""}]
+            :doc "reset value for w"}]
 
     :rates #{:ar :kr}
-    :doc ""}
+    :doc "The FitzHugh–Nagumo model is a simplified version of the
+          Hodgkin–Huxley model which models in a detailed manner
+          activation and deactivation dynamics of a spiking neuron. For
+          more information see the wikipedia article:
+
+          http://en.wikipedia.org/wiki/FitzHugh–Nagumo_model"}
 
    {:name "Fhn2DL"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
-
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "urate"
-            :default 0.1
-            :doc ""}
-
-           {:name "wrate"
-            :default 0.1
-            :doc ""}
-
-           {:name "b0"
-            :default 0.6
-            :doc ""}
-
-           {:name "b1"
-            :default 0.8
-            :doc ""}
-
-           {:name "i"
-            :default 0
-            :doc ""}
-
-           {:name "u0"
-            :default 0
-            :doc ""}
-
-           {:name "w0"
-            :default 0
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+    :extends "Fhn2DN"
+    :summary "FitzHughNagumo Neuron Firing Oscillator with linear interpolation"}
 
    {:name "Fhn2DC"
-    :summary ""
-    :args [{:name "minfreq"
-            :default 11025
-            :default:kr 40
-            :doc ""}
+    :extends "Fhn2DN"
+    :summary "FitzHughNagumo Neuron Firing Oscillator with cubic interpolation"}
 
-           {:name "maxfreq"
-            :default 22050
-            :default:kr 100
-            :doc ""}
-
-           {:name "urate"
-            :default 0.1
-            :doc ""}
-
-           {:name "wrate"
-            :default 0.1
-            :doc ""}
-
-           {:name "b0"
-            :default 0.6
-            :doc ""}
-
-           {:name "b1"
-            :default 0.8
-            :doc ""}
-
-           {:name "i"
-            :default 0
-            :doc ""}
-
-           {:name "u0"
-            :default 0
-            :doc ""}
-
-           {:name "w0"
-            :default 0
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
 
    {:name "FhnTrig"
-    :summary ""
+    :extends "Fhn2DN"
+    :summary "FitzHughNagumo Neuron Firing Oscillator trigger"
     :args [{:name "minfreq"
             :default 4
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "maxfreq"
             :default 10
-            :doc ""}
+            :doc "iteration frequency in Hertz"}
 
            {:name "urate"
             :default 0.1
-            :doc ""}
+            :doc "update rate for u"}
 
            {:name "wrate"
             :default 0.1
-            :doc ""}
+            :doc "update rate for 2"}
 
            {:name "b0"
             :default 0.6
-            :doc ""}
+            :doc "equation constant"}
 
            {:name "b1"
             :default 0.8
-            :doc ""}
+            :doc "equation constant"}
 
            {:name "i"
             :default 0
-            :doc ""}
+            :doc "arbitrary external impulse; i.e. pulse wave, trigger,
+                  lfnoise or nothing"}
 
            {:name "u0"
             :default 0
-            :doc ""}
+            :doc "reset value for u"}
 
            {:name "w0"
             :default 0
-            :doc ""}]
-
-    :rates #{:ar :kr}
-    :doc ""}
+            :doc "reset value for w"}]}
 
    {:name "PV_CommonMag"
+    :summary "returns common magnitudes"
     :args [{:name "buffer-a"
-            :doc ""}
+            :doc "FFT buffer a"}
 
            {:name "buffer-b"
-            :doc ""}
+            :doc "FFT buffer b"}
 
            {:name "tolerance"
             :default 0
-            :doc ""}
+            :doc "magnitudes within which test will pass"}
 
            {:name "remove"
             :default 0
-            :doc ""}]
+            :doc "scale uncommon magnitudes"}]
     :rates #{:kr}
-    :doc ""}
+    :doc "Returns magnitudes common to buffer-a & buffer-b within a
+         tolerance level." }
 
    {:name "PV_CommonMul"
     :args [{:name "buffer-a"

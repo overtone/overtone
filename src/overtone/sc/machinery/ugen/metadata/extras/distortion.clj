@@ -71,7 +71,7 @@
 
 
    {:name "Disintegrator"
-    :summary "Port of ladspa disintigrator"
+    :summary "Port of ladspa disintegrator"
     :args [{:name "in"
             :doc "The input signal"}
 

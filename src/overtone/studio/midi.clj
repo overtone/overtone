@@ -27,7 +27,9 @@
 (defn midi-event
   "Place incoming midi-event onto the global event stream."
   [dev msg & [ts]]
-  (let [command (:command msg)]
+  (let [command (:command msg)
+        data2-f (float (/ (:data2 msg) 127))
+        msg     (assoc msg :data2-f data2-f :velocity-f data2-f)]
     (event [:midi command] msg)
     (event (midi-mk-full-control-event-key dev command (:data1 msg)) msg)
     (event (midi-mk-full-device-event-key dev command) msg)))

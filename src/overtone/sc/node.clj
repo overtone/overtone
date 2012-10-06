@@ -6,7 +6,7 @@
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]]
-        [overtone.studio.core :only (root-group)])
+        [overtone.sc.defaults :only [foundation-groups*]])
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]))
 
@@ -36,12 +36,26 @@
       (kill* [this] "Kill a synth element (node, or group, or ...)."))
 
     (defprotocol ISynthGroup
-      (group-prepend-node [group node])
-      (group-append-node  [group node])
-      (group-clear        [group])
-      (group-deep-clear   [group])
-      (group-post-tree    [group with-args?])
-      (group-node-tree    [group]))))
+      (group-prepend-node [group node]
+        "Adds the node to the head (first to be executed) of the group.")
+      (group-append-node  [group node]
+        "Adds the node to the tail (last to be executed) of the group.")
+      (group-clear        [group]
+        "Nukes all nodes in the group. This completely clears out all
+         subgroups and frees all subsynths." )
+      (group-deep-clear   [group]
+        "Traverses all groups below this group and frees all the
+         synths. Group structure is left unaffected." )
+      (group-post-tree    [group with-args?]
+        "Posts a representation of this group's node subtree, i.e. all
+         the groups and synths contained within it, optionally including
+         the current control values for synths." )
+      (group-node-tree    [group]
+        "Request a representation of this group's node subtree, i.e. all
+         the groups and synths contained within it.
+
+         Low-level functionality. See node-tree for something more
+         usable." ))))
 
 (extend-type java.lang.Long to-synth-id*    (to-synth-id [v] v))
 (extend-type java.lang.Integer to-synth-id* (to-synth-id [v] v))
@@ -124,8 +138,8 @@
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
            snode    (SynthNode. synth-name id target position arg-map sdef (atom :loading))]
-       (apply snd "/s_new" synth-name id pos-id (to-synth-id target) args)
        (swap! active-synth-nodes* assoc id snode)
+       (apply snd "/s_new" synth-name id pos-id (to-synth-id target) args)
        snode)))
 
 ;; ### Synth node callbacks
@@ -209,20 +223,34 @@
   The position can be one of :head, :tail :before, :after, or :replace.
 
   (group)                  ;=> Creates a new group at the tail of the
-                               root-group
+                               foundation-default-group
   (group \"foo\")            ;=> Creates a group named foo
   (group :tail my-g)       ;=> Creates a group at the tail of group
                                my-g
   (group \"bar\" :head my-g) ;=> Creates a named group at the head of
                                group my-g"
-  ([] (group :tail (root-group)))
-  ([name] (group name :tail (root-group)))
-  ([position target]
+  ([]
+     (group :tail (:default-group @foundation-groups*)))
+
+  ([name-or-position]
      (let [id (alloc-id :node)]
-       (group (str "Group-" id) id position target)))
-  ([name position target] (group name (alloc-id :node) position target))
+       (if (string? name-or-position)
+         (group name-or-position id :tail (:default-group @foundation-groups*))
+         (group (str "Group-" id) id name-or-position (:default-group @foundation-groups*)))))
+
+  ([name-or-position position-or-target]
+     (let [id (alloc-id :node)]
+       (if (string? name-or-position)
+         (group name-or-position id position-or-target (:default-group @foundation-groups*))
+         (group (str "Group-" id) id name-or-position position-or-target))))
+
+  ([name position target]
+     (group name (alloc-id :node) position target))
+
   ([name id position target]
      (ensure-connected!)
+     (when-not target
+       (throw (IllegalArgumentException. (str "The target for this group must exist."))))
      (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
            target (to-synth-id target)
            pos    (or pos 1)
@@ -565,7 +593,7 @@
 (defn node-tree
   "Returns a data representation of the synth node tree starting at
   the root group."
-  ([] (node-tree (root-group)))
+  ([] (node-tree (:root-group @foundation-groups*)))
   ([root]
      (ensure-connected!)
      (group-node-tree (to-synth-id root))))
@@ -573,21 +601,21 @@
 (defn node-tree-zipper
   "Returns a zipper representing the tree of the specified node or
   defaults to the current node tree"
-  ([] (node-tree-zipper (root-group)))
+  ([] (node-tree-zipper (:root-group @foundation-groups*)))
   ([root]
      (zip/zipper map? :children #(assoc %1 :children %2) (group-node-tree root))))
 
 (defn node-tree-seq
   "Returns a lazy seq of a depth-first traversal of the tree of the
   specified node defaulting to the current node tree"
-  ([] (node-tree-zipper (root-group)))
+  ([] (node-tree-zipper (:root-group @foundation-groups*)))
   ([root] (zipper-seq (node-tree-zipper root))))
 
 (defn node-tree-matching-synth-ids
   "Returns a seq of synth ids in the node tree with specific
   root (defaulting to the entire node tree) that match regexp or
   strign."
-  ([re-or-str] (node-tree-matching-synth-ids re-or-str (root-group)))
+  ([re-or-str] (node-tree-matching-synth-ids re-or-str (:root-group @foundation-groups*)))
   ([re-or-str root]
      (let [matcher-fn (if (string? re-or-str)
                         =
