@@ -31,7 +31,7 @@ Metadata for these ugens needs to be created for them to be available from Overt
     [ ] LoopBufUGens
     [ ] MCLDUGens
     [*] MdaUGens
-    [ ] MembraneUGens
+    [*] MembraneUGens
     [ ] NCAnalysisUGens
     [ ] PitchDetection
     [*] RFWUGens
