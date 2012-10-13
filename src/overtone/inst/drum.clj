@@ -301,7 +301,8 @@
    amp {:default 0.3 :min 0.001 :max 1 :step 0.01}
    sustain {:default 0.4 :min 0.01 :max 1.0 :step 0.001}
    mode-level {:default 0.25 :min 0.01 :max 1.0 :step 0.001}
-   timbre {:default 1 :min 0.1 :max 5.0 :step 0.1}]
+   timbre {:default 1 :min 0.1 :max 5.0 :step 0.1}
+   stick-level {:default 0.2 :min 0.0 :max 1.0 :step 0.1}]
   (let [env (env-gen (perc 0.005 sustain) :action FREE)
         s1 (* 0.5 env (sin-osc (* freq 0.8)))
         s2 (* 0.5 env (sin-osc freq))
@@ -309,11 +310,11 @@
                              (* (sin-osc (* freq 0.85))
                                 (/ timbre 1.3))))
         mix (* mode-level (+ s1 s2 s3))
-        stick (* 0.2
+        stick (* stick-level
                  (env-gen (perc 0.001 0.01))
-                 (crackle 2.01))
+                 (crackle 2.0))
         mix2 (* amp (+ mix stick))]
-    (out 0 (pan2 mix2))))
+    mix2))
 
 ;; Percussive elements
 
