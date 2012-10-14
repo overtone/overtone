@@ -88,10 +88,13 @@
                  *constants* #{}]
          (with-overloaded-ugens
            (let [form# ~@ugen-form
-                 n-chans# (if (seq? form#)
-                            (count form#)
-                            1)
-                 inst-bus# (or (:bus (get (:instruments @studio*) ~sname)) (audio-bus n-chans#))
+                 ;; form# can be a map, or a sequence of maps. We use
+                 ;; `sequence?` because `coll?` applies to maps (which
+                 ;; are not sequential) and `seq?` does not apply to
+                 ;; vectors (which are sequential).
+                 n-chans# (if (sequential? form#) (count form#) 1)
+                 inst-bus# (or (:bus (get (:instruments @studio*) ~sname))
+                               (audio-bus n-chans#))
                  [ugens# constants#] (gather-ugens-and-constants (out inst-bus# form#))
                  ugens# (topological-sort-ugens ugens#)
                  main-tree# (set ugens#)
