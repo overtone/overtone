@@ -88,7 +88,9 @@
                  *constants* #{}]
          (with-overloaded-ugens
            (let [form# ~@ugen-form
-		 n-chans# (if (coll? form#) (count form#) 1)
+                 n-chans# (if (seq? form#)
+                            (count form#)
+                            1)
                  inst-bus# (or (:bus (get (:instruments @studio*) ~sname)) (audio-bus n-chans#))
                  [ugens# constants#] (gather-ugens-and-constants (out inst-bus# form#))
                  ugens# (topological-sort-ugens ugens#)
