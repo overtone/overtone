@@ -569,6 +569,7 @@
   (let [[s-name s-form] (name-with-attributes s-name s-form)
         _               (when (not (symbol? s-name))
                           (throw (IllegalArgumentException. (str "You need to specify a name for your synth using a symbol"))))
+        s-name          (symbol (str (ns-name *ns*) "/" s-name))
         params          (first s-form)
         params          (parse-params params)
         ugen-form       (concat '(do) (next s-form))
