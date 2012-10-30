@@ -3,4 +3,6 @@
 
 (overtone.api/immigrate-overtone-api)
 
-(defonce __AUTO-BOOT__ (boot-server-and-mixer))
+(defonce __AUTO-BOOT__
+  (when (overtone.sc.server/server-disconnected?)
+    (overtone.studio.mixer/boot-server-and-mixer)))
