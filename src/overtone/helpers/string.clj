@@ -1,7 +1,8 @@
 (ns
     ^{:doc "Useful string manipulation fns"
       :author "Sam Aaron"}
-  overtone.helpers.string)
+  overtone.helpers.string
+  (:use [overtone.helpers.hash :only [md5]]))
 
 (defn chop-last
   "Removes the last char in str. Returns empty string unmodified"
@@ -58,3 +59,24 @@
         partitioned (partition-by #(= c %) s-seq)
         filtered    (filter #(not= [c] %) partitioned)]
     (map #(apply str %) filtered)))
+
+(defn hash-shorten
+  "Ensures that the resulting string is no longer than size chars by
+   trimming the excess chars from prefix and replacing with simple
+   hash. Postfix never gets modified."
+  [max-size prefix postfix]
+  (let [prefix  (str prefix)
+        postfix (str postfix)
+        hash    (subs (str (md5 prefix)) 0 3)
+        cnt     (+ (count prefix) (count postfix))]
+    (cond
+     (< cnt max-size) (str prefix postfix)
+
+     (> (+ (count hash) (count postfix)) max-size)
+     (throw (Exception.
+             (str "Cannot shorten string. The max-size you supplied to hash-shorten is too small. Try something larger than "
+                  (+ (count hash) (count postfix)))))
+
+     :else (let [num-allowed-chars (- max-size (count hash) (count postfix))
+                 allowed-s         (subs prefix 0 num-allowed-chars)]
+             (str allowed-s hash postfix)))))
