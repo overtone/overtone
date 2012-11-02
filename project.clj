@@ -55,6 +55,6 @@
                  [overtone/scsynth-extras "3.5.2-SNAPSHOT"]
                  [clj-glob "1.0.0"]
                  [org.clojure/core.match "0.2.0-alpha9"]
-                 [seesaw "1.4.1"]]
+                 [seesaw "1.4.2"]]
   :native-path "native"
   :jvm-opts ~(jvm-opts))
