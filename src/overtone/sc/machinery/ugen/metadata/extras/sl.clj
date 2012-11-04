@@ -190,4 +190,57 @@
     y = Dx
     
 
-    All inputs can have .kr rate UGens plugged in. F is itself an arbitrary audio rate UGen input forcing term"}])
+    All inputs can have .kr rate UGens plugged in. F is itself an arbitrary audio rate UGen input forcing term"}
+
+   {:name "GravityGrid"
+    :summary "Dynamical System Simulation (Newtonian gravitational force)"
+    :args [{:name "reset"
+            :default 0
+            :doc "Restart the moving mass at a random position within the square (k-rate input)"}
+
+           {:name "rate"
+            :default 0.1
+            :doc "Amount of position update per sample (k-rate)"}
+
+           {:name "newx"
+            :default 0.0
+            :doc "kr input to be sampled for new x positions for the moving mass on reset"}
+
+           {:name "newy"
+            :default 0.0
+            :doc "kr input to be sampled for new y positions for the moving mass on reset"}
+
+           {:name "bufnum"
+            :default :none
+            :doc "Bufnum for a buffer containing weights for the different outer masses indexed as 0-3 and 5-8 and central moving mass 4. Passing -1 means that the weights are not used (are flat.)"}]
+
+    :rates #{:ar}
+    :doc "Eight fixed masses around a boundary apply Newtonian gravitational force dynamics to a central moving mass which cannot escape the [-1, 1] grid in x or y. The position of the moving mass is sonified as an oscillator by its distance from the centre.  This is a relatively expensive oscillator to run.
+
+
+    Note: This original GravityGrid contains an erroneous folding function, and gravity which is more attractive as the distance increases! Which however, adds interesting distortions to the sound. See GravityGrid2 for a cleaned up version. This one is retained for backwards compatibility."}
+
+   {:name "GravityGrid2"
+    :summary "Dynamical System Simulation (Newtonian gravitational force)"
+    :args [{:name "reset"
+            :default 0
+            :doc "Restart the moving mass at a random position within the square (k-rate input)"}
+
+           {:name "rate"
+            :default 0.1
+            :doc "Amount of position update per sample (k-rate)"}
+
+           {:name "newx"
+            :default 0.0
+            :doc "kr input to be sampled for new x positions for the moving mass on reset"}
+
+           {:name "newy"
+            :default 0.0
+            :doc "kr input to be sampled for new y positions for the moving mass on reset"}
+
+           {:name "bufnum"
+            :default :none
+            :doc "Bufnum for a buffer containing weights and positions for the fixed influencing masses. In the format entry [0] is the number of masses, then 3 components (x, y, mass multiplier for each mass in turn (see below). You can dynamically change this buffer as long as the data contents stay consistent- i.e. if you change suddenly to having twice as many masses, make sure you've provided x,y and weight values for them!"}]
+
+    :rates #{:ar}
+    :doc  "Eight fixed masses around a boundary apply Newtonian gravitational force dynamics to a central moving mass which cannot escape the [-1, 1] grid in x or y. The position of the moving mass is sonified as an oscillator by its distance from the centre.  This is a relatively expensive oscillator to run."}])

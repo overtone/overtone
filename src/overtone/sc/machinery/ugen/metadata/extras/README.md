@@ -42,6 +42,8 @@ Metadata for these ugens needs to be created for them to be available from Overt
         - DoubleWell
         - DoubleWell2
         - DoubleWell3
+        - GravityGrid
+        - GravityGrid2
     [*] StkUGens
     [ ] SummerUGens
     [ ] TJUGens
