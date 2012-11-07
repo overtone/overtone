@@ -148,48 +148,112 @@ out(i) = ((1 - abs(coef)) * in(i)) + (coef * in(i-1))"
     :auto-rate true}
 
    {:name "RLPF"
+    :summary "resonant low pass filter"
     :args [{:name "in", :default 0.0 :doc "input signal to be processed"}
            {:name "freq", :default 440.0 :doc "cutoff frequency"}
-           {:name "rq", :default 1.0 :doc "the reciprocal of Q.  bandwidth / cutoffFreq"}]
+           {:name "rq", :default 1.0 :doc "the reciprocal of Q.  bandwidth / cutoffFreq. A lower rq results in more resonance."}]
     :check (nth-input-stream? 0)
-    :doc "a resonant low pass filter"
+    :doc "A resonant low pass filter is a standard subtractive synthesis
+          tool which removes frequencies above a defined cut-off
+          point. This typically has the effect of making bright sounds
+          duller. However, in addition to this behaviour, the resonant
+          low pass filter also emphasises/resonates the frequencies
+          around the cutoff point. The amount of emphasis is
+          controlled by the rq param with a lower rq resulting in
+          greater resonance. High amounts of resonance (rq ~0) can
+          create a whistling sound around the cutoff frequency.
+
+          Using a low pass filter allows you to have fine-grained
+          control of the level of brightness/dullness to tune your
+          timbre in addition to allowing you to modulate the effect in
+          real time thus creating movement in the sound."
     :auto-rate true}
 
    {:name "RHPF", :args [{:name "in", :default 0.0 :doc "input signal to be processed"}
                          {:name "freq", :default 440.0 :doc "cutoff frequency"}
-                         {:name "rq", :default 1.0 :doc "the reciprocal of Q.  bandwidth / cutoffFreq"}]
+                         {:name "rq", :default 1.0 :doc "the reciprocal of Q.  bandwidth / cutoffFreq. A lower rq results in more resonance"}]
     :check (nth-input-stream? 0)
-    :doc "a resonant high pass filter"
+    :summary "resonant high pass filter"
+    :doc "A resonant high pass filter lets through the frequencies above
+          the cutoff point and successfily dampens the frequencies below
+          the cutoff point. This effectively removes the fundamental
+          frequency of the sound, leaving only the fizz harmonic
+          overtones. However, in addition to this behaviour, the
+          resonant low pass filter also emphasises/resonates the
+          frequencies around the cutoff point. The amount of emphasis
+          is controlled by the rq param with a lower rq resulting in
+          greater resonance. High amounts of resonance (rq ~0) can
+          create a whistling sound around the cutoff frequency.
+
+          High pass filters are rarely used in the creation of
+          instruments and are predominantly used to create effervescent
+          sound effects of bright tibres that can be laid over the top
+          of another low pass sound to increase the harmonic content."
     :auto-rate true}
 
    {:name "LPF",
+    :summary "second order Butterworth low pass filter"
     :args [{:name "in", :default 0.0 :doc "input signal to be processed"}
            {:name "freq", :default 440.0 :doc "cutoff frequency"}]
     :check (nth-input-stream? 0)
-    :doc "a second order Butterworth low pass filter"
+    :doc "A low pass filter is a standard subtractive synthesis tool
+          which removes frequencies above a defined cut-off point. This
+          typically has the effect of making bright sounds
+          duller. Using a low pass filter allows you to have fine-grained
+          control of the level of brightness/dullness to tune your
+          timbre in addition to allowing you to modulate the effect in
+          real time thus creating movement in the sound."
     :auto-rate true}
 
    {:name "HPF",
+    :summary "second order high pass filter"
     :args [{:name "in", :default 0.0 :doc "input signal to be processed"}
            {:name "freq", :default 440.0 :doc "cutoff frequency"}]
     :check (nth-input-stream? 0)
-    :doc "a second order high pass filter"
+    :doc "A high pass filter lets through the frequencies above the
+          cutoff point and successfily dampens the frequencies below the
+          cutoff point. This effectively removes the fundamental
+          frequency of the sound, leaving only the fizz harmonic
+          overtones.
+
+          High pass filters are rarely used in the creation of
+          instruments and are predominantly used to create effervexcent
+          sound effects of bright tibres that can be laid over the top
+          of another low pass sound to increase the harmonic content."
     :auto-rate true}
 
    {:name "BPF",
+    :summary "second order Butterworth bandpass filter"
     :args [{:name "in", :default 0.0 :doc "input signal to be processed"}
            {:name "freq", :default 440.0 :doc "centre frequency in Hertz"}
            {:name "rq", :default 1.0 :doc "the reciprocal of Q.  bandwidth / cutoffFreq"}]
     :check (nth-input-stream? 0)
-    :doc "a second order Butterworth bandpass filter"
+    :doc "A band pass filter permits the frequencies around a specified
+          centre frequency to pass unaltered through the filter while
+          the frequencies either side are attenuated. The frequences
+          that pass through are known as the bandwidth or the band pass
+          of the filter.
+
+          Used to create timbres consisting of fizzy harmonics, lo-fi
+          qualities or very thin sounds that may form the basis of sound
+          effects."
     :auto-rate true}
 
-   {:name "BRF",
+   {:name "BRF"
+    :summary "second order Butterworth band reject filter"
     :args [{:name "in", :default 0.0 :doc "input signal to be processed"}
            {:name "freq", :default 440.0 :doc "centre frequency in Hertz"}
            {:name "rq", :default 1.0 :doc "the reciprocal of Q.  bandwidth / cutoffFreq"}]
     :check (nth-input-stream? 0)
-    :doc "a second order lowpass filter"
+    :doc "Band reject filters, also known as notch filters, attenuate a
+          selected range of frequencies effectively creating a notch in
+          the sound.
+
+          This type of filter is handy for scooping out frequencies,
+          thinning out a sound while leaving the fundamental intact,
+          making them useful for creating timbres that contain a
+          discernable pitch but do not have a high level of harmonic
+          content."
     :auto-rate true}
 
    {:name "MidEQ",
