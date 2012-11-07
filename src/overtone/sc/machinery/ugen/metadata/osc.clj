@@ -336,12 +336,12 @@
               {:name "saw-freq",
                :default 440.0
                :doc "Frequency of the slave synched sawtooth
-                     wave. sawFreq should always be greater than
-                     syncFreq." }]
+                     wave. saw-freq should always be greater than
+                     sync-freq." }]
        :muladd true
        :rates #{:ar :kr}
        :doc "A sawtooth wave that is hard synched to a fundamental
-             apitch. This produces an effect similar to moving formants
+             pitch. This produces an effect similar to moving formants
              or pulse width modulation. The sawtooth oscillator has its
              phase reset when the sync oscillator completes a
              cycle. This is not a band limited waveform, so it may
