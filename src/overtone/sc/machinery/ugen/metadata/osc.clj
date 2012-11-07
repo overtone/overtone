@@ -73,7 +73,17 @@
        :summary "Sine table lookup oscillator"
        :doc "Outputs a sine wave with values oscillating between -1 and
              1 similar to osc except that the table has already been
-             fixed as a sine table of 8192 entries." }
+             fixed as a sine table of 8192 entries.
+
+             Sine waves are often used for creating sub-basses or are
+             mixed with other waveforms to add extra body or bottom end
+             to a sound.  They contain no harmonics and consist entirely
+             of the fundamental frequency. This means that they're not
+             suitable for subtractive synthesis i.e. passing through
+             filters such as a hpf or lpf. However, they are useful for
+             additative synthesis i.e. adding multiple sine waves
+             together at different frequencies, amplitudes and phase to
+             create new timbres." }
 
       {:name "SinOscFB",
        :args [{:name "freq"
@@ -222,7 +232,13 @@
              cubic pieces"}
 
       {:name "LFTri" :extends "LFSaw"
-       :doc "a non-band-limited triangle oscillator"}
+       :summary "a non-band-limited triangle oscillator"
+       :doc "The triangle wave shape features two linear slopes and is
+             not as harmonically rich as a sawtooth wave since it only
+             contains odd harmonics (partials). Ideally, this type of
+             wave form is mixed with a sine, square or pulse wave to add
+             a sparkling or bright effect to a sound and is often
+             employed on pads to give them a glittery feel." }
 
 
       {:name "LFGauss",

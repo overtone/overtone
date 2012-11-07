@@ -8,38 +8,76 @@
       {:name "WhiteNoise"
        :args []
        :rates #{:ar :kr}
-       :doc "Generates noise whose spectrum has equal power at all frequencies."}
+       :summary "Noise whose spectrum has equal power at all frequencies."
+       :doc "Noise that contains equal amounts of energy at every
+             frequency - comparable to radio static.
+
+             Useful for generating percussive sounds such as snares and
+             hand claps. Also useful for simulating wind or sea effects,
+             for producing breath effects in wind instrument timbres or
+             for producing the typical trance leads."}
 
 
       {:name "BrownNoise"
        :args []
        :rates #{:ar :kr}
-       :doc "Generates noise whose spectrum falls off in power by 6 dB per octave."}
+       :summary "Noise whose spectrum falls off in power by 6 dB per octave."
+       :doc "Useful for generating percussive sounds such as snares and
+             hand claps. Also useful for simulating wind or sea
+             effects, for producing breath effects in wind instrument
+             timbres or for producing the typical trance leads." }
 
 
       {:name "PinkNoise"
        :args []
        :rates #{:ar :kr}
-       :doc "Generates noise whose spectrum falls off in power by 3 dB per octave. This gives equal power over the span of each octave. This version gives 8 octaves of pink noise."}
+       :summary "Noise whose spectrum falls off in power by 3 dB per octave."
+       :doc "Noise that gives equal power over the span of each octave.
+
+             Useful for generating percussive sounds such as snares and
+             hand claps. Also useful for simulating wind or sea effects,
+             for producing breath effects in wind instrument timbres or
+             for producing the typical trance leads.
+
+             This version gives 8 octaves of pink noise."}
 
 
       {:name "ClipNoise"
        :args []
        :rates #{:ar}
-       :doc "Generates noise whose values are either -1 or 1. This produces the maximum energy for the least peak to peak amplitude."}
+       :summary "Noise whose values are either -1 or 1."
+       :doc "This produces the maximum energy for the least peak to peak amplitude.
+
+             Useful for generating percussive sounds such as snares and
+             hand claps. Also useful for simulating wind or sea effects,
+             for producing breath effects in wind instrument timbres or
+             for producing the typical trance leads."}
 
 
       {:name "GrayNoise"
        :args []
        :rates #{:ar}
-       :doc "Generates random impulses from -1 to +1 given a density (average number of impulses per second)"}
+       :summary "Random impulses from -1 to +1 given a density "
+       :doc "Given a density (average number of impulses per second)
+             creates a sequence of random impulses from -1 to +1.
+
+             Useful for generating percussive sounds such as snares and
+             hand claps. Also useful for simulating wind or sea effects,
+             for producing breath effects in wind instrument timbres or
+             for producing the typical trance leads."}
 
 
       {:name "Crackle"
+       :summary "Chaotic noise generator"
        :args [{:name "chaos-param", :default 1.5 :doc "a parameter of the chaotic function with useful values from just below 1.0 to just above 2.0. Towards 2.0 the sound crackles.
 "}]
        :rates #{:ar :kr}
-       :doc "A noise generator based on a chaotic function."}
+       :doc "A noise generator based on a chaotic function.
+
+             Useful for generating percussive sounds such as snares and
+             hand claps. Also useful for simulating wind or sea effects,
+             for producing breath effects in wind instrument timbres or
+             for producing the typical trance leads."}
 
 
       {:name "Logistic"

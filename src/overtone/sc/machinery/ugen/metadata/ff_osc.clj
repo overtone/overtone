@@ -89,13 +89,28 @@
       {:name "Saw",
        :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz (control rate)."}],
        :rates #{:ar}
-       :doc "band limited sawtooth wave generator"}
+       :summary "band limited sawtooth wave generator"
+       :doc "The sawtooth wave projeces even and odd harmonics in series
+             and therefore produces a bright sound that is an excellent
+             starting point for brassy, raspy sounds. It's also suitable
+             for creating the gritty, bright sounds needed for leads and
+             raspy basses. Due to its harmonic richness it's extremely
+             suitable for use with sounds that will be filter swept." }
 
       {:name "Pulse",
        :args [{:name "freq", :default 440.0, :doc "Frequency in Hertz (control rate)"}
               {:name "width", :default 0.5, :doc "Pulse width ratio from zero to one. 0.5 makes a square wave (control rate)"}],
        :rates #{:ar}
-       :doc "band limited pulse wave generator with pulse width modulation"}
+       :summary "band limited pulse wave generator with pulse width modulation."
+       :doc "Pulse waves are a general form of square wave that allow
+             for the width of the pulses ot be varied. A square wave is
+             therefore a pulse with a width of 0.5 i.e. the width of the
+             high and low states is identical.
+
+             Adjusting the ratio of the pulse width will vary the
+             harmonic content of the sound. For example, reductions in
+             the width allow you to produce thin reed-like tibres along
+             with the wide, hollow sounds created by a square wave." }
 
 
       {:name "PSinGrain",
