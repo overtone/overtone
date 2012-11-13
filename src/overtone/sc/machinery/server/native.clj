@@ -59,7 +59,7 @@
         (sound-buffer
           :samplerate double
           :sampledur  double
-          :data       float*
+          :data       void* ;float*
           :channels   i32
           :samples    i32
           :frames     i32
@@ -220,6 +220,7 @@
   "Get a an array of floats for the synthesis sound buffer with the given ID."
   [sc buf-id]
   (let [buf (byref sound-buffer)
-        changed? (byref bool-val)]
+        ;changed? (byref bool-val)]
+        changed? (java.nio.ByteBuffer/allocate 1)]
     (world-copy-sound-buffer (:world sc) buf-id buf 0 changed?)
-    buf))
+    (.getFloatArray (.data buf) 0 (.samples buf))))
