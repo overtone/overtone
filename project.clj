@@ -45,7 +45,7 @@
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/core.incubator "0.1.0"]
                  [org.clojure/data.json "0.1.2"]
-                 [clj-native "0.9.2-SNAPSHOT"]
+                 [clj-native "0.9.3-SNAPSHOT"]
                  [overtone/at-at "1.0.0"]
                  [overtone/osc-clj "0.8.1"]
                  [overtone/byte-spec "0.3.1"]

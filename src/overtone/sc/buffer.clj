@@ -3,7 +3,7 @@
         [overtone.libs event]
         [overtone.sc server info defaults]
         [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection comms]
+        [overtone.sc.machinery.server connection comms native]
         [overtone.sc server info]
         [overtone.helpers audio-file lib file]
         [overtone.sc.util :only [id-mapper]]))
@@ -407,7 +407,7 @@
   (when-not (internal-server?)
     (throw (Exception. (str "Only able to fetch buffer data directly from an internal server. Try #'buffer-read instead."))))
   (let [buf-id (buffer-id buf)
-        snd-buf (.getSndBufAsFloatArray @sc-world* buf-id)]
+        snd-buf (scsynth-get-buffer-data @sc-world* buf-id)]
     snd-buf))
 
 ;;TODO Check to see if this can be removed

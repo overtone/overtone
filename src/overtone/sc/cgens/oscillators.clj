@@ -13,4 +13,9 @@
 (defcgen square
   "A square wave generator"
   [freq {:default 440 :doc "Signal frequency"}]
+  "A square wave only exists in two states: high and low. This wave
+   produces only odd harmonics resulting in a mellow, hollow sound. This
+   makes it particularly suitable for emulating wind instruments, adding
+   width to strings and pads, or for the creation of deep, wide bass
+   sounds."
   (:ar (pulse:ar freq 0.5)))
