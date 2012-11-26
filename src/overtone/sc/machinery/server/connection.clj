@@ -151,14 +151,14 @@
 
   (connect)                      ;=> connect to an external server on
                                      localhost listening to the default
-                                     port for scsynth 57710
+                                     port for scsynth 57711
   (connect 55555)                ;=> connect to an external server on
                                      the localhost listening to port
                                      55555
-  (connect \"192.168.1.23\" 57110) ;=> connect to an external server with
+ (connect \"192.168.1.23\" 57711) ;=> connect to an external server with
                                      ip address 192.168.1.23 listening to
-                                     port 57110"
-  ([] (connect "127.0.0.1" 57110))
+                                     port 57711"
+  ([] (connect "127.0.0.1" 57711))
   ([port] (connect "127.0.0.1" port))
   ([host port]
      (.run (Thread. #(external-connection-runner host port)))))
@@ -178,7 +178,9 @@
     (dosync (ref-set sc-world* server)
             (alter connection-info* assoc :opts full-opts))
 
-    (scsynth-listen-udp server 57110)
+    (if (= 1 (:udp? full-opts))
+      (scsynth-listen-udp server (:port full-opts))
+      (scsynth-listen-tcp server (:port full-opts)))
     (log/info "The internal scsynth server has booted...")
     (satisfy-deps :internal-server-booted)
     (scsynth-run server)))
@@ -313,8 +315,8 @@
    (boot) ; uses the default settings defined in your config
    (boot :internal)       ; boots the internal server
    (boot :external)       ; boots an external server on a random port
-   (boot :external 57110) ; boots an external server listening on port
-                            57110"
+   (boot :external 57711) ; boots an external server listening on port
+                            577111"
   ([]                (boot (or (config-get :server) :internal) SERVER-PORT))
   ([connection-type] (boot connection-type SERVER-PORT))
   ([connection-type port] (boot connection-type port {}))

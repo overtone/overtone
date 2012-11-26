@@ -9,7 +9,7 @@
   "Default arguments for starting up a SuperCollider process. Does not
   include -u or -t which should be determined by analysing :port
   and :udp?."
-  {:port                     {:default 57710            :desc "Port number"}
+  {:port                     {:default 57711            :desc "Port number"}
    :udp?                     {:default 1                :desc "1 means use UDP, 0 means use TCP"}
    :max-control-bus          {:default 4096  :flag "-c" :desc "Number of control bus channels"}
    :max-audio-bus            {:default 128   :flag "-a" :desc "Number of audio bus channels"}
