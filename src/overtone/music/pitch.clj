@@ -284,7 +284,6 @@
      :hindu              [2 2 1 2 1 2 2]
      :iwato              [1 4 1 4 2]
      :melodic-minor      [2 1 2 2 2 2 1]
-     :harmonic-minor     [2 1 2 2 1 3 1]
      :diminished2        [2 1 2 1 2 1 2 1]
      :marva              [1 3 2 1 2 2 1]
      :melodic-major      [2 2 1 2 1 2 2]
