@@ -4,7 +4,7 @@
 (definst fm [carrier 440 divisor 2.0 depth 1.0]
   (let [modulator (/ carrier divisor)
         mod-env (env-gen (lin-env 1 0 1))
-        amp-env (env-gen (lin-env 0 1 1))]
+        amp-env (env-gen (lin-env 0 1 1) :action FREE)]
     (* amp-env
        (sin-osc (+ carrier
                    (* mod-env  (* carrier depth) (sin-osc modulator)))))))
