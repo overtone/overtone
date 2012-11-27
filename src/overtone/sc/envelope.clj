@@ -100,15 +100,18 @@
    results with the the output transitioning to the release node."
 
   ;;See prAsArray in supercollider/SCClassLibrary/Common/Audio/Env.sc
-  [levels durations & [curve release-node loop-node]]
-  (let [curve (or curve :linear)
-        reln  (or release-node -99)
-        loopn (or loop-node -99)
-        shapes (shape->id curve)
-        curves (curve-value curve)]
-    (apply vector
-           (concat [(first levels) (count durations) reln loopn]
-                   (interleave (rest levels) durations shapes curves)))))
+  ([levels durations]
+     (envelope levels durations :linear))
+  ([levels durations curve]
+     (envelope levels durations curve -99))
+  ([levels durations curve release-node]
+     (envelope levels durations curve release-node -99))
+  ([levels durations curve release-node loop-node]
+     (let [shapes (shape->id curve)
+           curves (curve-value curve)]
+       (apply vector
+              (concat [(first levels) (count durations) release-node loop-node]
+                      (interleave (rest levels) durations shapes curves))))))
 
 (defunk triangle
   "Create a triangle envelope description array suitable for use with the
