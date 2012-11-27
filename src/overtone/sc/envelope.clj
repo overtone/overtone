@@ -70,32 +70,34 @@
 
 (defn envelope
   "Create an envelope curve description array suitable for the env-gen ugen.
-   Requires a list of levels (the points that the envelope will pass through
-   and a list of durations (the duration in time of the lines between each
-   point).
+   Requires a list of levels (the points that the envelope will pass
+   through and a list of durations (the duration in time of the lines
+   between each point).
 
    Optionally a curve may be specified. This may be one of:
    * :step              - flat segments
    * :linear            - linear segments, the default
-   * :exponential       - natural exponential growth and decay. In this case,
-                          the levels must all be nonzero and the have the same
-                          sign.
+   * :exponential       - natural exponential growth and decay. In this
+                          case, the levels must all be nonzero and the have
+                          the same sign.
    * :sine              - sinusoidal S shaped segments.
-   * :welch             - sinusoidal segments shaped like the sides of a Welch
-                          window.
+   * :welch             - sinusoidal segments shaped like the sides of a
+                          Welch window.
    * a Float            - a curvature value to be repeated for all segments.
    * an Array of Floats - individual curvature values for each segment.
+                          Positive numbers curve the segment up whilst
+                          negative numbers curve the segment down.
 
    If a release-node is specified (an integer index) the envelope will sustain
    at the release node until released which occurs when the gate input of the
    env-gen is set to zero.
 
-   If a loop-node is specified (an integer index) the output will loop through
-   those nodes starting at the loop node to the node immediately preceeding the
-   release node, before back to the loop node, and so on. Note that the envelope
-   only transitions to the release node when released. The loop is escaped when
-   a gate signal is sent, which results with the the output transitioning to the
-   release node."
+   If a loop-node is specified (an integer index) the output will loop
+   through those nodes starting at the loop node to the node immediately
+   preceeding the release node, before back to the loop node, and so
+   on. Note that the envelope only transitions to the release node when
+   released. The loop is escaped when a gate signal is sent, which
+   results with the the output transitioning to the release node."
 
   ;;See prAsArray in supercollider/SCClassLibrary/Common/Audio/Env.sc
   [levels durations & [curve release-node loop-node]]
