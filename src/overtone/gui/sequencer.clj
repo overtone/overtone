@@ -224,11 +224,3 @@
   (let [rows (:rows @(:state s))
         rows (map (fn [row] [(:name (:inst row)) (:value row)]) rows)]
     (into {} rows)))
-
-(comment
-  (do (use 'overtone.live)
-      (use 'overtone.gui.sequencer)
-      (use 'overtone.gui.control)
-      (use 'overtone.inst.drum)
-      (def m (metronome 128))
-      (step-sequencer m 8 [kick closed-hat snare])))
