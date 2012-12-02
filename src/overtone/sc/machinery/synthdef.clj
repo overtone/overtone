@@ -153,7 +153,8 @@
   "Write a synth definition to a new file at the given path, which includes
   the name of the file itself.  (e.g. /home/rosejn/synths/bass.scsyndef)"
   [sdef path]
-  (spec-write-file synthdef-file-spec (synthdef-file sdef) path))
+  (let [path (resolve-tilde-path path)]
+    (spec-write-file synthdef-file-spec (synthdef-file sdef) path)))
 
 (defn synthdef-bytes
   "Produces a serialized representation of the synth definition understood
@@ -255,14 +256,14 @@
   "Create a ugen form."
   [ug]
   (let [uname (real-ugen-name ug)
-        ugen (get-ugen uname)
+        ugen  (get-ugen uname)
         uname (if (and
-                    (zero? (:special ug))
-                    (not= (:rate-name ug) (:default-rate ugen)))
+                   (zero? (:special ug))
+                   (not= (:rate-name ug) (:default-rate ugen)))
                 (str uname (:rate-name ug))
                 uname)
         uname (symbol uname)]
-  (apply list uname (:inputs ug))))
+    (apply list uname (:inputs ug))))
 
 (defn- ugen-constant-inputs
   "Replace constant ugen inputs with the constant values."
@@ -320,4 +321,3 @@
       (doseq [[uname uform] (drop 1 ugen-forms)]
         (println "       " uname uform))
       (println (str "       ]\n   " (first (last ugen-forms)) ")"))))
-

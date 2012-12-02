@@ -235,32 +235,77 @@
         rotate-ionian   (fn [offset]
                           (take ionian-len
                                 (drop offset (cycle ionian-sequence))))]
-  {:diatonic          ionian-sequence
-   :ionian            (rotate-ionian 0)
-   :major             (rotate-ionian 0)
-   :dorian            (rotate-ionian 1)
-   :phrygian          (rotate-ionian 2)
-   :lydian            (rotate-ionian 3)
-   :mixolydian        (rotate-ionian 4)
-   :aeolian           (rotate-ionian 5)
-   :minor             (rotate-ionian 5)
-   :locrian           (rotate-ionian 6)
-   :pentatonic        [2 3 2 2 3]
-   :major-pentatonic  [2 2 3 2 3]
-   :minor-pentatonic  [3 2 2 3 2]
-   :whole-tone        [2 2 2 2 2 2]
-   :chromatic         [1 1 1 1 1 1 1 1 1 1 1 1]
-   :harmonic-minor    [2 1 2 2 1 3 1]
-   :melodic-minor-asc [2 1 2 2 2 2 1]
-   :hungarian-minor   [2 1 3 1 1 3 1]
-   :octatonic         [2 1 2 1 2 1 2 1]
-   :messiaen1         [2 2 2 2 2 2]
-   :messiaen2         [1 2 1 2 1 2 1 2]
-   :messiaen3         [2 1 1 2 1 1 2 1 1]
-   :messiaen4         [1 1 3 1 1 1 3 1]
-   :messiaen5         [1 4 1 1 4 1]
-   :messiaen6         [2 2 1 1 2 2 1 1]
-   :messiaen7         [1 1 1 2 1 1 1 1 2 1]}))
+    {:diatonic           ionian-sequence
+     :ionian             (rotate-ionian 0)
+     :major              (rotate-ionian 0)
+     :dorian             (rotate-ionian 1)
+     :phrygian           (rotate-ionian 2)
+     :lydian             (rotate-ionian 3)
+     :mixolydian         (rotate-ionian 4)
+     :aeolian            (rotate-ionian 5)
+     :minor              (rotate-ionian 5)
+     :locrian            (rotate-ionian 6)
+     :major-pentatonic   [2 2 3 2 3]
+     :minor-pentatonic   [3 2 2 3 2]
+     :whole-tone         [2 2 2 2 2 2]
+     :whole              [2 2 2 2 2 2]
+     :chromatic          [1 1 1 1 1 1 1 1 1 1 1 1]
+     :harmonic-minor     [2 1 2 2 1 3 1]
+     :melodic-minor-asc  [2 1 2 2 2 2 1]
+     :hungarian-minor    [2 1 3 1 1 3 1]
+     :octatonic          [2 1 2 1 2 1 2 1]
+     :messiaen1          [2 2 2 2 2 2]
+     :messiaen2          [1 2 1 2 1 2 1 2]
+     :messiaen3          [2 1 1 2 1 1 2 1 1]
+     :messiaen4          [1 1 3 1 1 1 3 1]
+     :messiaen5          [1 4 1 1 4 1]
+     :messiaen6          [2 2 1 1 2 2 1 1]
+     :messiaen7          [1 1 1 2 1 1 1 1 2 1]
+     :super-locrian      [1 2 1 2 2 2 2]
+     :hirajoshi          [2 1 4 1 4]
+     :kumoi              [2 1 4 2 3]
+     :neapolitan-major   [1 2 2 2 2 2 1]
+     :bartok             [2 2 1 2 1 2 2]
+     :bhairav            [1 3 1 2 1 3 1]
+     :locrian-major      [2 2 1 1 2 2 2]
+     :gong               [2 2 3 2 3]
+     :hex-phrygian       [1 2 2 3 2 2]
+     :ahirbhairav        [1 3 1 2 2 1 2]
+     :yu                 [3 2 2 3 2]
+     :enigmatic          [1 3 2 2 2 1 1]
+     :neapolitan-minor   [1 2 2 2 1 3 1]
+     :pelog              [1 2 4 1 4]
+     :augmented2         [1 3 1 3 1 3]
+     :scriabin           [1 3 3 2 3]
+     :harmonic-major     [2 2 1 2 1 3 1]
+     :melodic-minor-desc [2 1 2 2 1 2 2]
+     :hex-dorian         [2 1 2 2 3 2]
+     :romanian-minor     [2 1 3 1 2 1 2]
+     :hindu              [2 2 1 2 1 2 2]
+     :iwato              [1 4 1 4 2]
+     :melodic-minor      [2 1 2 2 2 2 1]
+     :diminished2        [2 1 2 1 2 1 2 1]
+     :marva              [1 3 2 1 2 2 1]
+     :melodic-major      [2 2 1 2 1 2 2]
+     :indian             [4 1 2 3 2]
+     :hex-major6         [2 2 1 2 2 3]
+     :spanish            [1 3 1 2 1 2 2]
+     :prometheus         [2 2 2 5 1]
+     :diminished         [1 2 1 2 1 2 1 2]
+     :hex-aeolian        [3 2 2 1 2 2]
+     :ritusen            [2 3 2 2 3]
+     :hex-sus            [2 3 2 2 1 2]
+     :todi               [1 2 3 1 1 3 1]
+     :zhi                [2 3 2 2 3]
+     :leading-whole      [2 2 2 2 2 1 1]
+     :augmented          [3 1 3 1 3 1]
+     :shang              [2 3 2 3 2]
+     :jiao               [3 2 3 2 2]
+     :egyptian           [2 3 2 3 2]
+     :purvi              [1 3 2 1 1 3 1]
+     :hex-major7         [2 2 3 2 2 1]
+     :chinese            [4 2 1 4 1]
+     :lydian-minor       [2 2 2 1 1 2 2]}))
 
 (defn resolve-scale
   "Either looks the scale up in the map of SCALEs if it's a keyword or
