@@ -98,10 +98,8 @@
                         :background (color :white)
                         :paint #(paint-stepinator @state-atom %1 %2))]
       (listen c
-        :mouse-pressed #(log/with-error-log "stepinator on-pressed"
-                          (swap! state-atom on-press-drag %))
-        :mouse-dragged #(log/with-error-log "stepinator on-dragged"
-                          (swap! state-atom on-press-drag %)))
+        :mouse-pressed #(swap! state-atom on-press-drag %)
+        :mouse-dragged #(swap! state-atom on-press-drag %))
     c))
 
 (defn stepinator
@@ -142,7 +140,7 @@
                    :south (action :name "Stepinate"
                                   :handler (fn [_] (stepper (:steps @state-atom))))))
         (bind/bind state-atom (bind/b-do [_] (repaint! stepinator)))
-        (adjustment-popup :widget f :label "Value:" :bindable state-bindable)
+        (adjustment-popup :widget stepinator :label "Value:" :bindable state-bindable)
         (with-meta {:frame (-> f pack! show!)
                     :state state-atom }
                    {:type :stepinator})))))
