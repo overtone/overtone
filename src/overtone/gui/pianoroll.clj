@@ -104,7 +104,6 @@
       (listen piano-roll
               :mouse-pressed
               (fn [e]
-                (println "press: " (mouse-event->note-coords state e))
                 (swap! state* toggle-note (mouse-event->note-coords state e))))
       panel)
     (catch Exception e
