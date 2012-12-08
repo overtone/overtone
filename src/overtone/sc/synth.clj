@@ -703,3 +703,8 @@
   [synth]
   (doseq [param (:params synth)]
     (reset! (:value param) (:default param))))
+
+
+(defmacro with-no-ugen-checks [& body]
+  `(binding [overtone.sc.machinery.ugen.specs/*checking* false]
+     ~@body))
