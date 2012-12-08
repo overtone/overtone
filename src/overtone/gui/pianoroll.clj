@@ -145,7 +145,6 @@
 
         (doseq [[x y] (keys notes)]
           (when (= x index)
-            (print "inst: " (+ offset y))
             (at (metro beat) (inst (+ offset y)))))
 
         (apply-at (metro next-beat) #'piano-player
