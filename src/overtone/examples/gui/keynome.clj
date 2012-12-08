@@ -1,41 +1,34 @@
 (ns overtone.examples.gui.keynome
   (:use overtone.live)
-  (:import [java.awt GridLayout Dimension]
-           [java.awt.event ActionListener KeyListener KeyEvent]
-           [javax.swing JFrame JButton JPanel]))
+  (:require [seesaw [core :as sscore]
+                    [keymap :as sskeymap]]))
 
 (def keyboard
-  (let [cm (keyword ","), sl (keyword "/"), sc (keyword ";"),
-        mi (keyword "-"), lb (keyword "["), rb (keyword "]"),
-        qt (keyword "'")]
-    [:1 :2 :3 :4 :5 :6 :7 :8 :9 :0 mi
-     :q :w :e :r :t :y :u :i :o :p lb
-     :a :s :d :f :g :h :j :k :l sc qt
-     :z :x :c :v :b :n :m cm :. sl rb]))
+  [:1 :2 :3 :4 :5 :6 :7
+   :q :w :e :r :t :y :u
+   :a :s :d :f :g :h :j
+   :z :x :c :v :b :n :m ])
 
 (defn new-keynome []
-  (let [grid-layout (GridLayout. 4 11)
-        action-map (ref {})
-        buttons (for [kwd keyboard] (JButton. (str kwd)))
-        panel (JPanel.)
-        fire (fn [e am]
-               (let [key (str (.getKeyChar e))
-                     f (@am (keyword key))]
-                 (do (if f (f) (println "key" key "pressed, no action")))))
-        key-listener (proxy [KeyListener] []
-                       (keyPressed [e] (fire e action-map))
-                       (keyReleased [e] nil) (keyTyped [e] nil))
-        frame (JFrame. "kbdnome")]
-    (do (doall (for [b buttons] (do (.add panel b))))
-        (doto panel
-          (.setLayout grid-layout)
-          (.addKeyListener key-listener)
-          (.setFocusable true)
-          (.setFocusTraversalKeysEnabled false))
-        (.add (.getContentPane frame) panel)
-        (doto frame (.pack) (.setVisible true))
-        {:frame frame :action-map action-map
-         :buttons (apply hash-map (interleave keyboard buttons))})))
+  (let [action-map (ref {})
+        click-handler (fn [e]
+                        (let [key (keyword (sscore/config e :text))
+                              f (@action-map key)]
+                          (if f
+                            (f)
+                            (println "Key" key "pressed, no action"))))
+        buttons (for [kwd keyboard]
+                  (let [ b (sscore/button :text (name kwd))]
+                    (sscore/listen b :action click-handler)
+                    b))
+        panel (sscore/grid-panel :rows 4 :columns 7 :hgap 5 :vgap 5 :items buttons)
+        frame (sscore/frame :title "SeeSaw Keynome"
+                            :content panel)]
+    (doseq [btn buttons] (sskeymap/map-key frame (.toUpperCase (sscore/config btn :text)) btn :scope :global))
+    (-> frame sscore/pack! sscore/show!)
+    {:frame frame
+     :action-map action-map
+     :buttons (apply hash-map (interleave keyboard buttons))}))
 
 (defn set-actions [ & stuff]
   (let [am ((first stuff) :action-map)
