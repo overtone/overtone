@@ -35,8 +35,10 @@
 
 (defn- step-state
   "create the intitial state with the number of possible steps, width and height of the widget"
-  [num-steps num-slices width height]
-  {:steps      (vec (repeat num-steps 0))
+  [num-steps num-slices width height values]
+  {:steps      (if (empty? values)
+                 (vec (repeat num-steps 0))
+                 (vec values))
    :num-steps  num-steps
    :num-slices num-slices
    :width      width
@@ -78,15 +80,17 @@
 
 (defn- on-press-drag
   [state e]
-  (let [x (.getX e)
-        y (.getY e)
-        x-cell        (quot x (quot (width e) (:num-steps state)))
+  (let [x             (.getX e)
+        y             (.getY e)
+        w             (width e)
         h             (height e)
+        x-cell        (quot x (quot w (:num-steps state)))
         tick-height   (quot h (:num-slices state))
         current-value (- (quot (- h y) tick-height) (quot (:num-slices state) 2))]
-    (log/warn "y-cell: " current-value)
-    (assoc (assoc-in state [:steps x-cell] current-value)
-           :current-value current-value)))
+    (if (and (> x 0) (< x w) (> y 0) (< y h))
+      (assoc (assoc-in state [:steps x-cell] current-value)
+             :current-value current-value)
+      state)))
 
 (defn- stepinator-panel
   [state-atom]
@@ -119,11 +123,11 @@
   which, when clicked, will invoke the function with the curent state of
   stepinator.
   "
-  [& {:keys [steps slices width height stepper]
-      :or {steps 16 slices 20 width 300 height 150}}]
+  [& {:keys [steps slices width height stepper values]
+      :or {steps 16 slices 20 width 300 height 150 values []}}]
   (invoke-now
     (log/with-error-log "stepinator"
-      (let [state-atom    (atom (step-state steps slices width height))
+      (let [state-atom    (atom (step-state steps slices width height values))
             stepinator    (stepinator-panel state-atom)
             f             (frame :title    "Stepinator"
                                  :content  (border-panel
