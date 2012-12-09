@@ -9,37 +9,37 @@
   "Default arguments for starting up a SuperCollider process. Does not
   include -u or -t which should be determined by analysing :port
   and :udp?."
-  {:port                     {:default 57711            :desc "Port number"}
-   :udp?                     {:default 1                :desc "1 means use UDP, 0 means use TCP"}
-   :max-control-bus          {:default 4096  :flag "-c" :desc "Number of control bus channels"}
-   :max-audio-bus            {:default 128   :flag "-a" :desc "Number of audio bus channels"}
-   :max-input-bus            {:default 8     :flag "-i" :desc "Number of input bus channels"}
-   :max-output-bus           {:default 8     :flag "-o" :desc "Number of output bus channels"}
-   :block-size               {:default 64    :flag "-z" :desc "Block size"}
-   :hw-buffer-size           {:default nil   :flag "-Z" :desc "Hardware buffer size"}
-   :hw-sample-rate           {:default nil   :flag "-S" :desc "Hardware sample rate"}
-   :max-buffers              {:default 1024  :flag "-b" :desc "Number of sample buffers"}
-   :max-nodes                {:default 1024  :flag "-n" :desc "Max number of executing nodes allowed in the server"}
-   :max-sdefs                {:default 1024  :flag "-d" :desc "Max number of synthdefs allowed"}
+  {:port                     {:default 57711             :desc "Port number"}
+   :udp?                     {:default 1                 :desc "1 means use UDP, 0 means use TCP"}
+   :max-control-bus          {:default 4096   :flag "-c" :desc "Number of control bus channels"}
+   :max-audio-bus            {:default 128    :flag "-a" :desc "Number of audio bus channels"}
+   :max-input-bus            {:default 8      :flag "-i" :desc "Number of input bus channels"}
+   :max-output-bus           {:default 8      :flag "-o" :desc "Number of output bus channels"}
+   :block-size               {:default 64     :flag "-z" :desc "Block size"}
+   :hw-buffer-size           {:default nil    :flag "-Z" :desc "Hardware buffer size"}
+   :hw-sample-rate           {:default nil    :flag "-S" :desc "Hardware sample rate"}
+   :max-buffers              {:default 1024   :flag "-b" :desc "Number of sample buffers"}
+   :max-nodes                {:default 1024   :flag "-n" :desc "Max number of executing nodes allowed in the server"}
+   :max-sdefs                {:default 1024   :flag "-d" :desc "Max number of synthdefs allowed"}
    :rt-mem-size              {:default 262144 :flag "-m" :desc "Real time memory size"}
-   :max-w-buffers            {:default 64    :flag "-w" :desc "Number of wire buffers"}
-   :num-rand-seeds           {:default 64    :flag "-r" :desc "Number of random seeds"}
-   :load-sdefs?              {:default 1     :flag "-D" :desc "Load synthdefs on boot? 0 or 1"}
-   :rendezvous?              {:default 0     :flag "-R" :desc "Publish to rendezvous? 0 or 1"}
-   :max-logins               {:default 64    :flag "-l" :desc "Maximum number of named return addresses stored - also maximum number of txp connections accepted."}
-   :pwd                      {:default nil   :flag "-p" :desc "When using TCP, the session password must be the first command sent."}
-   :realtime?                {:default 1                :desc "Run in realtime mode? If 0 then the other nrt flags must be set"}
-   :nrt-cmd-filename         {:default nil              :desc "Command filename for non-realtime mode"}
-   :nrt-input-filename       {:default nil              :desc "Input filename for non-realtime mode"}
-   :nrt-output-filename      {:default nil              :desc "Output filename for non-realtime mode"}
-   :nrt-output-header-format {:default nil              :desc "Header format for non-realtime mode"}
-   :nrt-output-sample-format {:default nil              :desc "Sample format for non-realtime mode"}
-   :in-streams               {:default nil   :flag "-I" :desc "Input streams enabled"}
-   :out-streams              {:default nil   :flag "-O" :desc "Output streams enabled"}
-   :hw-device-name           {:default nil   :flag "-H" :desc "Hardware device name"}
-   :verbosity                {:default 0     :flag "-v" :desc "Verbosity mode. 0 is normal behaviour, -1 suppress information messages, -2 suppresses informational and many error messages"}
-   :ugens-paths              {:default nil   :flag "-U" :desc "A list of paths of ugen directories. If specified, the standard paths are NOT searched for plugins."}
-   :restricted-path          {:default nil   :flag "-P" :desc "Prevents file-accesing OSC commands from accessing files outside the specified path."}})
+   :max-w-buffers            {:default 64     :flag "-w" :desc "Number of wire buffers"}
+   :num-rand-seeds           {:default 64     :flag "-r" :desc "Number of random seeds"}
+   :load-sdefs?              {:default 1      :flag "-D" :desc "Load synthdefs on boot? 0 or 1"}
+   :rendezvous?              {:default 0      :flag "-R" :desc "Publish to rendezvous? 0 or 1"}
+   :max-logins               {:default 64     :flag "-l" :desc "Maximum number of named return addresses stored - also maximum number of txp connections accepted."}
+   :pwd                      {:default nil    :flag "-p" :desc "When using TCP, the session password must be the first command sent."}
+   :realtime?                {:default 1                 :desc "Run in realtime mode? If 0 then the other nrt flags must be set"}
+   :nrt-cmd-filename         {:default nil               :desc "Command filename for non-realtime mode"}
+   :nrt-input-filename       {:default nil               :desc "Input filename for non-realtime mode"}
+   :nrt-output-filename      {:default nil               :desc "Output filename for non-realtime mode"}
+   :nrt-output-header-format {:default nil               :desc "Header format for non-realtime mode"}
+   :nrt-output-sample-format {:default nil               :desc "Sample format for non-realtime mode"}
+   :in-streams               {:default nil    :flag "-I" :desc "Input streams enabled"}
+   :out-streams              {:default nil    :flag "-O" :desc "Output streams enabled"}
+   :hw-device-name           {:default nil    :flag "-H" :desc "Hardware device name"}
+   :verbosity                {:default 0      :flag "-v" :desc "Verbosity mode. 0 is normal behaviour, -1 suppress information messages, -2 suppresses informational and many error messages"}
+   :ugens-paths              {:default nil    :flag "-U" :desc "A list of paths of ugen directories. If specified, the standard paths are NOT searched for plugins."}
+   :restricted-path          {:default nil    :flag "-P" :desc "Prevents file-accesing OSC commands from accessing files outside the specified path."}})
 
 
 
