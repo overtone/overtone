@@ -48,7 +48,7 @@
   ugen at :kr. Throws an error if any of the args are nil."
   ([name value] (control-proxy name value :kr))
   ([name value rate-name]
-     (let [rate (if (= :tr)
+     (let [rate (if (= rate-name :tr)
                   (:kr RATES)
                   (rate-name RATES))]
        (if (or (nil? name)
