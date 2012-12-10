@@ -98,9 +98,10 @@
   true)
 
 (defcheck nth-input-number? [n]
-  (str "Input with index " n " must be a number or an ir ugen")
+  (str "Input with index " n " must be a number, control proxy or an ir ugen")
   (let [val (nth inputs n)]
     (or
+     (control-proxy? val)
      (number? val)
      (= :ir (:rate-name val)))))
 
