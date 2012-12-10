@@ -47,7 +47,7 @@
 ;; Silent buffer used to fill in the gaps.
 (defonce ^:private silent-buffer (buffer 0))
 
-(defonce ^:private index-buffer
+(defonce index-buffer
   (let [tab (note-index piano-samples piano-note-fn)
         buf (buffer 128)]
     (buffer-fill! buf (:id silent-buffer))
