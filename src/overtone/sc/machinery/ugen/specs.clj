@@ -129,11 +129,11 @@
   (let [cur-rate (REVERSE-RATES (:rate ugen))
         ugen-args (filter sc-ugen? (:args ugen))]
     (when-let [bad-input (some
-                        (fn [ug]
-                          (if (< (UGEN-RATE-SPEED cur-rate)
-                                 (UGEN-RATE-SPEED (get REVERSE-RATES (:rate ug))))
-                            ug false))
-                        ugen-args)]
+                          (fn [ug]
+                            (if (< (UGEN-RATE-SPEED cur-rate)
+                                   (UGEN-RATE-SPEED (get REVERSE-RATES (:rate ug))))
+                              ug false))
+                          ugen-args)]
       ;;special cases
       (when-not (or
                  ;; Special case the a2k ugen
@@ -162,7 +162,7 @@
               cur-rate-name (get HUMAN-RATES cur-rate)
               in-rate-name  (get HUMAN-RATES (:rate-name bad-input))]
           (throw (Exception.
-                  (format "Invalid ugen rate.  The %s ugen is %s rate, but it has a %s input ugen running at the faster %s rate.  Besides the a2k ugen and demand rate ugens (which are allowed kr inputs), all ugens must be the same speed or faster than their inputs."
+                  (format "Invalid ugen rate.  The %s ugen is %s rate, but it has a %s input ugen running at the faster %s rate.  Besides special cases, the a2k ugen and demand rate ugens (which are allowed kr inputs), all ugens must be the same speed or faster than their inputs."
                           ugen-name cur-rate-name
                           in-name in-rate-name))))))
     ;;simply return the ugen if there's no problem with rates
