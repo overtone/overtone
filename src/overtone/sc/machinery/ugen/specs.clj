@@ -150,7 +150,12 @@
                       (= :ar (:rate-name bad-input)))
                  ;; Special case Pitch ugen which may have ar ugens plugged into it
                  (and (= "Pitch" (:name ugen))
-                      (= :ar (:rate-name bad-input))))
+                      (= :ar (:rate-name bad-input)))
+
+                 ;; Special case LocalBuf which may have kr ugens plugged in
+                 ;; but further modifications aren't honoured
+                 (and (= "LocalBuf" (:name ugen))
+                      (= :kr (:rate-name bad-input))))
 
         (let [ugen-name     (real-ugen-name ugen)
               in-name       (real-ugen-name bad-input)
