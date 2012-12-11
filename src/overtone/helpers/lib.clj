@@ -186,10 +186,6 @@
                  (first args))))
       arg-map)))
 
-(defn arg-lister [args arg-names default-map]
-  (let [arg-map (arg-mapper args arg-names default-map)]
-    (vec (map arg-map arg-names))))
-
 (defmacro defunk [name docstring args & body]
   (let [arg-names (map first (partition 2 args))
         arg-keys (vec (map keyword arg-names))
