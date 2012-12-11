@@ -11,27 +11,29 @@
         [overtone.helpers lib]
         [overtone.libs event deps]
         [overtone.sc defaults server synth ugens buffer node foundation-groups]
+        [overtone.sc.cgens buf-io]
         [overtone.studio core util])
   (:require [clojure.set :as set]
             [overtone.config.log :as log]
             [overtone.at-at :as at-at]))
 
-(defonce SCOPE-BUF-SIZE 4096)
-(defonce FPS 10)
-(defonce scopes* (ref {}))
-(defonce scope-pool (at-at/mk-pool))
+(defonce scope-group*     (ref 0))
+(defonce scopes*          (ref {}))
+(defonce scope-pool       (at-at/mk-pool))
 (defonce scopes-running?* (ref false))
-(defonce WIDTH 600)
-(defonce HEIGHT 400)
-(defonce X-PADDING 5)
-(defonce Y-PADDING 10)
-(defonce scope-group* (ref 0))
 
-(on-deps :studio-setup-completed
-         ::create-scope-group #(dosync
-                                (ref-set scope-group*
-                                         (group "Scope" :tail (foundation-monitor-group)))
-                                (satisfy-deps :scope-group-created)))
+(defonce SCOPE-BUF-SIZE 2048) ; size must be a power of 2 for FFT
+(defonce FPS            10)
+(defonce WIDTH          600)
+(defonce HEIGHT         400)
+(defonce X-PADDING      5)
+(defonce Y-PADDING      10)
+
+(on-deps :studio-setup-completed ::create-scope-group
+  #(dosync
+     (ref-set scope-group*
+              (group "Scope" :tail (foundation-monitor-group)))
+     (satisfy-deps :scope-group-created)))
 
 (defn- ensure-internal-server!
   "Throws an exception if the server isn't internal - scope relies on
@@ -166,6 +168,37 @@
       :bus-synth bus-synth
       :buf buf)))
 
+
+(defsynth bus-freqs->buf
+  [in-bus 0 scope-buf 1 fft-buf-size 2048 rate 1 db-factor 0.02]
+  (let [phase     (- 1 (* rate (reciprocal fft-buf-size)))
+        fft-buf   (local-buf fft-buf-size 1)
+        n-samples (* 0.5 (- (buf-samples:ir fft-buf) 2))
+        signal    (in in-bus 1)
+        freqs     (fft fft-buf signal 0.75 HANN)
+        smoothed  (pv-mag-smear fft-buf 1)
+        indexer   (+ n-samples 2
+                     (* (lf-saw (/ rate (buf-dur:ir fft-buf)) phase)
+                        n-samples))
+        indexer   (round indexer 2)
+        src       (buf-rd 1 fft-buf indexer 1 1)
+        freq-vals (+ 1 (* db-factor (ampdb (* src 0.00285))))]
+    (record-buf freq-vals scope-buf)))
+
+
+(defn- start-bus-freq-synth
+  [bus buf]
+  (bus-freqs->buf :target @scope-group* bus buf))
+
+(defn- scope-bus-freq
+  [s]
+  (let [buf (buffer SCOPE-BUF-SIZE)
+        bus-synth (start-bus-freq-synth (:num s) buf)]
+    (assoc s
+      :size SCOPE-BUF-SIZE
+      :bus-synth bus-synth
+      :buf buf)))
+
 (defn- scope-buf
   "Set a buffer to view in the scope."
   [s]
@@ -247,6 +280,7 @@
 
     (case kind
           :bus (scope-bus scope)
+          :bus-freq (scope-bus-freq scope)
           :buf (scope-buf scope))))
 
 (defn scope
@@ -266,12 +300,25 @@
        (dosync (alter scopes* assoc (:id s) s))
        (scopes-start))))
 
+(defn spectrogram
+  "Create frequency scope for a bus.  Defaults to bus 0.
+   Example use:
+   (spectrogram :bus 1)"
+  ([&{:keys [bus keep-on-top]
+      :or {bus 0
+           keep-on-top false}}]
+     (ensure-internal-server!)
+     (let [s (mk-scope bus :bus-freq keep-on-top WIDTH HEIGHT)]
+       (dosync (alter scopes* assoc (:id s) s))
+       (scopes-start))))
+
 (defn pscope
-  "Creates a 'perminent' scope, i.e. one where the window is always kept
+  "Creates a 'permanent' scope, where the window is always kept
   on top of other OS windows. See scope."
   ([& args]
      (ensure-internal-server!)
      (apply scope (concat args [:keep-on-top true]))))
+
 
 (defn- reset-scopes
   "Restart scopes if they have already been running"
@@ -298,93 +345,50 @@
                               (map (fn [s] scope-close s) @scopes*))))
                ::stop-scopes)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Testing
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(comment
-  (require 'examples.basic)
-
-  (defonce test-frame (JFrame. "scope"))
-  (defonce _test-scope (do
-                         (.setPreferredSize test-panel (Dimension. 600 400))
-                         (.add (.getContentPane test-frame) test-panel)
-                         (.setScene test-panel (scope))
-                         (.pack test-frame)
-                         (.show test-frame)))
-
-  (defn- go-go-scope []
-    (let [b (buffer 2048)]
-      (Thread/sleep 100)
-      (scope-buf b)
-      (scope-on)
-      (examples.basic/sizzle :bus 20)
-      (bus->buf 20 (:id b))
-      (bus->bus 20 0)))
-
-  (defn- spectrogram [in-bus]
-    (let [fft-buf (buffer 2048)
-          buf (buffer 2048)]
-      (Thread/sleep 100)
-      (freq-scope-zero in-bus fft-buf buf)))
-
-  (defn test-scope []
-    (if (not (server-connected?))
-      (do
-        (boot-server)
-        (on :examples-ready go-go-scope))
-      (go-go-scope))
-    (.show test-frame))
-  )
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Spectragraph stuff to be worked on
-(comment
-                                        ; Note: The fft ugen writes into a buffer:
-                                        ; dc, nyquist, real, imaginary, real, imaginary....
-  (comment defn- update-scope []
-           (let [{:keys [buf width height panel]} @scope*
-                 frames  (buffer-data buf)
-                 n-reals (/ (- (:size buf) 2) 2)
-                 step    (int (/ n-reals width))
-                 y-scale (/ (- height (* 2 Y-PADDING)) 2)
-                 y-shift (+ (/ height 2) Y-PADDING)]
-             (dotimes [x width]
-               (aset ^ints y-array x
-                     (int (+ y-shift
-                             (* y-scale
-                                (aget ^floats frames
-                                      (+ 2 (* 2 (unchecked-multiply x step))))))))))
-           (.repaint (:panel @scope*)))
-
-  (defsynth freq-scope-zero [in-bus 0 fft-buf 0 scope-buf 1
-                             rate 4 phase 1 db-factor 0.02]
-    (let [n-samples (* 0.5 (- (buf-samples:kr fft-buf) 2))
-          signal (in in-bus)
-          freqs  (fft fft-buf signal 0.75 :hann)
-                                        ;        chain  (pv-mag-smear fft-buf 1)
-          phasor (+ (+ n-samples 2)
-                    (* n-samples
-                       (lf-saw (/ rate (buf-dur:kr fft-buf)) phase)))
-          phasor (round phasor 2)]
-      (scope-out (* db-factor (ampdb (* 0.00285 (buf-rd 1 fft-buf phasor 1 1))))
-                 scope-buf)))
-
-
-  (defsynth freqs [in-bus 10 fft-buf 0]
-    (let [n-samples (* 0.5 (- (buf-samples:kr fft-buf) 2))
-          signal    (in in-bus 1)]
-      (fft fft-buf signal 0.75 :hann)))
-
-
-
-  (defsynth scoper-outer [buf 0]
-    (scope-out (sin-osc 200) buf))
-  (scope-out)
-
-  (defn freq-scope-buf [buf]
-    )
-
-  )
+;; Note: The fft ugen writes into a buffer:
+;; dc, nyquist, real, imaginary, real, imaginary....
+;  (comment defn- update-scope []
+;           (let [{:keys [buf width height panel]} @scope*
+;                 frames  (buffer-data buf)
+;                 n-reals (/ (- (:size buf) 2) 2)
+;                 step    (int (/ n-reals width))
+;                 y-scale (/ (- height (* 2 Y-PADDING)) 2)
+;                 y-shift (+ (/ height 2) Y-PADDING)]
+;             (dotimes [x width]
+;               (aset ^ints y-array x
+;                     (int (+ y-shift
+;                             (* y-scale
+;                                (aget ^floats frames
+;                                      (+ 2 (* 2 (unchecked-multiply x step))))))))))
+;           (.repaint (:panel @scope*)))
+;
+;  (defsynth freq-scope-zero [in-bus 0 fft-buf 0 scope-buf 1
+;                             rate 4 phase 1 db-factor 0.02]
+;    (let [n-samples (* 0.5 (- (buf-samples:kr fft-buf) 2))
+;          signal (in in-bus)
+;          freqs  (fft fft-buf signal 0.75 :hann)
+;                                        ;        chain  (pv-mag-smear fft-buf 1)
+;          phasor (+ (+ n-samples 2)
+;                    (* n-samples
+;                       (lf-saw (/ rate (buf-dur:kr fft-buf)) phase)))
+;          phasor (round phasor 2)]
+;      (scope-out (* db-factor (ampdb (* 0.00285 (buf-rd 1 fft-buf phasor 1 1))))
+;                 scope-buf)))
+;
+;        SynthDef("freqScope0_shm", { arg in=0, fftBufSize = 2048, scopebufnum=1, rate=4, dbFactor = 0.02;
+;            var phase = 1 - (rate * fftBufSize.reciprocal);
+;            var signal, chain, result, phasor, numSamples, mul, add;
+;            var fftbufnum = LocalBuf(fftBufSize, 1);
+;            mul = 0.00285;
+;            numSamples = (BufSamples.ir(fftbufnum) - 2) * 0.5; // 1023 (bufsize=2048)
+;            signal = In.ar(in);
+;            chain = FFT(fftbufnum, signal, hop: 0.75, wintype:1);
+;            chain = PV_MagSmear(chain, 1);
+;            // -1023 to 1023, 0 to 2046, 2 to 2048 (skip first 2 elements DC and Nyquist)
+;            phasor = LFSaw.ar(rate/BufDur.ir(fftbufnum), phase, numSamples, numSamples + 2);
+;            phasor = phasor.round(2); // the evens are magnitude
+;            ScopeOut2.ar( ((BufRd.ar(1, fftbufnum, phasor, 1, 1) * mul).ampdb * dbFactor) + 1, scopebufnum, fftBufSize/rate);
+;        }
+;
