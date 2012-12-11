@@ -30,6 +30,12 @@
     extras.membrane
     ])
 
+(defn- spec-arg-names
+  "Returns a list of keywords representing the valid argument names for
+   the speified ugen spec"
+  [spec]
+  (map #(keyword (:name %)) (:args spec)))
+
 (defn- specs-from-namespaces
   "Gathers all ugen spec metadata (stored in the vars spec and specs-collide)
   from the specified namespaces into a single vector of maps.
@@ -123,7 +129,7 @@
                  (fun rate num-outs args ugen spec))]
 
     (if (string? result)
-      (throw (Exception. (str "Error in checker for ugen " (overtone-ugen-name (:name spec)) ":\n" result "\nUgen:\n" (with-out-str (pprint ugen)))))
+      (throw (Exception. (str "Error in checker for ugen " (overtone-ugen-name (:name spec)) ":\n" result "\nSupplied args: " (with-out-str (pr (:orig-args ugen))) "\nExpected arg keys: " (with-out-str (pr (spec-arg-names spec)))  "\nInterpreted args: " (with-out-str (pr (:arg-map ugen))) "\n\nUgen:\n"(with-out-str (pprint ugen)))))
       ugen)))
 
 (defn- check-arg-rates [spec ugen]
@@ -181,12 +187,6 @@
       :n-outputs n-outs
       :args args)))
 
-(defn- spec-arg-names
-  "Returns a list of keywords representing the valid argument names for
-   the speified ugen spec"
-  [spec]
-  (map #(keyword (:name %)) (:args spec)))
-
 (defn add-default-args [spec ugen]
   (let [args        (:args ugen)
         arg-names   (spec-arg-names spec)
@@ -194,7 +194,7 @@
                             (map :default (:args spec)))
         arg-map     (arg-mapper args arg-names default-map)
         arg-list    (vec (map arg-map arg-names))]
-    (assoc ugen :args arg-list :arg-map arg-map)))
+    (assoc ugen :args arg-list :arg-map arg-map :orig-args args)))
 
 (defn- append-seq-args
   "Handles argument modes :append-sequence and :append-sequence-set-num-outs,
