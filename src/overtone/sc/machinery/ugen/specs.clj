@@ -3,6 +3,7 @@
       :author "Jeff Rose"}
   overtone.sc.machinery.ugen.specs
   (:use [clojure.pprint]
+        [clojure.set :only [difference]]
         [overtone.helpers lib]
         [overtone.sc.machinery.ugen defaults common special-ops categories sc-ugen])
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
@@ -89,7 +90,7 @@
 (defn- placebo-ugen-checker-fn
   "The default ugen checker n (used if a :check key is not present in the ugen
   metadata). Simply returns nil."
-  [rate num-outs args spec] nil)
+  [rate num-outs args ugen spec] nil)
 
 (defn- with-checking-disabling [f ugen]
   (if *checking*
@@ -108,7 +109,7 @@
         num-outs (:n-outputs ugen)
 
         result (if (sequential? fun)
-                 (let [results (map #(% rate num-outs args spec) fun)]
+                 (let [results (map #(% rate num-outs args ugen spec) fun)]
                    (if (some string? results)
                      (reduce (fn [s el]
                                (if (string? el)
@@ -119,7 +120,7 @@
                              ""
                              results)
                      nil))
-                 (fun rate num-outs args spec))]
+                 (fun rate num-outs args ugen spec))]
 
     (if (string? result)
       (throw (Exception. (str "Error in checker for ugen " (overtone-ugen-name (:name spec)) ":\n" result "\nUgen:\n" (with-out-str (pprint ugen)))))
@@ -169,7 +170,7 @@
     ugen))
 
 (defn- with-num-outs-mode [spec ugen]
-  (let [args-specs (args-with-specs (:args ugen) spec :mode)
+  (let [args-specs    (args-with-specs (:args ugen) spec :mode)
         [args n-outs] (reduce (fn [[args n-outs] [arg mode]]
                                 (if (= :num-outs mode)
                                   [args arg]
@@ -180,12 +181,20 @@
       :n-outputs n-outs
       :args args)))
 
+(defn- spec-arg-names
+  "Returns a list of keywords representing the valid argument names for
+   the speified ugen spec"
+  [spec]
+  (map #(keyword (:name %)) (:args spec)))
+
 (defn add-default-args [spec ugen]
-  (let [args (:args ugen)
-        arg-names (map #(keyword (:name %)) (:args spec))
+  (let [args        (:args ugen)
+        arg-names   (spec-arg-names spec)
         default-map (zipmap arg-names
-                            (map :default (:args spec)))]
-    (assoc ugen :args (arg-lister args arg-names default-map))))
+                            (map :default (:args spec)))
+        arg-map     (arg-mapper args arg-names default-map)
+        arg-list    (vec (map arg-map arg-names))]
+    (assoc ugen :args arg-list :arg-map arg-map)))
 
 (defn- append-seq-args
   "Handles argument modes :append-sequence and :append-sequence-set-num-outs,
@@ -292,11 +301,30 @@
 
 (defn- sanity-checker-fn
   "Ensure all inputs are either a number or a gen. Return an error string if not"
-  [rate num-outs inputs spec]
+  [rate num-outs inputs ugen spec]
   (when (some #(and (not (number? %))
                     (not (sc-ugen? %)))
               inputs)
     (str "Error: after initialisation, not all inputs to this ugen were numbers or other ugens (inputs which are explicitly allowed to be other data types (i.e strings) will have been converted to numbers at this point): " (vec inputs))))
+
+(defn- arg-name-checker-fn
+  "Ensure that no extra arguments or arguments with unknown keys are
+   passed to a given ugen"
+  [rate num-outs inputs ugen spec]
+  (let [valid-arg-keys      (spec-arg-names spec)
+        extra-args          (difference (into #{} (keys (:arg-map ugen)))
+                                        (into #{} valid-arg-keys))
+        nil-present?        (contains? extra-args nil)
+        extra-args-sans-nil (filter identity extra-args)
+        error1              (if nil-present?
+                              (str "You supplied too many arguments. ")
+                              "")
+        error2              (if-not (empty? extra-args-sans-nil)
+                              (str "You supplied the following unexpected keys: " (apply str (interpose ", " extra-args-sans-nil)))
+                              "")
+        errors              (str error1 error2)]
+    (when-not (empty? errors)
+      errors)))
 
 (defn associative->id
   "Returns a function that converts any non sc-ugen associative arguments that
@@ -319,22 +347,23 @@
   If an init function is already present it will get called after doing the
   mapping and mode transformations."
   [spec]
-  (let [defaulter       (partial add-default-args spec)
-        mapper          (partial map-ugen-args spec)
-        init-fn         (if (contains? spec :init)
-                          (:init spec)
-                          placebo-ugen-init-fn)
-        initer          (partial with-ugen-metadata-init spec init-fn)
-        n-outputer      (partial with-num-outs-mode spec)
-        floater         (partial with-floated-args spec)
-        appender        (partial append-seq-args spec)
-        auto-rater      (partial auto-rate-setter spec)
-        rate-checker    (partial check-arg-rates spec)
-        checker-fn      (if (contains? spec :check)
-                          (:check spec)
-                          placebo-ugen-checker-fn)
-        bespoke-checker (partial with-ugen-checker-fn spec checker-fn)
-        sanity-checker  (partial with-ugen-checker-fn spec sanity-checker-fn)]
+  (let [defaulter        (partial add-default-args spec)
+        mapper           (partial map-ugen-args spec)
+        init-fn          (if (contains? spec :init)
+                           (:init spec)
+                           placebo-ugen-init-fn)
+        initer           (partial with-ugen-metadata-init spec init-fn)
+        n-outputer       (partial with-num-outs-mode spec)
+        floater          (partial with-floated-args spec)
+        appender         (partial append-seq-args spec)
+        auto-rater       (partial auto-rate-setter spec)
+        rate-checker     (partial check-arg-rates spec)
+        checker-fn       (if (contains? spec :check)
+                           (:check spec)
+                           placebo-ugen-checker-fn)
+        bespoke-checker  (partial with-ugen-checker-fn spec checker-fn)
+        sanity-checker   (partial with-ugen-checker-fn spec sanity-checker-fn)
+        arg-name-checker (partial with-ugen-checker-fn spec arg-name-checker-fn)]
 
     (assoc spec :init
 
@@ -351,7 +380,8 @@
                   (with-checking-disabling bespoke-checker)
                   associative->id
                   (with-checking-disabling rate-checker)
-                  (with-checking-disabling sanity-checker))))))
+                  (with-checking-disabling sanity-checker)
+                  (with-checking-disabling arg-name-checker))))))
 
 (defn- with-fn-names
   "Generates all the function names for this ugen and adds a :fn-names map

@@ -59,10 +59,10 @@
         params-with-message (conj params message)]
     `(defn ~name
        (~params
-        (fn ~'[rate num-outs inputs spec]
+        (fn ~'[rate num-outs inputs ugen spec]
           (when-not (do ~@exprs) (str ~default-message))))
        (~params-with-message
-        (fn ~'[rate num-outs inputs spec]
+        (fn ~'[rate num-outs inputs ugen spec]
           (when-not (do ~@exprs) (str ~message " -- " ~default-message)))))))
 
 (defcheck same-rate-as-first-input []
@@ -142,8 +142,8 @@
   they do, concatanate the errors and return them."
   [& check-fns]
   (let [all-checks (apply juxt check-fns)]
-    (fn [rate num-outs inputs spec]
-      (let [errors (all-checks rate num-outs inputs spec)]
+    (fn [rate num-outs inputs ugen spec]
+      (let [errors (all-checks rate num-outs inputs ugen spec)]
         (when-not (every? nil? errors)
           (apply str errors))))))
 
@@ -152,9 +152,9 @@
   [rate-name]
   (fn [& check-fns]
     (let [check-all-fn (apply mk-check-all check-fns)]
-      (fn [rate num-outs inputs spec]
+      (fn [rate num-outs inputs ugen spec]
         (when (= rate (RATES rate-name))
-          (check-all-fn rate num-outs inputs spec))))))
+          (check-all-fn rate num-outs inputs ugen spec))))))
 
 (defn when-ar
   "Takes a list of check fns and ensures they all pass if the ugen is :ar rate"
