@@ -7,6 +7,8 @@
         [overtone.sc.machinery.ugen defaults common special-ops categories sc-ugen])
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
 
+(def ^:dynamic *checking* true)
+
 (def UGEN-NAMESPACES
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
@@ -89,6 +91,11 @@
   metadata). Simply returns nil."
   [rate num-outs args spec] nil)
 
+(defn- with-checking-disabling [f ugen]
+  (if *checking*
+    (f ugen)
+    ugen))
+
 (defn- with-ugen-checker-fn
   "Calls the checker fn. If checker fn returns a string, throws an exception
   using the string as a message. Otherwise returns ugen unchanged. If the
@@ -122,11 +129,11 @@
   (let [cur-rate (REVERSE-RATES (:rate ugen))
         ugen-args (filter sc-ugen? (:args ugen))]
     (when-let [bad-input (some
-                        (fn [ug]
-                          (if (< (UGEN-RATE-SPEED cur-rate)
-                                 (UGEN-RATE-SPEED (get REVERSE-RATES (:rate ug))))
-                            ug false))
-                        ugen-args)]
+                          (fn [ug]
+                            (if (< (UGEN-RATE-SPEED cur-rate)
+                                   (UGEN-RATE-SPEED (get REVERSE-RATES (:rate ug))))
+                              ug false))
+                          ugen-args)]
       ;;special cases
       (when-not (or
                  ;; Special case the a2k ugen
@@ -143,14 +150,19 @@
                       (= :ar (:rate-name bad-input)))
                  ;; Special case Pitch ugen which may have ar ugens plugged into it
                  (and (= "Pitch" (:name ugen))
-                      (= :ar (:rate-name bad-input))))
+                      (= :ar (:rate-name bad-input)))
+
+                 ;; Special case LocalBuf which may have kr ugens plugged in
+                 ;; but further modifications aren't honoured
+                 (and (= "LocalBuf" (:name ugen))
+                      (= :kr (:rate-name bad-input))))
 
         (let [ugen-name     (real-ugen-name ugen)
               in-name       (real-ugen-name bad-input)
               cur-rate-name (get HUMAN-RATES cur-rate)
               in-rate-name  (get HUMAN-RATES (:rate-name bad-input))]
           (throw (Exception.
-                  (format "Invalid ugen rate.  The %s ugen is %s rate, but it has a %s input ugen running at the faster %s rate.  Besides the a2k ugen and demand rate ugens (which are allowed kr inputs), all ugens must be the same speed or faster than their inputs."
+                  (format "Invalid ugen rate.  The %s ugen is %s rate, but it has a %s input ugen running at the faster %s rate.  Besides special cases, the a2k ugen and demand rate ugens (which are allowed kr inputs), all ugens must be the same speed or faster than their inputs."
                           ugen-name cur-rate-name
                           in-name in-rate-name))))))
     ;;simply return the ugen if there's no problem with rates
@@ -327,19 +339,19 @@
     (assoc spec :init
 
            (fn [ugen]
-             (-> ugen
-                 defaulter
-                 mapper
-                 initer
-                 n-outputer
-                 floater
-                 appender
-                 auto-rater
-                 nil-arg-checker
-                 bespoke-checker
-                 associative->id
-                 rate-checker
-                 sanity-checker)))))
+             (->> ugen
+                  defaulter
+                  mapper
+                  initer
+                  n-outputer
+                  floater
+                  appender
+                  auto-rater
+                  (with-checking-disabling nil-arg-checker)
+                  (with-checking-disabling bespoke-checker)
+                  associative->id
+                  (with-checking-disabling rate-checker)
+                  (with-checking-disabling sanity-checker))))))
 
 (defn- with-fn-names
   "Generates all the function names for this ugen and adds a :fn-names map

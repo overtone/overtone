@@ -104,7 +104,6 @@
       (listen piano-roll
               :mouse-pressed
               (fn [e]
-                (println "press: " (mouse-event->note-coords state e))
                 (swap! state* toggle-note (mouse-event->note-coords state e))))
       panel)
     (catch Exception e
@@ -146,7 +145,6 @@
 
         (doseq [[x y] (keys notes)]
           (when (= x index)
-            (print "inst: " (+ offset y))
             (at (metro beat) (inst (+ offset y)))))
 
         (apply-at (metro next-beat) #'piano-player

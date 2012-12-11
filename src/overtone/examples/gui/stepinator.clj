@@ -2,16 +2,18 @@
   (:use overtone.live
         overtone.gui.stepinator))
 
-(def pstep (stepinator))
+(def example-steps [2 4 -5 -10 -10 2 -3 0])
+(def pstep (stepinator :steps 8 :values example-steps))
 
-;; Before evaluating this form, click around in the stepinator to create some
-;; settings.
+; Evaluate this form to hear the notes
 (demo 2
-      (let [note (duty (dseq [0.2 0.1] INF)
+      (let [note (duty (dseq [0.3 0.2] INF)
                        0
                        (dseq (map #(+ 60 %) (:steps @(:state pstep)))))
-            src (saw (midicps note))]
-        (* [0.2 0.2] src)))
+            freq (midicps note)
+            src  (sync-saw (* 0.5 freq) [freq (* 0.97 freq)])
+            filt (moog-ladder src (* freq 4) 0.3)]
+        (* filt)))
 
 ; Or give the stepinator a func to call and it will show a Stepinate button
 (stepinator
