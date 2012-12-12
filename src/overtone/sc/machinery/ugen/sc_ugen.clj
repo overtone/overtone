@@ -87,7 +87,8 @@
 
 (defn mappify-ugen
   "Converts all nested SCUgen records into maps creating a data
-   structure that can play more nicely with Clojure's functions"
+   structure that can play more nicely with Clojure's functions.
+   For debugging or visualising a ugen tree."
   [scug]
   (if (map? scug)
     (assoc
@@ -95,7 +96,8 @@
     scug))
 
 (defn simplify-ugen
-  "Turns SCUgen-tree into a simple map of maps and removes all specs"
+  "Turns SCUgen-tree into a simple map of maps and removes all specs.
+   For debugging or visualising a ugen tree."
   [scug]
   (if (map? scug)
     (assoc
