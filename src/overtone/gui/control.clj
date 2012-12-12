@@ -1,5 +1,6 @@
 (ns overtone.gui.control
   (:use [overtone.gui dial spinner-label]
+        [overtone.sc.node :only [ctl]]
         [seesaw core mig]
         [seesaw.border :only [line-border]])
   (:require [seesaw.bind :as bind]))
@@ -114,6 +115,27 @@
       ; so the ui can be garbage collected, etc.
       (listen frame :window-closed (fn [_] (cleanup)))
       (-> frame pack! show!))))
+
+(defn live-synth-controller
+  "Create a synth instance and attach a synth-controller to it.
+  Allows you to control the-synth interactively.
+
+  (defsynth foo [freq1 {:default 332 :min 200 :max 800 :step 1}
+                 freq2 {:default 333 :min 200 :max 800 :step 1}]
+     (out 0 (pan2 (mix [(lf-tri freq1) (lf-tri freq2)]))))
+
+  (live-synth-controller foo)"
+  [the-synth]
+  (let [the-instance (the-synth)
+        the-watchers (map 
+                      (fn [param] 
+                        (add-watch
+                         (:value param)
+                         (keyword (:name param)) 
+                         (fn [_ _ _ val] (ctl the-instance (keyword (:name param)) val))))
+                      (:params the-synth))
+        the-controller (synth-controller the-synth)]
+    (vector the-instance the-watchers the-controller)))
 
 (comment
   (use 'overtone.gui.control)
