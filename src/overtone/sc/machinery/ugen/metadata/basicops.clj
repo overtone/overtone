@@ -25,5 +25,6 @@
            {:name "add" :doc "Addition Value"}],
     :rates #{:dr :ir :ar :kr}
     :default-rate :auto
+    :check (same-rate-as-first-input)
     :doc "Multiply the input source by mul then add the add value. Equivalent to, but more efficient than,  (+ add (* mul in))"}
    ])
