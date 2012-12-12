@@ -211,7 +211,7 @@
   STDOUT for log messages."
   ([cmd] (external-booter cmd "."))
   ([cmd working-dir]
-     (log/debug "booting external audio server...")
+     (log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
      (let [working-dir (File. working-dir)
            proc        (.exec (Runtime/getRuntime) cmd nil working-dir)
            in-stream   (BufferedInputStream. (.getInputStream proc))
