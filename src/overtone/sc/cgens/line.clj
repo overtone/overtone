@@ -12,8 +12,8 @@
   ""
   (:ar (let [scale (/ (- dsthi dstlo) (- srchi srclo))
              offset (- dstlo (* scale srclo))]
-         (mul-add:ar in scale offset)))
+         (mul-add in scale offset)))
 
   (:kr (let [scale (/ (- dsthi dstlo) (- srchi srclo))
              offset (- dstlo (* scale srclo))]
-         (mul-add:kr in scale offset))))
+         (mul-add in scale offset))))
