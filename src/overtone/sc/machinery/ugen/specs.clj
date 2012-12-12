@@ -116,8 +116,12 @@
        (with-out-str (pr (:orig-args ugen)))
        "\nExpected arg keys: "
        (with-out-str (pr (spec-arg-names spec)))
-       "\nInterpreted args: "
-       (with-out-str (pr (:arg-map ugen)))))
+       "\nMerged args: "
+       (with-out-str (pr (:arg-map ugen)))
+       (when *debugging*
+         (str
+          "\nFinal arglist: "
+          (with-out-str (pr (:args ugen)))))))
 
 (defn- with-ugen-checker-fn
   "Calls the checker fn. If checker fn returns a string, throws an exception
