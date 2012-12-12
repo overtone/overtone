@@ -708,3 +708,7 @@
 (defmacro with-no-ugen-checks [& body]
   `(binding [overtone.sc.machinery.ugen.specs/*checking* false]
      ~@body))
+
+(defmacro with-ugen-debugging [& body]
+  `(binding [overtone.sc.machinery.ugen.specs/*debugging* true]
+     ~@body))

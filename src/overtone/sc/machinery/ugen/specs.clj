@@ -9,6 +9,7 @@
   (:require [overtone.sc.machinery.ugen.doc :as doc]))
 
 (def ^:dynamic *checking* true)
+(def ^:dynamic *debugging* false)
 
 (def UGEN-NAMESPACES
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
@@ -103,6 +104,21 @@
     (f ugen)
     ugen))
 
+(defn- with-debugging [f ugen]
+  (when *debugging*
+    (f ugen))
+  ugen)
+
+(defn- ugen-arg-info
+  "Returns a string with debug information about the ugen's arguments"
+  [spec ugen]
+  (str "Supplied args: "
+       (with-out-str (pr (:orig-args ugen)))
+       "\nExpected arg keys: "
+       (with-out-str (pr (spec-arg-names spec)))
+       "\nInterpreted args: "
+       (with-out-str (pr (:arg-map ugen)))))
+
 (defn- with-ugen-checker-fn
   "Calls the checker fn. If checker fn returns a string, throws an exception
   using the string as a message. Otherwise returns ugen unchanged. If the
@@ -129,7 +145,16 @@
                  (fun rate num-outs args ugen spec))]
 
     (if (string? result)
-      (throw (Exception. (str "Error in checker for ugen " (overtone-ugen-name (:name spec)) ":\n" result "\nSupplied args: " (with-out-str (pr (:orig-args ugen))) "\nExpected arg keys: " (with-out-str (pr (spec-arg-names spec)))  "\nInterpreted args: " (with-out-str (pr (:arg-map ugen))) "\n\nUgen:\n"(with-out-str (pprint ugen)))))
+      (throw (IllegalArgumentException. (str "Error in checker for ugen "
+                                             (overtone-ugen-name (:name spec))
+                                             ":\n"
+                                             result
+                                             "\n"
+                                             (ugen-arg-info spec ugen)
+                                             (when *debugging*
+                                               (str
+                                                "\n\nUgen:\n"
+                                                (with-out-str (pprint ugen)))))))
       ugen)))
 
 (defn- check-arg-rates [spec ugen]
@@ -292,12 +317,12 @@
                   (assoc arg :expands? expands?)))
               (:args spec))))
 
-(defn- nil-arg-checker
-  [ugen]
+(defn- nil-arg-checker-fn
+  [rate num-outs inputs ugen spec]
   (let [args (:args ugen)]
-    (when (some nil? args)
-      (throw (IllegalArgumentException. (str "Error - attempted to call the " (:name ugen) " ugen with one or more nil arguments. This usually happens when the ugen contains arguments without defaults which haven't been explicitly called. \nUgen:\n" (with-out-str (pprint args)))))))
-  ugen)
+    (if (some nil? args)
+      (str "Error - attempted to call the " (:name ugen) " ugen with one or more nil arguments. This usually happens when the ugen contains arguments without defaults which haven't been explicitly called. \nUgen:\n" (ugen-arg-info spec ugen))
+      ugen)))
 
 (defn- sanity-checker-fn
   "Ensure all inputs are either a number or a gen. Return an error string if not"
@@ -338,6 +363,20 @@
                        %)
                     args))))
 
+(defn- print-args-pre-processing [spec ugen]
+  (let [ug-name (overtone-ugen-name (:name spec))]
+    (println "==== Pre-Processing =====")
+    (println "Ugen " ug-name )
+    (println "Args: " (with-out-str (pr (:args ugen))))
+    (println "=========================\n")))
+
+(defn- print-args-post-processing [spec ugen]
+  (let [ug-name (overtone-ugen-name (:name spec))]
+    (println "==== Post-Processing ====")
+    (println "Ugen " ug-name )
+    (println (ugen-arg-info spec ugen))
+    (println "=========================\n")))
+
 (defn- with-init-fn
   "Creates the final argument initialization function which is applied to
   arguments at runtime to do things like re-ordering and automatic filling in
@@ -361,6 +400,7 @@
         checker-fn       (if (contains? spec :check)
                            (:check spec)
                            placebo-ugen-checker-fn)
+        nil-arg-checker  (partial with-ugen-checker-fn spec nil-arg-checker-fn)
         bespoke-checker  (partial with-ugen-checker-fn spec checker-fn)
         sanity-checker   (partial with-ugen-checker-fn spec sanity-checker-fn)
         arg-name-checker (partial with-ugen-checker-fn spec arg-name-checker-fn)]
@@ -369,6 +409,7 @@
 
            (fn [ugen]
              (->> ugen
+                  (with-debugging (partial print-args-pre-processing spec))
                   defaulter
                   mapper
                   initer
@@ -381,7 +422,8 @@
                   associative->id
                   (with-checking-disabling rate-checker)
                   (with-checking-disabling sanity-checker)
-                  (with-checking-disabling arg-name-checker))))))
+                  (with-checking-disabling arg-name-checker)
+                  (with-debugging (partial print-args-post-processing spec)))))))
 
 (defn- with-fn-names
   "Generates all the function names for this ugen and adds a :fn-names map
