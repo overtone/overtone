@@ -143,6 +143,18 @@
   (let [val (nth inputs n)]
     (input-stream? val)))
 
+(defcheck arg-is-sequential? [k]
+  (str "Argument with key " k " must be a sequence.")
+  (let [merged-args (:arg-map ugen)]
+    (sequential? (get merged-args k))))
+
+(defcheck arg-is-list-of-demand-ugens? [k]
+  (str "Argument with key " k " must be a list of ugens all at demand rate")
+  (let [merged-args  (:arg-map ugen)
+        demand-ugens (get merged-args k)]
+    (and (sequential? demand-ugens)
+         (every? #(= :dr (:rate-name %)) demand-ugens))))
+
 (defn- mk-check-all
   "Create a check-all fn which will check all the specified check-fns to see if
   they don't return errors (errors are represented as string return vals). If
