@@ -81,8 +81,8 @@
 
 (defn connect-external-server
   "Connect to an externally running SC audio server listening to port
-  on host.  Host defaults to localhost and port defaults to 57711."
-  ([] (connect-external-server 57711))
+  on host.  Host defaults to localhost and port defaults to 57710."
+  ([] (connect-external-server 57710))
   ([port] (connect-external-server "127.0.0.1" port))
   ([host port]
      (connect host port)
