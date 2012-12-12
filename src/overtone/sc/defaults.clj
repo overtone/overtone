@@ -70,6 +70,8 @@
   server for various operating systems."
   {:linux   {}
    :windows {}
-   :mac     {:ugens-paths  ["/Applications/SuperCollider/plugins"
+   :mac     {:ugens-paths  ["~/Library/Application Support/SuperCollider/Extensions/SC3plugins"
+                            "/Library/Application Support/SuperCollider/Extensions/SC3plugins"
+                            "/Applications/SuperCollider/plugins"
                             "/Applications/SuperCollider.app/Contents/Resources/plugins"
                             "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/plugins"]}})
