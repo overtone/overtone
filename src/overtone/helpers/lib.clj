@@ -307,6 +307,9 @@
 
   (overtone-ugen-name \"SinOsc\") ;=> \"sin-osc\""
   [n]
+  (when-not (string? n)
+    (throw (IllegalArgumentException. (str "Cannot convert non-string obj " (with-out-str (pr n)) " to an overtone ugen name"))))
+
   (let [n (.replaceAll n "([a-z])([A-Z])" "$1-$2")
         n (.replaceAll n "([a-z-])([0-9])([A-Z])" "$1$2-$3")
         n (.replaceAll n "([A-Z])([A-Z][a-z])" "$1-$2")
