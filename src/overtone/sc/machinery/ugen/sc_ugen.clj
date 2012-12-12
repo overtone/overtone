@@ -101,5 +101,5 @@
   [scug]
   (if (map? scug)
     (assoc
-        (dissoc (into {} scug) :spec) :args (map simplify-ugen (:args scug)))
+        (dissoc (into {} scug) :spec :arg-map :orig-args) :args (map simplify-ugen (:args scug)))
     scug))

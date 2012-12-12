@@ -158,7 +158,7 @@
                                              (when *debugging*
                                                (str
                                                 "\n\nUgen:\n"
-                                                (with-out-str (pprint ugen)))))))
+                                                (with-out-str (pprint (simplify-ugen ugen))))))))
       ugen)))
 
 (defn- check-arg-rates [spec ugen]
