@@ -13,7 +13,9 @@
   (= (:rate ug) rate-int))
 
 (defn name-of [obj]
-  (overtone-ugen-name (:name obj)))
+  (if (:name obj)
+    (overtone-ugen-name (:name obj))
+    (with-out-str (pr obj))))
 
 (defn name-of? [obj name]
   (= (name-of obj) name))
