@@ -6,7 +6,7 @@
 
 (defsynth pitch-controlled-saws
   [out-bus 0]
-  (let [p   (pitch (sound-in) )
+  (let [p   (pitch (sound-in))
         p   (/ p 4)
         p   (lag p 1)]
     (out out-bus (saw [p (+ p (* p 0.01))]))))
