@@ -66,7 +66,12 @@
           (when-not (do ~@exprs) (str ~message " -- " ~default-message)))))))
 
 (defcheck same-rate-as-first-input []
-  (str "Rate mismatch: "(name-of (first inputs)) " is at rate " (:rate-name (first inputs))  " yet the containing ugen is at " (REVERSE-RATES rate))
+  (str "Rate mismatch: "
+       (name-of (first inputs))
+       " is at rate "
+       (:rate-name (first inputs))
+       " yet the containing ugen is at "
+       (REVERSE-RATES rate))
   (= (:rate (first inputs)) rate))
 
 (defcheck first-input-ar []
