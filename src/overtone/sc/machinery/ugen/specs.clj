@@ -99,10 +99,6 @@
   metadata). Simply returns nil."
   [rate num-outs args ugen spec] nil)
 
-(defn- with-checking-disabling [f ugen]
-  (if *checking*
-    (f ugen)
-    ugen))
 
 (defn- with-debugging [f ugen]
   (when *debugging*
@@ -148,18 +144,21 @@
                      nil))
                  (fun rate num-outs args ugen spec))]
 
-    (if (string? result)
-      (throw (IllegalArgumentException. (str "Error in checker for ugen "
-                                             (overtone-ugen-name (:name spec))
-                                             ":\n"
-                                             result
-                                             "\n"
-                                             (ugen-arg-info spec ugen)
-                                             (when *debugging*
-                                               (str
-                                                "\n\nUgen:\n"
-                                                (with-out-str (pprint (simplify-ugen ugen))))))))
-      ugen)))
+    (when (string? result)
+      (let [error-message (str "Error in checker for ugen "
+                               (overtone-ugen-name (:name spec))
+                               ":\n"
+                               result
+                               "\n"
+                               (ugen-arg-info spec ugen)
+                               (when *debugging*
+                                 (str
+                                  "\n\nUgen:\n"
+                                  (with-out-str (pprint (simplify-ugen ugen))))))]
+        (if *checking*
+          (throw (IllegalArgumentException. error-message))
+          (println error-message))))
+    ugen))
 
 (defn- check-arg-rates [spec ugen]
   (let [cur-rate (REVERSE-RATES (:rate ugen))
@@ -421,12 +420,12 @@
                   floater
                   appender
                   auto-rater
-                  (with-checking-disabling nil-arg-checker)
-                  (with-checking-disabling bespoke-checker)
+                  nil-arg-checker
+                  bespoke-checker
                   associative->id
-                  (with-checking-disabling rate-checker)
-                  (with-checking-disabling sanity-checker)
-                  (with-checking-disabling arg-name-checker)
+                  rate-checker
+                  sanity-checker
+                  arg-name-checker
                   (with-debugging (partial print-args-post-processing spec)))))))
 
 (defn- with-fn-names
