@@ -71,17 +71,17 @@
         sample))))
 
 (defn load-sample
-  "Synchronously load a .wav or .aiff file into a memory buffer. Returns the
-  buffer.
+  "Synchronously load a .wav or .aiff file into a memory buffer. Returns
+   the buffer.
 
     ; e.g.
     (load-sample \"~/studio/samples/kit/boom.wav\")
 
-  Takes optional params :start and :size. Allocates buffer to number of channels
-  of file and number of samples requested (:size), or fewer if sound file is
-  smaller than requested. Reads sound file data from the given starting frame
-  in the file (:start). If the number of frames argument is less than or equal
-  to zero, the entire file is read."
+  Takes optional params :start and :size. Allocates buffer to number of
+  channels of file and number of samples requested (:size), or fewer if
+  sound file is smaller than requested. Reads sound file data from the
+  given starting frame in the file (:start). If the number of frames
+  argument is less than or equal to zero, the entire file is read."
   [path & args]
   (let [path (canonical-path path)]
     (if-let [sample (get @loaded-samples* [path args])]
@@ -92,10 +92,10 @@
           (apply load-sample* path args))))))
 
 (defn load-samples
-  "Takes a directoy path or glob path (see #'overtone.helpers.file/glob) and
-  loads up all matching samples and returns a seq of maps representing
-  information for each loaded sample (see load-sample). Samples should be in
-  .aiff or .wav format."
+  "Takes a directoy path or glob path (see #'overtone.helpers.file/glob)
+   and loads up all matching samples and returns a seq of maps
+   representing information for each loaded sample (see
+   load-sample). Samples should be in .aiff or .wav format."
   [& path-glob]
   (let [path  (apply mk-path path-glob)
         path  (resolve-tilde-path path)
@@ -133,9 +133,10 @@
     (free-loaded-sample loaded-sample)))
 
 (defn free-sample
-  "Free the buffer associated with smpl and the memory it consumes. Uses the
-  cached version from @loaded-samples* in case the server has crashed or been
-  rebooted. Also remove the sample from @loaded-samples."
+  "Free the buffer associated with smpl and the memory it consumes. Uses
+   the cached version from @loaded-samples* in case the server has
+   crashed or been rebooted. Also remove the sample from
+   @loaded-samples."
   [smpl]
   (assert sample? smpl)
   (let [path (:path smpl)
@@ -146,9 +147,9 @@
 
 (defn sample-player
   "Play the specified sample with either a mono or stereo player
-  depending on the number of channels in the sample. Accepts same args
-  as both players, namely:
-  [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]"
+   depending on the number of channels in the sample. Accepts same args
+   as both players, namely: [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol
+   1]"
   [smpl & pargs] {:pre [(sample? smpl)]}
   (let [{:keys [path args]}     smpl
         {:keys [id n-channels]} (get @loaded-samples* [path args])
