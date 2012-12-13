@@ -183,7 +183,6 @@
   the World pointer."
   ([recv-fn] (scsynth recv-fn {}))
   ([recv-fn options-map]
-     (println "setting up worldoptions")
      (let [options (byref world-options)
            cb      (callback reply-callback
                              (fn [addr msg-buf msg-size]

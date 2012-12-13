@@ -159,9 +159,9 @@
 (defn ensure-native-sc-args-valid!
   [args]
   (doseq [[k v] args]
-    (when (nil? v)
-      (println (str "Warning - native sc-arg " k " was nil"))
-;;      (throw (Exception. (str "Error - native sc-arg " k " was nil")))
+    (when (and (nil? v)
+               (not (= :mSharedControls k))) ;;:mSharedControls is allowed to be nil
+      (throw (Exception. (str "Error - native sc-arg " k " was nil")))
       ))
   args)
 
