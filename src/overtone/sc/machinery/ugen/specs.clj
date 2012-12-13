@@ -145,9 +145,9 @@
                  (fun rate num-outs args ugen spec))]
 
     (when (string? result)
-      (let [error-message (str "Error in checker for ugen "
+      (let [error-message (str "Error in checker for ugen ==> "
                                (overtone-ugen-name (:name spec))
-                               ":\n"
+                               "\n"
                                result
                                "\n"
                                (ugen-arg-info spec ugen)
