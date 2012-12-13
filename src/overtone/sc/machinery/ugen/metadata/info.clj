@@ -174,6 +174,7 @@
             :doc "if greater than 0, a '/tr' message is sent back to the
                   client (similar to SendTrig)"}]
 
+    :internal-name true
     :rates #{:ar :kr}
-    :doc "Print the current output value of a ugen.  (Returns its input
-          value, so it is trans parent to the signal path when debugging.)"}])
+    :doc "This ugen has been internalised for scserver
+          compatibility. Please use the poll cgen instead."}])

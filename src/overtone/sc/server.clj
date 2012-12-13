@@ -191,3 +191,10 @@
   []
   (when-not (server-connected?)
     (throw (Exception. "Server needs to be connected before you can perform this action."))))
+
+(on-sync-event [:overtone :osc-msg-received]
+               (fn [{{path :path args :args} :msg}]
+                 (let [poll-path "/overtone/internal/poll/"]
+                   (when (.startsWith path poll-path)
+                     (println "-->" (.substring path (count poll-path)) (nth args 2)))))
+               ::handle-incoming-poll-messages)
