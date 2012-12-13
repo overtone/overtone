@@ -10,7 +10,7 @@
 
 ;; The base handler for receiving osc messages just forwards the message on
 ;; as an event using the osc path as the event key.
-(on-sync-event :osc-msg-received
+(on-sync-event [:overtone :osc-msg-received]
                (fn [{{path :path args :args} :msg}]
                  (when @osc-debug*
                    (println "Receiving: " path args))
