@@ -343,7 +343,7 @@
         glis (+ bub (* 24 (lf-saw:kr 0.4 0)))
         freq (midicps glis)
         src (* 0.04 (sin-osc freq))
-        zout (comb-n src :decaytime 4)]
+        zout (comb-n src :decay-time 4)]
     zout))
 
 ; // Originally from the STK instrument models...
