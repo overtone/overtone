@@ -47,28 +47,29 @@
       (out out-bus (* vol
                       (scaled-v-disk-in 2 buf rate loop?))))))
 
-(defonce loaded-samples* (ref {}))
+(defonce loaded-samples* (atom {}))
+(defonce cached-samples* (atom {}))
 
 (defrecord Sample [id size n-channels rate allocated-on-server path args name])
 
 (defn- load-sample*
-  [path & args]
+  [path arg-map]
   (let [path (canonical-path path)
         f    (file path)]
     (when-not (.exists f)
       (throw (Exception. (str "Unable to load sample - file does not exist: " path))))
-    (let [arg-map  (apply hash-map args)
-          f-name   (or (:name args) (.getName f))
+    (let [f-name   (or (:name arg-map) (.getName f))
           start    (get arg-map :start 0)
           n-frames (get arg-map :size 0)
-          buf      (buffer-alloc-read path start n-frames)]
-      (let [sample (map->Sample
+          buf      (buffer-alloc-read path start n-frames)
+          sample   (map->Sample
                     (assoc buf
                       :path path
-                      :args args
+                      :args arg-map
                       :name f-name))]
-        (dosync (alter loaded-samples* assoc [path args] sample))
-        sample))))
+      (swap! cached-samples* assoc [path arg-map] sample)
+      (swap! loaded-samples* assoc (:id buf) sample)
+      sample)))
 
 (defn load-sample
   "Synchronously load a .wav or .aiff file into a memory buffer. Returns
@@ -81,15 +82,21 @@
   channels of file and number of samples requested (:size), or fewer if
   sound file is smaller than requested. Reads sound file data from the
   given starting frame in the file (:start). If the number of frames
-  argument is less than or equal to zero, the entire file is read."
+  argument is less than or equal to zero, the entire file is read.
+
+  If optional param :force is set to true, any previously create cache
+  of the sample will be removed and the sample will be forcibly
+  reloaded."
   [path & args]
-  (let [path (canonical-path path)]
-    (if-let [sample (get @loaded-samples* [path args])]
+  (ensure-connected!)
+  (let [args   (apply hash-map args)
+        force? (:force args)
+        args   (select-keys args [:start :size])
+        path   (canonical-path path)]
+    (if-let [sample (and (not force?)
+                         (get @cached-samples* [path args]))]
       sample
-      (do
-        (dosync (alter loaded-samples* assoc [path args] nil))
-        (if (server-connected?)
-          (apply load-sample* path args))))))
+      (load-sample* path args))))
 
 (defn load-samples
   "Takes a directoy path or glob path (see #'overtone.helpers.file/glob)
@@ -100,17 +107,18 @@
   (let [path  (apply mk-path path-glob)
         path  (resolve-tilde-path path)
         files (glob path)]
-    (doall
-     (map (fn [file]
-            (let [path (.getAbsolutePath file)]
-              (load-sample path)))
-          files))))
+    (doseq [file files]
+      (let [path (.getAbsolutePath file)]
+        (load-sample path))
+      files)))
 
-(defn- load-all-samples []
-  (doseq [[[path args] buf] @loaded-samples*]
-    (apply load-sample* path args)))
+(defn- reload-all-samples []
+  (reset! cached-samples* {})
+  (reset! loaded-samples* {})
+  (doseq [smpl (vals @loaded-samples*)]
+    (apply load-sample* (:path smpl) (:args smpl))))
 
-(on-deps :server-ready ::load-all-samples load-all-samples)
+(on-deps :server-ready ::load-all-samples reload-all-samples)
 
 (defn sample?
   "Returns true if s is a sample"
@@ -118,18 +126,19 @@
   (isa? (type s) ::sample))
 
 (defn- free-loaded-sample
-  [[[path args] buf]]
-  (if (server-connected?)
-    (do (buffer-free buf)
-        (dosync (alter loaded-samples*
-                       dissoc
-                       [path args])))))
+  [smpl]
+  (let [path (:path smpl)
+        args (:args smpl)]
+    (if (server-connected?)
+      (do (buffer-free smpl)
+          (swap! cached-samples* dissoc [path args])
+          (swap! loaded-samples* dissoc (:id smpl))))))
 
 (defn free-all-loaded-samples
   "Free all buffers associated with a loaded sample and the memory they
   consume. Also remove each sample from @loaded-samples once freed"
   []
-  (doseq [loaded-sample @loaded-samples*]
+  (doseq [loaded-sample (vals @loaded-samples*)]
     (free-loaded-sample loaded-sample)))
 
 (defn free-sample
@@ -139,11 +148,8 @@
    @loaded-samples."
   [smpl]
   (assert sample? smpl)
-  (let [path (:path smpl)
-        args (:args smpl)
-        buf  (get @loaded-samples* [path args])]
-    (free-loaded-sample [[path args] buf])
-    :sample-freed))
+  (free-loaded-sample smpl)
+  :sample-freed)
 
 (defn sample-player
   "Play the specified sample with either a mono or stereo player
@@ -152,7 +158,7 @@
    1]"
   [smpl & pargs] {:pre [(sample? smpl)]}
   (let [{:keys [path args]}     smpl
-        {:keys [id n-channels]} (get @loaded-samples* [path args])
+        {:keys [id n-channels]} (get @cached-samples* [path args])
         [target pos pargs]      (extract-target-pos-args pargs
                                                                (foundation-default-group)
                                                                :tail)]
