@@ -13,8 +13,7 @@
   #(timing (+ offset %)))
 
 (defn speed-up [metro factor]
-  (metro-bpm metro (* factor (metro-bpm metro)))
-  metro)
+  (fn [beat] (metro (/ beat factor))))
 
 (def base 60)
 (defn ground [note] (+ base note))
