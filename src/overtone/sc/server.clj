@@ -21,7 +21,7 @@
 (defn server-opts
   "Returns options for currently connected server (if available)"
   []
-  (opts @connection-info*))
+  (:opts @connection-info*))
 
 (defn server-connected?
   "Returns true if the server is currently connected"
