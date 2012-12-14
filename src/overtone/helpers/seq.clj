@@ -9,7 +9,10 @@
    (consecutive-ints? [1 2 3 4 5]) ;=> true
    (consecutive-ints? [1 2 3 5 4]) ;=> false"
   [s]
-  (apply = (map - (rest s) (seq s))))
+  (and
+   (sequential? s)
+   (every? integer? (seq s))
+   (apply = (map - (rest s) (seq s)))))
 
 (defn indexed
   "Takes a seq and returns a list of index val pairs for each successive val in
