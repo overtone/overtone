@@ -12,7 +12,7 @@
         [overtone.osc :only [in-osc-bundle without-osc-bundle]])
   (:require [overtone.config.log :as log]))
 
-(defn server-info
+(defn connection-info
   "Returns connection information regarding the currently connected
   server"
   []
@@ -36,12 +36,12 @@
 (defn internal-server?
   "Returns true if the server is internal"
   []
-  (= :internal (:connection-type (server-info))))
+  (= :internal (:connection-type (connection-info))))
 
 (defn external-server?
   "Returns true if the server is external"
   []
-  (= :external (:connection-type (server-info))))
+  (= :external (:connection-type (connection-info))))
 
 (defmacro at
   "All messages sent within the body will be sent in the same
