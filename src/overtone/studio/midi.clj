@@ -8,6 +8,7 @@
 (defonce MIDI-POOL (mk-pool))
 (defonce midi-devices* (atom {}))
 (defonce midi-control-agents* (atom {}))
+(defonce poly-players* (atom {}))
 
 (def EXCLUDED-DEVICES #{"Real Time Sequencer" "Java Sound Synthesizer"})
 
@@ -84,27 +85,30 @@
 
     (def dinger (midi-poly-player ding))
   "
-  [play-fn]
-  (let [notes*  (atom {})
-        on-key  (keyword (gensym 'note-on))
-        off-key (keyword (gensym 'note-off))]
+  ([play-fn] (midi-poly-player play-fn ::midi-poly-player))
+  ([play-fn key]
+     (let [notes*  (atom {})
+           on-key  [key :note-on]
+           off-key [key :note-off]]
+       (on-event [:midi :note-on] (fn [{note :note velocity :velocity}]
+                                    (let [velocity (float (/ velocity 127))]
+                                      (swap! notes* assoc note (play-fn :note note :velocity velocity))))
+                 on-key)
 
-    (on-event [:midi :note-on] (fn [{note :note velocity :velocity}]
-                                 (swap! notes* assoc note (play-fn note velocity)))
-              on-key)
+       (on-event [:midi :note-off] (fn [{note :note velocity :velocity}]
+                                     (let [velocity (float (/ velocity 127 ))]
+                                       (when-let [n (get @notes* note)]
+                                         (node-control n [:gate 0])
+                                         (swap! notes* dissoc note))))
+                 off-key)
 
-    (on-event [:midi :note-off] (fn [{note :note velocity :velocity}]
-                                  (when-let [n (get @notes* note)]
-                                    (node-control n [:gate 0])
-                                    (swap! notes* dissoc note)))
-              off-key)
-
-    ;; TODO listen for '/n_end' event for nodes that free themselves
-    ;; before recieving a note-off message.
-    {:notes* notes*
-     :on-key on-key
-     :off-key off-key
-     :status (atom :playing)}))
+       ;; TODO listen for '/n_end' event for nodes that free themselves
+       ;; before recieving a note-off message.
+       (let [player {:notes* notes*
+                     :on-key on-key
+                     :off-key off-key
+                     :playing? (atom true)}]
+         (swap! poly-players* assoc key player)))))
 
 (defn- midi-control-handler
   [state-atom handler mapping msg]
@@ -135,13 +139,19 @@
               #(midi-control-handler state-atom handler mapping %)
               ctl-key)))
 
-; TODO: remove-handler doesn't seem to work... ask Sam
-(defn stop-midi-player
-  [player]
-  (remove-handler (:on-key player))
-  (remove-handler (:off-key player))
-  (reset! (:status player) :stopped)
-  player)
+(defn midi-player-stop
+  ([]
+     (remove-handler [::midi-poly-player :note-on])
+     (remove-handler [::midi-poly-player :note-off]))
+  ([player-or-key]
+     (if (keyword? player-or-key)
+       (midi-player-stop (get @poly-players* player-or-key))
+       (do
+         (remove-handler (:on-key player-or-key))
+         (remove-handler (:off-key player-or-key))
+         (reset! (:playing? player-or-key) false)
+         (swap! poly-players* dissoc player-or-key)
+         player-or-key))))
 
 
 (defn midi-capture-next-control-input
