@@ -146,16 +146,16 @@
   (handlers/add-one-shot-sync-handler! handler-pool event-type key handler))
 
 (defn remove-handler
-  "Remove an event handler previously registered to handle events of
-  event-type.  Removes both sync and async handlers with a given key
-  for a particular event type.
+  "Remove an event handler previously registered with specified
+   key. Removes both sync and async handlers with a given key for a
+   particular event type.
 
   (defn my-foo-handler [event] (do-stuff (:val event))
 
   (on-event :foo my-foo-handler ::bar-key)
   (event :foo :val 200) ; my-foo-handler gets called with:
                         ; {:event-type :foo :val 200}
-  (remove-handler :foo ::bar-key)
+  (remove-handler ::bar-key)
   (event :foo :val 200) ; my-foo-handler no longer called"
   [key]
   (let [[old new] (swap-returning-prev! lossy-workers* dissoc key)]
