@@ -112,7 +112,7 @@
                  off-key)
 
        ;; TODO listen for '/n_end' event for nodes that free themselves
-       ;; before recieving a note-off message.
+       ;; before receiving a note-off message.
        (let [player {:notes* notes*
                      :on-key on-key
                      :off-key off-key

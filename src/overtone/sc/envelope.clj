@@ -97,7 +97,7 @@
    preceeding the release node, before back to the loop node, and so
    on. Note that the envelope only transitions to the release node when
    released. The loop is escaped when a gate signal is sent, which
-   results with the the output transitioning to the release node."
+   results in the output transitioning to the release node."
 
   ;;See prAsArray in supercollider/SCClassLibrary/Common/Audio/Env.sc
   ([levels durations]

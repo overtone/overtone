@@ -23,7 +23,7 @@
   (Integer. (System/getProperty "sun.arch.data.model")))
 
 (defn classpath-seq
-  "Return the the classpath as a seq"
+  "Return the classpath as a seq"
   []
   (map (memfn getPath)
        (seq (.getURLs (.getClassLoader clojure.lang.RT)))))

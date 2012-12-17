@@ -99,7 +99,7 @@
       (load-sample* path args))))
 
 (defn load-samples
-  "Takes a directoy path or glob path (see #'overtone.helpers.file/glob)
+  "Takes a directory path or glob path (see #'overtone.helpers.file/glob)
    and loads up all matching samples and returns a seq of maps
    representing information for each loaded sample (see
    load-sample). Samples should be in .aiff or .wav format."
