@@ -43,7 +43,7 @@
   (when (server-disconnected?)
     (throw (Exception. "Cannot use scopes until a server has been booted or connected")))
   (when (external-server?)
-    (throw (Exception. (str "Sorry, it's  only possible to use scopes with an internal server. Your server connection info is as follows: " (connection-info))))))
+    (throw (Exception. (str "Sorry, it's only possible to use scopes with an internal server. Your server connection info is as follows: " (connection-info))))))
 
 (defn- update-scope-data
   "Updates the scope by reading the current status of the buffer and repainting.

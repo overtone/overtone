@@ -93,7 +93,7 @@
            {:name "curve"
             :default 0
             :doc "demand ugen (or other ugen) returning curve values -
-                  if shape is 5, this is the curve factor. Thee possible
+                  if shape is 5, this is the curve factor. The possible
                   values are: 0 - flat segments, 1 - linear segments,
                   the default, 2 - natural exponential growth and
                   decay. In this case, the levels must all be nonzero
@@ -397,5 +397,5 @@
     :doc "Print the value of an input demand ugen. The print-out is in
           the form: label: value block offset: offset.
 
-          WARNING: Printing values from the Server in intensive for the
+          WARNING: Printing values from the Server is intensive for the
           CPU. Poll should be used for debugging purposes."}])

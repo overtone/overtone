@@ -31,7 +31,7 @@
 (defsynth my-sin [freq 440]
   (out 0 (pan2 (sin-osc freq))))
 
-; play the sin wave at a couple frequences
+; play the sin wave at different frequencies
 (my-sin)     ; uses the default
 (my-sin 220) ; an octave lower
 (my-sin 447)

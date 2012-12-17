@@ -93,7 +93,7 @@
 
            {:name "radius"
             :default 0.8
-            :doc "radios of zero"}]
+            :doc "radius of zero"}]
 
     :check (nth-input-stream? 0)
     :doc "a two zero filter"
@@ -376,11 +376,11 @@
     :check (nth-input-stream? 0)
 
     :doc "A resonant high pass filter lets through the frequencies above
-          the cutoff point and successfily dampens the frequencies below
+          the cutoff point and successfully dampens the frequencies below
           the cutoff point. This effectively removes the fundamental
           frequency of the sound, leaving only the fizz harmonic
           overtones. However, in addition to this behaviour, the
-          resonant low pass filter also emphasises/resonates the
+          resonant high pass filter also emphasises/resonates the
           frequencies around the cutoff point. The amount of emphasis
           is controlled by the rq param with a lower rq resulting in
           greater resonance. High amounts of resonance (rq ~0) can
@@ -388,7 +388,7 @@
 
           High pass filters are rarely used in the creation of
           instruments and are predominantly used to create effervescent
-          sound effects of bright tibres that can be laid over the top
+          sound effects of bright timbres that can be laid over the top
           of another low pass sound to increase the harmonic content."
     :auto-rate true}
 
@@ -426,14 +426,14 @@
 
     :check (nth-input-stream? 0)
     :doc "A high pass filter lets through the frequencies above the
-          cutoff point and successfily dampens the frequencies below the
+          cutoff point and successfully dampens the frequencies below the
           cutoff point. This effectively removes the fundamental
           frequency of the sound, leaving only the fizz harmonic
           overtones.
 
           High pass filters are rarely used in the creation of
           instruments and are predominantly used to create effervexcent
-          sound effects of bright tibres that can be laid over the top
+          sound effects of bright timbres that can be laid over the top
           of another low pass sound to increase the harmonic content."
     :auto-rate true}
 
@@ -455,7 +455,7 @@
     :check (nth-input-stream? 0)
     :doc "A band pass filter permits the frequencies around a specified
           centre frequency to pass unaltered through the filter while
-          the frequencies either side are attenuated. The frequences
+          the frequencies either side are attenuated. The frequencies
           that pass through are known as the bandwidth or the band pass
           of the filter.
 
