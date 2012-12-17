@@ -56,7 +56,7 @@
 
 (defmulti inst-fx!
   "Append an effect to an instrument channel. Returns a SynthNode or a
-  vector of SynthNodes representing the the effect instance."
+  vector of SynthNodes representing the effect instance."
   inst-channels)
 
 (defmethod inst-fx! :mono

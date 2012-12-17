@@ -24,11 +24,11 @@
              a form which can be used efficiently by the Oscillator.
              The buffer size must be a power of 2.
 
-             This can be acheived by creating a Buffer object and
+             This can be achieved by creating a Buffer object and
              sending it one of the b_gen messages ( sine1, sine2, sine3
              ) with the wavetable flag set to true.
 
-             This can also be acheived by creating a Signal object and
+             This can also be achieved by creating a Signal object and
              sending it the 'asWavetable' message, saving it to disk,
              and having the server load it from there." }
 
@@ -53,11 +53,11 @@
              a form which can be used efficiently by the Oscillator.
              The buffer size must be a power of 2.
 
-             This can be acheived by creating a Buffer object and
+             This can be achieved by creating a Buffer object and
              sending it one of the b_gen messages (sine1, sine2, sine3)
              with the wavetable flag set to true.
 
-             This can also be acheived by creating a Signal object and
+             This can also be achieved by creating a Signal object and
              sending it the 'asWavetable' message, saving it to disk,
              and having the server load it from there." }
 
@@ -81,7 +81,7 @@
              of the fundamental frequency. This means that they're not
              suitable for subtractive synthesis i.e. passing through
              filters such as a hpf or lpf. However, they are useful for
-             additative synthesis i.e. adding multiple sine waves
+             additive synthesis i.e. adding multiple sine waves
              together at different frequencies, amplitudes and phase to
              create new timbres." }
 

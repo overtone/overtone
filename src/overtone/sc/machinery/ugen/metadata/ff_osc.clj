@@ -90,7 +90,7 @@
        :args [{:name "freq", :default 440.0 :doc "Frequency in Hertz (control rate)."}],
        :rates #{:ar}
        :summary "band limited sawtooth wave generator"
-       :doc "The sawtooth wave projeces even and odd harmonics in series
+       :doc "The sawtooth wave produces even and odd harmonics in series
              and therefore produces a bright sound that is an excellent
              starting point for brassy, raspy sounds. It's also suitable
              for creating the gritty, bright sounds needed for leads and
@@ -103,13 +103,13 @@
        :rates #{:ar}
        :summary "band limited pulse wave generator with pulse width modulation."
        :doc "Pulse waves are a general form of square wave that allow
-             for the width of the pulses ot be varied. A square wave is
+             for the width of the pulses to be varied. A square wave is
              therefore a pulse with a width of 0.5 i.e. the width of the
              high and low states is identical.
 
              Adjusting the ratio of the pulse width will vary the
              harmonic content of the sound. For example, reductions in
-             the width allow you to produce thin reed-like tibres along
+             the width allow you to produce thin reed-like timbres along
              with the wide, hollow sounds created by a square wave." }
 
 
