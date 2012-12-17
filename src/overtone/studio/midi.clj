@@ -100,14 +100,14 @@
            on-key  [key :note-on]
            off-key [key :note-off]]
        (on-event [:midi :note-on] (fn [{note :note velocity :velocity}]
-                                    (let [velocity (float (/ velocity 127))]
-                                      (swap! notes* assoc note (play-fn :note note :velocity velocity))))
+                                    (let [amp (float (/ velocity 127))]
+                                      (swap! notes* assoc note (play-fn :note note :amp amp :velocity velocity))))
                  on-key)
 
        (on-event [:midi :note-off] (fn [{note :note velocity :velocity}]
                                      (let [velocity (float (/ velocity 127 ))]
                                        (when-let [n (get @notes* note)]
-                                         (node-control n [:gate 0])
+                                         (node-control n [:gate 0 :after-touch velocity])
                                          (swap! notes* dissoc note))))
                  off-key)
 
