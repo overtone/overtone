@@ -1,25 +1,25 @@
-(ns overtone.examples.instruments.guitar
+(ns overtone.examples.instruments.external
   (:use overtone.live))
 
 ; Depending on your audio setup (external interfaces, etc...) you might need
 ; to try a couple different buses before finding what you are looking for.
 ; Start at index zero and go upward.
 
-(definst guitar
+(definst external
   []
   (sound-in 0))
 
-; Start routing the guitar to the mixer
-(guitar)
+; Start routing the external input to the mixer
+(external)
 
 ; Checkout the built-in fx in overtone/studio/fx.clj
 
 ; add fx to an instrument chain with inst-fx
-(inst-fx! guitar fx-distortion2)
-(inst-fx! guitar fx-reverb)
+(inst-fx! external fx-distortion2)
+(inst-fx! external fx-reverb)
 
 ; keep an fx instance id if you want to control it later
-(def lowpass (inst-fx! guitar fx-rlpf))
+(def lowpass (inst-fx! external fx-rlpf))
 
 ; adjust the cutoff frequency by sending ctl messages to the fx synth
 ;(ctl lowpass :cutoff 10000)
@@ -27,6 +27,6 @@
 ;(ctl lowpass :cutoff 100)
 
 ; remove all the fx
-(clear-fx guitar)
+(clear-fx external)
 
 ; you can't remove or insert fx currently, so you have to clear and add them again
