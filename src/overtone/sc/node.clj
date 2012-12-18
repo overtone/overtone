@@ -149,9 +149,12 @@
 ;; n_end event when a synth node is destroyed.
 
 (defn node?
-  "Returns true if obj is a synth node."
+  "Returns true if obj is a synth node i.e. a SynthNode or a
+   SynthGroup."
   [obj]
-  (= overtone.sc.node.SynthNode (type obj)))
+  (or
+   (= overtone.sc.node.SynthNode (type obj))
+   (= overtone.sc.node.SynthGroup (type obj))))
 
 
 (defn live-node?
