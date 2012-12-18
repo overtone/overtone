@@ -227,7 +227,7 @@
   (to-synth-id [_] id))
 
 (defmethod print-method SynthGroup [s-group w]
-  (.write w (format "#<synth-node[%s]: %s %d>" (:group s-group) (:id s-group))))
+  (.write w (format "#<synth-group[%s]: %s %d>" (name @(:status s-group)) (:group s-group) (:id s-group))))
 
 (defn group
   "Create a new synth group as a child of the target group. By default
