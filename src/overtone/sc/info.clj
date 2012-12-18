@@ -7,10 +7,10 @@
         [overtone.helpers lib]))
 
 (defonce output-bus-count* (atom nil))
-(defonce input-bus-count* (atom nil))
-(defonce audio-bus-count* (atom nil))
-(defonce buffer-count* (atom nil))
-(defonce sample-rate* (atom nil))
+(defonce input-bus-count*  (atom nil))
+(defonce audio-bus-count*  (atom nil))
+(defonce buffer-count*     (atom nil))
+(defonce sample-rate*      (atom nil))
 
 (defonce __SERVER-INFO__
   (defsynth snd-server-info

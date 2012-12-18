@@ -102,7 +102,8 @@
   (to-synth-id [this] (:id this)))
 
 (defmethod print-method SynthNode [s-node w]
-  (.write w (format "#<synth-node: %s %d>" (:synth s-node) (:id s-node))))
+  (.write w (format "#<synth-node[%s]: %s %d>"
+                    (name @(:status s-node)) (:synth s-node) (:id s-node))))
 
 (defonce active-synth-nodes* (atom {}))
 
@@ -147,13 +148,25 @@
 ;; The synth server sends an n_go event when a synth node is created and an
 ;; n_end event when a synth node is destroyed.
 
+(defn node?
+  "Returns true if obj is a synth node."
+  [obj]
+  (= overtone.sc.node.SynthNode (type obj)))
+
+
+(defn live-node?
+  "Returns true if n is an active synth node."
+  [n]
+  (and (node? n) (= :live @(:status n))))
+
 (defn node-free*
   "Free the specified nodes on the server. The allocated id is
   subsequently freed from the allocator via a callback fn listening
   for /n_end which will call node-destroyed."
   [node]
   {:pre [(server-connected?)]}
-  (snd "/n_free" (to-synth-id node)))
+  (when (live-node? node)
+    (snd "/n_free" (to-synth-id node))))
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
@@ -214,7 +227,7 @@
   (to-synth-id [_] id))
 
 (defmethod print-method SynthGroup [s-group w]
-  (.write w (format "#<synth-node: %s %d>" (:group s-group) (:id s-group))))
+  (.write w (format "#<synth-node[%s]: %s %d>" (:group s-group) (:id s-group))))
 
 (defn group
   "Create a new synth group as a child of the target group. By default
@@ -292,7 +305,9 @@
   [node name-values]
   (ensure-connected!)
   (let [node-id (to-synth-id node)]
-    (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
+    (if (live-node? node)
+      (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
+      (throw (Exception. (str "Trying to control a synth node that has been destroyed: " node))))
     node-id))
 
 (defn node-get-control

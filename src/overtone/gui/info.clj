@@ -1,6 +1,7 @@
 (ns overtone.gui.info
   (:use overtone.libs.event
-        [overtone.sc info server mixer]
+        [overtone.sc info server]
+        [overtone.studio mixer]
         [seesaw core border table chooser color])
   (:require [seesaw.bind :as bind]))
 

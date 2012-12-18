@@ -33,7 +33,7 @@
 
 (defn- spec-arg-names
   "Returns a list of keywords representing the valid argument names for
-   the speified ugen spec"
+   the specified ugen spec"
   [spec]
   (map #(keyword (:name %)) (:args spec)))
 
@@ -356,7 +356,7 @@
 
 (defn associative->id
   "Returns a function that converts any non sc-ugen associative arguments that
-  contain an :id key to the the value of that key or leaves the args untouched."
+  contain an :id key to the value of that key or leaves the args untouched."
   [ugen]
   (update-in ugen [:args]
              (fn [args]

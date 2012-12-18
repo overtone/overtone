@@ -147,6 +147,7 @@
                       :width 1024 :height 760
                       :minimum-size [320 :by 240])]
          (-> f pack! show!)
+         (pack! f)
          (with-meta
            {:frame f :buf buf}
            {:type ::waveform-editor}))
@@ -180,7 +181,7 @@
              split (top-bottom-split
                      editor
                      (wavetable-thumbnailer table)
-                     :divider-location 0.8)
+                     :divider-location 0.7)
              change-wave-fn (fn [buf]
                               (invoke-later
                                 (try
@@ -195,10 +196,11 @@
                                     (error "Exception in wave change: " ex)))))
              f (frame :title "Wave Table Editor"
                       :content split
-                      :width 600 :height 400
-                      :minimum-size [300 :by 200])]
+                      :width 600 :height 500
+                      :minimum-size [300 :by 300])]
          (add-thumbnail-behavior f change-wave-fn)
          (-> f pack! show!)
+         (pack! f)
          (with-meta
            {:frame f :wavetable table}
            {:type ::wavetable-editor}))
