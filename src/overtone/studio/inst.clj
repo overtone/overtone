@@ -112,12 +112,15 @@
                      group instance-group fx-group
                      mixer bus fx-chain
                      volume pan
-                     n-chans]
+                     n-chans
+                     status]
   (fn [this & args]
     (apply synth-player sdef params this :tgt instance-group args))
 
   to-synth-id*
   (to-synth-id [_] (to-synth-id instance-group)))
+
+(derive Inst :overtone.sc.node/node)
 
 (defn inst?
   "Returns true if o is an instrument, false otherwise"
@@ -154,7 +157,8 @@
                              container-group# instance-group# fx-group#
                              imixer# inst-bus# fx-chain#
                              volume# pan#
-                             n-chans#)
+                             n-chans#
+                             (:status container-group#))
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (add-instrument inst#)

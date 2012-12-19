@@ -101,12 +101,11 @@
   to-synth-id*
   (to-synth-id [this] (:id this)))
 
+(derive SynthNode ::node)
+
 (defmethod print-method SynthNode [s-node w]
   (.write w (format "#<synth-node[%s]: %s %d>"
                     (name @(:status s-node)) (:synth s-node) (:id s-node))))
-
-(defn- synth-node? [obj]
-  (= overtone.sc.node.SynthNode (type obj)))
 
 (defonce active-synth-nodes* (atom {}))
 
@@ -154,12 +153,11 @@
 (declare synth-group?)
 
 (defn node?
-  "Returns true if obj is a synth node i.e. a SynthNode or a
-   SynthGroup."
+  "Returns true if obj is a synth node i.e. a SynthNode or a SynthGroup
+   object which has a type which derives
+   from :overtone.sc.node/synth-node"
   [obj]
-  (or (synth-node? obj)
-      (synth-group? obj)))
-
+  (isa? (type obj) ::node))
 
 (defn live-node?
   "Returns true if n is an active synth node."
@@ -232,6 +230,8 @@
 (defrecord SynthGroup [group id target position status]
   to-synth-id*
   (to-synth-id [_] id))
+
+(derive SynthGroup ::node)
 
 (defmethod print-method SynthGroup [s-group w]
   (.write w (format "#<synth-group[%s]: %s %d>" (name @(:status s-group)) (:group s-group) (:id s-group))))
