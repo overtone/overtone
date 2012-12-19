@@ -161,7 +161,8 @@
   ([] (connect "127.0.0.1" 57711))
   ([port] (connect "127.0.0.1" port))
   ([host port]
-     (when-not (= :connecting @connection-status*)
+     (when-not (or (= :booting @connection-status*)
+                   (= :disconnected @connection-status*))
        (dosync
         (ref-set connection-status* :disconnected))
        (throw (Exception. "Can't connect as a server is already connected/connecting!")))
@@ -187,6 +188,7 @@
       (scsynth-listen-tcp server (:port full-opts)))
     (log/info "The internal scsynth server has booted...")
     (satisfy-deps :internal-server-booted)
+    (dosync (ref-set connection-status* :connected))
     (scsynth-run server)))
 
 (defn- boot-internal-server
@@ -292,22 +294,23 @@
   "Boot the audio server in an external process and tell it to listen on
   a specific port."
   ([port opts]
-     (when-not (= :connected @connection-status*)
-       (log/debug "booting external server")
-       (let [full-opts (merge-sc-args opts {:port port})
-             cmd       (sc-command full-opts)
+     (when-not (= :booting @connection-status*)
+       (throw (Exception. "Can't boot external server as a server is already connected/connecting!")))
+     (log/debug "booting external server")
+     (let [full-opts (merge-sc-args opts {:port port})
+           cmd       (sc-command full-opts)
 
-             sc-thread (if (windows-os?)
-                         (Thread. #(external-booter cmd (windows-sc-path)))
-                         (Thread. #(external-booter cmd)))]
-         (.setDaemon sc-thread true)
-         (println "--> Booting external SuperCollider server...")
-         (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
-         (.start sc-thread)
-         (dosync (ref-set server-thread* sc-thread)
-                 (alter connection-info* assoc :opts full-opts))
-         (connect "127.0.0.1" port)
-         :booting))))
+           sc-thread (if (windows-os?)
+                       (Thread. #(external-booter cmd (windows-sc-path)))
+                       (Thread. #(external-booter cmd)))]
+       (.setDaemon sc-thread true)
+       (println "--> Booting external SuperCollider server...")
+       (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
+       (.start sc-thread)
+       (dosync (ref-set server-thread* sc-thread)
+               (alter connection-info* assoc :opts full-opts))
+       (connect "127.0.0.1" port)
+       :booting)))
 
 (defn- transient-connection-info
   "Build the connection-info for booting an internal or external server."
@@ -335,7 +338,7 @@
          (throw (Exception. "Can't boot as a server is already connected/connecting!")))
 
        (dosync
-        (ref-set connection-status* :connecting))
+        (ref-set connection-status* :booting))
 
        (dosync
         (ref-set connection-info*
