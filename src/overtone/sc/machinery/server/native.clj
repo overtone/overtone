@@ -1,25 +1,37 @@
 (ns overtone.sc.machinery.server.native
   (:import [java.nio ByteOrder ByteBuffer])
   (:require [overtone.jna-path])
-  (:use [overtone.helpers.file :only (get-current-directory, home-dir)]
+  (:use [overtone.helpers.file :only [get-current-directory home-dir]]
+        [overtone.helpers.system :only [get-os get-cpu-bits]]
         [overtone.sc.machinery.server args]
+        [overtone.nativescsynth.availability :only [native-scsynth-lib-availability]]
         [clj-native.direct :only [defclib loadlib]]
         [clj-native.structs :only [byref]]
         [clj-native.callbacks :only [callback]]))
 
+(defn native-scsynth-available? []
+  (let [os-arc-path [(get-os) (get-cpu-bits)]]
+    (get-in native-scsynth-lib-availability os-arc-path))
+  false)
+
+(declare world-options)
+(declare reply-callback)
+(declare sound-buffer)
+
 (defonce __LOAD_SCSYNTH_NATIVE_LIB__
-  (do
-    (defclib
-      lib-scsynth
-      (:libname "scsynth")
-      (:structs
-        (rate
+  (if (native-scsynth-available?)
+    (do
+      (defclib
+        lib-scsynth
+        (:libname "scsynth")
+        (:structs
+         (rate
           :sample-rate double
           :buf-rate    double
           :radians-per-sample double)
 
-        ; supercollider/include/server/SC_WorldOptions.h
-        (world-options
+                                        ; supercollider/include/server/SC_WorldOptions.h
+         (world-options
           :mPassword                          constchar*
           :mNumBuffers                        i32
           :mMaxLogins                         i32
@@ -55,11 +67,11 @@
           :mRestrictedPath                    constchar*
           :mSharedMemoryID                    i32)
 
-        ; supercollider/include/plugin_interface/SC_SndBuf.h
-        (sound-buffer
+                                        ; supercollider/include/plugin_interface/SC_SndBuf.h
+         (sound-buffer
           :samplerate double
           :sampledur  double
-          :data       void* ;float*
+          :data       void*             ;float*
           :channels   i32
           :samples    i32
           :frames     i32
@@ -68,11 +80,11 @@
           :coord      i32
           :sndfile    void*)
 
-        (bool-val
+         (bool-val
           :value byte)
 
-        ; supercollider/include/plugin_interface/SC_World.h
-        (world
+                                        ; supercollider/include/plugin_interface/SC_World.h
+         (world
           :hidden-world void*
           :interface-table void*
           :sample-rate double
@@ -113,33 +125,33 @@
           :rendezvous?              byte
           :restricted-path          constchar*)
 
-        (reply-address
+         (reply-address
           :sockaddr     void*
           :sockaddr-len i32
           :socket       i32
           :reply-func   void*
           :reply-data   void*)
-        )
+         )
 
-      (:callbacks
+        (:callbacks
 
-        ; supercollider/include/common/SC_Reply.h
-        (reply-callback [void* void* i32] void))
+                                        ; supercollider/include/common/SC_Reply.h
+         (reply-callback [void* void* i32] void))
 
-      ; TODO: void* here is actually world*
-      (:functions
+                                        ; TODO: void* here is actually world*
+        (:functions
 
-        ; supercollider/include/server/SC_WorldOptions.h
-        (world-new World_New [world-options*] void*)
-        (world-run World_WaitForQuit [void*])
-        (world-cleanup World_Cleanup [void*])
+                                        ; supercollider/include/server/SC_WorldOptions.h
+         (world-new World_New [world-options*] void*)
+         (world-run World_WaitForQuit [void*])
+         (world-cleanup World_Cleanup [void*])
 
-        (world-open-udp-port World_OpenUDP [void* i32] i32)
-        (world-open-tcp-port World_OpenTCP [void* i32 i32 i32] i32)
-        (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
-        (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
+         (world-open-udp-port World_OpenUDP [void* i32] i32)
+         (world-open-tcp-port World_OpenTCP [void* i32 i32 i32] i32)
+         (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
+         (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
-    (loadlib lib-scsynth)))
+      (loadlib lib-scsynth))))
 
 (defn set-world-options!
   [ptr option-map]
@@ -183,6 +195,8 @@
   the World pointer."
   ([recv-fn] (scsynth recv-fn {}))
   ([recv-fn options-map]
+     (when (not (native-scsynth-available?))
+       (throw (Exception. "Can't connect to native server - no compatible libraries for your system are available.")))
      (let [options (byref world-options)
            cb      (callback reply-callback
                              (fn [addr msg-buf msg-size]

@@ -149,18 +149,22 @@
 (defn connect
   "Connect to an externally running SC audio server.
 
-  (connect)                      ;=> connect to an external server on
-                                     localhost listening to the default
-                                     port for scsynth 57711
-  (connect 55555)                ;=> connect to an external server on
-                                     the localhost listening to port
-                                     55555
- (connect \"192.168.1.23\" 57711) ;=> connect to an external server with
-                                     ip address 192.168.1.23 listening to
-                                     port 57711"
+  (connect)                        ;=> connect to an external server on
+                                       localhost listening to the default
+                                        port for scsynth 57711
+  (connect 55555)                  ;=> connect to an external server on
+                                       the localhost listening to port
+                                       55555
+  (connect \"192.168.1.23\" 57711) ;=> connect to an external server with
+                                       ip address 192.168.1.23 listening to
+                                       port 57711"
   ([] (connect "127.0.0.1" 57711))
   ([port] (connect "127.0.0.1" port))
   ([host port]
+     (when-not (= :connecting @connection-status*)
+       (dosync
+        (ref-set connection-status* :disconnected))
+       (throw (Exception. "Can't connect as a server is already connected/connecting!")))
      (.run (Thread. #(external-connection-runner host port)))))
 
 (defn- osc-msg-decoder
@@ -188,6 +192,11 @@
 (defn- boot-internal-server
   "Boots internal server by executing it on a daemon thread."
   [opts]
+  (when (not (native-scsynth-available?))
+    (dosync
+     (ref-set connection-status* :disconnected))
+    (throw (Exception. "Can't connect to native server - no compatible libraries for your system are available.")))
+
   (let [sc-thread (Thread. #(internal-booter opts))]
     (.setDaemon sc-thread true)
     (println "--> Booting internal SuperCollider server...")
@@ -317,7 +326,7 @@
    (boot :external)       ; boots an external server on a random port
    (boot :external 57711) ; boots an external server listening on port
                             577111"
-  ([]                (boot (or (config-get :server) :internal) SERVER-PORT))
+  ([] (boot (or (config-get :server) :internal) SERVER-PORT))
   ([connection-type] (boot connection-type SERVER-PORT))
   ([connection-type port] (boot connection-type port {}))
   ([connection-type port opts]

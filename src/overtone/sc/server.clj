@@ -28,10 +28,15 @@
   []
   (= :connected @connection-status*))
 
+(defn server-connecting?
+  "Returns true if the server is connecting"
+  []
+  (= :connecting @connection-status*))
+
 (defn server-disconnected?
   "Returns true if the server is currently disconnected"
   []
-  (not (server-connected?)))
+  (= :disconnected @connection-status*))
 
 (defn internal-server?
   "Returns true if the server is internal"
