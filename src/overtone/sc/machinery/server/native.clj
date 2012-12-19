@@ -11,8 +11,7 @@
 
 (defn native-scsynth-available? []
   (let [os-arc-path [(get-os) (get-cpu-bits)]]
-    (get-in native-scsynth-lib-availability os-arc-path))
-  false)
+    (get-in native-scsynth-lib-availability os-arc-path)))
 
 (declare world-options)
 (declare reply-callback)
