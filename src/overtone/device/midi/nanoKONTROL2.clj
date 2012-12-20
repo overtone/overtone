@@ -128,14 +128,6 @@
                                    :m7 {:note 55}
                                    :r7 {:note 71}}}}}))
 
-(defn- byte-seq-to-array
-  "Turn a seq of bytes into a native byte-array."
-  [bseq]
-  (let [ary (byte-array (count bseq))]
-    (doseq [i (range (count bseq))]
-      (aset-byte ary i (nth bseq i)))
-    ary))
-
 ;; Magic sysex messages (recorded from Korg Kontrol Editor output)
 (def start-sysex [-16 126 127 6 1 -9])
 (def second-sysex [-16 66 64 0 1 19 0 31 18 0 -9])
@@ -170,12 +162,12 @@
   determined by recording the sysex messages that the official Korg
   Kontrol Editor sends to perform this task.)"
   [nko]
-  (midi-sysex nko (byte-seq-to-array start-sysex))
-  (midi-sysex nko (byte-seq-to-array second-sysex))
-  (midi-sysex nko (byte-seq-to-array start-sysex))
-  (midi-sysex nko (byte-seq-to-array main-sysex))
-  (midi-sysex nko (byte-seq-to-array start-sysex))
-  (midi-sysex nko (byte-seq-to-array end-sysex)))
+  (midi-sysex nko (into-array Byte/TYPE start-sysex))
+  (midi-sysex nko (into-array Byte/TYPE second-sysex))
+  (midi-sysex nko (into-array Byte/TYPE start-sysex))
+  (midi-sysex nko (into-array Byte/TYPE main-sysex))
+  (midi-sysex nko (into-array Byte/TYPE start-sysex))
+  (midi-sysex nko (into-array Byte/TYPE end-sysex)))
 
 (defn leds-on-test
   [nko]
