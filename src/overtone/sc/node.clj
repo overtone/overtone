@@ -101,6 +101,8 @@
   to-synth-id*
   (to-synth-id [this] (:id this)))
 
+(derive SynthNode ::node)
+
 (defmethod print-method SynthNode [s-node w]
   (.write w (format "#<synth-node[%s]: %s %d>"
                     (name @(:status s-node)) (:synth s-node) (:id s-node))))
@@ -148,11 +150,14 @@
 ;; The synth server sends an n_go event when a synth node is created and an
 ;; n_end event when a synth node is destroyed.
 
-(defn node?
-  "Returns true if obj is a synth node."
-  [obj]
-  (= overtone.sc.node.SynthNode (type obj)))
+(declare synth-group?)
 
+(defn node?
+  "Returns true if obj is a synth node i.e. a SynthNode or a SynthGroup
+   object which has a type which derives
+   from :overtone.sc.node/synth-node"
+  [obj]
+  (isa? (type obj) ::node))
 
 (defn live-node?
   "Returns true if n is an active synth node."
@@ -226,8 +231,13 @@
   to-synth-id*
   (to-synth-id [_] id))
 
+(derive SynthGroup ::node)
+
 (defmethod print-method SynthGroup [s-group w]
-  (.write w (format "#<synth-node[%s]: %s %d>" (:group s-group) (:id s-group))))
+  (.write w (format "#<synth-group[%s]: %s %d>" (name @(:status s-group)) (:group s-group) (:id s-group))))
+
+(defn- synth-group? [obj]
+  (= overtone.sc.node.SynthGroup (type obj)))
 
 (defn group
   "Create a new synth group as a child of the target group. By default

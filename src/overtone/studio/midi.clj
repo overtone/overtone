@@ -9,7 +9,6 @@
 (defonce midi-devices* (atom {}))
 (defonce midi-control-agents* (atom {}))
 (defonce poly-players* (atom {}))
-(defonce seen-midi-device-keys* (atom #{}))
 
 (def EXCLUDED-DEVICES #{"Real Time Sequencer" "Java Sound Synthesizer"})
 
@@ -40,9 +39,7 @@
         dev-event-key (midi-mk-full-device-event-key dev command)]
     (event [:midi command] msg)
     (event (midi-mk-full-control-event-key dev command (:data1 msg)) msg)
-    (event dev-event-key msg)
-    (when-not (get @seen-midi-device-keys* dev-key)
-      (swap! seen-midi-device-keys* conj dev-key))))
+    (event dev-event-key msg)))
 
 (defn- detect-midi-devices
   "Designed to run periodically and update the midi-devices* atom with
@@ -95,29 +92,40 @@
     (def dinger (midi-poly-player ding))
   "
   ([play-fn] (midi-poly-player play-fn ::midi-poly-player))
-  ([play-fn key]
-     (let [notes*  (atom {})
-           on-key  [key :note-on]
-           off-key [key :note-off]]
-       (on-event [:midi :note-on] (fn [{note :note velocity :velocity}]
-                                    (let [amp (float (/ velocity 127))]
-                                      (swap! notes* assoc note (play-fn :note note :amp amp :velocity velocity))))
+  ([play-fn player-key] (midi-poly-player play-fn [:midi] player-key))
+  ([play-fn device-key player-key]
+     (let [notes*        (atom {})
+           on-event-key  (concat device-key [:note-on])
+           off-event-key (concat device-key [:note-off])
+           on-key        (concat [::midi-poly-player] on-event-key)
+           off-key       (concat [::midi-poly-player] off-event-key)]
+       (on-event on-event-key (fn [{note :note velocity :velocity}]
+                                (let [amp (float (/ velocity 127))]
+                                  (swap! notes* assoc note (play-fn :note note :amp amp :velocity velocity))))
                  on-key)
 
-       (on-event [:midi :note-off] (fn [{note :note velocity :velocity}]
-                                     (let [velocity (float (/ velocity 127 ))]
-                                       (when-let [n (get @notes* note)]
-                                         (node-control n [:gate 0 :after-touch velocity])
-                                         (swap! notes* dissoc note))))
+       (on-event off-event-key (fn [{note :note velocity :velocity}]
+                                 (let [velocity (float (/ velocity 127 ))]
+                                   (when-let [n (get @notes* note)]
+                                     (node-control n [:gate 0 :after-touch velocity])
+                                     (swap! notes* dissoc note))))
                  off-key)
 
        ;; TODO listen for '/n_end' event for nodes that free themselves
-       ;; before receiving a note-off message.
-       (let [player {:notes* notes*
-                     :on-key on-key
-                     :off-key off-key
-                     :playing? (atom true)}]
-         (swap! poly-players* assoc key player)))))
+       ;; before recieving a note-off message.
+       (let [player (with-meta {:notes* notes*
+                                :on-key on-key
+                                :off-key off-key
+                                :device-key device-key
+                                :player-key player-key
+                                :playing? (atom true)}
+                      {:type ::midi-poly-player})]
+         (swap! poly-players* assoc player-key player)))))
+
+(defn midi-device-keys
+  "Return a list of device event keys for the available MIDI devices"
+  []
+  (map midi-mk-full-device-key (vals @midi-devices*)))
 
 (defn- midi-control-handler
   [state-atom handler mapping msg]
@@ -150,17 +158,19 @@
 
 (defn midi-player-stop
   ([]
-     (remove-handler [::midi-poly-player :note-on])
-     (remove-handler [::midi-poly-player :note-off]))
+     (remove-handler [::midi-poly-player :midi :note-on])
+     (remove-handler [::midi-poly-player :midi :note-off]))
   ([player-or-key]
      (if (keyword? player-or-key)
        (midi-player-stop (get @poly-players* player-or-key))
-       (do
-         (remove-handler (:on-key player-or-key))
-         (remove-handler (:off-key player-or-key))
-         (reset! (:playing? player-or-key) false)
-         (swap! poly-players* dissoc player-or-key)
-         player-or-key))))
+       (let [player player-or-key]
+         (when-not (= ::midi-poly-player (type player))
+           (throw (IllegalArgumentException. (str "Expected a midi-poly-player. Got: " (prn-str (type player))))))
+         (remove-handler (:on-key player))
+         (remove-handler (:off-key player))
+         (reset! (:playing? player) false)
+         (swap! poly-players* dissoc (:player-key player))
+         player))))
 
 
 (defn midi-capture-next-control-input
