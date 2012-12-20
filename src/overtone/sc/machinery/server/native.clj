@@ -10,6 +10,12 @@
 (defonce __LOAD_SCSYNTH_NATIVE_LIB__
   (do
     (defclib
+      libc
+      (:libname "c")
+      (:functions
+        (fflush fflush [void*] i32)))
+
+    (defclib
       lib-scsynth
       (:libname "scsynth")
       (:structs
@@ -139,7 +145,12 @@
         (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
         (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
+    (loadlib libc)
     (loadlib lib-scsynth)))
+
+(defn flush-all
+  []
+  (fflush nil))
 
 (defn set-world-options!
   [ptr option-map]
@@ -213,6 +224,7 @@
   "Starts the synthesis server main loop, and does not return until the /quit message
   is received."
   [sc]
+  (flush-all)
   (world-run (:world sc)))
 
 (defn scsynth-get-buffer-data
