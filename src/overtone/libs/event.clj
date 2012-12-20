@@ -260,6 +260,6 @@
   ([event-key] (get @monitor* event-key)))
 
 (defn event-monitor-keys
-  "Return a seq of all the keys of most recently seen events."
+  "Return a set of all the keys of most recently seen events."
   []
-  (keys @monitor*))
+  (into #{} (keys @monitor*)))
