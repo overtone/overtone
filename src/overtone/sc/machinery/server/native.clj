@@ -1,6 +1,7 @@
 (ns overtone.sc.machinery.server.native
   (:import [java.nio ByteOrder ByteBuffer])
-  (:require [overtone.jna-path])
+  (:require [overtone.jna-path]
+            [overtone.at-at :as at-at])
   (:use [overtone.helpers.file :only [get-current-directory home-dir]]
         [overtone.helpers.system :only [get-os get-cpu-bits]]
         [overtone.sc.machinery.server args]
@@ -157,7 +158,9 @@
           (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
       (loadlib libc)
-      (loadlib lib-scsynth))))
+      (loadlib lib-scsynth)
+      (defonce flush-pool (at-at/mk-pool))
+      (defonce flusher (at-at/every 500 #(fflush nil) flush-pool :desc "Flush stdout")))))
 
 (defn flush-all
   []
