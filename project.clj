@@ -45,7 +45,7 @@
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/core.incubator "0.1.0"]
                  [org.clojure/data.json "0.1.2"]
-                 [clj-native "0.9.3-SNAPSHOT"]
+                 [clj-native "0.9.3"]
                  [overtone/at-at "1.0.0"]
                  [overtone/osc-clj "0.8.1"]
                  [overtone/byte-spec "0.3.1"]
@@ -54,7 +54,7 @@
                  [overtone/scsynth "3.5.7-SNAPSHOT"]
                  [overtone/scsynth-extras "3.5.7-SNAPSHOT"]
                  [clj-glob "1.0.0"]
-                 [org.clojure/core.match "0.2.0-alpha9"]
+                 [org.clojure/core.match "0.2.0-alpha11"]
                  [seesaw "1.4.2"]]
   :native-path "native"
   :jvm-opts ~(jvm-opts))
