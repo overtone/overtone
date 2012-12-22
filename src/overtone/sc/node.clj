@@ -159,10 +159,21 @@
   [obj]
   (isa? (type obj) ::node))
 
-(defn live-node?
-  "Returns true if n is an active synth node."
+(defn node-live?
+  "Returns true if n is a live synth node."
   [n]
   (and (node? n) (= :live @(:status n))))
+
+(defn node-loading?
+  "Returns true if n is a loading synth node."
+  [n]
+  (and (node? n) (= :loading @(:status n))))
+
+(defn node-active?
+  "Returns true if n is an active synth node."
+  [n]
+  (or (node-live? n)
+      (node-loading? n)))
 
 (defn node-free*
   "Free the specified nodes on the server. The allocated id is
@@ -170,8 +181,9 @@
   for /n_end which will call node-destroyed."
   [node]
   {:pre [(server-connected?)]}
-  (when (live-node? node)
-    (snd "/n_free" (to-synth-id node))))
+  (if (node-active? node)
+    (snd "/n_free" (to-synth-id node))
+    (throw (Exception. (str "Trying to free a synth node that has been destroyed: " node)))))
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
@@ -315,7 +327,7 @@
   [node name-values]
   (ensure-connected!)
   (let [node-id (to-synth-id node)]
-    (if (live-node? node)
+    (if (node-active? node)
       (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
       (throw (Exception. (str "Trying to control a synth node that has been destroyed: " node))))
     node-id))
