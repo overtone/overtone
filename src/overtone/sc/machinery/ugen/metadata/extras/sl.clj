@@ -8,21 +8,21 @@
     :args [{:name "bufnum"
             :default 0
             :doc ""}
-           
+
            {:name "capturein"
              :default :none
              :doc ""}
-           
+
            {:name "capturetrigger"
              :default :none
              :doc ""}
-           
+
            {:name "duration"
              :default 0.1
              :doc ""}]
     :rates #{:ar}
     :doc "This is noisy.
-    (This UGen (C and SuperCollider code) was written on Feb 7 2005 in one hour in front of a live audience as part of the TOPLAP live coding jam at transmediale, Maria am Ostbahnhof, Berlin. 
+    (This UGen (C and SuperCollider code) was written on Feb 7 2005 in one hour in front of a live audience as part of the TOPLAP live coding jam at transmediale, Maria am Ostbahnhof, Berlin.
     I haven't tried to clear it up after the event, only adding this notice; make what you can of it!)"}
 
    {:name "Brusselator"
@@ -30,7 +30,7 @@
     :args [{:name "reset"
             :default 0
             :doc "If > 0.0, restart with new initial conditions sampled from initx, inity"}
-           
+
            {:name "rate"
             :default 0.01
             :doc "Update rate for a sample step"}
@@ -42,7 +42,7 @@
            {:name "gamma"
             :default 1.0
             :doc "Equation constant"}
-         
+
            {:name "initx"
             :default 0.5
             :doc "Reset value for x"}
@@ -55,7 +55,7 @@
 
 
    x' = x^2*y - (mu+1*x + gamma y')
-   
+
 
    y' = -x^2*y + mu*x
 
@@ -70,7 +70,7 @@
     :args [{:name "reset"
             :default 0
             :doc "Restart with new initial conditions sampled from initx, inity"}
-          
+
            {:name "ratex"
             :default 0.01
             :doc "Update rate for x"}
@@ -78,7 +78,7 @@
            {:name "ratey"
             :default 0.01
             :doc  "Update rate for y"}
-            
+
            {:name "f"
             :default 1
             :doc "Equation constant"}
@@ -94,13 +94,13 @@
            {:name "initx"
             :default 0
             :doc "Reset value for x"}
-     
+
            {:name "inity"
             :default 0
             :doc "Reset value for y"}]
-            
+
     :rates #{:ar}
-    :doc "Runge-Kutta ODE solver implementation of the chaotic Forced Double Well Oscillator (see Strogatz, Steven H. (1994) Nonlinear Dynamics and Chaos. Addison-Wesley, Reading, MA. pp441-7.)  
+    :doc "Runge-Kutta ODE solver implementation of the chaotic Forced Double Well Oscillator (see Strogatz, Steven H. (1994) Nonlinear Dynamics and Chaos. Addison-Wesley, Reading, MA. pp441-7.)
 
 
     D2x + delta*Dx - x + x^3 = F*cos(w*t)
@@ -141,16 +141,16 @@
            {:name "inity"
             :default 0
             :doc "Reset value for y"}]
-   
+
    :rates #{:ar}
    :doc "Improved Euler ODE solver implementation of the chaotic Forced Double Well Oscillator (see Strogatz, Steven H. (1994) Nonlinear Dynamics and Chaos. Addison-Wesley, Reading, MA. pp441-7)
 
 
    D2x + delta*Dx - x + x^3 = F*cos(w*t)
-   
+
 
    y = Dx
-   
+
 
    All input can have .kr rate UGens plugged in"}
 
@@ -182,13 +182,13 @@
 
     :rates #{:ar}
     :doc "Runge-Kutta ODE solver implementation of the chaotic Forced Double Well Oscillator (see Strogatz, Steven H. (1994) Nonlinear Dynamics and Chaos. Addison-Wesley, Reading, MA. pp441-7).
-    
+
 
     D2x + delta*Dx - x + x^3 = F
-    
+
 
     y = Dx
-    
+
 
     All inputs can have .kr rate UGens plugged in. F is itself an arbitrary audio rate UGen input forcing term"}
 
