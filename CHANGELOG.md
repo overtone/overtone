@@ -41,8 +41,14 @@
 * `event-monitor-keys` - returns seq of all keys of recently seen events
 * `midi-capture-next-controller-key` Returns the event key for the next modified controller
 * `buffer-write-relay` - similar to buffer-write! but doesn't require native synth. Can be very slow.
-* `chord-degree` - REturns the notes constructed by picking thirds in the given note of a given scale
+* `chord-degree` - Returns the notes constructed by picking thirds in the given note of a given scale
+* `pause` - Pause a synth or group
+* `start` - Pause a synth or group
 
+### Removed fns
+* `on-trigger` - prefer event system
+* `remove-trigger` - prefer event system
+* `remove-all-handlers` - calling this removes Overtone's default handlers rendering the system useless.
 
 ### Renamed fns
 
