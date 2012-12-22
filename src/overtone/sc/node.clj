@@ -10,6 +10,8 @@
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]))
 
+(defonce ^{:dynamic true} *non-active-node-modification-exceptions* true)
+
 (defonce ^{:private true}
   _PROTOCOLS_
   (do
@@ -183,7 +185,11 @@
   {:pre [(server-connected?)]}
   (if (node-active? node)
     (snd "/n_free" (to-synth-id node))
-    (throw (Exception. (str "Trying to free a synth node that has been destroyed: " node)))))
+    (let [err-msg (str "Trying to free a synth node that has been destroyed: " node)]
+      (if *non-active-node-modification-exceptions*
+        (throw (Exception. err-msg))
+        (println (str "Warning - " err-msg)))))
+  node)
 
 (defn- node-destroyed
   "Frees up a synth node to keep in sync with the server."
@@ -329,8 +335,11 @@
   (let [node-id (to-synth-id node)]
     (if (node-active? node)
       (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
-      (throw (Exception. (str "Trying to control a synth node that has been destroyed: " node))))
-    node-id))
+      (let [err-msg (str "Trying to control a synth node that has been destroyed: " node)]
+        (if *non-active-node-modification-exceptions*
+          (throw (Exception. err-msg))
+          (println "Warning - " err-msg))))
+    node))
 
 (defn node-get-control
   "Get one or more synth control values by name.  Returns a map of
