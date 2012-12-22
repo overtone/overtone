@@ -164,7 +164,7 @@
   (log-event "Removing event handler associated with key: " key)
   (handlers/remove-handler! handler-pool key))
 
-(defn remove-all-handlers
+(defn- remove-all-handlers
   "Remove all handlers."
   []
   (let [[old new] (swap-returning-prev! lossy-workers* (fn [_] {}))]
