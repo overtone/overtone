@@ -175,32 +175,3 @@
       :set-value #(reset! (:value param) %)
       :min (:min param)
       :max (:max param)})))
-
-(comment
-  ; Set up a sequencer with some drum sounds. Hook some drum params
-  ; to a couple surfaces.
-  (do
-    (use 'overtone.live)
-    (use 'overtone.gui.sequencer)
-    (use 'overtone.gui.surface)
-    (use 'overtone.inst.drum)
-    (def m (metronome 128))
-    (step-sequencer m 11 [kick closed-hat open-hat snare])
-    (surface-grid [(synth-param snare "freq") (synth-param kick "freq") (synth-param snare "sustain")]
-              [(synth-param closed-hat "low") (synth-param closed-hat "hi") (synth-param closed-hat "t")]
-              [(synth-param open-hat "low") (synth-param open-hat "hi") (synth-param open-hat "t")]
-              [(synth-param kick "freq-decay") (synth-param kick "amp-decay") (synth-param snare "decay")]))
-
-  ; Set up two sin waves and control their frequencies with a surface.
-  (do
-    (use 'overtone.live)
-    (use 'overtone.gui.surface)
-    (defsynth harmony [freq1 {:default 440 :min 40 :max 1800 :step 1}
-                       freq2 {:default 880 :min 40 :max 1800 :step 1}
-                       amp   {:default 0.1 :min 0.1 :max 1 :step 0.01} ]
-      (out 0 (* amp (sin-osc [freq1 freq2]))))
-    (def h (harmony))
-    (surface (synth-param harmony h "freq1")
-             (synth-param harmony h "freq2")
-             (synth-param harmony h "amp") )))
-
