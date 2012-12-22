@@ -131,7 +131,9 @@
   (:default-group @foundation-groups*))
 
 (defn foundation-safe-group
-  "Returns the node id for a safe Overtone group. This is similar to
+  "Synonym for foundation-safe-post-default-group.
+
+  Returns the node id for a safe Overtone group. This is similar to
   the default group only it isn't the target of deep clear when the stop
   fn is called. Therefore synths in this group will *not* be
   automatically stopped on execution of the stop fn.
@@ -163,8 +165,8 @@
   automatically stopped on execution of the stop fn.
 
   This returns the safe group which is positioned *after* the default
-  group. For a safe group that is positioned before the default group
-  see foundation-safe-pre-default-group."
+  group. For a safe group that is positioned after the default group
+  see foundation-safe-post-default-group."
   []
   (ensure-connected!)
   (:safe-pre-default-group @foundation-groups*))
