@@ -120,7 +120,7 @@
   []
   (send dep-state* (fn [deps]
                      {:satisfied #{}
-                      :todo (deps :done)
+                      :todo (concat (deps :todo) (deps :done))
                       :done []})))
 
 (defn satisfied-deps
