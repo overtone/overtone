@@ -17,7 +17,14 @@
 
 ### Major Features
 
-* New native server implementation
+* New, all clojure, in-memory scsynth interface using clj-native
+* GUI widgets using seesaw and swing (see examples in overtone.examples.gui)
+  - synth controls to adjust parameters (`synth-controller`, `live-synth-controller`)
+  - mixer for instruments (`mixer`)
+  - piano roll and two types of step sequencers (`piano-roll`, `step-sequencer`, `stepinator`)
+  - x,y,z surface controller (`surface`)
+  - wave-form and wave-table editors for wave-table synthesis (`waveform-editor`, `wavetable-editor`)
+  - basic spectrogram showing frequency space representation (`spectrogram`)
 * GUI widgets
 * `on-latest-event`
 * Extra ugens - see `overtone/sc/machinery/ugen/metadata/extras/README.md` for progress
