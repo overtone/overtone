@@ -71,32 +71,46 @@
 
                \begin{document}
 
-               {\Large{\textbf{Overtone Cheat Sheet (Overtone 0.8.0)}}}
+               {\Large{\textbf{Overtone Cheat Sheet 0.8.0}}}
 
-
-
-               \colouredbox{green}{
-                 \section{Studio}
+               \colouredbox{red}{
+                 \section{Sounds}
                  \subsection{Instruments}
                  \begin{tabularx}{\hsize}{lX}
-                   Drums & \cmd{kick kick2 kick3 kick4 dub-kick dry-kick small-hat closed-hat close-hat2 open-hat hat3 soft-hat noise-hat round-kick snare snare2 noise-snare tone-snare tom clap bing dance-kick quick-kick haziti-clap} \\
+                   Drums  & \cmd{kick kick2 kick3 kick4 dub-kick dry-kick small-hat closed-hat close-hat2 open-hat hat3 soft-hat noise-hat round-kick snare snare2 noise-snare tone-snare tom clap bing dance-kick quick-kick haziti-clap} \\
                    Piano & \cmd{piano}\\
                    Sampled Piano & \cmd{sampled-piano}\\
                    Sampler & \cmd{granular}\\
                    Bass & \cmd{bass grunge-bass vintage-bass daf-bass}\\
                    Synth& \cmd{ticker ping tb303 mooger rise-fall-pad pad overpad buzz  ks1 ks-stringer fm-demo harmonic-swimming whoahaha bubbles supersaw cs80lead simple-flute}\\
-                   IO & \cmd{mic}
+                   IO & \cmd{mic} \\
                  \end{tabularx}
+
+                 \subsection{Inst Effects}
+                 \begin{tabularx}{\hsize}{lX}
+                   Instrument &\cmd{inst-volume inst-out-bus inst-fx! clear-fx}\\
+                   FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-freeverb fx-reverb fx-echo fx-chorus fx-distortion fx-distortion2 fx-distortion-tubescreamer bitcrusher fx-rlpf fx-rhpf fx-feedback fx-feedback-distortion } \\
+                 \end{tabularx}
+
+                 \subsection {Ixi Synths}
+                 \begin{tabularx}{\hsize}{lX}
+                   Pulse &\cmd{impulser}\\
+                   Drums &\cmd{kick kick2 kick3}\\
+                 \end{tabularx}
+
+                 \subsection {Synths}
+                 \begin{tabularx}{\hsize}{lX}
+                   Sampled Piano & \cmd{sampled-piano}\\
+                   Stringed & \cmd{guitar}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{green}{
+                 \section{Studio}
 
                  \subsection{Mixer}
                  \begin{tabularx}{\hsize}{lX}
                    Control &\cmd{volume input-gain}\\
-                 \end{tabularx}
-
-                 \subsection{Effects}
-                 \begin{tabularx}{\hsize}{lX}
-                   Instrument &\cmd{inst-volume inst-out-bus inst-fx! clear-fx}\\
-                   FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-freeverb fx-reverb fx-echo fx-chorus fx-distortion fx-distortion2 fx-distortion-tubescreamer bitcrusher fx-rlpf fx-rhpf fx-feedback fx-feedback-distortion } \\
                  \end{tabularx}
 
                  \subsection{MIDI}
@@ -138,7 +152,7 @@
                }
 
                \colouredbox{blue2}{
-                 \section{Synths}
+                 \section{Synth Design}
                  \begin{tabularx}{\hsize}{lX}
                    Design&\cmd{definst defsynth}\\
                    Examples& \cmd{defexamples}\\
@@ -222,7 +236,7 @@
                  \begin{tabularx}{\hsize}{lX}
                    Create \& Free  & \cmd{node group node-free group-free group-clear group-deep-clear}\\
                    Manipulate & \cmd{node-start node-pause node-place node-control node-control-range node-map-controls node-map-n-controls group-prepend-node group-append-node }\\
-                   Info & \cmd{node-tree}\\
+                   Info & \cmd{node? node-live? node-loading? node-active? node-tree}\\
                    Foundation Groups & \cmd{foundation-overtone-group foundation-output-group foundation-monitor-group foundation-input-group foundation-user-group foundation-default-group foundation-safe-group foundation-safe-pre-default-group foundation-safe-post-default-group}\\
 
                  \end{tabularx}
