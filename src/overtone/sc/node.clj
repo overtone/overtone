@@ -6,9 +6,10 @@
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]]
-        [overtone.sc.defaults :only [foundation-groups*]])
+        [overtone.sc.defaults :only [foundation-groups* INTERNAL-POOL]])
   (:require [clojure.zip :as zip]
-            [overtone.config.log :as log]))
+            [overtone.config.log :as log]
+            [overtone.at-at :as at-at]))
 
 (defonce ^{:dynamic true} *non-active-node-modification-exceptions* true)
 
@@ -196,13 +197,17 @@
   node)
 
 (defn- node-destroyed
-  "Frees up a synth node to keep in sync with the server."
+  "Frees up a synth node to keep in sync with the server. Delays the
+  freeing of the node-id for 1 second to avoid race conditions in the
+  case where the id has been recycled and used before the node status
+  has been set to :destroyed."
   [id]
   (let [snode (get @active-synth-nodes* id)]
-    (free-id :node id 1 #(log/debug (format "node-destroyed: %d - synth-node: %s" id snode)))
+    (log/debug (format "node-destroyed: %d - synth-node: %s" id snode))
     (if snode
       (reset! (:status snode) :destroyed)
       (log/warn (format "ERROR: The fn node-destroyed can't find synth node: %d" id)))
+    (at-at/after 1000 #(free-id :node id 1) INTERNAL-POOL)
     (swap! active-synth-nodes* dissoc id)))
 
 (defn- node-created
