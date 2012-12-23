@@ -424,25 +424,25 @@
 
     (if (empty? leaves)
       sorted-ugens
-      (let [last-ugen (last sorted-ugens)
-            ; try to always place the downstream ugen from the last-ugen if all other
-            ; deps are satisfied, which keeps internal buffers in cache as long as possible
-            next-ugen (first (filter #((set (ugen-children %)) last-ugen) leaves))
+      (let [last-ugen          (last sorted-ugens)
+            ;; try to always place the downstream ugen from the last-ugen if all other
+            ;; deps are satisfied, which keeps internal buffers in cache as long as possible
+            next-ugen          (first (filter #((set (ugen-children %)) last-ugen) leaves))
             [next-ugen leaves] (if next-ugen
                                  [next-ugen (disj leaves next-ugen)]
-                                 [(first leaves) (next leaves)])
-            sorted-ugens (conj sorted-ugens next-ugen)
-            sorted-ugen-set (set sorted-ugens)
-            ugens (set/difference ugens sorted-ugen-set leaves)
-            leaves (set
-                     (reduce
-                       (fn [rleaves ug]
-                         (let [children (ugen-children ug)]
-                           (if (set/subset? children sorted-ugen-set)
-                             (conj rleaves ug)
-                             rleaves)))
-                       leaves
-                       ugens))]
+                                 [(first leaves) (set (next leaves))])
+            sorted-ugens       (conj sorted-ugens next-ugen)
+            sorted-ugen-set    (set sorted-ugens)
+            ugens              (set/difference ugens sorted-ugen-set leaves)
+            leaves             (set
+                                (reduce
+                                 (fn [rleaves ug]
+                                   (let [children (ugen-children ug)]
+                                     (if (set/subset? children sorted-ugen-set)
+                                       (conj rleaves ug)
+                                       rleaves)))
+                                 leaves
+                                 ugens))]
         (recur ugens leaves sorted-ugens (inc rec-count))))))
 
 (comment
