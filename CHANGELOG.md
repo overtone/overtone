@@ -1,6 +1,6 @@
 # Overtone Change Log
 
-## Version 0.8.0 ()
+## Version 0.8.0 (23rd December 2012)
 
 ### New Committers
 
@@ -25,19 +25,9 @@
   - x,y,z surface controller (`surface`)
   - wave-form and wave-table editors for wave-table synthesis (`waveform-editor`, `wavetable-editor`)
   - basic spectrogram showing frequency space representation (`spectrogram`)
-* GUI widgets
-* `on-latest-event`
-* Extra ugens - see `overtone/sc/machinery/ugen/metadata/extras/README.md` for progress
-* New default group structure:
-    (def empty-foundation-groups {:overtone-group          nil
-                                  :input-group             nil
-                                  :root-group              nil
-                                  :user-group              nil
-                                  :safe-pre-default-group  nil
-                                  :default-group           nil
-                                  :safe-post-default-group nil
-                                  :mixer-group             nil
-                                  :monitor-group           nil})
+* New event handler `on-latest-event`  which serially handles incoming events with the lowest latency by dropping events it hasn't had time to handle, yet always handling the last event seen.
+* Major progress has been made porting the metadata for the extra ugens not included by default in SuperCollider. See `overtone/sc/machinery/ugen/metadata/extras/README.md` for progress
+* Complete overhaul of the default group structure. See `foundation-*` fns below.
 
 ### New fns
 * `on-latest-event` - Handles events with minimum latency - drops events it can't handle in time
@@ -49,8 +39,20 @@
 * `midi-capture-next-controller-key` Returns the event key for the next modified controller
 * `buffer-write-relay` - similar to buffer-write! but doesn't require native synth. Can be very slow.
 * `chord-degree` - Returns the notes constructed by picking thirds in the given note of a given scale
-* `pause` - Pause a synth or group
-* `start` - Pause a synth or group
+* `foundation-overtone-group` - returns the group for the whole of the Overtone foundational infrastructure
+* `foundation-output-group` - returns the group for output synths
+* `foundation-monitor-group` - returns the group for the monitor synths (executed last)
+* `foundation-input-group` - returns the group for the input synths (executed first)
+* `foundation-root-group` - returns the main group for synth activity
+* `foundation-user-group` - returns the container group for user activity
+* `foundation-default-group` - returns the default user group - use this group for your synths
+* `foundation-safe-group` - returns the safe group - synths in here will not stop when #'stop is called
+* `foundation-safe-post-default-group` - returns the safe group positioned before the default group - synths in here will not stop when #'stop is called
+* `foundation-safe-pre-default-group` - returns the safe group positioned after the default group - synths in here will not stop when #'stop is called
+* `node?` - returns true if obj is a synth node or group
+* `node-live?` - returns true if node is live
+* `node-loading?` - returns true if node is loading (i.e. the server hasn't responded to say that it's loaded)
+* `node-active?` - returns true if node is either loading or live
 
 ### Removed fns
 * `on-trigger` - prefer event system
@@ -128,12 +130,12 @@ Started work porting synths from Ixi Lang (`overtone/synth/ixi`):
 * Synth names are now namespaced - allowing multiple synths to be defined with the same name but in different namespaces. Abbreviate safely to a 31 character limit.
 * Teach `synthdef-write` to resolve tilde paths
 * Internal event `:osc-msg-received` is now `[:overtone :osc-msg-received]`
-
-### New Protocols
+* Freeing node ids is delayed by 1 second to reduce the chance of a race condition occurring in the case where the id has been recycled and used before the node status has been set to :destroyed.
+* Add dynamic var `overtone.sc.node/*inactive-node-modification-error*` which may be bound to `:silent`, `:warning` or `:exception` to control the behaviour of the error created when an inactive node is either controlled or killed.  (Default is `:exception`).
 
 ### New Examples
 
-* Examples now live in `overtone/examples`
+* Examples now locate in `overtone/examples`
 * Internal sequencer
 * Getting started video transcript
 * Jazz experiment
@@ -142,6 +144,8 @@ Started work porting synths from Ixi Lang (`overtone/synth/ixi`):
 * Bass and drum funk
 
 ### Bugfixes
+
+* Many, many many! See git history for full list.
 
 
 ## Version 0.7.1 (27th June 2012)
