@@ -75,7 +75,7 @@
 
                \colouredbox{red}{
                  \section{Sounds}
-                 \subsection{Instruments}
+                 \subsection{Instruments (overtone.inst.*)}
                  \begin{tabularx}{\hsize}{lX}
                    Drums  & \cmd{kick kick2 kick3 kick4 dub-kick dry-kick small-hat closed-hat close-hat2 open-hat hat3 soft-hat noise-hat round-kick snare snare2 noise-snare tone-snare tom clap bing dance-kick quick-kick haziti-clap} \\
                    Piano & \cmd{piano}\\
@@ -86,23 +86,13 @@
                    IO & \cmd{mic} \\
                  \end{tabularx}
 
-                 \subsection{Inst Effects}
-                 \begin{tabularx}{\hsize}{lX}
-                   Instrument &\cmd{inst-volume inst-out-bus inst-fx! clear-fx}\\
-                   FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-freeverb fx-reverb fx-echo fx-chorus fx-distortion fx-distortion2 fx-distortion-tubescreamer bitcrusher fx-rlpf fx-rhpf fx-feedback fx-feedback-distortion } \\
-                 \end{tabularx}
-
-                 \subsection {Ixi Synths}
-                 \begin{tabularx}{\hsize}{lX}
-                   Pulse &\cmd{impulser}\\
-                   Drums &\cmd{kick kick2 kick3}\\
-                 \end{tabularx}
-
-                 \subsection {Synths}
+                 \subsection {Synths (overtone.synth.*)}
                  \begin{tabularx}{\hsize}{lX}
                    Sampled Piano & \cmd{sampled-piano}\\
                    Stringed & \cmd{guitar}\\
+                   Ixi & \cmd{impulser kick kick2 kick3}\\
                  \end{tabularx}
+
                }
 
                \colouredbox{green}{
@@ -138,6 +128,14 @@
                    Stop \& Start&\cmd{recording-start recording-stop} \\
                    Query &\cmd{recording?}\\
                  \end{tabularx}
+
+                 \subsection{Inst Effects}
+                 \begin{tabularx}{\hsize}{lX}
+                   Instrument &\cmd{inst-volume inst-out-bus inst-fx! clear-fx}\\
+                   FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-freeverb fx-reverb fx-echo fx-chorus fx-distortion fx-distortion2 fx-distortion-tubescreamer bitcrusher fx-rlpf fx-rhpf fx-feedback fx-feedback-distortion } \\
+                 \end{tabularx}
+
+
                }
 
                \colouredbox{pink}{
