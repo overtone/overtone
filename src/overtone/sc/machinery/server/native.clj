@@ -5,6 +5,7 @@
   (:use [overtone.helpers.file :only [get-current-directory home-dir]]
         [overtone.helpers.system :only [get-os get-cpu-bits]]
         [overtone.sc.machinery.server args]
+        [overtone.sc.defaults :only [INTERNAL-POOL]]
         [overtone.nativescsynth.availability :only [native-scsynth-lib-availability]]
         [clj-native.direct :only [defclib loadlib]]
         [clj-native.structs :only [byref]]
@@ -159,8 +160,7 @@
 
       (loadlib libc)
       (loadlib lib-scsynth)
-      (defonce flush-pool (at-at/mk-pool))
-      (defonce flusher (at-at/every 500 #(fflush nil) flush-pool :desc "Flush stdout")))))
+      (defonce flusher (at-at/every 500 #(fflush nil) INTERNAL-POOL :desc "Flush stdout")))))
 
 (defn flush-all
   []

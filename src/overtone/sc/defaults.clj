@@ -52,8 +52,8 @@
   "Max number of samples supported in a UDP OSC message"
   8192)
 
-(def SC-POOL
-  "make an at-at pool for all default scheduling"
+(def INTERNAL-POOL
+  "make an at-at pool for all internal scheduling"
   (at-at/mk-pool))
 
 (def SC-PATHS
