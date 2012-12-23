@@ -11,20 +11,20 @@
             [overtone.config.log :as log]
             [overtone.at-at :as at-at]))
 
-(defonce ^{:dynamic true} *non-active-node-modification-exceptions* :exception)
+(defonce ^{:dynamic true} *inactive-node-modification-error* :exception)
 
 (defn inactive-node-modification-error
   "The default error behaviour triggered when a user attempts to either
   control or kill an inactive node."
   [err-msg]
-  (condp = *non-active-node-modification-exceptions*
+  (condp = *inactive-node-modification-error*
     :silent    nil ;;do nothing
     :warning   (println "Warning - " err-msg)
     :exception (Exception. err-msg)
     (throw
      (IllegalArgumentException.
-      (str "Unexpected value for *non-active-node-modification-exceptions*: "
-           *non-active-node-modification-exceptions*
+      (str "Unexpected value for *inactive-node-modification-error*: "
+           *inactive-node-modification-error*
            "Expected one of :silent, :warning, :exception.")))))
 
 (defonce ^{:private true}
