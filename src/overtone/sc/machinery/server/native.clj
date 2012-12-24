@@ -3,7 +3,7 @@
   (:require [overtone.jna-path]
             [overtone.at-at :as at-at])
   (:use [overtone.helpers.file :only [get-current-directory home-dir]]
-        [overtone.helpers.system :only [get-os get-cpu-bits]]
+        [overtone.helpers.system :only [get-os get-cpu-bits windows-os?]]
         [overtone.sc.machinery.server args]
         [overtone.sc.defaults :only [INTERNAL-POOL]]
         [overtone.nativescsynth.availability :only [native-scsynth-lib-availability]]
