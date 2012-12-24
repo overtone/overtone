@@ -16,11 +16,11 @@
 (defn- inactive-node-modification-error
   "The default error behaviour triggered when a user attempts to either
   control or kill an inactive node."
-  [err-msg]
+  [node err-msg]
   (condp = *inactive-node-modification-error*
     :silent    nil ;;do nothing
-    :warning   (println "Warning - " err-msg)
-    :exception (throw (Exception. err-msg))
+    :warning   (println "Warning - " err-msg node " " (with-out-str (print node)))
+    :exception (throw (Exception. (str "Error - " err-msg " " (with-out-str (print node)))))
     (throw
      (IllegalArgumentException.
       (str "Unexpected value for *inactive-node-modification-error*: "
@@ -197,7 +197,7 @@
   ([node err-msg]
      (when (and (node? node)
                 (not (node-active? node)))
-      (inactive-node-modification-error err-msg))))
+      (inactive-node-modification-error node err-msg))))
 
 
 (defn node-free*
