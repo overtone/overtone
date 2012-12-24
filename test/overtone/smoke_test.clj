@@ -1,28 +1,30 @@
 (ns overtone.smoke-test
-  (:require overtone.sc.server)
-  (:use clojure.test))
+  "Simple tests which exercise overtone and make few assertions.
+  Ensures successful complilation of overtone and its examples."
+  (:use overtone.core
+        clojure.test
+        test-helper))
 
-;; borrowed from clojure.test-helper
-(defmacro eval-in-temp-ns [& forms]
-  `(binding [*ns* *ns*]
-     (in-ns (gensym))
-     (clojure.core/use 'clojure.core)
-     (eval
-            '(do ~@forms))))
+;; Use a single internal server for all tests in this ns.
+(use-fixtures :once with-internal-server)
+
+;; Wait for all osc messages to be processed before moving on.
+;; Trigger a synchronous reset to cleanup after each test
+(use-fixtures :each with-sync-reset with-server-sync)
 
 
-;; Use overtone.live to smoke out obvious errors.
-;; This may fail if you're audio card is unavailable.
-(deftest use-overtone-live-test
-  (overtone.sc.server/kill-server)
-
+(deftest demo-test
   (eval-in-temp-ns
-   (use '[clojure.test :only [is]]
-        '[overtone.live])
+   (use '[clojure.test :only [is]])
+   (use 'overtone.live)
+
    (is (and #'defsynth #'definst) "Core macros should be defined")
    (is (server-connected?) "Server should be connected")
-   (is (mixer-booted?) "Mixer should be booted"))
+   (is (mixer-booted?) "Mixer should be booted")
 
-  ;; clean-up so we don't impact later tests!
-  ;; does this do the trick?
-  (overtone.sc.server/kill-server))
+   (demo 0.1 (sin-osc))
+   (Thread/sleep 100)))
+
+(comment
+  (run-tests)
+  )
