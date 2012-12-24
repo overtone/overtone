@@ -20,7 +20,7 @@
   (condp = *inactive-node-modification-error*
     :silent    nil ;;do nothing
     :warning   (println "Warning - " err-msg)
-    :exception (Exception. err-msg)
+    :exception (throw (Exception. err-msg))
     (throw
      (IllegalArgumentException.
       (str "Unexpected value for *inactive-node-modification-error*: "
