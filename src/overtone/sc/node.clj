@@ -13,7 +13,7 @@
 
 (defonce ^{:dynamic true} *inactive-node-modification-error* :exception)
 
-(defn inactive-node-modification-error
+(defn- inactive-node-modification-error
   "The default error behaviour triggered when a user attempts to either
   control or kill an inactive node."
   [err-msg]
@@ -192,16 +192,22 @@
   (or (node-live? n)
       (node-loading? n)))
 
+(defn- ensure-node-active!
+  ([node] (ensure-node-active! "Trying to modify an inactive node."))
+  ([node err-msg]
+     (when (and (node? node)
+                (not (node-active? node)))
+      (inactive-node-modification-error err-msg))))
+
+
 (defn node-free*
   "Free the specified nodes on the server. The allocated id is
   subsequently freed from the allocator via a callback fn listening
   for /n_end which will call node-destroyed."
   [node]
   {:pre [(server-connected?)]}
-  (if (node-active? node)
-    (snd "/n_free" (to-synth-id node))
-    (inactive-node-modification-error
-     (str "Trying to free a synth node that has been destroyed: " node)))
+  (ensure-node-active! node "Trying to free a synth node that has been destroyed")
+  (snd "/n_free" (to-synth-id node))
   node)
 
 (defn- node-destroyed
@@ -327,34 +333,37 @@
   "Pause a running synth node."
   [node]
   (ensure-connected!)
-  (snd "/n_run" (to-synth-id node) 0))
+  (ensure-node-active! node "Attempting to pause a node that has been destroyed.")
+  (snd "/n_run" (to-synth-id node) 0)
+  node)
 
 (defn node-start*
   "Start a paused synth node."
   [node]
   (ensure-connected!)
-  (snd "/n_run" (to-synth-id node) 1))
+  (ensure-node-active! node "Attempting to start a node that has been destroyed.")
+  (snd "/n_run" (to-synth-id node) 1)
+  node)
 
 (defn node-place*
   "Place a node :before or :after another node."
   [node position target]
   (ensure-connected!)
+  (ensure-node-active! node "Attempting to relocate a node that has been destroyed.")
   (let [node-id   (to-synth-id node)
         target-id (to-synth-id target)]
     (cond
       (= :before position) (snd "/n_before" node-id target-id)
-      (= :after  position) (snd "/n_after" node-id target-id))))
+      (= :after  position) (snd "/n_after" node-id target-id))
+    node))
 
 (defn node-control*
   "Set control values for a node."
   [node name-values]
   (ensure-connected!)
-  (let [node-id (to-synth-id node)]
-    (if (node-active? node)
-      (apply snd "/n_set" node-id (floatify (stringify (bus->id name-values))))
-      (inactive-node-modification-error
-       (str "Trying to control a synth node that has been destroyed: " node)))
-    node))
+  (ensure-node-active! node "Attempting to control a node that has been destroyed.")
+  (apply snd "/n_set" (to-synth-id node) (floatify (stringify (bus->id name-values))))
+  node)
 
 (defn node-get-control
   "Get one or more synth control values by name.  Returns a map of
@@ -363,6 +372,7 @@
   {:freq 440.0 :attack 0.2}"
   [node names]
   (ensure-connected!)
+  (ensure-node-active! node "Attempting to get control values of a node that has been destroyed.")
   (let [res   (recv "/n_set")
         cvals (do (apply snd "/s_get" (to-synth-id node) (stringify names))
                   (:args (deref! res)))]
@@ -374,14 +384,17 @@
   all nodes in the group."
   [node ctl-start ctl-vals]
   (ensure-connected!)
+  (ensure-node-active! node "Attempting to control a node that has been destroyed.")
   (let [node-id (to-synth-id node)]
-    (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals)))
+    (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
+  node)
 
 (defn node-get-control-range
   "Get a range of n controls starting at a given name or index.
   Returns a vector of values."
   [node name-index n]
   (ensure-connected!)
+  (ensure-node-active! node "Attempting to access a node that has been destroyed.")
   (let [res   (recv "/n_setn")
         cvals (do (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
                   (:args (deref! res)))]
@@ -399,57 +412,71 @@
   "Connect a node's controls to a control bus."
   [node names-busses]
   (ensure-connected!)
+  (ensure-node-active! node "Attempting to map the controls of a node that has been destroyed.")
   (let [node-id      (to-synth-id node)
         names-busses (bussify (stringify names-busses))]
-    (apply snd "/n_map" node-id names-busses)))
+    (apply snd "/n_map" node-id names-busses))
+  node)
 
 (defn node-map-n-controls*
   "Connect N controls of a node to a set of sequential control busses,
   starting at the given control name."
   [node start-control start-bus n]
   (ensure-connected!)
+  (ensure-node-active! node "Attempting to map the controls of a node that has been destroyed.")
   (assert (bus? start-bus) "Invalid start-bus")
   (let [node-id (to-synth-id node)]
-    (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n)))
+    (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n))
+  node)
 
 (defn- group-post-tree*
   "Posts a representation of this group's node subtree, i.e. all the
   groups and synths contained within it, optionally including the
   current control values for synths."
-  [id with-args?]
+  [node with-args?]
   (ensure-connected!)
-  (snd "/g_dumpTree" id with-args?))
+  (ensure-node-active! node "Attempting to view a node that has been destroyed.")
+  (snd "/g_dumpTree" (to-synth-id node) with-args?)
+  node)
 
 (defn- group-prepend-node*
   "Add a synth node to the end of a group list."
   [group node]
   (ensure-connected!)
+  (ensure-node-active! node "Attempting to move a node that has been destroyed.")
+  (ensure-node-active! group "Attempting to use a node that has been destroyed.")
   (let [group-id (to-synth-id group)
         node-id  (to-synth-id node)]
-    (snd "/g_head" group-id node-id)))
+    (snd "/g_head" group-id node-id))
+  group)
 
 (defn- group-append-node*
   "Add a synth node to the end of a group list."
   [group node]
   (ensure-connected!)
+  (ensure-node-active! node "Attempting to move a node that has been destroyed.")
+  (ensure-node-active! group "Attempting to move a node that has been destroyed.")
   (let [group-id (to-synth-id group)
         node-id  (to-synth-id node)]
-    (snd "/g_tail" group-id node-id)))
+    (snd "/g_tail" group-id node-id))
+  group)
 
 (defn- group-clear*
   "Free all child synth nodes in a group."
   [group]
   (ensure-connected!)
+  (ensure-node-active! group "Attempting to clear a node that has been destroyed.")
   (snd "/g_freeAll" (to-synth-id group))
-  :clear)
+  group)
 
 (defn- group-deep-clear*
   "Free all child synth nodes in and below this group in other child
   groups."
   [group]
   (ensure-connected!)
+  (ensure-node-active! group "Attempting to deep clear a node that has been destroyed.")
   (snd "/g_deepFree" (to-synth-id group))
-  :clear)
+  group)
 
 (extend java.lang.Long
   ISynthNode
@@ -619,10 +646,11 @@
   "Returns a data structure representing the current arrangement of
   groups and synthesizer instances residing on the audio server."
   ([] (group-node-tree* 0))
-  ([id & [ctls?]]
+  ([node & [ctls?]]
      (ensure-connected!)
+     (ensure-node-active! node "Attempting to view a node that has been destroyed.")
      (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)
-           id    (to-synth-id id)]
+           id    (to-synth-id node)]
        (let [reply-p (recv "/g_queryTree.reply")
              _       (snd "/g_queryTree" id ctls?)
              tree    (:args (deref! reply-p))]
