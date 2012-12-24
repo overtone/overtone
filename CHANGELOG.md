@@ -54,6 +54,11 @@
 * `node-loading?` - returns true if node is loading (i.e. the server hasn't responded to say that it's loaded)
 * `node-active?` - returns true if node is either loading or live
 
+### New macros
+
+* `with-no-ugen-checks` - Disables ugen checks in containing form instead printing warning messages instead of raising exceptions. This is useful for the cases when the ugen checks are over zealous.
+* `with-ugen-debugging` - Prints debugging information for the ugens within the containing form.
+
 ### Removed fns
 * `on-trigger` - prefer event system
 * `remove-trigger` - prefer event system
