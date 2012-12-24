@@ -156,6 +156,12 @@
       (every? #(= :dr (:rate-name %)) demand-ugens)
       (= :dr (:rate-name demand-ugens)))))
 
+(defcheck arg-is-demand-ugen? [k]
+  (str "Argument with key " k " must be a demand rate ugen")
+  (let [merged-args (:arg-map ugen)
+        demand-ugen (get merged-args k)]
+    (= :dr (:rate-name demand-ugen))))
+
 (defn- mk-check-all
   "Create a check-all fn which will check all the specified check-fns to see if
   they don't return errors (errors are represented as string return vals). If

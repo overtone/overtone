@@ -28,7 +28,6 @@
           point its output value will be the first expected item in the
           list." }
 
-
    {:name "Duty",
     :args [{:name "dur"
             :default 1.0}
@@ -43,7 +42,7 @@
            {:name "level"
             :default 1.0}]
 
-    :check (fn [rate num-outs [dur reset & _] spec]
+    :check (fn [rate num-outs [dur reset & _] ugen spec]
              (if (and (dr? dur)
                       (not (or (dr? reset)
                                (ir? reset)
@@ -392,8 +391,8 @@
            {:name "run"
             :default 1.0
             :doc "activation switch 0 or 1 (can be a demand ugen)"}]
-    :rates #{:dr}
-    :check (nth-input-stream? 0)
+   :rates #{:dr}
+    :check (arg-is-demand-ugen? :in)
     :doc "Print the value of an input demand ugen. The print-out is in
           the form: label: value block offset: offset.
 
