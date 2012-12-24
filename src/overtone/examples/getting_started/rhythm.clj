@@ -24,4 +24,5 @@
 
     (apply-at (m next-beat) #'player [next-beat])))
 
-;(player (m))
+;;(player (m))
+;;(stop)

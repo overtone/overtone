@@ -35,5 +35,4 @@
   (apply-at (m (inc beat)) #'player (inc beat) []))
 
 (player (m))
-
-;(defn player [beat] "stop")
+;;(stop)

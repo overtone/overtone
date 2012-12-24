@@ -60,8 +60,9 @@
             kick    (* (* kickenv 7) (sin-osc (+ 40 (* kickenv kickenv kickenv 200))))
             kick    (clip2 kick 1)
 
-            snare   (* 3 (pink-noise [1 1]) (apply + (* (decay (impulse (/ bpm 240) 0.5) [0.4 2]) [1 0.05])))
+            snare   (* 3 (pink-noise) (apply + (* (decay (impulse (/ bpm 240) 0.5) [0.4 2]) [1 0.05])))
             snare   (+ snare (bpf (* 4 snare) 2000))
             snare   (clip2 snare 1)]
 
    (clip2 (+ wob kick snare) 1)))
+;;(stop)

@@ -86,7 +86,7 @@
 ;; the amount of the delay is varied over time.
 
 (defsynth beep7 [freq 440 amp 0.1 offset 3 rate 4 depth 0.2 delay 0.3]
-  (let [src (* (env-gen (perc 0.2 0.4) (dust 1)) (sin-osc [freq (+ offset freq)]))
+  (let [src (* (env-gen (perc 0.2 0.4) (dust:kr 1)) (sin-osc [freq (+ offset freq)]))
         lfo (* depth (abs (sin-osc rate)))
         del (delay-n src 2 (* lfo delay))]
     (out 0 (distort (* amp (+ src del))))))

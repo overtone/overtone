@@ -16,7 +16,7 @@
        kick (* (* kickenv 7) (sin-osc (+ 40 (* kickenv kickenv kickenv 200))))
        kick (clip2 kick 1)
 
-       snare (* 3 (pink-noise [1 1]) (apply + (* (decay (impulse (/ bpm 240) 0.5) [0.4 2]) [1 0.05])))
+       snare (* 3 (pink-noise) (apply + (* (decay (impulse (/ bpm 240) 0.5) [0.4 2]) [1 0.05])))
        snare (+ snare (bpf (* 4 snare) 2000))
        snare (clip2 snare 1)]
 
@@ -26,11 +26,10 @@
 
 (comment
   ;;Control the dubstep synth with the following:
-  (dubstep)
-  ;=> 25 ; synth ID to use below
-  (ctl 25 :wobble 8)
-  (ctl 25 :note 40)
-  (ctl 25 :bpm 250)
+  (def d (dubstep))
+  (ctl d :wobble 8)
+  (ctl d :note 40)
+  (ctl d :bpm 250)
   (stop)
   )
 

@@ -177,7 +177,7 @@
         foo (poll:kr (impulse:kr 20) lpk)
         src (lpf (white-noise) lpk)
         src (pan2 src k2)
-        bak (* 0.5 (lpf (white-noise 500)))]
+        bak (* 0.5 (lpf (white-noise)))]
     (out 0 (+ src [bak bak]))))
 ;(scratch-pendulum)
 ;(stop)
@@ -229,7 +229,7 @@
   (out out-bus (in (num-output-buses:ir))))
 
 (definst ticker [freq 2]
-  (* (sin-osc 440) (env-gen (perc 0.1 0.2) (sin-osc freq))))
+  (* (sin-osc 440) (env-gen (perc 0.1 0.2) (sin-osc:kr freq))))
 ;(ticker)
 
 (definst sizzle [amp 0.4 depth 10 freq 220 lfo 8]
