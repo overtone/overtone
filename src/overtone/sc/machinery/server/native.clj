@@ -19,6 +19,8 @@
 (declare reply-callback)
 (declare sound-buffer)
 
+(defn fflush [_] nil)
+
 (defonce __LOAD_SCSYNTH_NATIVE_LIB__
   (do
     (defclib
@@ -158,8 +160,10 @@
           (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
           (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
-      (loadlib libc)
+      (when-not (windows-os?)
+        (loadlib libc))
       (loadlib lib-scsynth)
+
       (defonce flusher (at-at/every 500 #(fflush nil) INTERNAL-POOL :desc "Flush stdout")))))
 
 (defn flush-all
