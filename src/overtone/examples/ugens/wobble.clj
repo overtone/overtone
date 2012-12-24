@@ -26,9 +26,8 @@
          wob   (+ wob (bpf wob 1500 2))]
      (+ wob (* 0.2 (g-verb wob 9 0.7 0.7))))))
 
-(demo 1 [(sin-osc 50) (sin-osc 50)])
 
-(demo 3 (saw (* 50 [0.99 1.01])))
+(demo 3 (wobble (saw (* 50 [0.99 1.01])) 3))
 
 (demo 3
       (auto-wobble

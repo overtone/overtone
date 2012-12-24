@@ -15,7 +15,7 @@
   "basic synthesised snare drum"
   [bpm {:default 120 :doc "tempo of snare in beats per minute"}]
   (:ar
-   (let [snare (* 3 (pink-noise [1 1]) (apply + (* (decay (impulse (/ bpm 240) 0.5) [0.4 2]) [1 0.05])))
+   (let [snare (* 3 (pink-noise) (apply + (* (decay (impulse (/ bpm 240) 0.5) [0.4 2]) [1 0.05])))
          snare (+ snare (bpf (* 4 snare) 2000))]
      (clip2 snare 1))))
 

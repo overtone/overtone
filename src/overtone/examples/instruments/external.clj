@@ -30,3 +30,4 @@
 (clear-fx external)
 
 ; you can't remove or insert fx currently, so you have to clear and add them again
+;;(stop)

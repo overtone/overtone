@@ -31,7 +31,6 @@
 (pingr)
 (pingr 440 50)
 (pingr 990 40)
-(kill pingr)
 (ctl r-trig :rate 50)
 (stop)
 

@@ -22,7 +22,7 @@
 (let [time (now)]
   (at time (play-chord (chord :D3 :major7)))
   (at (+ 2000 time) (play-chord (chord :A3 :major)))
-  (at (+ 3000 time) (play-chord (chord :D3 :major7)))
+  (at (+ 3000 time) (play-chord (chord :A3 :major7)))
   (at (+ 4300 time) (play-chord (chord :F3 :major7))))
 
 ;; here's a different function that encapsulates the above
@@ -57,6 +57,14 @@
         clp    (clip2 filt 0.8)
         reverb (free-verb clp 0.4 0.8 0.2)]
     (* amp (env-gen (perc 0.0001 dur)) reverb)))
+
+;; ___|)_______________|\________________|\______________|\_______________|\________
+;;|___/___||___________|_________________|_______________|________________|_________||
+;;|__/|___||.________,-.___( )___o-;___,-.___o-;__( )__,-.________o-; __,-.___o-;__.||
+;;|_/(|,\_||.___(_)__`-'___|______/____`-'____/___|____`-'___(_)___/____`-'____/___.||
+;;|_\_|_/_||____|__________|______________________|__________|______________________||
+;;    |         |          |/                     |/         |
+;;  (_|         |/                                           |/
 
 ;; note: the underscores are rests
 (def reich-degrees [:vi :vii :i+ :_ :vii :_ :i+ :vii :vi :_ :vii :_])

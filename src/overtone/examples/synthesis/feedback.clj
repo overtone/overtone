@@ -21,7 +21,7 @@
 
 (defsynth distorted-feedback []
   (let [noiz (mul-add (lf-noise0:kr 0.5) 2 2.05)
-        input (crackle 1.5, 0.15)
+        input (* 0.15 (crackle  1.5))
         fb-in (local-in 1)
         snd (+ input (leak-dc (* 1.1 (delay-n fb-in 3.5 noiz))))
         snd (rlpf snd (mul-add (lf-noise0:kr noiz) 400 800) 0.5)

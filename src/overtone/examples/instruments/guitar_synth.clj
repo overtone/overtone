@@ -64,7 +64,7 @@
        (strum-pattern g metro i c "d---d---dudu-ud-")))))
 
 ;; ======================================================================
-;; ac/dc's highway to hell intro.  turn it up! 
+;; ac/dc's highway to hell intro.  turn it up!
 (defn ddd0 []
   (let [t (now) dt 250]
     (guitar-strum g [-1  0  2  2  2 -1] :down 0.01 (+ t (* 0 dt)))
@@ -119,4 +119,3 @@
    (play1 metro 8 1 [:C :G :Am :F])
    (play1 metro 12 1 [:C :G :Em :C])
    ))
-

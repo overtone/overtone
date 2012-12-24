@@ -27,7 +27,9 @@
    rate     4.0           ; frequency of the LFO
    int      1.0           ; intensity of the LFO
    cutoff   1000.0        ; cutoff frequency of the VCF
-   peak     0.5]          ; VCF peak control (resonance)
+   peak     0.5           ; VCF peak control (resonance)
+   pan      0             ; stereo panning
+   ]
   (let [note_freq       (midicps note)
         pitch_mod_coef  mod_pitch_not_cutoff
         cutoff_mod_coef (- 1 mod_pitch_not_cutoff)
@@ -36,7 +38,7 @@
         vcf_freq        (+ cutoff (* cutoff_mod_coef LFO) note_freq)
         VCF             (moog-ff VCO vcf_freq peak)
         ]
-    (out 0 (* volume VCF))))
+    (out 0 (pan2 (* volume VCF) pan))))
 
 ;; ======================================================================
 ;; create an instance of the synth
@@ -54,4 +56,3 @@
 
 ;; for when you're done.  kill all or just some of the notes
 (kill N0)
-

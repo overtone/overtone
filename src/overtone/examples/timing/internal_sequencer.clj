@@ -217,3 +217,4 @@
 
 ;; modify saw params on the fly too...
 ;;(ctl supersaw2 :fil-mul 4 :rq 0.2)
+;;(stop)

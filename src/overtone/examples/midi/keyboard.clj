@@ -64,4 +64,4 @@
 ;(def ding-player (midi-poly-player poly-ding))
 
 ; and stop it:
-;(stop-midi-player ding-player)
+;(midi-player-stop ding-player)
