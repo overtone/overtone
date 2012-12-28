@@ -71,8 +71,9 @@
         echo (comb-n source 0.5 (mouse-x:kr 0 1) (mouse-y:kr 0 1))]
     (out 0 (pan2 (+ echo (in in-bus) 0)))))
 
-;(pling)
-;(echo-demo)
+;;(pling)
+;;(echo-demo)
+
 ;(stop)
 ; If you have a microphone or some other source of external input, you can read it in
 ; and then run it through fx like this.
@@ -87,8 +88,8 @@
 
 ;; From Designing Sound in SuperCollider
 (defsynth schroeder-reverb
-  []
-  (let [input    (pan2 (play-buf 1 count-down) -0.5)
+  [rate 1]
+  (let [input    (pan2 (play-buf 1 count-down rate) -0.5)
         delrd    (local-in 4)
         output   (+ input [(first delrd) (second delrd)])
         sig      [(+ (first output) (second output)) (- (first output) (second output))
@@ -102,4 +103,4 @@
     (out 0 output)))
 
 ;;Spooky!
-;;(schroeder-reverb)
+;;(schroeder-reverb :rate 0.8)

@@ -1,9 +1,9 @@
 (ns overtone.examples.getting-started.basic
   (:use overtone.live))
 
-; Some of the examples gathered here were found on this page:
-; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
-; which come originally from the book Designing Sound by Andy Farnell.
+;; Some of the examples gathered here were found on this page:
+;; http://en.wikibooks.org/wiki/Designing_Sound_in_SuperCollider/Print_version
+;; which come originally from the book Designing Sound by Andy Farnell.
 
 (defsynth foo [freq 200 dur 0.5]
   (let [src (saw [freq (* freq 1.01) (* 0.99 freq)])
@@ -12,7 +12,7 @@
         env (env-gen (perc 0.1 dur) :action FREE)]
     (out 0 (pan2 (* 0.8 low env filt)))))
 
-;(foo 440)
+;;(foo 440)
 
 (defn foo-pause
   []
@@ -20,13 +20,13 @@
     (foo (* i 220) 1)
     (Thread/sleep 300)))
 
-;(foo-pause)
+;;(foo-pause)
 
-; Using Thread/sleep like above can result in JVM pauses with unknown
-; wakeup times, so in order to make sure sounds are triggered exactly
-; when you want them to you can wrap any call to a synthesizer function
-; in the (at <timestamp> ...) macro.  This will schedule all enclosed
-; synthesizer calls to play at the specified time.
+;; Using Thread/sleep like above can result in JVM pauses with unknown
+;; wakeup times, so in order to make sure sounds are triggered exactly
+;; when you want them to you can wrap any call to a synthesizer function
+;; in the (at <timestamp> ...) macro.  This will schedule all enclosed
+;; synthesizer calls to play at the specified time.
 (defn foo-timed
   []
   (let [n (now)]
@@ -34,12 +34,12 @@
       (at (+ n (* i 300))
           (foo (* i 220) 1)))))
 
-;(foo-timed)
+;;(foo-timed)
 
-; A simple pad sound using definst rather than defsynth, which will
-; automatically take the enclosing synth and send it to a bus.
-; (Note how in comparison to foo above it doesn't use the out and pan ugens.)
-(definst overpad [note 60 amp 0.7 attack 0.001 release 2]
+;; A simple pad sound using definst rather than defsynth, which will
+;; automatically take the enclosing synth and send it to a bus.
+;; (Note how in comparison to foo above it doesn't use the out and pan ugens.)
+(defsynth overpad [note 60 amp 0.7 attack 0.001 release 2 out-bus 0]
   (let [freq  (midicps note)
         env   (env-gen (perc attack release) :action FREE)
         f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- release 0.1)))))
@@ -48,9 +48,9 @@
                      (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
                              (lpf (saw [freq (* freq 1.01)]) f-env)))
         audio (* amp env sig)]
-    audio))
+    (out out-bus audio)))
 
-;(overpad 64 :attack 2 :release 10)
+;;(overpad 41 :attack 10 :release 20)
 
 (def metro (metronome 128))
 
@@ -59,7 +59,7 @@
         env (env-gen (perc 0.001 0.3) :action FREE)]
     (* 0.7 src env)))
 
-;(kick)
+;;(kick)
 
 (defn player [beat notes]
   (let [notes (if (empty? notes)
@@ -76,8 +76,8 @@
           (overpad (choose notes) 0.5 0.15 0.1)))
   (apply-at (metro (inc beat)) #'player (inc beat) (next notes) [])))
 
-;(player (metro) [])
-;(stop)
+;;(player (metro) [])
+;;(stop)
 
 (defn play-notes [t beat-dur notes attacks]
   (when notes
@@ -89,13 +89,13 @@
       (at t (overpad note amp attack release))
       (apply-at next-beat #'play-notes next-beat beat-dur (next notes) (next attacks) []))))
 
-;(play-notes (now) 425 (cycle [40 42 44 45 47 49 51 52]) (repeat 0.4))
-;(play-notes (now) 300 (scale :c4 :major) (repeat 0.05))
-;(play-notes (now) 300 (take 15 (cycle [40 42 44 45 47 49 51 52])) (repeat 0.3))
-;(play-notes (now) 100 (take 50 (cycle (scale :a4 :minor))) (repeat 0.4))
-;(stop)
+;;(play-notes (now) 425 (cycle [40 42 44 45 47 49 51 52]) (repeat 0.4))
+;;(play-notes (now) 300 (scale :c4 :major) (repeat 0.05))
+;;(play-notes (now) 300 (take 15 (cycle [40 42 44 45 47 49 51 52])) (repeat 0.3))
+;;(play-notes (now) 100 (take 50 (cycle (scale :a4 :minor))) (repeat 0.4))
+;;(stop)
 
-; Inspired by "How do I play a chord" from Impromptu website
+;; Inspired by "How do I play a chord" from Impromptu website
 (defn chord-notes []
  [(choose [58 60 60 62])
   (choose [62 63 63 65])
@@ -111,13 +111,13 @@
             (overpad note 0.3 (/ tick 1020))))
     (apply-at (metro next-beat) #'play-chords [next-beat])))
 
-;(play-chords (metro))
-;(metro-bpm metro 70)
-;(stop)
+;;(play-chords (metro))
+;;(metro-bpm metro 70)
+;;(stop)
 
-; You can load samples from freesound.org using their ID number:
+;; You can load samples from freesound.org using their ID number:
 (def kick-d (sample (freesound-path 41155)))
-;(kick-d)
+;;(kick-d)
 
 (defn looper [t dur notes]
   (at t (kick-d))
@@ -125,29 +125,28 @@
   (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
   (apply-at (+ t dur) #'looper (+ t dur) dur (next notes) []))
 
-;(looper (now) 500 (cycle [60 67 65 72 75 70]))
-;(stop)
+;;(looper (now) 500 (cycle [60 67 65 72 75 70]))
+;;(stop)
 
-; When a multiplication is done involving UGen objects, then
-; multiply UGens will be produced with the operands as their
-; inputs.  (Note that synthdefs can have doc strings too.)
-(definst pedestrian-crossing
+;; When a multiplication is done involving UGen objects, then
+;; multiply UGens will be produced with the operands as their
+;; inputs.  (Note that synthdefs can have doc strings too.)
+(defsynth pedestrian-crossing
   "Street crossing in Britain."
-  []
-  (* 0.2 (sin-osc 2500) (lf-pulse 5)))
+  [out-bus 0]
+  (out out-bus (* 0.2 (sin-osc 2500) (lf-pulse 5))))
+;;(pedestrian-crossing)
+;;(stop)
 
-;(pedestrian-crossing)
-;(stop)
-
-; You can mix signals by adding them together.  The soundcard can take audio
-; data between -1 and 1, so if you add up signals remember to multiply
-; by a fractional number or else you will have clipping distortion.
+;; You can mix signals by adding them together.  The soundcard can take audio
+;; data between -1 and 1, so if you add up signals remember to multiply
+;; by a fractional number or else you will have clipping distortion.
 (definst trancy-waves []
   (* 0.2
      (+ (sin-osc 200) (saw 200) (saw 203) (sin-osc 400))))
 
-; (trancy-waves)
-; (stop)
+;; (trancy-waves)
+;; (stop)
 
 ;; A noise filter, using the mouse to control the bandpass frequency and bandwidth
 (defn noise-demo
@@ -156,9 +155,9 @@
                 (mouse-y 10 10000)
                 (mouse-x 0.0001 0.9999))))
 
-;(noise-demo)
+;;(noise-demo)
 
-; Move your mouse around to hear the random sine waves moving around
+;; Move your mouse around to hear the random sine waves moving around
 (defsynth roaming-sines
   []
   (let [freqs (take 5 (repeatedly #(ranged-rand 40 2000)))
@@ -166,10 +165,10 @@
         snd (splay (* 0.5 (sin-osc freqs)))
         snd (* (sin-osc ampmod) snd)]
     (out 0 snd)))
-;(roaming-sines)
-;(stop)
+;;(roaming-sines)
+;;(stop)
 
-; Gangsta scratch
+;; Gangsta scratch
 (defsynth scratch-pendulum []
   (let [kon (sin-osc:kr (* 10 (mouse-x)))
         k2 (sin-osc:kr (* 5 (mouse-x)))
@@ -179,19 +178,19 @@
         src (pan2 src k2)
         bak (* 0.5 (lpf (white-noise)))]
     (out 0 (+ src [bak bak]))))
-;(scratch-pendulum)
-;(stop)
+;;(scratch-pendulum)
+;;(stop)
 
 
-; The functions representing UGens support what's called multi-channel
-; expansion.  What this means is that if pass a collection of N arguments
-; where a single value is expected, then N instances of the UGen will
-; be created, each using the successive values.
+;; The functions representing UGens support what's called multi-channel
+;; expansion.  What this means is that if pass a collection of N arguments
+;; where a single value is expected, then N instances of the UGen will
+;; be created, each using the successive values.
 (definst dial-tone [freq-a 350 freq-b 440]
   (apply + (* (sin-osc [freq-a freq-b]) 0.2)))
 
-;(dial-tone)
-;(stop)
+;;(dial-tone)
+;;(stop)
 
 ;; Synths can also communicate back to us.  Here we use the send-trig
 ;; UGen, which sends a "/tr" trigger message every time it gets an
@@ -201,15 +200,15 @@
 (defsynth trigger-finger []
   (send-trig:kr (impulse:kr 0.2) 200 (num-output-buses)))
 
-;(on-event "/tr" #(println "trigger: " %) ::trigger-test)
-;(trigger-finger)
-;(stop)
+;;(on-event "/tr" #(println "trigger: " %) ::trigger-test)
+;;(trigger-finger)
+;;(stop)
 
 (defsynth dtest []
   (send-trig:kr (impulse:kr 2) 1 (demand:kr (impulse:kr 0.5) 1 (dwhite))))
 
-; (dtest)
-; (stop)
+;; (dtest)
+;; (stop)
 
 (defsynth adder [a 1 b 2]
   (let [v1 (- a b)
@@ -219,33 +218,36 @@
     (send-trig:kr v1 201 sum)
     (send-trig:kr v2 202 product)))
 
-;(adder)
+;;(adder)
 
-; You can read audio data in from your sound card using the regular (in <bus-num>) ugen,
-; but you need to know where your input buses start.  The output buses start at number 0,
-; and then the input buses begin, so you need to know how many outputs you have to know
-; the right bus to read from.
+;; You can read audio data in from your sound card using the regular (in <bus-num>) ugen,
+;; but you need to know where your input buses start.  The output buses start at number 0,
+;; and then the input buses begin, so you need to know how many outputs you have to know
+;; the right bus to read from.
 (defsynth external-input [out-bus 0]
   (out out-bus (in (num-output-buses:ir))))
 
+
 (definst ticker [freq 2]
   (* (sin-osc 440) (env-gen (perc 0.1 0.2) (sin-osc:kr freq))))
-;(ticker)
+
+;;(ticker)
 
 (definst sizzle [amp 0.4 depth 10 freq 220 lfo 8]
   (* amp (saw (+ freq (* depth (sin-osc:kr lfo))))))
 
-;(sizzle)
-;(ctl sizzle :depth 100 :lfo 0.5)
-;(stop)
+;;(sizzle)
+;;(ctl sizzle :depth 100 :lfo 0.5)
 
-; It's typical to use a pulse as a sort of on off switch like this.
+;;(stop)
+
+;; It's typical to use a pulse as a sort of on off switch like this.
 (defsynth line-two [bus 0]
   (let [sig (lf-pulse 1/6 0 0.25)]
     (out 0 (* 0.5 (sin-osc [480 440]) (lag sig)))))
 
-; (line-two)
-; (stop)
+;; (line-two)
+;; (stop)
 
 (definst busy-signal []
   (let [on-off (lag (lf-pulse 2) 0.1)]
@@ -255,7 +257,7 @@
 ;;(busy-signal)
 ;;(stop)
 
-; Need to make a call?
+;; Need to make a call?
 (def DTMF-TONES {1  [697, 1209]
                  2  [770, 1209]
                  3  [852, 1209]
@@ -285,11 +287,12 @@
         (at t-off (ctl dtmf :gate 0))
         (recur t-off (next nums))))))
 
-; Try this:
-;(dial-number [0 6 2 1 2 2 4 2 9 8])
+;; Try this:
+;;(dial-number [0 6 2 1 2 2 4 2 9 8])
 
-; The done ugen can act as a flag for the completion of envelopes and other ugens that
-; have a done action.  Listen to the noise come on after the 2 second sine wave.
+
+;; The done ugen can act as a flag for the completion of envelopes and other ugens that
+;; have a done action.  Listen to the noise come on after the 2 second sine wave.
 (definst done-trigger []
   (let [line (line:kr 1 0 2)]
     (* 0.1 (+ (* line (sin-osc 440)) (* (done line) (white-noise))))))

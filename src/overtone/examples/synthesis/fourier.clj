@@ -9,7 +9,7 @@
         src (* 0.8 (white-noise))
         freqs (fft buf src)
             filtered (pv-rand-comb freqs 0.95 (impulse:kr rate))]
-  (ifft filtered)))
+    (pan2 (ifft filtered))))
 
 ; Cut off noise at a wall
 (demo 15
