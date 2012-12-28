@@ -55,7 +55,7 @@
                    :num-audio-buses (long nab)
                    :num-buffers (long nb)
                    :num-running-synths (long nrs)})))
-     ::server-info)
+     (keyword (str "overtone.sc.info/get-server-info_" (gensym))))
     (let [synth-id (snd-server-info)
           res (deref! prom)]
       (kill synth-id)
