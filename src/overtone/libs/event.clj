@@ -134,13 +134,15 @@
                    key)))
 
 (defn oneshot-event
-  ""
+  "Add a one-shot handler which will be removed when called. This
+   handler is guaranteed to be called only once."
   [event-type handler key]
   (log-event "Registering async self-removing event handler:: " event-type " with key: " key)
   (handlers/add-one-shot-handler! handler-pool event-type key handler))
 
 (defn oneshot-sync-event
-  ""
+  "Add a synchronous one-shot handler which will be removed when called. This
+   handler is guaranteed to be called only once."
   [event-type handler key]
   (log-event "Registering sync self-removing event handler:: " event-type " with key: " key)
   (handlers/add-one-shot-sync-handler! handler-pool event-type key handler))
