@@ -2,8 +2,9 @@
     ^{:doc "Functions for returning information regarding the connected SC server"
       :author "Sam Aaron"}
   overtone.sc.info
-  (:use [overtone.libs event]
+  (:use [overtone.libs event counters]
         [overtone.sc synth ugens node server]
+        [overtone.sc.machinery.allocator]
         [overtone.helpers lib]))
 
 (defonce output-bus-count* (atom nil))
@@ -14,19 +15,22 @@
 
 (defonce __SERVER-INFO__
   (defsynth snd-server-info
-    []
-    (send-reply (impulse 2) "/server-info" [(sample-rate)
-                                            (sample-dur)
-                                            (radians-per-sample)
-                                            (control-rate)
-                                            (control-dur)
-                                            (subsample-offset)
-                                            (num-output-buses)
-                                            (num-input-buses)
-                                            (num-audio-buses)
-                                            (num-control-buses)
-                                            (num-buffers)
-                                            (num-running-synths)])))
+    [response-id -1]
+    (send-reply (impulse 2)
+                "/server-info"
+                [(sample-rate)
+                 (sample-dur)
+                 (radians-per-sample)
+                 (control-rate)
+                 (control-dur)
+                 (subsample-offset)
+                 (num-output-buses)
+                 (num-input-buses)
+                 (num-audio-buses)
+                 (num-control-buses)
+                 (num-buffers)
+                 (num-running-synths)]
+                response-id)))
 
 (defn server-info
   "Fetches a bunch of useful server info. Has to trigger and poll a synth to
@@ -37,27 +41,30 @@
   []
   (when (server-disconnected?)
     (throw (Exception. "Please connect to a server before attempting to ask for server-info.")))
-  (let [prom (promise)]
-    (oneshot-event
+  (let [prom        (promise)
+        response-id (next-id :response-id)]
+    (on-event
      "/server-info"
      (fn [msg]
        (let [args (:args msg)
              [nid nrid sr sd rps cr cd sso nob nib nab ncb nb nrs] args]
-         (deliver prom
-                  {:sample-rate (long sr)
-                   :sample-dur sd
-                   :radians-per-sample rps
-                   :control-rate cr
-                   :control-dur cd
-                   :subsample-offset sso
-                   :num-output-buses (long nob)
-                   :num-input-buses (long nib)
-                   :num-audio-buses (long nab)
-                   :num-buffers (long nb)
-                   :num-running-synths (long nrs)})))
+         (when (= (int nrid) (int response-id))
+            (deliver prom
+                    {:sample-rate (long sr)
+                     :sample-dur sd
+                     :radians-per-sample rps
+                     :control-rate cr
+                     :control-dur cd
+                     :subsample-offset sso
+                     :num-output-buses (long nob)
+                     :num-input-buses (long nib)
+                     :num-audio-buses (long nab)
+                     :num-buffers (long nb)
+                     :num-running-synths (long nrs)})
+            :overtone/remove-handler)))
      (keyword (str "overtone.sc.info/get-server-info_" (gensym))))
-    (let [synth-id (snd-server-info)
-          res (deref! prom)]
+    (let [synth-id (snd-server-info response-id)
+          res      (deref! prom)]
       (kill synth-id)
       res)))
 
