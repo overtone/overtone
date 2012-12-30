@@ -27,10 +27,14 @@
            *inactive-node-modification-error*
            "Expected one of :silent, :warning, :exception.")))))
 
-(defonce ^{:private true}
-  _PROTOCOLS_
+(defonce ^{:private true} __PROTOCOLS__
+
   (do
     (defprotocol to-synth-id* (to-synth-id [v]))
+
+    (defprotocol ISynthNodeStatus
+      (node-status [this])
+      (node-block-until-ready [this]))
 
     (defprotocol ISynthNode
       (node-free   [this])
@@ -114,7 +118,7 @@
     (zipmap (map name-fn (keys arg-map))
             (map val-fn (vals arg-map)))))
 
-(defrecord SynthNode [synth id target position args sdef status]
+(defrecord SynthNode [synth id target position args sdef status loaded?]
   to-synth-id*
   (to-synth-id [this] (:id this)))
 
@@ -134,11 +138,11 @@
 
 ;; Sending a synth-id of -1 lets the server choose an ID
 (defn node
-  "Instantiate a synth node on the audio server.  Takes the synth name
-  and a map of argument name/value pairs.  Optionally use target
-  <node/group-id> and position <pos> to specify where the node should be
-  located.  The position can be one of :head, :tail :before, :after,
-  or :replace.
+  "Asynchronously instantiate a synth node on the audio server.  Takes
+  the synth name and a map of argument name/value pairs.  Optionally use
+  target <node/group-id> and position <pos> to specify where the node
+  should be located.  The position can be one
+  of :head, :tail :before, :after, or :replace.
 
   (node \"foo\")
   (node \"foo\" {:pitch 60})
@@ -157,7 +161,7 @@
            target   (to-synth-id (get location :target 0))
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
-           snode    (SynthNode. synth-name id target position arg-map sdef (atom :loading))]
+           snode    (SynthNode. synth-name id target position arg-map sdef (atom :loading) (promise))]
        (swap! active-synth-nodes* assoc id snode)
        (apply snd "/s_new" synth-name id pos-id (to-synth-id target) args)
        snode)))
@@ -177,9 +181,16 @@
   (isa? (type obj) ::node))
 
 (defn node-live?
-  "Returns true if n is a live synth node."
+  "Returns true if n is a running synth node."
   [n]
-  (and (node? n) (= :live @(:status n))))
+  (and (node? n)
+       (= :live @(:status n))))
+
+(defn node-paused?
+  "Returns true if n is a paused synth node."
+  [n]
+  (and (node? n)
+       (= :paused @(:status n))))
 
 (defn node-loading?
   "Returns true if n is a loading synth node."
@@ -190,14 +201,17 @@
   "Returns true if n is an active synth node."
   [n]
   (or (node-live? n)
-      (node-loading? n)))
+      (node-paused? n)))
 
 (defn- ensure-node-active!
   ([node] (ensure-node-active! "Trying to modify an inactive node."))
   ([node err-msg]
+     (when (node? node)
+       (node-block-until-ready node))
+
      (when (and (node? node)
                 (not (node-active? node)))
-      (inactive-node-modification-error node err-msg))))
+       (inactive-node-modification-error node err-msg))))
 
 
 (defn node-free*
@@ -230,7 +244,9 @@
   (let [snode (get @active-synth-nodes* id)]
     (log/debug (format "node-created: %d\nsynth-node: %s" id snode))
     (if snode
-      (reset! (:status snode) :live)
+      (do
+        (reset! (:status snode) :live)
+        (deliver (:loaded? snode) true))
       (log/warn (format "ERROR: The fn node-created can't find synth node: %d" id)))))
 
 (defn- node-paused
@@ -248,10 +264,10 @@
   (let [snode (get @active-synth-nodes* id)]
     (log/debug (format "node-started: %d\nsynth-node: %s" id snode))
     (if snode
-      (reset! (:status snode) :running)
+      (reset! (:status snode) :live)
       (log/warn (format "ERROR: The fn node-started can't find synth node: %d" id)))))
 
-; Setup the feedback handlers with the audio server.
+;; Setup the feedback handlers with the audio server.
 (on-event "/n_end" (fn [info] (node-destroyed (first (:args info)))) ::node-destroyer)
 (on-event "/n_go"  (fn [info] (node-created   (first (:args info)))) ::node-creator)
 (on-event "/n_off" (fn [info] (node-paused    (first (:args info)))) ::node-pauser)
@@ -268,7 +284,7 @@
 ;; group' with an ID of 1 which is the default target for all new Nodes. See
 ;; RootNode and default_group for more info.
 
-(defrecord SynthGroup [group id target position status]
+(defrecord SynthGroup [group id target position status loaded?]
   to-synth-id*
   (to-synth-id [_] id))
 
@@ -318,7 +334,7 @@
      (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
            target (to-synth-id target)
            pos    (or pos 1)
-           snode  (SynthGroup. name id target position (atom :loading))]
+           snode  (SynthGroup. name id target position (atom :loading) (promise))]
        (swap! active-synth-nodes* assoc id snode)
        (snd "/g_new" id pos target)
        snode)))
@@ -353,8 +369,8 @@
   (let [node-id   (to-synth-id node)
         target-id (to-synth-id target)]
     (cond
-      (= :before position) (snd "/n_before" node-id target-id)
-      (= :after  position) (snd "/n_after" node-id target-id))
+     (= :before position) (snd "/n_before" node-id target-id)
+     (= :after  position) (snd "/n_after" node-id target-id))
     node))
 
 (defn node-control*
@@ -378,7 +394,7 @@
                   (:args (deref! res)))]
     (apply hash-map (keywordify (drop 1 cvals)))))
 
-; This can be extended to support setting multiple ranges at once if necessary...
+;; This can be extended to support setting multiple ranges at once if necessary...
 (defn node-control-range*
   "Set a range of controls all at once, or if node is a group control
   all nodes in the group."
@@ -478,6 +494,16 @@
   (snd "/g_deepFree" (to-synth-id group))
   group)
 
+(defn node-status*
+  "Get the current status of node."
+  [node]
+  @(:status node))
+
+(defn node-block-until-ready*
+  "Block the current thread until the node is no longer loading."
+  [node]
+  (deref! (:loaded? node)))
+
 (extend java.lang.Long
   ISynthNode
   {:node-free  node-free*
@@ -515,14 +541,22 @@
   {:node-control           node-control*
    :node-control-range     node-control-range*
    :node-map-controls      node-map-controls*
-   :node-map-n-controls    node-map-n-controls*})
+   :node-map-n-controls    node-map-n-controls*}
+
+  ISynthNodeStatus
+  {:node-status            node-status*
+   :node-block-until-ready node-block-until-ready*})
 
 (extend SynthGroup
   IControllableNode
   {:node-control           node-control*
    :node-control-range     node-control-range*
    :node-map-controls      node-map-controls*
-   :node-map-n-controls    node-map-n-controls*})
+   :node-map-n-controls    node-map-n-controls*}
+
+  ISynthNodeStatus
+  {:node-status            node-status*
+   :node-block-until-ready node-block-until-ready*})
 
 (defn ctl
   "Send a node control messages specified in pairs of :arg-name val. It
@@ -568,33 +602,33 @@
   IKillable
   {:kill* node-free*})
 
-;/g_queryTree				get a representation of this group's node subtree.
-;	[
-;		int - group ID
-;		int - flag: if not 0 the current control (arg) values for synths will be included
-;	] * N
-;
-; Request a representation of this group's node subtree, i.e. all the groups and
-; synths contained within it. Replies to the sender with a /g_queryTree.reply
-; message listing all of the nodes contained within the group in the following
-; format:
-;
-;	int - flag: if synth control values are included 1, else 0
-;	int - node ID of the requested group
-                                        ;	int - number of child nodes contained within the requested group
-;	then for each node in the subtree:
-;	[
-;		int - node ID
-;		int - number of child nodes contained within this node. If -1this is a synth, if >=0 it's a group
-;		then, if this node is a synth:
-;		symbol - the SynthDef name for this node.
-;		then, if flag (see above) is true:
-;		int - numControls for this synth (M)
-;		[
-;			symbol or int: control name or index
-;			float or symbol: value or control bus mapping symbol (e.g. 'c1')
-;		] * M
-;	] * the number of nodes in the subtree
+;;/g_queryTree				get a representation of this group's node subtree.
+;;	[
+;;		int - group ID
+;;		int - flag: if not 0 the current control (arg) values for synths will be included
+;;	] * N
+;;
+;; Request a representation of this group's node subtree, i.e. all the groups and
+;; synths contained within it. Replies to the sender with a /g_queryTree.reply
+;; message listing all of the nodes contained within the group in the following
+;; format:
+;;
+;;	int - flag: if synth control values are included 1, else 0
+;;	int - node ID of the requested group
+;;	int - number of child nodes contained within the requested group
+;;	then for each node in the subtree:
+;;	[
+;;		int - node ID
+;;		int - number of child nodes contained within this node. If -1this is a synth, if >=0 it's a group
+;;		then, if this node is a synth:
+;;		symbol - the SynthDef name for this node.
+;;		then, if flag (see above) is true:
+;;		int - numControls for this synth (M)
+;;		[
+;;			symbol or int: control name or index
+;;			float or symbol: value or control bus mapping symbol (e.g. 'c1')
+;;		] * M
+;;	] * the number of nodes in the subtree
 
 (defonce ^{:dynamic true} *node-tree-data* nil)
 

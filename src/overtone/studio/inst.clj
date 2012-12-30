@@ -113,7 +113,8 @@
                      mixer bus fx-chain
                      volume pan
                      n-chans
-                     status]
+                     status
+                     loaded?]
   (fn [this & args]
     (apply synth-player sdef params this :tgt instance-group args))
 
@@ -158,7 +159,8 @@
                              imixer# inst-bus# fx-chain#
                              volume# pan#
                              n-chans#
-                             (:status container-group#))
+                             (:status container-group#)
+                             (:loaded? container-group#))
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (add-instrument inst#)
@@ -273,4 +275,8 @@
    :node-map-n-controls    node-map-n-controls*}
 
   IKillable
-  {:kill* (fn [this] (group-deep-clear (:instance-group this)))})
+  {:kill* (fn [this] (group-deep-clear (:instance-group this)))}
+
+  ISynthNodeStatus
+  {:node-status            node-status*
+   :node-block-until-ready node-block-until-ready*})
