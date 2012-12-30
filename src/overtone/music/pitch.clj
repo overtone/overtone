@@ -230,23 +230,38 @@
 ;; All sequences should add up to 12 - the number of semitones in an octave
 
 (def SCALE
-  (let [ionian-sequence [2 2 1 2 2 2 1]
-        ionian-len      (count ionian-sequence)
-        rotate-ionian   (fn [offset]
-                          (take ionian-len
-                                (drop offset (cycle ionian-sequence))))]
+  (let [ionian-sequence     [2 2 1 2 2 2 1]
+        hex-sequence        [2 2 1 2 2 3]
+        pentatonic-sequence [3 2 2 3 2]
+        rotate (fn [scale-sequence offset]
+                 (take (count scale-sequence)
+                       (drop offset (cycle scale-sequence))))]
     {:diatonic           ionian-sequence
-     :ionian             (rotate-ionian 0)
-     :major              (rotate-ionian 0)
-     :dorian             (rotate-ionian 1)
-     :phrygian           (rotate-ionian 2)
-     :lydian             (rotate-ionian 3)
-     :mixolydian         (rotate-ionian 4)
-     :aeolian            (rotate-ionian 5)
-     :minor              (rotate-ionian 5)
-     :locrian            (rotate-ionian 6)
-     :major-pentatonic   [2 2 3 2 3]
-     :minor-pentatonic   [3 2 2 3 2]
+     :ionian             (rotate ionian-sequence 0)
+     :major              (rotate ionian-sequence 0)
+     :dorian             (rotate ionian-sequence 1)
+     :phrygian           (rotate ionian-sequence 2)
+     :lydian             (rotate ionian-sequence 3)
+     :mixolydian         (rotate ionian-sequence 4)
+     :aeolian            (rotate ionian-sequence 5)
+     :minor              (rotate ionian-sequence 5)
+     :locrian            (rotate ionian-sequence 6)
+     :hex-major6         (rotate hex-sequence 0)
+     :hex-dorian         (rotate hex-sequence 1)
+     :hex-phrygian       (rotate hex-sequence 2)
+     :hex-major7         (rotate hex-sequence 3)
+     :hex-sus            (rotate hex-sequence 4)
+     :hex-aeolian        (rotate hex-sequence 5)
+     :minor-pentatonic   (rotate pentatonic-sequence 0)
+     :yu                 (rotate pentatonic-sequence 0)
+     :major-pentatonic   (rotate pentatonic-sequence 1)
+     :gong               (rotate pentatonic-sequence 1)
+     :egyptian           (rotate pentatonic-sequence 2)
+     :shang              (rotate pentatonic-sequence 2)
+     :jiao               (rotate pentatonic-sequence 3)
+     :pentatonic         (rotate pentatonic-sequence 4) ;; historical match
+     :zhi                (rotate pentatonic-sequence 4)
+     :ritusen            (rotate pentatonic-sequence 4)
      :whole-tone         [2 2 2 2 2 2]
      :whole              [2 2 2 2 2 2]
      :chromatic          [1 1 1 1 1 1 1 1 1 1 1 1]
@@ -268,10 +283,7 @@
      :bartok             [2 2 1 2 1 2 2]
      :bhairav            [1 3 1 2 1 3 1]
      :locrian-major      [2 2 1 1 2 2 2]
-     :gong               [2 2 3 2 3]
-     :hex-phrygian       [1 2 2 3 2 2]
      :ahirbhairav        [1 3 1 2 2 1 2]
-     :yu                 [3 2 2 3 2]
      :enigmatic          [1 3 2 2 2 1 1]
      :neapolitan-minor   [1 2 2 2 1 3 1]
      :pelog              [1 2 4 1 4]
@@ -279,7 +291,6 @@
      :scriabin           [1 3 3 2 3]
      :harmonic-major     [2 2 1 2 1 3 1]
      :melodic-minor-desc [2 1 2 2 1 2 2]
-     :hex-dorian         [2 1 2 2 3 2]
      :romanian-minor     [2 1 3 1 2 1 2]
      :hindu              [2 2 1 2 1 2 2]
      :iwato              [1 4 1 4 2]
@@ -288,22 +299,13 @@
      :marva              [1 3 2 1 2 2 1]
      :melodic-major      [2 2 1 2 1 2 2]
      :indian             [4 1 2 3 2]
-     :hex-major6         [2 2 1 2 2 3]
      :spanish            [1 3 1 2 1 2 2]
      :prometheus         [2 2 2 5 1]
      :diminished         [1 2 1 2 1 2 1 2]
-     :hex-aeolian        [3 2 2 1 2 2]
-     :ritusen            [2 3 2 2 3]
-     :hex-sus            [2 3 2 2 1 2]
      :todi               [1 2 3 1 1 3 1]
-     :zhi                [2 3 2 2 3]
      :leading-whole      [2 2 2 2 2 1 1]
      :augmented          [3 1 3 1 3 1]
-     :shang              [2 3 2 3 2]
-     :jiao               [3 2 3 2 2]
-     :egyptian           [2 3 2 3 2]
      :purvi              [1 3 2 1 1 3 1]
-     :hex-major7         [2 2 3 2 2 1]
      :chinese            [4 2 1 4 1]
      :lydian-minor       [2 2 2 1 1 2 2]}))
 
