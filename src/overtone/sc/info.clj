@@ -39,8 +39,7 @@
   of the static values in this info map. Note, the number of running synths
   will also include the synth used to obtain this information."
   []
-  (when (server-disconnected?)
-    (throw (Exception. "Please connect to a server before attempting to ask for server-info.")))
+  (ensure-connected!)
   (let [prom        (promise)
         response-id (next-id :response-id)]
     (on-event
