@@ -56,5 +56,6 @@
                  [clj-glob "1.0.0"]
                  [org.clojure/core.match "0.2.0-alpha11"]
                  [seesaw "1.4.2"]]
+  :profiles {:dev {:dependencies [[bultitude "0.2.0"]]}}
   :native-path "native"
   :jvm-opts ~(jvm-opts))

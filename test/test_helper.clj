@@ -48,7 +48,6 @@
   [ms & body]
   `(invoke-timeout (^{:once true} fn [] ~@body) ~ms))
 
-
 (defn wait-while
   "Blocks the current thread while `pred` returns true.
 
@@ -95,10 +94,11 @@
   (kill-server))
 
 (defn with-sync-reset
-  "Fixture. Ensures that all running synth and inst nodes are stopped
-  after invoking 'f'. Blocks the current thread until reset is
-  complete. Does NOT affect synthdefs."
-  [f] (do (f) stop (sync-event :reset)))
+  "Fixture. Ensures that the server gets reset after each test.
+  Synchronously stops active nodes in the default foundation-group,
+  clears the osc message queue, and kills all scheduled jobs in the
+  player-pool if any."
+  [f] (do (f) (sync-event :reset)))
 
 
 ;; Some quick tests to verify test-helpers...
