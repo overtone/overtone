@@ -259,7 +259,7 @@
       (log/warn (format "ERROR: The fn node-paused can't find synth node: %d" id)))))
 
 (defn- node-started
-  "Called whena a node is turned on."
+  "Called when a node is turned on."
   [id]
   (let [snode (get @active-synth-nodes* id)]
     (log/debug (format "node-started: %d\nsynth-node: %s" id snode))

@@ -216,7 +216,7 @@
 ;; and inst forms and their derivatives.
 (defn load-synthdef
   "Load an Overtone synth definition onto the audio server. The synthdef is also
-  stored so that it can be re-loaded if the server needs rebooted. If the server
+  stored so that it can be re-loaded if the server gets rebooted. If the server
   is currently not running, the synthdef loading is delayed until the server has
   succesfully connected."
   [sdef]
