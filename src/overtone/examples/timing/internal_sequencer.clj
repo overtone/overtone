@@ -1,4 +1,4 @@
-(ns overtone.examples.internal-sequencer
+(ns overtone.examples.timing.internal-sequencer
   (:use [overtone.live]))
 
 ;; A fully server-side sample sequencer.
