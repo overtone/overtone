@@ -1,8 +1,8 @@
 (ns overtone.studio.midi
   (:use [overtone.sc node]
-        [overtone midi]
+        [overtone.midi]
         [overtone.at-at :only (mk-pool every)]
-        [overtone.libs.event]
+        [overtone.libs event counters]
         [overtone.sc.defaults :only [INTERNAL-POOL]])
   (:require [overtone.config.log :as log]))
 
@@ -13,8 +13,45 @@
 (def EXCLUDED-DEVICES #{"Real Time Sequencer" "Java Sound Synthesizer"})
 
 (defn midi-mk-full-device-key
+  "Returns a unique key for the specific device. In the case of multiple
+   identical devices, the final integer of the key, dev-num, will be
+   different to ensure key uniqueness.
+
+   Is able to handle either a MIDI device stored in this namespace via
+   detect-midi-devices or a raw MIDI device map from overtone.midi. "
   [dev]
-  [:midi-device (dev :vendor) (dev :name) (dev :description)])
+  (or (::full-device-key dev)
+      (let [dev-num (or (::dev-num dev)
+                        (::dev-num (get @midi-devices* (:device dev)))
+                        -1)]
+        [:midi-device (dev :vendor) (dev :name) (dev :description) dev-num])))
+
+
+
+(defn midi-connected-devices
+  "Return a list of maps representing all of the connected MIDI
+   devices. Prefer using this fn to midi-devices from overtone.midi"
+  []
+  (vals @midi-devices*))
+
+(defn midi-find-connected-devices
+  "Returns a list of connected MIDI devices where the full device key
+   either contains the search string or matches the search regexp
+   depending on the type of parameter supplied"
+  [search]
+  (let [filter-pred (fn [dev]
+                      (let [key-as-str (str (midi-mk-full-device-key dev))]
+                        (if (= java.util.regex.Pattern (type search))
+                          (re-find search key-as-str)
+                          (.contains key-as-str search))))]
+    (filter filter-pred (midi-connected-devices))))
+
+(defn midi-find-connected-device
+  "Returns the first connected MIDI device found where the full device
+   key either contains the search string or matches the search regexp
+   depending on the type of parameter supplied"
+  [search]
+  (first (midi-find-connected-devices search)))
 
 (defn midi-mk-full-device-event-key
   "Creates the device-specific part of the key used for events generated
@@ -38,6 +75,7 @@
         dev-key       (midi-mk-full-device-key dev)
         dev-event-key (midi-mk-full-device-event-key dev command)]
     (event [:midi command] msg)
+    (event (midi-mk-full-device-key dev) msg)
     (event (midi-mk-full-control-event-key dev command (:data1 msg)) msg)
     (event dev-event-key msg)))
 
@@ -49,6 +87,8 @@
     (let [old-devs     (set (keys @midi-devices*))
           devs         (midi-sources)
           devs         (filter #(not (old-devs (:device %))) devs)
+          devs         (map #(assoc % ::dev-num (next-id (str (:vendor %) (:name %) (:description %)))) devs)
+          devs         (map #(assoc % ::full-device-key (midi-mk-full-device-key %)) devs)
           receivers    (doall (filter
                                (fn [dev]
                                  (try
@@ -63,16 +103,16 @@
           dev-map      (apply hash-map (interleave (map :device devs) receivers))]
       (swap! midi-devices* merge dev-map)
       (when (pos? n-devs)
-         (log/info "Connected " n-devs " midi devices: " device-names)))
+        (log/info "Connected " n-devs " midi devices: " device-names)))
     (catch Exception ex
-      (println "Got exception in detect-midi-devices!" ex))))
+      (println "Got exception in detect-midi-devices!" (.printStackTrace ex)))))
 
-; The rate at which we poll for new midi devices
+;; The rate at which we poll for new midi devices
 (def MIDI-POLL-RATE 2000)
 
 (defonce __DEVICE-POLLER__
   (detect-midi-devices))
-;  (every MIDI-POLL-RATE #'detect-midi-devices INTERNAL-POOL :desc "Check for new midi devices"))
+;;  (every MIDI-POLL-RATE #'detect-midi-devices INTERNAL-POOL :desc "Check for new midi devices"))
 
 (defn midi-poly-player
   "Sets up the event handlers and manages synth instances to easily play
@@ -235,15 +275,15 @@
   arbitrarily ordered."
   [control-key]
   (let [control-agents (swap! midi-control-agents*
-                             (fn [prev]
-                               (if (get prev control-key)
-                                 prev
-                                 (let [new-control-agent (agent 0)]
-                                   (on-sync-event control-key
-                                             (fn [msg]
-                                               (send new-control-agent
-                                                     (fn [old-val]
-                                                       (:data2 msg))))
-                                             (mk-control-key-keyword-for-agent control-key))
-                                   (assoc prev control-key new-control-agent)))))]
+                              (fn [prev]
+                                (if (get prev control-key)
+                                  prev
+                                  (let [new-control-agent (agent 0)]
+                                    (on-sync-event control-key
+                                                   (fn [msg]
+                                                     (send new-control-agent
+                                                           (fn [old-val]
+                                                             (:data2 msg))))
+                                                   (mk-control-key-keyword-for-agent control-key))
+                                    (assoc prev control-key new-control-agent)))))]
     (get control-agents control-key)))
