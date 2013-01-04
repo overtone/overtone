@@ -36,12 +36,23 @@
   (let [play-note (fn [[beat midi]] (at (metro beat) (-> midi midi->hz harpsichord)))]
     (dorun (map play-note notes))))
 
+(defn after [beats metro] (comp metro #(+ % beats)))
+
 (defn play-round [metro notes]
-  (let [after (fn [beats metro] (comp metro #(+ % beats)))]
-    (play metro notes)
-    (play (after 4 metro) notes)
-    (play (after 8 metro) notes)
-    (play (after 16 metro) notes)))
+  (play metro notes)
+  (play (after 4 metro) notes)
+  (play (after 8 metro) notes)
+  (play (after 16 metro) notes))
 
 ;(play (metronome 120) melody)
 ;(play-round (metronome 120) melody)
+
+(defn -main [& args]
+  (let [metro (metronome 120)]
+
+    ;; play the melody
+    (play metro melody)
+    (play-round (after 16 metro) melody)
+
+    ;; wait for the melody to finish
+    (Thread/sleep (- (metro 48) (now)))))
