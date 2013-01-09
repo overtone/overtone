@@ -3,36 +3,30 @@
         [overtone.midi]
         [overtone.at-at :only (mk-pool every)]
         [overtone.libs event counters]
-        [overtone.sc.defaults :only [INTERNAL-POOL]])
+        [overtone.sc.defaults :only [INTERNAL-POOL]]
+        [overtone.helpers.system :only [mac-os?]]
+        [overtone.config.store :only [config-get]])
   (:require [overtone.config.log :as log]))
 
-(defonce midi-devices* (atom {}))
 (defonce midi-control-agents* (atom {}))
 (defonce poly-players* (atom {}))
 
-(def EXCLUDED-DEVICES #{"Real Time Sequencer" "Java Sound Synthesizer"})
+(declare connected-midi-devices)
+(declare connected-midi-receivers)
 
 (defn midi-mk-full-device-key
   "Returns a unique key for the specific device. In the case of multiple
    identical devices, the final integer of the key, dev-num, will be
    different to ensure key uniqueness.
 
-   Is able to handle either a MIDI device stored in this namespace via
-   detect-midi-devices or a raw MIDI device map from overtone.midi. "
+   Is able to handle either a connected MIDI device stored in this
+   namespace via or a raw MIDI device map from overtone.midi. "
   [dev]
   (or (::full-device-key dev)
       (let [dev-num (or (::dev-num dev)
-                        (::dev-num (get @midi-devices* (:device dev)))
+                        (::dev-num (get (connected-midi-devices) (:device dev)))
                         -1)]
         [:midi-device (dev :vendor) (dev :name) (dev :description) dev-num])))
-
-
-
-(defn midi-connected-devices
-  "Return a list of maps representing all of the connected MIDI
-   devices. Prefer using this fn to midi-devices from overtone.midi"
-  []
-  (vals @midi-devices*))
 
 (defn midi-find-connected-devices
   "Returns a list of connected MIDI devices where the full device key
@@ -44,7 +38,7 @@
                         (if (= java.util.regex.Pattern (type search))
                           (re-find search key-as-str)
                           (.contains key-as-str search))))]
-    (filter filter-pred (midi-connected-devices))))
+    (filter filter-pred (connected-midi-devices))))
 
 (defn midi-find-connected-device
   "Returns the first connected MIDI device found where the full device
@@ -65,54 +59,6 @@
   devices rather than just general control events."
   [dev command control-id]
   (concat (midi-mk-full-device-event-key dev command) [control-id]))
-
-(defn midi-event
-  "Place incoming midi-event onto the global event stream."
-  [dev msg & [ts]]
-  (let [command       (:command msg)
-        data2-f       (float (/ (:data2 msg) 127))
-        msg           (assoc msg :data2-f data2-f :velocity-f data2-f)
-        dev-key       (midi-mk-full-device-key dev)
-        dev-event-key (midi-mk-full-device-event-key dev command)]
-    (event [:midi command] msg)
-    (event (midi-mk-full-device-key dev) msg)
-    (event (midi-mk-full-control-event-key dev command (:data1 msg)) msg)
-    (event dev-event-key msg)))
-
-(defn- detect-midi-devices
-  "Designed to run periodically and update the midi-devices* atom with
-  the latest list of midi sources and add event handlers to new devices."
-  []
-  (try
-    (let [old-devs     (set (keys @midi-devices*))
-          devs         (midi-sources)
-          devs         (filter #(not (old-devs (:device %))) devs)
-          devs         (map #(assoc % ::dev-num (next-id (str (:vendor %) (:name %) (:description %)))) devs)
-          devs         (map #(assoc % ::full-device-key (midi-mk-full-device-key %)) devs)
-          receivers    (doall (filter
-                               (fn [dev]
-                                 (try
-                                   (midi-handle-events (midi-in dev) #(midi-event dev %1))
-                                   true
-                                   (catch Exception e
-                                     (log/warn "Can't listen to midi device: " dev "\n" e)
-                                     false)))
-                               devs))
-          device-names (map :name devs)
-          n-devs       (count device-names)
-          dev-map      (apply hash-map (interleave (map :device devs) receivers))]
-      (swap! midi-devices* merge dev-map)
-      (when (pos? n-devs)
-        (log/info "Connected " n-devs " midi devices: " device-names)))
-    (catch Exception ex
-      (println "Got exception in detect-midi-devices!" (.printStackTrace ex)))))
-
-;; The rate at which we poll for new midi devices
-(def MIDI-POLL-RATE 2000)
-
-(defonce __DEVICE-POLLER__
-  (detect-midi-devices))
-;;  (every MIDI-POLL-RATE #'detect-midi-devices INTERNAL-POOL :desc "Check for new midi devices"))
 
 (defn midi-poly-player
   "Sets up the event handlers and manages synth instances to easily play
@@ -166,7 +112,7 @@
 (defn midi-device-keys
   "Return a list of device event keys for the available MIDI devices"
   []
-  (map midi-mk-full-device-key (vals @midi-devices*)))
+  (map midi-mk-full-device-key (vals (connected-midi-devices))))
 
 (defn- midi-control-handler
   [state-atom handler mapping msg]
@@ -287,3 +233,150 @@
                                                    (mk-control-key-keyword-for-agent control-key))
                                     (assoc prev control-key new-control-agent)))))]
     (get control-agents control-key)))
+
+(defn- handle-incoming-midi-event
+  "Place incoming midi-event onto the global event stream."
+  [dev msg & [ts]]
+  (let [command       (:command msg)
+        data2-f       (float (/ (:data2 msg) 127))
+        msg           (assoc msg :data2-f data2-f :velocity-f data2-f)
+        dev-key       (midi-mk-full-device-key dev)
+        dev-event-key (midi-mk-full-device-event-key dev command)
+        msg           (assoc msg :dev-key dev-key)]
+    (event [:midi command] msg)
+    (event (midi-mk-full-device-key dev) msg)
+    (event (midi-mk-full-control-event-key dev command (:data1 msg)) msg)
+    (event dev-event-key msg)))
+
+(defn- handle-incoming-midi-sysex
+  "Place incoming midi sysex message onto the global event stream."
+  [dev msg & [ts]]
+  (let [dev-key (midi-mk-full-device-key dev)
+        msg     (assoc msg :dev-key dev-key)]
+    (event (midi-mk-full-device-key dev) :sysex msg)))
+
+(defn- mmj-dev?
+  "Returns true if obj is one of the object from the humatic mmj
+  library. i.e. is in the package de.humatic.mmj"
+  [o]
+  (.contains (str (class (:device o))) "de.humatic.mmj"))
+
+(defn- select-mmj-devices-if-available-on-osx
+  "If the config option :use-mmj is set to true, then if any mmj devices
+   happen to be available, then only use them and remove all other
+   devices. Otherwise, remove all mmj devices and use the default JVM
+   implementations.
+
+   This will only affect OS X systems that have the external mmj lib
+   installed as an extension (http://www.humatic.de/htools/mmj.htm).
+   The mmj lib provides duplicate MIDI objects in addition to
+   the default JVM objects for each device.
+
+   The mmj library is useful as it supports sysex messages which the
+   current JVM implementation doesn't (on OS X). However, it doesn't
+   support multiple identical devices which makes it unsuitable for some
+   usecases.
+
+   Unfortunately the mmj lib is EOL, so on OS X, until the JVM
+   implementations are fixed, we can either have sysex message support
+   or support for multiple similar devices (i.e. two nanoKONTROLs) but
+   not both.
+
+   If we're not running os x, then returns devs unchanged."
+  [devs]
+  (if-not (mac-os?)
+    devs
+    (if (config-get :use-mmj)
+      (if-let [mmjs (seq (filter mmj-dev? devs))]
+        mmjs
+        devs)
+      (remove mmj-dev? devs))))
+
+(defn- remove-duplicate-devices
+  "Removes all duplicate devices, where a duplicate is defined as a
+   device map with the same :device value. (The mmj library appears to
+   return duplicate devices)."
+  [devs]
+  (vals (into {} (map (fn [dev] [(:device dev) dev]) devs))))
+
+(defn- detect-midi-devices
+  "Returns a set of MIDI device maps filtered to remove unwanted devices
+   such as the Java Real Time Sequencer, and de.humatic.mmj
+   duplicates (if on os x)"
+  []
+  (let [devs   (midi-sources)
+        devs   (select-mmj-devices-if-available-on-osx devs)
+        devs   (remove-duplicate-devices devs)
+        devs   (map #(assoc % ::dev-num (next-id
+                                         (str "overtone.studio.midi - device - "
+                                              (:vendor %)
+                                              (:name %)
+                                              (:description %))))
+                    devs)
+        devs   (map #(assoc % ::full-device-key (midi-mk-full-device-key %)) devs)]
+    devs))
+
+(defn- detect-midi-receivers
+  []
+  (let [rcvs   (midi-sinks)
+        rcvs   (select-mmj-devices-if-available-on-osx rcvs)
+        rcvs   (remove-duplicate-devices rcvs)
+        rcvs   (map #(assoc % ::dev-num (next-id
+                                         (str "overtone.studio.midi - receiver - "
+                                              (:vendor %)
+                                              (:name %)
+                                              (:description %))))
+                    rcvs)
+
+        rcvs   (map #(assoc % ::full-device-key (midi-mk-full-device-key %)) rcvs)]
+    rcvs))
+
+(defn- add-listener-handles!
+  "Adds listener handles to send incoming messages to Overtone's event
+   stream. Devices that a handler can't be added to are dropped. Returns
+   a filtered and modified sequence of device maps"
+  [devs]
+  (doall (filter
+          (fn [dev]
+            (try
+              (midi-handle-events (midi-in dev)
+                                  #(handle-incoming-midi-event dev %1)
+                                  #(handle-incoming-midi-sysex dev %1))
+              true
+              (catch Exception e
+                (log/warn "Can't listen to midi device: " dev "\n" e)
+                false)))
+          devs)))
+
+(defonce ^:private connected-midi-devices*
+  (-> (detect-midi-devices) add-listener-handles!))
+
+(defonce ^:private connected-midi-receivers*
+  (detect-midi-receivers))
+
+(defn connected-midi-devices
+  "Returns a sequence of device maps for all 'connected' MIDI
+   devices. By device, we mean a MIDI unit that is capable of sending
+   messages (such as a MIDI piano). By connected, we mean that Overtone
+   is aware of the device and has added event handlers to emit incoming
+   messages from the device as unique events.
+
+   This currently returns a list which was created and cached at boot
+   time. Therefore, devices connected after boot will not be
+   available. We are considering work-arounds to this issue for a future
+   release."
+  []
+  connected-midi-devices*)
+
+(defn connected-midi-receivers
+  "Returns a sequence of device maps for all 'connected' MIDI
+   receivers. By receiver, we mean a MIDI unit that is capable of
+   receiving messages. By connected, we mean that Overtone is aware of
+   the device.
+
+   This currently returns a list which was created and cached at boot
+   time. Therefore, devices connected after boot will not be
+   available. We are considering work-arounds to this issue for a future
+   release."
+  []
+  connected-midi-receivers*)
