@@ -9,7 +9,7 @@
   (System/getProperty "user.name"))
 
 (defn get-os
-  "Return the OS as a keyword. One of :windows :linux :max"
+  "Return the OS as a keyword. One of :windows :linux :mac"
   []
   (let [os (System/getProperty "os.name")]
     (cond
