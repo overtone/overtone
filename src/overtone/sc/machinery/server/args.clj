@@ -150,7 +150,7 @@
   ([user-opts] (merge-sc-args user-opts {}))
   ([user-opts default-opts]
      (let [opts (merge (sc-default-args)
-                       (SC-OS-SPECIFIC-ARGS (config-get :os))
+                       (SC-OS-SPECIFIC-ARGS (get-os))
                        default-opts
                        (config-get :sc-args {})
                        user-opts)]

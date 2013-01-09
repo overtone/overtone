@@ -10,7 +10,7 @@
         [overtone.osc.decode :only [osc-decode-packet]]
         [overtone.helpers.lib :only [print-ascii-art-overtone-logo windows-sc-path]]
         [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]]
-        [overtone.helpers.system :only [windows-os?]])
+        [overtone.helpers.system :only [windows-os? get-os linux-os?]])
   (:require [overtone.config.log :as log]))
 
 (defonce server-thread*       (ref nil))
@@ -87,7 +87,7 @@
          (logged-sh "jack_connect" src dest)
          (log/info "jack_connect " src " " dest)))))
 
-(when (= :linux (config-get :os))
+(when (= :linux (get-os))
   (on-deps :server-connected
            ::connect-jack-ports
            #(when (transient-server?)
@@ -238,9 +238,9 @@
   "Find the path for SuperCollider. If linux don't check for a file as
   it should be in the PATH list."
   []
-  (let [os    (config-get :os)
+  (let [os    (get-os)
         paths (SC-PATHS os)
-        path  (if (= :linux os)
+        path  (if (linux-os?)
                 (first paths)
                 (first (filter #(file-exists? %) paths)))]
     (when-not path
