@@ -4,8 +4,9 @@
 ;; This lives in ~/.overtone/config.clj
 ;;
 ;; This example shouldn't be perceived as being typical - it's a
-;; contrived example which uses all the posible keys in an attempt to
-;; introduce their existence and explain their meaning and usage.
+;; contrived example which uses all the posible keys (typically with
+;; their default values) in an attempt to introduce their existence
+;; and explain their meaning and usage.
 
 {
  :server :internal, ; use the internal server by default. This option is
@@ -17,7 +18,7 @@
                     ; to you. For example, you see this being used in
                     ; the boot message.
 
- :log-level :warn   ; The log level (wefaut is :warn). Options are:
+ :log-level :warn   ; The log level (default is :warn). Options are:
                     ; :error - only logs errors and exceptions
                     ; :warn  - logs :error messages and warnings
                     ; :info  - logs :error, :warn messages and
