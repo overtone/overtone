@@ -21,14 +21,18 @@
    before a gate -> 1 transition activates it.  Testing
    showed it needed > 25 ms between these transitions to be effective."
   [name num-strings]
-  (let [note-ins (apply vector
-                        (map #(symbol (format "note-%d" %)) (range num-strings)))
+  (let [note-ins (if (= num-strings 1)
+                   [(symbol "note")]
+                   (apply vector
+                          (map #(symbol (format "note-%d" %)) (range num-strings))))
         note-default-ins (apply vector
                                 (flatten (map vector
                                               note-ins
                                               (repeat num-strings {:default 60 :min 0 :max 127}))))
-        gate-ins (apply vector
-                        (map #(symbol (format "gate-%d" %)) (range num-strings)))
+        gate-ins (if (= num-strings 1)
+                   [(symbol "gate")]
+                   (apply vector
+                          (map #(symbol (format "gate-%d" %)) (range num-strings))))
         gate-default-ins (apply vector (flatten (map vector
                                                      gate-ins
                                                      (repeat num-strings {:default 0}))))
@@ -36,6 +40,13 @@
         note-gate-pairs (apply vector (map vector note-ins gate-ins))
         ]
     `(defsynth ~name
+       ~(str "a stringed instrument synth with " num-strings
+             " strings mixed and sent thru
+  distortion and reverb effects followed by a low-pass filter.  Use
+  the pluck-strings and strum-strings helper functions to play the
+  instrument. Note: the strings need to be silenced with a gate -> 0
+  transition before a gate -> 1 transition activates it.")
+
        [~@both-default-ins
         ~'dur       {:default 10.0  :min 1.0 :max 100.0}
         ~'decay     {:default 30    :min 1   :max 100} ;; pluck decay
@@ -90,6 +101,11 @@
   [s i]
   (keyword (format "%s-%d" s i)))
 
+(defn- now+
+  "add an epsilon of time to (now) to avoid lots of 'late' error messages"
+  []
+  (+ (now) 21)) ;; 21ms seems to get rid of most for me.
+
 ;; ======================================================================
 ;; Main helper functions used to play the instrument: pick or strum
 (defn pick-string
@@ -109,7 +125,7 @@
                            (mkarg "note" string-index) the-note
                            (mkarg "gate" string-index) 1)))))
   ([the-chord-frets the-inst string-index fret]
-     (pick-string the-chord-frets the-inst string-index fret (now))))
+     (pick-string the-chord-frets the-inst string-index fret (now+))))
 
 ;; ======================================================================
 (defn strum-strings
@@ -150,13 +166,13 @@
                         (+ t (* fret-delta dt)))))))
   ([chord-fret-map the-strings the-inst the-chord direction strum-time]
      (strum-strings chord-fret-map the-strings the-inst the-chord
-                    direction strum-time (now)))
+                    direction strum-time (now+)))
   ([chord-fret-map the-strings the-inst the-chord direction]
      (strum-strings chord-fret-map the-strings the-inst the-chord
-                    direction 0.05 (now)))
+                    direction 0.05 (now+)))
   ([chord-fret-map the-strings the-inst the-chord]
      (strum-strings chord-fret-map the-strings the-inst the-chord
-                    :down 0.05 (now))))
+                    :down 0.05 (now+))))
 
 ;; ======================================================================
 ;; The Guitar Instrument Code
@@ -262,3 +278,16 @@
 ;; ======================================================================
 ;; Create the guitar defsynth.  Now via the power of macros
 (gen-stringed-synth guitar 6)
+
+;; ======================================================================
+;; Ektara - a single-string synth.  Mainly for use with the midi-poly-player.
+;; 
+;; Since "string" was too generic a name, I asked the google for some
+;; help.  Wikipedia tells me that there is a single-stringed
+;; instrument called the "Ektara", so that is where the name comes
+;; from.
+;; 
+;; For use with midi-poly-player, we need to make the default gate 1.
+;; Example:
+;;   (def mpp (midi-poly-player (partial ektara :gate 1)))
+(gen-stringed-synth ektara 1)
