@@ -118,8 +118,8 @@
   (fn [this & args]
     (apply synth-player sdef params this :tgt instance-group args))
 
-  to-synth-id*
-  (to-synth-id [_] (to-synth-id instance-group)))
+  to-sc-id*
+  (to-sc-id [_] (to-sc-id instance-group)))
 
 (derive Inst :overtone.sc.node/node)
 

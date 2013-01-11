@@ -30,7 +30,7 @@
 (defonce ^{:private true} __PROTOCOLS__
 
   (do
-    (defprotocol to-synth-id* (to-synth-id [v]))
+    (defprotocol to-sc-id* (to-sc-id [v]))
 
     (defprotocol ISynthNodeStatus
       (node-status [this])
@@ -78,8 +78,8 @@
          Low-level functionality. See node-tree for something more
          usable." ))))
 
-(extend-type java.lang.Long to-synth-id*    (to-synth-id [v] v))
-(extend-type java.lang.Integer to-synth-id* (to-synth-id [v] v))
+(extend-type java.lang.Long to-sc-id*    (to-sc-id [v] v))
+(extend-type java.lang.Integer to-sc-id* (to-sc-id [v] v))
 
 ;; ## Node and Group Management
 
@@ -119,8 +119,8 @@
             (map val-fn (vals arg-map)))))
 
 (defrecord SynthNode [synth id target position args sdef status loaded?]
-  to-synth-id*
-  (to-synth-id [this] (:id this)))
+  to-sc-id*
+  (to-sc-id [this] (:id this)))
 
 (derive SynthNode ::node)
 
@@ -158,12 +158,12 @@
      (let [id       (alloc-id :node)
            position (get location :position :tail)
            pos-id   (get NODE-POSITION position 1)
-           target   (to-synth-id (get location :target 0))
+           target   (to-sc-id (get location :target 0))
            arg-map  (map-and-check-node-args arg-map)
            args     (flatten (seq arg-map))
            snode    (SynthNode. synth-name id target position arg-map sdef (atom :loading) (promise))]
        (swap! active-synth-nodes* assoc id snode)
-       (apply snd "/s_new" synth-name id pos-id (to-synth-id target) args)
+       (apply snd "/s_new" synth-name id pos-id (to-sc-id target) args)
        snode)))
 
 ;; ### Synth node callbacks
@@ -221,7 +221,7 @@
   [node]
   {:pre [(server-connected?)]}
   (ensure-node-active! node "Trying to free a synth node that has been destroyed")
-  (snd "/n_free" (to-synth-id node))
+  (snd "/n_free" (to-sc-id node))
   node)
 
 (defn- node-destroyed
@@ -285,8 +285,8 @@
 ;; RootNode and default_group for more info.
 
 (defrecord SynthGroup [group id target position status loaded?]
-  to-synth-id*
-  (to-synth-id [_] id))
+  to-sc-id*
+  (to-sc-id [_] id))
 
 (derive SynthGroup ::node)
 
@@ -332,7 +332,7 @@
      (when-not target
        (throw (IllegalArgumentException. (str "The target for this group must exist."))))
      (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
-           target (to-synth-id target)
+           target (to-sc-id target)
            pos    (or pos 1)
            snode  (SynthGroup. name id target position (atom :loading) (promise))]
        (swap! active-synth-nodes* assoc id snode)
@@ -350,7 +350,7 @@
   [node]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to pause a node that has been destroyed.")
-  (snd "/n_run" (to-synth-id node) 0)
+  (snd "/n_run" (to-sc-id node) 0)
   node)
 
 (defn node-start*
@@ -358,7 +358,7 @@
   [node]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to start a node that has been destroyed.")
-  (snd "/n_run" (to-synth-id node) 1)
+  (snd "/n_run" (to-sc-id node) 1)
   node)
 
 (defn node-place*
@@ -366,8 +366,8 @@
   [node position target]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to relocate a node that has been destroyed.")
-  (let [node-id   (to-synth-id node)
-        target-id (to-synth-id target)]
+  (let [node-id   (to-sc-id node)
+        target-id (to-sc-id target)]
     (cond
      (= :before position) (snd "/n_before" node-id target-id)
      (= :after  position) (snd "/n_after" node-id target-id))
@@ -378,7 +378,7 @@
   [node name-values]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to control a node that has been destroyed.")
-  (apply snd "/n_set" (to-synth-id node) (floatify (stringify (bus->id name-values))))
+  (apply snd "/n_set" (to-sc-id node) (floatify (stringify (to-sc-id name-values))))
   node)
 
 (defn node-get-control
@@ -390,7 +390,7 @@
   (ensure-connected!)
   (ensure-node-active! node "Attempting to get control values of a node that has been destroyed.")
   (let [res   (recv "/n_set")
-        cvals (do (apply snd "/s_get" (to-synth-id node) (stringify names))
+        cvals (do (apply snd "/s_get" (to-sc-id node) (stringify names))
                   (:args (deref! res)))]
     (apply hash-map (keywordify (drop 1 cvals)))))
 
@@ -401,7 +401,7 @@
   [node ctl-start ctl-vals]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to control a node that has been destroyed.")
-  (let [node-id (to-synth-id node)]
+  (let [node-id (to-sc-id node)]
     (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
   node)
 
@@ -412,7 +412,7 @@
   (ensure-connected!)
   (ensure-node-active! node "Attempting to access a node that has been destroyed.")
   (let [res   (recv "/n_setn")
-        cvals (do (snd "/s_getn" (to-synth-id node) (to-str name-index) n)
+        cvals (do (snd "/s_getn" (to-sc-id node) (to-str name-index) n)
                   (:args (deref! res)))]
     (vec (drop 3 cvals))))
 
@@ -429,7 +429,7 @@
   [node names-busses]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to map the controls of a node that has been destroyed.")
-  (let [node-id      (to-synth-id node)
+  (let [node-id      (to-sc-id node)
         names-busses (bussify (stringify names-busses))]
     (apply snd "/n_map" node-id names-busses))
   node)
@@ -441,7 +441,7 @@
   (ensure-connected!)
   (ensure-node-active! node "Attempting to map the controls of a node that has been destroyed.")
   (assert (bus? start-bus) "Invalid start-bus")
-  (let [node-id (to-synth-id node)]
+  (let [node-id (to-sc-id node)]
     (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n))
   node)
 
@@ -452,7 +452,7 @@
   [node with-args?]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to view a node that has been destroyed.")
-  (snd "/g_dumpTree" (to-synth-id node) with-args?)
+  (snd "/g_dumpTree" (to-sc-id node) with-args?)
   node)
 
 (defn- group-prepend-node*
@@ -461,8 +461,8 @@
   (ensure-connected!)
   (ensure-node-active! node "Attempting to move a node that has been destroyed.")
   (ensure-node-active! group "Attempting to use a node that has been destroyed.")
-  (let [group-id (to-synth-id group)
-        node-id  (to-synth-id node)]
+  (let [group-id (to-sc-id group)
+        node-id  (to-sc-id node)]
     (snd "/g_head" group-id node-id))
   group)
 
@@ -472,8 +472,8 @@
   (ensure-connected!)
   (ensure-node-active! node "Attempting to move a node that has been destroyed.")
   (ensure-node-active! group "Attempting to move a node that has been destroyed.")
-  (let [group-id (to-synth-id group)
-        node-id  (to-synth-id node)]
+  (let [group-id (to-sc-id group)
+        node-id  (to-sc-id node)]
     (snd "/g_tail" group-id node-id))
   group)
 
@@ -482,7 +482,7 @@
   [group]
   (ensure-connected!)
   (ensure-node-active! group "Attempting to clear a node that has been destroyed.")
-  (snd "/g_freeAll" (to-synth-id group))
+  (snd "/g_freeAll" (to-sc-id group))
   group)
 
 (defn- group-deep-clear*
@@ -491,7 +491,7 @@
   [group]
   (ensure-connected!)
   (ensure-node-active! group "Attempting to deep clear a node that has been destroyed.")
-  (snd "/g_deepFree" (to-synth-id group))
+  (snd "/g_deepFree" (to-sc-id group))
   group)
 
 (defn node-status*
@@ -684,7 +684,7 @@
      (ensure-connected!)
      (ensure-node-active! node "Attempting to view a node that has been destroyed.")
      (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)
-           id    (to-synth-id node)]
+           id    (to-sc-id node)]
        (let [reply-p (recv "/g_queryTree.reply")
              _       (snd "/g_queryTree" id ctls?)
              tree    (:args (deref! reply-p))]
@@ -719,7 +719,7 @@
   ([] (node-tree (:root-group @foundation-groups*)))
   ([root]
      (ensure-connected!)
-     (group-node-tree (to-synth-id root))))
+     (group-node-tree (to-sc-id root))))
 
 (defn node-tree-zipper
   "Returns a zipper representing the tree of the specified node or
