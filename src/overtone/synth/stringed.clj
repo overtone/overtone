@@ -20,7 +20,7 @@
    Note: the strings need to be silenced with a gate -> 0 transition
    before a gate -> 1 transition activates it.  Testing
    showed it needed > 25 ms between these transitions to be effective."
-  [name num-strings]
+  [name num-strings free-on-silence]
   (let [note-ins (if (= num-strings 1)
                    [(symbol "note")]
                    (apply vector
@@ -38,6 +38,9 @@
                                                      (repeat num-strings {:default 0}))))
         both-default-ins (into note-default-ins gate-default-ins)
         note-gate-pairs (apply vector (map vector note-ins gate-ins))
+        env-gen-fn (if free-on-silence
+                     '(fn [x] (env-gen (asr 0.0001 1 0.1) :gate (second x) :action FREE))
+                     '(fn [x] (env-gen (asr 0.0001 1 0.1) :gate (second x))))
         ]
     `(defsynth ~name
        ~(str "a stringed instrument synth with " num-strings
@@ -45,7 +48,12 @@
   distortion and reverb effects followed by a low-pass filter.  Use
   the pluck-strings and strum-strings helper functions to play the
   instrument. Note: the strings need to be silenced with a gate -> 0
-  transition before a gate -> 1 transition activates it.")
+  transition before a gate -> 1 transition activates it."
+             (if free-on-silence
+               " This instrument
+  is transient.  When a string becomes silent, it will be freed."
+               " This instrument
+  is persistent.  It will not be freed when the strings go silent."))
 
        [~@both-default-ins
         ~'dur       {:default 10.0  :min 1.0 :max 100.0}
@@ -69,11 +77,9 @@
                                                (second %)
                                                (/ 1.0 8.0)
                                                (~'/ 1.0 frq#)
-                                                ~'decay
-                                                ~'coef)]
-                              (leak-dc (~'* plk#
-                                            (env-gen (asr 0.0001 1 0.1)
-                                                     :gate (second %)))
+                                               ~'decay
+                                               ~'coef)]
+                              (leak-dc (~'* plk# (~env-gen-fn %))
                                        0.995))
                            ~note-gate-pairs)
              src# (~'* ~'pre-amp (mix strings#))
@@ -84,6 +90,7 @@
              vrb# (free-verb dis# ~'rvb-mix ~'rvb-room ~'rvb-damp)
              fil# (rlpf vrb# ~'lp-freq ~'lp-rq)]
          (out ~'out-bus (pan2 (~'* ~'amp fil#) ~'pan))))))
+;;(macroexpand-1 '(gen-stringed-synth ektara 1 true))
 
 ;; ======================================================================
 ;; common routines for stringed instruments
@@ -276,8 +283,9 @@
 (def guitar-strum (partial strum-strings guitar-chord-frets guitar-string-notes))
 
 ;; ======================================================================
-;; Create the guitar defsynth.  Now via the power of macros
-(gen-stringed-synth guitar 6)
+;; Create the guitar defsynth.  Note that it is persistent and will
+;; not be freed when any string goes silent.
+(gen-stringed-synth guitar 6 false)
 
 ;; ======================================================================
 ;; Ektara - a single-string synth.  Mainly for use with the midi-poly-player.
@@ -290,4 +298,9 @@
 ;; For use with midi-poly-player, we need to make the default gate 1.
 ;; Example:
 ;;   (def mpp (midi-poly-player (partial ektara :gate 1)))
-(gen-stringed-synth ektara 1)
+;;
+;; Note that it is transient and will be freed when the string goes
+;; silent.
+;;
+(gen-stringed-synth ektara 1 true)
+
