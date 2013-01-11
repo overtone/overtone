@@ -2,7 +2,7 @@
   (:use [overtone.helpers lib]
         [overtone.helpers.seq :only [zipper-seq]]
         [overtone.libs event deps]
-        [overtone.sc bus server defaults]
+        [overtone.sc server defaults]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]]
@@ -46,8 +46,7 @@
       (node-control         [this params]
         "Modify control parameters of the synth node.")
       (node-control-range   [this ctl-start ctl-vals]
-        "Modify a range of control parameters of the synth node.")
-      (node-map-controls    [this names-busses]
+        "Modify a range of control parameters of the synth node.")      (node-map-controls    [this names-busses]
         "Connect a node's controls to a control bus.")
       (node-map-n-controls  [this start-control start-bus n]
         "Connect N controls of a node to a set of sequential control
@@ -80,6 +79,22 @@
 
 (extend-type java.lang.Long to-sc-id*    (to-sc-id [v] v))
 (extend-type java.lang.Integer to-sc-id* (to-sc-id [v] v))
+(extend-type java.lang.Float to-sc-id* (to-sc-id [v] v))
+
+(defn to-id
+  "If object can be converted to an sc id, then return the sc id,
+   otherwise returns the object unchanged."
+  [obj]
+    (try
+    (to-sc-id obj)
+    (catch IllegalArgumentException e
+      obj)))
+
+(defn idify
+  "Attempts to convert all objs in col to a sc id. Mapjs objs to
+   themselves if a conversion wasn't possible."
+  [col]
+  (map to-id col))
 
 ;; ## Node and Group Management
 
@@ -94,13 +109,6 @@
    :after        3
    :replace      4})
 
-(defn- bus->id
-  "if val is a bus, return its ref id otherwise return val"
-  [val]
-  (if (bus? val)
-    (:id val)
-    val))
-
 (defn- map-and-check-node-args
   [arg-map]
   (let [name-fn (fn [name]
@@ -109,7 +117,7 @@
                       (throw (IllegalArgumentException. (str "Incorrect arg. Was expecting a string and found " name ". Full arg map: " arg-map))))
                     name))
         val-fn (fn [val]
-                 (let [val (bus->id val)
+                 (let [val (to-id val)
                        val (to-float val)]
                    (when (not (float? val))
                      (throw (IllegalArgumentException. (str "Incorrect arg. Was expecting a float and found " val ". Full arg map: " arg-map))))
@@ -163,7 +171,7 @@
            args     (flatten (seq arg-map))
            snode    (SynthNode. synth-name id target position arg-map sdef (atom :loading) (promise))]
        (swap! active-synth-nodes* assoc id snode)
-       (apply snd "/s_new" synth-name id pos-id (to-sc-id target) args)
+       (apply snd "/s_new" synth-name id pos-id target args)
        snode)))
 
 ;; ### Synth node callbacks
@@ -378,7 +386,7 @@
   [node name-values]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to control a node that has been destroyed.")
-  (apply snd "/n_set" (to-sc-id node) (floatify (stringify (to-sc-id name-values))))
+  (apply snd "/n_set" (to-sc-id node) (floatify (stringify (idify name-values))))
   node)
 
 (defn node-get-control
@@ -416,21 +424,13 @@
                   (:args (deref! res)))]
     (vec (drop 3 cvals))))
 
-(defn- bussify
-  "Convert busses in a col to bus ids."
-  [col]
-  (map #(if (bus? %)
-          (bus-id %)
-          %)
-       col))
-
 (defn node-map-controls*
   "Connect a node's controls to a control bus."
   [node names-busses]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to map the controls of a node that has been destroyed.")
   (let [node-id      (to-sc-id node)
-        names-busses (bussify (stringify names-busses))]
+        names-busses (map idify (stringify names-busses))]
     (apply snd "/n_map" node-id names-busses))
   node)
 
@@ -440,9 +440,9 @@
   [node start-control start-bus n]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to map the controls of a node that has been destroyed.")
-  (assert (bus? start-bus) "Invalid start-bus")
+  (assert (isa? (type start-bus) :overtone.sc.bus/bus) "Invalid start-bus")
   (let [node-id (to-sc-id node)]
-    (snd "/n_mapn" node-id (first (stringify [start-control])) (bus-id start-bus) n))
+    (snd "/n_mapn" node-id (first (stringify [start-control])) (to-sc-id start-bus) n))
   node)
 
 (defn- group-post-tree*

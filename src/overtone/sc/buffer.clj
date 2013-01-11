@@ -1,14 +1,16 @@
 (ns overtone.sc.buffer
   (:use [clojure.java.io :only [file]]
         [overtone.libs event]
-        [overtone.sc server info defaults]
+        [overtone.sc server info defaults node]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server connection comms native]
         [overtone.sc server info]
         [overtone.helpers audio-file lib file]
         [overtone.sc.util :only [id-mapper]]))
 
-(defrecord BufferInfo [id size n-channels rate n-samples rate-scale duration])
+(defrecord BufferInfo [id size n-channels rate n-samples rate-scale duration]
+  to-sc-id*
+  (to-sc-id [this] (:id this)))
 
 (defn buffer-info
   "Fetch the information for buffer associated with buf-id (either an
@@ -48,7 +50,9 @@
         :rate-scale rate-scale
         :duration duration}))))
 
-(defrecord Buffer [id size n-channels rate allocated-on-server])
+(defrecord Buffer [id size n-channels rate allocated-on-server]
+  to-sc-id*
+  (to-sc-id [this] (:id this)))
 
 (defn buffer
   "Synchronously allocate a new zero filled buffer for storing audio
@@ -70,7 +74,9 @@
         (assoc info
           :allocated-on-server (atom true))))))
 
-(defrecord BufferFile [id size n-channels rate allocated-on-server path])
+(defrecord BufferFile [id size n-channels rate allocated-on-server path]
+  to-sc-id*
+  (to-sc-id [this] (:id this)))
 
 (defn buffer-alloc-read
   "Synchronously allocates a buffer with the same number of channels as
@@ -180,6 +186,7 @@
   writing the data (defaults to 0)."
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
+     (println "yo" buf)
      (assert (buffer? buf))
      (when (> (count data) MAX-OSC-SAMPLES)
        (throw (Exception. (str "Error - the data you attempted to write to the buffer was too large to be sent via UDP."))))
@@ -277,7 +284,9 @@
                     n-frames start-frame 0)
     :buffer-saved))
 
-(defrecord BufferOutStream [id size n-channels header samples rate allocated-on-server path open?])
+(defrecord BufferOutStream [id size n-channels header samples rate allocated-on-server path open?]
+  to-sc-id*
+  (to-sc-id [this] (:id this)))
 
 (defn buffer-stream
   "Returns a buffer-stream which is similar to a regular buffer but may
@@ -339,7 +348,9 @@
   (reset! (:open? buf-stream) false)
   (:path buf-stream))
 
-(defrecord BufferInStream [id size n-channels rate allocated-on-server path open?])
+(defrecord BufferInStream [id size n-channels rate allocated-on-server path open?]
+  to-sc-id*
+  (to-sc-id [this] (:id this)))
 
 (defn buffer-cue
   "Returns a buffer-cue which is similar to a regular buffer but may be

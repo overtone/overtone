@@ -5,7 +5,7 @@
   (:use [clojure.java.io :only [file]]
         [overtone.helpers lib synth]
         [overtone.libs event deps]
-        [overtone.sc server synth ugens buffer foundation-groups]
+        [overtone.sc server synth ugens buffer foundation-groups node]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc.cgens buf-io io]
@@ -50,7 +50,9 @@
 (defonce loaded-samples* (atom {}))
 (defonce cached-samples* (atom {}))
 
-(defrecord Sample [id size n-channels rate allocated-on-server path args name])
+(defrecord Sample [id size n-channels rate allocated-on-server path args name]
+  to-sc-id*
+  (to-sc-id [this] (:id this)))
 
 (defn- load-sample*
   [path arg-map]
@@ -168,7 +170,9 @@
 
 (defrecord-ifn PlayableSample
   [id size n-channels rate allocated-on-server path args name]
-  sample-player)
+  sample-player
+  to-sc-id*
+  (to-sc-id [this] (:id this)))
 
 (defn sample
   "Loads a .wav or .aiff file into a memory buffer. Returns a function

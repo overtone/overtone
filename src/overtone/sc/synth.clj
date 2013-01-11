@@ -339,13 +339,6 @@
   []
   (str "anon-" (next-id ::anonymous-synth)))
 
-(defn- id-able-type?
-  [o]
-  (or (isa? (type o) :overtone.sc.buffer/buffer)
-      (isa? (type o) :overtone.sc.sample/sample)
-      (isa? (type o) :overtone.sc.bus/audio-bus)
-      (isa? (type o) :overtone.sc.bus/control-bus)))
-
 (defn normalize-synth-args
   "Pull out and normalize the synth name, parameters, control proxies
    and the ugen form from the supplied arglist resorting to defaults if
@@ -508,13 +501,12 @@
     (let [arg-names         (map keyword (map :name params))
           args              (or args [])
           [target pos args] (extract-target-pos-args args (foundation-default-group) :tail)
-          args              (mapcat (fn [x] (if (and (map? x)
-                                                    (not (id-able-type? x)))
+          args              (idify args)
+          args              (mapcat (fn [x] (if (map? x)
                                              (flatten (seq x))
                                              [x]))
                                     args)
-          args              (map #(if (id-able-type? %)
-                                    (:id %) %) args)
+          args              (idify args)
           defaults          (into {} (map (fn [{:keys [name value]}]
                                             [(keyword name) @value])
                                           params))
