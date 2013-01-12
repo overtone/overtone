@@ -1,7 +1,7 @@
 ;; A Stringed Synth Generator Macro & Guitar Example Instrument
 ;;
 ;; See overtone/examples/instruments/guitar_synth.clj for example usage.
-;; 
+;;
 ;; Other instruments (like bass-guitar, ukelele, mandolin, etc.) may
 ;; use the same basic instrument.  Watch this space...
 (ns overtone.synth.stringed
@@ -83,7 +83,7 @@
                                        0.995))
                            ~note-gate-pairs)
              src# (~'* ~'pre-amp (mix strings#))
-             ;; distortion from fx-distortion2 
+             ;; distortion from fx-distortion2
              k#   (~'/ (~'* 2 ~'distort) (~'- 1 ~'distort))
              dis# (~'/ (~'* src# (~'+ 1 k#))
                        (~'+ 1 (~'* k# (~'abs src#))))
@@ -121,7 +121,7 @@
    the previous note to be silenced; 0 or greater will also cause a
    new note event."
   ([the-strings the-inst string-index fret t]
-     (let [the-note (fret-to-note (nth the-strings string-index) fret)] 
+     (let [the-note (fret-to-note (nth the-strings string-index) fret)]
        ;; turn off the previous note
        (if (>= the-note -1)
          (at t (ctl the-inst (mkarg "gate" string-index) 0)))
@@ -289,12 +289,12 @@
 
 ;; ======================================================================
 ;; Ektara - a single-string synth.  Mainly for use with the midi-poly-player.
-;; 
+;;
 ;; Since "string" was too generic a name, I asked the google for some
 ;; help.  Wikipedia tells me that there is a single-stringed
 ;; instrument called the "Ektara", so that is where the name comes
 ;; from.
-;; 
+;;
 ;; For use with midi-poly-player, we need to make the default gate 1.
 ;; Example:
 ;;   (def mpp (midi-poly-player (partial ektara :gate 1)))
@@ -303,4 +303,3 @@
 ;; silent.
 ;;
 (gen-stringed-synth ektara 1 true)
-
