@@ -186,7 +186,6 @@
   writing the data (defaults to 0)."
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
-     (println "yo" buf)
      (assert (buffer? buf))
      (when (> (count data) MAX-OSC-SAMPLES)
        (throw (Exception. (str "Error - the data you attempted to write to the buffer was too large to be sent via UDP."))))
