@@ -39,8 +39,13 @@
         both-default-ins (into note-default-ins gate-default-ins)
         note-gate-pairs (apply vector (map vector note-ins gate-ins))
         env-gen-fn (if free-on-silence
-                     '(fn [x] (env-gen (asr 0.0001 1 0.1) :gate (second x) :action FREE))
-                     '(fn [x] (env-gen (asr 0.0001 1 0.1) :gate (second x))))
+                     '(fn [x] (overtone.sc.ugens/env-gen
+                              (overtone.sc.envelope/asr 0.0001 1 0.1)
+                              :gate (second x)
+                              :action overtone.sc.ugens/FREE))
+                     '(fn [x] (overtone.sc.ugens/env-gen
+                              (overtone.sc.envelope/asr 0.0001 1 0.1)
+                              :gate (second x))))
         ]
     `(defsynth ~name
        ~(str "a stringed instrument synth with " num-strings
@@ -86,7 +91,7 @@
              ;; distortion from fx-distortion2
              k#   (~'/ (~'* 2 ~'distort) (~'- 1 ~'distort))
              dis# (~'/ (~'* src# (~'+ 1 k#))
-                       (~'+ 1 (~'* k# (~'abs src#))))
+                       (~'+ 1 (~'* k# (abs src#))))
              vrb# (free-verb dis# ~'rvb-mix ~'rvb-room ~'rvb-damp)
              fil# (rlpf vrb# ~'lp-freq ~'lp-rq)]
          (out ~'out-bus (pan2 (~'* ~'amp fil#) ~'pan))))))
