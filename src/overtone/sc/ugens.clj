@@ -119,4 +119,4 @@
 ;; parts of the Overtone system using a fixed namespace.  For example,
 ;; to automatically stick an Out ugen on synths that don't explicitly
 ;; use one.
-(defonce _ugens (intern-ugens))
+(defonce __INTERN-UGENS__ (intern-ugens))
