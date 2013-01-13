@@ -99,7 +99,9 @@
     (mk-scugen spec rate special args)))
 
 (defn- make-ugen
-  "Create a callable map representing a ugen."
+  "Create a callable map representing a ugen spec and fn for creating a
+   sc-ugen (a datastructure representing a specific instantiation of a
+   ugen given a set of arguments)."
   [spec rate ugen-fn]
   (callable-map {:name       (overtone-ugen-name (:name spec))
                  :summary    (:summary spec)
