@@ -4,7 +4,7 @@
 ;; This lives in ~/.overtone/config.clj
 ;;
 ;; This example shouldn't be perceived as being typical - it's a
-;; contrived example which uses all the posible keys (typically with
+;; contrived example which uses all the possible keys (typically with
 ;; their default values) in an attempt to introduce their existence
 ;; and explain their meaning and usage.
 
