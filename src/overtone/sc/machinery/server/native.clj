@@ -23,11 +23,12 @@
 
 (defonce __LOAD_SCSYNTH_NATIVE_LIB__
   (do
-    (defclib
-      libc
-      (:libname "c")
-      (:functions
-        (fflush fflush [void*] i32)))
+    (when-not (windows-os?)
+      (defclib
+        libc
+        (:libname "c")
+        (:functions
+         (fflush fflush [void*] i32))))
 
     (when (native-scsynth-available?)
       (defclib
@@ -162,7 +163,9 @@
 
       (when-not (windows-os?)
         (loadlib libc))
-      (loadlib lib-scsynth)
+
+      (when (native-scsynth-available?)
+        (loadlib lib-scsynth))
 
       (defonce flusher (at-at/every 500 #(fflush nil) INTERNAL-POOL :desc "Flush stdout")))))
 
