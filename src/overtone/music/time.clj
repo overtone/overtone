@@ -24,7 +24,7 @@
 
 (defn periodic
   "Calls fun every ms-period, and takes an optional initial-delay for
-  the first call in ms. Pool defaults to the player-pool."
+  the first call in ms."
   ([ms-period fun] (periodic ms-period fun 0))
   ([ms-period fun initial-delay] (periodic ms-period fun initial-delay "Overtone periodic fn"))
   ([ms-period fun initial-delay description]
@@ -33,6 +33,20 @@
                   player-pool
                   :initial-delay initial-delay
                   :desc description)))
+
+(defn interspaced
+  "Calls fun repeatedly with an interspacing of ms-period, i.e. the next
+   call of fun will happen ms-period milliseconds after the completion
+   of the previous call. Also takes an optional initial-delay for the
+   first call in ms."
+  ([ms-period fun] (interspaced ms-period fun 0))
+  ([ms-period fun initial-delay] (interspaced ms-period fun initial-delay "Overtone interspaced fn"))
+  ([ms-period fun initial-delay description]
+     (at-at/interspaced ms-period
+                        fun
+                        player-pool
+                        :initial-delay initial-delay
+                        :desc description)))
 
 ;;Ensure all scheduled player fns are stopped when Overtone is reset
 ;;(typically triggered by a call to stop)
