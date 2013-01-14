@@ -116,7 +116,7 @@
   (log/debug "Connecting to internal SuperCollider server")
   (let [send-fn (fn [peer-obj buffer]
                   (scsynth-send @sc-world* buffer))
-        peer (assoc (osc-peer) :send-fn send-fn)]
+        peer (assoc (osc-peer false false) :send-fn send-fn)]
     (dosync (ref-set server-osc-peer* peer))
     (setup-connect-handlers)
     (server-snd "/status")))
@@ -125,7 +125,7 @@
   [host port]
   (println  "--> Connecting to external SuperCollider server:" (str host ":" port))
   (log/debug "Connecting to external SuperCollider server: " host ":" port)
-  (let [sc-server (osc-client host port)]
+  (let [sc-server (osc-client host port false)]
     (osc-listen sc-server #(event [:overtone :osc-msg-received] :msg %))
     (dosync
      (ref-set server-osc-peer* sc-server))
