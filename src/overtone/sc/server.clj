@@ -58,7 +58,7 @@
 
 (defmacro snd-immediately
   [& body]
-  `(without-osc-bundle @server-osc-peer* ~@body))
+  `(without-osc-bundle ~@body))
 
 (defn snd
   "Sends an OSC message to the server. If the message path is a known
