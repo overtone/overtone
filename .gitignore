@@ -24,5 +24,6 @@ pom.xml
 *.aux
 *.dvi
 .lein-deps-sum
+.lein-repl-history
 .project
 target/
