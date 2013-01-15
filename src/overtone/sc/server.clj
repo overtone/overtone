@@ -9,7 +9,7 @@
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server connection comms]
         [overtone.helpers.lib :only [deref!]]
-        [overtone.osc :only [in-osc-bundle without-osc-bundle]])
+        [overtone.osc :only [in-osc-bundle without-osc-bundle in-unested-osc-bundle]])
   (:require [overtone.config.log :as log]))
 
 (defn connection-info
