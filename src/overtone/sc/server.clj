@@ -54,7 +54,7 @@
   have to worry about accidentally scheduling packets into a bundle
   started on another thread."
   [time-ms & body]
-  `(in-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))
+  `(in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))
 
 (defmacro snd-immediately
   [& body]
