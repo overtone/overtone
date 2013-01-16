@@ -429,8 +429,9 @@
   [node names-busses]
   (ensure-connected!)
   (ensure-node-active! node "Attempting to map the controls of a node that has been destroyed.")
+
   (let [node-id      (to-sc-id node)
-        names-busses (map idify (stringify names-busses))]
+        names-busses (-> names-busses stringify idify)]
     (apply snd "/n_map" node-id names-busses))
   node)
 
