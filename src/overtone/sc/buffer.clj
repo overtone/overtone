@@ -465,6 +465,7 @@
   [buf]
   (when-not (internal-server?)
     (throw (Exception. (str "Only able to fetch buffer data directly from an internal server. Try #'buffer-read instead."))))
+  (ensure-buffer-active! buf)
   (let [buf-id (buffer-id buf)
         snd-buf (scsynth-get-buffer-data @sc-world* buf-id)]
     snd-buf))
