@@ -12,6 +12,17 @@
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
+(defmethod print-method BufferInfo [b w]
+  (.write w (format "#<buffer-info: %fs %s %d>"
+                    (:duration b)
+                    (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                    (:id b))))
+
+
+
 (defn buffer-info
   "Fetch the information for buffer associated with buf-id (either an
   integer or an associative with an :id key). Synchronous.
@@ -53,6 +64,16 @@
 (defrecord Buffer [id size n-channels rate status]
   to-sc-id*
   (to-sc-id [this] (:id this)))
+
+(defmethod print-method Buffer [b w]
+  (.write w (format "#<buffer[%s]: %fs %s>"
+                    (name @(:status b))
+                    (:duration b)
+                    (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+)))
 
 (defn buffer
   "Synchronously allocate a new zero filled buffer for storing audio

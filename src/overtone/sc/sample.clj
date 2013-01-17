@@ -54,6 +54,17 @@
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
+(defmethod print-method Sample [b w]
+  (.write w (format "#<buffer[%s]: %s %fs %s %d>"
+                    (name @(:status b))
+                    (:name b)
+                    (:duration b)
+                    (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                    (:id b))))
+
 (defn- load-sample*
   [path arg-map]
   (let [path (canonical-path path)
