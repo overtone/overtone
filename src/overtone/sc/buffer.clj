@@ -178,7 +178,7 @@
   ([buf] (ensure-buffer-active! buf "Trying to work with an inactive buffer."))
   ([buf err-msg]
      (when (and (buffer? buf)
-                (not (buffer-live? b)))
+                (not (buffer-live? buf)))
        (inactive-buffer-modification-error buf err-msg))))
 
 (defn buffer-free
