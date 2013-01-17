@@ -8,6 +8,22 @@
         [overtone.helpers audio-file lib file]
         [overtone.sc.util :only [id-mapper]]))
 
+(defonce ^{:dynamic true} *inactive-buffer-modification-error* :exception)
+
+(defn- inactive-buffer-modification-error
+  "The default error behaviour triggered when a user attempts to work
+   with an inactive buffer"
+  [buf err-msg]
+  (condp = *inactive-buffer-modification-error*
+    :silent    nil ;;do nothing
+    :warning   (println "Warning - " err-msg buf " " (with-out-str (print buf)))
+    :exception (throw (Exception. (str "Error - " err-msg " " (with-out-str (print buf)))))
+    (throw
+     (IllegalArgumentException.
+      (str "Unexpected value for *inactive-buffer-modification-error*: "
+           *inactive-buffer-modification-error*
+           "Expected one of :silent, :warning, :exception.")))))
+
 (defrecord BufferInfo [id size n-channels rate n-samples rate-scale duration]
   to-sc-id*
   (to-sc-id [this] (:id this)))
@@ -157,6 +173,13 @@
   [b]
   (and (buffer? b)
        (= :live @(:status b))))
+
+(defn ensure-buffer-active!
+  ([buf] (ensure-buffer-active! buf "Trying to work with an inactive buffer."))
+  ([buf err-msg]
+     (when (and (buffer? buf)
+                (not (buffer-live? b)))
+       (inactive-buffer-modification-error buf err-msg))))
 
 (defn buffer-free
   "Synchronously free an audio buffer and the memory it was consuming."
