@@ -185,6 +185,17 @@
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
+(defmethod print-method PlayableSample [b w]
+  (.write w (format "#<buffer[%s]: %s %fs %s %d>"
+                    (name @(:status b))
+                    (:name b)
+                    (:duration b)
+                    (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                    (:id b))))
+
 (defn sample
   "Loads a .wav or .aiff file into a memory buffer. Returns a function
    capable of playing that sample. Memoizes result and returns same
