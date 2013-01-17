@@ -213,12 +213,13 @@
   [s]
   (log/info (str "Closing scope: \n" s))
   (let [{:keys [id bus-synth buf]} s]
+    (when (and (not= :buf (:kind s))
+               (:buf s))
+      (buffer-free (:buf s)))
     (when (and bus-synth
                (server-connected?))
       (try
         (kill bus-synth)
-        (when-let [b (:buf s)]
-          (buffer-free b))
         (catch Exception e)))
     (dosync (alter scopes* dissoc id))))
 
