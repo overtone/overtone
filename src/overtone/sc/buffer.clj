@@ -401,11 +401,10 @@
        (snd "/b_read" id path pos -1 0 1))
      buf-cue))
 
-(defmulti buffer-id type)
-(defmethod buffer-id java.lang.Integer [id] id)
-(defmethod buffer-id java.lang.Long [id] id)
-(defmethod buffer-id ::buffer [buf] (:id buf))
-(defmethod buffer-id ::buffer-info [buf-info] (:id buf-info))
+(defn buffer-id
+  "Return the id of buffer b. Simply punts out to to-sc-id"
+  [b]
+  (to-sc-id buffer-id))
 
 (defmulti buffer-size type)
 (defmethod buffer-size ::buffer [buf] (:size buf))

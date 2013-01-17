@@ -195,7 +195,5 @@
 (derive ::sample :overtone.sc.buffer/file-buffer)
 (derive ::playable-sample ::sample)
 
-(defmethod buffer-id ::sample [sample] (:id sample))
-
 (defmacro defsample [s-name path & args]
   `(def ~s-name (sample ~path ~@args)))
