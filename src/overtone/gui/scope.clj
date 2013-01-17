@@ -10,7 +10,7 @@
   (:use [clojure.stacktrace]
         [overtone.helpers lib]
         [overtone.libs event deps]
-        [overtone.sc defaults server synth ugens buffer node foundation-groups]
+        [overtone.sc defaults server synth ugens buffer node foundation-groups bus]
         [overtone.sc.cgens buf-io]
         [overtone.studio core util])
   (:require [clojure.set :as set]
@@ -53,9 +53,12 @@
   will cause the crash to happen sooner. Need to remove this limitation
   when scsynth-jna is fixed."
   [s]
+
   (let [{:keys [buf size width height panel y-arrays x-array panel]} s
-        frames    (if @(:update? s) (buffer-data buf) @(:frames s))
-        step      (/ (buffer-size buf) width)
+        frames    (if (buffer-live? buf)
+                    (buffer-data buf)
+                    [])
+        step      (/ (:size buf) width)
         y-scale   (- height (* 2 Y-PADDING))
         [y-a y-b] @y-arrays]
 
@@ -65,15 +68,13 @@
               (int (* y-scale
                       (aget ^floats frames (unchecked-multiply x step))))))
       (reset! y-arrays [y-b y-a])
-      (.repaint panel))
-
-    (when (and (not (:bus-synth s))
-               @(:update? s))
-      (reset! (:frames s) frames)
-      (reset! (:update? s) false))))
+      (.repaint panel))))
 
 (defn- update-scopes []
-  (dorun (map update-scope-data (vals @scopes*))))
+  (try
+    (dorun (map update-scope-data (vals @scopes*)))
+    (catch Exception e
+      (println "Exception when updating scopes:" (with-out-str (.printStackTrace e))))))
 
 (defn- paint-scope [^Graphics g id]
   (if-let [scope (get @scopes* id)]
@@ -125,7 +126,7 @@
   (ensure-internal-server!)
   (dosync
    (when-not @scopes-running?*
-     (at-at/every (/ 1000 FPS) update-scopes scope-pool :desc "Scope refresh fn")
+     (at-at/every (/ 1000 FPS) #'update-scopes scope-pool :desc "Scope refresh fn")
      (ref-set scopes-running?* true))))
 
 (defn- reset-data-arrays
@@ -155,14 +156,16 @@
   (dosync (ref-set scopes-running?* false)))
 
 (defn- start-bus-synth
-  [bus buf]
-  (bus->buf :target @scope-group* bus buf))
+  [bus buf control-rate?]
+  (if control-rate?
+    (control-bus->buf :target @scope-group* bus buf)
+    (bus->buf :target @scope-group* bus buf)))
 
 (defn- scope-bus
   "Set a bus to view in the scope."
-  [s]
-  (let [buf (buffer SCOPE-BUF-SIZE)
-        bus-synth (start-bus-synth (:num s) buf)]
+  [s control-rate?]
+  (let [buf       (buffer SCOPE-BUF-SIZE)
+        bus-synth (start-bus-synth (:thing s) buf control-rate?)]
     (assoc s
       :size SCOPE-BUF-SIZE
       :bus-synth bus-synth
@@ -193,7 +196,7 @@
 (defn- scope-bus-freq
   [s]
   (let [buf (buffer SCOPE-BUF-SIZE)
-        bus-synth (start-bus-freq-synth (:num s) buf)]
+        bus-synth (start-bus-freq-synth (:thing s) buf)]
     (assoc s
       :size SCOPE-BUF-SIZE
       :bus-synth bus-synth
@@ -202,10 +205,10 @@
 (defn- scope-buf
   "Set a buffer to view in the scope."
   [s]
-  (let [info (buffer-info (:num s))]
+  (let [buf (:thing s)]
     (assoc s
-      :size (:size info)
-      :buf  info)))
+      :size (:size buf)
+      :buf  buf)))
 
 (defn scope-close
   "Close a given scope. Copes with the case where the server has crashed
@@ -224,84 +227,104 @@
     (dosync (alter scopes* dissoc id))))
 
 (defn- mk-scope
-  [num kind keep-on-top width height]
-  (let [id    (uuid)
-        name  (str kind ": " num)
-        panel (scope-panel id width height)
-        slider (JSlider. JSlider/VERTICAL 0 99 50)
-        frame (scope-frame panel slider name keep-on-top width height)
-        x-array (int-array width)
-        y-a     (int-array width)
-        y-b     (int-array width)
-        scope {:id id
-               :name name
-               :size 0
-               :num num
-               :panel panel
-               :slider slider
-               :kind kind
-               :color (Color. 0 130 226)
-               :background (Color. 50 50 50)
-               :frame frame
-               :width width
-               :height height
-               :x-array x-array
-               :y-arrays (atom [y-a y-b])
-               :update? (atom true)
-               :frames (atom [])}
+  [thing kind keep-on-top width height]
+  (let [thing-id (to-sc-id thing)
+        scope-id (uuid)
+        name     (str kind ": " thing-id " " (if-let [n (:name thing)]
+                                               (str "[" n "]")
+                                               ""))
+        panel    (scope-panel scope-id width height)
+        slider   (JSlider. JSlider/VERTICAL 0 99 50)
+        frame    (scope-frame panel slider name keep-on-top width height)
+        x-array  (int-array width)
+        y-a      (int-array width)
+        y-b      (int-array width)
+        scope    {:id         scope-id
+                  :name       name
+                  :size       0
+                  :thing      thing
+                  :panel      panel
+                  :slider     slider
+                  :kind       kind
+                  :color      (Color. 0 130 226)
+                  :background (Color. 50 50 50)
+                  :frame      frame
+                  :width      width
+                  :height     height
+                  :x-array    x-array
+                  :y-arrays   (atom [y-a y-b])}
 
-        _ (reset-data-arrays scope)]
+        _        (reset-data-arrays scope)]
     (.addWindowListener frame
-      (reify WindowListener
-        (windowActivated [this e])
-        (windowClosing [this e]
-                       (scope-close (get @scopes* id)))
-        (windowDeactivated [this e])
-        (windowDeiconified [this e])
-        (windowIconified [this e])
-        (windowOpened [this e])
-        (windowClosed [this e])))
+                        (reify WindowListener
+                          (windowActivated [this e])
+                          (windowClosing [this e]
+                            (scope-close (get @scopes* scope-id)))
+                          (windowDeactivated [this e])
+                          (windowDeiconified [this e])
+                          (windowIconified [this e])
+                          (windowOpened [this e])
+                          (windowClosed [this e])))
     (comment .addComponentListener frame
-      (reify ComponentListener
-        (componentHidden [this e])
-        (componentMoved  [this e])
-        (componentResized [this e]
-          (let [w (.getWidth frame)
-                h (.getHeight frame)
-                xs (int-array w)
-                ya (int-array w)
-                yb (int-array w)]
-            (dosync
-              (let [s (get (ensure scopes*) id)
-                    s (assoc s
-                             :width w
-                             :height h
-                             :x-array xs
-                             :y-arrays (atom [ya yb]))]
-                (alter scopes* assoc id s)))))
-        (componentShown [this e])))
+             (reify ComponentListener
+               (componentHidden [this e])
+               (componentMoved  [this e])
+               (componentResized [this e]
+                 (let [w (.getWidth frame)
+                       h (.getHeight frame)
+                       xs (int-array w)
+                       ya (int-array w)
+                       yb (int-array w)]
+                   (dosync
+                    (let [s (get (ensure scopes*) scope-id)
+                          s (assoc s
+                              :width w
+                              :height h
+                              :x-array xs
+                              :y-arrays (atom [ya yb]))]
+                      (alter scopes* assoc scope-id s)))))
+               (componentShown [this e])))
 
     (case kind
-          :bus (scope-bus scope)
-          :bus-freq (scope-bus-freq scope)
-          :buf (scope-buf scope))))
+      :control-bus (scope-bus scope true)
+      :bus (scope-bus scope false)
+      :audio-bus (scope-bus scope false)
+      :bus-freq (scope-bus-freq scope)
+      :buf (scope-buf scope))))
 
 (defn scope
-  "Create a scope for either a bus or a buffer. Defaults to scoping bus 0.
+  "Create a scope for either a bus or a buffer. Defaults to scoping audio-bus 0.
    Example use:
-   (scope :bus 1)
+
+   (scope a-control-bus)
+   (scope a-buffer)
+   (scope an-audio-bus)
+   (scope :audio-bus 1)
+   (scope :control-bus 10)
    (scope :buf 10)"
-  ([&{:keys [bus buf keep-on-top]
-      :or {bus 0
-           buf -1
-           keep-on-top false}}]
+  ([]        (scope :audio-bus 0))
+  ([thing]   (cond
+              (audio-bus? thing)   (scope :audio-bus thing)
+              (control-bus? thing) (scope :control-bus thing)
+              (buffer? thing)      (scope :buf thing)
+              :else                (scope :audio-bus thing)))
+  ([kind id] (scope kind id false))
+  ([kind id keep-on-top?]
      (ensure-internal-server!)
-     (let [buf (if (buffer? buf) (:id buf) buf)
-           kind (if (= -1 buf) :bus :buf)
-           num  (if (= -1 buf) bus buf)
-           s (mk-scope num kind keep-on-top WIDTH HEIGHT)]
+     (let [s  (mk-scope id kind keep-on-top? WIDTH HEIGHT)]
        (dosync (alter scopes* assoc (:id s) s))
        (scopes-start))))
+
+(defn pscope
+  "Creates a 'permanent' scope, where the window is always kept
+  on top of other OS windows. See scope."
+  ([]        (scope :audio-bus 0 true))
+  ([thing]   (cond
+              (audio-bus? thing)   (scope :audio-bus thing true)
+              (control-bus? thing) (scope :control-bus thing true)
+              (buffer? thing)      (scope :buf thing true)
+              :else                (scope :audio-bus thing true)))
+  ([kind id] (scope kind id true)))
 
 (defn spectrogram
   "Create frequency scope for a bus.  Defaults to bus 0.
@@ -314,14 +337,6 @@
      (let [s (mk-scope bus :bus-freq keep-on-top WIDTH HEIGHT)]
        (dosync (alter scopes* assoc (:id s) s))
        (scopes-start))))
-
-(defn pscope
-  "Creates a 'permanent' scope, where the window is always kept
-  on top of other OS windows. See scope."
-  ([& args]
-     (ensure-internal-server!)
-     (apply scope (concat args [:keep-on-top true]))))
-
 
 (defn- reset-scopes
   "Restart scopes if they have already been running"
