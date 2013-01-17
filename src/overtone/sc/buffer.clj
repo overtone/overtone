@@ -131,6 +131,12 @@
   [buf]
   (isa? (type buf) ::file-buffer))
 
+(defn buffer-live?
+  "Returns true if b is a live buffer on the server"
+  [b]
+  (and (buffer? b)
+       (= :live @(:status b))))
+
 (defn buffer-free
   "Synchronously free an audio buffer and the memory it was consuming."
   [buf]
