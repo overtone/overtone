@@ -96,8 +96,8 @@ synthesized instruments in Overtone checkout Philip Potter's 20 minute
 workshop:
 
   http://skillsmatter.com/podcast/scala/clojurex-unpanel-2894
-  
-Chris Ford also delivers a beautifully paced introduction to fundamental music 
+
+Chris Ford also delivers a beautifully paced introduction to fundamental music
 concepts from basic sine waves to Bach's Goldberg Variations with live examples throughout:
 
   http://skillsmatter.com/podcast/home/functional-composition
@@ -110,7 +110,8 @@ There are also the following tutorials:
 
 ### Presentations
 
-* http://blip.tv/clojure/sam-aaron-programming-music-with-overtone-5970273
+* Sam Aaron - Programming Music With Overtone: http://www.youtube.com/watch?v=imoWGsipe4k
+* Chris Ford - Functional Composition: http://www.youtube.com/watch?v=Mfsnlbd-4xQ
 
 ### Interviews
 
@@ -129,7 +130,7 @@ philosophy of Overtone:
 Sam Aaron performs with Overtone Live @ Arnolfini:
 
   https://vimeo.com/46867490
- 
+
 
 
 ## Cheat Sheet
