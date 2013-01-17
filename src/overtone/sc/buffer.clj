@@ -204,6 +204,7 @@
   reading of buffer data with the internal server, see buffer-data."
   ([buf] (buffer-read buf 0 (:size buf)))
   ([buf start len]
+     (ensure-buffer-active! buf)
      (assert (buffer? buf))
      (assert (= :live @(:status buf)))
      (let [buf-id  (:id buf)
@@ -236,6 +237,7 @@
   writing the data (defaults to 0)."
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
+     (ensure-buffer-active! buf)
      (assert (buffer? buf))
      (when (> (count data) MAX-OSC-SAMPLES)
        (throw (Exception. (str "Error - the data you attempted to write to the buffer was too large to be sent via UDP."))))
@@ -254,6 +256,7 @@
   very slow."
   ([buf data] (buffer-write-relay! buf 0 data))
   ([buf start-idx data]
+     (ensure-buffer-active! buf)
      (assert (buffer? buf))
      (loop [data-left data
             idx       0]
@@ -269,6 +272,7 @@
   on the server. Defaults to filling in the full buffer unless start and
   len vals are specified. Asynchronous."
   ([buf val]
+     (ensure-buffer-active! buf)
      (assert (buffer? buf))
      (buffer-fill! buf 0 (:size buf) val))
   ([buf start len val]
@@ -281,6 +285,7 @@
   the server. Index defaults to 0 if not specified."
   ([buf val] (buffer-set! buf 0 val))
   ([buf index val]
+     (ensure-buffer-active! buf)
      (assert (buffer? buf))
      (snd "/b_set" (:id buf) index (double val))
      buf))
@@ -289,6 +294,7 @@
   "Read a single value from a buffer. Index defaults to 0 if not specified."
   ([buf] (buffer-get buf 0))
   ([buf index]
+     (ensure-buffer-active! buf)
      (assert (buffer? buf))
      (let [buf-id (:id buf)
            prom   (recv "/b_set" (fn [msg]
@@ -319,6 +325,7 @@
    (buffer-save buf \"~/Desktop/foo.wav\" :header \"aiff\" :samples \"int32\"
                                           :start-frame 100)"
   [buf path & args]
+  (ensure-buffer-active! buf)
   (assert (buffer? buf))
 
   (let [path (resolve-tilde-path path)
