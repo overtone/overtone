@@ -50,7 +50,7 @@
 (defonce loaded-samples* (atom {}))
 (defonce cached-samples* (atom {}))
 
-(defrecord Sample [id size n-channels rate allocated-on-server path args name]
+(defrecord Sample [id size n-channels rate status path args name]
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
@@ -169,7 +169,7 @@
       (= n-channels 2) (apply stereo-player :tgt target :pos pos id pargs))))
 
 (defrecord-ifn PlayableSample
-  [id size n-channels rate allocated-on-server path args name]
+  [id size n-channels rate status path args name]
   sample-player
   to-sc-id*
   (to-sc-id [this] (:id this)))

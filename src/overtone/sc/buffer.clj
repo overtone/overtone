@@ -50,7 +50,7 @@
         :rate-scale rate-scale
         :duration duration}))))
 
-(defrecord Buffer [id size n-channels rate allocated-on-server]
+(defrecord Buffer [id size n-channels rate status]
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
@@ -72,9 +72,9 @@
 
        (map->Buffer
         (assoc info
-          :allocated-on-server (atom true))))))
+          :status (atom :live))))))
 
-(defrecord BufferFile [id size n-channels rate allocated-on-server path]
+(defrecord BufferFile [id size n-channels rate status path]
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
@@ -107,7 +107,7 @@
 
            (map->BufferFile
             (assoc info
-              :allocated-on-server (atom true))))))))
+              :status (atom :live))))))))
 
 (derive BufferInfo ::buffer-info)
 (derive Buffer     ::buffer)
@@ -141,7 +141,7 @@
                                       id
                                       1
                                       #(do (snd "/b_free" id)
-                                           (reset! (:allocated-on-server buf) false)
+                                           (reset! (:status buf) :destroyed)
                                            (server-sync uid)))))
     buf))
 
@@ -155,7 +155,7 @@
   ([buf] (buffer-read buf 0 (:size buf)))
   ([buf start len]
      (assert (buffer? buf))
-     (assert @(:allocated-on-server buf))
+     (assert (= :live @(:status buf)))
      (let [buf-id  (:id buf)
            samples (float-array len)]
        (loop [n-vals-read 0]
@@ -283,7 +283,7 @@
                     n-frames start-frame 0)
     :buffer-saved))
 
-(defrecord BufferOutStream [id size n-channels header samples rate allocated-on-server path open?]
+(defrecord BufferOutStream [id size n-channels header samples rate status path open?]
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
@@ -347,7 +347,7 @@
   (reset! (:open? buf-stream) false)
   (:path buf-stream))
 
-(defrecord BufferInStream [id size n-channels rate allocated-on-server path open?]
+(defrecord BufferInStream [id size n-channels rate status path open?]
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
