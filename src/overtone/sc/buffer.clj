@@ -77,13 +77,14 @@
         :rate-scale rate-scale
         :duration duration}))))
 
-(defrecord Buffer [id size n-channels rate status]
+(defrecord Buffer [id size n-channels rate status name]
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
 (defmethod print-method Buffer [b w]
-  (.write w (format "#<buffer[%s]: %fs %s %d>"
+  (.write w (format "#<buffer[%s]: %s %fs %s %d>"
                     (name @(:status b))
+                    (:name b)
                     (:duration b)
                     (cond
                      (= 1 (:n-channels b)) "mono"
@@ -95,8 +96,11 @@
   "Synchronously allocate a new zero filled buffer for storing audio
   data with the specified size and num-channels. Size will be
   automatically floored and converted to a Long - i.e. 2.7 -> 2"
-  ([size] (buffer size 1))
-  ([size num-channels]
+  ([size] (buffer size 1 ""))
+  ([size num-channels-or-name] (if (string? num-channels-or-name)
+                                 (buffer 1 num-channels-or-name)
+                                 (buffer num-channels-or-name "")))
+  ([size num-channels name]
      (let [size (long size)
            id   (with-server-self-sync
                   (fn [uid]
@@ -109,6 +113,7 @@
 
        (map->Buffer
         (assoc info
+          :name name
           :status (atom :live))))))
 
 (defrecord BufferFile [id size n-channels rate status path]
