@@ -82,14 +82,14 @@
   (to-sc-id [this] (:id this)))
 
 (defmethod print-method Buffer [b w]
-  (.write w (format "#<buffer[%s]: %fs %s>"
+  (.write w (format "#<buffer[%s]: %fs %s %d>"
                     (name @(:status b))
                     (:duration b)
                     (cond
                      (= 1 (:n-channels b)) "mono"
                      (= 2 (:n-channels b)) "stereo"
                      :else (str (:n-channels b) " channels"))
-)))
+                    (:id b))))
 
 (defn buffer
   "Synchronously allocate a new zero filled buffer for storing audio
