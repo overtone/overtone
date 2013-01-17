@@ -14,18 +14,36 @@
 ;; but in SC they are implemented using a simple integer referenced
 ;; array of float values.
 
-(defrecord AudioBus [id n-channels rate]
+(defrecord AudioBus [id n-channels rate name]
   to-sc-id*
   (to-sc-id [this] (:id this)))
 
-(defrecord ControlBus [id n-channels rate]
+(defrecord ControlBus [id n-channels rate name]
   to-sc-id*
   (to-sc-id [this] (:id this)))
+
+(defmethod print-method AudioBus [b w]
+  (.write w (format "#<audio-bus: %s %s %d>"
+                    (:name b)
+                    (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                    (:id b))))
+
+(defmethod print-method ControlBus [b w]
+  (.write w (format "#<control-bus: %s %s %d>"
+                    (:name b)
+                    (cond
+                     (= 1 (:n-channels b)) "1 channel"
+                     :else (str (:n-channels b) " channels"))
+                    (:id b))))
 
 (derive AudioBus ::bus)
 (derive ControlBus ::bus)
 
 (defn bus?
+
   "Returns true if the specified bus is a map representing a bus (either control
   or audio) "
   [bus]
@@ -42,18 +60,34 @@
   (isa? (type bus) AudioBus))
 
 (defn control-bus
-  "Allocate one or more control busses."
-  ([] (control-bus 1))
-  ([n-channels]
+  "Allocate one or more successive control busses. By default, just one
+   bus is allocated. However, if you specify a number of channels, a
+   successive range of that length will be allocated.
+
+   You may also specify a name for the bus for labelling purposes."
+  ([] (control-bus 1 ""))
+  ([n-channels-or-name]  (if (string? n-channels-or-name)
+                          (control-bus 1 n-channels-or-name)
+                          (control-bus n-channels-or-name "")))
+  ([n-channels name]
      (let [id (alloc-id :control-bus n-channels)]
-       (ControlBus. id n-channels :control))))
+       (ControlBus. id n-channels :control name))))
 
 (defn audio-bus
-  "Allocate one or more audio busses."
-  ([] (audio-bus 1))
-  ([n-channels]
+  "Allocate one or more successive audio busses. By default, just one
+   bus is allocated. However, if you specify a number of channels, a
+   successive range of that length will be allocated.
+
+   For example, to allocate a stereo bus: (audio-bus 2)
+
+   You may also specify a name for the bus for labelling purposes."
+  ([] (audio-bus 1 ""))
+  ([n-channels-or-name] (if (string? n-channels-or-name)
+                          (audio-bus 1 n-channels-or-name)
+                          (audio-bus n-channels-or-name "")))
+  ([n-channels name]
      (let [id (alloc-id :audio-bus n-channels)]
-       (AudioBus. id n-channels :audio))))
+       (AudioBus. id n-channels :audio name))))
 
 (defn free-bus
   "Free the id of specified bus for reuse."
