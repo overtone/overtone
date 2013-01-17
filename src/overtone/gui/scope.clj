@@ -217,6 +217,8 @@
                (server-connected?))
       (try
         (kill bus-synth)
+        (when-let [b (:buf s)]
+          (buffer-free b))
         (catch Exception e)))
     (dosync (alter scopes* dissoc id))))
 
