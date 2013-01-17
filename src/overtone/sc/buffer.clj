@@ -206,7 +206,6 @@
   ([buf start len]
      (ensure-buffer-active! buf)
      (assert (buffer? buf))
-     (assert (= :live @(:status buf)))
      (let [buf-id  (:id buf)
            samples (float-array len)]
        (loop [n-vals-read 0]
@@ -461,7 +460,7 @@
 (defn buffer-id
   "Return the id of buffer b. Simply punts out to to-sc-id"
   [b]
-  (to-sc-id buffer-id))
+  (to-sc-id b))
 
 (defmulti buffer-size type)
 (defmethod buffer-size ::buffer [buf] (:size buf))
