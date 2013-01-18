@@ -74,13 +74,7 @@
 ;; Fun fact: These two examples are key features
 ;; of AM and FM radio transmitters, respectively.
 
-;; Change the frequency of the triangle wave on the tri-bus
-;; This causes the modulation of the volume to happen more slowly
-(comment
-  (ctl tri-synth-inst :freq 0.5)
-  )
-
-;; Switch the bus that is modulating the frequency and volume
+;; Switch the bus that is modulating the frequency
 ;; to be the triangle bus.
 ;;
 ;; Note that we have to use its id because OSC (or maybe supercollider)
@@ -88,6 +82,17 @@
 ;; feel free to correct this if it's something else happening).
 (comment
   (ctl mft :freq-bus (:id tri-bus))
+  )
+
+;; Change the frequency of the triangle wave on the tri-bus
+;; This causes the modulation of the volume to happen more slowly
+(comment
+  (ctl tri-synth-inst :freq 0.5)
+  )
+
+;; Switch the modulated-vol-tri instance to be modulated by the triangle
+;; bus as well.
+(comment
   (ctl mvt :vol-bus (:id tri-bus))
   )
 
@@ -98,7 +103,8 @@
     (kill mvt))
   )
 
-;; At this point, the busses are still carrying data from the tri-synth and sin-synth; you'll have to kill them as well explicitly or invoke (stop) if you want them to stop.
+;; At this point, the busses are still carrying data from the tri-synth and sin-synth;
+;; you'll have to kill them as well explicitly or invoke (stop) if you want them to stop.
 
 ;; Or can re-use them!
 (comment
