@@ -59,8 +59,10 @@
   (let [buf-id (id-mapper buf-id)
         prom   (recv "/b_info" (fn [msg]
                                  (= buf-id (first (:args msg)))))]
-    (with-server-sync #(snd "/b_query" buf-id))
-    (let [[id n-frames n-chans rate] (:args (deref! prom))
+    (with-server-sync
+      #(snd "/b_query" buf-id)
+      (str "whilst fetching information for buffer " buf-id))
+    (let [[id n-frames n-chans rate] (:args (deref! prom "attempting to receive buffer information from the server."))
           server-rate                (server-sample-rate)
           n-samples                  (* n-frames n-chans)
           rate-scale                 (when (> server-rate 0)
@@ -108,7 +110,8 @@
                               1
                               (fn [id]
                                 (snd "/b_alloc" id size num-channels)
-                                (server-sync uid)))))
+                                (server-sync uid))))
+                  (str "whilst allocating a new buffer with size: " size " and num channels: " num-channels))
            info (buffer-info id)]
 
        (map->Buffer
@@ -140,7 +143,9 @@
            f    (file path)
            id   (alloc-id :audio-buffer)]
        (snd-immediately
-         (with-server-sync  #(snd "/b_allocRead" id path start n-frames))
+        (with-server-sync
+          #(snd "/b_allocRead" id path start n-frames)
+          (str "whilst allocating a buffer to contain the contents of file: " path))
          (let [info                              (buffer-info id)
                {:keys [id size rate n-channels]} info]
            (when (every? zero? [size rate n-channels])
@@ -197,7 +202,8 @@
                                       1
                                       #(do (snd "/b_free" id)
                                            (reset! (:status buf) :destroyed)
-                                           (server-sync uid)))))
+                                           (server-sync uid))))
+      (str "whilst freeing audio buffer " buf))
     buf))
 
 (defn buffer-read
@@ -224,7 +230,7 @@
                                                (= msg-start offset)
                                                (= n-to-read (count m-args))))))]
              (snd "/b_getn" buf-id offset n-to-read)
-             (let [m (deref! prom)
+             (let [m (deref! prom (str "attempting to read data from buffer " buf))
                    [buf-id bstart blen & samps] (:args m)]
                (dorun
                 (map-indexed (fn [idx el]
@@ -300,14 +306,17 @@
   ([buf index]
      (ensure-buffer-active! buf)
      (assert (buffer? buf))
-     (let [buf-id (:id buf)
+     (let [error-msg (str "attempting to receive a single value at index " index " in buffer " buf)
+           buf-id (:id buf)
            prom   (recv "/b_set" (fn [msg]
                                    (let [[msg-buf-id msg-start _] (:args msg)]
                                      (and (= msg-buf-id buf-id)
                                           (= msg-start index)))))]
 
-       (with-server-sync #(snd "/b_get" buf-id index))
-       (last (:args (deref! prom))))))
+       (with-server-sync
+         #(snd "/b_get" buf-id index)
+         (str "whilst " error-msg))
+       (last (:args (deref! prom error-msg))))))
 
 (defn buffer-save
   "Save the float audio data in buf to a file in the specified path on the

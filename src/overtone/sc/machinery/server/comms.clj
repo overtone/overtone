@@ -79,35 +79,37 @@
   asynchronous yet you wish to synchronise with its completion. The
   action-fn can sync using the fn server-sync.  Returns the result of
   action-fn."
-  [action-fn]
-  (let [id   (next-id ::server-sync-id)
-        prom (promise)
-        key  (uuid)]
-    (oneshot-event "/synced"
-                   (fn [msg] (when (= id (first (:args msg)))
-                              (deliver prom true)))
-                   key)
-    (let [res (action-fn id)]
-      (deref! prom)
-      res)))
+  ([action-fn] (with-server-self-sync action-fn ""))
+  ([action-fn msg]
+     (let [id   (next-id ::server-sync-id)
+           prom (promise)
+           key  (uuid)]
+       (oneshot-event "/synced"
+                      (fn [msg] (when (= id (first (:args msg)))
+                                 (deliver prom true)))
+                      key)
+       (let [res (action-fn id)]
+         (deref! prom (str "attempting to self-synchronise with the server " msg))
+         res))))
 
 (defn with-server-sync
   "Blocks current thread until all osc messages in action-fn have
   completed. Returns result of action-fn."
-  [action-fn]
-  (let [id   (next-id ::server-sync-id)
-        prom (promise)
-        key  (uuid)]
-    (on-event "/synced"
-              (fn [msg] (when (= id (first (:args msg)))
-                         (do
-                           (deliver prom true)
-                           :overtone/remove-handler)))
-              key)
-    (let [res (action-fn)]
-      (server-snd "/sync" id)
-      (deref! prom)
-      res)))
+  ([action-fn] (with-server-sync action-fn ""))
+  ([action-fn msg]
+     (let [id   (next-id ::server-sync-id)
+           prom (promise)
+           key  (uuid)]
+       (on-event "/synced"
+                 (fn [msg] (when (= id (first (:args msg)))
+                            (do
+                              (deliver prom true)
+                              :overtone/remove-handler)))
+                 key)
+       (let [res (action-fn)]
+         (server-snd "/sync" id)
+         (deref! prom (str "attempting to synchronise with the server " msg))
+         res))))
 
 (defn server-recv
   "Register your intent to wait for a message associated with given path

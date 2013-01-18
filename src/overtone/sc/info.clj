@@ -63,7 +63,7 @@
             :overtone/remove-handler)))
      (keyword (str "overtone.sc.info/get-server-info_" (gensym))))
     (let [synth-id (snd-server-info response-id)
-          res      (deref! prom)]
+          res      (deref! prom  "attempting to fetch server information")]
       (kill synth-id)
       res)))
 

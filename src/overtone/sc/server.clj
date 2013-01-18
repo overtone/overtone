@@ -152,7 +152,7 @@
     (let [p (server-recv "/status.reply")]
       (snd "/status")
       (try
-        (apply parse-status (:args (deref! p)))
+        (apply parse-status (:args (deref! p "attempting to get the server status. Perhaps the server is down?")))
         (catch TimeoutException t
           :timeout)))
     :disconnected))

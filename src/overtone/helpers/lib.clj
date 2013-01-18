@@ -257,13 +257,19 @@
 
 (defn deref!
   "Read a future or promise waiting for timeout ms for it to be
-   successfully dereferenced. Raises an exception if a timeout occurs"
-  ([ref] (deref! ref DEFAULT-PROMISE-TIMEOUT))
-  ([ref timeout]
+   successfully dereferenced. Raises an exception if a timeout
+   occurs. You may optionally pass a message explaining what you're
+   currently doing whilst defef!ing which will be used to construct the
+   TimeoutException."
+  ([ref] (deref! ref DEFAULT-PROMISE-TIMEOUT ""))
+  ([ref timeout-or-msg] (if (string? timeout-or-msg)
+                          (deref! ref DEFAULT-PROMISE-TIMEOUT timeout-or-msg)
+                          (deref! ref timeout-or-msg "")))
+  ([ref timeout msg]
      (let [timeout-indicator (gensym "deref-timeout")
            res               (deref ref timeout timeout-indicator)]
        (if (= timeout-indicator res)
-         (throw (TimeoutException. (str "deref! timeout error. Dereference took longer than " timeout " ms")))
+         (throw (TimeoutException. (str "deref! timeout error. Dereference took longer than " timeout " ms" (when-not (empty? msg) (str " whilst " msg)))))
          res))))
 
 (defn stringify-map-vals

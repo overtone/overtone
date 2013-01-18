@@ -400,7 +400,7 @@
   (ensure-node-active! node "Attempting to get control values of a node that has been destroyed.")
   (let [res   (recv "/n_set")
         cvals (do (apply snd "/s_get" (to-sc-id node) (stringify names))
-                  (:args (deref! res)))]
+                  (:args (deref! res (str "attempting to get control values " name " for node " node))))]
     (apply hash-map (keywordify (drop 1 cvals)))))
 
 ;; This can be extended to support setting multiple ranges at once if necessary...
@@ -422,7 +422,7 @@
   (ensure-node-active! node "Attempting to access a node that has been destroyed.")
   (let [res   (recv "/n_setn")
         cvals (do (snd "/s_getn" (to-sc-id node) (to-str name-index) n)
-                  (:args (deref! res)))]
+                  (:args (deref! res (str "attempting to get " n " control values from arguement " name-index " for node " node))))]
     (vec (drop 3 cvals))))
 
 (defn node-map-controls*
@@ -504,7 +504,7 @@
 (defn node-block-until-ready*
   "Block the current thread until the node is no longer loading."
   [node]
-  (deref! (:loaded? node)))
+  (deref! (:loaded? node) (str "blocking until the following node has completed loading: " (with-out-str (pr node))) ))
 
 (extend java.lang.Long
   ISynthNode
@@ -689,7 +689,7 @@
            id    (to-sc-id node)]
        (let [reply-p (recv "/g_queryTree.reply")
              _       (snd "/g_queryTree" id ctls?)
-             tree    (:args (deref! reply-p))]
+             tree    (:args (deref! reply-p (str "attempting to read the node tree for node " node)))]
          (with-meta (parse-node-tree tree)
            {:type ::node-tree})))))
 

@@ -89,8 +89,12 @@
 (defn- start-io-mixers
   []
   (ensure-connected!)
-  (let [in-cnt     (with-server-sync #(server-num-input-buses))
-        out-cnt    (with-server-sync #(server-num-output-buses))
+  (let [in-cnt     (with-server-sync
+                     #(server-num-input-buses)
+                     "whilst discovering the number of server input busses")
+        out-cnt    (with-server-sync
+                     #(server-num-output-buses)
+                     "whilst discovering the number of server output busses")
         out-mixers (doall
                     (map
                      (fn [out-bus]
@@ -198,11 +202,15 @@
   []
   (log/info (str "Creating studio group  " (foundation-root-group)))
   (let [root              (foundation-root-group)
-        g                 (with-server-sync #(group "Studio" :head root))
+        g                 (with-server-sync
+                            #(group "Studio" :head root)
+                            "whilst creating the Studio group")
         insts-with-groups (map-vals (fn [val]
                                       assoc val
                                       :group
-                                      (with-server-sync #(group (str "Recreated Inst Group") :tail g)))
+                                      (with-server-sync
+                                        #(group (str "Recreated Inst Group") :tail g)
+                                        "whist creating the Recreated Inst Group"))
                                     (:instruments @studio*))]
     (swap! studio* assoc
            :instrument-group g

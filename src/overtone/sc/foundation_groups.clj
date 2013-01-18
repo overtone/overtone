@@ -13,31 +13,46 @@
 (defn- setup-foundation-groups
   []
   (let [overtone-group
-        (with-server-sync #(group "Overtone" :head 0))
+        (with-server-sync
+          #(group "Overtone" :head 0)
+          "whilst creating the main Overtone group")
 
         input-group
-        (with-server-sync #(group "Overtone Inputs" :head overtone-group))
+        (with-server-sync
+          #(group "Overtone Inputs" :head overtone-group)
+          "whilst creating the Overtone Inputs group")
 
         root-group
-        (with-server-sync #(group "Overtone Root" :after input-group))
+        (with-server-sync
+          #(group "Overtone Root" :after input-group)
+          "whilst creating the Overtone Root group")
 
         user-group
-        (with-server-sync #(group "Overtone User" :head root-group))
+        (with-server-sync
+          #(group "Overtone User" :head root-group)
+          "whilst creating the Overtone User group")
 
         safe-pre-default-group
-        (with-server-sync #(group "Overtone Safe Pre Default" :head user-group))
+        (with-server-sync
+          #(group "Overtone Safe Pre Default" :head user-group)
+          "whilst creating the Overtone Safe Pre Default group")
 
         default-group
-        (with-server-sync #(group "Overtone Default" :after safe-pre-default-group))
+        (with-server-sync #(group "Overtone Default" :after safe-pre-default-group)
+          "whilst creating the Overtone Default group")
 
         safe-post-default-group
-        (with-server-sync #(group "Overtone Safe Post Default" :after default-group))
+        (with-server-sync
+          #(group "Overtone Safe Post Default" :after default-group)
+          "whilst creating the Overtone Safe Post Default group")
 
         output-group
-        (with-server-sync #(group "Overtone Output" :after root-group))
+        (with-server-sync #(group "Overtone Output" :after root-group)
+          "whilst creating the Overtone Output group")
 
         monitor-group
-        (with-server-sync #(group "Overtone Monitor" :after output-group))]
+        (with-server-sync #(group "Overtone Monitor" :after output-group)
+          "whilst creating the Overtone Monitor group")]
     (swap! foundation-groups* assoc
            :overtone-group          overtone-group
            :input-group             input-group

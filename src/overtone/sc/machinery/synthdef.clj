@@ -225,7 +225,8 @@
 
   (when (server-connected?)
     (with-server-sync
-      #(snd "/d_recv" (synthdef-bytes sdef)))))
+      #(snd "/d_recv" (synthdef-bytes sdef))
+      (str "whilst loading synthdef " (:name sdef)))))
 
 (defn- load-all-synthdefs []
   (doseq [[sname sdef] @loaded-synthdefs*]
