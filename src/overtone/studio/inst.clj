@@ -1,6 +1,7 @@
 (ns overtone.studio.inst
-  (:use [overtone.sc defaults bindings server synth ugens envelope node bus]
+  (:use [overtone.sc defaults bindings server synth ugens envelope node bus dyn-vars]
         [overtone.sc.machinery synthdef]
+        [overtone.sc.machinery.server.comms :only [with-server-sync]]
         [overtone.sc.util :only (id-mapper)]
         [overtone.studio core mixer fx]
         [overtone.helpers lib]
@@ -45,12 +46,14 @@
 (defn inst-volume!
   "Control the volume of a single instrument."
   [inst vol]
+  (ensure-node-active! inst)
   (ctl (:mixer inst) :volume vol)
   (reset! (:volume inst) vol))
 
 (defn inst-pan!
   "Control the pan setting of a single instrument."
   [inst pan]
+  (ensure-node-active! inst)
   (ctl (:mixer inst) :pan pan)
   (reset! (:pan inst) pan))
 
@@ -61,6 +64,7 @@
 
 (defmethod inst-fx! :mono
   [inst fx]
+  (ensure-node-active! inst)
   (let [fx-group (:fx-group inst)
         bus      (:bus inst)
         fx-id    (fx :tgt fx-group :pos :tail :bus bus)]
@@ -68,6 +72,7 @@
 
 (defmethod inst-fx! :stereo
   [inst fx]
+  (ensure-node-active! inst)
   (let [fx-group (:fx-group inst)
         bus-l    (to-sc-id (:bus inst))
         bus-r    (inc bus-l)
@@ -77,6 +82,7 @@
 
 (defn clear-fx
   [inst]
+  (ensure-node-active! inst)
   (group-clear (:fx-group inst))
   :clear)
 
@@ -112,9 +118,7 @@
                      group instance-group fx-group
                      mixer bus fx-chain
                      volume pan
-                     n-chans
-                     status
-                     loaded?]
+                     n-chans]
   (fn [this & args]
     (apply synth-player sdef params this :tgt instance-group args))
 
@@ -134,14 +138,23 @@
   `(let [[sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
          new-inst# (get (:instruments @studio*) sname#)
          container-group# (or (:group new-inst#)
-                              (group (str "Inst " sname# " Container")
-                                     :tail (:instrument-group @studio*)))
+                              (with-server-sync
+                                #(group (str "Inst " sname# " Container")
+                                        :tail (:instrument-group @studio*))
+                                "whilst creating an inst container group"))
+
          instance-group#  (or (:instance-group new-inst#)
-                              (group (str "Inst " sname#)
-                                     :head container-group#))
+                              (with-server-sync
+                                #(group (str "Inst " sname#)
+                                        :head container-group#)
+                                "whilst creating an inst instance group"))
+
          fx-group#        (or (:fx-group new-inst#)
-                              (group (str "Inst " sname# " FX")
-                                     :tail container-group#))
+                              (with-server-sync
+                                #(group (str "Inst " sname# " FX")
+                                        :tail container-group#)
+                                "whilst creating an inst fx group"))
+
          imixer#    (or (:mixer new-inst#)
                         (inst-mixer n-chans#
                                     :tgt container-group#
@@ -159,8 +172,7 @@
                              imixer# inst-bus# fx-chain#
                              volume# pan#
                              n-chans#
-                             (:status container-group#)
-                             (:loaded? container-group#))
+                             )
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (add-instrument inst#)
@@ -261,6 +273,29 @@
                              (vals (ns-publics 'overtone.instrument))))]
     (load-synthdef synth)))
 
+(defn- inst-block-until-ready*
+  [inst]
+  (when *block-node-until-ready?*
+    (doseq [sub-node [(:fx-group inst)
+                      (:group inst)
+                      (:instance-group inst)
+                      (:mixer inst)]]
+      (node-block-until-ready sub-node))))
+
+(defn- inst-status*
+  [inst]
+  (let [sub-nodes [(:fx-group inst)
+                   (:group inst)
+                   (:instance-group inst)
+                   (:mixer inst)]]
+    (cond
+     (some #(= :loading @(:status %)) sub-nodes) :loading
+     (some #(= :destroyed @(:status %)) sub-nodes) :destroyed
+     (some #(= :paused @(:status %)) sub-nodes) :paused
+     (every? #(= :live @(:status %)) sub-nodes) :live
+     :else (throw (Exception. "Unknown instrument sub-node state: "
+                              (with-out-str (doseq [n sub-nodes] (pr n))))))))
+
 (extend Inst
   ISynthNode
   {:node-free  node-free*
@@ -278,5 +313,5 @@
   {:kill* (fn [this] (group-deep-clear (:instance-group this)))}
 
   ISynthNodeStatus
-  {:node-status            node-status*
-   :node-block-until-ready node-block-until-ready*})
+  {:node-status            inst-status*
+   :node-block-until-ready inst-block-until-ready*})
