@@ -15,15 +15,21 @@
   "The default error behaviour triggered when a user attempts to either
   control or kill an inactive node."
   [node err-msg]
-  (condp = *inactive-node-modification-error*
-    :silent    nil ;;do nothing
-    :warning   (println "Warning - " err-msg node " " (with-out-str (print node)))
-    :exception (throw (Exception. (str "Error - " err-msg " " (with-out-str (print node)))))
-    (throw
-     (IllegalArgumentException.
-      (str "Unexpected value for *inactive-node-modification-error*: "
-           *inactive-node-modification-error*
-           "Expected one of :silent, :warning, :exception.")))))
+  (let [full-err-msg (str "inactive node modification attempted for node "
+                          (with-out-str (pr node))
+                          " with state "
+                          @(:status node)
+                          (when-not (empty? err-msg)
+                            (str " whilst " err-msg)))]
+    (condp = *inactive-node-modification-error*
+      :silent    nil ;;do nothing
+      :warning   (println (str "Warning - " full-err-msg))
+      :exception (throw (Exception. (str "Error - " full-err-msg)))
+      (throw
+       (IllegalArgumentException.
+        (str "Unexpected value for *inactive-node-modification-error*: "
+             *inactive-node-modification-error*
+             ". Expected one of :silent, :warning, :exception."))))))
 
 (defonce ^{:private true} __PROTOCOLS__
 
@@ -211,7 +217,7 @@
       (node-paused? n)))
 
 (defn- ensure-node-active!
-  ([node] (ensure-node-active! "Trying to modify an inactive node."))
+  ([node] (ensure-node-active! ""))
   ([node err-msg]
      (when (node? node)
        (node-block-until-ready node))
@@ -227,7 +233,7 @@
   for /n_end which will call node-destroyed."
   [node]
   {:pre [(server-connected?)]}
-  (ensure-node-active! node "Trying to free a synth node that has been destroyed")
+  (ensure-node-active! node "freeing node.")
   (snd "/n_free" (to-sc-id node))
   node)
 
@@ -356,7 +362,7 @@
   "Pause a running synth node."
   [node]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to pause a node that has been destroyed.")
+  (ensure-node-active! node "pausing node")
   (snd "/n_run" (to-sc-id node) 0)
   node)
 
@@ -364,7 +370,7 @@
   "Start a paused synth node."
   [node]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to start a node that has been destroyed.")
+  (ensure-node-active! node "starting node")
   (snd "/n_run" (to-sc-id node) 1)
   node)
 
@@ -372,7 +378,7 @@
   "Place a node :before or :after another node."
   [node position target]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to relocate a node that has been destroyed.")
+  (ensure-node-active! node "relocating node")
   (let [node-id   (to-sc-id node)
         target-id (to-sc-id target)]
     (cond
@@ -384,7 +390,7 @@
   "Set control values for a node."
   [node name-values]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to control a node that has been destroyed.")
+  (ensure-node-active! node "controlling node")
   (apply snd "/n_set" (to-sc-id node) (floatify (stringify (idify name-values))))
   node)
 
@@ -395,7 +401,7 @@
   {:freq 440.0 :attack 0.2}"
   [node names]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to get control values of a node that has been destroyed.")
+  (ensure-node-active! node "getting node control values")
   (let [res   (recv "/n_set")
         cvals (do (apply snd "/s_get" (to-sc-id node) (stringify names))
                   (:args (deref! res (str "attempting to get control values " name " for node " (with-out-str (pr node))))))]
@@ -407,7 +413,7 @@
   all nodes in the group."
   [node ctl-start ctl-vals]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to control a node that has been destroyed.")
+  (ensure-node-active! node "controlling a range of node values")
   (let [node-id (to-sc-id node)]
     (apply snd "/n_setn" node-id ctl-start (count ctl-vals) ctl-vals))
   node)
@@ -417,7 +423,7 @@
   Returns a vector of values."
   [node name-index n]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to access a node that has been destroyed.")
+  (ensure-node-active! node "reading a range of node values")
   (let [res   (recv "/n_setn")
         cvals (do (snd "/s_getn" (to-sc-id node) (to-str name-index) n)
                   (:args (deref! res (str "attempting to get " n " control values from arguement " name-index " for node " (with-out-str (pr node))))))]
@@ -427,7 +433,7 @@
   "Connect a node's controls to a control bus."
   [node names-busses]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to map the controls of a node that has been destroyed.")
+  (ensure-node-active! node "mapping controls to a bus for node")
 
   (let [node-id      (to-sc-id node)
         names-busses (-> names-busses stringify idify)]
@@ -439,7 +445,7 @@
   starting at the given control name."
   [node start-control start-bus n]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to map the controls of a node that has been destroyed.")
+  (ensure-node-active! node "mapping a range of conrol values to control busses for node")
   (assert (isa? (type start-bus) :overtone.sc.bus/bus) "Invalid start-bus")
   (let [node-id (to-sc-id node)]
     (snd "/n_mapn" node-id (first (stringify [start-control])) (to-sc-id start-bus) n))
@@ -451,16 +457,16 @@
   current control values for synths."
   [node with-args?]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to view a node that has been destroyed.")
+  (ensure-node-active! node "viewing the subtree of node")
   (snd "/g_dumpTree" (to-sc-id node) with-args?)
   node)
 
 (defn- group-prepend-node*
-  "Add a synth node to the end of a group list."
+  "Add a synth node to the start of a group list."
   [group node]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to move a node that has been destroyed.")
-  (ensure-node-active! group "Attempting to use a node that has been destroyed.")
+  (ensure-node-active! node "moving node")
+  (ensure-node-active! group "using node as the target for a move")
   (let [group-id (to-sc-id group)
         node-id  (to-sc-id node)]
     (snd "/g_head" group-id node-id))
@@ -470,8 +476,8 @@
   "Add a synth node to the end of a group list."
   [group node]
   (ensure-connected!)
-  (ensure-node-active! node "Attempting to move a node that has been destroyed.")
-  (ensure-node-active! group "Attempting to move a node that has been destroyed.")
+  (ensure-node-active! node "moving node")
+  (ensure-node-active! group "using node as the target for a move")
   (let [group-id (to-sc-id group)
         node-id  (to-sc-id node)]
     (snd "/g_tail" group-id node-id))
@@ -481,7 +487,7 @@
   "Free all child synth nodes in a group."
   [group]
   (ensure-connected!)
-  (ensure-node-active! group "Attempting to clear a node that has been destroyed.")
+  (ensure-node-active! group "clearing node")
   (snd "/g_freeAll" (to-sc-id group))
   group)
 
@@ -490,7 +496,7 @@
   groups."
   [group]
   (ensure-connected!)
-  (ensure-node-active! group "Attempting to deep clear a node that has been destroyed.")
+  (ensure-node-active! group "deep clearing node")
   (snd "/g_deepFree" (to-sc-id group))
   group)
 
@@ -505,7 +511,7 @@
    *block-node-until-ready?* to false."
   [node]
   (when *block-node-until-ready?*
-    (deref! (:loaded? node) (str "blocking until the following node has completed loading: " (with-out-str (pr node))) )))
+    (deref! (:loaded? node) 20 (str "blocking until the following node has completed loading: " (with-out-str (pr node))) )))
 
 (extend java.lang.Long
   ISynthNode
@@ -685,7 +691,7 @@
   ([] (group-node-tree* 0))
   ([node & [ctls?]]
      (ensure-connected!)
-     (ensure-node-active! node "Attempting to view a node that has been destroyed.")
+     (ensure-node-active! node "viewing node")
      (let [ctls? (if (or (= 1 ctls?) (= true ctls?)) 1 0)
            id    (to-sc-id node)]
        (let [reply-p (recv "/g_queryTree.reply")
