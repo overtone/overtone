@@ -62,17 +62,17 @@
 (defmethod inst-fx! :mono
   [inst fx]
   (let [fx-group (:fx-group inst)
-        bus (:bus inst)
-        fx-id (fx :tgt fx-group :pos :tail :bus bus)]
+        bus      (:bus inst)
+        fx-id    (fx :tgt fx-group :pos :tail :bus bus)]
     fx-id))
 
 (defmethod inst-fx! :stereo
   [inst fx]
   (let [fx-group (:fx-group inst)
-        bus-l (to-sc-id (:bus inst))
-        bus-r (inc bus-l)
-        fx-ids [(fx :tgt fx-group :pos :tail :bus bus-l)
-                (fx :tgt fx-group :pos :tail :bus bus-r)]]
+        bus-l    (to-sc-id (:bus inst))
+        bus-r    (inc bus-l)
+        fx-ids   [(fx :tgt fx-group :pos :tail :bus bus-l)
+                  (fx :tgt fx-group :pos :tail :bus bus-r)]]
     fx-ids))
 
 (defn clear-fx
@@ -84,23 +84,23 @@
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
-       (binding [*ugens* []
+       (binding [*ugens*     []
                  *constants* #{}]
          (with-overloaded-ugens
-           (let [form# ~@ugen-form
+           (let [form#               ~@ugen-form
                  ;; form# can be a map, or a sequence of maps. We use
                  ;; `sequence?` because `coll?` applies to maps (which
                  ;; are not sequential) and `seq?` does not apply to
                  ;; vectors (which are sequential).
-                 n-chans# (if (sequential? form#) (count form#) 1)
-                 inst-bus# (or (:bus (get (:instruments @studio*) ~sname))
-                               (audio-bus n-chans#))
+                 n-chans#            (if (sequential? form#) (count form#) 1)
+                 inst-bus#           (or (:bus (get (:instruments @studio*) ~sname))
+                                         (audio-bus n-chans#))
                  [ugens# constants#] (gather-ugens-and-constants (out inst-bus# form#))
-                 ugens# (topological-sort-ugens ugens#)
-                 main-tree# (set ugens#)
-                 side-tree# (filter #(not (main-tree# %)) *ugens*)
-                 ugens# (concat ugens# side-tree#)
-                 constants# (into [] (set (concat constants# *constants*)))]
+                 ugens#              (topological-sort-ugens ugens#)
+                 main-tree#          (set ugens#)
+                 side-tree#          (filter #(not (main-tree# %)) *ugens*)
+                 ugens#              (concat ugens# side-tree#)
+                 constants#          (into [] (set (concat constants# *constants*)))]
              [~sname
               ~params
               ugens#
@@ -248,7 +248,7 @@
   {:arglists '([name doc-string? params ugen-form])}
   [i-name & inst-form]
   (let [[i-name params ugen-form] (synth-form i-name inst-form)
-        i-name (with-meta i-name (merge (meta i-name) {:type ::instrument}))]
+        i-name                    (with-meta i-name (merge (meta i-name) {:type ::instrument}))]
     `(def ~i-name (inst ~i-name ~params ~ugen-form))))
 
 (defmethod print-method ::instrument [ins w]
