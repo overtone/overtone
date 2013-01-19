@@ -124,7 +124,7 @@
   (let [id (to-sc-id bus)
         p  (server-recv "/c_set")]
     (snd "/c_get" id)
-    (second (:args (deref! p (str "attempting to read the current value of bus " bus))))))
+    (second (:args (deref! p (str "attempting to read the current value of bus " (with-out-str (pr bus))))))))
 
 (defn bus-set-range!
   "Set a range of consecutive control busses to the supplied values."
@@ -139,4 +139,4 @@
   (let [id (to-sc-id bus)
         p  (server-recv "/c_setn")]
     (snd "/c_getn" id len)
-    (drop 2 (:args (deref! p (str "attempting to get a range of consecutive control bus values of length " len " from bus " bus))))))
+    (drop 2 (:args (deref! p (str "attempting to get a range of consecutive control bus values of length " len " from bus " (with-out-str (pr bus))))))))

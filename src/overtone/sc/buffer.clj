@@ -228,7 +228,7 @@
                                                (= msg-start offset)
                                                (= n-to-read (count m-args))))))]
              (snd "/b_getn" buf-id offset n-to-read)
-             (let [m (deref! prom (str "attempting to read data from buffer " buf))
+             (let [m (deref! prom (str "attempting to read data from buffer " (with-out-str (pr buf))))
                    [buf-id bstart blen & samps] (:args m)]
                (dorun
                 (map-indexed (fn [idx el]
@@ -304,7 +304,7 @@
   ([buf index]
      (ensure-buffer-active! buf)
      (assert (buffer? buf))
-     (let [error-msg (str "attempting to receive a single value at index " index " in buffer " buf)
+     (let [error-msg (str "attempting to receive a single value at index " index " in buffer " (with-out-str (pr buf)))
            buf-id (:id buf)
            prom   (recv "/b_set" (fn [msg]
                                    (let [[msg-buf-id msg-start _] (:args msg)]
