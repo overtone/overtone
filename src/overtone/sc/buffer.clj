@@ -1,14 +1,12 @@
 (ns overtone.sc.buffer
   (:use [clojure.java.io :only [file]]
         [overtone.libs event]
-        [overtone.sc server info defaults node]
+        [overtone.sc server info defaults node dyn-vars]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server connection comms native]
         [overtone.sc server info]
         [overtone.helpers audio-file lib file]
         [overtone.sc.util :only [id-mapper]]))
-
-(defonce ^{:dynamic true} *inactive-buffer-modification-error* :exception)
 
 (defn- inactive-buffer-modification-error
   "The default error behaviour triggered when a user attempts to work

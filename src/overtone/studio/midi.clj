@@ -1,5 +1,5 @@
 (ns overtone.studio.midi
-  (:use [overtone.sc node]
+  (:use [overtone.sc node dyn-vars]
         [overtone.midi]
         [overtone.at-at :only (mk-pool every)]
         [overtone.libs event counters]

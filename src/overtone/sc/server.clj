@@ -6,6 +6,7 @@
   overtone.sc.server
   (:import [java.util.concurrent TimeoutException])
   (:use [overtone.libs event deps]
+        [overtone.sc dyn-vars]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server connection comms]
         [overtone.helpers.lib :only [deref!]]
@@ -54,7 +55,11 @@
   have to worry about accidentally scheduling packets into a bundle
   started on another thread."
   [time-ms & body]
-  `(in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))
+  `(binding [overtone.sc.dyn-vars/*inactive-node-modification-error*   :silent
+             overtone.sc.dyn-vars/*inactive-buffer-modification-error* :silent
+             overtone.sc.dyn-vars/*block-node-until-ready?*            false]
+     (in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body))))
+
 
 (defmacro snd-immediately
   [& body]

@@ -2,7 +2,7 @@
   (:use [overtone.helpers lib]
         [overtone.helpers.seq :only [zipper-seq]]
         [overtone.libs event deps]
-        [overtone.sc server defaults]
+        [overtone.sc server defaults dyn-vars]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]]
@@ -10,8 +10,6 @@
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]
             [overtone.at-at :as at-at]))
-
-(defonce ^{:dynamic true} *inactive-node-modification-error* :exception)
 
 (defn- inactive-node-modification-error
   "The default error behaviour triggered when a user attempts to either
@@ -502,9 +500,12 @@
   @(:status node))
 
 (defn node-block-until-ready*
-  "Block the current thread until the node is no longer loading."
+  "Block the current thread until the node is no longer loading. This
+   behaviour can be disabled by binding the dynamic var
+   *block-node-until-ready?* to false."
   [node]
-  (deref! (:loaded? node) (str "blocking until the following node has completed loading: " (with-out-str (pr node))) ))
+  (when *block-node-until-ready?*
+    (deref! (:loaded? node) (str "blocking until the following node has completed loading: " (with-out-str (pr node))) )))
 
 (extend java.lang.Long
   ISynthNode
