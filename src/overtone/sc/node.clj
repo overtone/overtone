@@ -17,8 +17,6 @@
   [node err-msg]
   (let [full-err-msg (str "inactive node modification attempted for node "
                           (with-out-str (pr node))
-                          " with state "
-                          @(:status node)
                           (when-not (empty? err-msg)
                             (str " whilst " err-msg)))]
     (condp = *inactive-node-modification-error*
@@ -197,18 +195,19 @@
   "Returns true if n is a running synth node."
   [n]
   (and (node? n)
-       (= :live @(:status n))))
+       (= :live (node-status n))))
 
 (defn node-paused?
   "Returns true if n is a paused synth node."
   [n]
   (and (node? n)
-       (= :paused @(:status n))))
+       (= :paused (node-status n))))
 
 (defn node-loading?
   "Returns true if n is a loading synth node."
   [n]
-  (and (node? n) (= :loading @(:status n))))
+  (and (node? n)
+       (= :loading (node-status n))))
 
 (defn node-active?
   "Returns true if n is an active synth node."
@@ -216,8 +215,8 @@
   (or (node-live? n)
       (node-paused? n)))
 
-(defn- ensure-node-active!
-  ([node] (ensure-node-active! ""))
+(defn ensure-node-active!
+  ([node] (ensure-node-active! node ""))
   ([node err-msg]
      (when (node? node)
        (node-block-until-ready node))
@@ -390,7 +389,7 @@
   "Set control values for a node."
   [node name-values]
   (ensure-connected!)
-  (ensure-node-active! node "controlling node")
+  (ensure-node-active! node (str "controlling the following values: " name-values ))
   (apply snd "/n_set" (to-sc-id node) (floatify (stringify (idify name-values))))
   node)
 
@@ -511,7 +510,9 @@
    *block-node-until-ready?* to false."
   [node]
   (when *block-node-until-ready?*
-    (deref! (:loaded? node) 20 (str "blocking until the following node has completed loading: " (with-out-str (pr node))) )))
+    (deref! (:loaded? node) (str
+                             "blocking until the following node has completed loading: "
+                             (with-out-str (pr node))))))
 
 (extend java.lang.Long
   ISynthNode
