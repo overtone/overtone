@@ -53,7 +53,15 @@
   "All messages sent within the body will be sent in the same
   timestamped OSC bundle.  This bundling is thread-local, so you don't
   have to worry about accidentally scheduling packets into a bundle
-  started on another thread."
+  started on another thread.
+
+  Warning, all liveness and node blocking when not ready checks and
+  functionality is disabled within the context of this macro. This means
+  that it's perfectly possible for you to be controlling a different
+  node than you expect to be controlling if your control message is
+  being executed in the future and in the meantime, the node you wished
+  to control has been terminated and another node has been created with
+  the same id (ids are recycled). "
   [time-ms & body]
   `(binding [overtone.sc.dyn-vars/*inactive-node-modification-error*   :silent
              overtone.sc.dyn-vars/*inactive-buffer-modification-error* :silent
