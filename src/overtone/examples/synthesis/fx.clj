@@ -89,7 +89,7 @@
 ;; From Designing Sound in SuperCollider
 (defsynth schroeder-reverb
   [rate 1]
-  (let [input    (pan2 (play-buf 1 count-down rate) -0.5)
+  (let [input    (pan2 (play-buf 1 count-down rate :action FREE) -0.5)
         delrd    (local-in 4)
         output   (+ input [(first delrd) (second delrd)])
         sig      [(+ (first output) (second output)) (- (first output) (second output))
