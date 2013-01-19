@@ -102,5 +102,22 @@
         ]
     (out 0 output)))
 
+
+(defsynth schroeder-reverb-mic
+  [rate 1 dec 1 del 10 out-bus 0]
+  (let [input    (pan2 (allpass-c (sound-in) 10  dec del))
+        delrd    (local-in 4)
+        output   (+ input [(first delrd) (second delrd)])
+        sig      [(+ (first output) (second output)) (- (first output) (second output))
+                  (+ (nth delrd 2) (nth delrd 3)) (- (nth delrd 2) (nth delrd 3))]
+        sig      [(+ (nth sig 0) (nth sig 2)) (+ (nth sig 1) (nth sig 3))
+                  (- (nth sig 0) (nth sig 2)) (- (nth sig 0) (nth sig 2))]
+        sig      (* sig [0.4 0.37 0.333 0.3])
+        deltimes (- (* [101 143 165 177] 0.001) (control-dur))
+        lout     (local-out (delay-c sig deltimes deltimes))
+        ]
+    (out out-bus output)))
+
 ;;Spooky!
-;;(schroeder-reverb :rate 0.8)
+;;(schroeder-reverb-mic :rate 0.8 :dec 0.8 :del 10)
+;; (stop)
