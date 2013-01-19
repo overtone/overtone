@@ -5,7 +5,7 @@
 
 (defrecord NanoKontrol2 [name out interfaces state busses])
 
-(def event-handle [:midi-device "KORG INC." "SLIDER/KNOB" "nanoKONTROL2 SLIDER/KNOB" :control-change])
+(def event-handle [:midi-device "KORG INC." "SLIDER/KNOB" "nanoKONTROL2 SLIDER/KNOB" 0 :control-change])
 
 (defn- merge-control-defaults
   "Returns config map where control info maps are merged
@@ -129,28 +129,37 @@
                                    :r7 {:note 71}}}}}))
 
 ;; Magic sysex messages (recorded from Korg Kontrol Editor output)
-(def start-sysex [-16 126 127 6 1 -9])
-(def second-sysex [-16 66 64 0 1 19 0 31 18 0 -9])
-(def main-sysex [-16 66 64 0 1 19 0 127 127 2 3 5 64 0 0 0 1 16 1 0 0
-                 0 0 127 0 1 0 16 0 0 127 0 1 0 32 0 127 0 0 1 0 48 0
-                 127 0 0 1 0 64 0 127 0 16 0 1 0 1 0 127 0 1 0 0 17 0
-                 127 0 1 0 0 33 0 127 0 1 0 49 0 0 127 0 1 0 65 0 0
-                 127 0 16 1 0 2 0 0 127 0 1 0 18 0 127 0 0 1 0 34 0
-                 127 0 0 1 0 50 0 127 0 1 0 0 66 0 127 0 16 1 0 0 3 0
-                 127 0 1 0 0 19 0 127 0 1 0 35 0 0 127 0 1 0 51 0 0
-                 127 0 1 0 67 0 127 0 0 16 1 0 4 0 127 0 0 1 0 20 0
-                 127 0 0 1 0 36 0 127 0 1 0 0 52 0 127 0 1 0 0 68 0
-                 127 0 16 1 0 0 5 0 127 0 1 0 21 0 0 127 0 1 0 37 0 0
-                 127 0 1 0 53 0 127 0 0 1 0 69 0 127 0 0 16 1 0 6 0
-                 127 0 0 1 0 22 0 127 0 1 0 0 38 0 127 0 1 0 0 54 0
-                 127 0 1 0 70 0 0 127 0 16 1 0 7 0 0 127 0 1 0 23 0 0
-                 127 0 1 0 39 0 127 0 0 1 0 55 0 127 0 0 1 0 71 0 127
-                 0 16 0 1 0 58 0 127 0 1 0 0 59 0 127 0 1 0 0 46 0 127
-                 0 1 0 60 0 0 127 0 1 0 61 0 0 127 0 1 0 62 0 127 0 0
-                 1 0 43 0 127 0 0 1 0 44 0 127 0 1 0 0 42 0 127 0 1 0
-                 0 41 0 127 0 1 0 45 0 0 127 0 127 127 127 127 0 127 0
-                 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -9])
-(def end-sysex [-16 66 64 0 1 19 0 31 17 0 -9])
+(def sysex-1 "F0 7E 7F 06 01 F7")
+(def sysex-2 "F0 42 40 00 01 13 00 1F  12 00 F7")
+(def sysex-3 "F0 7E 7F 06 01 F7")
+(def sysex-4 "F0 42 40 00 01 13 00 7F  7F 02 03 05 40 00 00 00
+              01 10 01 00 00 00 00 7F  00 01 00 10 00 00 7F 00
+              01 00 20 00 7F 00 00 01  00 30 00 7F 00 00 01 00
+              40 00 7F 00 10 00 01 00  01 00 7F 00 01 00 00 11
+              00 7F 00 01 00 00 21 00  7F 00 01 00 31 00 00 7F
+              00 01 00 41 00 00 7F 00  10 01 00 02 00 00 7F 00
+              01 00 12 00 7F 00 00 01  00 22 00 7F 00 00 01 00
+              32 00 7F 00 01 00 00 42  00 7F 00 10 01 00 00 03
+              00 7F 00 01 00 00 13 00  7F 00 01 00 23 00 00 7F
+              00 01 00 33 00 00 7F 00  01 00 43 00 7F 00 00 10
+              01 00 04 00 7F 00 00 01  00 14 00 7F 00 00 01 00
+              24 00 7F 00 01 00 00 34  00 7F 00 01 00 00 44 00
+              7F 00 10 01 00 00 05 00  7F 00 01 00 15 00 00 7F
+              00 01 00 25 00 00 7F 00  01 00 35 00 7F 00 00 01
+              00 45 00 7F 00 00 10 01  00 06 00 7F 00 00 01 00
+              16 00 7F 00 01 00 00 26  00 7F 00 01 00 00 36 00
+              7F 00 01 00 46 00 00 7F  00 10 01 00 07 00 00 7F
+              00 01 00 17 00 00 7F 00  01 00 27 00 7F 00 00 01
+              00 37 00 7F 00 00 01 00  47 00 7F 00 10 00 01 00
+              3A 00 7F 00 01 00 00 3B  00 7F 00 01 00 00 2E 00
+              7F 00 01 00 3C 00 00 7F  00 01 00 3D 00 00 7F 00
+              01 00 3E 00 7F 00 00 01  00 2B 00 7F 00 00 01 00
+              2C 00 7F 00 01 00 00 2A  00 7F 00 01 00 00 29 00
+              7F 00 01 00 2D 00 00 7F  00 7F 7F 7F 7F 00 7F 00
+              00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00
+              00 F7")
+(def sysex-5 "F0 7E 7F 06 01 F7")
+(def sysex-6 "F0 42 40 00 01 13 00 1F  11 00 F7")
 
 (defn set-external-led-mode!
   "External led mode allows you to control each of the nanoKontrol2's
@@ -160,14 +169,12 @@
   To enable external led mode, we need to send send the magical sysex
   incantation to the nanoKontrol2 midi-out object nko (this was
   determined by recording the sysex messages that the official Korg
-  Kontrol Editor sends to perform this task.)"
+  Kontrol Editor sends to perform this task.)
+
+  On OS X, this requires the mmj library to be installed and enabled."
   [nko]
-  (midi-sysex nko (into-array Byte/TYPE start-sysex))
-  (midi-sysex nko (into-array Byte/TYPE second-sysex))
-  (midi-sysex nko (into-array Byte/TYPE start-sysex))
-  (midi-sysex nko (into-array Byte/TYPE main-sysex))
-  (midi-sysex nko (into-array Byte/TYPE start-sysex))
-  (midi-sysex nko (into-array Byte/TYPE end-sysex)))
+   (doseq [m [sysex-1 sysex-2 sysex-3 sysex-4 sysex-5 sysex-6]]
+     (midi-sysex (:out nko) m)))
 
 (defn leds-on-test
   [nko]
