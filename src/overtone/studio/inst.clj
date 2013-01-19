@@ -69,7 +69,7 @@
 (defmethod inst-fx! :stereo
   [inst fx]
   (let [fx-group (:fx-group inst)
-        bus-l (:id (:bus inst))
+        bus-l (to-sc-id (:bus inst))
         bus-r (inc bus-l)
         fx-ids [(fx :tgt fx-group :pos :tail :bus bus-l)
                 (fx :tgt fx-group :pos :tail :bus bus-r)]]
