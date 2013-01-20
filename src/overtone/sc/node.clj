@@ -343,6 +343,7 @@
 
   ([name id position target]
      (ensure-connected!)
+     (ensure-node-active! target "using node as a target for a group")
      (when-not target
        (throw (IllegalArgumentException. (str "The target for this group must exist."))))
      (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
