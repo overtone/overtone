@@ -1,6 +1,6 @@
 (ns overtone.sc.buffer
   (:use [clojure.java.io :only [file]]
-        [overtone.libs event]
+        [overtone.libs event counters]
         [overtone.sc server info defaults node dyn-vars]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server connection comms native]
@@ -102,14 +102,11 @@
                                  (buffer num-channels-or-name "")))
   ([size num-channels name]
      (let [size (long size)
-           id   (with-server-self-sync
-                  (fn [uid]
-                    (alloc-id :audio-buffer
-                              1
-                              (fn [id]
-                                (snd "/b_alloc" id size num-channels)
-                                (server-sync uid))))
+           id   (next-id :audio-buffer)
+           buf  (with-server-sync
+                  #(snd "/b_alloc" id size num-channels)
                   (str "whilst allocating a new buffer with size: " size " and num channels: " num-channels))
+
            info (buffer-info id)]
 
        (map->Buffer
@@ -139,7 +136,7 @@
      (ensure-path-exists! path)
      (let [path (canonical-path path)
            f    (file path)
-           id   (alloc-id :audio-buffer)]
+           id   (next-id :audio-buffer)]
        (snd-immediately
         (with-server-sync
           #(snd "/b_allocRead" id path start n-frames)
@@ -147,7 +144,6 @@
          (let [info                              (buffer-info id)
                {:keys [id size rate n-channels]} info]
            (when (every? zero? [size rate n-channels])
-             (free-id :audio-buffer id)
              (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
 
            (map->BufferFile
@@ -195,12 +191,9 @@
   (assert (buffer? buf))
   (let [id (:id buf)]
     (with-server-self-sync (fn [uid]
-                             (free-id :audio-buffer
-                                      id
-                                      1
-                                      #(do (snd "/b_free" id)
-                                           (reset! (:status buf) :destroyed)
-                                           (server-sync uid))))
+                             #(do (snd "/b_free" id)
+                                  (reset! (:status buf) :destroyed)
+                                  (server-sync uid)))
       (str "whilst freeing audio buffer " buf))
     buf))
 

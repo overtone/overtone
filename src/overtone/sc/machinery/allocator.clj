@@ -22,9 +22,7 @@
   (vec (repeat size false)))
 
 (defonce allocator-bits
-  {:node         (ref (mk-bitset (sc-arg-default :max-nodes)))
-   :audio-buffer (ref (mk-bitset (sc-arg-default :max-buffers)))
-   :audio-bus    (ref (mk-bitset (sc-arg-default :max-audio-bus)))
+  {:audio-bus    (ref (mk-bitset (sc-arg-default :max-audio-bus)))
    :control-bus  (ref (mk-bitset (sc-arg-default :max-control-bus)))})
 
 (defn- fill-gaps
@@ -91,9 +89,6 @@
           (alter bits fill-gaps id size true)
           (when action-fn (execute-action-fn #(action-fn id) "alloc-id"))
           id)))))
-
-; The root group is implicitly allocated
-(defonce _root-group_ (alloc-id :node))
 
 (defn free-id
   "Free the ID of type key. Takes an optional action-fn which it will

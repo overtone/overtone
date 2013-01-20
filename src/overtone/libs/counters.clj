@@ -1,5 +1,5 @@
 (ns
-    ^{:doc "Basic keyword indexed integer counters"
+    ^{:doc "Basic stateful keyword indexed integer counters"
       :author "Jeff Rose and Sam Aaron"}
   overtone.libs.counters)
 

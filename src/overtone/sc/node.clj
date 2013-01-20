@@ -1,7 +1,7 @@
 (ns overtone.sc.node
   (:use [overtone.helpers lib]
         [overtone.helpers.seq :only [zipper-seq]]
-        [overtone.libs event deps]
+        [overtone.libs event deps counters]
         [overtone.sc server defaults dyn-vars]
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
@@ -10,6 +10,9 @@
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]
             [overtone.at-at :as at-at]))
+
+; The root group is implicitly allocated
+(defonce _root-group_ (next-id :node))
 
 (defn- inactive-node-modification-error
   "The default error behaviour triggered when a user attempts to either
@@ -166,7 +169,7 @@
   ([synth-name arg-map location sdef]
      (if (not (server-connected?))
        (throw (Exception. "Not connected to synthesis engine.  Please boot or connect server.")))
-     (let [id       (alloc-id :node)
+     (let [id       (next-id :node)
            position (get location :position :tail)
            pos-id   (get NODE-POSITION position 1)
            target   (to-sc-id (get location :target 0))
@@ -247,7 +250,6 @@
     (if snode
       (reset! (:status snode) :destroyed)
       (log/warn (format "ERROR: The fn node-destroyed can't find synth node: %d" id)))
-    (at-at/after 1000 #(free-id :node id 1) INTERNAL-POOL)
     (swap! active-synth-nodes* dissoc id)))
 
 (defn- node-created
@@ -325,19 +327,19 @@
      (group :tail (:default-group @foundation-groups*)))
 
   ([name-or-position]
-     (let [id (alloc-id :node)]
+     (let [id (next-id :node)]
        (if (string? name-or-position)
          (group name-or-position id :tail (:default-group @foundation-groups*))
          (group (str "Group-" id) id name-or-position (:default-group @foundation-groups*)))))
 
   ([name-or-position position-or-target]
-     (let [id (alloc-id :node)]
+     (let [id (next-id :node)]
        (if (string? name-or-position)
          (group name-or-position id position-or-target (:default-group @foundation-groups*))
          (group (str "Group-" id) id name-or-position position-or-target))))
 
   ([name position target]
-     (group name (alloc-id :node) position target))
+     (group name (next-id :node) position target))
 
   ([name id position target]
      (ensure-connected!)
