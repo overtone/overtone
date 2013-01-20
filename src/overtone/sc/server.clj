@@ -57,17 +57,13 @@
 
   Warning, all liveness and node blocking when not ready checks and
   functionality is disabled within the context of this macro. This means
-  that it's perfectly possible for you to be controlling a different
-  node than you expect to be controlling if your control message is
-  being executed in the future and in the meantime, the node you wished
-  to control has been terminated and another node has been created with
-  the same id (ids are recycled). "
+  that it's perfectly possible for the node you wish to control to either have
+  been since terminated or not had time to be initialised."
   [time-ms & body]
   `(binding [overtone.sc.dyn-vars/*inactive-node-modification-error*   :silent
              overtone.sc.dyn-vars/*inactive-buffer-modification-error* :silent
              overtone.sc.dyn-vars/*block-node-until-ready?*            false]
      (in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body))))
-
 
 (defmacro snd-immediately
   [& body]
