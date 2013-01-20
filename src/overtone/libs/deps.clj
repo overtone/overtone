@@ -14,8 +14,8 @@
 ;; :done       - a list of functions with associated dependencies which have
 ;;               already been executed as their dependencies have been met
 (defonce dep-state* (agent {:satisfied #{}
-                            :todo []
-                            :done []}))
+                            :todo      []
+                            :done      []}))
 
 (defn- process-handler
   "Returns a new deps map containing either processed handler or it
