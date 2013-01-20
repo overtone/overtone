@@ -8,7 +8,7 @@
         [overtone.sc.machinery.server comms native args]
         [overtone.osc]
         [overtone.osc.decode :only [osc-decode-packet]]
-        [overtone.helpers.lib :only [print-ascii-art-overtone-logo windows-sc-path]]
+        [overtone.helpers.lib :only [print-ascii-art-overtone-logo windows-sc-path deref!]]
         [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]]
         [overtone.helpers.system :only [windows-os? get-os linux-os?]])
   (:require [overtone.config.log :as log]))
@@ -54,7 +54,11 @@
    /n_move - a node was moved
    /n_info - in reply to /n_query"
   []
-  (server-snd "/notify" 1))
+  (let [notifications-enabled (server-recv "/done" (fn [msg]
+                                                     (= (first (:args msg))
+                                                        "/notify")))]
+    (server-snd "/notify" 1)
+    (deref! notifications-enabled "whilst turning server notifications on")))
 
 (defn- logged-sh
   "Run a shell command and log any errors. Returns stdout."
@@ -107,8 +111,8 @@
           (event :connection-complete)
           (log/debug "Server connection established")
           (println "--> Connection established"))]
-    (oneshot-sync-event "status.reply" handler-fn ::connected-handler1)
-    (oneshot-sync-event "/status.reply" handler-fn ::connected-handler2)))
+    (oneshot-event "status.reply" handler-fn ::connected-handler1)
+    (oneshot-event "/status.reply" handler-fn ::connected-handler2)))
 
 (defn- connect-internal
   []
