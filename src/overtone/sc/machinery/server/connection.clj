@@ -87,7 +87,7 @@
          (logged-sh "jack_connect" src dest)
          (log/info "jack_connect " src " " dest)))))
 
-(when (= :linux (get-os))
+(when (linux-os?)
   (on-deps :server-connected
            ::connect-jack-ports
            #(when (transient-server?)
