@@ -10,99 +10,99 @@
 
 (def TYPES
   {
-   :anything         {:desc "any type"
+   :anything         {:desc      "any type"
                       :validator (fn [val] true)}
 
-   :int              {:desc "an integer"
+   :int              {:desc      "an integer"
                       :validator (fn [val] (instance? Integer val))}
 
-   :sample-idx       {:desc "an integer 0 or greater representing the index of a sample"
+   :sample-idx       {:desc      "an integer 0 or greater representing the index of a sample"
                       :validator (fn [val] (and (instance? Integer val)
                                                (>= val 0)))}
 
-   :sample-val       {:desc "a float representing the value of a sample"
+   :sample-val       {:desc      "a float representing the value of a sample"
                       :validator (fn [val] (instance? Float val))}
 
-   :frame-start      {:desc "an integer 0 or greater representing the starting frame"
+   :frame-start      {:desc      "an integer 0 or greater representing the starting frame"
                       :validator (fn [val] (and (instance? Integer val)
                                                (>=  val 0)))}
 
-   :chan-idx         {:desc "an integer 0 or greater representing a channel index"
+   :chan-idx         {:desc      "an integer 0 or greater representing a channel index"
                       :validator (fn [val] (and (instance? Integer val)
                                                (>=  val 0)))}
 
-   :num-frames       {:desc "an integer -1 or greater representing the number of frames"
+   :num-frames       {:desc      "an integer -1 or greater representing the number of frames"
                       :validator (fn [val] (and (instance? Integer val)
                                                (>=  val -1)))}
 
-   :buf-num          {:desc "an integer representing a buffer number"
+   :buf-num          {:desc      "an integer representing a buffer number"
                       :validator (fn [val] (instance? Integer val))}
 
-   :ugen-idx         {:desc "an integer representing the index of a ugen"
+   :ugen-idx         {:desc      "an integer representing the index of a ugen"
                       :validator (fn [val] (instance? Integer val))}
 
-   :count            {:desc "a positive integer representing the cardinality of elements"
+   :count            {:desc      "a positive integer representing the cardinality of elements"
                       :validator (fn [val] (and (instance? Integer val)
                                                (> val 0)))}
 
-   :node-id          {:desc "an integer (-1 upwards) representing a node id."
+   :node-id          {:desc      "an integer (-1 upwards) representing a node id."
                       :validator (fn [val] (and (instance? Integer val)
                                                (>= val -1)))}
 
-   :group-id          {:desc "an integer (-1 upwards) representing a group id."
+   :group-id         {:desc      "an integer (-1 upwards) representing a group id."
                       :validator (fn [val] (and (instance? Integer val)
                                                (>= val -1)))}
 
-   :synth-id         {:desc "an integer (-1 upwards) representing a synth id."
+   :synth-id         {:desc      "an integer (-1 upwards) representing a synth id."
                       :validator (fn [val] (and (instance? Integer val)
                                                (>= val -1)))}
 
-   :ctl-val          {:desc "a float representing a control value"
+   :ctl-val          {:desc      "a float representing a control value"
                       :validator (fn [val] (instance? Float val ))}
 
-   :string           {:desc "a string"
+   :string           {:desc      "a string"
                       :validator (fn [val] (string? val))}
 
-   :cmd-name         {:desc "a string representing a command name"
+   :cmd-name         {:desc      "a string representing a command name"
                       :validator (fn [val] (string? val))}
 
-   :ctl-handle       {:desc "an integer or a string representing a control"
+   :ctl-handle       {:desc      "an integer or a string representing a control"
                       :validator (fn [val] (or (instance? Integer val)
                                               (string? val)))}
 
-   :ctl-bus-idx      {:desc "an integer (-1 or greater) representing a control bus index"
+   :ctl-bus-idx      {:desc      "an integer (-1 or greater) representing a control bus index"
                       :validator (fn [val] (and (instance? Integer val)
                                                (>= val -1)))}
 
-   :pathname         {:desc "a string representing a pathname"
+   :pathname         {:desc      "a string representing a pathname"
                       :validator (fn [val] (string? val))}
 
-   :synthdef-name    {:desc "a string representing the name of a synthdef"
+   :synthdef-name    {:desc      "a string representing the name of a synthdef"
                       :validator (fn [val] (string? val))}
 
-   :bytes            {:desc "a buffer of bytes"
+   :bytes            {:desc      "a buffer of bytes"
                       :validator (fn [val] (= (type (byte-array 0)) (type val)))}
 
-   :zero-to-three    {:desc "an integer in the range 0 -> 3 inclusive"
+   :zero-to-three    {:desc      "an integer in the range 0 -> 3 inclusive"
                       :validator (fn [val] (and (instance? Integer val)
                                                (>= val 0)
                                                (<= val 3)))}
 
-   :zero-to-four     {:desc "an integer in the range 0 -> 4 inclusive"
+   :zero-to-four     {:desc      "an integer in the range 0 -> 4 inclusive"
                       :validator (fn [val] (and (instance? Integer val)
                                                (>= val 0)
                                                (<= val 4)))}
 
-   :minus-two-to-one {:desc "an integer in the range -2 -> 1 inclusive"
+   :minus-two-to-one {:desc      "an integer in the range -2 -> 1 inclusive"
                       :validator (fn [val] (and (instance? Integer val)
                                                (>= val -2)
                                                (<= val 1)))}
 
-   :zero-or-one      {:desc "an integer that's either 0 or 1"
+   :zero-or-one      {:desc      "an integer that's either 0 or 1"
                       :validator (fn [val] (or (= 0 val)
                                               (= 1 val)))}
 
-   :header-format    {:desc "a string representing the sound header format - one of \"aiff\", \"next\", \"wav\", \"ircam\"\", \"raw\""
+   :header-format    {:desc      "a string representing the sound header format - one of \"aiff\", \"next\", \"wav\", \"ircam\"\", \"raw\""
                       :validator (fn [val] (or (= val "aiff")
                                               (= val "next")
                                               (= val "wav")
@@ -110,7 +110,7 @@
                                               (= val "raw")
                                               (= val "flac")))}
 
-   :sample-format    {:desc "a string representing the sound sample format - one of \"int8\", \"int16\", \"int24\", \"int32\", \"float\", \"double\", \"mulaw\", \"alaw\""
+   :sample-format    {:desc      "a string representing the sound sample format - one of \"int8\", \"int16\", \"int24\", \"int32\", \"float\", \"double\", \"mulaw\", \"alaw\""
                       :validator (fn [val] (or (= val "int8")
                                               (= val "int16")
                                               (= val "int24")
@@ -235,8 +235,8 @@
   [type]
   (cond
    (alternating? type) (expand-alternating type)
-   (many-type? type) (expand-many type)
-   :else type))
+   (many-type? type)   (expand-many type)
+   :else               type))
 
 (defn- expand-type-sig
   [sig]
@@ -251,13 +251,11 @@
 
 (defn- arity-mismatch?
   [s-arity a-arity]
-
   (and (not (= Float/POSITIVE_INFINITY s-arity))
        (not (= s-arity a-arity))))
 
 (defn- error-args
   [sig args]
-
   (some (fn [[type arg]] (if (not (valid? type arg))
                           [type arg]
                           false))
@@ -282,9 +280,9 @@
 
 
 (defn validated-snd
-  "Send an scsynth osc message. Validates message. Raises an exception if the
-  message is unknown or is not well formed according to the message's type
-OP  signature."
+  "Send an scsynth osc message. Validates message. Raises an exception
+  if the message is unknown or is not well formed according to the
+  message's type OP signature."
   [host path & args]
   (if-let [sig (OSC-TYPE-SIGNATURES path)]
     (apply checked-snd sig host path args)
