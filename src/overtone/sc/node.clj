@@ -6,7 +6,8 @@
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]]
-        [overtone.sc.defaults :only [foundation-groups* INTERNAL-POOL]])
+        [overtone.sc.defaults :only [foundation-groups* INTERNAL-POOL]]
+        [clojure.pprint])
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]
             [overtone.at-at :as at-at]))
@@ -227,7 +228,6 @@
      (when (and (node? node)
                 (not (node-active? node)))
        (inactive-node-modification-error node err-msg))))
-
 
 (defn node-free*
   "Free the specified nodes on the server. The allocated id is
@@ -760,3 +760,7 @@
             (filter #(and (:name %)
                           (matcher-fn re-or-str (:name %)))
                     (node-tree-seq root))))))
+(defn pp-node-tree
+  "Pretty print the node tree to *out*"
+  ([] (pp-node-tree (:root-group @foundation-groups*)))
+  ([root] (pprint (node-tree root))))
