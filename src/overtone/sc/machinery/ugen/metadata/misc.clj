@@ -91,7 +91,9 @@ of each grain. Use of some dispersion can alleviate a hard comb filter effect du
        :rates #{:ar},
        :num-outs 2,
        :check (nth-input-stream? 0)
-       :doc "A two-channel reverb UGen, based on the \"GVerb\" LADSPA effect by Juhana Sadeharju (kouhia at nic.funet.fi)."}
+       :doc "A two-channel reverb UGen, based on the \"GVerb\" LADSPA effect by Juhana Sadeharju (kouhia at nic.funet.fi).
+
+WARNING - in the current version of the server, there are severe noise issues when you attempt to modify the roomsize or set it to a value greater than 40."}
 
       {:name "FreeVerb",
        :args [{:name "in", :doc "The input signal"}
