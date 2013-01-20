@@ -98,17 +98,17 @@
 (defn- setup-connect-handlers []
   (let [handler-fn
         (fn [event-info]
+          (remove-handler ::connected-handler1)
+          (remove-handler ::connected-handler2)
           (dosync
            (ref-set connection-status* :connected))
           (server-notifications-on) ; turn on notifications now that we can communicate
           (satisfy-deps :server-connected)
           (event :connection-complete)
-          (remove-handler ::connected-handler1)
-          (remove-handler ::connected-handler2)
           (log/debug "Server connection established")
           (println "--> Connection established"))]
-    (on-sync-event "status.reply" handler-fn ::connected-handler1)
-    (on-sync-event "/status.reply" handler-fn ::connected-handler2)))
+    (oneshot-sync-event "status.reply" handler-fn ::connected-handler1)
+    (oneshot-sync-event "/status.reply" handler-fn ::connected-handler2)))
 
 (defn- connect-internal
   []
