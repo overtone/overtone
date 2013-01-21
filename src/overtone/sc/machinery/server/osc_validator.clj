@@ -272,7 +272,18 @@
         (throw (IllegalArgumentException. err-string))))
 
     (when-let [[err-type err-arg] (error-args sig args)]
-      (let [err-string (str "Failed attempting to send an OSC message to SuperCollider server. Reason: incorrect arglist type in OSC message " path ". Expected " (description err-type) " found " (type err-arg) ". Message name: " path " Type sig: " sig " Arg list: " args)]
+      (let [err-string (str "Failed attempting to send an OSC message to SuperCollider server. Reason: incorrect arglist type in OSC message "
+                            path
+                            ". Expected "
+                            (description err-type)
+                            " found "
+                            (with-out-str (pr (type err-arg)))
+                            ". Message name: "
+                            path
+                            " Type sig: "
+                            sig
+                            " Arg list: "
+                            args)]
         (log/error err-string)
         (throw (IllegalArgumentException. err-string))))
 
