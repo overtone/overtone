@@ -192,10 +192,10 @@
   (assert (buffer? buf))
   (let [id (:id buf)]
     (with-server-self-sync (fn [uid]
-                             #(do (snd "/b_free" id)
-                                  (reset! (:status buf) :destroyed)
-                                  (server-sync uid)))
-      (str "whilst freeing audio buffer " buf))
+                             (snd "/b_free" id)
+                             (reset! (:status buf) :destroyed)
+                             (server-sync uid))
+      (str "whilst freeing audio buffer " (with-out-str (pr buf))))
     buf))
 
 (defn buffer-read
