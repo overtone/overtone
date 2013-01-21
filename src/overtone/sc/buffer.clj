@@ -97,9 +97,10 @@
   data with the specified size and num-channels. Size will be
   automatically floored and converted to a Long - i.e. 2.7 -> 2"
   ([size] (buffer size 1 ""))
-  ([size num-channels-or-name] (if (string? num-channels-or-name)
-                                 (buffer 1 num-channels-or-name)
-                                 (buffer num-channels-or-name "")))
+  ([size num-channels-or-name]
+     (if (string? num-channels-or-name)
+       (buffer size 1 num-channels-or-name)
+       (buffer size num-channels-or-name "")))
   ([size num-channels name]
      (let [size (long size)
            id   (next-id :audio-buffer)
