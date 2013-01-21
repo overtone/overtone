@@ -230,8 +230,8 @@
   [thing kind keep-on-top width height]
   (let [thing-id (to-sc-id thing)
         scope-id (uuid)
-        name     (str kind ": " thing-id " " (if-let [n (:name thing)]
-                                               (str "[" n "]")
+        name     (str kind ": " thing-id " " (if-not (empty? (:name thing))
+                                               (str "[" (:name thing) "]")
                                                ""))
         panel    (scope-panel scope-id width height)
         slider   (JSlider. JSlider/VERTICAL 0 99 50)
