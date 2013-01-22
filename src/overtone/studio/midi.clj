@@ -93,7 +93,7 @@
        (on-event off-event-key (fn [{note :note velocity :velocity}]
                                  (let [velocity (float (/ velocity 127 ))]
                                    (when-let [n (get @notes* note)]
-                                     (binding [*inactive-node-modification-error* :silent]
+                                     (with-inactive-node-modification-error :silent
                                        (node-control n [:gate 0 :after-touch velocity]))
                                      (swap! notes* dissoc note))))
                  off-key)

@@ -60,10 +60,9 @@
   that it's perfectly possible for the node you wish to control to either have
   been since terminated or not had time to be initialised."
   [time-ms & body]
-  `(binding [overtone.sc.dyn-vars/*inactive-node-modification-error*   :silent
-             overtone.sc.dyn-vars/*inactive-buffer-modification-error* :silent
-             overtone.sc.dyn-vars/*block-node-until-ready?*            false]
-     (in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body))))
+  `(with-inactive-modification-error :silent
+     (without-node-blocking
+           (in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))))
 
 (defmacro snd-immediately
   [& body]

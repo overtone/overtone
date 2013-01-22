@@ -275,7 +275,7 @@
 
 (defn- inst-block-until-ready*
   [inst]
-  (when *block-node-until-ready?*
+  (when (block-node-until-ready?)
     (doseq [sub-node [(:fx-group inst)
                       (:group inst)
                       (:instance-group inst)
