@@ -95,6 +95,25 @@
 
                }
 
+               \colouredbox{yellow}{
+               \section{Timing}
+               \subsection{Scheduling}
+               \begin{tabularx}{\hsize}{lX}
+                 Function Application & \cmd{now after-delay periodic interspaced apply-at} \\
+                 OSC & \cmd{at} \\
+                 Stopping & \cmd{stop-player kill-player} \\
+                 Feedback & \cmd{show-schedule} \\
+               \end{tabularx}
+
+                 \subsection{Metronome}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create & \cmd{metronome } \\
+                   Manipulate & \cmd{metro-start metro-tick metro-beat metro-bpm metro-tock metro-bar metro-bpb}\\
+                   bps & \cmd{beat-ms}\\
+                 \end{tabularx}
+
+                 }
+
                \colouredbox{green}{
                  \section{Studio}
 
@@ -111,16 +130,9 @@
                    State & \cmd{midi-agent-for-control}\\
                  \end{tabularx}
 
-                 \subsection{Metronome}
+                 \subsection{Scope (overtone.gui.scope)}
                  \begin{tabularx}{\hsize}{lX}
-                   Create & \cmd{metronome } \\
-                   Manipulate & \cmd{metro-start metro-tick metro-beat metro-bpm metro-tock metro-bar metro-bpb}\\
-                   bps & \cmd{beat-ms}\\
-                 \end{tabularx}
-
-                 \subsection{Scope}
-                 \begin{tabularx}{\hsize}{lX}
-                   Create \& Reset&\cmd{scope pscope reset-scopes } \\
+                   Create \& Reset&\cmd{scope pscope spectrogram } \\
                  \end{tabularx}
 
                  \subsection{Recording}
@@ -155,8 +167,20 @@
                    Design&\cmd{definst defsynth}\\
                    Examples& \cmd{defexamples}\\
                    CGens& \cmd{defcgen}\\
-                   Control& \cmd{ctl kill}\\
                    Auditioning& \cmd{demo run}\\
+                   Checking & \cmd{with-no-ugen-checks with-ugen-debugging} \\
+
+
+                 \end{tabularx}
+               }
+
+               \colouredbox{green}{
+                 \section{Synth Control}
+                 \begin{tabularx}{\hsize}{lX}
+                   Live Control& \cmd{ctl kill}\\
+                   Checking & \cmd{with-no-ugen-checks with-ugen-debugging} \\
+                   Node Liveness & \cmd{inactive-node-modification-error inactive-buffer-modification-error block-node-until-ready? without-node-blocking with-inactive-node-modification-error with-inactive-buffer-modification-error with-inactive-modification-error}\\
+
                  \end{tabularx}
                }
 
@@ -166,8 +190,8 @@
                    Startup&\cmd{boot-server boot-internal-server boot-external-server connect-external-server}\\
                    Shutdown&\cmd{kill-server}\\
                    Control& \cmd{stop}\\
-                   OSC Communication& \cmd{snd recv clear-msg-queue}\\
-                   Diagnostic& \cmd{server-status server-info server-connected? server-disconnected? connection-info server-sample-rate server-num-output-buses server-num-input-buses server-num-audio-buses server-num-buffers}\\
+                   OSC Communication& \cmd{snd recv clear-msg-queue at snd-immediately}\\
+                   Diagnostic& \cmd{server-status server-info server-opts server-connected? server-disconnected? server-connecting? internal-server? external-server? connection-info server-sample-rate server-num-output-buses server-num-input-buses server-num-audio-buses server-num-buffers ensure-connected!}\\
                    Debug& \cmd{sc-osc-log-on sc-osc-log-off sc-osc-log sc-debug-on sc-debug-off external-server-log sc-osc-debug-on sc-osc-debug-off}\\
                  \end{tabularx}
                }
@@ -178,7 +202,40 @@
                    Add & \cmd{on-event on-sync-event on-latest-event oneshot-event oneshot-sync-event} \\
                    Remove & \cmd{remove-handler}\\
                    Trigger & \cmd{event sync-event}\\
-                   Debug& \cmd{event-debug-on event-debug-off event-monitor-on event-monitor-off event-monitor-timer event-monitor event-monitor-keys}
+                   Debug & \cmd{event-debug-on event-debug-off event-monitor-on event-monitor-off event-monitor-timer event-monitor event-monitor-keys} \\
+                 \end{tabularx}
+               }
+
+               \colouredbox{red}{
+                 \section{External Assets}
+                 \subsection{Generic URLs}
+                 \begin{tabularx}{\hsize}{lX}
+                    Auto cache \& Return Path&\cmd{asset-path asset-seq asset-bundle-path asset-bundle-dir} \\
+                 \end{tabularx}
+
+                 \subsection{Freesound.org}
+                 \begin{tabularx}{\hsize}{lX}
+                    Auto cache \& Query&\cmd{freesound-info freesound-path freesound-pack-info freesound-pack-dir freesound-search freesound-searchm freesound-search-paths} \\
+                 \end{tabularx}
+               }
+
+               \colouredbox{pink}{
+                 \section{Algorithmic Composition}
+                 \subsection{Chance}
+                 \begin{tabularx}{\hsize}{lX}
+                   Choice  & \cmd{choose choose-n weighted-choose} \\
+                   Dice & \cmd{weighted-coin ranged-rand}\\
+                 \end{tabularx}
+
+                 \subsection{Scaling}
+                 \begin{tabularx}{\hsize}{lX}
+                   Range& \cmd{scale-range}\\
+                   Rounding& \cmd{closest-to round-to}\\
+                 \end{tabularx}
+
+                 \subsection{Trig}
+                 \begin{tabularx}{\hsize}{lX}
+                   Scaled& \cmd{cosr sinr tanr}\\
                  \end{tabularx}
                }
 
@@ -209,49 +266,19 @@
                  \end{tabularx}
                }
 
-               \colouredbox{pink}{
-                 \section{Algorithmic Composition}
-                 \subsection{Chance}
-                 \begin{tabularx}{\hsize}{lX}
-                   Choice  & \cmd{choose choose-n weighted-choose} \\
-                   Dice & \cmd{weighted-coin ranged-rand}\\
-                 \end{tabularx}
-
-                 \subsection{Scaling}
-                 \begin{tabularx}{\hsize}{lX}
-                   Range& \cmd{scale-range}\\
-                   Rounding& \cmd{closest-to round-to}\\
-                 \end{tabularx}
-
-                 \subsection{Trig}
-                 \begin{tabularx}{\hsize}{lX}
-                   Scaled& \cmd{cosr sinr tanr}\\
-                 \end{tabularx}
-               }
-
                \colouredbox{orange}{
                  \section{Nodes \& Groups}
                  \begin{tabularx}{\hsize}{lX}
                    Create \& Free  & \cmd{node group node-free group-free group-clear group-deep-clear}\\
                    Manipulate & \cmd{node-start node-pause node-place node-control node-control-range node-map-controls node-map-n-controls group-prepend-node group-append-node }\\
-                   Info & \cmd{node? node-live? node-loading? node-active? node-tree}\\
+                   Info & \cmd{node? node-live? node-loading? node-active? node-tree pp-node-tree}\\
                    Foundation Groups & \cmd{foundation-overtone-group foundation-output-group foundation-monitor-group foundation-input-group foundation-user-group foundation-default-group foundation-safe-group foundation-safe-pre-default-group foundation-safe-post-default-group}\\
 
+
                  \end{tabularx}
                }
 
-               \colouredbox{red}{
-                 \section{External Assets}
-                 \subsection{Generic URLs}
-                 \begin{tabularx}{\hsize}{lX}
-                    Auto cache \& Return Path&\cmd{asset-path asset-seq asset-bundle-path asset-bundle-dir} \\
-                 \end{tabularx}
 
-                 \subsection{Freesound.org}
-                 \begin{tabularx}{\hsize}{lX}
-                    Auto cache \& Query&\cmd{freesound-info freesound-path freesound-pack-info freesound-pack-dir freesound-search freesound-searchm freesound-search-paths} \\
-                 \end{tabularx}
-               }
 
                \colouredbox{purple}{
                  \section{Music}
@@ -582,7 +609,7 @@
                \begin{flushright}
                  \footnotesize
                  \rule{0.7\linewidth}{0.25pt}
-                 \verb!Revision: 0.8.0.0, Date: 24th December, 2012!\\
+                 \verb!Revision: 0.8.0.0, Date: 27th January, 2013!\\
                  \verb!Sam Aaron (sam.aaron gmail com)!
                \end{flushright}
 
