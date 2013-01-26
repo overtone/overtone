@@ -166,7 +166,7 @@ ready to submit a patch then fork your own copy and do a pull request.
 Overtone and its dependencies are on http://clojars.org, and the
 dependency for your `project.clj` is:
 
-    [overtone "0.7.1"]
+    [overtone "0.8.0"]
 
 ## Acknowledgements
 
