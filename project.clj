@@ -39,7 +39,7 @@
        (vec (set (concat (get JVMOPTS :any)
                          (get JVMOPTS os))))))
 
-(defproject overtone "0.8.0"
+(defproject overtone "0.9.0-SNAPSHOT"
   :description "Collaborative Programmable Music. (http://overtone.github.com)"
   :url "http://overtone.github.com/"
   :dependencies [[org.clojure/clojure "1.3.0"]
