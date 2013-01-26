@@ -1,6 +1,19 @@
  Change Log
 
-## Version 0.8.0 (27th January 2013)
+## Version 0.9.0 (To be released)
+
+New features:
+
+* Experimental GUI widgets using seesaw and swing (see examples in overtone.examples.gui)
+  - synth controls to adjust parameters (`synth-controller`, `live-synth-controller`)
+  - mixer for instruments (`mixer`)
+  - piano roll and two types of step sequencers (`piano-roll`, `step-sequencer`, `stepinator`)
+  - x,y,z surface controller (`surface`)
+  - wave-form and wave-table editors for wave-table synthesis (`waveform-editor`, `wavetable-editor`)
+  - basic spectrogram showing frequency space representation (`spectrogram`)
+
+
+## Version 0.8.0 (26th January 2013)
 
 ### New Committers
 
@@ -22,13 +35,6 @@
 
 * New, all Clojure, in-memory scsynth interface using clj-native
 * New (optionally disabled) machinery to stop the control and modification of non-live nodes (controlling loading nodes blocks the current thread and controlling destroyed nodes throws an exception).
-* Experimental GUI widgets using seesaw and swing (see examples in overtone.examples.gui)
-  - synth controls to adjust parameters (`synth-controller`, `live-synth-controller`)
-  - mixer for instruments (`mixer`)
-  - piano roll and two types of step sequencers (`piano-roll`, `step-sequencer`, `stepinator`)
-  - x,y,z surface controller (`surface`)
-  - wave-form and wave-table editors for wave-table synthesis (`waveform-editor`, `wavetable-editor`)
-  - basic spectrogram showing frequency space representation (`spectrogram`)
 * New event handler `on-latest-event`  which serially handles incoming events with the lowest latency by dropping events it hasn't had time to handle, yet always handling the last event seen.
 * Major progress has been made porting the metadata for the extra ugens not included by default in SuperCollider. See `overtone/sc/machinery/ugen/metadata/extras/README.md` for progress
 * Complete overhaul of the default group structure. See `foundation-*` fns below.
