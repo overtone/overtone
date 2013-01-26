@@ -100,7 +100,9 @@ Started work porting synths from Ixi Lang (`overtone/synth/ixi`):
 * `kick`
 * `kick2`
 * `kick3`
-* `sampled-piano` Now we also have a synth version of the sampled piano with support for `:out-bus` arg.
+* `snare`
+
+* `sampled-piano`- now we also have a synth version of the sampled piano with support for `:out-bus` arg.
 
 ### cgens
 
