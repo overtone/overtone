@@ -77,3 +77,27 @@
                   (env-gen:ar (perc 0.0001 sustain)
                               :action FREE))]
     (out out-bus (pan2 signal pan))))
+
+(defsynth snare
+  [drum-mode-level 1
+   snare-level 50
+   snare-tightness 1200
+   sustain 0.04
+   pan 0
+   amp 0.3
+   out-bus 0]
+  (let [freq 305
+        drum-mode-env   (env-gen:ar (perc 0.005 sustain) :action FREE)
+        drum-mode-sin-1 (* (sin-osc (* freq 0.53)) drum-mode-env 0.5)
+        drum-mode-sin-2 (* (sin-osc freq) drum-mode-env 0.5)
+        drum-mode-pmosc (* 5 drum-mode-env (pm-osc (saw (* freq 0.85)) 184 (/ 0.5 1.3)))
+        drum-mode-mix   (* drum-mode-level (+ drum-mode-sin-1 drum-mode-sin-2 drum-mode-pmosc))
+        snare-noise     (* amp 0.8 (lf-noise0 9000))
+        snare-env       (env-gen:ar (perc 0.0001 sustain) :action FREE)
+        snare-brf-1     (* 0.5 (brf snare-noise 8000 0.1))
+        snare-brf-2     (* 0.5 (brf snare-brf-1 5000 0.1))
+        snare-brf-3     (* 0.5 (brf snare-brf-2 3600 0.1))
+        snare-brf-4     (* snare-env (brf snare-brf-3 2000 0.1))
+        snare-reson     (* snare-level (resonz snare-brf-4 snare-tightness))
+        snare-drum-mix  (* amp (+ drum-mode-mix snare-reson))]
+    (out out-bus (pan2 snare-drum-mix pan))))
