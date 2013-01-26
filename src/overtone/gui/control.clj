@@ -20,7 +20,7 @@
 (defn- control-slider
   [name min-val max-val step val-atom]
   (let [init-val   @val-atom
-                                        ;_ (println (str name) ": " init-val min-val max-val step)
+;;_ (println (str name) ": " init-val min-val max-val step)
         spin-model  (spinner-model (double init-val)
                                    :from (double min-val)
                                    :to (double max-val)
@@ -40,7 +40,7 @@
                 [spinner "width 80:80:80"]
                 [slider "wrap"]]]
 
-                                        ; return 2 element vector of items and cleanup function. hmmm.
+;; return 2 element vector of items and cleanup function. hmmm.
     [items
      (juxt
       (bind/bind
@@ -48,16 +48,16 @@
        (bind/transform (partial scale-val [0 slider-max] [min-val max-val]))
        val-atom
        (bind/transform (partial scale-val [min-val max-val] [0 slider-max]))
-                                        ; if the value's "close enough" to the spinner, stop. Otherwise,
-                                        ; we get infinite loops caused by rounding error.
+;; if the value's "close enough" to the spinner, stop. Otherwise,
+;; we get infinite loops caused by rounding error.
        (bind/filter #(>= (Math/abs (- % (value slider))) 0.01))
        slider)
 
       (bind/bind
        spinner
        val-atom
-                                        ; if the value's "close enough" to the slider, stop. Otherwise,
-                                        ; we get infinite loops caused by rounding error.
+;; if the value's "close enough" to the slider, stop. Otherwise,
+;; we get infinite loops caused by rounding error.
        (bind/filter #(>= (Math/abs (- % (value spinner))) 0.01))
        spinner))]))
 
@@ -111,9 +111,9 @@
                                             :border 5
                                             :items (map :panel panels)))
                       :on-close :dispose)]
-                                        ; When the window is closed, unhook everything from the synth
-                                        ; so the ui can be garbage collected, etc.
-     (listen frame :window-closed (fn [_] (cleanup)))
+;; When the window is closed, unhook everything from the synth
+;; so the ui can be garbage collected, etc.
+
      (-> frame pack! show!))))
 
 (defn live-synth-controller
