@@ -14,7 +14,7 @@
             [overtone.studio mixer inst util fx wavetable midi core]
             [overtone.repl ugens examples shell inst debug]
             [overtone.libs asset event freesound]
-            [overtone.gui scope mixer control]))
+            [overtone.gui scope]))
 
 (defn immigrate-overtone-api []
   (immigrate
@@ -70,4 +70,5 @@
    'overtone.libs.asset
    'overtone.libs.event
    'overtone.libs.freesound
+   'overtone.gui.scope
    'overtone.version))
