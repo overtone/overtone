@@ -47,7 +47,7 @@
 
 (defmacro without-node-blocking
   "Stops the current thread from being blocked if the node you're
-  attemptign to modify hasn't completed loading. This may result in the
+  attempting to modify hasn't completed loading. This may result in the
   message being ignored by the server."
   [& body]
   `(binding [*block-node-until-ready?* false]
