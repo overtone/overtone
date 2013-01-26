@@ -1,8 +1,10 @@
-# Overtone Change Log
+ Change Log
 
-## Version 0.8.0 (23rd December 2012)
+## Version 0.8.0 (27th January 2013)
 
 ### New Committers
+
+(Some of these committers may have made contributions to previous versions, but this is the first time they're mentioned in this change log).
 
 * Nada Amin
 * George Jahad
@@ -14,11 +16,13 @@
 * J. Graeme Lingard
 * Chris Ford
 * Mat Schaffer
+* Joel Jorgensen
 
 ### Major Features
 
-* New, all clojure, in-memory scsynth interface using clj-native
-* GUI widgets using seesaw and swing (see examples in overtone.examples.gui)
+* New, all Clojure, in-memory scsynth interface using clj-native
+* New (optionally disabled) machinery to stop the control and modification of non-live nodes (controlling loading nodes blocks the current thread and controlling destroyed nodes throws an exception).
+* Experimental GUI widgets using seesaw and swing (see examples in overtone.examples.gui)
   - synth controls to adjust parameters (`synth-controller`, `live-synth-controller`)
   - mixer for instruments (`mixer`)
   - piano roll and two types of step sequencers (`piano-roll`, `step-sequencer`, `stepinator`)
@@ -28,6 +32,10 @@
 * New event handler `on-latest-event`  which serially handles incoming events with the lowest latency by dropping events it hasn't had time to handle, yet always handling the last event seen.
 * Major progress has been made porting the metadata for the extra ugens not included by default in SuperCollider. See `overtone/sc/machinery/ugen/metadata/extras/README.md` for progress
 * Complete overhaul of the default group structure. See `foundation-*` fns below.
+* Many new synths
+* Many, many new ugens: major progress has been made porting the metadata for the extra ugens not included by default in SuperCollider. See `overtone/sc/machinery/ugen/metadata/extras/README.md` for progress.
+* Clojure 1.5 compatibility
+
 
 ### New fns
 * `on-latest-event` - Handles events with minimum latency - drops events it can't handle in time
@@ -37,7 +45,7 @@
 * `event-monitor` - returns map of most recently recorded events
 * `event-monitor-keys` - returns seq of all keys of recently seen events
 * `midi-capture-next-controller-key` Returns the event key for the next modified controller
-* `buffer-write-relay` - similar to buffer-write! but doesn't require native synth. Can be very slow.
+* `buffer-write-relay` - similar to buffer-write! but doesn't require native synth. Can be very slow for large amounts of data.
 * `chord-degree` - Returns the notes constructed by picking thirds in the given note of a given scale
 * `foundation-overtone-group` - returns the group for the whole of the Overtone foundational infrastructure
 * `foundation-output-group` - returns the group for output synths
@@ -53,16 +61,25 @@
 * `node-live?` - returns true if node is live
 * `node-loading?` - returns true if node is loading (i.e. the server hasn't responded to say that it's loaded)
 * `node-active?` - returns true if node is either loading or live
+* `inactive-node-modification-error` - Returns a keyword representing the current node-modification errors trategy
+* `inactive-buffer-modification-error` - Returns a keyword representing the current buffer-modification error strategy
+* `block-node-until-ready?` - Returns true if the current message strategy is to block the current thread until the node you're attempting to communicate with is ready (i.e. live).
+* `pp-node-tree` - pretty-print the node-tree to *out*
+* `interspaced` - calls a fn repeatedly with an interspacing of ms-period. i.e. the next call of the fn will happen ms-period ms after the completion of the previous call.
 
 ### New macros
 
 * `with-no-ugen-checks` - Disables ugen checks in containing form instead printing warning messages instead of raising exceptions. This is useful for the cases when the ugen checks are over zealous.
 * `with-ugen-debugging` - Prints debugging information for the ugens within the containing form.
+* `without-node-blocking` - Disables the blocking behaviour when attempting to communicate with a node that's not yet live.
+* `with-inactive-node-modification-error` - Sets the error strategy for inactive node modification. Options are :exception, :warning and :silent
+* `with-inactive-buffer-modification-error` - Sets the error strategy for inactive buffer modification. Options are :exception, :warning and :silent
+* `with-inactive-modification-error` - Sets the error strategy for both inactive node and buffer modification. Options are :exception, :warning and :silent
 
 ### Removed fns
 * `on-trigger` - prefer event system
 * `remove-trigger` - prefer event system
-* `remove-all-handlers` - calling this removes Overtone's default handlers rendering the system useless.
+* `remove-all-handlers` - calling this removed Overtone's default handlers rendering the system useless.
 
 ### Renamed fns
 
@@ -79,6 +96,11 @@
 * `simple-flute`
 
 ### New Synths
+
+New timing synths
+* `trigger`
+* `counter`
+* `divider`
 
 Started work porting synths from Ixi Lang (`overtone/synth/ixi`):
 
@@ -119,6 +141,19 @@ Started work porting synths from Ixi Lang (`overtone/synth/ixi`):
 * Midi poly player now sends both velocity (0-127) and amp (0-1)
 * Midi poly player can now be associated with specific MIDI devices
 * Midi poly player can now be created with a specific key allowing it to be removed independently
+* Teach group fn to ensure that the target node is active.
+* teach Overtone OSC peer to throw exceptions when nested OSC bundles are attempted to be sent to SuperCollider (despite being an explicit part of the OSC spec, SuperCollider doesn't support nested OSC bundles).
+* Rename buffer record slot allocated-on-server to status containing either :live or :destroyed similar to node records.
+* Add print-method writers for buffers and samples
+* Update scope to support control-rate buses and to free resources created on closing the scope
+* Teach buffers to store descriptive names
+* Ensure buffer is active before allowing modifications - may be disabled
+* Add deref! description messages to improve the error reporting by providing some context when a deref! takes too long.
+* Improved MIDI sysex support: can now receive sysex messages, which are placed onto the event stream
+* Ability to handle multiple identical connected MIDI devices
+* Support for the mmj lib (on OS X) via the config key `:use-mmj`
+* Add ability to handle bus, buffer (and other) arguments in synth creation and control messages without requiring explicit :id extraction
+* New `~/.overtone/config.clj` example documenting all config options. Found in `docs/config.clj`
 
 ### Internal Improvements
 
@@ -137,21 +172,26 @@ Started work porting synths from Ixi Lang (`overtone/synth/ixi`):
 * Internal event `:osc-msg-received` is now `[:overtone :osc-msg-received]`
 * Freeing node ids is delayed by 1 second to reduce the chance of a race condition occurring in the case where the id has been recycled and used before the node status has been set to :destroyed.
 * Add dynamic var `overtone.sc.node/*inactive-node-modification-error*` which may be bound to `:silent`, `:warning` or `:exception` to control the behaviour of the error created when an inactive node is either controlled or killed.  (Default is `:exception`).
+* Teach insts how about node-status and node-block-until-ready. For insts, this is really composite behaviour depending on internal groups and synths.
+* Move to using non-id-recycling keywords for node and buffer ids. (Thanks to Kevin Neaton for discovering that this was possible). IDs *will* run out, but only after a solid 24 hours of hardcore jamming.
+* add new `os-name` and `os-description` helper fns
+* update `osc-clj` dependency (which now supports nested OSC bundles in the macro `in-osc-bundle`) and move to using the new non-nested osc bundle macro `in-unested-osc-bundle` to explicitly not create OSC bundles for SC comms. However, the nested bundle functionality may be useful for communicating with other OSC servers which support this behaviour (which is in the OSC spec).
 
 ### New Examples
 
-* Examples now locate in `overtone/examples`
+* Examples are now located in `overtone/examples`
+* Get on the bus - introduction to busses
 * Internal sequencer
 * Getting started video transcript
 * Jazz experiment
 * Internal metro
 * Clapping Music
 * Bass and drum funk
+* Add fun new schroeder-reverb-mic example
 
 ### Bugfixes
 
 * Many, many many! See git history for full list.
-
 
 ## Version 0.7.1 (27th June 2012)
 
