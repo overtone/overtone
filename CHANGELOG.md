@@ -42,7 +42,6 @@ New features:
 * New, all Clojure, in-memory scsynth interface using clj-native
 * New (optionally disabled) machinery to stop the control and modification of non-live nodes (controlling loading nodes blocks the current thread and controlling destroyed nodes throws an exception).
 * New event handler `on-latest-event`  which serially handles incoming events with the lowest latency by dropping events it hasn't had time to handle, yet always handling the last event seen.
-* Major progress has been made porting the metadata for the extra ugens not included by default in SuperCollider. See `overtone/sc/machinery/ugen/metadata/extras/README.md` for progress
 * Complete overhaul of the default group structure. See `foundation-*` fns below.
 * Many new synths
 * Many, many new ugens: major progress has been made porting the metadata for the extra ugens not included by default in SuperCollider. See `overtone/sc/machinery/ugen/metadata/extras/README.md` for progress.
