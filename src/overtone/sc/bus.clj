@@ -14,13 +14,24 @@
 ;; but in SC they are implemented using a simple integer referenced
 ;; array of float values.
 
+(defonce ^{:private true} __PROTOCOLS__
+  (do
+    (defprotocol IBus
+      (free-bus [this]))))
+
 (defrecord AudioBus [id n-channels rate name]
   to-sc-id*
-  (to-sc-id [this] (:id this)))
+  (to-sc-id [this] (:id this))
+
+  IBus
+  (free-bus [this] (free-id :audio-bus (:id this) (:n-channels this))))
 
 (defrecord ControlBus [id n-channels rate name]
   to-sc-id*
-  (to-sc-id [this] (:id this)))
+  (to-sc-id [this] (:id this))
+
+  IBus
+  (free-bus [this] (free-id :control-bus (:id this) (:n-channels this))))
 
 (defmethod print-method AudioBus [b w]
   (.write w (format "#<audio-bus: %s %s %d>"
@@ -43,7 +54,6 @@
 (derive ControlBus ::bus)
 
 (defn bus?
-
   "Returns true if the specified bus is a map representing a bus (either control
   or audio) "
   [bus]
@@ -88,15 +98,6 @@
   ([n-channels name]
      (let [id (alloc-id :audio-bus n-channels)]
        (AudioBus. id n-channels :audio name))))
-
-(defn free-bus
-  "Free the id of specified bus for reuse."
-  [bus]
-  (assert (bus? bus))
-  (case (type bus)
-    ::audio-bus   (free-id :audio-bus (:id bus) (:n-channels bus))
-    ::control-bus (free-id :control-bus (:id bus) (:n-channels bus)))
-  :free)
 
 ; Reserve busses for overtone
 (defonce ___reserve-overtone-busses____
