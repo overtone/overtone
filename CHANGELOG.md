@@ -1,11 +1,5 @@
 # Change Log
 
-## Version 0.8.1 (28th January 2013)
-
-### Bugfixes
-
-* Fix bug in free-bus which was still assuming audio and control busses were differentiated by keywords rather than records. Added new protocol IBus to handle the polymorphism for this fn.
-
 ## Version 0.9.0 (To be released)
 
 New features:
@@ -18,6 +12,12 @@ New features:
   - wave-form and wave-table editors for wave-table synthesis (`waveform-editor`, `wavetable-editor`)
   - basic spectrogram showing frequency space representation (`spectrogram`)
 
+
+## Version 0.8.1 (28th January 2013)
+
+### Bugfixes
+
+* Fix bug in free-bus which was still assuming audio and control busses were differentiated by keywords rather than records. Added new protocol IBus to handle the polymorphism for this fn.
 
 ## Version 0.8.0 (26th January 2013)
 
