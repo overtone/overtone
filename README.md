@@ -46,8 +46,8 @@ collaborating with music.  It provides:
     $ lein new insane-noises
 
     # add the following dependencies to insane-noises/project.clj
-    # [org.clojure/clojure "1.3.0"]
-    # [overtone "0.7.1"]
+    # [org.clojure/clojure "1.4.0"]
+    # [overtone "0.8.1"]
 
     $ cd insane-noises
     $ lein repl
@@ -166,7 +166,7 @@ ready to submit a patch then fork your own copy and do a pull request.
 Overtone and its dependencies are on http://clojars.org, and the
 dependency for your `project.clj` is:
 
-    [overtone "0.8.0"]
+    [overtone "0.8.1"]
 
 ## Acknowledgements
 
