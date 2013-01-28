@@ -1,4 +1,10 @@
- Change Log
+# Change Log
+
+## Version 0.8.1 (28th January 2013)
+
+### Bugfixes
+
+* Fix bug in free-bus which was still assuming audio and control busses were differentiated by keywords rather than records. Added new protocol IBus to handle the polymorphism for this fn.
 
 ## Version 0.9.0 (To be released)
 
