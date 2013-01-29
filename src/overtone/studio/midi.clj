@@ -352,7 +352,7 @@
   (-> (detect-midi-devices) add-listener-handles!))
 
 (defonce ^:private connected-midi-receivers*
-  (detect-midi-receivers))
+  (map midi-out (detect-midi-receivers)))
 
 (defn connected-midi-devices
   "Returns a sequence of device maps for all 'connected' MIDI
