@@ -28,17 +28,28 @@
                         -1)]
         [:midi-device (dev :vendor) (dev :name) (dev :description) dev-num])))
 
-(defn midi-find-connected-devices
-  "Returns a list of connected MIDI devices where the full device key
-   either contains the search string or matches the search regexp
-   depending on the type of parameter supplied"
-  [search]
+(defn- midi-find-connected
+  [search devs-or-recvrs]
   (let [filter-pred (fn [dev]
                       (let [key-as-str (str (midi-mk-full-device-key dev))]
                         (if (= java.util.regex.Pattern (type search))
                           (re-find search key-as-str)
                           (.contains key-as-str search))))]
-    (filter filter-pred (connected-midi-devices))))
+    (filter filter-pred devs-or-recvrs)))
+
+(defn midi-find-connected-devices
+  "Returns a list of connected MIDI devices where the full device key
+   either contains the search string or matches the search regexp
+   depending on the type of parameter supplied"
+  [search]
+  (midi-find-connected search (connected-midi-devices)))
+
+(defn midi-find-connected-receivers
+  "Returns a list of connected MIDI receivers where the full device key
+   either contains the search string or matches the search regexp
+   depending on the type of parameter supplied"
+  [search]
+  (midi-find-connected search (connected-midi-receivers)))
 
 (defn midi-find-connected-device
   "Returns the first connected MIDI device found where the full device
@@ -46,6 +57,13 @@
    depending on the type of parameter supplied"
   [search]
   (first (midi-find-connected-devices search)))
+
+(defn midi-find-connected-receiver
+  "Returns the first connected MIDI receiver found where the full device
+   key either contains the search string or matches the search regexp
+   depending on the type of parameter supplied"
+  [search]
+  (first (midi-find-connected-receivers search)))
 
 (defn midi-mk-full-device-event-key
   "Creates the device-specific part of the key used for events generated
