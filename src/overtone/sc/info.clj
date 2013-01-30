@@ -58,6 +58,7 @@
                      :num-output-buses (long nob)
                      :num-input-buses (long nib)
                      :num-audio-buses (long nab)
+                     :num-control-buses (long ncb)
                      :num-buffers (long nb)
                      :num-running-synths (long nrs)})
             :overtone/remove-handler)))
