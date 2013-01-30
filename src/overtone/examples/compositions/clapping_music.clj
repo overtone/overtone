@@ -32,7 +32,7 @@
 (defn player [beat]
   (when (= (mod beat 4) 0) (my-cycle))
   (play-beat beat)
-  (apply-at (m (inc beat)) #'player (inc beat) []))
+  (apply-by (m (inc beat)) #'player (inc beat) []))
 
 (player (m))
 ;;(stop)

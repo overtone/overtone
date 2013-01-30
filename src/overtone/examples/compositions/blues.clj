@@ -39,7 +39,7 @@
           (play-blues instr pitch))
       (at (+ time (* 0.5 dur))
           (closed-hat 0.1))
-      (apply-at n-time #'play-seq
+      (apply-by n-time #'play-seq
                 [(mod (inc count) 4) instr (next notes) (next durs) n-time odds]))))
 
 ; TODO: Strum the chord

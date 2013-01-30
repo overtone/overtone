@@ -73,7 +73,7 @@
           (when (value index)
             (at (metro beat) (inst))))
 
-        (apply-at (metro next-beat) #'step-player
+        (apply-by (metro next-beat) #'step-player
                   [state-atom next-beat])))))
 
 (def ^{:private true} grid-line-style

@@ -106,7 +106,7 @@
     (at (bell-metro beat)
         (dorun
          (map #(pretty-bell % :vol 0.5) notes-to-play)))
-    (apply-at (bell-metro next-beat) #'play-bells [next-beat (map rest notes)])))
+    (apply-by (bell-metro next-beat) #'play-bells [next-beat (map rest notes)])))
 
 ;; Start the bells ringing...
 (defn runner

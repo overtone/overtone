@@ -38,7 +38,7 @@
   [m]
   (let [beat (m)]
     (player beat)
-    (apply-at (m (inc beat))  #'run-sequencer [m])))
+    (apply-by (m (inc beat))  #'run-sequencer [m])))
 
 ;; make beats! Edit bar whilst the beat is playing to make live changes.
 (run-sequencer metro)

@@ -24,7 +24,7 @@
              (at (m (+ beat %1))
                (ins %2)))
           next-bar))
-      (apply-at next-tick hit-fn [m next-beat ins]))))
+      (apply-by next-tick hit-fn [m next-beat ins]))))
 
 (defn mono-play-fn
   ""
@@ -44,4 +44,4 @@
                  (at (m (inc b))
                      (ctl id :gate 0)))))
           next-bar))
-      (apply-at next-tick play-fn [m next-beat ins]))))
+      (apply-by next-tick play-fn [m next-beat ins]))))

@@ -68,7 +68,7 @@
           beat (m)
           bar-start (m beat)]
       (play-over inst bar bar-start ms-per-bar)
-      (apply-at (m (+ beat beats-per-bar)) #'play [inst (next bars) m t-sig]))))
+      (apply-by (m (+ beat beats-per-bar)) #'play [inst (next bars) m t-sig]))))
 
 (def metro (metronome 120))
 

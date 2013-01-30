@@ -42,7 +42,7 @@
 
 (defn foo-player [b]
   (at (m b) (foo))
-  (apply-at (m (inc b)) #'foo-player [(inc b)]))
+  (apply-by (m (inc b)) #'foo-player [(inc b)]))
 
 ; Start the synth looping, and play with the GUI to hear it change live
 (foo-player (m))
@@ -59,7 +59,7 @@
 
 (defn bar-player [b]
   (at (m b) (bar))
-  (apply-at (m (inc b)) #'bar-player [(inc b)]))
+  (apply-by (m (inc b)) #'bar-player [(inc b)]))
 
 (bar-player (m))
 
@@ -133,7 +133,7 @@
 (defn step-player [b]
   (at (m b)
       (step-pad (+ 60 (nth (:steps @(:state pstep)) (mod b 16)))))
-  (apply-at (m (inc b)) #'step-player [(inc b)]))
+  (apply-by (m (inc b)) #'step-player [(inc b)]))
 
 (:steps @(:state pstep))
 

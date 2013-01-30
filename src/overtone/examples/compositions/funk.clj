@@ -53,7 +53,7 @@
         (at (nome beat) (kick))
         (at (nome (+ 5 beat)) (kick))
         (at (nome (+ 7 beat)) (kick))
-        (apply-at (nome (+ 8 beat)) drums nome [])))
+        (apply-by (nome (+ 8 beat)) drums nome [])))
 
 (defn bass [nome]
     (let [beat (nome)]
@@ -71,7 +71,7 @@
     (at (nome (+ 8 beat)) (string 51))
     (at (nome (+ 12 beat)) (string 51))
     (at (subdivide (nome (+ 12 beat)) (nome (+ 14 beat)) 1) (string 51))
-    (apply-at (nome (+ 16 beat)) bass nome [])))
+    (apply-by (nome (+ 16 beat)) bass nome [])))
 
 (defn section [nome]
     (drums nome)

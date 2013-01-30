@@ -18,7 +18,7 @@
      (at t
          (synth pitch vol dur))
      (when elements
-       (apply-at next-t #'p elements [next-t])))))
+       (apply-by next-t #'p elements [next-t])))))
 
 (declare calc-duration)
 
