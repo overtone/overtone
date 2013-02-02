@@ -6,7 +6,7 @@
 (defn id-mapper
   "Map all elements of col which are associative and have an :id key to the
   associated :id value. Useful for extracting ids from arglists containing
-  buffers and busses. Also works if col is not a collection but a single
+  buffers and buses. Also works if col is not a collection but a single
   value."
   [col]
   (let [map-fn (fn [el] (if (and (associative? el)

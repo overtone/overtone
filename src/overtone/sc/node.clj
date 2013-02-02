@@ -54,11 +54,11 @@
         "Modify control parameters of the synth node.")
       (node-control-range   [this ctl-start ctl-vals]
         "Modify a range of control parameters of the synth node.")
-      (node-map-controls    [this names-busses]
+      (node-map-controls    [this names-buses]
         "Connect a node's controls to a control bus.")
       (node-map-n-controls  [this start-control start-bus n]
         "Connect N controls of a node to a set of sequential control
-        busses, starting at the given control name."))
+        buses, starting at the given control name."))
 
     (defprotocol IKillable
       (kill* [this] "Kill a synth element (node, or group, or ...)."))
@@ -106,7 +106,7 @@
 
 ;; ## Node and Group Management
 
-;; Synths, Busses, Controls and Groups are all Nodes.  Groups are linked lists
+;; Synths, Buses, Controls and Groups are all Nodes.  Groups are linked lists
 ;; and group zero is the root of the graph.  Nodes can be added to a group in
 ;; one of these 5 positions relative to either the full list, or a specified node.
 
@@ -434,21 +434,21 @@
 
 (defn node-map-controls*
   "Connect a node's controls to a control bus."
-  [node names-busses]
+  [node names-buses]
   (ensure-connected!)
   (ensure-node-active! node "mapping controls to a bus for node")
 
   (let [node-id      (to-sc-id node)
-        names-busses (-> names-busses stringify idify)]
-    (apply snd "/n_map" node-id names-busses))
+        names-buses (-> names-buses stringify idify)]
+    (apply snd "/n_map" node-id names-buses))
   node)
 
 (defn node-map-n-controls*
-  "Connect N controls of a node to a set of sequential control busses,
+  "Connect N controls of a node to a set of sequential control buses,
   starting at the given control name."
   [node start-control start-bus n]
   (ensure-connected!)
-  (ensure-node-active! node "mapping a range of conrol values to control busses for node")
+  (ensure-node-active! node "mapping a range of conrol values to control buses for node")
   (assert (isa? (type start-bus) :overtone.sc.bus/bus) "Invalid start-bus")
   (let [node-id (to-sc-id node)]
     (snd "/n_mapn" node-id (first (stringify [start-control])) (to-sc-id start-bus) n))

@@ -142,7 +142,7 @@ This ugen is used where sample accurate output is needed."}
 local-out writes to buses that are local to the enclosing synth. The buses should have been defined by a local-in ugen. The channelsArray must be the same number of channels as were declared in the LocalIn. These are like the global buses, but are more convenient if you want to implement a self contained effect that uses a feedback processing loop."}
 
       {:name "XOut",
-       :args [{:name "bus" :doc "the index, or array of indexes, of busses to write to. The lowest index numbers are written to the audio hardware."}
+       :args [{:name "bus" :doc "the index, or array of indexes, of buses to write to. The lowest index numbers are written to the audio hardware."}
               {:name "xfade" :doc "crossfade level."}
               {:name "channels-array" :mode :append-sequence :doc "an Array of channels or single output to write out. You cannot change the size of this once a SynthDef has been built."}],
        :num-outs 0

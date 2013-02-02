@@ -5,7 +5,7 @@
 ;;
 ;; The "out" ugen is used to send data to a bus, and if passed multiple
 ;; channels it will automatically start at the first bus and send to successive
-;; busses.  The first bus goes to your left audio channel on the sound card.
+;; buses.  The first bus goes to your left audio channel on the sound card.
 ;;
 ;; Output a 440 hz sin wave to the left channel:
 (defsynth beep [] (out 0 (* 0.1 (sin-osc 440))))
@@ -29,9 +29,9 @@
 
 ;; ## Multi-channel output
 
-;; The first N audio busses correspond to your soundcard output channels, so
-;; outputting in stereo means sending audio data to busses 0 and 1, while 4
-;; channel surround would require sending audio to busses 0 through 3.
+;; The first N audio buses correspond to your soundcard output channels, so
+;; outputting in stereo means sending audio data to buses 0 and 1, while 4
+;; channel surround would require sending audio to buses 0 through 3.
 
 ;; We can make two parallel sin wave oscillators to output in stereo:
 (defsynth beep3 [freq 440 amp 0.1]

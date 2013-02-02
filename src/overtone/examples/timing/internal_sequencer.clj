@@ -22,12 +22,12 @@
 (defonce buf-2 (buffer 8))
 (defonce buf-3 (buffer 8))
 
-;; Next let's create some timing busses. These can be visualised as
+;; Next let's create some timing buses. These can be visualised as
 ;; 'patch cables' - wires that carry pulse signals that may be
 ;; arbitrarily forked and fed into any synth that wants to be aware of
 ;; the pulses. We have two types of information being conveyed here -
-;; firstly the trg busses contain a stream of 0s with an intermittant 1
-;; every time there is a tick. Secondly we have the cnt busses which
+;; firstly the trg buses contain a stream of 0s with an intermittant 1
+;; every time there is a tick. Secondly we have the cnt buses which
 ;; contain a stream of the current tick count. We then have two of each
 ;; type of bus - one for a high resolution global metronome, and another
 ;; for a division of the global metronome for our beats.
@@ -38,7 +38,7 @@
 
 (def BEAT-FRACTION "Number of global pulses per beat" 30)
 
-;; Here we design synths that will drive our pulse busses.
+;; Here we design synths that will drive our pulse buses.
 (defsynth root-trg [rate 100]
   (out:kr root-trg-bus (impulse:kr rate)))
 

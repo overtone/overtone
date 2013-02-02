@@ -1,34 +1,34 @@
-(ns overtone.examples.busses.getonthebus
+(ns overtone.examples.buses.getonthebus
   (:use overtone.live))
 
-;; Busses are like wires or pipes that you can use to connect the output
+;; Buses are like wires or pipes that you can use to connect the output
 ;; of one synth to the inputs of one or more other synths.
-;; There are two types of busses - control busses and audio busses.
+;; There are two types of buses - control buses and audio buses.
 
-;; Control busses are designed to carry control signals - values changing
+;; Control buses are designed to carry control signals - values changing
 ;; at a human rate (i.e. the speed you may turn a dial or slide a slider).
 
-;; Audio busses are designed to carry audio signals - values changing at
+;; Audio buses are designed to carry audio signals - values changing at
 ;; a rate that makes them audible.
 
-;; Audio busses can carry both audio and control rate signals. However,
+;; Audio buses can carry both audio and control rate signals. However,
 ;; they will use more computational resources. Therefore, consider using
 ;; a control bus if you're signal doesn't need to change more than, say,
 ;; 60 times a second.
 
-;; You can create many new control and audio busses. However, your system
+;; You can create many new control and audio buses. However, your system
 ;; will start with one audio bus per audio input and one audio bus per audio
 ;; output. For example, your left speaker is represented by audio bus 0
 ;; and your right speaker is represented by audio bus 1
 
-;; Let's create some busses to carry some control rate signals
+;; Let's create some buses to carry some control rate signals
 
-;; We use the defonce construct to avoid new busses being created and
+;; We use the defonce construct to avoid new buses being created and
 ;; assigned accidentally, if the forms get re-evaluated.
 (defonce tri-bus (audio-bus))
 (defonce sin-bus (audio-bus))
 
-;; These are synths created to send data down the busses.
+;; These are synths created to send data down the buses.
 ;; They are set up so that you can modify both the bus they output on and
 ;; their frequency whilst they're running via standard ctl messages.
 ;;
@@ -40,7 +40,7 @@
 (defsynth sin-synth [out-bus 0 freq 5]
   (out:kr out-bus (sin-osc:kr freq)))
 
-;; Probably the most important lesson about using busses is to understand that
+;; Probably the most important lesson about using buses is to understand that
 ;; the execution of the synthesis on the server is strictly ordered. Running
 ;; synths are placed in a node tree which is evaluated in a depth-first order.
 ;; This is important to know because if you want synth instance A to be able to
@@ -54,7 +54,7 @@
 (defonce early-g (group "early birds" :head main-g))
 (defonce later-g (group "latecomers" :after early-g))
 
-;; Let's create some source synths that will send signals on our busses. Let's
+;; Let's create some source synths that will send signals on our buses. Let's
 ;; also put them in the early group to ensure that their signals get sent first.
 
 (comment
@@ -63,7 +63,7 @@
   )
 
 ;; Notice how these synths aren't making or controlling any sound. This is because
-;; they're control rate synths and also because their output is going to the busses
+;; they're control rate synths and also because their output is going to the buses
 ;; we created which aren't connected to anything. The signals are therefore ignored.
 
 ;; We can verify that they're running by viewing the node tree. We can do this
@@ -90,7 +90,7 @@
 
 ;; This synth reads the value off the bus (at control rate)
 ;; and multiplies it with the lf-tri ugen's sample value.  The overall
-;; result is then sent to two consecutive busses: 0 and 1. (pan2 duplicates
+;; result is then sent to two consecutive buses: 0 and 1. (pan2 duplicates
 ;; a single channel signal to two channels; this is documented in more detail
 ;; in some of the getting-started examples).
 
@@ -107,10 +107,10 @@
     (out 0 (pan2 (lf-tri freq)))))
 
 
-;; One of the nifty things about busses is that you can have multiple synths reading
+;; One of the nifty things about buses is that you can have multiple synths reading
 ;; them from the same time.
 
-;; Evaluate these to use the signals on the busses to modulate synth parameters
+;; Evaluate these to use the signals on the buses to modulate synth parameters
 (comment
   (def mvt (modulated-vol-tri :tgt later-g sin-bus))
   (def mft (modulated-freq-tri :tgt later-g sin-bus))
@@ -145,7 +145,7 @@
     (kill mvt))
   )
 
-;; At this point, the busses are still carrying data from the tri-synth and sin-synth;
+;; At this point, the buses are still carrying data from the tri-synth and sin-synth;
 ;; you'll have to kill them as well explicitly or invoke (stop) if you want them to stop.
 
 ;; Or can re-use them!

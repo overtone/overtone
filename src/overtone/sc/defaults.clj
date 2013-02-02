@@ -32,7 +32,7 @@
   0.0)
 
 (def AUDIO-BUS-RESERVE-COUNT
-  "Number of audio busses to reserve. These busses won't be available to users
+  "Number of audio buses to reserve. These buses won't be available to users
   via overtone.sc.bus/audio-bus"
   50)
 

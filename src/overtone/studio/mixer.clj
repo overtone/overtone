@@ -91,10 +91,10 @@
   (ensure-connected!)
   (let [in-cnt     (with-server-sync
                      #(server-num-input-buses)
-                     "whilst discovering the number of server input busses")
+		     "whilst discovering the number of server input buses")
         out-cnt    (with-server-sync
                      #(server-num-output-buses)
-                     "whilst discovering the number of server output busses")
+		     "whilst discovering the number of server output buses")
         out-mixers (doall
                     (map
                      (fn [out-bus]

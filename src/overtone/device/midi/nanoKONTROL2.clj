@@ -3,7 +3,7 @@
         [overtone.libs.event :only [event on-event on-latest-event]]
         [overtone.core :only [control-bus bus-set!]]))
 
-(defrecord NanoKontrol2 [name out interfaces state busses])
+(defrecord NanoKontrol2 [name out interfaces state buses])
 
 (def event-handle [:midi-device "KORG INC." "SLIDER/KNOB" "nanoKONTROL2 SLIDER/KNOB" 0 :control-change])
 
@@ -257,7 +257,7 @@
            state      (into {}
                             (map (fn [[k v]] [k (atom nil)])
                                  (-> config :interfaces :input-controls :controls)))
-           busses     (into {}
+           buses     (into {}
                             (map (fn [[k v]] [k (control-bus)])
                                  (-> config :interfaces :input-controls :controls)))]
        (when force-external-led-mode?
@@ -268,7 +268,7 @@
                note      (:note v)
                handle    (concat event-handle [note])
                update-fn (fn [{:keys [data2-f]}]
-                           (bus-set! (busses k) data2-f)
+                           (bus-set! (buses k) data2-f)
 
                            (reset! (state k) data2-f))]
            (cond
@@ -279,4 +279,4 @@
             (on-latest-event handle update-fn (str "update-state-for" handle)))))
 
        (intromation out)
-       (NanoKontrol2. (:name config) out interfaces state busses))))
+       (NanoKontrol2. (:name config) out interfaces state buses))))

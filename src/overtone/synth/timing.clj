@@ -1,5 +1,5 @@
 (ns ^{:doc "A suite of synths useful for populating and manipulating
-            control busses of time signals i.e. generating and counting
+            control buses of time signals i.e. generating and counting
             beats."
       :author "Sam Aaron"}
   overtone.synth.timing
