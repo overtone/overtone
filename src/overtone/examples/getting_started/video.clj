@@ -85,7 +85,7 @@
     (when note
       (at time (plucked-string note)))
     (let [next-time (+ time sep)]
-      (apply-at next-time play [next-time (rest notes) sep]))))
+      (apply-by next-time play [next-time (rest notes) sep]))))
 
 ;; play some pitches
 (play (now) pitches 200)

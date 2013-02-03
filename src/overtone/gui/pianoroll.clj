@@ -147,7 +147,7 @@
           (when (= x index)
             (at (metro beat) (inst (+ offset y)))))
 
-        (apply-at (metro next-beat) #'piano-player
+        (apply-by (metro next-beat) #'piano-player
                   [state-atom next-beat])))))
 
 (defn piano-roll

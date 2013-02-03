@@ -74,7 +74,7 @@
         (if (zero? (mod beat 6))
           (overpad (+ 12 (choose notes)) 0.5 0.15 0.1)
           (overpad (choose notes) 0.5 0.15 0.1)))
-  (apply-at (metro (inc beat)) #'player (inc beat) (next notes) [])))
+  (apply-by (metro (inc beat)) #'player (inc beat) (next notes) [])))
 
 ;;(player (metro) [])
 ;;(stop)
@@ -87,7 +87,7 @@
           release   0.1
           next-beat (+ t beat-dur)]
       (at t (overpad note amp attack release))
-      (apply-at next-beat #'play-notes next-beat beat-dur (next notes) (next attacks) []))))
+      (apply-by next-beat #'play-notes next-beat beat-dur (next notes) (next attacks) []))))
 
 ;;(play-notes (now) 425 (cycle [40 42 44 45 47 49 51 52]) (repeat 0.4))
 ;;(play-notes (now) 300 (scale :c4 :major) (repeat 0.05))
@@ -109,7 +109,7 @@
     (at (metro b)
         (doseq [note (map #(- %  12) (chord-notes))]
             (overpad note 0.3 (/ tick 1020))))
-    (apply-at (metro next-beat) #'play-chords [next-beat])))
+    (apply-by (metro next-beat) #'play-chords [next-beat])))
 
 ;;(play-chords (metro))
 ;;(metro-bpm metro 70)
@@ -123,7 +123,7 @@
   (at t (kick-d))
   (at (+ t 350) (doseq [note (chord-notes)] (overpad (first notes) 0.3 0.1)))
   (at t (overpad (- (first notes) 36) 0.3 (/ dur 1000)))
-  (apply-at (+ t dur) #'looper (+ t dur) dur (next notes) []))
+  (apply-by (+ t dur) #'looper (+ t dur) dur (next notes) []))
 
 ;;(looper (now) 500 (cycle [60 67 65 72 75 70]))
 ;;(stop)

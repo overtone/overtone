@@ -50,7 +50,7 @@
 (defn loop-play [bar len]
   (let [beat (metro)]
     (play-bar beat bar)
-    (apply-at (metro (+ len beat)) #'loop-play [bar len])))
+    (apply-by (metro (+ len beat)) #'loop-play [bar len])))
 
 (def length 4)
 
@@ -93,7 +93,7 @@
             next-even (if (zero? (mod beat 2))
                         beat
                         (inc beat))]
-        (apply-at (metro next-even) #'jazzbass [start-note])))
+        (apply-by (metro next-even) #'jazzbass [start-note])))
   ([n]
      (let [beat (metro)
            tick (metro beat)
@@ -111,7 +111,7 @@
          (at (metro (+ beat (swing 0.5)) )
            (beep note)
            (bass (midi->hz note))))
-       (apply-at (metro (+ beat 1)) #'jazzbass [note]))))
+       (apply-by (metro (+ beat 1)) #'jazzbass [note]))))
 
 
 ;; Set up rotater
@@ -134,7 +134,7 @@
    (do
      (at (metro start)
        (rotater-on note vel))
-     (apply-at
+     (apply-by
       (metro (+ len start))
       #'rotater-off [note]))))
 

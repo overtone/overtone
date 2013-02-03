@@ -22,7 +22,7 @@
       (at (m (+ 1.25 beat))
           (soft-hat :decay 0.03)))
 
-    (apply-at (m next-beat) #'player [next-beat])))
+    (apply-by (m next-beat) #'player [next-beat])))
 
 ;;(player (m))
 ;;(stop)

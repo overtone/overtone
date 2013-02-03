@@ -50,7 +50,7 @@
             (at (metro (+ beat offset)) (sampled-piano note 0.3)))
           notes-to-play
           beat-offsets))
-    (apply-at (metro (inc beat)) #'beat-loop [metro (inc beat) nxt-chord-idx])))
+    (apply-by (metro (inc beat)) #'beat-loop [metro (inc beat) nxt-chord-idx])))
 
 ;;start the music:
 (beat-loop metro (metro) 0)

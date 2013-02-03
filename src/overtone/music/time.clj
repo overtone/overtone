@@ -65,15 +65,30 @@
   [sched-fn] (at-at/kill sched-fn player-pool))
 
 (def ^{:dynamic true :private true} *apply-ahead*
-  "Amount of time apply-at is scheduled to execute *before* it was
+  "Amount of time apply-by is scheduled to execute *before* it was
   scheduled by the user. This is to give room for any computation/gc
   cycles and to allow the executing fn to schedule actions on scsynth
   ahead of time using the at macro."
   300)
 
-(defn apply-at
+(defn apply-by
   "Recursion in Time. Calls (apply f args argseq) *apply-ahead* ms
   before ms-time.
+
+  By passing a function using #'foo syntax instead of just foo, when
+  later called by the scheduler it will lookup based on the symbol
+  rather than using the instance of the function defined earlier.
+
+  (apply-by (+ dur (now)) #'my-melody arg1 arg2 [])"
+  {:arglists '([ms-time f args* argseq])}
+  [#^clojure.lang.IFn ms-time f & args]
+  (let [delay-time (- ms-time *apply-ahead* (now))]
+    (if (<= delay-time 0)
+      (after-delay 0 #(apply f (#'clojure.core/spread args)))
+      (after-delay delay-time #(apply f (#'clojure.core/spread args))))))
+
+(defn apply-at
+  "Recursion in Time. Calls (apply f args argseq) exactly at time
 
   By passing a function using #'foo syntax instead of just foo, when
   later called by the scheduler it will lookup based on the symbol
@@ -82,7 +97,7 @@
   (apply-at (+ dur (now)) #'my-melody arg1 arg2 [])"
   {:arglists '([ms-time f args* argseq])}
   [#^clojure.lang.IFn ms-time f & args]
-  (let [delay-time (- ms-time *apply-ahead* (now))]
+  (let [delay-time (- ms-time (now))]
     (if (<= delay-time 0)
       (after-delay 0 #(apply f (#'clojure.core/spread args)))
       (after-delay delay-time #(apply f (#'clojure.core/spread args))))))
