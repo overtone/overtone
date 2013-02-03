@@ -4,7 +4,7 @@
 ;;                           ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(ns overtone.examples.compositions.jazz
+(ns ^:hw overtone.examples.compositions.jazz
   (:use [overtone.live]
         [overtone.inst.drum]
         [overtone.inst.synth]

@@ -58,5 +58,8 @@
                  [seesaw "1.4.2"]]
   :profiles {:test {:dependencies [[bultitude "0.2.0"]
                                    [polynome "0.2.2"]]}}
+  :test-selectors {:core (fn [m] (not (some m [:gui :hw])))
+                   :gui  :gui
+                   :hw   :hw}
   :native-path "native"
   :jvm-opts ~(jvm-opts))

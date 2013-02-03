@@ -1,4 +1,4 @@
-(ns overtone.examples.gui.keynome
+(ns ^:gui ^:hw overtone.examples.gui.keynome
   (:use overtone.live)
   (:require [seesaw [core :as sscore]
                     [keymap :as sskeymap]]))

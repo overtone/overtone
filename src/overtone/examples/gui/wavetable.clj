@@ -1,4 +1,4 @@
-(ns overtone.examples.gui.wavetable
+(ns ^:gui overtone.examples.gui.wavetable
   (:use overtone.live
         overtone.gui.wavetable))
 

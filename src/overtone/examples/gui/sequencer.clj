@@ -1,4 +1,4 @@
-(ns overtone.examples.gui.sequencer
+(ns ^:gui overtone.examples.gui.sequencer
   (:use overtone.live
         overtone.gui.sequencer
         overtone.inst.drum))

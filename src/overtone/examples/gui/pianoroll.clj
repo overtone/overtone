@@ -1,4 +1,4 @@
-(ns overtone.examples.gui.pianoroll
+(ns ^:gui overtone.examples.gui.pianoroll
   (:use overtone.live
         overtone.inst.synth
         overtone.gui.control

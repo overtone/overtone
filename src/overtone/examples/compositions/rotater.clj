@@ -5,7 +5,7 @@
 ;; http://youtu.be/4kBpxBJkknY ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(ns overtone.examples.compositions.rotater
+(ns ^:hw overtone.examples.compositions.rotater
   (:use [overtone.live]))
 
 

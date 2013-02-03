@@ -1,4 +1,4 @@
-(ns overtone.examples.monome.sample-looper
+(ns ^:hw overtone.examples.monome.sample-looper
   (:use [overtone.live])
   (:require [polynome.core :as poly]))
 

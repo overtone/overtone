@@ -1,4 +1,4 @@
-(ns overtone.examples.gui.scope
+(ns ^:gui overtone.examples.gui.scope
   (:use overtone.live
         overtone.inst.synth
         overtone.gui.scope))

@@ -56,7 +56,8 @@
     (let [test-name (example-test-name example-ns)
           test-fn (example-test-fn example-ns)]
       (doto (intern *ns* test-name test-fn)
-        (alter-meta! assoc :test test-fn)))))
+        (alter-meta! assoc :test test-fn)
+        (alter-meta! merge (meta example-ns))))))
 
 (when *load-tests* (intern-example-tests))
 

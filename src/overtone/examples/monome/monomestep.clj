@@ -1,4 +1,4 @@
-(ns overtone.examples.monome.monomestep
+(ns ^:hw overtone.examples.monome.monomestep
   (:use [overtone.live]
         [clojure.core.match :only [match]]
         [polynome.core :as poly]))

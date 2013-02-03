@@ -1,4 +1,4 @@
-(ns overtone.examples.gui.stepinator
+(ns ^:gui overtone.examples.gui.stepinator
   (:use overtone.live
         overtone.gui.stepinator))
 

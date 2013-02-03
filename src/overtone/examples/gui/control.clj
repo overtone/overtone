@@ -1,4 +1,4 @@
-(ns overtone.examples.gui.control
+(ns ^:gui overtone.examples.gui.control
   (:use overtone.live
         overtone.gui.control))
 

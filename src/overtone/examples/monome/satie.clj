@@ -1,4 +1,4 @@
-(ns overtone.examples.monome.satie
+(ns ^:hw overtone.examples.monome.satie
   (:use [clojure.core.match :only [match]]
         [overtone.live]
         [overtone.inst sampled-piano])

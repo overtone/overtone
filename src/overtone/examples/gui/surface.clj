@@ -1,4 +1,4 @@
-(ns overtone.examples.gui.surface
+(ns ^:gui overtone.examples.gui.surface
   (:use overtone.live
         overtone.gui.sequencer
         overtone.gui.surface
