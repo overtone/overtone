@@ -10,7 +10,7 @@
 (defcgen tap
   "Tap the hell out of ugens for great win"
   [label {:doc "String label for this tap. Must be unique to a given synth."}
-   freq  {:doc "Frequency of tap value updates"}
+   freq  {:doc "Frequency of tap value updates in Hertz"}
    src   {:doc "Ugen to tap"}]
   "Allows you to tap arbitrary ugens within a given synth. The
   containing synth then automatically gets atoms for each ugen you tap
