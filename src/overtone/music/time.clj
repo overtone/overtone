@@ -57,12 +57,18 @@
 
 (defn stop-player
   "Stop scheduled fn gracefully if it hasn't already executed."
-  [sched-fn] (at-at/stop sched-fn player-pool))
+  [sched-fn]
+  (if (number? sched-fn)
+    (at-at/stop sched-fn player-pool)
+    (at-at/stop sched-fn)))
 
 (defn kill-player
   "Kills scheduled fn immediately if it hasn't already executed. You
   are also able to specify player by job id - see print-schedule."
-  [sched-fn] (at-at/kill sched-fn player-pool))
+  [sched-fn]
+  (if (number? sched-fn)
+    (at-at/kill sched-fn player-pool)
+    (at-at/kill sched-fn)))
 
 (def ^{:dynamic true :private true} *apply-ahead*
   "Amount of time apply-by is scheduled to execute *before* it was
