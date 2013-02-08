@@ -37,28 +37,43 @@
        (gen-padding (str s pad) (dec len) pad)
        s)))
 
+(defn- indented-str-block*
+  [s ls cur-len max-len indent]
+  (if (empty? ls)
+    s
+    (let [f-len (.length (first ls))]
+      (if (.endsWith (first ls) "\n\n")
+        (if (> (+ cur-len f-len) max-len)
+          (indented-str-block* (str s "\n" (gen-padding indent) (first ls) (gen-padding indent)) (rest ls) 0 max-len indent)
+          (indented-str-block* (str s (first ls) (gen-padding indent)) (rest ls) 0 max-len indent))
+        (if (> (+ cur-len f-len) max-len)
+          (indented-str-block* (str s "\n" (gen-padding indent)) ls 0 max-len indent)
+          (indented-str-block* (str s (first ls) " ") (rest ls) (+ cur-len f-len) max-len indent))))))
+
 (defn indented-str-block
-  "Appends a list ls of strings to string s in a formatted block with a specific
-   width max-len and indentation indent. May be called with a basic text string
-   and max-len and indent in which case text will be split on whitespace.
+  "Appends a list ls of strings to string s in a formatted block with a
+   specific width max-len and indentation indent. May be called with a
+   basic text string and max-len and indent in which case text will be
+   split on whitespace.
 
   Will clobber all single \n found but will honour two in a row. This allows
   docstrings to contain \n for formatting purposes in source form rather than
   require them to exist on one large line."
-  ([txt max-len indent] (let [id (str (java.util.UUID/randomUUID))
-                              split-text (str/replace txt #"[\n]{2}" id)
-                              split-text (str/replace split-text "\n" " ")
-                              split-text (str/replace split-text id "\n\n ")
-                              split-text (str/split split-text #" +")]
-                          (indented-str-block "" split-text 0 max-len indent)))
-  ([s ls cur-len max-len indent]
-     (if (empty? ls)
-       s
-       (let [f-len (.length (first ls))]
-         (if (.endsWith (first ls) "\n\n")
-           (if (> (+ cur-len f-len) max-len)
-             (indented-str-block (str s "\n" (gen-padding indent) (first ls) (gen-padding indent)) (rest ls) 0 max-len indent)
-             (indented-str-block (str s (first ls) (gen-padding indent)) (rest ls) 0 max-len indent))
-           (if (> (+ cur-len f-len) max-len)
-             (indented-str-block (str s "\n" (gen-padding indent)) ls 0 max-len indent)
-             (indented-str-block (str s (first ls) " ") (rest ls) (+ cur-len f-len) max-len indent)))))))
+  ([txt max-len wrap-indent] (indented-str-block txt max-len wrap-indent 0))
+  ([txt max-len wrap-indent init-indent]
+     (let [id         (str (java.util.UUID/randomUUID))
+           txt        (str/replace txt #"[\n]{2}" id)
+           txt        (str/replace txt "\n" " ")
+           txt        (str/replace txt id "\n\n ")
+           txt        (str/replace txt #"\A +" "")
+           split-text (str/split txt #" +")
+           split-text (cons (str (gen-padding init-indent) (first split-text))
+                            (rest split-text))]
+       (indented-str-block* "" split-text 0 max-len wrap-indent))))
+
+(defn fs
+  "Format string. Synonym for indented-str-block but with a default
+   initial and wrap indentation of two characters. Also ensures that
+   there is whitespace above and below the text."
+  [txt]
+  (indented-str-block (str "\n\n" txt "\n\n") 70 7 2))
