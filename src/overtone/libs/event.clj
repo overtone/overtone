@@ -65,9 +65,9 @@
 
 (defn on-event
   "Asynchronously runs handler whenever events of event-type are
-  fired. This asynchronous behaviour can be overridden if required -
-  see sync-event for more information. Events may be triggered with
-  the fns event and sync-event.
+  fired. This asynchronous behaviour can be overridden if required - see
+  sync-event for more information. Events may be triggered with the fns
+  event and sync-event.
 
   Takes an event-type (name of the event), a handler fn and a key (to
   refer back to this handler in the future). The handler must accept a
@@ -135,14 +135,18 @@
 
 (defn oneshot-event
   "Add a one-shot handler which will be removed when called. This
-   handler is guaranteed to be called only once."
+   handler is guaranteed to be called only once.
+
+  (oneshot-event \"/foo\" (fn [v] (println v)) ::debug)"
   [event-type handler key]
   (log-event "Registering async self-removing event handler:: " event-type " with key: " key)
   (handlers/add-one-shot-handler! handler-pool event-type key handler))
 
 (defn oneshot-sync-event
-  "Add a synchronous one-shot handler which will be removed when called. This
-   handler is guaranteed to be called only once."
+  "Add a synchronous one-shot handler which will be removed when
+   called. This handler is guaranteed to be called only once.
+
+  (oneshot-sync-event \"/foo\" (fn [v] (println v)) ::debug)"
   [event-type handler key]
   (log-event "Registering sync self-removing event handler:: " event-type " with key: " key)
   (handlers/add-one-shot-sync-handler! handler-pool event-type key handler))
