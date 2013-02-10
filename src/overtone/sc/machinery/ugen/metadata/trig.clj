@@ -82,7 +82,8 @@
             :default 0
             :doc "an integer that will be passed with the trigger
                   message. This is useful if you have more than one
-                  SendTrig in a SynthDef"}
+                  SendTrig in a SynthDef. Consider using trig-id to
+                  genearate a unique id." }
 
            {:name "value"
             :default 0.0
@@ -99,13 +100,21 @@
 
           The trigger message sent back to the client is this:
 
-          /tr - trigger message
-
           int   - node ID
 
           int   - trigger ID
 
-          float - trigger value"}
+          float - trigger value
+
+          This is then presented as an event on the event-stream which
+          is a map containing the key :path with the string \"/tr\" and
+          the key :args containing a sequence of the values in the above
+          order. i.e.
+
+          {:path /tr, :args (34 3 123.0)}
+
+          See on-trigger, on-latest-trigger and on-sync-trigger for
+          registering handlers for trigger events."}
 
 
    {:name "SendReply"
