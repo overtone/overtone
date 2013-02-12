@@ -127,9 +127,7 @@
                                (try
                                  (handler event-map)
                                  (catch Exception e
-                                   (log/error "Handler Exception - with event-map: "
-                                              event-map
-                                              "\n"
+                                   (log/error "Handler Exception: "
                                               (with-out-str (.printStackTrace e)))))))
         [old _] (swap-returning-prev! lossy-workers* assoc key worker)]
     (when-let [old-worker (get old key)]
