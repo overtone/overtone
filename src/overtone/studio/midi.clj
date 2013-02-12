@@ -398,3 +398,13 @@
    release."
   []
   connected-midi-receivers*)
+
+(defn midi-device-num
+  "Returns the device number for the specified MIDI device"
+  [dev]
+  (::dev-num dev))
+
+(defn midi-full-device-key
+  "Returns the full device key for the specified MIDI device"
+  [dev]
+  (::full-device-key dev))
