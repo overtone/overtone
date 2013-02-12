@@ -1,4 +1,7 @@
-(ns overtone.helpers.ref)
+(ns
+    ^{:doc "Reference helper fns"
+      :author "Sam Aaron"}
+  overtone.helpers.ref)
 
 (defn swap-returning-prev!
   "Similar to swap! except returns vector containing the previous and new values
