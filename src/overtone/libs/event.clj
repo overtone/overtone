@@ -123,8 +123,14 @@
   event is all that matters."
   [event-type handler key]
   (log-event "Registering lossy event handler:: " event-type " with key:" key)
-  (let [worker (lossy-worker (fn [val]
-                               (handler val)))
+  (let [worker (lossy-worker (fn [event-map]
+                               (try
+                                 (handler event-map)
+                                 (catch Exception e
+                                   (log/error "Handler Exception - with event-map: "
+                                              event-map
+                                              "\n"
+                                              (with-out-str (.printStackTrace e)))))))
         [old _] (swap-returning-prev! lossy-workers* assoc key worker)]
     (when-let [old-worker (get old key)]
       (.put (:queue old-worker) :die))
