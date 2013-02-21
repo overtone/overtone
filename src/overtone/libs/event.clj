@@ -196,7 +196,7 @@
   (when @log-events?
     (log-event "event: " event-type " " args))
   (when @event-debug*
-    (println "event: " event-type " " args "\n"))
+    (println "event: " (with-out-str (pr event-type args)) "\n"))
   (when @monitoring?*
     (swap! monitor* assoc event-type args))
   (binding [overtone.libs.handlers/*log-fn* log/error]
