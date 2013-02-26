@@ -27,3 +27,5 @@ pom.xml
 .lein-repl-history
 .project
 target/
+/classes
+/.classpath
