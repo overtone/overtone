@@ -30,3 +30,4 @@ target/
 /classes
 /.classpath
 /bin
+/.settings
