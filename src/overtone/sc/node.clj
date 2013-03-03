@@ -603,7 +603,6 @@
   (kill [(hit) (hit) (hit)])
   "
   [& nodes]
-  (ensure-connected!)
   (doseq [node (flatten nodes)]
     (kill* node)))
 
