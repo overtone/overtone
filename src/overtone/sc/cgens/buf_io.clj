@@ -2,7 +2,8 @@
   (:use [overtone.sc defcgen ugens]))
 
 (defcgen scaled-play-buf
-  "Play back a sample resident in a buffer with a rate scaled depending on the buffer's sample-rate."
+  "Play back a sample resident in a buffer with a rate scaled depending
+   on the buffer's sample-rate."
   [num-channels {:doc "The number of channels that the buffer will be. This must be a fixed integer." :modulatable false}
    buf-num {:default 0 :doc "The index of the buffer to use."}
    rate {:default 1 :doc "Rate multiplier. 1.0 is the default rate for the specified buffer, 2.0 is one octave up, 0.5 is one octave down -1.0 is backwards normal rate ... etc. Interpolation is cubic."}
