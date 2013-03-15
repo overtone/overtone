@@ -4,7 +4,7 @@
   overtone.sc.foundation-groups
   (use [overtone.libs.deps                 :only [on-deps satisfy-deps]]
        [overtone.libs.event                :only [on-sync-event]]
-       [overtone.sc.node                   :only [group group-deep-clear]]
+       [overtone.sc.node                   :only [group group-deep-clear group-clear]]
        [overtone.sc.server                 :only [ensure-connected!]]
        [overtone.sc.defaults               :only [foundation-groups* empty-foundation-groups]]
        [overtone.sc.server                 :only [clear-msg-queue]]
@@ -192,6 +192,29 @@
                  (clear-msg-queue)
                  (group-deep-clear (foundation-default-group)))
                ::deep-clear-foundation-default-group)
+
+(on-sync-event :reset-safe
+               (fn [event-info]
+                 (ensure-connected!)
+                 (clear-msg-queue)
+                 (group-deep-clear (foundation-safe-pre-default-group))
+                 (group-deep-clear (foundation-safe-post-default-group)))
+               ::deep-clear-foundation-safe-groups)
+
+(on-sync-event :clear
+               (fn [event-info]
+                 (ensure-connected!)
+                 (clear-msg-queue)
+                 (group-clear (foundation-default-group)))
+               ::clear-foundation-default-group)
+
+(on-sync-event :clear-safe
+               (fn [event-info]
+                 (ensure-connected!)
+                 (clear-msg-queue)
+                 (group-clear (foundation-safe-pre-default-group))
+                 (group-clear (foundation-safe-post-default-group)))
+               ::clear-foundation-safe-groups)
 
 (on-sync-event :shutdown
                (fn [event-info]

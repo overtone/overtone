@@ -175,9 +175,37 @@
 (defn stop
   "Stop all running synths and metronomes. This does not remove any
   synths/insts you may have defined, rather it just stops any of them
-  that are currently playing."
+  that are currently playing. Groups are left unaffected."
   []
   (event :reset))
+
+(defn clear
+  "Stop all running synths and metronomes. This does not remove any
+  synths/insts you may have defined, rather it just stops any of them
+  that are currently playing. Subgroups are cleared out and removed."
+  []
+  (event :reset)
+  (event :clear))
+
+(defn stop-all
+  "Stop all running synths and metronomes including those in the safe
+  pre and post groups. This does not remove any synths/insts you may
+  have defined, rather it just stops any of them that are currently
+  playing. Groups are left unaffected"
+  []
+  (event :reset)
+  (event :reset-safe))
+
+(defn clear-all
+  "Stop all running synths and metronomes including those in the safe
+  pre and post groups. This does not remove any synths/insts you may
+  have defined, rather it just stops any of them that are currently
+  playing. Subgroups are cleared out and removed."
+  []
+  (event :reset)
+  (event :reset-safe)
+  (event :clear)
+  (event :clear-safe))
 
 (defn sc-osc-debug-on
   "Log and print out all outgoing OSC messages"
