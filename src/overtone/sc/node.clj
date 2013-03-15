@@ -593,24 +593,15 @@
       (node-control n args))
     (node-control node args)))
 
-
-
 (defn kill
-  "Free one or more synth nodes.
-  Functions that create instance of synth definitions, such as hit,
-  return a handle for the synth node that was created.
-  (let [handle (hit :sin)] ; returns => synth-handle
-  (kill (+ 1000 (now)) handle))
+  "Multi-purpose killing function.
 
-  ; a single handle without a time kills immediately
-  (kill handle)
-
-  ; or a bunch of synth handles can be removed at once
-  (kill (hit) (hit) (hit))
-
-  ; or a seq of synth handles can be removed at once
-  (kill [(hit) (hit) (hit)])
-  "
+  * running synths - Stop and removes the node from the node
+                     tree.
+  * groups         - Stops all synths within the group (and
+                     subgroups) but will leave the group structure
+                     intact.
+"
   [& nodes]
   (doseq [node (flatten nodes)]
     (kill* node)))
