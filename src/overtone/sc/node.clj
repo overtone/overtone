@@ -83,7 +83,9 @@
          the groups and synths contained within it.
 
          Low-level functionality. See node-tree for something more
-         usable." ))))
+         usable." )
+      (group-free [group]
+        "Destroys this group and any containing synths or subgroups."))))
 
 (extend-type java.lang.Long to-sc-id*    (to-sc-id [v] v))
 (extend-type java.lang.Integer to-sc-id* (to-sc-id [v] v))
@@ -357,9 +359,9 @@
 
 (defn- group-free*
   "Free synth groups, releasing their resources."
-  [& group-ids]
+  [group-id]
   (ensure-connected!)
-  (apply node-free group-ids))
+  (node-free group-id))
 
 (defn node-pause*
   "Pause a running synth node."
@@ -561,6 +563,13 @@
    :node-block-until-ready node-block-until-ready*})
 
 (extend SynthGroup
+  ISynthNode
+  {:node-free  node-free*
+   :node-pause node-pause*
+   :node-start node-start*
+   :node-place node-place*}
+
+
   IControllableNode
   {:node-control           node-control*
    :node-control-range     node-control-range*
@@ -710,7 +719,8 @@
    :group-clear        group-clear*
    :group-deep-clear   group-deep-clear*
    :group-post-tree    group-post-tree*
-   :group-node-tree    group-node-tree*}
+   :group-node-tree    group-node-tree*
+   :group-free         group-free*}
 
   IKillable
   {:kill* group-deep-clear*})
@@ -723,7 +733,8 @@
    :group-clear        group-clear*
    :group-deep-clear   group-deep-clear*
    :group-post-tree    group-post-tree*
-   :group-node-tree    group-node-tree*})
+   :group-node-tree    group-node-tree*
+   :group-free         group-free*})
 
 (defn node-tree
   "Returns a data representation of the synth node tree starting at
