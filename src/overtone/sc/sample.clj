@@ -17,7 +17,7 @@
   (do
     (defsynth mono-player
       "Plays a single channel audio buffer."
-      [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1 out-bus 0 ]
+      [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1 out-bus 0]
       (out out-bus (* vol
                       (pan2
                        (scaled-play-buf 1 buf rate
