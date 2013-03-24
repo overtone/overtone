@@ -166,9 +166,12 @@
 
 (defn sample-player
   "Play the specified sample with either a mono or stereo player
-   depending on the number of channels in the sample. Accepts same args
-   as both players, namely: [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol
-   1]"
+   depending on the number of channels in the sample. Always creates a
+   stereo signal.
+
+   Accepts same args as both players, namely:
+
+   [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1 out-bus 0]"
   [smpl & pargs] {:pre [(sample? smpl)]}
   (let [{:keys [path args]}     smpl
         {:keys [id n-channels]} (get @cached-samples* [path args])
