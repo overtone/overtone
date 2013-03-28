@@ -251,7 +251,9 @@
   (let [snode (get @active-synth-nodes* id)]
     (log/debug (format "node-destroyed: %d - synth-node: %s" id snode))
     (if snode
-      (reset! (:status snode) :destroyed)
+      (do
+        (reset! (:status snode) :destroyed)
+        (event [:overtone :node-destroyed (:id snode)] {:node snode}))
       (log/warn (format "ERROR: The fn node-destroyed can't find synth node: %d" id)))
     (swap! active-synth-nodes* dissoc id)))
 
@@ -263,6 +265,7 @@
     (if snode
       (do
         (reset! (:status snode) :live)
+        (event [:overtone :node-created (:id snode)] {:node snode})
         (deliver (:loaded? snode) true))
       (log/warn (format "ERROR: The fn node-created can't find synth node: %d" id)))))
 
@@ -272,7 +275,9 @@
   (let [snode (get @active-synth-nodes* id)]
     (log/debug (format "node-paused: %d\nsynth-node: %s" id snode))
     (if snode
-      (reset! (:status snode) :paused)
+      (do
+        (reset! (:status snode) :paused)
+        (event [:overtone :node-paused (:id snode)] {:node snode}))
       (log/warn (format "ERROR: The fn node-paused can't find synth node: %d" id)))))
 
 (defn- node-started
@@ -281,7 +286,9 @@
   (let [snode (get @active-synth-nodes* id)]
     (log/debug (format "node-started: %d\nsynth-node: %s" id snode))
     (if snode
-      (reset! (:status snode) :live)
+      (do
+        (reset! (:status snode) :live)
+        (event [:overtone :node-started (:id snode)] {:node snode}))
       (log/warn (format "ERROR: The fn node-started can't find synth node: %d" id)))))
 
 ;; Setup the feedback handlers with the audio server.
