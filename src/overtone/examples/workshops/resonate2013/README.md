@@ -70,4 +70,4 @@ If you prefer running a REPL directly via the command line, simply:
 
 Copyright © 2013 Karsten Schmidt
 
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the MIT License, same as Overtone.
