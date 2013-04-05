@@ -191,8 +191,8 @@
                :default 0.5
                :doc "amount of tail level"}
 
-              {:name "maxroomsize", :
-               default 300.0,
+              {:name "maxroomsize"
+               :default 300.0,
                :doc "to set the size of the delay lines." }],
 
        :rates #{:ar},
