@@ -4,6 +4,7 @@
 (def specs
   [
    {:name "BeatTrack",
+    :summary "Autocorrelation based beat tracker"
     :args [{:name "chain"
             :doc "Audio input to track, already passed through an FFT
                      UGen; the expected size of FFT is 1024 for 44100
@@ -19,30 +20,26 @@
                      the output until lock goes back below 0.5.  "}],
     :rates #{:kr}
     :num-outs 4
-    :doc "Autocorrelation based beat tracker
+    :doc "The underlying model assumes 4/4, but it should work on any
+          isochronous beat structure, though there are biases to 100-120
+          bpm; a fast 7/8 may not be tracked in that sense. There are
+          four k-rate outputs, being ticks at quarter, eighth and
+          sixteenth level from the determined beat, and the current
+          detected tempo. Note that the sixteenth note output won't
+          necessarily make much sense if the music being tracked has
+          swing; it is provided just as a convenience.
 
-             The underlying model assumes 4/4, but it should work on any
-             isochronous beat structure, though there are biases to
-             100-120 bpm; a fast 7/8 may not be tracked in that
-             sense. There are four k-rate outputs, being ticks at
-             quarter, eighth and sixteenth level from the determined
-             beat, and the current detected tempo. Note that the
-             sixteenth note output won't necessarily make much sense if
-             the music being tracked has swing; it is provided just as a
-             convenience.
+          This beat tracker determines the beat, biased to the midtempo
+          range by weighting functions. It does not determine the
+          measure level, only a tactus. It is also slow reacting, using
+          a 6 second temporal window for its autocorrelation
+          maneouvres. Don't expect human musician level predictive
+          tracking.
 
-             This beat tracker determines the beat, biased to the
-             midtempo range by weighting functions. It does not
-             determine the measure level, only a tactus. It is also slow
-             reacting, using a 6 second temporal window for its
-             autocorrelation maneouvres. Don't expect human musician
-             level predictive tracking.
-
-             On the other hand, it is tireless, relatively
-             general (though obviously best at transient 4/4 heavy
-             material without much expressive tempo variation), and can
-             form the basis of computer processing that is decidedly
-             faster than human. "}
+          On the other hand, it is tireless, relatively general (though
+          obviously best at transient 4/4 heavy material without much
+          expressive tempo variation), and can form the basis of
+          computer processing that is decidedly faster than human."}
 
 
 
@@ -64,13 +61,13 @@
                   the previous minus tmask phons"}]
     :rates #{:kr}
     :doc "A perceptual loudness function which outputs loudness in
-             sones; this is a variant of an MP3 perceptual model,
-             summing excitation in ERB bands. It models simple spectral
-             and temporal masking, with equal loudness contour
-             correction in ERB bands to obtain phons (relative dB), then
-             a phon to sone transform. The final output is typically in
-             the range of 0 to 64 sones, though higher values can occur
-             with specific synthesised stimuli." }
+          sones; this is a variant of an MP3 perceptual model, summing
+          excitation in ERB bands. It models simple spectral and
+          temporal masking, with equal loudness contour correction in
+          ERB bands to obtain phons (relative dB), then a phon to sone
+          transform. The final output is typically in the range of 0 to
+          64 sones, though higher values can occur with specific
+          synthesised stimuli." }
 
 
    {:name "Onsets",
@@ -274,6 +271,7 @@
 
 
    {:name "SpecPcile",
+    :summary "Find a percentile of FFT magnitude spectrum"
     :args [{:name "chain"
             :doc "An FFT chain"}
 
@@ -286,9 +284,7 @@
             :default 0
             :doc "Interpolation toggle - 0 off 1 on."}],
     :rates #{:kr}
-    :doc "Find a percentile of FFT magnitude spectrum
-
-          Given an FFT chain this calculates the cumulative distribution
+    :doc "Given an FFT chain this calculates the cumulative distribution
           of the frequency spectrum, and outputs the frequency value
           which corresponds to the desired percentile.
 
