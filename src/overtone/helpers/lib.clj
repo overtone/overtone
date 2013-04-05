@@ -194,20 +194,20 @@
       arg-map)))
 
 (defmacro defunk [name docstring args & body]
-  (let [arg-names (map first (partition 2 args))
-        arg-keys (vec (map keyword arg-names))
-        default-map (apply hash-map (syms-to-keywords args))]
-    (let [arg-pairs (map #(str (first %) " " (second %)) (partition 2 args))
-          arg-pairs-str (apply str (interpose ", " arg-pairs))
-          arg-string (str "[" arg-pairs-str "]")
-          indented-doc   (indented-str-block docstring 55 2)
-          full-docstring (str arg-string "\n\n  " indented-doc)]
-      `(defn ~name
-         ~full-docstring
-         [& args#]
-         (let [{:keys [~@arg-names]}
-               (arg-mapper args# ~arg-keys ~default-map)]
-           ~@body)))))
+  (let [arg-names      (map first (partition 2 args))
+        arg-keys       (vec (map keyword arg-names))
+        default-map    (apply hash-map (syms-to-keywords args))
+        arg-pairs      (map #(str (first %) " " (second %)) (partition 2 args))
+        arg-pairs-str  (apply str (interpose ", " arg-pairs))
+        arg-string     (str "[" arg-pairs-str "]")
+        indented-doc   (indented-str-block docstring 55 2)
+        full-docstring (str arg-string "\n\n  " indented-doc)]
+    `(defn ~name
+       ~full-docstring
+       [& args#]
+       (let [{:keys [~@arg-names]}
+             (arg-mapper args# ~arg-keys ~default-map)]
+         ~@body))))
 
 (defn invert-map
   "Takes a map m and returns a new map that's keys are the m's vals and
