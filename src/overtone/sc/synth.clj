@@ -137,9 +137,8 @@
   [ugens constants grouped-params]
   (let [constants (map float constants)
         outs  (map with-outputs ugens)
-        ins   (map #(with-inputs %1 outs constants grouped-params) outs)
-        final (map #(assoc %1 :args nil) ins)]
-    (doall final)))
+        ins   (map #(with-inputs %1 outs constants grouped-params) outs)]
+    (doall ins)))
 
 (defn- make-control-ugens
   "Controls are grouped by rate, so that a single Control ugen
