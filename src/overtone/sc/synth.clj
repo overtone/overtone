@@ -546,7 +546,6 @@
          smap# (with-meta
                  (map->Synth
                   {:name sname#
-                   :ugens ugens#
                    :sdef sdef#
                    :args arg-names#
                    :params params-with-vals#

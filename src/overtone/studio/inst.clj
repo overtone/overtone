@@ -114,7 +114,7 @@
               n-chans#
               inst-bus#]))))))
 
-(defrecord-ifn Inst [name params args ugens sdef
+(defrecord-ifn Inst [name params args sdef
                      group instance-group fx-group
                      mixer bus fx-chain
                      volume pan
@@ -167,7 +167,7 @@
          volume#    (atom DEFAULT-VOLUME)
          pan#       (atom DEFAULT-PAN)
          inst#      (with-meta
-                      (Inst. sname# params-with-vals# arg-names# ugens# sdef#
+                      (Inst. sname# params-with-vals# arg-names# sdef#
                              container-group# instance-group# fx-group#
                              imixer# inst-bus# fx-chain#
                              volume# pan#
