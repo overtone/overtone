@@ -291,6 +291,78 @@
         (event [:overtone :node-started (:id snode)] {:node snode}))
       (log/warn (format "ERROR: The fn node-started can't find synth node: %d" id)))))
 
+(defn node-destroyed-event-key
+  "Returns the key used for node destroyed events"
+  [node]
+  [:overtone :node-destroyed (to-sc-id node)])
+
+(defn node-created-event-key
+  "Returns the key used for node created events"
+  [node]
+  [:overtone :node-created (to-sc-id node)])
+
+(defn node-paused-event-key
+  "Returns the key used for node paused events"
+  [node]
+  [:overtone :node-paused (to-sc-id node)])
+
+(defn node-started-event-key
+  "Returns the key used for node started events"
+  [node]
+  [:overtone :node-started (to-sc-id node)])
+
+(defn on-node-destroyed
+  "Creates a oneshot event handler which will be triggered when node is
+   destroyed. Returns event handler key."
+  [node f]
+  (let [k  (uuid)
+        id (to-sc-id node)]
+    (oneshot-event (node-destroyed-event-key id)
+                   f
+                   id)
+    k))
+
+(defn on-node-created
+  "Creates a oneshot event handler which will be triggered when node is
+   created. Returns event handler key."
+  [node f]
+  (let [k  (uuid)
+        id (to-sc-id node)]
+    (oneshot-event (node-created-event-key id)
+                   f
+                   id)
+    k))
+
+(defn on-node-paused
+  "Creates a recurring event handler which will be triggered when node
+   is paused. This on-pause handler is automatically removed when node
+   is destroyed. Returns on-pause handler key."
+  [node f]
+  (let [k  (uuid)
+        id (to-sc-id node)]
+    (on-event (node-paused-event-key id)
+                   f
+                   id)
+    (oneshot-event (node-destroyed-event-key id)
+                   #(remove-handler k)
+                   (uuid))
+    k))
+
+(defn on-node-started
+  "Creates a recurring event handler which will be triggered when node
+   is paused. This on-started handler is automatically removed when node
+   is destroyed. Returns on-started handler key."
+  [node f]
+  (let [k  (uuid)
+        id (to-sc-id node)]
+    (on-event (node-started-event-key id)
+                   f
+                   id)
+    (oneshot-event (node-destroyed-event-key id)
+                   #(remove-handler k)
+                   (uuid))
+    k))
+
 ;; Setup the feedback handlers with the audio server.
 (on-event "/n_end" (fn [info] (node-destroyed (first (:args info)))) ::node-destroyer)
 (on-event "/n_go"  (fn [info] (node-created   (first (:args info)))) ::node-creator)
