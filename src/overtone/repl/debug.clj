@@ -1,7 +1,8 @@
 (ns overtone.repl.debug
   (:use [clojure.pprint]
         [overtone.sc.machinery.ugen.defaults]
-        [overtone.helpers seq]))
+        [overtone.sc.machinery.ugen.special-ops]
+        [overtone.helpers seq lib]))
 
 (defn- unify-input
   [input ugens constants]
@@ -11,9 +12,17 @@
       {:name (:name (nth ugens idx))
        :id idx})))
 
+(defn- unify-ugen-name
+  [ugen]
+  (let [name (:name ugen)]
+    (cond
+     (= "BinaryOpUGen" name) (REVERSE-BINARY-OPS (:special ugen))
+     (= "UnaryOpUGen" name) (REVERSE-UNARY-OPS (:special ugen))
+     :else (overtone-ugen-name name))))
+
 (defn- unify-ugen
   [ugen ugens sdef]
-  {:name (:name ugen)
+  {:name (unify-ugen-name ugen)
    :rate (REVERSE-RATES (:rate ugen))
    :special (:special ugen)
    :inputs (map #(unify-input % ugens (:constants sdef)) (:inputs ugen))
