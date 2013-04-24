@@ -98,15 +98,13 @@
         out-mixers (doall
                     (map
                      (fn [out-bus]
-                       (out-bus-mixer :pos :head
-                                      :target (foundation-output-group)
+                       (out-bus-mixer [:head (foundation-output-group)]
                                       :out-bus out-bus))
                      (range out-cnt)))
         in-mixers  (doall
                     (map
                      (fn [in-bus]
-                       (in-bus-mixer :pos :head
-                                     :target (foundation-input-group)
+                       (in-bus-mixer [:head (foundation-input-group)]
                                      :in-bus (+ out-cnt in-bus)))
                      (range in-cnt)))]
 

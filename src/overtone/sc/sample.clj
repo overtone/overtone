@@ -179,8 +179,8 @@
                                                                (foundation-default-group)
                                                                :tail)]
     (cond
-      (= n-channels 1) (apply mono-player :tgt target :pos pos id pargs)
-      (= n-channels 2) (apply stereo-player :tgt target :pos pos id pargs))))
+      (= n-channels 1) (apply mono-player [pos target] id pargs)
+      (= n-channels 2) (apply stereo-player [pos target] id pargs))))
 
 (defrecord-ifn PlayableSample
   [id size n-channels rate status path args name]

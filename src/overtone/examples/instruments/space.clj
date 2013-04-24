@@ -48,6 +48,6 @@
                                               1))))]
     (out out-bus (* env amp (pan2 y)))))
 
-;;(space-theremin :pos :head :out-bus 10 :amp 0.8 :cutoff 1000)
-;;(space-reverb :pos :tail :in-bus 10)
+;;(def st (space-theremin :out-bus 10 :amp 0.8 :cutoff 1000))
+;;(space-reverb [:after st] :in-bus 10)
 ;;(stop)

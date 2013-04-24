@@ -67,7 +67,7 @@
   (ensure-node-active! inst)
   (let [fx-group (:fx-group inst)
         bus      (:bus inst)
-        fx-id    (fx :tgt fx-group :pos :tail :bus bus)]
+        fx-id    (fx [:tail fx-group] :bus bus)]
     fx-id))
 
 (defmethod inst-fx! :stereo
@@ -76,8 +76,8 @@
   (let [fx-group (:fx-group inst)
         bus-l    (to-sc-id (:bus inst))
         bus-r    (inc bus-l)
-        fx-ids   [(fx :tgt fx-group :pos :tail :bus bus-l)
-                  (fx :tgt fx-group :pos :tail :bus bus-r)]]
+        fx-ids   [(fx [:tail fx-group] :bus bus-l)
+                  (fx [:tail fx-group] :bus bus-r)]]
     fx-ids))
 
 (defn clear-fx
@@ -157,8 +157,7 @@
 
          imixer#    (or (:mixer new-inst#)
                         (inst-mixer n-chans#
-                                    :tgt container-group#
-                                    :pos :tail
+                                    [:tail container-group#]
                                     :in-bus inst-bus#))
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
