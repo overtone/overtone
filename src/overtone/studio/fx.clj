@@ -103,7 +103,7 @@
         snd (/ (* src (+ 1 k)) (+ 1 (* k (abs src))))]
     (replace-out bus snd)))
 
-(defsynth bitcrusher
+(defsynth fx-bitcrusher
   [in-bus 0]
   (let [src (in in-bus)
         resolution (/ (Math/pow 2 (dec BITS)) 2)
@@ -150,4 +150,3 @@
         snd (clip:ar (distort snd) 0 0.9)
         fb-out (local-out (* decay snd))]
     (replace-out bus snd)))
-
