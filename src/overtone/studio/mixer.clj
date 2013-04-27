@@ -155,7 +155,7 @@
 
   (let [path (resolve-tilde-path path)
         bs   (apply buffer-stream path args)
-        rec  (master-recorder :target (foundation-monitor-group) bs)]
+        rec  (master-recorder [:tail (foundation-monitor-group)] bs)]
     (swap! studio* assoc :recorder {:rec-id rec
                                     :buf-stream bs})
     :recording-started))

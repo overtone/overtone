@@ -58,8 +58,8 @@
 ;; also put them in the early group to ensure that their signals get sent first.
 
 (comment
-  (def tri-synth-inst (tri-synth :tgt early-g tri-bus))
-  (def sin-synth-inst (sin-synth :tgt early-g sin-bus))
+  (def tri-synth-inst (tri-synth [:tail early-g] tri-bus))
+  (def sin-synth-inst (sin-synth [:tail early-g] sin-bus))
   )
 
 ;; Notice how these synths aren't making or controlling any sound. This is because
@@ -112,8 +112,8 @@
 
 ;; Evaluate these to use the signals on the buses to modulate synth parameters
 (comment
-  (def mvt (modulated-vol-tri :tgt later-g sin-bus))
-  (def mft (modulated-freq-tri :tgt later-g sin-bus))
+  (def mvt (modulated-vol-tri [:tail later-g] sin-bus))
+  (def mft (modulated-freq-tri [:tail later-g] sin-bus))
   )
 
 ;; Fun fact: These two examples are key features
@@ -150,7 +150,7 @@
 
 ;; Or can re-use them!
 (comment
-  (def mvt-2 (modulated-vol-tri :tgt later-g sin-bus 110))
+  (def mvt-2 (modulated-vol-tri [:tail later-g] sin-bus 110))
   (kill mvt-2)
   )
 
@@ -159,8 +159,8 @@
   (do
     (ctl tri-synth-inst :freq 5)
     (ctl sin-synth-inst :freq 5)
-    (def mft-2 (modulated-freq-tri :tgt later-g sin-bus 220 55))
-    (def mft-3 (modulated-freq-tri :tgt later-g tri-bus 220 55)))
+    (def mft-2 (modulated-freq-tri [:tail later-g] sin-bus 220 55))
+    (def mft-3 (modulated-freq-tri [:tail later-g] tri-bus 220 55)))
   (ctl sin-synth-inst :freq 4)
   (kill mft-2 mft-3)
   )

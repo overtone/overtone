@@ -158,8 +158,8 @@
 (defn- start-bus-synth
   [bus buf control-rate?]
   (if control-rate?
-    (control-bus->buf :target @scope-group* bus buf)
-    (bus->buf :target @scope-group* bus buf)))
+    (control-bus->buf [:tail @scope-group*] bus buf)
+    (bus->buf [:tail @scope-group*] bus buf)))
 
 (defn- scope-bus
   "Set a bus to view in the scope."
@@ -191,7 +191,7 @@
 
 (defn- start-bus-freq-synth
   [bus buf]
-  (bus-freqs->buf :target @scope-group* bus buf))
+  (bus-freqs->buf [:tail @scope-group*] bus buf))
 
 (defn- scope-bus-freq
   [s]

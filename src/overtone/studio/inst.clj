@@ -120,7 +120,7 @@
                      volume pan
                      n-chans]
   (fn [this & args]
-    (apply synth-player sdef params this :tgt instance-group args))
+    (apply synth-player sdef params this [:tail instance-group] args))
 
   to-sc-id*
   (to-sc-id [_] (to-sc-id instance-group)))
