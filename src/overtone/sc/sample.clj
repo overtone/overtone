@@ -220,5 +220,11 @@
 (derive ::sample :overtone.sc.buffer/file-buffer)
 (derive ::playable-sample ::sample)
 
-(defmacro defsample [s-name path & args]
+(defmacro defsample
+  "Define a s-name as a var in the current namespace referencing a
+   sample with the specified path and args.
+
+   Equivalent to:
+   (def s-name (sample path args...))"
+  [s-name path & args]
   `(def ~s-name (sample ~path ~@args)))
