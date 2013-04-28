@@ -46,12 +46,7 @@
     (throw (Exception. (str "Sorry, it's only possible to use scopes with an internal server. Your server connection info is as follows: " (connection-info))))))
 
 (defn- update-scope-data
-  "Updates the scope by reading the current status of the buffer and repainting.
-  Currently only updates bus scope as there's a bug in scsynth-jna which
-  crashes the server after too many calls to buffer-data for a large
-  buffer. As buffers tend to be large, updating the scope frequently
-  will cause the crash to happen sooner. Need to remove this limitation
-  when scsynth-jna is fixed."
+  "Updates the scope by reading the current status of the buffer and repainting."
   [s]
 
   (let [{:keys [buf size width height panel y-arrays x-array panel]} s
