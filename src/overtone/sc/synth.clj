@@ -554,10 +554,10 @@
   "
   [& args]
   `(let [[sname# params# ugens# constants#] (pre-synth ~@args)
-         sdef# (synthdef sname# params# ugens# constants#)
-         arg-names# (map :name params#)
+         sdef#             (synthdef sname# params# ugens# constants#)
+         arg-names#        (map :name params#)
          params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
-         instance-fn# (apply comp (map :instance-fn (filter :instance-fn (map meta ugens#))))
+         instance-fn#      (apply comp (map :instance-fn (filter :instance-fn (map meta ugens#))))
          smap# (with-meta
                  (map->Synth
                   {:name sname#
@@ -565,7 +565,7 @@
                    :args arg-names#
                    :params params-with-vals#
                    :instance-fn instance-fn#})
-                 {:overtone.live/to-string #(str (name (:type %)) ":" (:name %))})]
+                 {:overtone.live/to-string #(str (name (:type %)) ":" (:name %))})] ;; TODO what on earth is this?
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
      smap#))
