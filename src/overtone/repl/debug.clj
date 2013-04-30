@@ -2,6 +2,7 @@
   (:use [clojure.pprint]
         [overtone.sc.machinery.ugen.defaults]
         [overtone.sc.machinery.ugen.special-ops]
+        [overtone.sc.machinery.ugen.specs]
         [overtone.helpers seq lib]))
 
 (defn- unify-input
@@ -35,7 +36,7 @@
   (map (fn [input]
          (if (number? input)
            input
-           {:name (:name input)
+           {:name (overtone-ugen-name (:name input))
             :id (index-of ugens (find-first #(= (:id %) (:id input)) ugens))}))
        inputs))
 
@@ -48,10 +49,11 @@
                        :id idx
                        :inputs (into {}
                                      (map (fn [clean-input input]
-                                            [(keyword (:name input))
-                                             clean-input])
+                                            [(keyword (:name input)) clean-input])
                                           (fix-input-refs (:inputs ug) ugens)
-                                          (-> o-ug :spec :args)))))
+                                          (or (:args (get-ugen-spec (:name ug)))
+                                              [{:name "a"}
+                                               {:name "b"}])))))
                    ugens
                    orig-ugens
                    (range))]

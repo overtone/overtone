@@ -512,3 +512,5 @@
 
 (defn get-ugen [word]
   (get UGEN-SPECS (normalize-ugen-name word)))
+
+(def get-ugen-spec get-ugen)
