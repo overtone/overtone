@@ -69,7 +69,7 @@
                           [gcount
                            (conj seqs (repeat arg))
                            (next flags)]))
-          [greatest-count seqs] (reduce gc-seqs [1 [] expand-flags] args)]
+          [greatest-count seqs _] (reduce gc-seqs [1 [] expand-flags] args)]
       (take greatest-count (parallel-seqs seqs)))))
 
 (defn mk-scugen
