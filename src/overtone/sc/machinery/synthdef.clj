@@ -140,19 +140,21 @@
                 synth-name
                 ".scsyndef")))
 
-; TODO: byte array shouldn't really be the default here, but I don't
-; know how to test for one correctly... (byte-array? data) please?
+;; TODO: byte array shouldn't really be the default here, but I don't
+;; know how to test for one correctly... (byte-array? data) please?
 (defn synthdef-read
   "Reads synthdef data from either a file specified using a string path
   a URL, or a byte array."
   [data]
-  (first (:synths
-          (cond
-           (keyword? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" (supercollider-synthdef-path (to-str data)))) )
-           (string? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" (resolve-tilde-path data))))
-           (instance? java.net.URL data) (spec-read-url synthdef-file-spec data)
-           (byte-array? data) (spec-read-bytes synthdef-file-spec data)
-           :default (throw (IllegalArgumentException. (str "synthdef-read expects either a string, a URL, or a byte-array argument.")))))))
+  (with-meta
+    (first (:synths
+            (cond
+             (keyword? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" (supercollider-synthdef-path (to-str data)))) )
+             (string? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" (resolve-tilde-path data))))
+             (instance? java.net.URL data) (spec-read-url synthdef-file-spec data)
+             (byte-array? data) (spec-read-bytes synthdef-file-spec data)
+             :default (throw (IllegalArgumentException. (str "synthdef-read expects either a string, a URL, or a byte-array argument."))))))
+    {:type ::imported-synthdef}))
 
 (defn synthdef-write
   "Write a synth definition to a new file at the given path, which includes
