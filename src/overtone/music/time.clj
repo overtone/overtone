@@ -84,6 +84,9 @@
    until *apply-ahead* ms before that time, if ms-time is in the past
    function application is immediate.
 
+   If you wish to apply at a specific time rather than slightly before
+   it, see apply-at.
+
    Can be used to implement the 'temporal recursion' pattern. This is
    where a function has a call to apply-by at its tail:
 
@@ -123,6 +126,9 @@
    that it takes an additional initial argument: ms-time. If ms-time is
    in the future, function application is delayed until that time, if
    ms-time is in the past function application is immediate.
+
+   If you wish to apply slightly before specific time rather than
+   exactly at it, see apply-by.
 
    Can be used to implement the 'temporal recursion' pattern. This is
    where a function has a call to apply-at at its tail:
