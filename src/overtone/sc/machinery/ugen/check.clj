@@ -71,7 +71,7 @@
   (str "Rate mismatch: "
        (name-of (first inputs))
        " is at rate "
-       (:rate-name (first inputs))
+       (with-out-str (pr (:rate-name (first inputs))))
        " yet the containing ugen is at "
        (REVERSE-RATES rate))
   (= (:rate (first inputs)) rate))
