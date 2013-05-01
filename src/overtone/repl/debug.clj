@@ -3,6 +3,7 @@
         [overtone.sc.machinery.ugen.defaults]
         [overtone.sc.machinery.ugen.special-ops]
         [overtone.sc.machinery.ugen.specs]
+        [overtone.sc.machinery.synthdef]
         [overtone.helpers seq lib]))
 
 (defn- unify-input
@@ -59,11 +60,7 @@
                    (range))]
     (sort #(compare (:name %1) (:name %2)) ugens)))
 
-(defn unify-synthdef
-  "Munge synthdef into a readable 'unified' format - ensures that two
-  similar synthdefs will be similarly ordered. Does not preserve ugen
-  order. Useful for comparing two ugen synthdefs (i.e. an Overtone and
-  SCLang synthdef) side-by-side."
+(defn- unify-synthdef-sdef
   [sdef]
   {:name    (:name sdef)
    :params  (:params sdef)
@@ -71,7 +68,51 @@
    :n-ugens (count (:ugens sdef))
    :ugens   (unify-ugens (:ugens sdef) sdef)})
 
-(defn pp-unified-sc-synth
+(defmulti unify-synthdef
+  "Munge synthdef into a readable 'unified' format - ensures that two
+  similar synthdefs will be similarly ordered. Does not preserve ugen
+  order. Useful for comparing two ugen synthdefs (i.e. an Overtone and
+  SCLang synthdef) side-by-side.
+
+  Accepts at least the following synthdef args types:
+  * synths
+  * synthdefs
+  * imported-synthdefs
+  * keyword (will look up the synthdef with the name matching keyword
+    in the default SuperCollider synthdef directory
+  * string (will look up the synthdef with a path matching string)
+  * URL (will look up the synthdef with URL)"
+  type)
+
+(defmethod unify-synthdef :overtone.sc.machinery.synthdef/synthdef
+  [sdef]
+  (unify-synthdef-sdef sdef))
+
+(defmethod unify-synthdef :overtone.sc.machinery.synthdef/imported-synthdef
+  [sdef]
+  (unify-synthdef-sdef sdef))
+
+(defmethod unify-synthdef clojure.lang.Keyword
+  [sdef-k]
+  (unify-synthdef (synthdef-read sdef-k)))
+
+(defmethod unify-synthdef java.lang.String
+  [sdef-s]
+  (unify-synthdef (synthdef-read sdef-s)))
+
+(defmethod unify-synthdef java.net.URL
+  [sdef-u]
+  (unify-synthdef (synthdef-read sdef-u)))
+
+(defmethod unify-synthdef overtone.sc.synth.Synth
+  [sdef]
+  (unify-synthdef (:sdef sdef)))
+
+(defmethod unify-synthdef :default
+  [sdef]
+  (throw (IllegalArgumentException. (str "Unknown synthdef type to unify: " (type sdef)))))
+
+(defn pp-unified-synthdef
   "Pretty print a unified version of an sc synth based on the name of
   the scsynth. Looks into the appropriate SC directory for synthdef."
   [synth-name]
