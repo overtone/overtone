@@ -224,6 +224,12 @@
         arg-list    (vec (map arg-map arg-names))]
     (assoc ugen :args arg-list :arg-map arg-map :orig-args args)))
 
+(defn ugen-sequence-mode?
+  [mode]
+  (or (= :append-sequence mode)
+      (= :append-sequence-set-num-outs mode)
+      (= :append-string mode)))
+
 (defn- append-seq-args
   "Handles argument modes :append-sequence and :append-sequence-set-num-outs,
   and :append-string  where some ugens take a seq or string for one argument
@@ -231,9 +237,7 @@
   (and in the case of strings need to be converted to a list of char ints)"
   [spec ugen]
   (let [args-specs     (args-with-specs (:args ugen) spec :mode)
-        pred           #(or (= :append-sequence (second %))
-                            (= :append-sequence-set-num-outs (second %))
-                            (= :append-string (second %)))
+        pred           #(ugen-sequence-mode? (second %))
         normal-args    (map first (remove pred args-specs))
         to-append      (filter pred args-specs)
         intify-strings (map (fn [[arg spec]]
