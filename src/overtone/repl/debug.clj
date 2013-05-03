@@ -46,15 +46,27 @@
   (let [ugens (map (fn [ug idx] (assoc ug :id idx)) orig-ugens (range))
         ugens (map #(unify-ugen % ugens sdef) ugens)
         ugens (map (fn [ug o-ug idx]
-                     (assoc ug
-                       :id idx
-                       :inputs (into {}
-                                     (map (fn [clean-input input]
-                                            [(keyword (:name input)) clean-input])
-                                          (fix-input-refs (:inputs ug) ugens)
-                                          (or (:args (get-ugen-spec (:name ug)))
-                                              [{:name "a"}
-                                               {:name "b"}])))))
+                     (let [inputs      (fix-input-refs (:inputs ug) ugens )
+                           input-specs (or (:args (get-ugen-spec (:name ug)))
+                                           [{:name "a"}
+                                            {:name "b"}]) ]
+                       (assoc ug
+                         :id idx
+                         :inputs (loop [res {}
+                                        inputs inputs
+                                        input-specs input-specs]
+                                   (if (empty? input-specs)
+                                     res
+                                     (if (ugen-sequence-mode? (:mode (first input-specs)))
+                                       (let [arg-seq (drop (dec (count input-specs)) inputs)
+                                             inputs  (drop-last (count arg-seq) inputs)]
+                                         (recur (assoc res (keyword (:name (first input-specs))) (vec arg-seq))
+                                                inputs
+                                                (rest input-specs)))
+
+                                       (recur (assoc res (keyword (:name (first input-specs))) (first inputs))
+                                              (rest inputs)
+                                              (rest input-specs))))))))
                    ugens
                    orig-ugens
                    (range))]
