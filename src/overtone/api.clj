@@ -12,7 +12,7 @@
                                line freq beq-suite berlach bhob info]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio mixer inst util fx wavetable midi core]
-            [overtone.repl ugens examples shell inst debug]
+            [overtone.repl ugens examples shell inst debug graphviz]
             [overtone.libs asset event freesound]
             [overtone.gui scope mixer control]))
 
@@ -69,6 +69,7 @@
    'overtone.repl.shell
    'overtone.repl.inst
    'overtone.repl.debug
+   'overtone.repl.graphviz
    'overtone.libs.asset
    'overtone.libs.event
    'overtone.libs.freesound
