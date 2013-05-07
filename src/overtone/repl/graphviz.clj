@@ -18,14 +18,29 @@
 
 (defn- chop-last-char
   [s]
-  (subs s 0 (dec (count s))))
+  (if (empty? s)
+    s
+    (subs s 0 (dec (count s)))))
+
+(defn- generate-vec-arg-info
+  [in-name in-vals]
+  (chop-last-char
+   (with-out-str
+     (dorun (map (fn [idx v]
+                   (cond
+                    (associative? v) (print (str "<" (safe-name in-name) "___" (safe-name (:name v)) "___" idx ">"))
+                    (number? v) (print v)
+                    :else (println "Unkown Input Val"))
+                   (print "|"))
+                 (range)
+                 in-vals)))))
 
 (defn- generate-node-info
   [ugs]
   (with-out-str
     (doseq [ug ugs]
-      (if (= "control" (:name ug))
-        (println (str (:id ug) " [label = \"" "Control"  "\" shape=doubleoctagon ]; "))
+      (if (:control-param ug)
+        (println (str (:id ug) " [label = \"" (-> ug :name) "\n " (keyword (-> ug :control-param :name))  "\n default: " (-> ug :control-param :default) "\" shape=doubleoctagon ]; "))
         (println (str (:id ug)
                       (with-out-str
                         (print " [label = \"{{ ")
@@ -33,29 +48,35 @@
                          (chop-last-char
                           (with-out-str
                             (doseq [[in-name in-val] (reverse (:inputs ug))]
-                              (print (str "<"
-                                          (safe-name in-name)
-                                          "> "
+                              (print (str (if (vector? in-val)
+                                            "{{"
+                                            (str "<" (safe-name in-name) "> "))
                                           (cond
                                            (simple-ugen? ug) (if (number? in-val)
                                                                in-val
                                                                "")
 
                                            (number? in-val) (str (name in-name) " " in-val)
-
+                                           (vector? in-val) (generate-vec-arg-info in-name in-val)
                                            :else (name in-name))
+                                          (when (vector? in-val)
+                                            (str "}|" (name in-name) "}"))
                                           "|"))))))
                         (print "} |"))
                       (:name ug)
 
                       " }\" style=" (cond
-                                     (= :ar (:rate ug)) "rounded"
-                                     :else "solid") " shape=record rankdir=LR];"))))))
+                                     (= :ar (:rate ug)) "\"bold, rounded\""
+                                     :else "\"rounded\"") " shape=record rankdir=LR];"))))))
 
 (defn- print-connection
   [n input ug]
   (cond
-   (vector? input)      (doseq [i input] (print-connection n i ug))
+   (vector? input)      (dorun (map (fn [idx i]
+                                      (when (associative? i)
+                                        (println (str (:id i) " -> " (:id ug) ":" (safe-name n) "___" (safe-name (:name i)) "___" idx " ;"))))
+                                    (range)
+                                    input))
    (associative? input) (println (str (:id input) " -> " (:id ug) ":" (safe-name n) " ;"))))
 
 (defn- generate-node-connections
