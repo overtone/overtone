@@ -130,7 +130,11 @@
                  (let [val (to-id val)
                        val (to-float val)]
                    (when (not (float? val))
-                     (throw (IllegalArgumentException. (str "Incorrect arg. Was expecting a float and found " val ". Full arg map: " arg-map))))
+                     (throw (IllegalArgumentException.
+                             (str "Incorrect arg. Was expecting a float and found "
+                                  (with-out-str (pr val))
+                                  ". Full arg map: "
+                                  (with-out-str (pr arg-map))))))
                    val))]
 
     (zipmap (map name-fn (keys arg-map))
