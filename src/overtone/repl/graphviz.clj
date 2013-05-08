@@ -35,6 +35,14 @@
                  (range)
                  in-vals)))))
 
+(defn- graphviz-escape-chars
+  [s]
+  (let [esc-chars "<>{}\\"
+        char->esc (zipmap esc-chars
+                          (map #(str "\\" %) esc-chars))]
+    (apply str (replace char->esc s))))
+
+
 (defn- generate-node-info
   [ugs]
   (with-out-str
@@ -63,7 +71,7 @@
                                             (str "}|" (name in-name) "}"))
                                           "|"))))))
                         (print "} |"))
-                      (:name ug)
+                      "<__UG_NAME__>"(graphviz-escape-chars (:name ug))
 
                       " }\" style=" (cond
                                      (= :ar (:rate ug)) "\"bold, rounded\""
@@ -74,10 +82,10 @@
   (cond
    (vector? input)      (dorun (map (fn [idx i]
                                       (when (associative? i)
-                                        (println (str (:id i) " -> " (:id ug) ":" (safe-name n) "___" (safe-name (:name i)) "___" idx " ;"))))
+                                        (println (str (:id i) ":__UG_NAME__ -> " (:id ug) ":" (safe-name n) "___" (safe-name (:name i)) "___" idx " ;"))))
                                     (range)
                                     input))
-   (associative? input) (println (str (:id input) " -> " (:id ug) ":" (safe-name n) " ;"))))
+   (associative? input) (println (str (:id input) ":__UG_NAME__ -> " (:id ug) ":" (safe-name n) " ;"))))
 
 (defn- generate-node-connections
   [ugs]
