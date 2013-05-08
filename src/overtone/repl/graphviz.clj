@@ -1,5 +1,5 @@
 (ns overtone.repl.graphviz
-  (:use [overtone.repl.debug :only [unify-synthdef]]
+  (:use [overtone.repl.debug :only [unified-sdef]]
         [overtone.sc.machinery.ugen.metadata.unaryopugen]
         [overtone.sc.machinery.ugen.metadata.binaryopugen]
         [overtone.helpers.system :only [mac-os?]]
@@ -103,10 +103,10 @@
 
 (defn graphviz
   "Generate dot notation for synth design.
-   (see overtone.repl.deub/unify-synthdef)"
+   (see overtone.repl.deub/unified-sdef)"
   [s]
   (str "digraph synthdef {\n"
-       (generate-unified-synth-gv (unify-synthdef s))
+       (generate-unified-synth-gv (unified-sdef s))
        "\n}"))
 
 (defn show-graphviz-synth

@@ -156,7 +156,7 @@
              (dissoc :index)))
        (:pnames sdef)))
 
-(defn- unify-synthdef-sdef
+(defn- unify-sdef
   [sdef]
   (with-meta
     (let [unified-params (unify-params sdef) ]
@@ -166,11 +166,9 @@
        :ugens   (unify-ugens (:ugens sdef) (assoc sdef :unified-params unified-params))})
     {:type ::unified-synthdef}))
 
-(defmulti unify-synthdef
-  "Munge synthdef into a readable 'unified' format - ensures that two
-  similar synthdefs will be similarly ordered. Does not preserve ugen
-  order. Useful for comparing two ugen synthdefs (i.e. an Overtone and
-  SCLang synthdef) side-by-side.
+(defmulti sdef
+  "Extract the synthesis definition (sdef) from the argument using the
+  appropriate means
 
   Accepts at least the following synthdef args types:
   * synths
@@ -182,66 +180,58 @@
   * URL (will look up the synthdef with URL)"
   type)
 
-(defmethod unify-synthdef :overtone.sc.machinery.synthdef/synthdef
+(defmethod sdef :overtone.sc.machinery.synthdef/synthdef
+  [s]
+  s)
+
+(defmethod sdef :overtone.sc.machinery.synthdef/imported-synthdef
+  [s]
+  s)
+
+(defmethod sdef clojure.lang.Keyword
+  [s-k]
+  (sdef (synthdef-read s-k)))
+
+(defmethod sdef java.lang.String
+  [s-s]
+  (sdef (synthdef-read s-s)))
+
+(defmethod sdef java.net.URL
+  [s-u]
+  (sdef (synthdef-read s-u)))
+
+(defmethod sdef overtone.sc.synth.Synth
+  [s]
+  (sdef (:sdef s)))
+
+(defmethod sdef overtone.studio.inst.Inst
+  [s]
+  (sdef (:sdef s)))
+
+(defmethod sdef :default
   [sdef]
-  (unify-synthdef-sdef sdef))
+  (throw (IllegalArgumentException. (str "Unable to convert to sdef: " (type sdef)))))
 
-(defmethod unify-synthdef :overtone.sc.machinery.synthdef/imported-synthdef
+(defn unified-sdef
+  [s]
+  "Munge synthdef into a readable 'unified' format - ensures that two
+  similar synthdefs will be similarly ordered. Does not preserve ugen
+  order. Useful for comparing two ugen synthdefs (i.e. an Overtone and
+  SCLang synthdef) side-by-side."
+  (unify-sdef (sdef s)))
+
+(defn pp-unified-sdef
+  "Pretty print a unified version of an overtone or sc synth. See
+   sdef for arg options"
   [sdef]
-  (unify-synthdef-sdef sdef))
+  (pprint (unified-sdef sdef)))
 
-(defmethod unify-synthdef clojure.lang.Keyword
-  [sdef-k]
-  (unify-synthdef (synthdef-read sdef-k)))
-
-(defmethod unify-synthdef java.lang.String
-  [sdef-s]
-  (unify-synthdef (synthdef-read sdef-s)))
-
-(defmethod unify-synthdef java.net.URL
-  [sdef-u]
-  (unify-synthdef (synthdef-read sdef-u)))
-
-(defmethod unify-synthdef overtone.sc.synth.Synth
-  [sdef]
-  (unify-synthdef (:sdef sdef)))
-
-(defmethod unify-synthdef overtone.studio.inst.Inst
-  [sdef]
-  (unify-synthdef (:sdef sdef)))
-
-(defmethod unify-synthdef :default
-  [sdef]
-  (throw (IllegalArgumentException. (str "Unknown synthdef type to unify: " (type sdef)))))
-
-(defn pp-unified-synthdef
-  "Pretty print a unified version of an sc synth based on the name of
-  the scsynth. Looks into the appropriate SC directory for synthdef."
-  [synth-name]
-  (pprint
-   (unify-synthdef
-    (overtone.sc.machinery.synthdef/synthdef-read (keyword synth-name)))))
-
-(defn pp-sc-synth
+(defn pp-sdef
   "Pretty print an unmodified version of an sc synth based on the name
   of the scsynth. Looks into the appropriate SC directory for
   synthdef."
-  [synth-name]
-  (pprint
-   (overtone.sc.machinery.synthdef/synthdef-read (keyword synth-name))))
-
-(defn pp-unified-synth
-  "Pretty print a unified version of an Overtone synth."
-  [synth]
-  (pprint
-   (unify-synthdef
-    (:sdef synth))))
-
-(defn pp-synth
-  "Pretty print an unmodified version of an Overtone synth"
-  [synth]
-  (pprint
-   (:sdef synth)))
+  [s]
+  (pprint (sdef s)))
 
 (defmacro opp
   "Pretty-print x (or *1 if no argument is passed)"
