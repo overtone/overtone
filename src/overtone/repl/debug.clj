@@ -115,7 +115,7 @@
             (conj res (assoc ug
                         :inputs {}
                         :orig-id c-idx
-                        :control-param (nth (:unified-params sdef) (+ (find-control-offset (:name ug) sdef)))
+                        :control-param (nth (:unified-params sdef) (+ (find-control-offset (:name ug) sdef) idx))
                         :default 1
                         :id (mk-control-id (:id ug) idx)
                         :outputs (nth (:outputs ug) idx))))
