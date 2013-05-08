@@ -76,7 +76,8 @@
                             input-specs input-specs]
                        (if (empty? input-specs)
                          res
-                         (if (ugen-sequence-mode? (:mode (first input-specs)))
+                         (if (or (ugen-sequence-mode? (:mode (first input-specs)))
+                                 (= true (:array (first input-specs))))
                            (let [arg-seq (drop (dec (count input-specs)) inputs)
                                  inputs  (drop-last (count arg-seq) inputs)]
                              (recur (assoc res (keyword (:name (first input-specs))) (vec arg-seq))
