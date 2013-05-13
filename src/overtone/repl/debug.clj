@@ -76,17 +76,25 @@
                             input-specs input-specs]
                        (if (empty? input-specs)
                          res
-                         (if (or (ugen-sequence-mode? (:mode (first input-specs)))
-                                 (= true (:array (first input-specs))))
-                           (let [arg-seq (drop (dec (count input-specs)) inputs)
-                                 inputs  (drop-last (count arg-seq) inputs)]
-                             (recur (assoc res (keyword (:name (first input-specs))) (vec arg-seq))
-                                    inputs
-                                    (rest input-specs)))
+                         (let [in-spec (first input-specs )]
+                           (cond
+                            (or (ugen-sequence-mode? (:mode in-spec))
+                                (= true (:array in-spec)))
+                            (let [arg-seq (drop (dec (count input-specs)) inputs)
+                                  inputs  (drop-last (count arg-seq) inputs)]
+                              (recur (assoc res (keyword (:name in-spec)) (vec arg-seq))
+                                     inputs
+                                     (rest input-specs)))
 
-                           (recur (assoc res (keyword (:name (first input-specs))) (first inputs))
-                                  (rest inputs)
-                                  (rest input-specs))))))))
+                            (= :num-outs (:mode in-spec))
+                            (recur (assoc res (keyword (:name in-spec)) (:n-outputs ug))
+                                   inputs
+                                   (rest input-specs))
+
+                            :else
+                            (recur (assoc res (keyword (:name in-spec)) (first inputs))
+                                   (rest inputs)
+                                   (rest input-specs)))))))))
        ugens
        (range)))
 
