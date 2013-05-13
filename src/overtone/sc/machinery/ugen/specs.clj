@@ -203,11 +203,18 @@
     ;;simply return the ugen if there's no problem with rates
     ugen))
 
+(defn- ensure-num-out-arg-is-number!
+  [val ug]
+  (when-not (number? val)
+    (throw (IllegalArgumentException. (str "Argument for ugen " (:name ug) " must be a number, yet found: " (with-out-str (pr val)))))))
+
 (defn- with-num-outs-mode [spec ugen]
   (let [args-specs    (args-with-specs (:args ugen) spec :mode)
         [args n-outs] (reduce (fn [[args n-outs] [arg mode]]
                                 (if (= :num-outs mode)
-                                  [args arg]
+                                  (do
+                                    (ensure-num-out-arg-is-number! arg ugen)
+                                    [args arg])
                                   [(conj args arg) n-outs]))
                               [[] (:n-outputs ugen)]
                               args-specs)]
