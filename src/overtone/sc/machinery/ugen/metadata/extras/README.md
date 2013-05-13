@@ -6,7 +6,9 @@ http://sourceforge.net/projects/sc3-plugins/
 
 ## Status
 
-Metadata for these ugens needs to be created for them to be available from Overtone. This is an ongoing process. Here's a status chart of this work:
+Metadata for these ugens needs to be created for them to be available
+from Overtone. This is an ongoing process. Here's a status chart of this
+work:
 
     [ ] = Not Started
     [P] = Partially complete
