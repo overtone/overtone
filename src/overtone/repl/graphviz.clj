@@ -48,7 +48,7 @@
   (with-out-str
     (doseq [ug ugs]
       (if (:control-param ug)
-        (println (str (:id ug) " [label = \"" (-> ug :name) "\n " (keyword (-> ug :control-param :name))  "\n default: " (-> ug :control-param :default) "\" shape=doubleoctagon ]; "))
+        (println (str (:id ug) " [label = \"" (-> ug :name) "\n " (keyword (-> ug :control-param :name))  "\n default: " (-> ug :control-param :default) "\" shape=invhouse style=\"rounded, bold\" ]; "))
         (println (str (:id ug)
                       (with-out-str
                         (print " [label = \"{")
@@ -77,7 +77,10 @@
 
                       " }\" style=" (cond
                                      (= :ar (:rate ug)) "\"bold, rounded\""
-                                     :else "\"rounded\"") " shape=record rankdir=LR];"))))))
+                                     (= :kr (:rate ug)) "\"filled, bold, rounded\""
+                                     (= :dr (:rate ug)) "\"filled, bold, diagonals\""
+                                     (= :ir (:rate ug)) "\"dashed, rounded\""
+                                     :else "\"filled, bold, rounded\"") " shape=record rankdir=LR];"))))))
 
 (defn- print-connection
   [n input ug]
