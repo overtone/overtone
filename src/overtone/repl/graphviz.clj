@@ -51,26 +51,28 @@
         (println (str (:id ug) " [label = \"" (-> ug :name) "\n " (keyword (-> ug :control-param :name))  "\n default: " (-> ug :control-param :default) "\" shape=doubleoctagon ]; "))
         (println (str (:id ug)
                       (with-out-str
-                        (print " [label = \"{{ ")
-                        (print
-                         (chop-last-char
-                          (with-out-str
-                            (doseq [[in-name in-val] (reverse (:inputs ug))]
-                              (print (str (if (vector? in-val)
-                                            "{{"
-                                            (str "<" (safe-name in-name) "> "))
-                                          (cond
-                                           (simple-ugen? ug) (if (number? in-val)
-                                                               in-val
-                                                               "")
+                        (print " [label = \"{")
+                        (when-not (empty? (:inputs ug ))
+                          (print "{ ")
+                          (print
+                           (chop-last-char
+                            (with-out-str
+                              (doseq [[in-name in-val] (reverse (:inputs ug))]
+                                (print (str (if (vector? in-val)
+                                              "{{"
+                                              (str "<" (safe-name in-name) "> "))
+                                            (cond
+                                             (simple-ugen? ug) (if (number? in-val)
+                                                                 in-val
+                                                                 "")
 
-                                           (number? in-val) (str (name in-name) " " in-val)
-                                           (vector? in-val) (generate-vec-arg-info in-name in-val)
-                                           :else (name in-name))
-                                          (when (vector? in-val)
-                                            (str "}|" (name in-name) "}"))
-                                          "|"))))))
-                        (print "} |"))
+                                             (number? in-val) (str (name in-name) " " in-val)
+                                             (vector? in-val) (generate-vec-arg-info in-name in-val)
+                                             :else (name in-name))
+                                            (when (vector? in-val)
+                                              (str "}|" (name in-name) "}"))
+                                            "|"))))))
+                          (print "} |")))
                       "<__UG_NAME__>"(graphviz-escape-chars (:name ug))
 
                       " }\" style=" (cond
