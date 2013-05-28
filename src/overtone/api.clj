@@ -13,8 +13,9 @@
             [overtone.music rhythm pitch tuning time]
             [overtone.studio mixer inst util fx wavetable midi core]
             [overtone.repl ugens examples shell inst debug graphviz]
-            [overtone.libs asset event freesound]
-            [overtone.gui scope mixer control]))
+            [overtone.libs asset event]
+            [overtone.gui scope mixer control]
+            [overtone.samples freesound]))
 
 (defn immigrate-overtone-api []
   (immigrate
@@ -72,5 +73,5 @@
    'overtone.repl.graphviz
    'overtone.libs.asset
    'overtone.libs.event
-   'overtone.libs.freesound
+   'overtone.samples.freesound
    'overtone.version))

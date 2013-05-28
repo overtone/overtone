@@ -1,13 +1,37 @@
 (ns ^{:doc "An API for interacting with the awesome free online sample resource
             freesound.org"
       :author "Sam Aaron, Kevin Neaton"}
-  overtone.libs.freesound
+  overtone.samples.freesound
   (:use [overtone.libs.freesound.url]
-        [overtone.libs.freesound.search-results])
+        [overtone.libs.freesound.search-results]
+        [overtone.sc.node]
+        [overtone.helpers.lib :only [defrecord-ifn]])
   (:require [clojure.data.json :as json]
-            [overtone.libs.asset :as asset]))
+            [overtone.libs.asset :as asset]
+            [overtone.sc.sample :as samp]
+))
 
 (def ^:dynamic *api-key* "47efd585321048819a2328721507ee23")
+
+(defrecord-ifn FreesoundSample
+  [id size n-channels rate status path args name freesound-id]
+  samp/sample-player
+  to-sc-id*
+  (to-sc-id [this] (:id this)))
+
+(derive FreesoundSample :overtone.sc.sample/playable-sample)
+
+(defmethod print-method FreesoundSample [b w]
+  (.write w (format "#<freesound[%s]: %d %s %fs %s %d>"
+                    (name @(:status b))
+                    (:freesound-id b)
+                    (:name b)
+                    (:duration b)
+                    (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                    (:id b))))
 
 (defn- url-with-key
   "Appends the api_key to a url. Takes an optional map of params."
@@ -65,6 +89,13 @@
         name (:original_filename info)
         url  (sound-serve-url id)]
     (asset/asset-path url name)))
+
+(defn freesound-sample
+  [id & args]
+  (let [path      (freesound-path id)
+        smpl      (apply samp/load-sample path args)
+        free-smpl (assoc smpl :freesound-id id) ]
+    (map->FreesoundSample free-smpl)))
 
 ;; ## Pack Info
 (defn- pack-info-url

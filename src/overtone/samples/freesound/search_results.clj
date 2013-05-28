@@ -1,7 +1,7 @@
 (ns ^{:doc "A custom datatype and helper functions for working with a lazy sequence of search results."
       :author "Kevin Neaton"}
-  overtone.libs.freesound.search-results
-  (:use [overtone.libs.freesound.url :only [build-url]]))
+  overtone.samples.freesound.search-results
+  (:use [overtone.samples.freesound.url :only [build-url]]))
 
 (deftype SearchResults [n-results results-seq]
   clojure.lang.Sequential

@@ -1,6 +1,6 @@
 (ns ^{:doc "Basic URL encoding and decoding. Various versions of these functions can found in other Clojure librarys."
       :author "Kevin Neaton"}
-  overtone.libs.freesound.url
+  overtone.samples.freesound.url
   (:use [clojure.walk :only [keywordize-keys]])
   (:require [clojure.string :as str])
   (import [java.net URLEncoder URLDecoder]))
