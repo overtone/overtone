@@ -46,7 +46,7 @@
                  [org.clojure/core.incubator "0.1.0"]
                  [org.clojure/data.json "0.1.2"]
                  [clj-native "0.9.3"]
-                 [overtone/at-at "1.1.1"]
+                 [overtone/at-at "1.2.0"]
                  [overtone/osc-clj "0.9.0"]
                  [overtone/byte-spec "0.3.1"]
                  [overtone/midi-clj "0.5.0"]
