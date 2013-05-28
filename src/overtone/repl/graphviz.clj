@@ -2,7 +2,7 @@
   (:use [overtone.repl.debug :only [unified-sdef]]
         [overtone.sc.machinery.ugen.metadata.unaryopugen]
         [overtone.sc.machinery.ugen.metadata.binaryopugen]
-        [overtone.helpers.system :only [mac-os?]]
+        [overtone.helpers.system :only [mac-os? linux-os?]]
         [clojure.java.shell]))
 
 (defn- safe-name
@@ -120,6 +120,7 @@
   (let [f-name (str "/tmp/" (or (:name s) (gensym)) ".pdf") ]
     (do
       (sh "dot" "-Tpdf" "-o" f-name  :in (graphviz s))
-      (when (mac-os?)
-        (sh "open" f-name)))
+      (cond
+       (mac-os?)   (sh "open" f-name)
+       (linux-os?) (sh "xdg-open" f-name)))
     (str "PDF generated in " f-name)))
