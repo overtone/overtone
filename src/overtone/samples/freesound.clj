@@ -91,11 +91,23 @@
     (asset/asset-path url name)))
 
 (defn freesound-sample
+  "Download, cache and persist the freesound audio file specified by
+   id. Creates a buffer containing the sample loaded onto the server and
+   returns a playable sample capable of playing the sample when called
+   as a fn."
   [id & args]
   (let [path      (freesound-path id)
         smpl      (apply samp/load-sample path args)
         free-smpl (assoc smpl :freesound-id id) ]
     (map->FreesoundSample free-smpl)))
+
+(defn freesound
+  "Download, cache and persist the freesound audio file specified by
+   id. Creates a buffer containing the sample loaded onto the server and
+   returns a playable sample capable of playing the sample when called
+   as a fn."
+  [id & args]
+  (apply freesound-sample id args))
 
 ;; ## Pack Info
 (defn- pack-info-url
