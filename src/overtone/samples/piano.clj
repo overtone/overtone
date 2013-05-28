@@ -9,9 +9,28 @@
           (registered-assets ::MISStereoPiano)))
 
 ;;(freesound-searchm [:id] "LOUD" :f "pack:MISStereoPiano")
+(def FREESOUND-PIANO-SAMPLES
+  "Freesound ids and matching notes for all the loud samples in the MISStereoPiano pack"
+  (sorted-map
+   148401 :BB5 148402 :BB6 148403 :B7  148404 :BB0 148405 :B5  148406 :B6  148407 :BB3
+   148408 :BB4 148423 :BB1 148424 :BB2 148425 :D1  148426 :C8  148427 :C1  148428 :BB7
+   148429 :C3  148430 :C2  148431 :C5  148432 :C4  148433 :C7  148434 :C6  148435 :GB4
+   148436 :GB5 148437 :GB6 148438 :GB7 148439 :G7  148440 :GB1 148441 :GB2 148442 :GB3
+   148471 :AB6 148472 :AB5 148473 :AB4 148474 :AB3 148475 :B2  148476 :B1  148477 :B0
+   148478 :AB7 148479 :B4  148480 :B3  148481 :A3  148482 :A2  148483 :A1  148484 :A0
+   148485 :A7  148486 :A6  148487 :A5  148488 :A4  148489 :AB2 148490 :AB1 148491 :EB7
+   148492 :F1  148493 :EB5 148494 :EB6 148495 :EB3 148496 :EB4 148497 :EB1 148498 :EB2
+   148499 :F2  148500 :F3  148501 :G2  148502 :G1  148503 :G4  148504 :G3  148505 :F5
+   148506 :F4  148507 :F7  148508 :F6  148509 :G6  148510 :G5  148511 :D2  148512 :D3
+   148513 :D4  148514 :D5  148515 :D6  148516 :D7  148517 :DB1 148518 :DB2 148519 :DB3
+   148520 :DB4 148521 :E7  148522 :E6  148523 :E5  148524 :E4  148525 :E3  148526 :E2
+   148527 :E1  148528 :DB7 148529 :DB6 148530 :DB5))
+
 (def FREESOUND-PIANO-SAMPLE-IDS
-  "Freesound ids for all the loud samples in the MISStereoPiano pack"
-  [148408 148404 148431 148430 148492 148434 148433 148432 148405 148401 148525 148498 148497 148528 148527 148521 148505 148503 148477 148471 148440 148436 148429 148427 148425 148424 148423 148407 148526 148496 148530 148518 148517 148516 148515 148507 148506 148502 148501 148494 148491 148490 148487 148478 148476 148475 148474 148473 148472 148437 148428 148426 148406 148403 148402 148524 148523 148495 148529 148522 148520 148519 148514 148513 148512 148511 148510 148509 148508 148504 148500 148499 148493 148489 148488 148486 148485 148484 148483 148482 148481 148480 148479 148442 148441 148439 148438 148435])
+  (keys FREESOUND-PIANO-SAMPLES))
+
+(def FREESOUND-PIANO-SAMPLE-NOTE-NAMES
+  (vals FREESOUND-PIANO-SAMPLES))
 
 (defn- download-samples
   "Download piano samples from freesound and store them in the asset
@@ -31,24 +50,26 @@
 (defonce piano-samples
   (doall (map load-sample (get-samples))))
 
+(defn- buffer->midi-note [buf]
+  (let [buffer-id (-> buf :id)
+        note (nth FREESOUND-PIANO-SAMPLE-NOTE-NAMES buffer-id)]
+    (-> note name match-note :midi-note)))
+
 (defn- note-index
-  "Returns a map of midi-note values [0-127] to buffer ids. Uses the
-  provided note-fn to determine the midi-note value of a buffer."
-  [buffers note-fn]
+  "Returns a map of midi-note values [0-127] to buffer ids."
+  [buffers]
   (reduce (fn [index buf]
-            (let [note (note-fn buf)
+            (let [note (buffer->midi-note buf)
                   id   (-> buf :id)]
               (assoc index note id)))
           {}
           buffers))
 
-(defn- piano-note-fn [buf] (-> buf :name match-note :midi-note))
-
 ;; Silent buffer used to fill in the gaps.
 (defonce ^:private silent-buffer (buffer 0))
 
 (defonce index-buffer
-  (let [tab (note-index piano-samples piano-note-fn)
+  (let [tab (note-index piano-samples)
         buf (buffer 128)]
     (buffer-fill! buf (:id silent-buffer))
     (doseq [[idx val] tab]
