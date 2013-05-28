@@ -8,7 +8,7 @@
 
 ;;Scheduled thread pool (created by at-at) which is to be used by default for
 ;;all scheduled musical functions (players).
-(defonce player-pool (at-at/mk-pool))
+(def player-pool (at-at/mk-pool))
 
 (defn now
   "Returns the current time in ms"
@@ -52,7 +52,7 @@
 ;;(typically triggered by a call to stop)
 (on-sync-event :reset
                (fn [event-info] (at-at/stop-and-reset-pool! player-pool
-                                                           :strategy :kill))
+                                                           :strategy :stop))
                ::player-reset)
 
 (defn stop-player
