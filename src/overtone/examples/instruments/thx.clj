@@ -30,4 +30,4 @@
 ;;play the instrument:
 ; (thx)
 ;;kill it off when you're ready
-                                        ; (ctl thx :gate 0)
+; (ctl thx :gate 0)

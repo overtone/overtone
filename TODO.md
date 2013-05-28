@@ -1,5 +1,15 @@
+* sc.synth currently places all synth instances into the synth-group by default,
+which is an Overtone specific feature that should probably be done in studio.
+Maybe we should have the creation of synthdefs be on overtone.sc.synth, but
+the live creation of them and specialization in studio?  Discuss on list.
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+* create a couple functions to append a ugen to the root of a synth, for
+attaching out, pan, etc...
+
+* inst and synth forms should evalute the defaults rather than expecting them to
+be numbers (to use equations, constant vars, etc...)
 
 ## Helpers
 
@@ -25,25 +35,24 @@ modify control params
 
 * allow for re-arranging nodes and groups using a tree/table view
 
+* figure out how best to attach meta-data to the [unary,binary]-op-ugen
+
 ## Synths and Audio:
 
-The following synth doesn't compile. Figure out how to correctly handle args to :ir ugens:
+* make midi->hz and friends multimethods (or use types and protocols?) so they
+operate immediately on numbers, but generate ugens on input proxy or ugen
+arguments.
 
-    (defsynth my-phasor-player [buf 0 rate 1]
-      (let [num-samps (buf-samples:ir buf)
-            pos       (phasor:ar 0 rate 0 num-samps)]
-        (out 0 (buf-rd 1 buf pos))))
-
-
+* add docs to Unary and Binary op ugens
 
 ## SC Tweets:
 
-    {loop{play{GVerb.ar(LeakDC.ar(Crackle.ar([a=Phasor.ar(1,Line.kr(0.0020.rand,0,9),0,1),a],0.5,0)))*0.05*EnvGen.kr(Env.sine(9))};5.wait}}.fork
+{loop{play{GVerb.ar(LeakDC.ar(Crackle.ar([a=Phasor.ar(1,Line.kr(0.0020.rand,0,9),0,1),a],0.5,0)))*0.05*EnvGen.kr(Env.sine(9))};5.wait}}.fork
 
-    {loop{play{|q|c=EnvGen.kr(Env.sine(6),b=(6..1));Pan2.ar(PMOsc.ar(a=40*b*b.rand,a/2-1,1+q*c*90,c,0.01).sum.tan,2.0.rand-1)*c*5};1.wait}}.fork
+{loop{play{|q|c=EnvGen.kr(Env.sine(6),b=(6..1));Pan2.ar(PMOsc.ar(a=40*b*b.rand,a/2-1,1+q*c*90,c,0.01).sum.tan,2.0.rand-1)*c*5};1.wait}}.fork
 
-    play{b=LocalBuf(2**20,2).clear;n=LFNoise2.ar(Rand(500)!2);w=Warp1.ar(2,b,n+1/2,[a=0.5,1,2,4]).sum/50;RecordBuf.ar(LeakDC.ar(w+n),b,0,a,a);w}
+play{b=LocalBuf(2**20,2).clear;n=LFNoise2.ar(Rand(500)!2);w=Warp1.ar(2,b,n+1/2,[a=0.5,1,2,4]).sum/50;RecordBuf.ar(LeakDC.ar(w+n),b,0,a,a);w}
 
-    {loop{play{GVerb.ar(Pan2.ar(HenonC.ar(11025/(16.rand+1),0.4.rand+1,0.3.rand),2.rand-1).tanh)*0.01*EnvGen.kr(Env.sine(4))};0.8.wait}}.fork
+{loop{play{GVerb.ar(Pan2.ar(HenonC.ar(11025/(16.rand+1),0.4.rand+1,0.3.rand),2.rand-1).tanh)*0.01*EnvGen.kr(Env.sine(4))};0.8.wait}}.fork
 
-    play{n=12;Splay.ar(Ringz.ar(Decay2.ar(Impulse.ar({2.0.rand.round(0.25)}!n),0.01,0.1,0.1),{|i|50+(i*50)+4.0.rand2}!n,{8.0.rand}!n),0.1)}
+play{n=12;Splay.ar(Ringz.ar(Decay2.ar(Impulse.ar({2.0.rand.round(0.25)}!n),0.01,0.1,0.1),{|i|50+(i*50)+4.0.rand2}!n,{8.0.rand}!n),0.1)}

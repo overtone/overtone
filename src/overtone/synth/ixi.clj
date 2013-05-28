@@ -13,9 +13,7 @@
         imp      (impulse:ar 1)
         x        (* (pan2 (* imp (env-gen:ar (perc 0.0000001 0.2))) pan)
                     amp)]
-    (out out-bus (* (+ 1 (sin-osc:kr 0.5 )) (leak-dc (limiter x))))))
-
-(show-graphviz-synth impulser)
+    (out out-bus (leak-dc (limiter x)))))
 
 (defsynth kick
   [mod-freq 2.6

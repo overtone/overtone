@@ -29,16 +29,3 @@
       (if success?
         [old-val val]
         (recur)))))
-
-(defn send-sync
-  "Send a fn to an agent and block the current thread until the agent
-   has handled it."
-  [^clojure.lang.Agent a f & args]
-  (let [p (promise)
-        f2 (fn [v]
-             (let [res (apply f v args)]
-               (deliver p :completed)
-               res))]
-    (send a f2)
-    @p
-    a))
