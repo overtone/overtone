@@ -339,7 +339,7 @@
           output."
 
     :args [{:name "trig"
-            :doc "When triggered, reset value to resetPos (default: 0,
+            :doc "When triggered, reset value to reset-pos (default: 0,
                   phasor outputs start initially)"
             :default 0.0}
 
