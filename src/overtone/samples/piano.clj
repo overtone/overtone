@@ -25,26 +25,13 @@
    148520 :DB4 148521 :E7  148522 :E6  148523 :E5  148524 :E4  148525 :E3  148526 :E2
    148527 :E1  148528 :DB7 148529 :DB6 148530 :DB5})
 
-(defn- download-samples
-  "Download piano samples from freesound and store them in the asset
-  store."
-  []
-  (map freesound-path (keys FREESOUND-PIANO-SAMPLES)))
-
-(defn- get-samples
-  "Either fetch samples from the registered store or download them if
-  necessary"
-  []
-  (let [samples (registered-samples)]
-    (if (empty? samples)
-      (download-samples)
-      samples)))
+(def PIANO-SAMPLE-IDS (keys FREESOUND-PIANO-SAMPLES))
 
 (defonce piano-samples
-  (doall (map freesound-sample (get-samples))))
+  (doall (map freesound-sample PIANO-SAMPLE-IDS)))
 
 (defn- buffer->midi-note [buf]
-  (-> buf :freesound-id FREESOUND-PIANO-SAMPLES match-note :midi-note))
+  (-> buf :freesound-id FREESOUND-PIANO-SAMPLES name match-note :midi-note))
 
 (defn- note-index
   "Returns a map of midi-note values [0-127] to buffer ids."
