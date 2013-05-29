@@ -1,10 +1,11 @@
 (ns
-  ^{:doc "Functions to help manage and structure computation in time."
-     :author "Jeff Rose and Sam Aaron"}
+    ^{:doc "Functions to help manage and structure computation in time."
+      :author "Jeff Rose and Sam Aaron"}
   overtone.music.time
   (:use [overtone.libs event]
         [overtone.helpers lib])
-  (:require [overtone.at-at :as at-at]))
+  (:require [overtone.at-at :as at-at]
+            [overtone.sc.node :as node]))
 
 ;;Scheduled thread pool (created by at-at) which is to be used by default for
 ;;all scheduled musical functions (players).
@@ -161,3 +162,10 @@
   "Print the schedule of currently running audio players."
   []
   (at-at/show-schedule player-pool))
+
+(extend-protocol node/IKillable
+  overtone.at_at.RecurringJob
+  (kill* [job] (stop-player job))
+
+  overtone.at_at.ScheduledJob
+  (kill* [job] (stop-player job)))
