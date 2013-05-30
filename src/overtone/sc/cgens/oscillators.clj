@@ -17,5 +17,7 @@
    produces only odd harmonics resulting in a mellow, hollow sound. This
    makes it particularly suitable for emulating wind instruments, adding
    width to strings and pads, or for the creation of deep, wide bass
-   sounds."
+   sounds.
+
+   See the pulse ugen if you wish to modulate the width."
   (:ar (pulse:ar freq 0.5)))
