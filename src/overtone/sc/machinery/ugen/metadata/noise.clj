@@ -118,8 +118,8 @@
                :doc "approximate rate at which to generate random
                      values." }]
        :rates #{:ar :kr}
-       :doc "Generates random values at a rate (the rate is not
-             guaranteed but approximate)"}
+       :doc "Generates random values between -1 and 1 at a rate (the
+             rate is not guaranteed but approximate)"}
 
 
 
@@ -130,8 +130,8 @@
                      values." }]
 
        :rates #{:ar :kr}
-       :doc "Generates linearly interpolated random values at the
-             supplied rate (the rate is not guaranteed but
+       :doc "Generates linearly interpolated random values between -1
+             and 1 at the supplied rate (the rate is not guaranteed but
              approximate). "}
 
 
@@ -142,8 +142,9 @@
                :doc "approximate rate at which to generate random
                      values." }]
        :rates #{:ar :kr}
-       :doc "Generates quadratically interpolated random values at the
-             supplied rate (the rate is not guaranteed but approximate).
+       :doc "Generates quadratically interpolated random values between
+             -1 and 1 at the supplied rate (the rate is not guaranteed
+             but approximate).
 
              Note: quadratic interpolation means that the noise values
              can occasionally extend beyond the normal range of +-1, if
@@ -168,10 +169,9 @@
                :default 500.0
                :doc "rate at which to generate random values."}]
        :rates #{:ar :kr}
-       :doc "Like lf-noise0, it generates random values at a rate given
-             by the freq argument, with two differences:
-
-             * no time quantization
+       :doc "Like lf-noise0, it generates random values between -1 and 1
+             at a rate given by the freq argument, with two differences:
+             p * no time quantization
 
              * fast recovery from low freq values.
 
@@ -189,7 +189,8 @@
                :doc "rate at which to generate random values."}]
        :rates #{:ar :kr}
        :doc "Like lf-noise1, it generates linearly interpolated random
-             values at a rate given by the freq argument, with two differences:
+             values between -1 and 1 at a rate given by the freq
+             argument, with two differences:
 
              * no time quantization
 
@@ -209,8 +210,8 @@
                :doc "rate at which to generate random values."}]
        :rates #{:ar :kr}
        :doc "Similar to lf-noise2, it generates polynomially
-             interpolated random values at a rate given by the freq
-             argument, with 3 differences:
+             interpolated random values between -1 and 1 at a rate given
+             by the freq argument, with 3 differences:
 
              * no time quantization
 
