@@ -1,3 +1,5 @@
+* There should be an unmap-node-controls function
+
 * Why is there such a difference between the datastructure representing
   a ugen fn and the datastructure representing a ugen (SCUgen)? Seems
   that they should be identical except for the addition of an :args key
