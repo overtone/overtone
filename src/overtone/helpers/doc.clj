@@ -72,8 +72,11 @@
        (indented-str-block* "" split-text 0 max-len wrap-indent))))
 
 (defn fs
-  "Format string. Synonym for indented-str-block but with a default
+  "Format string(s). Synonym for indented-str-block but with a default
    initial and wrap indentation of two characters. Also ensures that
    there is whitespace above and below the text."
-  [txt]
-  (indented-str-block (str "\n\n" txt "\n\n") 70 7 2))
+  [txt & rest]
+  (let [txt-list (apply list txt rest)
+        txt-list (interpose " " txt-list)
+        txt      (apply str txt-list)]
+    (indented-str-block (str "\n\n" txt "\n\n") 70 7 2)))
