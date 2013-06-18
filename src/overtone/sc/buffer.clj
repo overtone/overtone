@@ -240,8 +240,8 @@
   writing the data (defaults to 0)."
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
-     (ensure-buffer-active! buf)
      (assert (buffer? buf))
+     (ensure-buffer-active! buf)
      (assert (<= (count data) MAX-OSC-SAMPLES)
              (fs "Error - the data you attempted to write to the buffer was
                   too large to be sent via UDP."))
