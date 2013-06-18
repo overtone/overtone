@@ -1,3 +1,8 @@
+* Why is there such a difference between the datastructure representing
+  a ugen fn and the datastructure representing a ugen (SCUgen)? Seems
+  that they should be identical except for the addition of an :args key
+  for the SCUgen.
+
 * sc.synth currently places all synth instances into the synth-group by default,
 which is an Overtone specific feature that should probably be done in studio.
 Maybe we should have the creation of synthdefs be on overtone.sc.synth, but
@@ -56,3 +61,6 @@ play{b=LocalBuf(2**20,2).clear;n=LFNoise2.ar(Rand(500)!2);w=Warp1.ar(2,b,n+1/2,[
 {loop{play{GVerb.ar(Pan2.ar(HenonC.ar(11025/(16.rand+1),0.4.rand+1,0.3.rand),2.rand-1).tanh)*0.01*EnvGen.kr(Env.sine(4))};0.8.wait}}.fork
 
 play{n=12;Splay.ar(Ringz.ar(Decay2.ar(Impulse.ar({2.0.rand.round(0.25)}!n),0.01,0.1,0.1),{|i|50+(i*50)+4.0.rand2}!n,{8.0.rand}!n),0.1)}
+
+
+play{Splay.ar({|i|HPF.ar(a=Pulse;a.ar(a.ar(i+4/32).lag3(0.1,8-i)+1*99,a.ar(j=i+1)*a.ar(i+8/j)+a.ar(8/j).lag3(8)),50)}!8)/2}//
