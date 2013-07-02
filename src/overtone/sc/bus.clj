@@ -133,7 +133,7 @@
   "Get the current value of a control bus."
   [bus]
   (let [id (to-sc-id bus)
-        p  (server-recv "/c_set")]
+        p  (server-recv "/c_set" (fn [info] (= id (first (:args info)))))]
     (snd "/c_get" id)
     (second (:args (deref! p (str "attempting to read the current value of bus " (with-out-str (pr bus))))))))
 
@@ -148,7 +148,8 @@
   "Get a range of consecutive control bus values."
   [bus len]
   (let [id (to-sc-id bus)
-        p  (server-recv "/c_setn")]
+        p  (server-recv "/c_setn" (fn [info] (and (= id (first (:args info)))
+                                                 (= len (second (:args info))))))]
     (snd "/c_getn" id len)
     (drop 2 (:args (deref! p (str "attempting to get a range of consecutive control bus values of length " len " from bus " (with-out-str (pr bus))))))))
 
