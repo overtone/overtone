@@ -17,8 +17,8 @@
   (do
     (defsynth mono-player
       "Plays a single channel audio buffer."
-      [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1 out-bus 0]
-      (out out-bus (* vol
+      [buf 0 rate 1.0 start-pos 0.0 loop? 0 amp 1 out-bus 0]
+      (out out-bus (* amp
                       (pan2
                        (scaled-play-buf 1 buf rate
                                         1 start-pos loop?
@@ -26,8 +26,8 @@
 
     (defsynth stereo-player
       "Plays a dual channel audio buffer."
-      [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1 out-bus 0]
-      (out out-bus (* vol
+      [buf 0 rate 1.0 start-pos 0.0 loop? 0 amp 1 out-bus 0]
+      (out out-bus (* amp
                       (scaled-play-buf 2 buf rate
                                        1 start-pos loop?
                                        FREE))))
@@ -35,16 +35,16 @@
     (defsynth mono-stream-player
       "Plays a single channel streaming buffer-cue. Must be freed manually when
       done."
-      [buf 0 rate 1 loop? 0 vol 1 out-bus 0]
-      (out out-bus (* vol
+      [buf 0 rate 1 loop? 0 amp 1 out-bus 0]
+      (out out-bus (* amp
                       (pan2
                        (scaled-v-disk-in 1 buf rate loop?)))))
 
     (defsynth stereo-stream-player
       "Plays a dual channel streaming buffer-cue. Must be freed manually when
       done."
-      [buf 0 rate 1 loop? 0 vol 1 out-bus 0]
-      (out out-bus (* vol
+      [buf 0 rate 1 loop? 0 amp 1 out-bus 0]
+      (out out-bus (* amp
                       (scaled-v-disk-in 2 buf rate loop?))))))
 
 (defonce loaded-samples* (atom {}))
@@ -171,7 +171,7 @@
 
    Accepts same args as both players, namely:
 
-   [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1 out-bus 0]"
+   [buf 0 rate 1.0 start-pos 0.0 loop? 0 amp 1 out-bus 0]"
   [smpl & pargs] {:pre [(sample? smpl)]}
   (let [{:keys [path args]}     smpl
         {:keys [id n-channels]} (get @cached-samples* [path args])

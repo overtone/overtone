@@ -3,9 +3,9 @@
   (:require [polynome.core :as poly]))
 
 ;;design a sc synth to play the samples
-(definst loop-synth [buf 0 vol 1 rate 1]
+(definst loop-synth [buf 0 amp 1 rate 1]
   (let [src (play-buf 1 buf rate 1.0 0.0 1.0 1)]
-    (* src vol)))
+    (* src amp)))
 
 ;;change m to point to your monome (use dummy if you don't have one...)
 (defonce m (poly/init "/dev/tty.usbserial-m64-0790"))
@@ -24,7 +24,7 @@
       (doall
        (reduce (fn [res samp]
                  (let [id (loop-synth samp 0)]
-                   (conj res  {:vol 0
+                   (conj res  {:ampl 0
                                :id id
                                :samp samp})))
                []
@@ -42,8 +42,8 @@
 
 (defn toggle
   "Invert the vol from 1 to 0 or 0 to 1"
-  [vol]
-  (mod (inc vol) 2))
+  [amp]
+  (mod (inc amp) 2))
 
 (defn toggle-sample
   [n]
@@ -51,9 +51,9 @@
       (send playing-samples* (fn [playing-samples]
                            (let [samp     (nth playing-samples n)
                                  id       (:id samp)
-                                 new-vol  (toggle (:vol samp))
-                                 new-samp (assoc samp :vol new-vol)]
-                             (ctl id :vol new-vol)
+                                 new-vol  (toggle (:amp samp))
+                                 new-samp (assoc samp :amp new-vol)]
+                             (ctl id :amp new-vol)
                              (assoc playing-samples n new-samp))))
       false))
 

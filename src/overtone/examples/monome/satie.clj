@@ -77,23 +77,23 @@
   (reset! cur-pitch-lh -1))
 
 (defn vol-mul
-  [vol]
-  (* vol 0.002))
+  [amp]
+  (* amp 0.002))
 
 (defn play-next-rh
-  [vol]
+  [amp]
   (let [idx (swap! cur-pitch-rh inc)
         pitch (nth (cycle rh-pitches) idx)]
-    (sampled-piano pitch (vol-mul vol))))
+    (sampled-piano pitch (vol-mul amp))))
 
 (defn play-next-lh
-  [vol]
+  [amp]
   (let [idx (swap! cur-pitch-lh inc)
         pitch (nth (cycle lh-pitches) idx)]
     (if (sequential? pitch)
       (doseq [p pitch]
-        (sampled-piano p (vol-mul vol)))
-      (sampled-piano pitch (vol-mul vol)))))
+        (sampled-piano p (vol-mul amp)))
+      (sampled-piano pitch (vol-mul amp)))))
 
 (defonce m (poly/init "/dev/tty.usbserial-m64-0790"))
 

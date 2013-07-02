@@ -40,7 +40,7 @@
 
 
 ;; Try layering these looped versions, eval each line
-;; [buf 0 rate 1.0 start-pos 0.0 loop? 0 vol 1]
+;; [buf 0 rate 1.0 start-pos 0.0 loop? 0 amp 1]
 (sample-player flute-buf :rate 1 :loop? true)
 (sample-player flute-buf :rate 0.5 :loop? true)
 (sample-player flute-buf :rate 1.5 :loop? true)

@@ -264,19 +264,19 @@
 (definst fatso-saw
   "Defines a simple synth using a slightly detuned stereo sawtooth oscillator
   with a percussive envelope. Accepts a MIDI note, duration (in secs) and volume."
-  [note 60 dur 1.0 vol 1.0]
+  [note 60 dur 1.0 amp 1.0]
   (let [freq (midicps note)
         src (saw [freq (* freq 0.51)])
-        env (env-gen (perc (* 0.1 dur) dur vol) :action FREE)]
+        env (env-gen (perc (* 0.1 dur) dur amp) :action FREE)]
     (* src env)))
 
 (definst fatso-pwm
   "Defines a simple synth using a slightly detuned stereo squarewave oscillator
   with a percussive envelope. Accepts a MIDI note, duration (in secs) and volume."
-  [note 60 dur 1.0 vol 1.0]
+  [note 60 dur 1.0 amp 1.0]
   (let [freq (midicps note)
         src (pulse [freq (* freq 0.51)])
-        env (env-gen (perc (* 0.1 dur) dur vol) :action FREE)]
+        env (env-gen (perc (* 0.1 dur) dur amp) :action FREE)]
     (* src env)))
 
 (comment

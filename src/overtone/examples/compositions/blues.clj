@@ -2,11 +2,11 @@
   (:use overtone.live)
   (:use [overtone.inst synth drum]))
 
-(definst beep [note 60 vol 0.2]
+(definst beep [note 60 amp 0.2]
   (let [freq (midicps note)
         src (sin-osc freq)
         env (env-gen (perc 0.3 2) :action FREE)]
-    (* vol src env)))
+    (* amp src env)))
 
 (def ps (atom []))
 

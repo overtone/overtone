@@ -98,7 +98,7 @@
   in an atom to allow for interactive updates of slider values."
   (atom {:tempo (make-slider (fn [x] (ctl @synth-ref :bpm x)) 120 80 180 20 80 200 20 "tempo")
          :wobble (make-slider (fn [x] (ctl @synth-ref :wobble (int x))) 1 1 16 20 110 200 20 "wobble")
-         :vol (make-slider (fn [x] (ctl @synth-ref :v x)) 1.0 0.0 1.0 20 140 200 20 "volume")}))
+         :amp (make-slider (fn [x] (ctl @synth-ref :v x)) 1.0 0.0 1.0 20 140 200 20 "volume")}))
 
 (defn draw-slider
   "Takes a single slider map and draws it with optional label."

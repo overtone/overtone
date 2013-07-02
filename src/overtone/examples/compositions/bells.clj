@@ -55,13 +55,13 @@
            ))))
 
 
-(definst dull-bell [freq 220 dur 1.0 vol 1.0]
-  (let [snd (* vol (bell-partials freq dur dull-partials))]
+(definst dull-bell [freq 220 dur 1.0 amp 1.0]
+  (let [snd (* amp (bell-partials freq dur dull-partials))]
     (detect-silence snd :action FREE)
     snd))
 
-(definst pretty-bell [freq 220 dur 1.0 vol 1.0]
-  (let [snd (* vol (bell-partials freq dur partials))]
+(definst pretty-bell [freq 220 dur 1.0 amp 1.0]
+  (let [snd (* amp (bell-partials freq dur partials))]
     (detect-silence snd :action FREE)
     snd))
 
@@ -105,7 +105,7 @@
         notes-to-play (remove nil? (map first notes))]
     (at (bell-metro beat)
         (dorun
-         (map #(pretty-bell % :vol 0.5) notes-to-play)))
+         (map #(pretty-bell % :amp 0.5) notes-to-play)))
     (apply-by (bell-metro next-beat) #'play-bells [next-beat (map rest notes)])))
 
 ;; Start the bells ringing...

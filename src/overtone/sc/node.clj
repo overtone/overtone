@@ -667,8 +667,8 @@
   "Send a node control messages specified in pairs of :arg-name val. It
   is possible to pass a sequence of nodes in which case the same control
   messages will be sent to all nodes.  i.e.
-  (ctl 34 :freq 440 :vol 0.2)
-  (ctl [34 37] :freq 440 :vol 0.2)"
+  (ctl 34 :freq 440 :amp 0.2)
+  (ctl [34 37] :freq 440 :amp 0.2)"
   [node & args]
   (ensure-connected!)
   (if (sequential? node)

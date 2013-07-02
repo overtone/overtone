@@ -13,10 +13,10 @@
 (defn p
   ([elements]
    (p elements (now)))
-  ([[{:keys [synth vol pitch dur data]} & elements] t]
+  ([[{:keys [synth amp pitch dur data]} & elements] t]
    (let [next-t (+ t (int (* 1000 dur)))]
      (at t
-         (synth pitch vol dur))
+         (synth pitch amp dur))
      (when elements
        (apply-by next-t #'p elements [next-t])))))
 
@@ -39,7 +39,7 @@
   [n-sym pitch]
   (intern *ns* n-sym
           {:synth tone
-           :vol 0.2
+           :amp 0.2
            :pitch pitch
            :dur 0.1
            :data []}))

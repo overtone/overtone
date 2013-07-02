@@ -194,7 +194,7 @@
   elements"
   [l]
   (when-not (even? (count l))
-    (throw (IllegalArgumentException. (str "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 vol 0.5] or a list of maps. You passed " (count l) " args: " l)))))
+    (throw (IllegalArgumentException. (str "A synth requires either an even number of arguments in the form [control default]* i.e. [freq 440 amp 0.5] or a list of maps. You passed " (count l) " args: " l)))))
 
 (defn- ensure-vec!
   "Throws an error if list l is not a vector"
