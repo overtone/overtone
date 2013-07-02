@@ -1,7 +1,7 @@
 (ns overtone.device.midi.nanoKONTROL2
   (:use [overtone.midi]
         [overtone.libs.event :only [event on-event on-latest-event]]
-        [overtone.core :only [control-bus bus-set!]]))
+        [overtone.core :only [control-bus control-bus-set!]]))
 
 (defrecord NanoKontrol2 [name out interfaces state buses])
 
@@ -268,7 +268,7 @@
                note      (:note v)
                handle    (concat event-handle [note])
                update-fn (fn [{:keys [data2-f]}]
-                           (bus-set! (buses k) data2-f)
+                           (control-bus-set! (buses k) data2-f)
 
                            (reset! (state k) data2-f))]
            (cond

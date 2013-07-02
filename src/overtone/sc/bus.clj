@@ -114,16 +114,16 @@
 
 ;(on-sync-event :reset reset-buses ::reset-buses)
 
-(defn bus-set!
+(defn control-bus-set!
   "Updates bus to new val. Modification takes place on the server asynchronously.
 
-  (bus-set! my-bus 3) ;=> Sets my-bus to the value 3"
+  (control-bus-set! my-bus 3) ;=> Sets my-bus to the value 3"
   [bus val]
   (let [id  (to-sc-id bus)
         val (double val)]
     (snd "/c_set" id val)))
 
-(defn bus-get
+(defn control-bus-get
   "Get the current value of a control bus."
   [bus]
   (let [id (to-sc-id bus)
@@ -131,14 +131,14 @@
     (snd "/c_get" id)
     (second (:args (deref! p (str "attempting to read the current value of bus " (with-out-str (pr bus))))))))
 
-(defn bus-set-range!
+(defn control-bus-set-range!
   "Set a range of consecutive control buses to the supplied values."
   [bus start len vals]
   (let [id   (to-sc-id bus)
         vals (floatify vals)]
       (apply snd "/c_setn" id start len vals)))
 
-(defn bus-get-range
+(defn control-bus-get-range
   "Get a range of consecutive control bus values."
   [bus len]
   (let [id (to-sc-id bus)
