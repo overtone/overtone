@@ -175,7 +175,8 @@
 (defn audio-bus-monitor
   "Mono bus amplitude monitor. Returns an atom containing the current
    amplitude of the monitor. For multi-channel buses, an offset may be
-   specified.
+   specified. Current amplitude is updated within the returned atom
+   every 50 ms.
 
    Note - only creates one monitor per audio bus - subsequent calls for
    the same audio bus idx will return a cached monitor."
@@ -193,7 +194,7 @@
                                              bus-idx
                                              cb)]
 
-           (at-at/every 100
+           (at-at/every 50
                         #(reset! monitor (control-bus-get bus-idx))
                         bus-monitor-pool
                         :initial-delay 0
