@@ -128,10 +128,11 @@
       files)))
 
 (defn- reload-all-samples []
-  (reset! cached-samples* {})
-  (reset! loaded-samples* {})
-  (doseq [smpl (vals @loaded-samples*)]
-    (apply load-sample* (:path smpl) (:args smpl))))
+  (let [previously-loaded-samples (vals @loaded-samples* )]
+    (reset! cached-samples* {})
+    (reset! loaded-samples* {})
+    (doseq [smpl previously-loaded-samples]
+      (apply load-sample* (:path smpl) (:args smpl)))))
 
 (on-deps :server-ready ::load-all-samples reload-all-samples)
 
