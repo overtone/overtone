@@ -2,8 +2,8 @@
             freesound.org"
       :author "Sam Aaron, Kevin Neaton"}
   overtone.samples.freesound
-  (:use [overtone.libs.freesound.url]
-        [overtone.libs.freesound.search-results]
+  (:use [overtone.samples.freesound.url]
+        [overtone.samples.freesound.search-results]
         [overtone.sc.node]
         [overtone.helpers.lib :only [defrecord-ifn]])
   (:require [clojure.data.json :as json]
