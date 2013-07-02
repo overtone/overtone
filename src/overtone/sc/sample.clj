@@ -17,35 +17,37 @@
   (do
     (defsynth mono-player
       "Plays a single channel audio buffer."
-      [buf 0 rate 1.0 start-pos 0.0 loop? 0 amp 1 out-bus 0]
+      [buf 0 rate 1.0 start-pos 0.0 loop? 0 amp 1 pan 0 out-bus 0]
       (out out-bus (* amp
                       (pan2
                        (scaled-play-buf 1 buf rate
                                         1 start-pos loop?
-                                        FREE)))))
+                                        FREE)
+                       pan))))
 
     (defsynth stereo-player
       "Plays a dual channel audio buffer."
-      [buf 0 rate 1.0 start-pos 0.0 loop? 0 amp 1 out-bus 0]
-      (out out-bus (* amp
-                      (scaled-play-buf 2 buf rate
-                                       1 start-pos loop?
-                                       FREE))))
+      [buf 0 rate 1.0 start-pos 0.0 loop? 0 amp 1 pan 0 out-bus 0]
+      (let [s (scaled-play-buf 2 buf rate
+                               1 start-pos loop?
+                               FREE)]
+            (out out-bus (* amp (balance2 (first s) (second s) pan)))))
 
     (defsynth mono-stream-player
       "Plays a single channel streaming buffer-cue. Must be freed manually when
       done."
-      [buf 0 rate 1 loop? 0 amp 1 out-bus 0]
+      [buf 0 rate 1 loop? 0 amp 1 pan 0 out-bus 0]
       (out out-bus (* amp
                       (pan2
-                       (scaled-v-disk-in 1 buf rate loop?)))))
+                       (scaled-v-disk-in 1 buf rate loop?)
+                       pan))))
 
     (defsynth stereo-stream-player
       "Plays a dual channel streaming buffer-cue. Must be freed manually when
       done."
-      [buf 0 rate 1 loop? 0 amp 1 out-bus 0]
-      (out out-bus (* amp
-                      (scaled-v-disk-in 2 buf rate loop?))))))
+      [buf 0 rate 1 loop? 0 vol 1 amp 0 out-bus 0]
+      (let [s (scaled-v-disk-in 2 buf rate loop?)]
+        (out out-bus (* amp (balance2 (first s) (second s) pan)))))))
 
 (defonce loaded-samples* (atom {}))
 (defonce cached-samples* (atom {}))
