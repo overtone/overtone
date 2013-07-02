@@ -23,7 +23,7 @@
 (defonce ^{:private true} __PROTOCOLS__
   (do
     (defprotocol IBus
-      (free-bus [this]))))
+      (free-bus [bus] "Free this control or audio bus - enabling the resource to be re-allocated"))))
 
 (defrecord AudioBus [id n-channels rate name]
   to-sc-id*
