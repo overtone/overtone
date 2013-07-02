@@ -2,9 +2,11 @@
   (:import [java.util.concurrent TimeoutException])
   (:use [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
-        [overtone.sc defaults server node]
+        [overtone.sc synth ugens defaults server node]
         [overtone.helpers lib]
-	[overtone.sc server]))
+        [overtone.sc.foundation-groups :only [foundation-monitor-group]]
+        [overtone.libs.deps            :only [on-deps]])
+  (:require [overtone.at-at :as at-at]))
 
 ;; ## Buses
 ;;
@@ -13,6 +15,10 @@
 ;; plugging a cable from the output of one unit to the input of another,
 ;; but in SC they are implemented using a simple integer referenced
 ;; array of float values.
+
+(defonce ^{:private true} bus-monitors* (atom {}))
+(defonce ^{:private true} bus-monitor-pool (at-at/mk-pool))
+(defonce ^{:private true} audio-bus-monitor-group* (atom nil))
 
 (defonce ^{:private true} __PROTOCOLS__
   (do
@@ -145,3 +151,52 @@
         p  (server-recv "/c_setn")]
     (snd "/c_getn" id len)
     (drop 2 (:args (deref! p (str "attempting to get a range of consecutive control bus values of length " len " from bus " (with-out-str (pr bus))))))))
+
+(defn- create-monitor-group
+  "Creates a group for the audio bus monitor synths. Designed to be
+   called in a dependency callback after :foundation-groups-created."
+  []
+  (ensure-connected!)
+  (assert (foundation-monitor-group) "Couldn't find monitor group")
+  (let [g (with-server-sync
+            #(group "Audio Bus Monitors" :tail (foundation-monitor-group))
+            "whilst creating the audio bus monitor group")]
+    (reset! audio-bus-monitor-group* g)))
+
+(on-deps :foundation-groups-created ::create-monitor-group create-monitor-group)
+
+(defonce __BUS-MONITOR-SYNTH__
+  (defsynth mono-audio-bus-level [in-a-bus 0 out-c-bus 0]
+    (let [sig   (in:ar in-a-bus 1)
+          level (amplitude sig)
+          level (lag-ud level 0.1 0.3)]
+      (out:kr out-c-bus [(a2k level)]))))
+
+(defn audio-bus-monitor
+  "Mono bus amplitude monitor. Returns an atom containing the current
+   amplitude of the monitor. For multi-channel buses, an offset may be
+   specified.
+
+   Note - only creates one monitor per audio bus - subsequent calls for
+   the same audio bus idx will return a cached monitor."
+  ([audio-bus] (audio-bus-monitor audio-bus 0))
+  ([audio-bus chan-offset]
+     (ensure-connected!)
+     (assert @audio-bus-monitor-group* "Couldn't find audio bus monitor group")
+     (let [bus-idx (to-sc-id audio-bus)
+           bus-idx (+ chan-offset bus-idx)]
+       (if-let [[monitor _] (get @bus-monitors* bus-idx)]
+         monitor
+         (let [monitor (atom 0)
+               cb      (control-bus (str "audio-bus-level [" bus-idx "]"))
+               m-synth (mono-audio-bus-level [:tail @audio-bus-monitor-group*]
+                                             bus-idx
+                                             cb)]
+
+           (at-at/every 100
+                        #(reset! monitor (control-bus-get bus-idx))
+                        bus-monitor-pool
+                        :initial-delay 0
+                        :desc (str "bus-monitor [" bus-idx "]"))
+           (swap! bus-monitors* assoc bus-idx [monitor m-synth])
+           monitor)))))
