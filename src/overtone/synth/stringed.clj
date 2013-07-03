@@ -148,8 +148,12 @@
      (let [num-strings (count (chord-fret-map :A))
            ;; ex: [-1 3 2 0 1 0]
            chord-frets (if (vector? the-chord)
-                         ;; FIXME -- assert len(the-chord) is right?
-                         the-chord ; treat the chord as a series of frets
+                         ;; treat the-chord as a series of frets
+                         ;; and gracefully handle odd sized vectors
+                         (vec (take num-strings
+                                    (into the-chord
+                                          (vec (repeat num-strings -1)))))
+                         ;; else use the-chord as an index
                          (chord-fret-map the-chord))
            ;; account for unplayed strings for delta time calc. Code
            ;; gets a bit complicated to deal with the case where
@@ -171,7 +175,7 @@
                     (* 1000 (/ strum-time max-t))
                     0)
                fret-delta (if (= direction :up)
-                            (- max-t (nth fret-times i))
+                            (- max-t (nth fret-times j))
                             (nth fret-times i))]
            (pick-string the-strings the-inst j
                         (nth chord-frets j)
