@@ -381,7 +381,7 @@
            {:name "trig-id"
             :default -1
             :doc "if greater than 0, a '/tr' message is sent back to the
-                  client (similar to SendTrig)"}
+                  client (similar to send-trig)"}
 
            {:name "label"
             :default "dpoll-val"

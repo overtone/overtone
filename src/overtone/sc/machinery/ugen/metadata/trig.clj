@@ -82,12 +82,12 @@
             :default 0
             :doc "an integer that will be passed with the trigger
                   message. This is useful if you have more than one
-                  SendTrig in a SynthDef. Consider using trig-id to
+                  send-trig in a synth design. Consider using trig-id to
                   genearate a unique id." }
 
            {:name "value"
             :default 0.0
-            :doc "A UGen or float that will be polled at the time of
+            :doc "A ugen or float that will be polled at the time of
                   trigger, and its value passed with the trigger
                   message"}]
 
