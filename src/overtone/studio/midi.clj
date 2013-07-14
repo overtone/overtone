@@ -1,12 +1,16 @@
 (ns overtone.studio.midi
+  #^{:author "Sam Aaron and Jeff Rose"
+     :doc "A high level MIDI API for sending and receiving messages with
+           external MIDI devices and automatically hooking into
+           Overtone's event system." }
   (:use [overtone.sc node dyn-vars]
-        [overtone.midi]
         [overtone.at-at :only (mk-pool every)]
         [overtone.libs event counters]
         [overtone.sc.defaults :only [INTERNAL-POOL]]
         [overtone.helpers.system :only [mac-os?]]
         [overtone.config.store :only [config-get]])
-  (:require [overtone.config.log :as log]))
+  (:require [overtone.config.log :as log]
+            [overtone.midi :as midi]))
 
 (defonce midi-control-agents* (atom {}))
 (defonce poly-players* (atom {}))
@@ -322,7 +326,7 @@
    such as the Java Real Time Sequencer, and de.humatic.mmj
    duplicates (if on os x)"
   []
-  (let [devs   (midi-sources)
+  (let [devs   (midi/midi-sources)
         devs   (select-mmj-devices-if-available-on-osx devs)
         devs   (remove-duplicate-devices devs)
         devs   (map #(assoc % ::dev-num (next-id
@@ -336,7 +340,7 @@
 
 (defn- detect-midi-receivers
   []
-  (let [rcvs   (midi-sinks)
+  (let [rcvs   (midi/midi-sinks)
         rcvs   (select-mmj-devices-if-available-on-osx rcvs)
         rcvs   (remove-duplicate-devices rcvs)
         rcvs   (map #(assoc % ::dev-num (next-id
@@ -357,7 +361,7 @@
   (doall (filter
           (fn [dev]
             (try
-              (midi-handle-events (midi-in dev)
+              (midi/midi-handle-events (midi/midi-in dev)
                                   #(handle-incoming-midi-event dev %1)
                                   #(handle-incoming-midi-sysex dev %1))
               true
@@ -370,7 +374,7 @@
   (-> (detect-midi-devices) add-listener-handles!))
 
 (defonce ^:private connected-midi-receivers*
-  (map midi-out (detect-midi-receivers)))
+  (map midi/midi-out (detect-midi-receivers)))
 
 (defn connected-midi-devices
   "Returns a sequence of device maps for all 'connected' MIDI
@@ -408,3 +412,37 @@
   "Returns the full device key for the specified MIDI device"
   [dev]
   (::full-device-key dev))
+
+(defn midi-sysex
+  "Send a midi System Exclusive msg made up of the bytes in byte-seq
+   byte-array, sequence of integers, longs or a byte-string to the sink.
+   If a byte string is specified, must only contain bytes encoded as hex
+   values.  Commas, spaces, and other whitespace is ignored.
+
+   See connected-midi-receivers for a full list of available receivers."
+  [rcv byte-seq]
+  (midi/midi-sysex rcv byte-seq))
+
+(defn midi-control
+  "Send a MIDI control msg to the receiver. See connected-midi-receivers
+   for a full list of available receivers."
+  ([rcv ctl-num val]
+     (midi/midi-control rcv ctl-num val))
+  ([rcv ctl-num val channel]
+     (midi/midi-control rcv ctl-num val channel)))
+
+(defn midi-note-on
+  "Send a MIDI note on msg to the receiver. See connected-midi-receivers
+   for a full listof available receivers."
+  ([rcv note-num vel]
+     (midi/midi-note-on rcv note-num vel))
+  ([rcv note-num vel channel]
+     (midi/midi-note-on rcv note-num vel channel)))
+
+(defn midi-note-off
+  "Send a MIDI note off msg to the receiver. See connected-midi-receivers
+   for a full list of available receivers."
+  ([rcv note-num]
+     (midi/midi-note-off rcv note-num))
+  ([rcv note-num channel]
+     (midi/midi-note-off rcv note-num channel)))

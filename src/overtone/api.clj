@@ -3,7 +3,7 @@
         [overtone.helpers.ns])
   (:require clojure.stacktrace
             [overtone.config store]
-            [overtone version midi osc speech]
+            [overtone version osc speech]
             [overtone.algo chance scaling trig fn]
             [overtone.sc bindings buffer bus envelope example info
                          ugens defcgen node sample server synth
@@ -20,7 +20,6 @@
 (defn immigrate-overtone-api []
   (immigrate
    'overtone.osc
-   'overtone.midi
    'overtone.algo.chance
    'overtone.algo.scaling
    'overtone.algo.trig
