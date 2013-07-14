@@ -446,3 +446,14 @@
      (midi/midi-note-off rcv note-num))
   ([rcv note-num channel]
      (midi/midi-note-off rcv note-num channel)))
+
+(defn midi-note
+  "Send a midi on/off msg pair to the receiver. The off message will be
+   sent dur ms after the on message resulting in the note being 'played'
+   for dur ms.
+
+   See connected-midi-receivers for a full list of available receivers."
+  ([rcv note-num vel dur]
+     (midi/midi-note rcv note-num vel dur))
+  ([rcv note-num vel dur channel]
+     (midi/midi-note rcv note-num vel dur channel)))
