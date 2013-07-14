@@ -415,9 +415,10 @@
 
 (defn midi-sysex
   "Send a midi System Exclusive msg made up of the bytes in byte-seq
-   byte-array, sequence of integers, longs or a byte-string to the sink.
-   If a byte string is specified, must only contain bytes encoded as hex
-   values.  Commas, spaces, and other whitespace is ignored.
+   byte-array, sequence of integers, longs or a byte-string to the
+   receiver.  If a byte string is specified, must only contain bytes
+   encoded as hex values.  Commas, spaces, and other whitespace is
+   ignored.
 
    See connected-midi-receivers for a full list of available receivers."
   [rcv byte-seq]
