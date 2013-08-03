@@ -649,8 +649,8 @@
   (find-note-name 45) ;=> A2
   (find-note-name 57) ;=> A3
   (find-note-name 58) ;=> Bb3"
-  (let [octave (dec (int (/ note 12)))]
-    (keyword (str (name (find-pitch-class-name note)) octave))))
+  (when note (let [octave (dec (int (/ note 12)))]
+               (keyword (str (name (find-pitch-class-name note)) octave)))))
 
 (defn- fold-note
   "Folds note intervals into a 2 octave range so that chords using
