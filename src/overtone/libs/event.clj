@@ -220,7 +220,10 @@
   (when @monitoring?*
     (swap! monitor* assoc event-type args))
   (binding [overtone.libs.handlers/*log-fn* log/error]
-    (let [event-info (apply hash-map args)]
+    (let [event-info (if (and (= 1 (count args))
+                              (map? (first args)))
+                       (first args)
+                       (apply hash-map args))]
       (apply handlers/sync-event handler-pool event-type event-info))))
 
 (defn event-debug-on
