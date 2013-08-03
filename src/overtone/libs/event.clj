@@ -187,8 +187,9 @@
   "Fire an event of type event-type with any number of additional
   properties.
 
-  NOTE: an event requires key/value pairs, and everything gets wrapped
-  into an event map.  It will not work if you just pass values.
+  NOTE: an event requires either a map as a single argument, or
+  key/value pairs which will be poured into an event map.  It will not
+  work if you just pass values.
 
   (event ::my-event)
   (event ::filter-sweep-done :instrument :phat-bass)"
