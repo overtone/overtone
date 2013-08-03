@@ -572,7 +572,8 @@
   group)
 
 (defn- group-clear*
-  "Free all child synth nodes in a group."
+  "Nukes all nodes in the group. This completely clears out all
+   subgroups and frees all subsynths."
   [group]
   (ensure-connected!)
   (ensure-node-active! group "clearing node")
@@ -580,8 +581,8 @@
   group)
 
 (defn- group-deep-clear*
-  "Free all child synth nodes in and below this group in other child
-  groups."
+  "Traverses all groups below this group and frees all the synths. Group
+    structure is left unaffected."
   [group]
   (ensure-connected!)
   (ensure-node-active! group "deep clearing node")
