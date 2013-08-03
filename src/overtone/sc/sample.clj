@@ -174,7 +174,12 @@
 
    Accepts same args as both players, namely:
 
-   [buf 0 rate 1.0 start-pos 0.0 loop? 0 amp 1 out-bus 0]"
+   {:buf 0 :rate 1.0 :start-pos 0.0 :loop? 0 :amp 1 :out-bus 0}
+
+   If you wish to specify a group target vector i.e. [:head foo-g] this
+   argument must go *after* the smpl argument:
+
+   (sample-player my-samp [:head foo-g] :rate 0.5)"
   [smpl & pargs] {:pre [(sample? smpl)]}
   (let [{:keys [path args]}     smpl
         {:keys [id n-channels]} (get @cached-samples* [path args])
