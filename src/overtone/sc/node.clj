@@ -482,18 +482,23 @@
   (apply snd "/n_set" (to-sc-id node) (floatify (stringify (idify name-values))))
   node)
 
-(defn node-get-control
+(defn node-get-controls
   "Get one or more synth control values by name.  Returns a map of
   key/value pairs, for example:
 
   {:freq 440.0 :attack 0.2}"
-  [node names]
+  [node control-names]
   (ensure-connected!)
   (ensure-node-active! node "getting node control values")
   (let [res   (recv "/n_set")
-        cvals (do (apply snd "/s_get" (to-sc-id node) (stringify names))
+        cvals (do (apply snd "/s_get" (to-sc-id node) (stringify control-names))
                   (:args (deref! res (str "attempting to get control values " name " for node " (with-out-str (pr node))))))]
     (apply hash-map (keywordify (drop 1 cvals)))))
+
+(defn node-get-control
+  "Get a single synth control value by name."
+  [node control-name]
+  (get (node-get-controls node [control-name]) (keyword (name control-name))))
 
 ;; This can be extended to support setting multiple ranges at once if necessary...
 (defn node-control-range*
