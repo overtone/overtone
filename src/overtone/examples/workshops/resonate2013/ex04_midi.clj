@@ -34,4 +34,4 @@
 
 ;; execute the below to remove the event handler later on...
 (comment
-  (remove-handler ::drumkit))
+  (remove-event-handler ::drumkit))

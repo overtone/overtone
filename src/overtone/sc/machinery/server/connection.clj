@@ -102,8 +102,8 @@
 (defn- setup-connect-handlers []
   (let [handler-fn
         (fn [event-info]
-          (remove-handler ::connected-handler1)
-          (remove-handler ::connected-handler2)
+          (remove-event-handler ::connected-handler1)
+          (remove-event-handler ::connected-handler2)
           (dosync
            (ref-set connection-status* :connected))
           (server-notifications-on) ; turn on notifications now that we can communicate

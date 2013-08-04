@@ -35,7 +35,7 @@
 ;                             (println "Note: " note ", Velocity: " velocity))
 ;          ::note-printer)
 
-;(remove-handler ::note-printer)
+;(remove-event-handler ::note-printer)
 
 ; Other available midi events are:
 ; * :channel-pressure

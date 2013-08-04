@@ -348,7 +348,7 @@
                    f
                    id)
     (oneshot-event (node-destroyed-event-key id)
-                   #(remove-handler k)
+                   #(remove-event-handler k)
                    (uuid))
     k))
 
@@ -363,7 +363,7 @@
                    f
                    id)
     (oneshot-event (node-destroyed-event-key id)
-                   #(remove-handler k)
+                   #(remove-event-handler k)
                    (uuid))
     k))
 

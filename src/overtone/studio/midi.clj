@@ -167,16 +167,16 @@
 
 (defn midi-player-stop
   ([]
-     (remove-handler [::midi-poly-player :midi :note-on])
-     (remove-handler [::midi-poly-player :midi :note-off]))
+     (remove-event-handler [::midi-poly-player :midi :note-on])
+     (remove-event-handler [::midi-poly-player :midi :note-off]))
   ([player-or-key]
      (if (keyword? player-or-key)
        (midi-player-stop (get @poly-players* player-or-key))
        (let [player player-or-key]
          (when-not (= ::midi-poly-player (type player))
            (throw (IllegalArgumentException. (str "Expected a midi-poly-player. Got: " (prn-str (type player))))))
-         (remove-handler (:on-key player))
-         (remove-handler (:off-key player))
+         (remove-event-handler (:on-key player))
+         (remove-event-handler (:off-key player))
          (reset! (:playing? player) false)
          (swap! poly-players* dissoc (:player-key player))
          player))))

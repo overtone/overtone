@@ -79,8 +79,8 @@
                               (funky-bass (:note event)))
                             ::midi-note-down-hdlr)
 
-  Handlers can return :overtone/remove-handler to be removed from the
-  handler list after execution."
+  Handlers can return :overtone/remove-handler to be removed from
+  the handler list after execution."
   [event-type handler key]
   (log-event "Registering async event handler:: " event-type " with key: " key)
   (handlers/add-handler! handler-pool event-type key handler ))
@@ -155,7 +155,7 @@
   (log-event "Registering sync self-removing event handler:: " event-type " with key: " key)
   (handlers/add-one-shot-sync-handler! handler-pool event-type key handler))
 
-(defn remove-handler
+(defn remove-event-handler
   "Remove an event handler previously registered with specified
    key. Removes both sync and async handlers with a given key for a
    particular event type.
@@ -165,7 +165,7 @@
   (on-event :foo my-foo-handler ::bar-key)
   (event :foo :val 200) ; my-foo-handler gets called with:
                         ; {:event-type :foo :val 200}
-  (remove-handler ::bar-key)
+  (remove-event-handler ::bar-key)
   (event :foo :val 200) ; my-foo-handler no longer called"
   [key]
   (let [[old new] (swap-returning-prev! lossy-workers* dissoc key)]
@@ -174,8 +174,8 @@
   (log-event "Removing event handler associated with key: " key)
   (handlers/remove-handler! handler-pool key))
 
-(defn- remove-all-handlers
-  "Remove all handlers."
+(defn- remove-all-event-handlers
+  "Remove all handlers. Do not call unless you know what you're doing!"
   []
   (let [[old new] (swap-returning-prev! lossy-workers* (fn [_] {}))]
     (doseq [old-worker (vals old)]

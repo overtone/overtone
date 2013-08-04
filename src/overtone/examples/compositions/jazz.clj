@@ -10,7 +10,7 @@
         [overtone.inst.synth]
         [overtone.examples.compositions.rotater]))
 
-(remove-handler :breakbeat-handler)
+(remove-event-handler :breakbeat-handler)
 
 ;; just a simple example of a synth
 ;; we'll use this together with the bass
