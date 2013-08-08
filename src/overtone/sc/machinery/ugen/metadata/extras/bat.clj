@@ -28,7 +28,7 @@
                   onsets, fast smoother output will exceed the slow
                   smoother and trigger an onset report. If you want to
                   tweak the sensitivity of the tracking, you should try
-                  tweaking this value first. Higher values(approaching
+                  tweaking this value first. Higher values (approaching
                   to 1) makes the tracking more sensitive." }
 
            {:name "thresh"
@@ -50,31 +50,31 @@
 
           Coyote compares three different analysis results in parallel
           and tries to report an onset event in the signal. The first
-          phase is amplitude tracking. The trackFall argument is the
+          phase is amplitude tracking. The track-fall argument is the
           60dB convergence time of the decaying signal(the attack time
-          is constant: 0.001, the process is the same with the Amplitude
-          UGen, trackFall is the releaseTime). The output of this
+          is constant: 0.001, the process is the same with the amplitude
+          UGen, track-fall is the release-time). The output of this
           tracking is divided to 3 inputs inside. The first two are
-          smoothers(lowpass filters) with different lag times. slowLag
-          is the lag time of the slow smoother, and the fastLag is the
+          smoothers (lowpass filters) with different lag times. slow-lag
+          is the lag time of the slow smoother, and the fast-lag is the
           lag time of the fast one. The fast smoother is multiplied by a
-          value(fastMul argument) which should be between 0 and 0.9 so
+          value(fast-mul argument) which should be between 0 and 0.9 so
           its output is always below the slow smoother, except in
           onsets. So when an onset occurs, the fast smoother output
           rises quicker than the slow smoother, and when the fast one
-          exceeds the slower at an instant(occurs only at onsets), a
+          exceeds the slower at an instant (occurs only at onsets), a
           trigger is sent to the output from the UGen. For the next
           trigger to happen, a specified time should pass which is
-          defined by the minDur parameter. So minDur defines the minimum
+          defined by the minDur parameter. So min-dur defines the minimum
           time between events/triggers.
 
-          This approach is extremely fast in response(compared to FFT
+          This approach is extremely fast in response (compared to FFT
           based detectors) when detecting onsets and works well on most
-          contexts(guitar, percussion, etc...). But it has a drawback
+          contexts (guitar, percussion, etc...). But it has a drawback
           when there are sustaining sounds present from the same
           instrument at the moment of an onset, so there is a third unit
           inside that averages the input beginning from the last trigger
-          whose output is also smoothed by a smoother(lag time is also
+          whose output is also smoothed by a smoother (lag time is also
           set to slowLag) and it too is compared with the output of fast
           smoother to make the tracking work better when there are
           sustaining sounds present at the moment of an onset.
