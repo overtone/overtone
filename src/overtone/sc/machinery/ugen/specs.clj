@@ -183,6 +183,9 @@
                  ;; Special case Amplitude ugen which may have ar ugens plugged into it
                  (and (= "Amplitude" (:name ugen))
                       (= :ar (:rate-name bad-input)))
+                 ;; Special case Coyote ugen which may have ar ugens plugged into it
+                 (and (= "Coyote" (:name ugen))
+                      (= :ar (:rate-name bad-input)))
                  ;; Special case Pitch ugen which may have ar ugens plugged into it
                  (and (= "Pitch" (:name ugen))
                       (= :ar (:rate-name bad-input)))
