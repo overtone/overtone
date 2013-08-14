@@ -9,7 +9,8 @@
         [overtone.nativescsynth.availability :only [native-scsynth-lib-availability]]
         [clj-native.direct :only [defclib loadlib]]
         [clj-native.structs :only [byref]]
-        [clj-native.callbacks :only [callback]]))
+        [clj-native.callbacks :only [callback]]
+        [overtone.config.log :only [warn error]]))
 
 (defn native-scsynth-available? []
   (let [os-arc-path [(get-os) (get-cpu-bits)]]
@@ -22,7 +23,7 @@
 (defn fflush [_] nil)
 
 (defonce __LOAD_SCSYNTH_NATIVE_LIB__
-  (do
+  (try
     (when-not (windows-os?)
       (defclib
         libc
@@ -35,131 +36,131 @@
         lib-scsynth
         (:libname "scsynth")
         (:structs
-          (rate
-            :sample-rate double
-            :buf-rate    double
-            :radians-per-sample double)
+         (rate
+          :sample-rate double
+          :buf-rate    double
+          :radians-per-sample double)
 
-          ; supercollider/include/server/SC_WorldOptions.h
-          (world-options
-            :mPassword                          constchar*
-            :mNumBuffers                        i32
-            :mMaxLogins                         i32
-            :mMaxNodes                          i32
-            :mMaxGraphDefs                      i32
-            :mMaxWireBufs                       i32
-            :mNumAudioBusChannels               i32
-            :mNumInputBusChannels               i32
-            :mNumOutputBusChannels              i32
-            :mNumControlBusChannels             i32
-            :mBufLength                         i32
-            :mRealTimeMemorySize                i32
-            :mNumSharedControls                 i32
-            :mSharedControls                    float*
-            :mRealTime                          byte
-            :mMemoryLocking                     byte
-            :mNonRealTimeCmdFilename            constchar*
-            :mNonRealTimeInputFilename          constchar*
-            :mNonRealTimeOutputFilename         constchar*
-            :mNonRealTimeOutputHeaderFormat     constchar*
-            :mNonRealTimeOutputSampleFormat     constchar*
-            :mPreferredSampleRate               i32
-            :mNumRGens                          i32
-            :mPreferredHardwareBufferFrameSize  i32
-            :mLoadGraphDefs                     i32
-            :mInputStreamsEnabled               constchar*
-            :mOutputStreamsEnabled              constchar*
-            :mInDeviceName                      constchar*
-            :mVerbosity                         i32
-            :mRendezvous                        byte
-            :mUGensPluginPath                   constchar*
-            :mOutDeviceName                     constchar*
-            :mRestrictedPath                    constchar*
-            :mSharedMemoryID                    i32)
+         ;; supercollider/include/server/SC_WorldOptions.h
+         (world-options
+          :mPassword                          constchar*
+          :mNumBuffers                        i32
+          :mMaxLogins                         i32
+          :mMaxNodes                          i32
+          :mMaxGraphDefs                      i32
+          :mMaxWireBufs                       i32
+          :mNumAudioBusChannels               i32
+          :mNumInputBusChannels               i32
+          :mNumOutputBusChannels              i32
+          :mNumControlBusChannels             i32
+          :mBufLength                         i32
+          :mRealTimeMemorySize                i32
+          :mNumSharedControls                 i32
+          :mSharedControls                    float*
+          :mRealTime                          byte
+          :mMemoryLocking                     byte
+          :mNonRealTimeCmdFilename            constchar*
+          :mNonRealTimeInputFilename          constchar*
+          :mNonRealTimeOutputFilename         constchar*
+          :mNonRealTimeOutputHeaderFormat     constchar*
+          :mNonRealTimeOutputSampleFormat     constchar*
+          :mPreferredSampleRate               i32
+          :mNumRGens                          i32
+          :mPreferredHardwareBufferFrameSize  i32
+          :mLoadGraphDefs                     i32
+          :mInputStreamsEnabled               constchar*
+          :mOutputStreamsEnabled              constchar*
+          :mInDeviceName                      constchar*
+          :mVerbosity                         i32
+          :mRendezvous                        byte
+          :mUGensPluginPath                   constchar*
+          :mOutDeviceName                     constchar*
+          :mRestrictedPath                    constchar*
+          :mSharedMemoryID                    i32)
 
-          ; supercollider/include/plugin_interface/SC_SndBuf.h
-          (sound-buffer
-            :samplerate double
-            :sampledur  double
-            :data       void*             ;float*
-            :channels   i32
-            :samples    i32
-            :frames     i32
-            :mask       i32
-            :mask1      i32
-            :coord      i32
-            :sndfile    void*)
+         ;; supercollider/include/plugin_interface/SC_SndBuf.h
+         (sound-buffer
+          :samplerate double
+          :sampledur  double
+          :data       void*             ;float*
+          :channels   i32
+          :samples    i32
+          :frames     i32
+          :mask       i32
+          :mask1      i32
+          :coord      i32
+          :sndfile    void*)
 
-          (bool-val
-            :value byte)
+         (bool-val
+          :value byte)
 
-          ; supercollider/include/plugin_interface/SC_World.h
-          (world
-            :hidden-world void*
-            :interface-table void*
-            :sample-rate double
-            :buf-length  i32
-            :buf-counter i32
-            :num-audio-bus-channels   i32
-            :num-control-bus-channels i32
-            :num-inputs               i32
-            :num-outputs              i32
-            :audio-busses             float*
-            :control-busses           float*
-            :audio-bus-touched        i32*
-            :control-bus-touched      i32*
-            :num-snd-bufs             i32
-            :snd-bufs                 sound-buffer*
-            :snd-bufs-non-realtime    sound-buffer*
-            :snd-buf-updates          void*
-            :top-group                void*
-            :full-rate                rate
-            :buf-rate                 rate
-            :num-rgens                i32
-            :rgen                     void*
-            :num-units                i32
-            :num-graphs               i32
-            :num-groups               i32
-            :sample-offset            i32
-            :nrt-lock                 void*
-            :num-shared-controls      i32
-            :shared-controls          float*
-            :real-time?               byte
-            :running?                 byte
-            :dump-osc                 i32
-            :driver-lock              void*
-            :subsample-offset         float
-            :verbosity                i32
-            :error-notification       i32
-            :local-error-notificaiton i32
-            :rendezvous?              byte
-            :restricted-path          constchar*)
+         ;; supercollider/include/plugin_interface/SC_World.h
+         (world
+          :hidden-world void*
+          :interface-table void*
+          :sample-rate double
+          :buf-length  i32
+          :buf-counter i32
+          :num-audio-bus-channels   i32
+          :num-control-bus-channels i32
+          :num-inputs               i32
+          :num-outputs              i32
+          :audio-busses             float*
+          :control-busses           float*
+          :audio-bus-touched        i32*
+          :control-bus-touched      i32*
+          :num-snd-bufs             i32
+          :snd-bufs                 sound-buffer*
+          :snd-bufs-non-realtime    sound-buffer*
+          :snd-buf-updates          void*
+          :top-group                void*
+          :full-rate                rate
+          :buf-rate                 rate
+          :num-rgens                i32
+          :rgen                     void*
+          :num-units                i32
+          :num-graphs               i32
+          :num-groups               i32
+          :sample-offset            i32
+          :nrt-lock                 void*
+          :num-shared-controls      i32
+          :shared-controls          float*
+          :real-time?               byte
+          :running?                 byte
+          :dump-osc                 i32
+          :driver-lock              void*
+          :subsample-offset         float
+          :verbosity                i32
+          :error-notification       i32
+          :local-error-notificaiton i32
+          :rendezvous?              byte
+          :restricted-path          constchar*)
 
-          (reply-address
-            :sockaddr     void*
-            :sockaddr-len i32
-            :socket       i32
-            :reply-func   void*
-            :reply-data   void*)
-          )
+         (reply-address
+          :sockaddr     void*
+          :sockaddr-len i32
+          :socket       i32
+          :reply-func   void*
+          :reply-data   void*)
+         )
 
         (:callbacks
 
-          ; supercollider/include/common/SC_Reply.h
-          (reply-callback [void* void* i32] void))
+         ;; supercollider/include/common/SC_Reply.h
+         (reply-callback [void* void* i32] void))
 
-        ; TODO: void* here is actually world*
+        ;; TODO: void* here is actually world*
         (:functions
 
-          ; supercollider/include/server/SC_WorldOptions.h
-          (world-new World_New [world-options*] void*)
-          (world-run World_WaitForQuit [void*])
-          (world-cleanup World_Cleanup [void*])
+         ;; supercollider/include/server/SC_WorldOptions.h
+         (world-new World_New [world-options*] void*)
+         (world-run World_WaitForQuit [void*])
+         (world-cleanup World_Cleanup [void*])
 
-          (world-open-udp-port World_OpenUDP [void* i32] i32)
-          (world-open-tcp-port World_OpenTCP [void* i32 i32 i32] i32)
-          (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
-          (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
+         (world-open-udp-port World_OpenUDP [void* i32] i32)
+         (world-open-tcp-port World_OpenTCP [void* i32 i32 i32] i32)
+         (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
+         (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
       (when-not (windows-os?)
         (loadlib libc))
@@ -167,7 +168,10 @@
       (when (native-scsynth-available?)
         (loadlib lib-scsynth))
 
-      (defonce flusher (at-at/every 500 #(fflush nil) INTERNAL-POOL :desc "Flush stdout")))))
+      (defonce flusher (at-at/every 500 #(fflush nil) INTERNAL-POOL :desc "Flush stdout")))
+    (catch UnsatisfiedLinkError e
+      (warn (with-out-str (.printStackTrace e)))
+      (error "Unable to load native libs c and scsynth. Please try an external server with (use 'overtone.core)"))))
 
 (defn flush-all
   []
