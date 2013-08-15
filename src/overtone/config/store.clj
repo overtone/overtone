@@ -9,34 +9,58 @@
         [overtone version]
         [clojure.java.io :only [delete-file]]))
 
+(declare live-store)
+(declare live-config)
+
 (def CONFIG-DEFAULTS
   {:os (get-os)
    :user-name (capitalize (system-user-name))
    :server :internal
    :sc-args {}})
 
-(defonce config* (ref {}))
-(defonce live-config (partial live-file-store config*))
+(defn- file-store-get
+  "Get the file store reference"
+  ([store-atom key]
+     (get @store-atom key))
+  ([store-atom key not-found]
+     (get @store-atom key not-found)))
+
+(defn- file-store-set!
+  "Set file store reference key to val"
+  [store-atom key val]
+  (swap! store-atom assoc key val))
 
 (defn config-get
   "Get config value. Returns default if specified and the config does
   not contain key."
-  ([key]
-     (get @config* key))
-  ([key not-found]
-     (let [c @config*]
-       (get @config* key not-found))))
+  ([key] (file-store-get live-config key))
+  ([key not-found] (file-store-get live-config key not-found) ))
 
 (defn config-set!
   "Set config key to val"
   [key val]
-  (dosync
-   (alter config* assoc key val)))
+  (file-store-set! live-config key val))
+
+(defn store-get
+  "Get config value. Returns default if specified and the config does
+  not contain key."
+  ([key] (file-store-get live-store key))
+  ([key not-found] (file-store-get live-store key not-found) ))
+
+(defn store-set!
+  "Set store key to val"
+  [key val]
+  (file-store-set! live-store key val))
 
 (defn config
   "Get the full config map"
   []
-  @config*)
+  @live-config)
+
+(defn store
+  "Get the full user store map"
+  []
+  @live-store)
 
 (def OVERTONE-DIRS
   (let [root   (str (System/getProperty "user.home") "/.overtone")
@@ -48,52 +72,46 @@
        :assets assets
        :speech speech}))
 
-(def OVERTONE-CONFIG-FILE (str (:root   OVERTONE-DIRS) "/config.clj"))
-(def OVERTONE-ASSETS-FILE (str (:assets OVERTONE-DIRS) "/assets.clj"))
-(def OVERTONE-LOG-FILE    (str (:log    OVERTONE-DIRS) "/overtone.log"))
+(def OVERTONE-CONFIG-FILE     (str (:root   OVERTONE-DIRS) "/config.clj"))
+(def OVERTONE-USER-STORE-FILE (str (:root   OVERTONE-DIRS) "/user-store.clj"))
+(def OVERTONE-ASSETS-FILE     (str (:assets OVERTONE-DIRS) "/assets.clj"))
+(def OVERTONE-LOG-FILE        (str (:log    OVERTONE-DIRS) "/overtone.log"))
 
 (defn- ensure-dir-structure
   []
   (dorun
    (map #(mkdir! %) (vals OVERTONE-DIRS))))
 
-(defn- ensure-config
-  "Creates empty config file if one doesn't already exist"
-  []
-  (when-not (file-exists? OVERTONE-CONFIG-FILE)
-    (write-file-store OVERTONE-CONFIG-FILE {})))
+(defn- ensure-file
+  "Creates an empty config file if one doesn't already exist"
+  [path]
+  (when-not (file-exists? path)
+    (write-file-store path {})))
 
 (defn- load-config-defaults
   []
-  (dosync
-   (dorun
-    (map (fn [[k v]]
-           (when-not (contains? @config* k)
-             (alter config* assoc k v)))
-         CONFIG-DEFAULTS))))
+  (swap! live-config (fn [config] (merge CONFIG-DEFAULTS config))))
 
 (defn- update-seen-versions
   []
-  (dosync
-   (let [val (get @config* :versions-seen)
-         val (or val #{})
-         new-val (conj val OVERTONE-VERSION-STR)]
-
-     (alter config* assoc :versions-seen new-val))))
+  (swap! live-config
+         (fn [c]
+           (let [val (get c :versions-seen #{})]
+             (assoc c :versions-seen (conj val OVERTONE-VERSION-STR))))))
 
 (defn- migrate-sc-args
   "Previously the sc-args default was [], it's now {}"
   []
-  (dosync
-   (let [val (get @config* :sc-args)]
-     (when-not (map? val)
-       (alter config* assoc :sc-args {})))))
+  (swap! live-config
+         (fn [c]
+           (if (not (map? (get c :sc-args)))
+             (assoc c :sc-args {})
+             c))))
 
 (defn- migrate-up
   "Migrate old configs gracefully."
   []
   (migrate-sc-args))
-
 
 (defonce __MOVE-OLD-ROOT-DIR__
   (let [root (:root OVERTONE-DIRS)]
@@ -104,13 +122,17 @@
 (defonce __ENSURE-DIRS___
   (ensure-dir-structure))
 
-(defonce __ENSURE-CONFIG__
-  (ensure-config))
+(defonce __ENSURE-STORAGE-FILES__
+  (do
+    (ensure-file OVERTONE-CONFIG-FILE)
+    (ensure-file OVERTONE-USER-STORE-FILE)))
+
+(defonce live-config (live-file-store OVERTONE-CONFIG-FILE))
+(defonce live-store (live-file-store OVERTONE-USER-STORE-FILE))
 
 (defonce __LOAD-CONFIG__
   (try
     (do
-      (live-config OVERTONE-CONFIG-FILE)
       (load-config-defaults)
       (update-seen-versions)
       (migrate-up))

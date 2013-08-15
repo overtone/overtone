@@ -8,18 +8,16 @@
         [overtone.config.store :only [OVERTONE-ASSETS-FILE]]
         [overtone.config.file-store]))
 
-(defonce assets* (ref {}))
-
 (defn- ensure-assets-file
   "Creates empty assets file if one doesn't already exist"
   []
   (when-not (file-exists? OVERTONE-ASSETS-FILE)
     (write-file-store OVERTONE-ASSETS-FILE {})))
 
-(defonce __LIVE-ASSET-STORE__
-  (do
-    (ensure-assets-file)
-    (live-file-store assets* OVERTONE-ASSETS-FILE)))
+(defonce __ENSURE-LIVE-ASSET-STORE__
+  (ensure-assets-file))
+
+(defonce assets* (live-file-store OVERTONE-ASSETS-FILE))
 
 (defn- vectorize
   "Returns a flat vector from the given args."
@@ -48,12 +46,11 @@
       (vectorize-values)
       (into {})))
 
-(defn- alter-assets*
-  "Must be called in a transaction. Uses alter to modify the
-  in-transaction-value of assets* with the provided fn and args and normalizes
-  the results before returning."
-  [fun & args]
-  (alter assets* #(-> (apply fun % args) normalize-assets)))
+(defn- update-assets*
+  "Modify the in-transaction-value of assets* with the provided fn and
+   args and normalizes the results before returning."
+  [assets fun & args]
+  (normalize-assets (apply fun assets args)))
 
 (defn- resolve-paths
   "Returns a seq of canonical path strings. Relative paths, directory paths,
@@ -71,19 +68,17 @@
   [key & paths]
   (let [paths (resolve-paths paths)]
     (assert (every? file-exists? paths))
-    (dosync
-     (alter-assets* assoc key paths)
-     (select-keys @assets* [key]))))
+    (let [new-assets (swap! assets* update-assets* assoc key paths)]
+      (select-keys new-assets [key]))))
 
 (defn unregister-assets!
   "Unregister all asset(s) registered with a given key. If paths are supplied
   only those paths will be unregistered. Returns the resulting entry."
   ([key]
-     (dosync (alter-assets* dissoc key)))
+     (swap! assets* dissoc key))
   ([key & paths]
-     (dosync
-      (alter-assets* update-in [key] #(when % (remove (set paths) %)))
-      (select-keys @assets* [key]))))
+     (let [new-assets (swap! assets* update-assets* update-in [key] #(when % (remove (set paths) %)))]
+       (select-keys new-assets [key]))))
 
 (defn registered-assets
   "Get all of the asset paths registered with the given key. Provide a name to

@@ -27,17 +27,15 @@
     (read-string (slurp file))))
 
 (defn live-file-store
-  "Uses the file-store located at the given path. Restores the
-   file-store if it already exists and persists any changes to disk as
-   they occur.
+  "Returns an atom representing a file-store map located at the given
+   path. Persists any changes to disk as they occur within the atom.
 
-   (def data (ref {}))
-   (live-store data \"~/.app-data\")"
-  [reference path & [initial-value]]
-  (dosync
-   (ref-set reference (or initial-value
-                          (read-file-store path))))
-  (add-watch reference ::live-file-store
-             (fn [k r old-state new-state]
-                (when-not (= old-state new-state)
-                  (write-file-store path new-state)))))
+   (def data (live-file-store \"~/.app-data\"))
+   (swap! data assoc :foo 1) ;=> persists key val pair to ~/.app-data"
+  [path]
+  (let [store-atom (atom (read-file-store path))]
+    (add-watch store-atom ::live-file-store
+               (fn [k r old-state new-state]
+                 (when-not (= old-state new-state)
+                   (write-file-store path new-state))))
+    store-atom))
