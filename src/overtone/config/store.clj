@@ -39,7 +39,8 @@
 (defn config-set!
   "Set config key to val"
   [key val]
-  (file-store-set! live-config key val))
+  (file-store-set! live-config key val)
+  (str "set " key))
 
 (defn store-get
   "Get config value. Returns default if specified and the config does
@@ -50,7 +51,8 @@
 (defn store-set!
   "Set store key to val"
   [key val]
-  (file-store-set! live-store key val))
+  (file-store-set! live-store key val)
+  (str "set " key))
 
 (defn config
   "Get the full config map"
