@@ -23,8 +23,9 @@
 
 (defmethod read-file-store :file
   [path]
-  (with-open [file (FileInputStream. path)]
-    (read-string (slurp file))))
+  (locking F-LOCK
+    (with-open [file (FileInputStream. path)]
+      (read-string (slurp file)))))
 
 (defn live-file-store
   "Returns an atom representing a file-store map located at the given
