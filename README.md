@@ -112,6 +112,7 @@ There are also the following tutorials:
 
 * Sam Aaron - Programming Music With Overtone: http://www.youtube.com/watch?v=imoWGsipe4k
 * Chris Ford - Functional Composition: http://www.youtube.com/watch?v=Mfsnlbd-4xQ
+* Meta-eX - Live Coding with Meta-eX: https://www.youtube.com/watch?v=zJqH5bNcIN0
 
 ### Interviews
 
@@ -131,6 +132,11 @@ Sam Aaron performs with Overtone Live @ Arnolfini:
 
   https://vimeo.com/46867490
 
+## Overtone Powered Bands
+
+A list of bands using Overtone to generate sounds:
+
+* [Meta-eX](http://meta-ex.com)
 
 
 ## Cheat Sheet
