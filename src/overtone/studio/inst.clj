@@ -5,7 +5,8 @@
         [overtone.sc.util :only (id-mapper)]
         [overtone.studio core mixer fx]
         [overtone.helpers lib]
-        [overtone.libs event]))
+        [overtone.libs event])
+  (:require [overtone.sc.protocols :as protocols]))
 
 (def DEFAULT-VOLUME 1.0)
 (def DEFAULT-PAN    0.0)
@@ -308,7 +309,7 @@
    :node-map-controls      node-map-controls*
    :node-map-n-controls    node-map-n-controls*}
 
-  IKillable
+  protocols/IKillable
   {:kill* (fn [this] (group-deep-clear (:instance-group this)))}
 
   ISynthNodeStatus

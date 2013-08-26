@@ -10,9 +10,10 @@
         [clojure.pprint])
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]
-            [overtone.at-at :as at-at]))
+            [overtone.at-at :as at-at]
+            [overtone.sc.protocols :as protocols]))
 
-; The root group is implicitly allocated
+;; The root group is implicitly allocated
 (defonce _root-group_ (next-id :node))
 
 (defn- emit-inactive-node-modification-error
@@ -59,9 +60,6 @@
       (node-map-n-controls  [this start-control start-bus n]
         "Connect N controls of a node to a set of sequential control
         buses, starting at the given control name."))
-
-    (defprotocol IKillable
-      (kill* [this] "Kill a synth element (node, or group, or ...)."))
 
     (defprotocol ISynthGroup
       (group-prepend-node [group node]
@@ -693,14 +691,14 @@
 "
   [& nodes]
   (doseq [node (flatten nodes)]
-    (kill* node)))
+    (protocols/kill* node)))
 
 (extend SynthNode
-  IKillable
+  protocols/IKillable
   {:kill* node-free*})
 
 (extend java.lang.Long
-  IKillable
+  protocols/IKillable
   {:kill* node-free*})
 
 ;;/g_queryTree				get a representation of this group's node subtree.
@@ -802,7 +800,7 @@
    :group-node-tree    group-node-tree*
    :group-free         group-free*}
 
-  IKillable
+  protocols/IKillable
   {:kill* group-deep-clear*})
 
 

@@ -5,7 +5,7 @@
   (:use [overtone.libs event]
         [overtone.helpers lib])
   (:require [overtone.at-at :as at-at]
-            [overtone.sc.node :as node]))
+            [overtone.sc.protocols :as protocols]))
 
 ;;Scheduled thread pool (created by at-at) which is to be used by default for
 ;;all scheduled musical functions (players).
@@ -163,7 +163,7 @@
   []
   (at-at/show-schedule player-pool))
 
-(extend-protocol node/IKillable
+(extend-protocol protocols/IKillable
   overtone.at_at.RecurringJob
   (kill* [job] (stop-player job))
 
