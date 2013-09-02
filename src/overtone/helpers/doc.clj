@@ -47,8 +47,22 @@
           (indented-str-block* (str s "\n" (gen-padding indent) (first ls) (gen-padding indent)) (rest ls) 0 max-len indent)
           (indented-str-block* (str s (first ls) (gen-padding indent)) (rest ls) 0 max-len indent))
         (if (> (+ cur-len f-len) max-len)
-          (indented-str-block* (str s "\n" (gen-padding indent)) ls 0 max-len indent)
-          (indented-str-block* (str s (first ls) " ") (rest ls) (+ cur-len f-len) max-len indent))))))
+          (if (> f-len max-len)
+            (do
+              (indented-str-block* (str s "\n" (gen-padding indent) (first ls)) (rest ls) f-len max-len indent))
+            (indented-str-block* (str s "\n" (gen-padding indent)) ls 0 max-len indent))
+          (indented-str-block* (str s (first ls) " ") (rest ls) (+ cur-len f-len 1) max-len indent))))))
+
+(defn- indent-first-line
+  "Ensure the first line isn't overly indented if it also happens to be
+  too long"
+  [s split-text max-len init-indent]
+  (let [f (first split-text)
+        s (str (gen-padding init-indent) f " ")]
+    (cond
+     (.endsWith s "\n")    [(str s (gen-padding init-indent)) 0]
+     (> (count s) max-len) [(str s "\n" (gen-padding init-indent)) 0]
+     :else                 [s (count s)])))
 
 (defn indented-str-block
   "Appends a list ls of strings to string s in a formatted block with a
@@ -61,15 +75,16 @@
   require them to exist on one large line."
   ([txt max-len wrap-indent] (indented-str-block txt max-len wrap-indent 0))
   ([txt max-len wrap-indent init-indent]
-     (let [id         (str (java.util.UUID/randomUUID))
-           txt        (str/replace txt #"[\n]{2}" id)
-           txt        (str/replace txt "\n" " ")
-           txt        (str/replace txt id "\n\n ")
-           txt        (str/replace txt #"\A +" "")
-           split-text (str/split txt #" +")
-           split-text (cons (str (gen-padding init-indent) (first split-text))
-                            (rest split-text))]
-       (indented-str-block* "" split-text 0 max-len wrap-indent))))
+     (let [id                   (str (java.util.UUID/randomUUID))
+           txt                  (str/trim txt)
+           txt                  (str/replace txt #"[\n]{2}" id)
+           txt                  (str/replace txt "\n" " ")
+           txt                  (str/replace txt id "\n\n ")
+           txt                  (str/replace txt #" +" " ")
+           txt                  (str/replace txt #"\A +" "")
+           split-text           (str/split txt #" +")
+           [first-line cur-len] (indent-first-line "" split-text max-len init-indent)]
+       (indented-str-block* first-line (rest split-text) cur-len (- max-len wrap-indent) wrap-indent))))
 
 (defn fs
   "Format string(s). Synonym for indented-str-block but with a default
