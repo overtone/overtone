@@ -1,7 +1,7 @@
 (ns overtone.examples.instruments.dubstep
   (:use [overtone.core]))
 
-(defsynth dubstep [bpm 120 wobble 1 note 50 snare-vol 1 kick-vol 1 v 1]
+(defsynth dubstep [bpm 120 wobble 1 note 50 snare-vol 1 kick-vol 1 v 1 out-bus 0]
  (let [trig (impulse:kr (/ bpm 120))
        freq (midicps note)
        swr (demand trig 0 (dseq [wobble] INF))
@@ -20,7 +20,7 @@
        snare (+ snare (bpf (* 4 snare) 2000))
        snare (clip2 snare 1)]
 
-   (out 0    (* v (clip2 (+ wob (* kick-vol kick) (* snare-vol snare)) 1)))))
+   (out out-bus    (* v (clip2 (+ wob (* kick-vol kick) (* snare-vol snare)) 1)))))
 
 (dubstep)
 
