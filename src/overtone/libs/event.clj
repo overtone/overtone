@@ -22,6 +22,26 @@
 
 (defrecord LossyWorker [queue worker current-val])
 
+(defn- worker-core
+  [update-fn current-val* last-val*]
+  (let [current @current-val*
+        last @last-val*]
+    (when (not= current last)
+      (update-fn current)
+      (reset! last-val* current)) ))
+
+(defn- worker
+  [queue update-fn current-val* last-val*]
+  (while (not= (.take queue) :die)
+    (worker-core update-fn current-val* last-val*))
+
+  (log-event "Killing Lossy worker"))
+
+(defn- mk-worker
+  [queue update-fn current-val* last-val*]
+  (fn []
+    (worker queue update-fn current-val* last-val*)))
+
 (defn- lossy-worker
   "Create a lossy worker which will call update-fn on a separate thread
   when lossy-send is called. Calls to update-fn happen sequentially,
@@ -40,15 +60,7 @@
   (let [current-val* (atom nil)
         last-val*    (atom (gensym))
         queue        (LinkedBlockingQueue.)
-        work         (fn []
-                       (while (not= (.take queue) :die)
-                         (let [current @current-val*
-                               last @last-val*]
-                           (when (not= current last)
-                             (update-fn current)
-                             (reset! last-val* current))))
-                       (log-event "Killing Lossy worker"))
-        worker       (Thread. work)]
+        worker       (Thread. (mk-worker queue update-fn current-val* last-val*))]
     (.start worker)
     (LossyWorker. queue worker current-val*)))
 
