@@ -9,4 +9,4 @@
         env (env-gen (adsr attack decay sustain release level curve)
                      :gate gate
                      :action FREE)]
-    (out out-bus (* env amp (scaled-play-buf 2 buf :level level :loop loop? :action FREE)))))
+    (out out-bus (* env amp (scaled-play-buf 2 buf :rate rate :level level :loop loop? :action FREE)))))
