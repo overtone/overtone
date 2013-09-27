@@ -62,4 +62,4 @@
                    :gui  :gui
                    :hw   :hw}
   :native-path "native"
-  :jvm-opts ~(jvm-opts))
+  :jvm-opts ^:replace ~(jvm-opts))
