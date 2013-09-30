@@ -46,9 +46,10 @@
      ~@body))
 
 (defmacro without-node-blocking
-  "Stops the current thread from being blocked if the node you're
-  attempting to modify hasn't completed loading. This may result in the
-  message being ignored by the server."
+  "Stops the current thread from being blocked if you send a
+   modification message to a server node that hasn't completed
+   loading. This may result in messages sent within the body of this
+   macro being ignored by the server."
   [& body]
   `(binding [*block-node-until-ready?* false]
      ~@body))
