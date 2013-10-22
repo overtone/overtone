@@ -41,8 +41,16 @@
 
 (defproject overtone "0.9.0-SNAPSHOT"
   :description "Collaborative Programmable Music. (http://overtone.github.com)"
-  :url "http://overtone.github.com/"
-  :dependencies [[org.clojure/clojure "1.3.0"]
+  :url "http://overtone.github.io/"
+  :mailing-list {:name "overtone"
+                 :archive "https://groups.google.com/group/overtone"
+                 :post "overtone@googlegroups.com"}
+  :license {:name "The MIT License (MIT)"
+            :url "http://opensource.org/licenses/MIT"
+            :distribution :repo
+            :comments "Please use Overtone for good"}
+
+  :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/core.incubator "0.1.0"]
                  [org.clojure/data.json "0.1.2"]
                  [clj-native "0.9.3"]
@@ -62,4 +70,5 @@
                    :gui  :gui
                    :hw   :hw}
   :native-path "native"
+  :min-lein-version "2.0.0"
   :jvm-opts ^:replace ~(jvm-opts))
