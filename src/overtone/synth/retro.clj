@@ -30,13 +30,13 @@
    res      0.2       ; rlpf resonance
    sus      0         ; sustain level
    dec      1.0       ; decay
-   vol      1.0       ; output volume
+   amp      1.0       ; output amplitude
    gate     0         ; on/off control
    action   NO-ACTION ; keep or FREE the synth when done playing
    position 0         ; position in stereo field
    out-bus  0]
   (let [freq-val   (midicps note)
-        vol-env    (env-gen (envelope [10e-10, 1, 1, 10e-10]
+        amp-env    (env-gen (envelope [10e-10, 1, 1, 10e-10]
                                           [0.01, sus, dec]
                                           :exp)
                               :gate gate :action action)
@@ -44,8 +44,8 @@
                                           [0.01, dec]
                                           :exp)
                               :gate gate :action action)
-        waves      [(* (saw freq-val) vol-env)
-                    (* (pulse freq-val 0.5) vol-env)]
+        waves      [(* (saw freq-val) amp-env)
+                    (* (pulse freq-val 0.5) amp-env)]
         tb303      (rlpf (select wave waves)
                            (+ cutoff (* filter-env env)) res)]
-    (out out-bus (* vol (pan2 tb303 position)))))
+    (out out-bus (* amp (pan2 tb303 position)))))
