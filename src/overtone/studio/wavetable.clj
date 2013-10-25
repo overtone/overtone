@@ -17,9 +17,9 @@
         len (count sig)]
     (loop [sig sig
            res []]
-      (let [a (float (first sig))
-            bs (second sig)
-            b (float (or bs (first signal)))
+      (let [a        (float (first sig))
+            bs       (second sig)
+            b        (float (or bs (first signal)))
             next-res (conj res (- (* 2 a) b) (- b a))]
         (if (nil? bs)
           next-res
@@ -41,18 +41,18 @@
 
 (defn linear-interpolate-wavetable
   [table idx-a idx-b]
-  (let [waves  (:waveforms table)
-        steps (dec (- idx-b idx-a))
-        data-a (seq (buffer-read (nth waves idx-a)))
-        data-b (seq (buffer-read (nth waves idx-b)))
+  (let [waves     (:waveforms table)
+        steps     (dec (- idx-b idx-a))
+        data-a    (seq (buffer-read (nth waves idx-a)))
+        data-b    (seq (buffer-read (nth waves idx-b)))
         step-data (drop 1 (drop-last
-                            (map
-                              (fn [[a b]]
-                                (linear-interpolate a b (+ 2 steps)))
-                              (partition 2 (interleave data-a data-b)))))
+                           (map
+                            (fn [[a b]]
+                              (linear-interpolate a b (+ 2 steps)))
+                            (partition 2 (interleave data-a data-b)))))
         step-data (map
-                    (fn [step]
-                      (map #(nth % step) step-data))
-                    (range steps))]
+                   (fn [step]
+                     (map #(nth % step) step-data))
+                   (range steps))]
     (dotimes [i steps]
       (buffer-write! (nth waves (+ (inc idx-a) i)) (nth step-data i)))))
