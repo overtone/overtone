@@ -12,10 +12,9 @@
             [overtone.sc.cgens oscillators demand mix io buf-io env tap
              line freq beq-suite berlach bhob info]
             [overtone.music rhythm pitch tuning time]
-            [overtone.studio mixer inst util fx wavetable midi midi-player core]
+            [overtone.studio mixer inst util fx wavetable midi midi-player core scope]
             [overtone.repl ugens examples shell inst debug graphviz]
             [overtone.libs asset event]
-            [overtone.gui scope mixer control]
             [overtone.samples freesound]
             [overtone.helpers.doc :refer [fs]]))
 
