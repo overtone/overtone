@@ -51,7 +51,6 @@
             :comments "Please use Overtone for good"}
 
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.incubator "0.1.0"]
                  [org.clojure/data.json "0.2.3"]
                  [clj-native "0.9.3"]
                  [overtone/at-at "1.2.0"]
@@ -61,9 +60,7 @@
                  [overtone/libs.handlers "0.2.0"]
                  [overtone/scsynth "3.5.7.0"]
                  [overtone/scsynth-extras "3.5.7.0"]
-                 [clj-glob "1.0.0"]
-                 [org.clojure/core.match "0.2.0-alpha11"]
-                 [seesaw "1.4.3"]]
+                 [clj-glob "1.0.0"]]
   :profiles {:test {:dependencies [[bultitude "0.2.0"]
                                    [polynome "0.2.2"]]}}
   :test-selectors {:core (fn [m] (not (some m [:gui :hw])))

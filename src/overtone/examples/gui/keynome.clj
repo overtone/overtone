@@ -1,7 +1,11 @@
 (ns ^:gui ^:hw overtone.examples.gui.keynome
   (:use overtone.live)
   (:require [seesaw [core :as sscore]
-                    [keymap :as sskeymap]]))
+             [keymap :as sskeymap]]))
+
+;; Note:
+;; requires seesaw to be specified as a project dependency:
+;; https://github.com/daveray/seesaw
 
 (def keyboard
   [:1 :2 :3 :4 :5 :6 :7

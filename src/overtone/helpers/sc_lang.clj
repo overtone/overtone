@@ -1,6 +1,5 @@
 (ns overtone.helpers.sc-lang
-  (:use [clojure.core incubator]
-        [overtone.helpers lib])
+  (:use [overtone.helpers lib])
   (:require [clojure.zip :as z]))
 
 (defn- prepend-child
@@ -29,7 +28,7 @@
 
 (defn- infix [tokens]
   (loop [zipper (z/down (z/seq-zip tokens))]
-    (if (-?> zipper
+    (if (some-> zipper
           z/right
           z/branch?)
       (recur (let [f (z/node zipper)]

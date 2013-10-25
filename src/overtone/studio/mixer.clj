@@ -3,8 +3,7 @@
      :author "Jeff Rose & Sam Aaron"}
   overtone.studio.mixer
   (:import (java.awt Toolkit))
-  (:use [clojure.core.incubator :only [dissoc-in]]
-        [overtone.music rhythm pitch]
+  (:use [overtone.music rhythm pitch]
         [overtone.libs event deps]
         [overtone.helpers lib file system]
         [overtone.sc defaults server synth info
@@ -237,7 +236,10 @@
 
 (defn remove-instrument [i-name]
   "Remove an instrument from the session."
-  (swap! studio* dissoc-in [:instruments (name i-name)])
+  (swap! studio* (fn [s]
+                   (let [insts (:instruments s)
+                         insts (dissoc insts (name i-name))]
+                     (assoc s :instruments insts)))))
   (event :inst-removed :inst-name i-name))
 
 (defn clear-instruments []
