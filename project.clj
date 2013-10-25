@@ -52,7 +52,7 @@
 
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/core.incubator "0.1.0"]
-                 [org.clojure/data.json "0.1.2"]
+                 [org.clojure/data.json "0.2.3"]
                  [clj-native "0.9.3"]
                  [overtone/at-at "1.2.0"]
                  [overtone/osc-clj "0.9.0"]
