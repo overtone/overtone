@@ -230,57 +230,17 @@
         msg     (assoc msg :dev-key dev-key)]
     (event (midi-mk-full-device-key dev) :sysex msg)))
 
-(defn- mmj-dev?
-  "Returns true if obj is one of the object from the humatic mmj
-  library. i.e. is in the package de.humatic.mmj"
-  [o]
-  (.contains (str (class (:device o))) "de.humatic.mmj"))
-
-(defn- select-mmj-devices-if-available-on-osx
-  "If the config option :use-mmj is set to true, then if any mmj devices
-   happen to be available, then only use them and remove all other
-   devices. Otherwise, remove all mmj devices and use the default JVM
-   implementations.
-
-   This will only affect OS X systems that have the external mmj lib
-   installed as an extension (http://www.humatic.de/htools/mmj.htm).
-   The mmj lib provides duplicate MIDI objects in addition to
-   the default JVM objects for each device.
-
-   The mmj library is useful as it supports sysex messages which the
-   current JVM implementation doesn't (on OS X). However, it doesn't
-   support multiple identical devices which makes it unsuitable for some
-   usecases.
-
-   Unfortunately the mmj lib is EOL, so on OS X, until the JVM
-   implementations are fixed, we can either have sysex message support
-   or support for multiple similar devices (i.e. two nanoKONTROLs) but
-   not both.
-
-   If we're not running os x, then returns devs unchanged."
-  [devs]
-  (if-not (mac-os?)
-    devs
-    (if (config-get :use-mmj)
-      (if-let [mmjs (seq (filter mmj-dev? devs))]
-        mmjs
-        devs)
-      (remove mmj-dev? devs))))
-
 (defn- remove-duplicate-devices
   "Removes all duplicate devices, where a duplicate is defined as a
-   device map with the same :device value. (The mmj library appears to
-   return duplicate devices)."
+   device map with the same :device value."
   [devs]
   (vals (into {} (map (fn [dev] [(:device dev) dev]) devs))))
 
 (defn- detect-midi-devices
   "Returns a set of MIDI device maps filtered to remove unwanted devices
-   such as the Java Real Time Sequencer, and de.humatic.mmj
-   duplicates (if on os x)"
+   such as the Java Real Time Sequencer and duplicates"
   []
   (let [devs   (midi/midi-sources)
-        devs   (select-mmj-devices-if-available-on-osx devs)
         devs   (remove-duplicate-devices devs)
         devs   (map #(assoc % ::dev-num (next-id
                                          (str "overtone.studio.midi - device - "
@@ -294,7 +254,6 @@
 (defn- detect-midi-receivers
   []
   (let [rcvs   (midi/midi-sinks)
-        rcvs   (select-mmj-devices-if-available-on-osx rcvs)
         rcvs   (remove-duplicate-devices rcvs)
         rcvs   (map #(assoc % ::dev-num (next-id
                                          (str "overtone.studio.midi - receiver - "

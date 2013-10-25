@@ -26,13 +26,6 @@
                     ; :debug - logs :error, :warn, :info and
                     ;          diagnostic information
 
- :use-mmj false     ; Effective only on OS X systems.
-                    ; If set to true, will use mmj MIDI objects in
-                    ; preference to the default JVM MIDI implementation.
-                    ; If set to false (the default), will always ignore
-                    ; mmj objects. For more information regarding mmj:
-                    ; http://www.humatic.de/htools/mmj.htm
-
  :sc-args           ; Argument map used to boot the SuperCollider server
                     ; with the following arguments:
  {
