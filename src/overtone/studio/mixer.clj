@@ -239,7 +239,7 @@
   (swap! studio* (fn [s]
                    (let [insts (:instruments s)
                          insts (dissoc insts (name i-name))]
-                     (assoc s :instruments insts)))))
+                     (assoc s :instruments insts))))
   (event :inst-removed :inst-name i-name))
 
 (defn clear-instruments []
