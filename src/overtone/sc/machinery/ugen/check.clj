@@ -97,7 +97,7 @@
   (every? ar? (drop 1 inputs)))
 
 (defcheck nth-input-ar [index]
-  (str "The input at index " index " should be audio rate.")
+  (str "The input at index " index " should be audio rate - found " (nth inputs index) " with rate: "(with-out-str (pr (:rate-name (nth inputs index)))))
   (ar? (nth inputs index)))
 
 (defcheck num-outs-greater-than [n]
