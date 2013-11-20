@@ -91,12 +91,15 @@
 
 (defn to-id
   "If object can be converted to an sc id, then return the sc id,
-   otherwise returns the object unchanged."
+   otherwise returns the object unchanged. Maps with :id keys will
+   convert to the associated value."
   [obj]
-    (try
+  (try
     (to-sc-id obj)
     (catch IllegalArgumentException e
-      obj)))
+      (if-let [id (:id obj)]
+        id
+        obj))))
 
 (defn idify
   "Attempts to convert all objs in col to a sc id. Maps objs to
