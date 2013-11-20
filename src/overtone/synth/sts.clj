@@ -1,4 +1,4 @@
-(ns overtone.synths.sts
+(ns overtone.synth.sts
   (:use [overtone.core]))
 
 ;; Synths translated from the excellent book
@@ -24,16 +24,19 @@
    frequency) and its LFO has a little bit of randomisation thrown into
    its frequency component for that extra bit of variety."
 
-  [freq 440 cutoff-freq 12000 rq 0.3 out-bus 0 attack 1 decay 2]
+  [amp 1 freq 440 cutoff-freq 12000 rq 0.3  attack 1 decay 2 out-bus 0 ]
 
   (let [snd (pan2 (mix [(pulse freq (* 0.1 (/ (+ 1.2 (sin-osc:kr 1)) )))
                         (pulse freq (* 0.8 (/ (+ 1.2 (sin-osc:kr 0.3) 0.7) 2)))
                         (pulse freq (* 0.8 (/ (+ 1.2 (lf-tri:kr 0.4 )) 2)))
                         (pulse freq (* 0.8 (/ (+ 1.2 (lf-tri:kr 0.4 0.19)) 2)))
-                        (* 0.5 (pulse (/ freq 2) (* 0.8 (/ (+ 1.2 (lf-tri:kr (+ 2 (lf-noise2:kr 0.2 )) )) 2)))) ]))
-        env (env-gen (perc attack decay))
+                        (* 0.5 (pulse (/ freq 2) (* 0.8 (/ (+ 1.2 (lf-tri:kr (+ 2 (lf-noise2:kr 0.2))))
+                                                           2))))]))
+        snd (normalizer snd)
+        env (env-gen (perc attack decay) :action FREE)
         snd (rlpf (* env snd snd) cutoff-freq rq)]
 
-    (out out-bus snd)))
+    (out out-bus (* amp snd))))
 
-;;(prophet :freq (midi->hz (note :E2)))
+;;(prophet :freq (midi->hz (note :E2)) :amp 3 :decay 5)
+;;(prophet :freq (midi->hz (note :C3)) :amp 3 :decay 5)
