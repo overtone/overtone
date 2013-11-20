@@ -5,7 +5,7 @@
   (:require clojure.stacktrace
             [overtone.config store]
             [overtone version osc speech]
-            [overtone.algo chance scaling trig fn]
+            [overtone.algo chance scaling trig fn lists]
             [overtone.sc bindings buffer bus envelope example info
              ugens defcgen node sample server synth
              foundation-groups dyn-vars trig]
@@ -54,6 +54,7 @@
    'overtone.algo.scaling
    'overtone.algo.trig
    'overtone.algo.fn
+   'overtone.algo.lists
    'overtone.config.store
    'overtone.sc.bindings
    'overtone.sc.buffer
