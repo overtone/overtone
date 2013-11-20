@@ -21,7 +21,8 @@
 (defmethod write-file-store :file
   [path data]
   (locking F-LOCK
-    (spit path (with-out-str (pprint data)))))
+    (with-binding [*print-length* nil]
+      (spit path (with-out-str (pprint data))))))
 
 (defmethod read-file-store :file
   [path]
