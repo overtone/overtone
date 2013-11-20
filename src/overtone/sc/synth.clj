@@ -233,7 +233,7 @@
                                    :rate  DEFAULT-RATE} p-val)
 
             :else {:name (str p-name)
-                   :default `(float ~p-val)
+                   :default `(float (to-id ~p-val))
                    :rate DEFAULT-RATE})]
       (ensure-param-keys! param-map)
       param-map)))
