@@ -136,7 +136,7 @@
                :default 2
                :doc "1 means no interpolation, 2 is linear, 4 is cubic
                      interpolation"}]
-       ;; :check (when-ar (nth-input-ar 2))
+       :check (when-ar (nth-input-ar 1 "Phase must be audio rate. The following message is offset by 1 due to first arg being special.")) ;; first arg is in mode num-outs
        :doc "reads the contents of a buffer at a given index."}
 
       {:name "BufWr",
@@ -156,7 +156,7 @@
               {:name "loop"
                :default 1.0
                :doc "1 means true, 0 means false.  This is modulatable"}]
-;;       :check (when-ar (nth-input-ar 1))
+       :check (when-ar (nth-input-ar 1 "Phase must be audio rate. The following message is offset by 1 due to first arg being special."))  ;; first arg is in mode append-sequence
        :doc "writes to a buffer at a given index. Note, buf-wr (in
              difference to buf-rd) does not do multichannel expansion,
              because input is an array." }
