@@ -171,7 +171,8 @@
   determined by recording the sysex messages that the official Korg
   Kontrol Editor sends to perform this task.)
 
-  On OS X, this requires the mmj library to be installed and enabled."
+  On OS X, this is currently broken due to broken Java support for MIDI
+  sysex messages."
   [nko]
    (doseq [m [sysex-1 sysex-2 sysex-3 sysex-4 sysex-5 sysex-6]]
      (midi-sysex (:out nko) m)))
