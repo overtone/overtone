@@ -77,8 +77,8 @@
   (= (:rate (first inputs)) rate))
 
 (defcheck first-input-ar []
-  (str "The first input must be audio rate. Got " (:rate-name (first inputs)))
-  (ar? (first inputs)))
+  (str "The first input must be audio rate. Found  " (with-out-str (pr (first inputs))) " with rate " (with-out-str (pr (:rate-name (first inputs)) ))
+       (ar? (first inputs))))
 
 (defcheck all-inputs-ar []
   (str "All inputs must be audio rate. Got " (vec (map :rate-name inputs)))
@@ -113,7 +113,7 @@
      (= :ir (:rate-name val)))))
 
 (defcheck nth-input-buffer? [n]
-  (str "Input with index " n " must be a buffer. i.e. a buffer, local-buf or a number. Got:"  (nth inputs n))
+  (str "Input with index " n " must be a buffer. i.e. a buffer, local-buf or a number. Got:"  (with-out-str (pr (nth inputs n))))
   (let [val (nth inputs n)]
     (buffer-like? val)))
 
