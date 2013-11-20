@@ -99,7 +99,7 @@
       obj)))
 
 (defn idify
-  "Attempts to convert all objs in col to a sc id. Mapjs objs to
+  "Attempts to convert all objs in col to a sc id. Maps objs to
    themselves if a conversion wasn't possible."
   [col]
   (map to-id col))
