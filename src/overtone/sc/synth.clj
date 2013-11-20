@@ -16,7 +16,8 @@
         [overtone.helpers.string :only [hash-shorten]])
 
   (:require [overtone.config.log :as log]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [overtone.sc.protocols :as protocols]))
 
 
 (defn- valid-control-proxy-rate?
@@ -741,3 +742,14 @@
   [synth arg-name]
   (let [arg-name (name arg-name)]
     (index-of (:args synth) arg-name)))
+
+
+(extend Synth
+  protocols/IKillable
+  {:kill* (fn [s]
+            (kill (node-tree-matching-synth-ids (:name (:sdef s)))))})
+
+(extend java.util.regex.Pattern
+  protocols/IKillable
+  {:kill* (fn [s]
+            (kill (node-tree-matching-synth-ids (:name (:sdef s)))))})
