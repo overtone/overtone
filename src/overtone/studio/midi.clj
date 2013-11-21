@@ -126,7 +126,7 @@
      (if (keyword? player-or-key)
        (midi-player-stop (get @poly-players* player-or-key))
        (let [player player-or-key]
-         (when-not (= ::midi-poly-player (type player))
+         (when-not (= :overtone.studio.midi-player/midi-poly-player (type player))
            (throw (IllegalArgumentException. (str "Expected a midi-poly-player. Got: " (prn-str (type player))))))
          (remove-event-handler (:on-key player))
          (remove-event-handler (:off-key player))

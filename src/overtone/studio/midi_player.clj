@@ -51,4 +51,5 @@
                                 :player-key player-key
                                 :playing? (atom true)}
                       {:type ::midi-poly-player})]
-         (swap! poly-players* assoc player-key player)))))
+         (swap! poly-players* assoc player-key player)
+         player))))
