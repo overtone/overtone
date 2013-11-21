@@ -53,10 +53,10 @@
 
 ;; Now we get a little close to the sounds. Here's four nice sounding
 ;; samples from Freesound.org
-(def kick-s (sample (freesound-path 777)))
-(def click-s (sample (freesound-path 406)))
-(def boom-s (sample (freesound-path 33637)))
-(def subby-s (sample (freesound-path 25649)))
+(def kick-s (freesound 777))
+(def click-s (freesound 406))
+(def boom-s (freesound 33637))
+(def subby-s (freesound 25649))
 
 ;; Here's a synth for playing back the samples with a bit of modulation
 ;; to keep things interesting.
@@ -135,10 +135,11 @@
 
 ;; Now, let's start up all the synths:
 (do
-  (def r-cnt (root-cnt))
-  (def b-cnt (beat-cnt))
-  (def b-trg (beat-trg))
   (def r-trg (root-trg))
+  (def r-cnt (root-cnt [:after r-trg]))
+  (def b-trg (beat-trg [:after r-trg]))
+  (def b-cnt (beat-cnt [:after b-trg]))
+
 
   (def kicks (doall
               (for [x (range 8)]

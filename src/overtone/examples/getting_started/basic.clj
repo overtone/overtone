@@ -39,16 +39,15 @@
 ;; A simple pad sound using definst rather than defsynth, which will
 ;; automatically take the enclosing synth and send it to a bus.
 ;; (Note how in comparison to foo above it doesn't use the out and pan ugens.)
-(defsynth overpad [note 60 amp 0.7 attack 0.001 release 2 out-bus 0]
+(definst overpad [note 60 amp 0.7 attack 0.001 release 2]
   (let [freq  (midicps note)
         env   (env-gen (perc attack release) :action FREE)
         f-env (+ freq (* 3 freq (env-gen (perc 0.012 (- release 0.1)))))
         bfreq (/ freq 2)
         sig   (apply +
                      (concat (* 0.7 (sin-osc [bfreq (* 0.99 bfreq)]))
-                             (lpf (saw [freq (* freq 1.01)]) f-env)))
-        audio (* amp env sig)]
-    (out out-bus audio)))
+                             (lpf (saw [freq (* freq 1.01)]) f-env)))]
+    (* amp env sig)))
 
 ;;(overpad 41 :attack 10 :release 20)
 
@@ -116,7 +115,7 @@
 ;;(stop)
 
 ;; You can load samples from freesound.org using their ID number:
-(def kick-d (sample (freesound-path 41155)))
+(def kick-d (freesound 41155))
 ;;(kick-d)
 
 (defn looper [t dur notes]
@@ -134,7 +133,7 @@
 (defsynth pedestrian-crossing
   "Street crossing in Britain."
   [out-bus 0]
-  (out out-bus (* 0.2 (sin-osc 2500) (lf-pulse 5))))
+  (out out-bus (pan2 (* 0.2 (sin-osc 2500) (lf-pulse 5)))))
 ;;(pedestrian-crossing)
 ;;(stop)
 
@@ -149,13 +148,9 @@
 ;; (stop)
 
 ;; A noise filter, using the mouse to control the bandpass frequency and bandwidth
-(defn noise-demo
-  []
-  (demo 10 (bpf (* [0.5 0.5] (pink-noise))
-                (mouse-y 10 10000)
-                (mouse-x 0.0001 0.9999))))
-
-;;(noise-demo)
+(demo 10 (bpf (* [0.5 0.5] (pink-noise))
+              (mouse-y 10 10000)
+              (mouse-x 0.0001 0.9999)))
 
 ;; Move your mouse around to hear the random sine waves moving around
 (defsynth roaming-sines

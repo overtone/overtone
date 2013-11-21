@@ -13,12 +13,12 @@
 (def synth-out (first (connected-midi-receivers)))
 
 ;; Rotate between these notes
-(def rotate (ref '(-10 -7 -14 -5)) )
+(def rotation-notes (ref '(-10 -7 -14 -5)) )
 
 ;; TODO - use a pointer into the list mod list length instead
 (defn next-rotate []
-  (let [note (first @rotate)]
-    (ref-set rotate (concat (rest @rotate) (list note)))
+  (let [note (first @rotation-notes)]
+    (ref-set rotation-notes (concat (rest @rotation-notes) (list note)))
     note))
 
 

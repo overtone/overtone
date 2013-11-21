@@ -18,7 +18,7 @@
                 0.3)
              (apply + (pulse [80 81]))))))
 
-; Give it a try
+;; Give it a try
 (def biz (bizzle 0))
 (kill biz)
 
@@ -31,9 +31,9 @@
   (let [source (in in-bus)]
     (out 0 (pan2 (compander source source (mouse-y:kr 0.0 1) 1 0.5 0.01 0.01)))))
 
-;(bizzle b)
-;(compressor-demo b)
-;(stop)
+;; (def b-s (bizzle b))
+;; (compressor-demo [:after b-s] b)
+;; (stop)
 
 (defsynth limiter-demo [in-bus 10]
   (let [source (in in-bus)]
@@ -42,52 +42,57 @@
 (defsynth sustainer-demo [in-bus 10]
   (let [source (in in-bus)]
     (out 0 (pan2 (compander source source (mouse-y:kr 0.0 1) 0.1 1 0.01 0.01)))))
-;;(bizzle b)
-;;(limiter-demo b)
-;;(stop)
+;; (def b-s (bizzle b))
+;; (limiter-demo [:after b-s] b)
+;; (stop)
 
-;;(bizzle b)
-;;(sustainer-demo b)
-;;(stop)
+;; (def b-s (bizzle b))
+;; (sustainer-demo [:after b-s] b)
+;; (stop)
 
-; Here is a different sample synth to try out the reverb and echo effects
-(defsynth pling [out-bus 10
+;; Here is a different sample synth to try out the reverb and echo effects
+(defsynth pling [out-bus 0
                  rate 0.3 amp 0.5]
   (out out-bus
        (* (decay (impulse rate) 0.25)
           (* amp (lf-cub 1200 0)))))
 
-;(def p (pling 0))
-;(kill p)
+;; (def p (pling 0))
+;; (kill p)
 
 (defsynth reverb-demo [in-bus 10]
   (out 0 (pan2 (free-verb (in in-bus) 0.5 (mouse-y:kr 0.0 1) (mouse-x:kr 0.0 1)))))
-;(pling)
-;(reverb-demo)
-;(stop)
+;; (def p (pling b))
+;; (reverb-demo [:after p] b)
+;; (stop)
 
 (defsynth echo-demo [in-bus 10]
   (let [source (in in-bus)
         echo (comb-n source 0.5 (mouse-x:kr 0 1) (mouse-y:kr 0 1))]
     (out 0 (pan2 (+ echo (in in-bus) 0)))))
 
-;;(pling)
-;;(echo-demo)
+;;(def p (pling b))
+;;(echo-demo [:after p] b)
 
-;(stop)
-; If you have a microphone or some other source of external input, you can read it in
-; and then run it through fx like this.
-(defsynth ext-source [out-bus 10]
+;;(stop)
+
+
+;; If you have a microphone or some other source of external input, you can read it in
+;; and then run it through fx like this.
+(defsynth ext-source [out-bus 0]
   (out out-bus (in (num-output-buses:ir))))
+
+;; (ext-source)
+;; (stop)
 
 ;; Fetch a spoken countdown from freesound.org
 (def count-down (sample (freesound-path 71128)))
 
 ;; Play it unmodified:
-;;(count-down)
+;;(def cd-s (count-down b))
 
 ;; From Designing Sound in SuperCollider
-(defsynth schroeder-reverb
+(defsynth schroeder-reverb-countdown
   [rate 1]
   (let [input    (pan2 (play-buf 1 count-down rate :action FREE) -0.5)
         delrd    (local-in 4)
@@ -118,6 +123,7 @@
         ]
     (out out-bus output)))
 
-;;Spooky!
-;;(schroeder-reverb-mic :rate 0.8 :dec 0.8 :del 10)
+;; Spooky!
+;; (schroeder-reverb-countdown :rate 0.8 :dec 0.8 :del 10)
+;; (schroeder-reverb-mic :rate 0.8 :dec 0.8 :del 10)
 ;; (stop)

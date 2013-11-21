@@ -1,7 +1,7 @@
 (ns overtone.examples.getting-started.tutorial
   (:use overtone.live))
 
-; Welcome to Project Overtone!
+; Welcome to Overtone
 
 ; For starters lets just make some noise and get the basics of working with
 ; Overtone figured out.  Overtone is implemented in Clojure, and it uses the

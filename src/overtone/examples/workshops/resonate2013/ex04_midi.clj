@@ -13,15 +13,11 @@
 (def drum-kit
   ;; c4 = kick, d4 = snare, d#4 = clap, e4 = closed hh, f4 = open hh, g4 = cowbell
   (->> {:c4 2086 :d4 26903 :d#4 147597 :e4 802 :f4 26657 :g4 9780}
-    (map (fn [[n sample-id]] [(note n) (sample (freesound-path sample-id))]))
+       (map (fn [[n sample-id]] [(note n) (freesound sample-id)]))
     (into {})))
 
 ;; First let's see which MIDI devices are connected...
 (connected-midi-devices)
-
-;; this will open a dialog asking you to choose a connected device
-;; only devices already connected *prior* to launching Overtone are recognized
-(def kb (midi-in))
 
 ;; MIDI is event based...
 ;; For drums we only are interested in :note-on events

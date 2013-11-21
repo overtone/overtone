@@ -64,48 +64,48 @@
 
 (def derezzed [[E4 G4 E4] [E5 B4 G4 D4 A4 E4 G4 A4]])
 
-; run this to play the pattern
-;(p (pattern derezzed 2))
+;; run this to play the pattern
+;; (p (pattern derezzed 2))
 
-; or this to play it forever
-;(p (cycle (pattern derezzed 2)))
+;; or this to play it forever
+;; (p (cycle (pattern derezzed 2)))
 
-; before you stop, add some reverb
-;(inst-fx tone fx-reverb)
+;; before you stop, add some reverb
+;; (inst-fx! tone fx-reverb)
 
-; call stop to kill the loop
-;(stop)
+;; call stop to kill the loop
+;; (stop)
 
-; try it slow with an echo effect
-;(inst-fx tone fx-echo)
-;(p (cycle (pattern derezzed 6)))
+;; try it slow with an echo effect
+;; (inst-fx! tone fx-echo)
+;;( p (cycle (pattern derezzed 6)))
 
-; clear the fx for this instrument like so
-;(clear-fx tone)
+;; clear the fx for this instrument like so
+;;(clear-fx tone)
 
 ;;(stop)
 
 
-; uncomment this one and move the mouse around
+;; uncomment this one and move the mouse around
 (comment (p (cycle (map
             #(assoc % :synth ks1-demo)
             (pattern derezzed 2))))
          )
 
-; throw some distortion on there
-; (inst-fx ks1-demo fx-distortion)
+;; throw some distortion on there
+;; (inst-fx! ks1-demo fx-distortion)
 
-; Clear fx
-; (clear-fx ks1-demo)
+;; Clear fx
+;; (clear-fx ks1-demo)
 
-; (stop)
+;; (stop)
 
-; Ok, now try this one slow, and add the echo effect
+;; Ok, now try this one slow, and add the echo effect
 (comment
   (p (cycle (map
             #(assoc % :synth ks1-demo)
             (pattern derezzed 4)))))
-;(inst-fx ks1-demo fx-echo)
+;;(inst-fx! ks1-demo fx-echo)
 
 (comment
   (p (cycle
@@ -186,9 +186,9 @@
   )
 
 
-; Grrrrrrr! ;-)
-;(inst-fx ks1-demo fx-distortion)
-;(clear-fx ks1-demo)
+;; Grrrrrrr! ;-)
+;;(inst-fx! ks1-demo fx-distortion)
+;;(clear-fx ks1-demo)
 
 (defn glp
   [t]

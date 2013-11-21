@@ -1,6 +1,5 @@
 (ns overtone.examples.synthesis.fm
-  (:use overtone.live
-        [meta-ex.mixer]))
+  (:use overtone.live))
 
 (defsynth fm [carrier 440 divisor 2.0 depth 1.0 out-bus 0]
   (let [modulator (/ carrier divisor)

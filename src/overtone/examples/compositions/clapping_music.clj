@@ -5,8 +5,8 @@
 (ns overtone.examples.compositions.clapping-music
   (:use overtone.live))
 
-(def clap (sample (freesound-path 48310)))
-(def clap2 (sample (freesound-path 132676)))
+(def clap (freesound 48310))
+(def clap2 (freesound 132676))
 ;(clap)
 ;(clap2)
 
