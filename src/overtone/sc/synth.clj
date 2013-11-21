@@ -504,11 +504,10 @@
           args              (or args [])
           [target pos args] (extract-target-pos-args args (foundation-default-group) :tail)
           args              (idify args)
-          args              (mapcat (fn [x] (if (map? x)
-                                             (flatten (seq x))
-                                             [x]))
-                                    args)
-          args              (idify args)
+          args              (map (fn [arg] (if-let [id (:id arg)]
+                                            id
+                                            arg))
+                                 args)
           defaults          (into {} (map (fn [{:keys [name value]}]
                                             [(keyword name) @value])
                                           params))
