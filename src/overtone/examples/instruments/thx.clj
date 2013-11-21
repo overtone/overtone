@@ -13,7 +13,7 @@
 ;;        Out.ar(0, doAdder*ampEnv);
 ;;}.play
 
-(definst thx [gate 1]
+(defsynth thx [gate 1 amp 1 out-bus 0]
   (let [target-pitches (map midi->hz [77 74 72 70 65 62 60 58 53 50 46 34 26 22 14 10])
         r-freq         (env-gen:kr (envelope [1 1 0.007 10] [8 4 2] [0 -4 1] 2) gate)
         amp-env        (env-gen:kr (envelope [0 0.07 0.21 0] [8 4 2] [0 1 1] 2) gate :action FREE)
@@ -25,9 +25,10 @@
         saws           (mk-noise saw)
         sins           (mk-noise sin-osc)
         snd            (+ (* saws amp-env) (* sins amp-env))]
-    (* 0.5 (g-verb snd 9 0.7 0))))
+    (out out-bus
+         (* amp (g-verb snd 9 0.7 0)))))
 
-;;play the instrument:
-; (thx)
-;;kill it off when you're ready
-; (ctl thx :gate 0)
+;; play the instrument:
+;; (def t (thx :amp 2))
+;; kill it off when you're ready
+;; (ctl t :gate 0)
