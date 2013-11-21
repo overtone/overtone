@@ -22,8 +22,6 @@
 
    (out out-bus    (* v (clip2 (+ wob (* kick-vol kick) (* snare-vol snare)) 1)))))
 
-(dubstep)
-
 (comment
   ;;Control the dubstep synth with the following:
   (def d (dubstep))
