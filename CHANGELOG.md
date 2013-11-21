@@ -2,15 +2,159 @@
 
 ## Version 0.9.0 (To be released)
 
-New features:
+### New Committers
 
-* Experimental GUI widgets using seesaw and swing (see examples in overtone.examples.gui)
-  - synth controls to adjust parameters (`synth-controller`, `live-synth-controller`)
-  - mixer for instruments (`mixer`)
-  - piano roll and two types of step sequencers (`piano-roll`, `step-sequencer`, `stepinator`)
-  - x,y,z surface controller (`surface`)
-  - wave-form and wave-table editors for wave-table synthesis (`waveform-editor`, `wavetable-editor`)
-  - basic spectrogram showing frequency space representation (`spectrogram`)
+* Mike Anderson
+* Karsten Schmidt
+* Joseph Wilk
+* Rich Hickey
+* Kevin 'lionandoil'
+
+### Major features
+
+* Rename apply-at to apply-by and implement apply-at to apply the fn at the specified time, not before it.
+* *Breaking change* - synth fn not expects a vector of node target/pos information rather than as 'special' initial args.
+* Breaking change: no longer pull in overtone.midi into api namespace.
+
+* graphviz
+* Add audio bus amplitude monitoring mechanism. Returns an atom with the current amplitude for the specified bus. Only works with mono busses - multi-channel busses can be referenced via an optional offset parameter.
+
+### New examples
+
+* Add resonate workshop files
+
+
+### New fns
+
+
+* midi-find-connected-receivers
+* midi-find-connected-receiver
+* midi-device-num
+* midi-full-device-key
+* cycle-fn
+* trig-id
+* rotate
+* fill
+* on-trigger
+* on-latest-trigger
+* on-sync-trigger
+* clear
+* stop-all
+* clear-all
+* node-destroyed-event-key
+* node-created-event-key
+* node-paused-event-key
+* node-started-event-key
+* on-node-destroyed
+* on-node-created
+* on-node-paused
+* on-node-started
+* graphviz
+* show-graphviz-synth
+* freesound
+* audio-bus-monitor
+* control-bus-monitor
+* synth-args
+* synth-arg-index
+* store-get
+* store-set!
+* store
+
+### Renamed fns
+
+* node-get-control -> node-get-controls
+* bus-set! -> control-bus-set!
+* bus-get -> control-bus-get
+* bus-set-range -> control-bus-set-range
+* bus-get-range -> control-bus-get-range
+* remove-handler  -> remove-event-handler
+* remove-all-handlers -> remove-all-event-handlers
+
+### Deprecated fns
+
+* midi-devices
+* midi-device?
+* midi-ports
+* midi-sources
+* midi-sinks
+* midi-find-device
+* midi-in
+* midi-out
+* midi-route
+* midi-shortmessage-status
+* midi-sysexmessage-status
+* midi-shortmessage-command
+* midi-shortmessage-keys
+* midi-msg
+* midi-handle-events
+* midi-send-msg
+* hex-char-values
+* midi-mk-byte-array
+* midi-play
+
+### New macros
+
+### New synths
+
+* overtone.synth.sts/prophet
+* overtone.synth.retro/tb-303
+
+### Renamed synths
+
+* bitcrusher -> fx-bitcrusher
+
+### User visible improvements
+
+* Report :num-control-busses in server-info
+* Rename apply-at to apply-by and implement apply-at to apply the fn at the specified time, not before it.
+* remove limit and ordering restrictions on scale-range
+* Teach fm synth about out-bus param
+* Teach sampled-piano about amp and rate params
+* Modify AudioBus and ControlBus print formatter to print a default name and to label the attributes more clearly.
+* RecurringJob and ScheduledJobs are now killable
+* Add :pan param to the sample players
+* Breaking change! node-get-control now only accepts one arg and returns
+a value. Use new node-get-controls for old behaviour.
+* Teach sync-event to take a single map as an argument - similar to event
+* Add new store-fns store-get and store-set! for storing user values separate from the config within ~/.overtone/user-store.clj
+* Warn users when tieredStopAtLevel is set to 1
+* Remove support for using mmj MIDI library on OS X
+* Make more thinkgs killable - Integers, Floats, Synths, regexs
+* idify synth args
+
+
+### Internal improvemnts
+
+* automatically create MidiOutReceiver objects for all detected midi out receivers to enable comms.
+* Reduce MAX-OSC-SAMPLES to work within the constraints of UDP packets
+* handle exceptions generated in on-latest-event hander-fns
+* add reset-returning-prev!
+* Don't ensure-connected in kill fn
+* Extend Group to support ISynthNode (given that groups are actually nodes).
+* Emit events when nodes are destroyed, created, paused and started.
+* Unify ugen name in debug namespace to Overtone style name - and also replace Binary/UnaryOpUGens with appropriate names: *, +, / etc.
+* Add some explicit type checks for synthdef manipulation fns.
+* Remove reliance on presence of :spec key in sdefs for unification process. This allows sdefs read from binary scsynthdef files to also be correctly unified.
+* Update at-at dependency to 1.2.0
+* Teach fs to take multiple txt strings (which will subsequently be separated with a space)
+* Teach find-note-name to handle nil arg - let nil flow through
+* Add Coyote onset detector ugen to exceptions which can take ar ugens
+* Catch UnsatisfiedLinkError when attempting to load native libs and print out error.
+
+
+
+### Bugfixes
+
+* Calling either stop-player or kill-player on the return obj from one of the scheduling fns such as periodic or after-delay now has correct behaviour.
+* Fix group-free to actually delete a group
+* Fix pitch-shift arg name from window-cize to window-size
+* Control-bus asynchronous message multiplexing issue.
+* Fix indented-str-block to correctly count length of lines
+* Switch to much simpler (also non-explosive) implementation of topological-sort-ugens
+* reset *print-length* dynamic var to ensure all data is printed out
+* Ensure bur-rd and buf-wr phase arg is at audio rate when ugen is also
+at audio rate.
+* Add ugen checks for balance2
 
 
 ## Version 0.8.1 (28th January 2013)
