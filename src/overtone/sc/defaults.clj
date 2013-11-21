@@ -49,8 +49,9 @@
   500)
 
 (def MAX-OSC-SAMPLES
-  "Max number of samples supported in a UDP OSC message"
-  6548)
+  "Max number of samples supported in a UDP OSC message. Obtained
+  through experimentation."
+  1838)
 
 (def INTERNAL-POOL
   "make an at-at pool for all internal scheduling"

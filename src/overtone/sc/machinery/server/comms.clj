@@ -20,8 +20,8 @@
 (defn- massage-numerical-args
   "Massage numerical args to the form SC would like them. Currently this
   just casts all Longs to Integers and Doubles to Floats."
-  [args]
-  (map (fn [arg]
+  [argv]
+  (mapv (fn [arg]
          (cond (instance? Long arg)
                (Integer. arg)
 
@@ -30,7 +30,7 @@
 
                :else
                arg))
-       args))
+       argv))
 
 (defn server-snd
   "Sends an OSC message to the server. If the message path is a known
@@ -40,7 +40,7 @@
 
   (server-snd \"/foo\" 1 2.0 \"eggs\")"
   [path & args]
-  (let [args (massage-numerical-args args)]
+  (let [args (massage-numerical-args (vec args))]
     (log/debug (str "Sending: " path ", args: " (into [] args)))
     (when @osc-debug*
       (println "Sending: " path args))

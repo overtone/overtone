@@ -240,17 +240,17 @@
   writing the data (defaults to 0)."
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
-     (assert (buffer? buf))
-     (ensure-buffer-active! buf)
-     (assert (<= (count data) MAX-OSC-SAMPLES)
-             (fs "Error - the data you attempted to write to the buffer was
+     (let [cnt (count data)]
+       (assert (buffer? buf))
+       (ensure-buffer-active! buf)
+       (assert (<= cnt MAX-OSC-SAMPLES)
+               (fs "Error - the data you attempted to write to the buffer was
                   too large to be sent via UDP."))
-     (let [data    (if (number? data) [data] data)
-           size    (count data)
-           doubles (map double data)]
-       (if (> (+ start-idx size) (:size buf))
-         (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index.")))
-         (apply snd "/b_setn" (:id buf) start-idx size doubles)))
+       (let [data    (if (number? data) [data] data)
+             doubles (map float data)]
+         (if (> (+ start-idx cnt) (:size buf))
+           (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index.")))
+           (apply snd "/b_setn" (:id buf) start-idx cnt doubles))))
      buf))
 
 
@@ -262,13 +262,14 @@
   ([buf start-idx data]
      (ensure-buffer-active! buf)
      (assert (buffer? buf))
-     (loop [data-left data
+     (loop [data-left (vec data)
             idx       0]
-       (let [to-write  (take MAX-OSC-SAMPLES data-left)
-             data-left (drop MAX-OSC-SAMPLES data-left)]
-         (when-not (empty? to-write)
-           (buffer-write! buf idx to-write)
-           (recur data-left (+ idx (count to-write))))))
+       (let [left-cnt  (min MAX-OSC-SAMPLES (count data-left))
+             to-write  (subvec data-left 0 left-cnt)
+             data-left (subvec data-left left-cnt)]
+         (buffer-write! buf idx to-write)
+         (when-not (empty? data-left)
+           (recur data-left (+ idx left-cnt)))))
      buf))
 
 (defn buffer-fill!
