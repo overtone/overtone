@@ -3,6 +3,7 @@
         [overtone.sc.machinery.ugen.metadata.unaryopugen]
         [overtone.sc.machinery.ugen.metadata.binaryopugen]
         [overtone.helpers.system :only [mac-os? linux-os?]]
+        [overtone.helpers.file :only [mk-tmp-dir! mk-path]]
         [clojure.java.shell]))
 
 (defn- safe-name
@@ -108,19 +109,27 @@
 
 (defn graphviz
   "Generate dot notation for synth design.
-   (see overtone.repl.deub/unified-sdef)"
+   (see overtone.repl.debug/unified-sdef)"
   [s]
   (str "digraph synthdef {\n"
        (generate-unified-synth-gv (unified-sdef s))
        "\n}"))
 
 (defn show-graphviz-synth
-  "Generate pdf of synth design. On Mac OSX also opens pdf."
+  "Generate pdf of design for synth s. This assumes that graphviz has
+   been installed and the dot program is available on the system's PATH.
+
+   On OS X, a simple way to install graphviz is with homebrew: brew
+   install graphviz
+
+   Also opens pdf on Mac OS X (with open) and Linux (with xdg-open)."
   [s]
-  (let [f-name (str "/tmp/" (or (:name s) (gensym)) ".pdf") ]
+  (let [dir       (mk-tmp-dir!)
+        f-name    (str (or (:name s) (gensym)) ".pdf")
+        full-path (mk-path dir f-name) ]
     (do
-      (sh "dot" "-Tpdf" "-o" f-name  :in (graphviz s))
+      (sh "dot" "-Tpdf" (str "-o" full-path) :in (graphviz s))
       (cond
-       (mac-os?)   (sh "open" f-name)
-       (linux-os?) (sh "xdg-open" f-name)))
-    (str "PDF generated in " f-name)))
+       (mac-os?)   (sh "open" full-path)
+       (linux-os?) (sh "xdg-open" full-path)))
+    (str "PDF generated in " full-path)))
