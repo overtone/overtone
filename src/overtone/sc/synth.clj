@@ -222,19 +222,19 @@
   (for [[p-name p-val] (partition 2 params)]
     (let [param-map
           (cond
-            (vector? p-val) (do
-                              (ensure-valid-control-proxy-vec! p-val)
-                              {:name (str p-name)
-                               :default (first p-val)
-                               :rate (second p-val)})
+           (vector? p-val) (do
+                             (ensure-valid-control-proxy-vec! p-val)
+                             {:name (str p-name)
+                              :default (first p-val)
+                              :rate (second p-val)})
 
-            (associative? p-val) (merge
-                                  {:name  (str p-name)
-                                   :rate  DEFAULT-RATE} p-val)
+           (associative? p-val) (merge
+                                 {:name  (str p-name)
+                                  :rate  DEFAULT-RATE} p-val)
 
-            :else {:name (str p-name)
-                   :default `(float (to-id ~p-val))
-                   :rate DEFAULT-RATE})]
+           :else {:name (str p-name)
+                  :default `(float (to-id ~p-val))
+                  :rate DEFAULT-RATE})]
       (ensure-param-keys! param-map)
       param-map)))
 
