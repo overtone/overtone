@@ -69,21 +69,6 @@
         output (leak-dc:ar (* output 0.25))]
     (* amp output)))
 
-(definst supersaw [freq 440 amp 1]
-  (let [input  (lf-saw freq)
-        shift1 (lf-saw 4)
-        shift2 (lf-saw 7)
-        shift3 (lf-saw 5)
-        shift4 (lf-saw 2)
-        comp1  (> input shift1)
-        comp2  (> input shift2)
-        comp3  (> input shift3)
-        comp4  (> input shift4)
-        output (+ (- input comp1) (- input comp2) (- input comp3) (- input comp4))
-        output (- output input)
-        output (leak-dc:ar (* output 0.25))]
-    (* amp output)))
-
 (definst ticker
   [freq 880]
   (* (env-gen (perc 0.001 0.01) :action FREE)
