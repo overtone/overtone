@@ -13,11 +13,7 @@
   "Returns a new globally unique id useful for feeding into send-trig
    and matching on the event stream.
 
-   (def uid (trig-id))
-   (defsynth foo [] (send-trig (impulse 10) uid (sin-osc)))
-   (on-trigger uid
-               (fn [val] (println \"trig val:\" val)))
-   (foo)"
+   See on-trigger docstring for usage example."
   []
   (next-id ::trig-id))
 
@@ -32,7 +28,26 @@
   "Registers a standard on-event handler with key which will call
    handler when matching triggers are recieved. Triggers are created
    with the send-trig ugen. Handler should be a fn which takes one
-   argument - the latest trigger value."
+   argument - the latest trigger value.
+
+   Consider using trig-id to create a unique trigger id
+
+    ;; create new id
+    (def uid (trig-id))
+
+    ;; define a synth which uses send-trig
+    (defsynth foo
+              [t-id 0]
+              (send-trig (impulse 10) t-id (sin-osc)))
+
+    ;; register a handler fn
+    (on-trigger uid
+                (fn [val] (println \"trig val:\" val))
+                ::debug)
+
+    ;; create a new instance of synth foo with trigger id as a
+    ;; param
+    (foo uid)"
   ([trig-id handler key]
      (add-handler on-event [:overtone :trigger trig-id] handler key))
   ([node trig-id handler key]
@@ -42,7 +57,10 @@
   "Registers a standard on-latest-event handler with key which will call
    handler when matching triggers are recieved. Triggers are created
    with the send-trig ugen. Handler should be a fn which takes one
-   argument - the latest trigger value."
+   argument - the latest trigger value.
+
+   Consider using trig-id to create a unique trigger id. See on-trigger
+   docstring for usage example."
   ([trig-id handler key]
      (add-handler on-latest-event [:overtone :trigger trig-id] handler key))
   ([node trig-id handler key]
@@ -52,7 +70,10 @@
   "Registers a standard on-sync-event handler with key which will call
    handler when matching triggers are recieved. Triggers are created
    with the send-trig ugen. Handler should be a fn which takes one
-   argument - the latest trigger value."
+   argument - the latest trigger value.
+
+   Consider using trig-id to create a unique trigger id. See on-trigger
+   docstring for usage example."
   ([trig-id handler key]
      (add-handler on-sync-event [:overtone :trigger trig-id] handler key))
   ([node trig-id handler key]
