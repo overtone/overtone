@@ -39,8 +39,8 @@
        (vec (set (concat (get JVMOPTS :any)
                          (get JVMOPTS os))))))
 
-(defproject overtone "0.9.0-SNAPSHOT"
-  :description "Collaborative Programmable Music. (http://overtone.github.com)"
+(defproject overtone "0.9.0-RC3"
+  :description "Collaborative Programmable Music."
   :url "http://overtone.github.io/"
   :mailing-list {:name "overtone"
                  :archive "https://groups.google.com/group/overtone"
