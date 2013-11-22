@@ -346,7 +346,7 @@
 
 (defn midi-note-on
   "Send a MIDI note on msg to the receiver. See connected-midi-receivers
-   for a full listof available receivers."
+   for a full list of available receivers."
   ([rcv note-num vel]
      (midi/midi-note-on rcv note-num vel))
   ([rcv note-num vel channel]
