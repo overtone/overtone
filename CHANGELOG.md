@@ -12,15 +12,15 @@
 
 ### Major Additions & Changes
 
-## apply-*
+#### apply-*
 
 `apply-at` has been renamed to `apply-by` which more
  correctly represents its semantics as it applies the function *before*
  the specified time. `apply-at` still exists, except it now applies the
- fn at the specified time. To update, simply grep for all occurences of
+ fn *at* the specified time. To update, simply grep for all occurences of
  `apply-at` and replace with `apply-by`.
 
-## Synth Positioning
+#### Synth Positioning
 
 When triggering synths it was possible to specify a position for the
 synth node to be executed in the node tree. This is important for
@@ -61,7 +61,7 @@ Currently, you'll get an exception if you use the old style syntax. This
 means that the old keywords are still unavailable to synth designs. This
 will be relaxed in a future version.
 
-## MIDI
+#### MIDI
 
 The MIDI API has been substantially revamped. This is in the Apple
 tradition of actually reducing functionality with the aim of making the
@@ -81,7 +81,7 @@ to the event system. You have access to the list of detected devices
 `examples/midi/basic.clj` for more a quick tour of the MIDI API.
 
 
-## Graphviz
+#### Graphviz
 
 If you're working on a sophisticated synth design, or just simply want
 to have another perspective of a given synth's design, it's often useful
@@ -120,7 +120,7 @@ minor niggles on Linux/Windows are happily
 considered. `show-graphviz-synth` is currently pretty much guaranteed
 not to work on Windows, but it would be awesome if it did.
 
-## Bus monitoring
+#### Bus monitoring
 
 One aspect of Overtone which is seeing active development is means with
 which to monitor the internal values within running synths. Overtone
@@ -133,45 +133,97 @@ rather the direct value of the control bus. For multi-channel buses, an
 offset may be specified. Current amplitude is updated within the
 returned atom every 50 ms.
 
+
+#### Persistent store
+
+Overtone now supports a simple persistent key value store which is
+essentially a Clojure map serialised as EDN in file with the path
+`~/.overtone/user-store.clj`. Adding to the store is a matter of
+`store-set!` and getting values from it is simply `store-get`. The store
+is meant merely as a simple convenience mechanism for sharing data
+between Overtone projects.
+
+#### Stopping and Clearing Default Group
+
+Overtone has long provided `stop` which kills all synths in the default
+group. However, it doesn't clear out all the subgroups which is
+sometimes wanted. This is now available with `clear`. Overtone also
+provides an initial group structure with 'safe' groups both before and
+after the default group. These are intended for longer-running synths
+either feeding control signals to ephemeral synths or adding FX to
+them. These 'safe' groups can now be stopped with `stop-all` and also
+all the subgroups can be cleared out with `clear-all`. For more
+information on the default group structure see the `foundation-*` fns.
+
+#### Node events
+
+It's now possible to register oneshot handler function for when specific
+nodes are created, destroyed, paused or started with the new `on-node-*`
+family of functions.
+
+#### Synth Triggers
+
+It is possible to send information out of a specific synth and into
+Overtone as an event via the `send-trig` ugen. This is now a little bit
+easier with the new trigger handler functions. Firstly, there's
+`trig-id` which will return you a unique id for use as a trigger id. You
+can then feed that to your synth and also use it to register handler
+functions to execute when data from that specific synth is received:
+
+    ;; create new id
+    (def uid (trig-id))
+
+    ;; define a synth which uses send-trig
+    (defsynth foo [t-id 0] (send-trig (impulse 10) t-id (sin-osc)))
+
+    ;; register a handler fn
+    (on-trigger uid
+                (fn [val] (println "trig val:" val))
+                ::debug)
+
+    ;; create a new instance of synth foo with trigger id as a param
+    (foo uid)
+
+
 ### New examples
 
 * Add resonate workshop files
 
 ### New fns
 
-* `midi-find-connected-receivers`
-* `midi-find-connected-receiver`
-* `midi-device-num`
-* `midi-full-device-key`
-* `cycle-fn`
-* `trig-id`
-* `rotate`
-* `fill`
-* `on-trigger`
-* `on-latest-trigger`
-* `on-sync-trigger`
-* `clear`
-* `stop-all`
-* `clear-all`
-* `node-destroyed-event-key`
-* `node-created-event-key`
-* `node-paused-event-key`
-* `node-started-event-key`
-* `on-node-destroyed`
-* `on-node-created`
-* `on-node-paused`
-* `on-node-started`
-* `graphviz`
-* `show-graphviz-synth`
-* `freesound`
-* `audio-bus-monitor`
-* `control-bus-monitor`
-* `bus-monitor`
-* `synth-args`
-* `synth-arg-index`
-* `store-get`
-* `store-set!`
-* `store`
+* `midi-find-connected-devices` - list all auto-connected MIDI devices
+* `midi-find-connected-receiver` - list all auto-connected MIDI receivers
+* `midi-device-num` - get the unique device num (for a specific MIDI make/model)
+* `midi-full-device-key` - get the full device key used for the event system
+* `cycle-fn` - create a composite fn which cycles through a list of fns on application
+* `rotate` - treat a list as a circular buffer and offset into it
+* `fill` -  fill a list with the values of another (cycling if necessary)
+* `trig-id` - return a unique id for use with trigger ugen
+* `on-trigger` - add handler for when a specific synth trigger event is received
+* `on-latest-trigger` - similar to on-latest-event but for triggers
+* `on-sync-trigger` - similar to on-sync-event but for triggers
+* `clear` - stop all running synths in default group and remove all subgroups
+* `stop-all` - stop all running synths including within safe groups. Does not remove subgroups.
+* `clear-all` - stop all rurnning synths including within safe groups and remove all subgroups.
+* `node-destroyed-event-key` - returns the key used for node destroyed events
+* `node-created-event-key` - returns the key used for node created events
+* `node-paused-event-key` - returns the key used for node paused events
+* `node-started-event-key` - returns the key used for node-started events
+* `on-node-destroyed` - create a oneshot handler triggered when node is destroyed
+* `on-node-created` - create a oneshot handler trigered when node is created
+* `on-node-paused` - create a oneshot handler triggered when node is paused
+* `on-node-started` - create a oneshot handler triggered when node is started
+* `graphviz` - create a valid dot file representation of a synth design
+* `show-graphviz-synth`- show a PDF of the visual representation of a synth design
+* `freesound` - create a playable sample from a freesound id
+* `audio-bus-monitor` - returns an atom which is auto updated with the current bus value
+* `control-bus-monitor`- returns an atom which is auto updated with the current bus value
+* `bus-monitor` - returns an atom which is auto updated with the current bus value
+* `synth-args` - returns a seq of the synth's args as keywords
+* `synth-arg-index` - returns an integer index of synth's arg
+* `store-get` - get value with key from persistent user store
+* `store-set!` - set value with key within user's persistent store
+* `store` - get full persistent store map
 
 ### Renamed fns
 
