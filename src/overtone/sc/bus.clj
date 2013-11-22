@@ -224,3 +224,24 @@
                         :desc (str "control-bus-monitor [" bus-idx "]"))
            (swap! control-bus-monitors* assoc bus-idx monitor)
            monitor)))))
+
+(defn bus-monitor
+  "Returns either a control or audio bus monitor depending on the rate
+   of bus supplied. Returns an atom containing the current value of the
+   control bus. Note that this isn't the peak amplitude, rather the
+   direct value of the control bus.
+
+   For multi-channel buses, an offset may be specified. Current
+   amplitude is updated within the returned atom every 50 ms.
+
+   Note - only creates one monitor per bus - subsequent calls for the
+   same bus will return a cached monitor.
+
+   See audio-bus-monitor and control-bus-monitor for specific details."
+  ([bus] (bus-monitor bus 0))
+  ([bus chan-offset]
+     (assert (bus? bus))
+     (cond
+      (audio-bus? bus) (audio-bus-monitor bus chan-offset)
+      (control-bus? bus) (control-bus-monitor bus chan-offset)
+      :else (throw (Exception. (str "Unknown bus type: " bus))))))
