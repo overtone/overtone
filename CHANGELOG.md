@@ -10,13 +10,128 @@
 * Rich Hickey
 * Kevin 'lionandoil'
 
-### Major features
+### Major Additions & Changes
 
-* Rename `apply-at` to `apply-by` and implement `apply-at` to apply the fn at the specified time, not before it.
-* *Breaking change* - synth fn now expects a vector of node target/pos information rather than as 'special' initial args.
-* *Breaking change* - no longer pull in `overtone.midi` into api namespace.
-* graphviz viewing of synthdefs
-* Add audio bus amplitude monitoring mechanism. Returns an atom with the current amplitude for the specified bus. Only works with mono busses - multi-channel busses can be referenced via an optional offset parameter.
+## apply-*
+
+`apply-at` has been renamed to `apply-by` which more
+ correctly represents its semantics as it applies the function *before*
+ the specified time. `apply-at` still exists, except it now applies the
+ fn at the specified time. To update, simply grep for all occurences of
+ `apply-at` and replace with `apply-by`.
+
+## Synth Positioning
+
+When triggering synths it was possible to specify a position for the
+synth node to be executed in the node tree. This is important for
+ensuring that synth chains are correctly ordered such that any post-fx
+synths are executed after the source synth they are modifying. Prior to
+0.9.0 this was possibly by prefixing the synth args with 'special'
+values:
+
+     (def my-g (group))
+     (my-synth :tgt my-g :freq 440)
+
+Overtone figured out that the `:tgt my-g` key-val pair were special, and
+used them to target the synth node, and not pass them as params to the
+synth along with the `:freq` param. This was slightly magical and also
+potentially clashed with a synth designer's ability to use the special
+keywords as valid synth param names.
+
+This syntax has now been deprecated and replaced with a more explicit
+vector-based syntax. If you wish to target your synth, you need to pass
+a vector as the first parameter. The vector should be a pair of:
+
+    [:target-specifier target]
+
+Valid target specifiers are:
+
+* `:head` - places new synth node at the head of the target (group)
+* `:tail` - places new synth node at the tail of the target (group)
+* `:before` - places new synth node immediately before target (group/synth)
+* `:after` - places new synth node immediatedly after target (group/synth)
+* `:replace` - replaces target with new synth node
+
+Therefore, to place a new instance of `my-synth` at the head of `my-g`
+you can issue the following:
+
+    (my-synth [:head my-g] :freq 440)
+
+Currently, you'll get an exception if you use the old style syntax. This
+means that the old keywords are still unavailable to synth designs. This
+will be relaxed in a future version.
+
+## MIDI
+
+The MIDI API has been substantially revamped. This is in the Apple
+tradition of actually reducing functionality with the aim of making the
+surviving functionality easier to use. Essentially the underlying MIDI
+library provided by the dependency `overtone/midi-clj` is no longer
+available in the global API which is pulled in automatically to the
+`overtone.live` and `overtone.core` namespaces. Of course, you're still
+free to pull in the `overtone.midi` namespace, which is still on the
+classpath should you need access to the old functions. However, if you
+find yourself doing this - please let me know. The aim is for this not
+to be necessary.
+
+MIDI devices are now automatically detected on boot and auto-hooked up
+to the event system. You have access to the list of detected devices
+(and receivers) via the functions: `connected-midi-devices` and
+`connected-midi-receivers`. Take a look at the example file
+`examples/midi/basic.clj` for more a quick tour of the MIDI API.
+
+
+## Graphviz
+
+If you're working on a sophisticated synth design, or just simply want
+to have another perspective of a given synth's design, it's often useful
+to be able to look at a visual representation. This is now possible with
+the new Graphviz support. You can generate dot notation for an arbitrary
+synth design with the function `graphviz`.
+
+For example, given the synth:
+
+    (defsynth foo []
+      (out 0 (sin-osc 440)))
+
+You can produce corresponding dot notation with:
+
+    (graphviz foo)
+
+Which will return the following string:
+
+    digraph synthdef {
+    1 [label = "{{ <bus> bus 0.0|{{<signals___sin____osc___0>}|signals}} |<__UG_NAME__>out }" style="filled, bold, rounded"  shape=record rankdir=LR];
+    0 [label = "{{ <freq> freq 440.0|<phase> phase 0.0} |<__UG_NAME__>sin-osc }" style="filled, bold, rounded"  shape=record rankdir=LR];
+
+    0:__UG_NAME__ -> 1:signals___sin____osc___0 ;
+
+    }
+
+You can then easily `spit` this out to a file and feed it into graphviz
+to render an image/pdf etc manually. However, we also provide the
+function `show-graphviz-synth` which will automatically call `dot` to
+generate a pdf and then display it for you:
+
+    (show-graphviz-synth foo) ;;=> PDF pops up!
+
+This has been exhaustively tested on OS X, so any pull requests for
+minor niggles on Linux/Windows are happily
+considered. `show-graphviz-synth` is currently pretty much guaranteed
+not to work on Windows, but it would be awesome if it did.
+
+## Bus monitoring
+
+One aspect of Overtone which is seeing active development is means with
+which to monitor the internal values within running synths. Overtone
+0.9.0 now ships with a bus monitoring system which works with both audio
+and control busses.
+
+Calling `bus-monitor` with a bus will return an atom containing the
+current value of the bus. Note that this isn't the peak amplitude,
+rather the direct value of the control bus. For multi-channel buses, an
+offset may be specified. Current amplitude is updated within the
+returned atom every 50 ms.
 
 ### New examples
 
@@ -51,6 +166,7 @@
 * `freesound`
 * `audio-bus-monitor`
 * `control-bus-monitor`
+* `bus-monitor`
 * `synth-args`
 * `synth-arg-index`
 * `store-get`
