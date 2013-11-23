@@ -28,7 +28,9 @@
   "Registers a standard on-event handler with key which will call
    handler when matching triggers are recieved. Triggers are created
    with the send-trig ugen. Handler should be a fn which takes one
-   argument - the latest trigger value.
+   argument - the latest trigger value. Triggers registered with the
+   same key as another trigger or standard handler will remove and
+   replace the old handler.
 
    Consider using trig-id to create a unique trigger id
 
@@ -47,7 +49,10 @@
 
     ;; create a new instance of synth foo with trigger id as a
     ;; param
-    (foo uid)"
+    (foo uid)
+
+    ;;Trigger handler can be removed with:
+    (remove-event-handler ::debug)"
   ([trig-id handler key]
      (add-handler on-event [:overtone :trigger trig-id] handler key))
   ([node trig-id handler key]
@@ -57,10 +62,14 @@
   "Registers a standard on-latest-event handler with key which will call
    handler when matching triggers are recieved. Triggers are created
    with the send-trig ugen. Handler should be a fn which takes one
-   argument - the latest trigger value.
+   argument - the latest trigger value. Triggers registered with the
+   same key as another trigger or standard handler will remove and
+   replace the old handler.
 
    Consider using trig-id to create a unique trigger id. See on-trigger
-   docstring for usage example."
+   docstring for usage example.
+
+   Trigger handler can be removed with remove-event-handler."
   ([trig-id handler key]
      (add-handler on-latest-event [:overtone :trigger trig-id] handler key))
   ([node trig-id handler key]
@@ -70,10 +79,14 @@
   "Registers a standard on-sync-event handler with key which will call
    handler when matching triggers are recieved. Triggers are created
    with the send-trig ugen. Handler should be a fn which takes one
-   argument - the latest trigger value.
+   argument - the latest trigger value. Triggers registered with the
+   same key as another trigger or standard handler will remove and
+   replace the old handler.
 
    Consider using trig-id to create a unique trigger id. See on-trigger
-   docstring for usage example."
+   docstring for usage example.
+
+   Trigger handler can be removed with remove-event-handler."
   ([trig-id handler key]
      (add-handler on-sync-event [:overtone :trigger trig-id] handler key))
   ([node trig-id handler key]
