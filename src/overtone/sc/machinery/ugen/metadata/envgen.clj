@@ -78,11 +78,11 @@
               {:name "gate",
                :default 1.0
                :doc "this triggers the envelope and holds it open while
-                     > 0. If the Env is fixed-length (e.g. Env.linen,
-                     Env.perc), the gate argument is used as a simple
-                     trigger. If it is an sustaining envelope (e.g. Env.adsr,
-                     Env.asr), the envelope is held open until the gate
-                     becomes 0, at which point is released."}
+               > 0. If the Env is fixed-length (e.g. perc), the gate
+               argument is used as a simple trigger. If it is an
+               sustaining envelope (e.g. adsr, asr), the envelope is
+               held open until the gate becomes 0, at which point is
+               released." }
 
               {:name "level-scale",
                :default 1.0
@@ -140,10 +140,10 @@
               {:name "action", :default 0 :doc "done action"}],
 
        :rates #{:kr}
-       :doc "A linear envelope generator, rises to susLevel over
-             attackTime seconds and after the gate goes non-positive
-             falls over releaseTime to finally perform an option
-             doneAction"}
+       :doc "A linear envelope generator, rises to sus-level over
+             attack-time seconds and after the gate goes non-positive
+             falls over release-time to finally perform the (optional)
+             action"}
 
       ;; TODO figure out what an IEnvGen is and write init
       {:name "IEnvGen"
