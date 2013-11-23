@@ -245,14 +245,14 @@
     you to control the volume or pan of the instrument group with one
     command:
 
-    (inst-pan bar -1)     ;pan hard left.
-    (inst-volume bar 0.5) ;half the volume.
+    (inst-pan! bar -1)     ;pan hard left.
+    (inst-volume! bar 0.5) ;half the volume.
 
     For a stereo inst, you can control left and right pan or volume
     separately by passing an additional arg:
 
-    (inst-pan bar 1 -1)   ;ch1 right, ch2 left.
-    (inst-volume bar 0 1) ;mute ch1.
+    (inst-pan! bar 1 -1)   ;ch1 right, ch2 left.
+    (inst-volume! bar 0 1) ;mute ch1.
 
   * Each instrument has an fx-chain to which you can add any number of
     'fx synths' using the inst-fx function.
