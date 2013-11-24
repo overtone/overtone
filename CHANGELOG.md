@@ -160,7 +160,18 @@ information on the default group structure see the `foundation-*` fns.
 
 It's now possible to register oneshot handler function for when specific
 nodes are created, destroyed, paused or started with the new `on-node-*`
-family of functions.
+family of functions. For example to have a function execute every time a
+node is started:
+
+    (defsynth foo [] (out 0 (sin-osc)))
+
+    (def f (foo))
+
+    (on-node-started f (fn [m] (println "Node"  (-> m :node :id) "started!")))
+    (node-pause f)
+    (node-start f) ;;=> "Node 31 started!"
+    (node-pause f)
+    (node-start f) ;;=> "Node 31 started!"
 
 #### Synth Triggers
 
@@ -184,6 +195,29 @@ functions to execute when data from that specific synth is received:
 
     ;; create a new instance of synth foo with trigger id as a param
     (foo uid)
+
+#### Envelopes
+
+Using envelopes effectively has long been a dark Overtone art. They have
+a huge potential for powerful manipulation of synth internals to finely
+control both pitch and timbre though time. The simplest approach to
+using envelopes is using the `env-gen` helper fns such as `perc` and
+`adsr`. These functions have supported keyword argument semantics
+similar to the ugen functions given that they're used in the same
+context. However, until this release, they haven't reported their param
+list in the function argument list metadata. This is now fixed in this
+release. In addition, to help ease discovery of these helper fns, they
+are also now prefixed with `env-` so those using editors with
+autocomplete can find them more easily. The helper functions provided in
+0.9.0 are: `env-triangle`, `env-sine`, `env-perc`, `env-lin`,
+`env-cutoff`, `env-dadsr`, `env-adsr` and `env-asr`.
+
+The envelope function (which all the helper functions are written in
+terms of) has also been improved. It is now possible to pass a
+heterogeneous list of keywords and floats for the `curves`
+parameter. This means that it's now possible to request different
+keywords for different envelope segments. Take a look at the `envelope`
+docstring for extensive information.
 
 
 ### New examples
@@ -229,6 +263,14 @@ material for everyone to play.
 * `store-get` - get value with key from persistent user store
 * `store-set!` - set value with key within user's persistent store
 * `store` - get full persistent store map
+* `env-triangle` - duplicate of `triangle`
+* `env-sine` - duplicate of `sine`
+* `env-perc` - duplicate of `perc`
+* `env-lin` - duplicate of `lin`
+* `env-cutoff` - duplicate of `cutoff`
+* `env-dadsr` - duplicate of `dadsr`
+* `env-adsr` - duplicate of `adsr`
+* `env-asr` - duplicate of `asr`
 
 ### Renamed fns
 
@@ -239,6 +281,7 @@ material for everyone to play.
 * `bus-get-range` -> `control-bus-get-range`
 * `remove-handler`  -> `remove-event-handler`
 * `remove-all-handlers` -> `remove-all-event-handlers`
+* `lin-env` -> `lin`
 
 ### Deprecated fns
 
@@ -319,7 +362,7 @@ material for everyone to play.
 * Reset `*print-length*` dynamic var to ensure all data is printed out
 * Ensure `bur-rd` and `buf-wr` phase arg is at audio rate when ugen is also at audio rate.
 * Add ugen checks for `balance2`
-
+* Fixed vintage-bass inst to be audible
 
 ## Version 0.8.1 (28th January 2013)
 
