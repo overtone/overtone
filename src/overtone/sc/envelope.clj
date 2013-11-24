@@ -134,7 +134,14 @@
               (concat [(first levels) (count durations) release-node loop-node]
                       (interleave (rest levels) durations shape-ids curve-ids))))))
 
-(defunk triangle
+(defmacro defunk-env [fn-name docstring args & body]
+  `(do
+
+     (defunk ~(symbol (str "env-" fn-name)) ~docstring ~args ~@body)
+     (defunk ~fn-name ~docstring ~args ~@body)
+     ))
+
+(defunk-env triangle
   "Create a triangle envelope description array suitable for use with the
   env-gen ugen"
   [dur 1 level 1]
@@ -142,34 +149,34 @@
     (let [dur (* dur 0.5)]
       (envelope [0 level 0] [dur dur]))))
 
-(defunk sine
+(defunk-env sine
   "Create a sine envelope description suitable for use with the env-gen ugen"
   [dur 1 level 1]
   (with-overloaded-ugens
     (let [dur (* dur 0.5)]
       (envelope [0 level 0] [dur dur] :sine))))
 
-(defunk perc
+(defunk-env perc
   "Create a percussive envelope description suitable for use with the env-gen
   ugen"
   [attack 0.01 release 1 level 1 curve -4]
   (with-overloaded-ugens
     (envelope [0 level 0] [attack release] curve)))
 
-(defunk lin-env
+(defunk-env lin
   "Create a trapezoidal envelope description suitable for use with the env-gen
   ugen"
   [attack 0.01 sustain 1 release 1 level 1 curve :linear]
   (with-overloaded-ugens
     (envelope [0 level level 0] [attack sustain release] curve)))
 
-(defunk cutoff
+(defunk-env cutoff
   "Create a cutoff envelope description suitable for use with the env-gen ugen"
   [release 0.1 level 1 curve :linear]
   (with-overloaded-ugens
     (envelope [level 0] [release] curve 0)))
 
-(defunk dadsr
+(defunk-env dadsr
   "Create a delayed attack decay sustain release envelope suitable for use with
   the env-gen ugen"
   [delay-t 0.1
@@ -180,7 +187,7 @@
       (map #(+ %1 bias) [0 0 level (* level sustain) 0])
       [delay-t attack decay release] curve)))
 
-(defunk adsr
+(defunk-env adsr
   "Create an attack decay sustain release envelope
   suitable for use as the envelope parameter of the
   env-gen ugen.
@@ -225,7 +232,7 @@
       (map #(+ %1 bias) [0 level (* level sustain) 0])
       [attack decay release] curve 2)))
 
-(defunk asr
+(defunk-env asr
   "Create an attack sustain release envelope sutable for use with the env-gen
   ugen"
   [attack 0.01 sustain 1 release 1 curve -4]
