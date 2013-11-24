@@ -233,17 +233,17 @@
     (* env bounced)))
 
 (definst vintage-bass
-  [note 40 velocity 80 t 0.6 amp 0.5 gate 1]
+  [note 40 velocity 80 t 0.6 amp 1 gate 1]
   (let [freq     (midicps note)
         sub-freq (midicps (- note 12))
         velocity (/ velocity 127.0)
-        sawz1    (* 0.075 (saw [freq freq]))
+        sawz1    (* 0.275 (saw [freq (* 1.01 freq)]))
         sawz2    (* 0.75 (saw [(- freq 2) (+ 1 freq)]))
         sqz      (* 0.3 (pulse [sub-freq (- sub-freq 1)]))
-        mixed    (* 0.1 (mix sawz1 sawz2 sqz))
+        mixed    (* 5 (+ sawz1 sawz2 sqz))
         env      (env-gen (adsr 0.1 3.3 0.4 0.8) gate :action FREE)
         filt     (* env (moog-ff mixed (* velocity env (+ freq 200)) 2.2))]
-    filt))
+    (* amp filt)))
 
 ; B3 modeled a church organ using additive synthesis of 9 sin oscillators
 ; * Octave under root
