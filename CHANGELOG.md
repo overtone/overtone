@@ -9,6 +9,7 @@
 * Joseph Wilk
 * Rich Hickey
 * Kevin 'lionandoil'
+* James Petry
 
 ### Major Additions & Changes
 
@@ -187,7 +188,11 @@ functions to execute when data from that specific synth is received:
 
 ### New examples
 
-* Add resonate workshop files
+Karsten 'Toxi' Schmidt has kindly donated his awesome resonate workshop
+files to the examples folder. These can be found within
+`examples/workshops/resonate2013`. Karsten is renowned for giving
+awesome workshops, so it's wonderful to be able to ship with this
+material for everyone to play.
 
 ### New fns
 
