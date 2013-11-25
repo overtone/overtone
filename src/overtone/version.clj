@@ -2,7 +2,7 @@
 
 (def OVERTONE-VERSION {:major 0
                        :minor 10
-                       :patch 1
+                       :patch 0
                        :snapshot true})
 
 (def OVERTONE-VERSION-STR
