@@ -1,6 +1,6 @@
 # Change Log
 
-## Version 0.9.0 (To be released)
+## Version 0.9.0 (25th November 2013)
 
 ### New Committers
 
