@@ -1,5 +1,9 @@
 # Change Log
 
+## Version 0.9.1 (25th November 2013)
+
+Version bump forced by Clojars missing a commit. Nothing new here.
+
 ## Version 0.9.0 (25th November 2013)
 
 ### New Committers
