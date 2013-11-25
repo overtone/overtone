@@ -1,9 +1,9 @@
 (ns overtone.version)
 
 (def OVERTONE-VERSION {:major 0
-                       :minor 9
+                       :minor 10
                        :patch 1
-                       :snapshot false})
+                       :snapshot true})
 
 (def OVERTONE-VERSION-STR
   (let [version OVERTONE-VERSION]
