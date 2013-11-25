@@ -294,9 +294,7 @@
             :doc "Output level - 0 being silent and 1 being original
                    volume"}]
 
-    :check [(when-ar (first-n-inputs-ar 2))
-            (nth-input-stream? 0)
-            (nth-input-stream? 1)]
+    :check [(when-ar (first-n-inputs-ar 2))]
     :rates #{:ar :kr}
     :doc "Equal power two channel cross fade"}
 
