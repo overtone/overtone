@@ -219,14 +219,22 @@ parameter. This means that it's now possible to request different
 keywords for different envelope segments. Take a look at the `envelope`
 docstring for extensive information.
 
-
-### New examples
+#### Resonate Workshop
 
 Karsten 'Toxi' Schmidt has kindly donated his resonate workshop
 files to the examples folder. These can be found within
 `examples/workshops/resonate2013`. Karsten is renowned for giving
 awesome workshops, so it's wonderful to be able to ship with this
 material for everyone to play.
+
+#### Docstrings
+
+Although it can be fairly argued that Overtone is still missing end-user
+documentation (something we're currently working hard at fixing) we have
+always had excellent internal documentation and this release continues
+with this tradition. All of our end-user functions have full docstrings
+and many of them have been improved and tweaked to make them more
+readable and understandable.
 
 ### New fns
 
