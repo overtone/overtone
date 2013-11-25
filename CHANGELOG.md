@@ -77,8 +77,8 @@ to be necessary.
 
 MIDI devices are now automatically detected on boot and auto-hooked up
 to the event system. You have access to the list of detected devices
-(and receivers) via the functions: `connected-midi-devices` and
-`connected-midi-receivers`. Take a look at the example file
+(and receivers) via the functions: `midi-connected-devices` and
+`midi-connected-receivers`. Take a look at the example file
 `examples/midi/basic.clj` for more a quick tour of the MIDI API.
 
 
@@ -212,7 +212,7 @@ autocomplete can find them more easily. The helper functions provided in
 0.9.0 are: `env-triangle`, `env-sine`, `env-perc`, `env-lin`,
 `env-cutoff`, `env-dadsr`, `env-adsr` and `env-asr`.
 
-The envelope function (which all the helper functions are written in
+The `envelope` function (which all the helper functions are written in
 terms of) has also been improved. It is now possible to pass a
 heterogeneous list of keywords and floats for the `curves`
 parameter. This means that it's now possible to request different
@@ -222,7 +222,7 @@ docstring for extensive information.
 
 ### New examples
 
-Karsten 'Toxi' Schmidt has kindly donated his awesome resonate workshop
+Karsten 'Toxi' Schmidt has kindly donated his resonate workshop
 files to the examples folder. These can be found within
 `examples/workshops/resonate2013`. Karsten is renowned for giving
 awesome workshops, so it's wonderful to be able to ship with this
@@ -231,6 +231,8 @@ material for everyone to play.
 ### New fns
 
 * `midi-find-connected-devices` - list all auto-connected MIDI devices
+* `midi-find-connected-device` - list all auto-connected MIDI devices
+* `midi-find-connected-receivers` - list all auto-connected MIDI receivers
 * `midi-find-connected-receiver` - list all auto-connected MIDI receivers
 * `midi-device-num` - get the unique device num (for a specific MIDI make/model)
 * `midi-full-device-key` - get the full device key used for the event system
@@ -282,6 +284,9 @@ material for everyone to play.
 * `remove-handler`  -> `remove-event-handler`
 * `remove-all-handlers` -> `remove-all-event-handlers`
 * `lin-env` -> `lin`
+* `connected-midi-devices` -> `midi-connected-devices`
+* `connected-midi-receivers` -> `midi-connected-receivers`
+* `apply-at` -> `apply-by`
 
 ### Deprecated fns
 
@@ -362,7 +367,7 @@ material for everyone to play.
 * Reset `*print-length*` dynamic var to ensure all data is printed out
 * Ensure `bur-rd` and `buf-wr` phase arg is at audio rate when ugen is also at audio rate.
 * Add ugen checks for `balance2`
-* Fixed vintage-bass inst to be audible
+* Fixed `vintage-bass` inst to be audible
 
 ## Version 0.8.1 (28th January 2013)
 
