@@ -116,9 +116,9 @@
   (dotimes [i AUDIO-BUS-RESERVE-COUNT]
     (audio-bus)))
 
-(defn reset-buses
-  [event-info]
-  nil)
+;; (defn reset-buses
+;;   [event-info]
+;;   nil)
 
 ;(on-sync-event :reset reset-buses ::reset-buses)
 
