@@ -71,7 +71,7 @@
 
                \begin{document}
 
-               {\Large{\textbf{Overtone Cheat Sheet 0.8.0}}}
+               {\Large{\textbf{Overtone Cheat Sheet 0.9.0}}}
 
                \colouredbox{green}{
                  \section{Sounds}
@@ -91,6 +91,8 @@
                    Sampled Piano & \cmd{sampled-piano}\\
                    Stringed & \cmd{guitar}\\
                    Ixi & \cmd{impulser kick kick2 kick3}\\
+                   Retro & \cmd{tb-303}\\
+                   STS & \cmd{prophet}\\
                  \end{tabularx}
 
                }
@@ -99,7 +101,7 @@
                \section{Timing}
                \subsection{Scheduling}
                \begin{tabularx}{\hsize}{lX}
-                 Function Application & \cmd{now after-delay periodic interspaced apply-at} \\
+                 Function Application & \cmd{now after-delay periodic interspaced apply-by apply-at} \\
                  OSC & \cmd{at} \\
                  Stopping & \cmd{stop-player kill-player} \\
                  Feedback & \cmd{show-schedule} \\
@@ -124,6 +126,8 @@
 
                  \subsection{MIDI}
                  \begin{tabularx}{\hsize}{lX}
+                   Connected Controllers & \cmd{midi-connected-devices midi-connected-receivers midi-find-connected-devices midi-find-connected-device midi-find-connected-receivers midi-find-connected-receiver}\\
+                   Info & \cmd{midi-device-num midi-full-device-key}\\
                    Player & \cmd{midi-poly-player midi-player-stop midi-inst-controller}\\
                    Discovery & \cmd{midi-capture-next-controller-control-key midi-capture-next-controller-key}\\
                    Keys & \cmd{midi-device-keys midi-mk-control-key-keyword }\\
@@ -144,7 +148,7 @@
                  \subsection{Inst Effects}
                  \begin{tabularx}{\hsize}{lX}
                    Instrument &\cmd{inst-volume inst-out-bus inst-fx! clear-fx}\\
-                   FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-freeverb fx-reverb fx-echo fx-chorus fx-distortion fx-distortion2 fx-distortion-tubescreamer bitcrusher fx-rlpf fx-rhpf fx-feedback fx-feedback-distortion } \\
+                   FX & \cmd{fx-noise-gate fx-compressor fx-limiter fx-sustainer fx-freeverb fx-reverb fx-echo fx-chorus fx-distortion fx-distortion2 fx-distortion-tubescreamer fx-bitcrusher fx-rlpf fx-rhpf fx-feedback fx-feedback-distortion } \\
                  \end{tabularx}
 
 
@@ -169,6 +173,7 @@
                    CGens& \cmd{defcgen}\\
                    Auditioning& \cmd{demo run}\\
                    Checking & \cmd{with-no-ugen-checks with-ugen-debugging} \\
+                   Arguments & \cmd{synth-args synth-arg-index}\\
 
 
                  \end{tabularx}
@@ -188,7 +193,7 @@
                  \begin{tabularx}{\hsize}{lX}
                    Startup&\cmd{boot-server boot-internal-server boot-external-server connect-external-server}\\
                    Shutdown&\cmd{kill-server}\\
-                   Control& \cmd{stop}\\
+                   Control& \cmd{stop clear stop-all clear-all}\\
                    OSC Communication& \cmd{snd recv clear-msg-queue at snd-immediately}\\
                    Diagnostic& \cmd{server-status server-info server-opts server-connected? server-disconnected? server-connecting? internal-server? external-server? connection-info server-sample-rate server-num-output-buses server-num-input-buses server-num-audio-buses server-num-buffers ensure-connected!}\\
                    Debug& \cmd{sc-osc-log-on sc-osc-log-off sc-osc-log sc-debug-on sc-debug-off external-server-log sc-osc-debug-on sc-osc-debug-off}\\
@@ -199,9 +204,11 @@
                  \section{Event Handling}
                  \begin{tabularx}{\hsize}{lX}
                    Add & \cmd{on-event on-sync-event on-latest-event oneshot-event oneshot-sync-event} \\
-                   Remove & \cmd{remove-handler}\\
-                   Trigger & \cmd{event sync-event}\\
+                   Fire & \cmd{event sync-event}\\
+                   Remove & \cmd{remove-event-handler}\\
                    Debug & \cmd{event-debug-on event-debug-off event-monitor-on event-monitor-off event-monitor-timer event-monitor event-monitor-keys} \\
+                   Ugen Triggers & \cmd{trig-id on-trigger on-latest-trigger on-sync-trigger}\\
+
                  \end{tabularx}
                }
 
@@ -214,7 +221,8 @@
 
                  \subsection{Freesound.org}
                  \begin{tabularx}{\hsize}{lX}
-                    Auto cache \& Query&\cmd{freesound-info freesound-path freesound-pack-info freesound-pack-dir freesound-search freesound-searchm freesound-search-paths} \\
+                   Playable Function &\cmd{freesound} \\
+                   Auto cache \& Query&\cmd{freesound-info freesound-path freesound-pack-info freesound-pack-dir freesound-search freesound-searchm freesound-search-paths} \\
                  \end{tabularx}
                }
 
@@ -235,6 +243,32 @@
                  \subsection{Trig}
                  \begin{tabularx}{\hsize}{lX}
                    Scaled& \cmd{cosr sinr tanr}\\
+                 \end{tabularx}
+
+                 \subsection{Functions}
+                 \begin{tabularx}{\hsize}{lX}
+                   Cycling & \cmd{cycle-fn}\\
+                 \end{tabularx}
+
+                 \subsection{List}
+                 \begin{tabularx}{\hsize}{lX}
+                   Rotation & \cmd{rotate}\\
+                   Creation & \cmd{fill}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{red}{
+                 \section{Music}
+                 \subsection{Pitch}
+                 \begin{tabularx}{\hsize}{lX}
+                   Ratios& \cmd{unison octave fifth sixth third fourth min-third min-sixth}\\
+                   Note Shifting& \cmd{shift flat sharp invert inc-first dec-last}\\
+                   Notes & \cmd{note octave-note nth-octave nth-equal-tempered-freq canonical-pitch-class-name note-info mk-midi-string match-note }\\
+                   Scales & \cmd{scale resolve-scale scale-field nth-interval resolve-degree degree->int degree->interval degrees->pitches resolve-degree resolve-degrees interval-freq}\\
+                   Chords & \cmd{chord resolve-chord rand-chord invert-chord chord-degree}\\
+                   Discovery & \cmd{find-scale-name find-note-name find-pitch-class-name find-chord}\\
+                   Frequencies & \cmd{cents midi->hz hz->midi}\\
+                   Amplitude & \cmd{db->amp}\\
                  \end{tabularx}
                }
 
@@ -259,40 +293,49 @@
                  \subsection{Busses}
                  \begin{tabularx}{\hsize}{lX}
                    Create \& Free & \cmd{control-bus audio-bus free-bus}\\
-                   Modify \& Read & \cmd{bus-set! bus-set-range! bus-get bus-get-range}\\
-                   Query & \cmd{bus? control-bus?}\\
-                   Info & \cmd{bus-id}
+                   Modify \& Read & \cmd{control-bus-set! control-bus-set-range! control-bus-get control-bus-get-range}\\
+                   Query & \cmd{bus? control-bus? audio-bus?}\\
+                   Info & \cmd{bus-id}\\
+                   Monitor & \cmd{bus-monitor control-bus-monitor audio-bus-monitor}\\
                  \end{tabularx}
                }
+
+
+
 
                \colouredbox{orange}{
                  \section{Nodes \& Groups}
                  \begin{tabularx}{\hsize}{lX}
                    Create \& Free  & \cmd{node group node-free group-free group-clear group-deep-clear}\\
                    Manipulate & \cmd{node-start node-pause node-place node-control node-control-range node-map-controls node-map-n-controls group-prepend-node group-append-node }\\
-                   Info & \cmd{node? node-live? node-loading? node-active? node-tree pp-node-tree}\\
+                   Info & \cmd{node? node-live? node-loading? node-active? node-tree pp-node-tree node-get-control node-get-controls}\\
                    Foundation Groups & \cmd{foundation-overtone-group foundation-output-group foundation-monitor-group foundation-input-group foundation-user-group foundation-default-group foundation-safe-group foundation-safe-pre-default-group foundation-safe-post-default-group}\\
-
-
+                   Manipulation Handlers & \cmd{on-node-destroyed on-node-created on-node-paused on-node-started}\\
+                   Event Keys & \cmd{node-destroyed-event-key node-created-event-key node-paused-event-key node-started-event-key}\\
                  \end{tabularx}
                }
 
 
 
-               \colouredbox{purple}{
-                 \section{Music}
-                 \subsection{Pitch}
+
+               \colouredbox{gray}{
+                 \section{Visualisation}
+                 \subsection{Graphviz}
                  \begin{tabularx}{\hsize}{lX}
-                   Ratios& \cmd{unison octave fifth sixth third fourth min-third min-sixth}\\
-                   Note Shifting& \cmd{shift flat sharp invert inc-first dec-last}\\
-                   Notes & \cmd{note octave-note nth-octave nth-equal-tempered-freq canonical-pitch-class-name note-info mk-midi-string match-note }\\
-                   Scales & \cmd{scale resolve-scale scale-field nth-interval resolve-degree degree->int degree->interval degrees->pitches resolve-degree resolve-degrees interval-freq}\\
-                   Chords & \cmd{chord resolve-chord rand-chord invert-chord chord-degree}\\
-                   Discovery & \cmd{find-scale-name find-note-name find-pitch-class-name find-chord}\\
-                   Frequencies & \cmd{cents midi->hz hz->midi}\\
-                   Amplitude & \cmd{db->amp}\\
+                    Dot Notation &\cmd{graphviz} \\
+                    Show PDF &\cmd{show-graphviz-synth} \\
                  \end{tabularx}
                }
+
+               \colouredbox{blue}{
+                 \section{Persistence}
+                 \subsection{Local Store}
+                 \begin{tabularx}{\hsize}{lX}
+                    Access &\cmd{store-get store-set! store} \\
+                 \end{tabularx}
+               }
+
+
 
 
                \colouredbox{blue2}{
@@ -318,6 +361,14 @@
                    Lines& \cmd{LINEAR LIN EXPONENTIAL EXP}\\
                    Onset Analysis& \cmd{POWER MAGSUM COMPLEX RCOMPLEX PHASE WPHASE MKL}\\
                    Infinity& \cmd{INFINITE INF}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{blue}{
+                 \section{UGen Envelope Helper Functions}
+                 \begin{tabularx}{\hsize}{lX}
+                   & \cmd{env-perc env-triangle env-sine env-lin env-cutoff env-dadsr env-adsr env-asr} \\
+
                  \end{tabularx}
                }
 
@@ -608,7 +659,7 @@
                \begin{flushright}
                  \footnotesize
                  \rule{0.7\linewidth}{0.25pt}
-                 \verb!Revision: 0.8.0.0, Date: 26th January, 2013!\\
+                 \verb!Revision: 0.9.0.0, Date: 25th November, 2013!\\
                  \verb!Sam Aaron (sam.aaron gmail com)!
                \end{flushright}
 
