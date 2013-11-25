@@ -17,7 +17,7 @@
     (into {})))
 
 ;; First let's see which MIDI devices are connected...
-(connected-midi-devices)
+(midi-connected-devices)
 
 ;; MIDI is event based...
 ;; For drums we only are interested in :note-on events

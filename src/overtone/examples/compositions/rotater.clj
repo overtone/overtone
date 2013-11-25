@@ -10,7 +10,7 @@
 
 
 ;; Specify output device
-(def synth-out (first (connected-midi-receivers)))
+(def synth-out (first (midi-connected-receivers)))
 
 ;; Rotate between these notes
 (def rotation-notes (ref '(-10 -7 -14 -5)) )

@@ -16,8 +16,8 @@
 (defonce midi-control-agents* (atom {}))
 (defonce poly-players* (atom {}))
 
-(declare connected-midi-devices)
-(declare connected-midi-receivers)
+(declare midi-connected-devices)
+(declare midi-connected-receivers)
 
 (defn midi-mk-full-device-key
   "Returns a unique key for the specific device. In the case of multiple
@@ -29,7 +29,7 @@
   [dev]
   (or (::full-device-key dev)
       (let [dev-num (or (::dev-num dev)
-                        (::dev-num (get (connected-midi-devices) (:device dev)))
+                        (::dev-num (get (midi-connected-devices) (:device dev)))
                         -1)]
         [:midi-device (dev :vendor) (dev :name) (dev :description) dev-num])))
 
@@ -47,14 +47,14 @@
    either contains the search string or matches the search regexp
    depending on the type of parameter supplied"
   [search]
-  (midi-find-connected search (connected-midi-devices)))
+  (midi-find-connected search (midi-connected-devices)))
 
 (defn midi-find-connected-receivers
   "Returns a list of connected MIDI receivers where the full device key
    either contains the search string or matches the search regexp
    depending on the type of parameter supplied"
   [search]
-  (midi-find-connected search (connected-midi-receivers)))
+  (midi-find-connected search (midi-connected-receivers)))
 
 (defn midi-find-connected-device
   "Returns the first connected MIDI device found where the full device
@@ -87,7 +87,7 @@
 (defn midi-device-keys
   "Return a list of device event keys for the available MIDI devices"
   []
-  (map midi-mk-full-device-key (vals (connected-midi-devices))))
+  (map midi-mk-full-device-key (vals (midi-connected-devices))))
 
 (defn- midi-control-handler
   [state-atom handler mapping msg]
@@ -282,13 +282,13 @@
                 false)))
           devs)))
 
-(defonce ^:private connected-midi-devices*
+(defonce ^:private midi-connected-devices*
   (-> (detect-midi-devices) add-listener-handles!))
 
-(defonce ^:private connected-midi-receivers*
+(defonce ^:private midi-connected-receivers*
   (map midi/midi-out (detect-midi-receivers)))
 
-(defn connected-midi-devices
+(defn midi-connected-devices
   "Returns a sequence of device maps for all 'connected' MIDI
    devices. By device, we mean a MIDI unit that is capable of sending
    messages (such as a MIDI piano). By connected, we mean that Overtone
@@ -300,9 +300,9 @@
    available. We are considering work-arounds to this issue for a future
    release."
   []
-  connected-midi-devices*)
+  midi-connected-devices*)
 
-(defn connected-midi-receivers
+(defn midi-connected-receivers
   "Returns a sequence of device maps for all 'connected' MIDI
    receivers. By receiver, we mean a MIDI unit that is capable of
    receiving messages. By connected, we mean that Overtone is aware of
@@ -313,7 +313,7 @@
    available. We are considering work-arounds to this issue for a future
    release."
   []
-  connected-midi-receivers*)
+  midi-connected-receivers*)
 
 (defn midi-device-num
   "Returns the device number for the specified MIDI device"
@@ -332,12 +332,12 @@
    encoded as hex values.  Commas, spaces, and other whitespace is
    ignored.
 
-   See connected-midi-receivers for a full list of available receivers."
+   See midi-connected-receivers for a full list of available receivers."
   [rcv byte-seq]
   (midi/midi-sysex rcv byte-seq))
 
 (defn midi-control
-  "Send a MIDI control msg to the receiver. See connected-midi-receivers
+  "Send a MIDI control msg to the receiver. See midi-connected-receivers
    for a full list of available receivers."
   ([rcv ctl-num val]
      (midi/midi-control rcv ctl-num val))
@@ -345,7 +345,7 @@
      (midi/midi-control rcv ctl-num val channel)))
 
 (defn midi-note-on
-  "Send a MIDI note on msg to the receiver. See connected-midi-receivers
+  "Send a MIDI note on msg to the receiver. See midi-connected-receivers
    for a full list of available receivers."
   ([rcv note-num vel]
      (midi/midi-note-on rcv note-num vel))
@@ -353,7 +353,7 @@
      (midi/midi-note-on rcv note-num vel channel)))
 
 (defn midi-note-off
-  "Send a MIDI note off msg to the receiver. See connected-midi-receivers
+  "Send a MIDI note off msg to the receiver. See midi-connected-receivers
    for a full list of available receivers."
   ([rcv note-num]
      (midi/midi-note-off rcv note-num))
@@ -365,7 +365,7 @@
    sent dur ms after the on message resulting in the note being 'played'
    for dur ms.
 
-   See connected-midi-receivers for a full list of available receivers."
+   See midi-connected-receivers for a full list of available receivers."
   ([rcv note-num vel dur]
      (midi/midi-note rcv note-num vel dur))
   ([rcv note-num vel dur channel]

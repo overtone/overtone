@@ -135,7 +135,7 @@
 ;; All attached MIDI devices are registered when Overtone booted.
 ;; You can look at the list of attached devices with:
 
-(connected-midi-devices)
+(midi-connected-devices)
 
 ;; The MIDI devices are not guaranteed to be registered in the same
 ;; order every time you boot Overtone, so you can't rely on the index of
