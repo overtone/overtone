@@ -43,13 +43,13 @@ collaborating with music.  It provides:
     # Install lein2
     # https://github.com/technomancy/leiningen
 
-    $ lein new insane-noises
+    $ lein new insane-noise
+    $ cd insane-noise
 
-    # add the following dependencies to insane-noises/project.clj
-    # [org.clojure/clojure "1.5.1"]
+    # add the following dependecy to insane-noises/project.clj]
     # [overtone "0.9.1"]
 
-    $ cd insane-noises
+    $ lein deps
     $ lein repl
 ```
 
