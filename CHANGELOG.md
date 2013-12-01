@@ -12,7 +12,7 @@ Version bump forced by Clojars missing a commit. Nothing new here.
 * Karsten Schmidt
 * Joseph Wilk
 * Rich Hickey
-* Kevin 'lionandoil'
+* Kevin Irrwitzer
 * James Petry
 
 ### Major Additions & Changes
