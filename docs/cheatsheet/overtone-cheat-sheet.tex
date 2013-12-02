@@ -71,33 +71,80 @@
 
                \begin{document}
 
+
                {\Large{\textbf{Overtone Cheat Sheet 0.9.1}}}
 
                \colouredbox{green}{
-                 \section{Sounds}
-                 \subsection{Instruments (overtone.inst.*)}
+                 \section{Instruments (need to be manually referred)}
+                 \subsection{overtone.inst.drums }
                  \begin{tabularx}{\hsize}{lX}
                    Drums  & \cmd{kick kick2 kick3 kick4 dub-kick dry-kick small-hat closed-hat close-hat2 open-hat hat3 soft-hat noise-hat round-kick snare snare2 noise-snare tone-snare tom clap bing dance-kick quick-kick haziti-clap} \\
-                   Piano & \cmd{piano}\\
-                   Sampled Piano & \cmd{sampled-piano}\\
-                   Sampler & \cmd{granular}\\
-                   Bass & \cmd{bass grunge-bass vintage-bass daf-bass}\\
-                   Synth& \cmd{ticker ping tb303 mooger rise-fall-pad pad overpad buzz  ks1 ks-stringer fm-demo harmonic-swimming whoahaha bubbles supersaw cs80lead simple-flute}\\
-                   IO & \cmd{mic} \\
                  \end{tabularx}
-
-                 \subsection {Synths (overtone.synth.*)}
+                 \subsection{overtone.inst.piano }
+                 \begin{tabularx}{\hsize}{lX}
+                   Piano & \cmd{piano}\\
+                 \end{tabularx}
+                 \subsection{overtone.inst.sampled-piano }
                  \begin{tabularx}{\hsize}{lX}
                    Sampled Piano & \cmd{sampled-piano}\\
-                   Stringed & \cmd{guitar}\\
-                   Ixi & \cmd{impulser kick kick2 kick3}\\
-                   Retro & \cmd{tb-303}\\
-                   STS & \cmd{prophet}\\
+                 \end{tabularx}
+                 \subsection{overtone.inst.sampler }
+                 \begin{tabularx}{\hsize}{lX}
+                   Sampler  & \cmd{granular}\\
+                 \end{tabularx}
+                 \subsection{overtone.inst.bass }
+                 \begin{tabularx}{\hsize}{lX}
+                   Bass  & \cmd{bass grunge-bass vintage-bass daf-bass}\\
+                 \end{tabularx}
+                 \subsection{overtone.inst.synth }
+                 \begin{tabularx}{\hsize}{lX}
+                   Synth  & \cmd{ticker ping tb303 mooger rise-fall-pad pad overpad buzz  ks1 ks-stringer fm-demo harmonic-swimming whoahaha bubbles supersaw cs80lead simple-flute}\\
+                 \end{tabularx}
+                 \subsection{overtone.inst.io }
+                 \begin{tabularx}{\hsize}{lX}
+                   IO   & \cmd{mic} \\
                  \end{tabularx}
 
                }
 
-               \colouredbox{yellow}{
+                 \colouredbox{green}{
+                 \section{Synths (need to be manually referred)}
+
+                 \subsection {overtone.synth.sampled-piano)}
+                 \begin{tabularx}{\hsize}{lX}
+                   Sampled Piano  & \cmd{sampled-piano}\\
+                 \end{tabularx}
+                 \subsection{overtone.synth.stringed }
+                 \begin{tabularx}{\hsize}{lX}
+                   Stringed s & \cmd{guitar}\\
+                 \end{tabularx}
+                 \subsection{overtone.synth.ixi }
+                 \begin{tabularx}{\hsize}{lX}
+                   Ixi  & \cmd{impulser kick kick2 kick3}\\
+                 \end{tabularx}
+                 \subsection{overtone.synth.retro }
+                 \begin{tabularx}{\hsize}{lX}
+                   Retro  & \cmd{tb-303}\\
+                 \end{tabularx}
+                 \subsection{overtone.synth.sts }
+                 \begin{tabularx}{\hsize}{lX}
+                   STS  & \cmd{prophet}\\
+                 \end{tabularx}
+
+               }
+
+               \colouredbox{pink}{
+                 \section{REPL helpers}
+                 \begin{tabularx}{\hsize}{lX}
+                   Documentation&\cmd{odoc ugen-doc find-ugen find-ugen-doc}\\
+                   Examples& \cmd{examples example get-example}\\
+                   Shell& \cmd{ls grep}\\
+                   Synths& \cmd{unify-synthdef}\\
+                   Pretty Printing& \cmd{opp pp-synth pp-unified-synth pp-sc-synth pp-unified-sc-synth}\\
+                 \end{tabularx}
+               }
+
+               \colouredbox{purple}{
                \section{Timing}
                \subsection{Scheduling}
                \begin{tabularx}{\hsize}{lX}
@@ -134,7 +181,7 @@
                    State & \cmd{midi-agent-for-control}\\
                  \end{tabularx}
 
-                 \subsection{Scope (overtone.gui.scope)}
+                 \subsection{Scope}
                  \begin{tabularx}{\hsize}{lX}
                    Create \& Reset&\cmd{scope pscope spectrogram } \\
                  \end{tabularx}
@@ -154,16 +201,7 @@
 
                }
 
-               \colouredbox{pink}{
-                 \section{REPL helpers}
-                 \begin{tabularx}{\hsize}{lX}
-                   Documentation&\cmd{odoc ugen-doc find-ugen find-ugen-doc}\\
-                   Examples& \cmd{examples example get-example}\\
-                   Shell& \cmd{ls grep}\\
-                   Synths& \cmd{unify-synthdef}\\
-                   Pretty Printing& \cmd{opp pp-synth pp-unified-synth pp-sc-synth pp-unified-sc-synth}\\
-                 \end{tabularx}
-               }
+
 
                \colouredbox{blue2}{
                  \section{Synth Design}
@@ -179,7 +217,7 @@
                  \end{tabularx}
                }
 
-               \colouredbox{pink}{
+               \colouredbox{grey}{
                  \section{Synth Control}
                  \begin{tabularx}{\hsize}{lX}
                    Live Control& \cmd{ctl kill}\\
@@ -187,6 +225,31 @@
 
                  \end{tabularx}
                }
+
+               \colouredbox{red}{
+                 \section{Event Handling}
+                 \begin{tabularx}{\hsize}{lX}
+                   Add & \cmd{on-event on-sync-event on-latest-event oneshot-event oneshot-sync-event} \\
+                   Fire & \cmd{event sync-event}\\
+                   Remove & \cmd{remove-event-handler}\\
+                   Debug & \cmd{event-debug-on event-debug-off event-monitor-on event-monitor-off event-monitor-timer event-monitor event-monitor-keys} \\
+                   Ugen Triggers & \cmd{trig-id on-trigger on-latest-trigger on-sync-trigger}\\
+
+                 \end{tabularx}
+               }
+
+               \colouredbox{orange}{
+                 \section{Nodes \& Groups}
+                 \begin{tabularx}{\hsize}{lX}
+                   Create \& Free  & \cmd{node group node-free group-free group-clear group-deep-clear}\\
+                   Manipulate & \cmd{node-start node-pause node-place node-control node-control-range node-map-controls node-map-n-controls group-prepend-node group-append-node }\\
+                   Info & \cmd{node? node-live? node-loading? node-active? node-tree pp-node-tree node-get-control node-get-controls}\\
+                   Foundation Groups & \cmd{foundation-overtone-group foundation-output-group foundation-monitor-group foundation-input-group foundation-user-group foundation-default-group foundation-safe-group foundation-safe-pre-default-group foundation-safe-post-default-group}\\
+                   Manipulation Handlers & \cmd{on-node-destroyed on-node-created on-node-paused on-node-started}\\
+                   Event Keys & \cmd{node-destroyed-event-key node-created-event-key node-paused-event-key node-started-event-key}\\
+                 \end{tabularx}
+               }
+
 
                \colouredbox{grey}{
                  \section{Server}
@@ -200,15 +263,12 @@
                  \end{tabularx}
                }
 
-               \colouredbox{yellow}{
-                 \section{Event Handling}
+               \colouredbox{pink}{
+                 \section{Visualisation}
+                 \subsection{Graphviz}
                  \begin{tabularx}{\hsize}{lX}
-                   Add & \cmd{on-event on-sync-event on-latest-event oneshot-event oneshot-sync-event} \\
-                   Fire & \cmd{event sync-event}\\
-                   Remove & \cmd{remove-event-handler}\\
-                   Debug & \cmd{event-debug-on event-debug-off event-monitor-on event-monitor-off event-monitor-timer event-monitor event-monitor-keys} \\
-                   Ugen Triggers & \cmd{trig-id on-trigger on-latest-trigger on-sync-trigger}\\
-
+                    Dot Notation &\cmd{graphviz} \\
+                    Show PDF &\cmd{show-graphviz-synth} \\
                  \end{tabularx}
                }
 
@@ -303,29 +363,11 @@
 
 
 
-               \colouredbox{orange}{
-                 \section{Nodes \& Groups}
-                 \begin{tabularx}{\hsize}{lX}
-                   Create \& Free  & \cmd{node group node-free group-free group-clear group-deep-clear}\\
-                   Manipulate & \cmd{node-start node-pause node-place node-control node-control-range node-map-controls node-map-n-controls group-prepend-node group-append-node }\\
-                   Info & \cmd{node? node-live? node-loading? node-active? node-tree pp-node-tree node-get-control node-get-controls}\\
-                   Foundation Groups & \cmd{foundation-overtone-group foundation-output-group foundation-monitor-group foundation-input-group foundation-user-group foundation-default-group foundation-safe-group foundation-safe-pre-default-group foundation-safe-post-default-group}\\
-                   Manipulation Handlers & \cmd{on-node-destroyed on-node-created on-node-paused on-node-started}\\
-                   Event Keys & \cmd{node-destroyed-event-key node-created-event-key node-paused-event-key node-started-event-key}\\
-                 \end{tabularx}
-               }
 
 
 
 
-               \colouredbox{gray}{
-                 \section{Visualisation}
-                 \subsection{Graphviz}
-                 \begin{tabularx}{\hsize}{lX}
-                    Dot Notation &\cmd{graphviz} \\
-                    Show PDF &\cmd{show-graphviz-synth} \\
-                 \end{tabularx}
-               }
+
 
                \colouredbox{blue}{
                  \section{Persistence}
@@ -659,7 +701,7 @@
                \begin{flushright}
                  \footnotesize
                  \rule{0.7\linewidth}{0.25pt}
-                 \verb!Revision: 0.9.1.0, Date: 25th November, 2013!\\
+                 \verb!Revision: 0.9.1.1, Date: 2nd December, 2013!\\
                  \verb!Sam Aaron (sam.aaron gmail com)!
                \end{flushright}
 
