@@ -841,7 +841,7 @@
 (defn node-tree-seq
   "Returns a lazy seq of a depth-first traversal of the tree of the
   specified node defaulting to the current node tree"
-  ([] (node-tree-zipper (:root-group @foundation-groups*)))
+  ([] (node-tree-seq (:root-group @foundation-groups*)))
   ([root] (zipper-seq (node-tree-zipper root))))
 
 (defn node-tree-matching-synth-ids
