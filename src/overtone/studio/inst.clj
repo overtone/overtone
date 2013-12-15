@@ -183,7 +183,7 @@
   "Define an instrument and return a player function. The instrument
   definition will be loaded immediately, and a :new-inst event will be
   emitted. Expects a name, an optional doc-string, a vector of
-  instrument params, and a ugen-form as it's arguments.
+  instrument params, and a ugen-form as its arguments.
 
   Instrument parameters are a vector of name/value pairs, for example:
 
@@ -219,12 +219,12 @@
 
     is similar to:
 
-    (desfynth foo [freq 440]
+    (defsynth foo [freq 440]
       (out 0 (sin-osc freq))))
 
   * Instruments are limited to 1 or 2 channels. Instruments with more
     than 2 channels are allowed, but additional channels will not be
-    audible. Use the mix and pan2 ugen's to combine multiple channels
+    audible. Use the mix and pan2 ugens to combine multiple channels
     within your inst if needed. For example:
 
     (definst bar
