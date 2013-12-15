@@ -576,7 +576,7 @@
   "Define a synthesizer and return a player function. The synth
   definition will be loaded immediately, and a :new-synth event will be
   emitted. Expects a name, an optional doc-string, a vector of synth
-  params, and a ugen-form as it's arguments.
+  params, and a ugen-form as its arguments.
 
   (defsynth foo [freq 440]
     (out 0 (sin-osc freq)))
@@ -598,14 +598,14 @@
     \"The phatest space pad ever!\"
     [] (...))
 
-  The function generated will a target vector argument that must come
-  first containing position and target as elements (see the node
-  function docs).
+  The function generated will accept a target vector argument that
+  must come first, containing position and target as elements (see the
+  node function docs).
 
   ;; call foo player with default args:
   (foo)
 
-  ;; call foo player specifyign node should be at the tail of group 0
+  ;; call foo player specifying node should be at the tail of group 0
   (foo [:tail 0])
 
   ;; call foo player with positional arguments
