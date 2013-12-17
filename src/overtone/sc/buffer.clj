@@ -146,7 +146,7 @@
          (let [info                              (buffer-info id)
                {:keys [id size rate n-channels]} info]
            (when (every? zero? [size rate n-channels])
-             (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
+             (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only .wav or .aiff supported) : " path))))
 
            (map->BufferFile
             (assoc info
