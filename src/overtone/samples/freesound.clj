@@ -9,11 +9,9 @@
   (:require [clojure.data.json :as json]
             [overtone.libs.asset :as asset]
             [overtone.sc.sample :as samp]
-))
+            [overtone.sc.buffer :as buffer]))
 
 (def ^:dynamic *api-key* "47efd585321048819a2328721507ee23")
-
-(def supported-file-types ["wav" "aiff"])
 
 (defrecord-ifn FreesoundSample
   [id size n-channels rate status path args name freesound-id]
@@ -92,9 +90,10 @@
         name (:original_filename info)
         url  (sound-serve-url id)]
     (if (or (not type)
-            (some #{type} supported-file-types))
+            (some #{type} buffer/supported-file-types))
       (asset/asset-path url name)
-      (throw (Exception. (str "Invalid sample type: \"" type "\", only " supported-file-types " are supported."))))))
+      (throw (Exception. (str "Invalid sample type: \"" type "\", only " buffer/supported-file-types " are supported."))))))
+
 
 (defn freesound-sample
   "Download, cache and persist the freesound audio file specified by
