@@ -13,6 +13,8 @@
 
 (def ^:dynamic *api-key* "47efd585321048819a2328721507ee23")
 
+(def supported-file-types ["wav" "aiff"])
+
 (defrecord-ifn FreesoundSample
   [id size n-channels rate status path args name freesound-id]
   samp/sample-player
@@ -86,9 +88,13 @@
   id. Returns the path to a cached local copy of the audio file."
   [id]
   (let [info (freesound-info id)
+        type (:type info)
         name (:original_filename info)
         url  (sound-serve-url id)]
-    (asset/asset-path url name)))
+    (if (or (not type)
+            (some #{type} supported-file-types))
+      (asset/asset-path url name)
+      (throw (Exception. (str "Invalid sample type: \"" type "\", only " supported-file-types " are supported."))))))
 
 (defn freesound-sample
   "Download, cache and persist the freesound audio file specified by
