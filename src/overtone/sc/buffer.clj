@@ -8,6 +8,8 @@
         [overtone.helpers audio-file lib file doc]
         [overtone.sc.util :only [id-mapper]]))
 
+(def supported-file-types ["wav" "aiff"])
+
 (defn- emit-inactive-buffer-modification-error
   "The default error behaviour triggered when a user attempts to work
    with an inactive buffer"
@@ -146,7 +148,7 @@
          (let [info                              (buffer-info id)
                {:keys [id size rate n-channels]} info]
            (when (every? zero? [size rate n-channels])
-             (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file: " path))))
+             (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
 
            (map->BufferFile
             (assoc info
