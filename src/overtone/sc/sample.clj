@@ -122,10 +122,11 @@
   (let [path  (apply mk-path path-glob)
         path  (resolve-tilde-path path)
         files (glob path)]
-    (doseq [file files]
-      (let [path (.getAbsolutePath file)]
-        (load-sample path))
-      files)))
+    (doall
+     (map (fn [file]
+            (let [path (.getAbsolutePath file)]
+              (load-sample path)))
+          files))))
 
 (defn- reload-all-samples []
   (let [previously-loaded-samples (vals @loaded-samples* )]
