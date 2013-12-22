@@ -198,7 +198,7 @@
         arg-names-symbs (vec (map symbol arg-names))
         arg-keys        (vec (map keyword arg-names))
         default-map     (apply hash-map (syms-to-keywords args))
-        arg-pairs       (map #(str (first %) " " (second %)) (partition 2 args))
+        arg-pairs       (map #(with-out-str "" (pr (first %) (second %))) (partition 2 args))
         arg-pairs-str   (apply str (interpose ", " arg-pairs))
         arg-string      "Keyword arg fn with defaults:\n  "
         arg-string      (str arg-string "[" arg-pairs-str "]")
