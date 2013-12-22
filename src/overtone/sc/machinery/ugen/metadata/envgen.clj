@@ -78,11 +78,15 @@
               {:name "gate",
                :default 1.0
                :doc "this triggers the envelope and holds it open while
-               > 0. If the Env is fixed-length (e.g. perc), the gate
-               argument is used as a simple trigger. If it is an
+               > 0. If the envelope is fixed-length (e.g. perc), the
+               gate argument is used as a simple trigger. If it is an
                sustaining envelope (e.g. adsr, asr), the envelope is
                held open until the gate becomes 0, at which point is
-               released." }
+               released. If the gate of an env-gen is set to -1 or
+               below, then the envelope will cutoff immediately. The
+               time for it to cutoff is the amount less than -1, with -1
+               being as fast as possible, -1.5 being a cutoff in 0.5
+               seconds, etc. The cutoff shape is linear." }
 
               {:name "level-scale",
                :default 1.0
