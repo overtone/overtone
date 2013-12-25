@@ -92,7 +92,7 @@
     (if (or (not type)
             (some #{type} buffer/supported-file-types))
       (asset/asset-path url name)
-      (throw (Exception. (str "Invalid sample type: \"" type "\", only " buffer/supported-file-types " are supported."))))))
+      (throw (Exception. (str "Invalid sample type, only " buffer/supported-file-types " are supported. Found: " type))))))
 
 
 (defn freesound-sample

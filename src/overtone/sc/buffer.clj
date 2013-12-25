@@ -8,7 +8,7 @@
         [overtone.helpers audio-file lib file doc]
         [overtone.sc.util :only [id-mapper]]))
 
-(def supported-file-types ["wav" "aiff"])
+(def supported-file-types ["wav" "aiff" "aif"])
 
 (defn- emit-inactive-buffer-modification-error
   "The default error behaviour triggered when a user attempts to work
