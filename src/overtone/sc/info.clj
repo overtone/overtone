@@ -7,11 +7,15 @@
         [overtone.sc.machinery.allocator]
         [overtone.helpers lib]))
 
-(defonce output-bus-count* (atom nil))
-(defonce input-bus-count*  (atom nil))
-(defonce audio-bus-count*  (atom nil))
-(defonce buffer-count*     (atom nil))
-(defonce sample-rate*      (atom nil))
+(defonce output-bus-count*   (atom nil))
+(defonce input-bus-count*    (atom nil))
+(defonce audio-bus-count*    (atom nil))
+(defonce buffer-count*       (atom nil))
+(defonce sample-rate*        (atom nil))
+(defonce sample-dur*         (atom nil))
+(defonce control-rate*       (atom nil))
+(defonce control-dur*        (atom nil))
+(defonce radians-per-sample* (atom nil))
 
 (defonce __SERVER-INFO__
   (defsynth snd-server-info
@@ -33,11 +37,13 @@
                 response-id)))
 
 (defn server-info
-  "Fetches a bunch of useful server info. Has to trigger and poll a synth to
-  fetch data. See #'server-num-output-buses, #'server-num-input-buses,
-  #'server-num-audio-buses and #'sever-num-buffers for fast cached versions
-  of the static values in this info map. Note, the number of running synths
-  will also include the synth used to obtain this information."
+  "Fetches a bunch of useful server info. Has to trigger and poll a
+  synth to fetch data. See #'server-num-output-buses,
+  #'server-num-input-buses, #'server-num-audio-buses and
+  #'server-num-buffers #'server-sample-rate, #'server-sample-dur,
+  #'server-control-rate, #'server-control-dur for fast cached versions
+  of the static values in this info map. Note, the number of running
+  synths will also include the synth used to obtain this information."
   []
   (ensure-connected!)
   (let [prom        (promise)
@@ -69,13 +75,40 @@
       res)))
 
 (defn server-sample-rate
-  "Returns the sample rate of the server. This number is cached for a given
-  running server for the duration of boot"
+  "Returns the sample rate of the server. This number is cached for a
+   given running server for the duration of boot"
   []
   (if-let [rate @sample-rate*]
     rate
     (let [info (server-info)]
       (reset! sample-rate* (:sample-rate info)))))
+
+(defn server-sample-dur
+  "Returns the sample duration of the server. This number is cached for
+   a given running server for the duration of boot"
+  []
+  (if-let [rate @sample-dur*]
+    rate
+    (let [info (server-info)]
+      (reset! sample-dur* (:sample-dur info)))))
+
+(defn server-control-rate
+  "Returns the control rate of the server. This number is cached for a
+   given running server for the duration of boot"
+  []
+  (if-let [rate @control-rate*]
+    rate
+    (let [info (server-info)]
+      (reset! control-rate* (:control-rate info)))))
+
+(defn server-control-dur
+  "Returns the control duration of the server. This number is cached for
+   a given running server for the duration of boot"
+  []
+  (if-let [rate @control-dur*]
+    rate
+    (let [info (server-info)]
+      (reset! control-dur* (:control-dur info)))))
 
 (defn server-num-output-buses
   "Returns the number of output buses accessible by the server. This number may
@@ -117,9 +150,25 @@
     (let [info (server-info)]
       (reset! buffer-count*  (:num-buffers info)))))
 
+(defn server-radians-per-sample
+  "Returns the number of radians per sample on the server. This number
+  may change depending on host architecture but is cached for a given
+  running server for the duration of boot."
+  []
+  (if-let [num @radians-per-sample*]
+    num
+    (let [info (server-info)]
+      (reset! radians-per-sample* (:radians-per-sample info)))))
+
+
 (on-sync-event :shutdown (fn [event-info]
                            (reset! output-bus-count* nil)
                            (reset! input-bus-count* nil)
                            (reset! audio-bus-count* nil)
-                           (reset! buffer-count* nil))
+                           (reset! buffer-count* nil)
+                           (reset! sample-rate* nil)
+                           (reset! sample-dur* nil)
+                           (reset! control-rate* nil)
+                           (reset! control-dur* nil)
+                           (reset! radians-per-sample* nil))
                ::reset-cached-server-info)
