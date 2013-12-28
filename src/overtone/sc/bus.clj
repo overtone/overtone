@@ -111,14 +111,13 @@
      (let [id (alloc-id :audio-bus n-channels)]
        (AudioBus. id n-channels :audio name))))
 
-;; Reserve busses for overtone
-(defonce ___reserve-overtone-busses____
-  (dotimes [i AUDIO-BUS-RESERVE-COUNT]
-    (audio-bus)))
-
-;; (defn reset-buses
-;;   [event-info]
-;;   nil)
+;; Reserve first control bus. This is a precautionary measure to stop
+;; synths which have control bus args with defaults of 0 which aren't
+;; overridden on triggering from clobbering important bus data. By
+;; reserving the first control bus (with an id of 0) we ensure that this
+;; bus isn't used for important data.
+(defonce ___reserve-overtone-first-control-bus___
+  (control-bus "Reserved Bus 0"))
 
 ;(on-sync-event :reset reset-buses ::reset-buses)
 
