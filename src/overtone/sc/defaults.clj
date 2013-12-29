@@ -76,3 +76,5 @@
                             "/Applications/SuperCollider/plugins"
                             "/Applications/SuperCollider.app/Contents/Resources/plugins"
                             "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/plugins"]}})
+
+(def SC-MAX-FLOAT-VAL (Math/pow 2 24))
