@@ -245,7 +245,7 @@
     (snd "/d_recv" (synthdef-bytes sdef)))
   (satisfy-deps :synthdefs-loaded))
 
-(on-deps :server-ready ::load-all-synthdefs load-all-synthdefs)
+(on-deps :server-connected ::load-all-synthdefs load-all-synthdefs)
 
 (defn load-synth-file
   "Load a synth definition file onto the audio server."
