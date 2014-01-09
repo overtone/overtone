@@ -121,8 +121,6 @@
 (defonce ___reserve-overtone-first-control-bus___
   (control-bus "Reserved Bus 0"))
 
-;;(on-sync-event :reset reset-buses ::reset-buses)
-
 (defn- ensure-valid-bus-offset!
   [bus offset]
   (when-not (and (control-bus? bus)
