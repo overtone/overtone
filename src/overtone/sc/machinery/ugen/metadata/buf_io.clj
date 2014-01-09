@@ -201,7 +201,7 @@
                      from <= 0 to > 0." }
 
               {:name "action", :default 0
-               :doc "an integer representing an action to be aexecuted
+               :doc "an integer representing an action to be executed
                      when the buffer is finished playing. This can be
                      used to free the enclosing synth. Action is only
                      evaluated if loop is 0"}]
@@ -210,7 +210,7 @@
              data. If they are both 1.0 then the new data is added to
              the existing data. (Any other settings are also valid.)
              Note that the number of channels must be fixed for the
-             SynthDef, it cannot vary depending on which buffer you
+             defsynth, it cannot vary depending on which buffer you
              use." }
 
       {:name "ScopeOut",
