@@ -143,17 +143,17 @@
    Thread enters a sleep cycle sleeping for wait-time seconds before
    each dep check.  If timeout is a positive value throws timeout
    exception if deps haven't been satisfied by timeout secs. The default
-   wait-time is 0.1 seconds, and the default timeout is 10 seconds."
-  ([deps] (wait-until-deps-satisfied deps 10 0.1))
+   wait-time is 0.1 seconds, and the default timeout is 20 seconds."
+  ([deps] (wait-until-deps-satisfied deps 20 0.1))
   ([deps timeout] (wait-until-deps-satisfied deps timeout 0.1))
   ([deps timeout wait-time]
-     (let [timeout   (* 1000 timeout)
-           wait-time (* 1000 wait-time)]
-       (if (<= timeout 0)
+     (let [timeout-ms (* 1000 timeout)
+           wait-time  (* 1000 wait-time)]
+       (if (<= timeout-ms 0)
          (while (not (deps-satisfied? deps))
            (Thread/sleep wait-time))
          (loop [sleep-time 0]
-           (when (> sleep-time timeout)
+           (when (> sleep-time timeout-ms)
              (throw (Exception. (str "The following deps took too long (" timeout
                                      " seconds) to be satisfied: " deps))))
            (when-not (deps-satisfied? deps)
