@@ -7,7 +7,9 @@
         [overtone.helpers lib]
         [overtone.sc.foundation-groups :only [foundation-monitor-group]]
         [overtone.libs.deps            :only [on-deps]])
-  (:require [overtone.at-at :as at-at]))
+  (:require [overtone.at-at :as at-at]
+            [overtone.sc.info :refer [server-num-input-buses server-num-output-buses]]
+            [overtone.libs.deps :refer [satisfy-deps]]))
 
 ;; ## Buses
 ;;
@@ -304,3 +306,12 @@
       (audio-bus? bus) (audio-bus-monitor bus chan-offset)
       (control-bus? bus) (control-bus-monitor bus chan-offset)
       :else (throw (Exception. (str "Unknown bus type: " bus))))))
+
+(defn- allocate-hw-audio-buses
+  []
+  (let [n-buses (+ (server-num-input-buses)
+                   (server-num-output-buses))]
+    (audio-bus n-buses "Reserved Audio Busses")
+    (satisfy-deps :hw-audio-buses-reserved)))
+
+(on-deps :synthdefs-loaded ::allocate-hw-audio-busses allocate-hw-audio-buses)

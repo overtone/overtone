@@ -31,11 +31,6 @@
   "Initial value for the pan of a voice (center)"
   0.0)
 
-(def AUDIO-BUS-RESERVE-COUNT
-  "Number of audio buses to reserve. These buses won't be available to users
-  via overtone.sc.bus/audio-bus"
-  50)
-
 (def SERVER-PORT
   "Default port number used when booting external server. If nil, a random port is used"
   nil)
