@@ -15,7 +15,12 @@
 ;;               already been executed as their dependencies have been met
 (defonce dep-state* (agent {:satisfied #{}
                             :todo      []
-                            :done      []}))
+                            :done      []
+                            :history   []}))
+
+(defn- now
+  []
+  (System/currentTimeMillis))
 
 (defn- process-handler
   "Returns a new deps map containing either processed handler or it
@@ -26,10 +31,20 @@
            (do
              (task)
              [:done (conj (:done dep-state)
-                          [key deps task])])
+                          [key deps task])
+              :history (conj (:history dep-state)
+                             {:action :processed
+                              :ts     (now)
+                              :key    key
+                              :deps   deps})])
 
            [:todo (conj (:todo dep-state)
-                        [key deps task])])))
+                        [key deps task])
+            :history (conj (:history dep-state)
+                           {:action :registered-todo
+                            :ts     (now)
+                            :key    key
+                            :deps   deps})])))
 
 (defn- replace-handler
   "Replace all occurances of handers with the given key with the new
@@ -38,9 +53,10 @@
   (let [replacer-fn #(if (= key (first %))
                        [key deps task]
                        %)]
-    {:satisfied (dep-state :satisfied)
-     :todo      (map replacer-fn (dep-state :todo))
-     :done      (map replacer-fn (dep-state :done))}))
+    {:satisfied (:satisfied dep-state)
+     :todo      (map replacer-fn (:todo dep-state))
+     :done      (map replacer-fn (:done dep-state))
+     :history   (:history dep-state)}))
 
 (defn- key-known?
   "Returns true or false depending on whether this key is associated
@@ -59,9 +75,9 @@
     (process-handler dep-state key deps task)))
 
 (defn- satisfy*
-  [{:keys [satisfied todo done]} new-deps]
+  [{:keys [satisfied todo done] :as dep-state} new-deps]
   (let [satisfied       (set/union satisfied new-deps)
-        execute-tasks   (fn [[final-done final-todo] [key deps task]]
+        execute-tasks   (fn [[final-done final-todo new-history] [key deps task]]
                           (if (set/superset? satisfied deps)
                             (do
                               (log/info "Running dep handler: " key)
@@ -71,13 +87,18 @@
                                   (log/error (format "Exception in dependency handler: %s\n%s"
                                                      key
                                                      (with-out-str (.printStackTrace e))))))
-                              [(conj final-done [key deps task]) final-todo])
-                            [final-done (conj final-todo [key deps task])]))
-        [t-done t-todo] (reduce execute-tasks [done []] todo)]
+                              [(conj final-done [key deps task]) final-todo (conj new-history {:ts (now)
+                                                                                               :action :satisfied-and-processed
+                                                                                               :key key
+                                                                                               :deps deps})])
+                            [final-done (conj final-todo [key deps task]) new-history]))
+        [t-done t-todo new-history] (reduce execute-tasks [done [] []] todo)]
     (log/info "deps-satisfied: " satisfied)
     {:satisfied satisfied
      :done      t-done
-     :todo      t-todo}))
+     :todo      t-todo
+     :history (concat (:history dep-state)
+                      new-history)}))
 
 (defn- deps->set
   "Converts deps to a deps-set. Deals with single elements or
@@ -112,10 +133,13 @@
   "Reset the dependency system. Uses an agent so it's safe to call this
    from within a transaction."
   []
-  (send dep-state* (fn [& args]
+  (send dep-state* (fn [dep-state]
                      {:satisfied #{}
                       :todo      []
-                      :done      []})))
+                      :done      []
+                      :history   (conj (:history dep-state)
+                                       {:ts (now)
+                                        :action :reset})})))
 
 (defn unsatisfy-all-dependencies
   "Unsatisfy all deps and reset completed tasks as todo tasks. Uses an
@@ -124,7 +148,10 @@
   (send dep-state* (fn [deps]
                      {:satisfied #{}
                       :todo      (concat (deps :todo) (deps :done))
-                      :done      []})))
+                      :done      []
+                      :history   (conj (:history deps)
+                                       {:ts (now)
+                                        :action :unsatisfy-all-dependencies})})))
 
 (defn satisfied-deps
   "Returns a set of all satisfied deps"
