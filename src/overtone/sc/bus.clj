@@ -229,6 +229,27 @@
      (if (control-bus? bus)
        (control-bus-get-range bus (:n-channels bus) offset)
        (control-bus-get-channel bus offset))))
+
+(defn control-bus-fill!
+  "Fill a (multi-channel) control bus with a specific value.
+
+   Optional offset and len vals may be supplied to specify a subset of
+   channels with multi-channel buses."
+  ([bus fill-val]
+     (assert (control-bus? bus) "bus must be a valid control bus to fill. To reference a control-bus numerically, you must also supply the length of adjacent buses to fill.")
+     (let [len (:n-channels bus)]
+       (control-bus-fill! bus fill-val len)))
+  ([bus fill-val len] (control-bus-fill! bus fill-val len 0))
+  ([bus fill-val len offset]
+     (let [len      (int len)
+           fill-val (float fill-val)
+           id       (to-sc-id bus)
+           id       (+ offset id)]
+       (when (control-bus? bus)
+         (ensure-valid-bus-offset-with-len! bus offset len))
+       (snd "/c_fill" id len fill-val)
+       fill-val)))
+
 (defn- create-monitor-group
   "Creates a group for the audio bus monitor synths. Designed to be
    called in a dependency callback after :foundation-groups-created."
