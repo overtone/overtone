@@ -29,19 +29,21 @@
     (defprotocol IBus
       (free-bus [bus] "Free this control or audio bus - enabling the resource to be re-allocated"))))
 
-(defrecord AudioBus [id n-channels rate name]
-  to-sc-id*
-  (to-sc-id [this] (:id this))
+(defonce ^{:private true} __RECORDS__
+  (do
+    (defrecord AudioBus [id n-channels rate name]
+      to-sc-id*
+      (to-sc-id [this] (:id this))
 
-  IBus
-  (free-bus [this] (free-id :audio-bus (:id this) (:n-channels this))))
+      IBus
+      (free-bus [this] (free-id :audio-bus (:id this) (:n-channels this))) )
 
-(defrecord ControlBus [id n-channels rate name]
-  to-sc-id*
-  (to-sc-id [this] (:id this))
+    (defrecord ControlBus [id n-channels rate name]
+      to-sc-id*
+      (to-sc-id [this] (:id this))
 
-  IBus
-  (free-bus [this] (free-id :control-bus (:id this) (:n-channels this))))
+      IBus
+      (free-bus [this] (free-id :control-bus (:id this) (:n-channels this))))))
 
 (defmethod print-method AudioBus [b w]
   (.write w (format "#<audio-bus: %s, %s, id %d>"

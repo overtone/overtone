@@ -12,6 +12,44 @@
         [overtone.studio core]
         [overtone.helpers.file :only [glob canonical-path resolve-tilde-path mk-path]]))
 
+(declare sample-player)
+
+(defonce ^{:private true} __RECORDS__
+  (do
+    (defrecord Sample [id size n-channels rate status path args name]
+      to-sc-id*
+      (to-sc-id [this] (:id this)))
+
+    (defrecord-ifn PlayableSample
+      [id size n-channels rate status path args name]
+      sample-player
+      to-sc-id*
+      (to-sc-id [this] (:id this)))))
+
+(defmethod print-method Sample [b w]
+  (.write w (format "#<buffer[%s]: %s %fs %s %d>"
+                    (name @(:status b))
+                    (:name b)
+                    (:duration b)
+                    (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                    (:id b))))
+
+(defmethod print-method PlayableSample [b w]
+  (.write w (format "#<buffer[%s]: %s %fs %s %d>"
+                    (name @(:status b))
+                    (:name b)
+                    (:duration b)
+                    (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                    (:id b))))
+
+
+
 ; Define a default wav player synth
 (defonce __DEFINE-PLAYERS__
   (do
@@ -52,20 +90,6 @@
 (defonce loaded-samples* (atom {}))
 (defonce cached-samples* (atom {}))
 
-(defrecord Sample [id size n-channels rate status path args name]
-  to-sc-id*
-  (to-sc-id [this] (:id this)))
-
-(defmethod print-method Sample [b w]
-  (.write w (format "#<buffer[%s]: %s %fs %s %d>"
-                    (name @(:status b))
-                    (:name b)
-                    (:duration b)
-                    (cond
-                     (= 1 (:n-channels b)) "mono"
-                     (= 2 (:n-channels b)) "stereo"
-                     :else (str (:n-channels b) " channels"))
-                    (:id b))))
 
 (defn- load-sample*
   [path arg-map]
@@ -191,22 +215,7 @@
       (= n-channels 1) (apply mono-player [pos target] id pargs)
       (= n-channels 2) (apply stereo-player [pos target] id pargs))))
 
-(defrecord-ifn PlayableSample
-  [id size n-channels rate status path args name]
-  sample-player
-  to-sc-id*
-  (to-sc-id [this] (:id this)))
 
-(defmethod print-method PlayableSample [b w]
-  (.write w (format "#<buffer[%s]: %s %fs %s %d>"
-                    (name @(:status b))
-                    (:name b)
-                    (:duration b)
-                    (cond
-                     (= 1 (:n-channels b)) "mono"
-                     (= 2 (:n-channels b)) "stereo"
-                     :else (str (:n-channels b) " channels"))
-                    (:id b))))
 
 (defn sample
   "Loads a .wav or .aiff file into a memory buffer. Returns a function

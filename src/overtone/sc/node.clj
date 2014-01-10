@@ -16,25 +16,6 @@
 ;; The root group is implicitly allocated
 (defonce _root-group_ (next-id :node))
 
-(defn- emit-inactive-node-modification-error
-  "The default error behaviour triggered when a user attempts to either
-  control or kill an inactive node."
-  [node err-msg]
-  (let [full-err-msg (str "inactive node modification attempted for node "
-                          (with-out-str (pr node))
-                          (when-not (empty? err-msg)
-                            (str " whilst " err-msg)))
-        inme         (inactive-node-modification-error)]
-    (condp = inme
-      :silent    nil ;;do nothing
-      :warning   (println (str "Warning - " full-err-msg))
-      :exception (throw (Exception. (str "Error - " full-err-msg)))
-      (throw
-       (IllegalArgumentException.
-        (str "Unexpected value for overtone.sc.dyn-vars/*inactive-node-modification-error*: "
-             inme
-             ". Expected one of :silent, :warning, :exception."))))))
-
 (defonce ^{:private true} __PROTOCOLS__
 
   (do
@@ -89,6 +70,42 @@
 (extend-type java.lang.Integer to-sc-id* (to-sc-id [v] v))
 (extend-type java.lang.Float to-sc-id* (to-sc-id [v] v))
 
+
+(defonce ^{:private true} __RECORDS__
+  (do
+   (defrecord SynthNode [synth id target position args sdef status loaded?]
+     to-sc-id*
+     (to-sc-id [this] (:id this)))
+
+   (defrecord SynthGroup [group id target position status loaded?]
+     to-sc-id*
+     (to-sc-id [_] id))))
+
+(derive SynthNode ::node)
+(derive SynthGroup ::node)
+
+(defmethod print-method SynthGroup [s-group w]
+  (.write w (format "#<synth-group[%s]: %s %d>" (name @(:status s-group)) (:group s-group) (:id s-group))))
+
+(defn- emit-inactive-node-modification-error
+  "The default error behaviour triggered when a user attempts to either
+  control or kill an inactive node."
+  [node err-msg]
+  (let [full-err-msg (str "inactive node modification attempted for node "
+                          (with-out-str (pr node))
+                          (when-not (empty? err-msg)
+                            (str " whilst " err-msg)))
+        inme         (inactive-node-modification-error)]
+    (condp = inme
+      :silent    nil ;;do nothing
+      :warning   (println (str "Warning - " full-err-msg))
+      :exception (throw (Exception. (str "Error - " full-err-msg)))
+      (throw
+       (IllegalArgumentException.
+        (str "Unexpected value for overtone.sc.dyn-vars/*inactive-node-modification-error*: "
+             inme
+             ". Expected one of :silent, :warning, :exception."))))))
+
 (defn to-id
   "If object can be converted to an sc id, then return the sc id,
    otherwise returns the object unchanged."
@@ -138,11 +155,7 @@
     (zipmap (map name-fn (keys arg-map))
             (map val-fn (vals arg-map)))))
 
-(defrecord SynthNode [synth id target position args sdef status loaded?]
-  to-sc-id*
-  (to-sc-id [this] (:id this)))
 
-(derive SynthNode ::node)
 
 (defmethod print-method SynthNode [s-node w]
   (.write w (format "#<synth-node[%s]: %s %d>"
@@ -382,14 +395,7 @@
 ;; group' with an ID of 1 which is the default target for all new Nodes. See
 ;; RootNode and default_group for more info.
 
-(defrecord SynthGroup [group id target position status loaded?]
-  to-sc-id*
-  (to-sc-id [_] id))
 
-(derive SynthGroup ::node)
-
-(defmethod print-method SynthGroup [s-group w]
-  (.write w (format "#<synth-group[%s]: %s %d>" (name @(:status s-group)) (:group s-group) (:id s-group))))
 
 (defn- synth-group? [obj]
   (= overtone.sc.node.SynthGroup (type obj)))

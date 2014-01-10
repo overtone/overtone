@@ -19,6 +19,12 @@
             [clojure.set :as set]
             [overtone.sc.protocols :as protocols]))
 
+(declare synth-player)
+
+(defonce ^{:private true} __RECORDS__
+  (do
+    (defrecord-ifn Synth [name ugens sdef args params instance-fn]
+      (partial synth-player sdef params))))
 
 (defn- valid-control-proxy-rate?
   [rate]
@@ -520,8 +526,6 @@
         (swap! active-synth-nodes* assoc (:id synth-node) synth-node))
       synth-node))
 
-(defrecord-ifn Synth [name ugens sdef args params instance-fn]
-               (partial synth-player sdef params))
 
 (defn update-tap-data
   [msg]

@@ -8,7 +8,21 @@
   (:use [overtone.sc.machinery.ugen defaults]
         [overtone.helpers lib]))
 
-(defrecord SCUGen [id name rate rate-name special args n-outputs spec])
+(defonce ^{:private true} __RECORDS__
+  (do
+    (defrecord SCUGen [id name rate rate-name special args n-outputs spec])
+
+    (defrecord ControlProxy [name value rate rate-name])
+
+    (defrecord OutputProxy [name ugen rate rate-name index])))
+
+
+(derive ControlProxy ::control-proxy)
+(derive ::control-proxy ::sc-ugen)
+(derive OutputProxy ::output-proxy)
+(derive ::output-proxy ::sc-ugen)
+
+
 (derive SCUGen ::sc-ugen)
 
 (defn sc-ugen? [obj] (isa? (type obj) ::sc-ugen))
@@ -41,10 +55,6 @@
 (defmethod print-method SCUGen [ug w]
   (.write w (str "#<sc-ugen: " (overtone-ugen-name (:name ug)) (:rate-name ug) " [" (count-ugen-args ug) "]>")))
 
-(defrecord ControlProxy [name value rate rate-name])
-(derive ControlProxy ::control-proxy)
-(derive ::control-proxy ::sc-ugen)
-
 (defn control-proxy
   "Create a new control proxy with the specified name, value and rate. Rate
   defaults to :kr. Specifically handles :tr which is really a TrigControl
@@ -60,10 +70,6 @@
                (nil? rate-name))
          (throw (IllegalArgumentException. (str "Attempted to create a ControlProxy with nil args. Got " [name value rate rate-name])))
          (ControlProxy. name value rate rate-name)))))
-
-(defrecord OutputProxy [name ugen rate rate-name index])
-(derive OutputProxy ::output-proxy)
-(derive ::output-proxy ::sc-ugen)
 
 (defn output-proxy
   "Create a new output proxy. Throws an error if any of the args are nil."

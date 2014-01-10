@@ -20,7 +20,9 @@
   [msg & args]
   (future (apply log/debug msg args)))
 
-(defrecord LossyWorker [queue worker current-val])
+(defonce ^{:private true} __RECORDS__
+  (do
+    (defrecord LossyWorker [queue worker current-val])))
 
 (defn- worker-core
   [update-fn current-val* last-val*]

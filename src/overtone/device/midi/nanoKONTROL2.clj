@@ -3,7 +3,9 @@
         [overtone.libs.event :only [event on-event on-latest-event]]
         [overtone.core :only [control-bus control-bus-set!]]))
 
-(defrecord NanoKontrol2 [name out interfaces state buses])
+(defonce ^{:private true} __RECORDS__
+  (do
+    (defrecord NanoKontrol2 [name out interfaces state buses])))
 
 (def event-handle [:midi-device "KORG INC." "SLIDER/KNOB" "nanoKONTROL2 SLIDER/KNOB" 0 :control-change])
 

@@ -13,11 +13,13 @@
 
 (def ^:dynamic *api-key* "47efd585321048819a2328721507ee23")
 
-(defrecord-ifn FreesoundSample
-  [id size n-channels rate status path args name freesound-id]
-  samp/sample-player
-  to-sc-id*
-  (to-sc-id [this] (:id this)))
+(defonce ^{:private true} __RECORDS__
+  (do
+    (defrecord-ifn FreesoundSample
+      [id size n-channels rate status path args name freesound-id]
+      samp/sample-player
+      to-sc-id*
+      (to-sc-id [this] (:id this)))))
 
 (derive FreesoundSample :overtone.sc.sample/playable-sample)
 

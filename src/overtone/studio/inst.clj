@@ -8,6 +8,21 @@
         [overtone.libs event])
   (:require [overtone.sc.protocols :as protocols]))
 
+(defonce ^{:private true} __RECORDS__
+  (do
+    (defrecord-ifn Inst [name params args sdef
+                         group instance-group fx-group
+                         mixer bus fx-chain
+                         volume pan
+                         n-chans]
+      (fn [this & args]
+        (apply synth-player sdef params this [:tail instance-group] args))
+
+      to-sc-id*
+      (to-sc-id [_] (to-sc-id instance-group)))))
+
+(derive Inst :overtone.sc.node/node)
+
 (def DEFAULT-VOLUME 1.0)
 (def DEFAULT-PAN    0.0)
 
@@ -115,18 +130,7 @@
               n-chans#
               inst-bus#]))))))
 
-(defrecord-ifn Inst [name params args sdef
-                     group instance-group fx-group
-                     mixer bus fx-chain
-                     volume pan
-                     n-chans]
-  (fn [this & args]
-    (apply synth-player sdef params this [:tail instance-group] args))
 
-  to-sc-id*
-  (to-sc-id [_] (to-sc-id instance-group)))
-
-(derive Inst :overtone.sc.node/node)
 
 (defn inst?
   "Returns true if o is an instrument, false otherwise"

@@ -8,6 +8,39 @@
         [overtone.helpers audio-file lib file doc]
         [overtone.sc.util :only [id-mapper]]))
 
+(defonce ^{:private true} __RECORDS__
+  (do
+    (defrecord BufferInfo [id size n-channels rate n-samples rate-scale duration]
+      to-sc-id*
+      (to-sc-id [this] (:id this)))
+
+    (defrecord Buffer [id size n-channels rate status name]
+      to-sc-id*
+      (to-sc-id [this] (:id this)))
+
+    (defrecord BufferFile [id size n-channels rate status path]
+      to-sc-id*
+      (to-sc-id [this] (:id this)))
+
+    (defrecord BufferOutStream [id size n-channels header samples rate status path open?]
+      to-sc-id*
+      (to-sc-id [this] (:id this)))
+
+    (defrecord BufferInStream [id size n-channels rate status path open?]
+      to-sc-id*
+      (to-sc-id [this] (:id this)))))
+
+(defmethod print-method Buffer [b w]
+  (.write w (format "#<buffer[%s]: %s %fs %s %d>"
+                    (name @(:status b))
+                    (:name b)
+                    (:duration b)
+                    (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                    (:id b))))
+
 (def supported-file-types ["wav" "aiff" "aif"])
 
 (defn- emit-inactive-buffer-modification-error
@@ -25,9 +58,7 @@
              ibme
              "Expected one of :silent, :warning, :exception."))))))
 
-(defrecord BufferInfo [id size n-channels rate n-samples rate-scale duration]
-  to-sc-id*
-  (to-sc-id [this] (:id this)))
+
 
 (defmethod print-method BufferInfo [b w]
   (.write w (format "#<buffer-info: %fs %s %d>"
@@ -80,20 +111,8 @@
         :rate-scale rate-scale
         :duration duration}))))
 
-(defrecord Buffer [id size n-channels rate status name]
-  to-sc-id*
-  (to-sc-id [this] (:id this)))
 
-(defmethod print-method Buffer [b w]
-  (.write w (format "#<buffer[%s]: %s %fs %s %d>"
-                    (name @(:status b))
-                    (:name b)
-                    (:duration b)
-                    (cond
-                     (= 1 (:n-channels b)) "mono"
-                     (= 2 (:n-channels b)) "stereo"
-                     :else (str (:n-channels b) " channels"))
-                    (:id b))))
+
 
 (defn buffer
   "Synchronously allocate a new zero filled buffer for storing audio
@@ -117,10 +136,6 @@
         (assoc info
           :name name
           :status (atom :live))))))
-
-(defrecord BufferFile [id size n-channels rate status path]
-  to-sc-id*
-  (to-sc-id [this] (:id this)))
 
 (defn buffer-alloc-read
   "Synchronously allocates a buffer with the same number of channels as
@@ -350,10 +365,6 @@
                     n-frames start-frame 0)
     :buffer-saved))
 
-(defrecord BufferOutStream [id size n-channels header samples rate status path open?]
-  to-sc-id*
-  (to-sc-id [this] (:id this)))
-
 (defn buffer-stream
   "Returns a buffer-stream which is similar to a regular buffer but may
   be used with the disk-out ugen to stream to a specific file on disk.
@@ -413,10 +424,6 @@
   (buffer-free buf-stream)
   (reset! (:open? buf-stream) false)
   (:path buf-stream))
-
-(defrecord BufferInStream [id size n-channels rate status path open?]
-  to-sc-id*
-  (to-sc-id [this] (:id this)))
 
 (defn buffer-cue
   "Returns a buffer-cue which is similar to a regular buffer but may be
