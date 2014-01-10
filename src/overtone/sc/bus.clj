@@ -163,17 +163,19 @@
        (snd "/c_set" id val)
        val)))
 
-(defn control-bus-get
-  "Synchronously get the current value of a control bus.
+(defn control-bus-get-channel
+  "Syncronously get the current value of an individual channel of a
+   control bus. Always returns a single value. For a multi-channel bus,
+   defaults to first channel.
 
-   An optional offset may be supplied to access values within
-   multi-channel buses."
-  ([bus] (control-bus-get bus 0))
+   An optional offset may be specified."
+  ([bus]
+     (control-bus-get-channel bus 0))
   ([bus offset]
+     (when (control-bus? bus)
+       (ensure-valid-bus-offset! bus offset))
      (let [id (to-sc-id bus)
            id (+ offset id)]
-       (when (control-bus? bus)
-         (ensure-valid-bus-offset! bus offset))
        (let [p  (server-recv "/c_set" (fn [info] (= id (first (:args info))))) ]
          (snd "/c_get" id)
          (second (:args (deref! p (str "attempting to read the current value of bus "
@@ -216,6 +218,17 @@
        (drop 2 (:args (deref! p (str "attempting to get a range of consecutive control bus values of length "
                                      len " from bus " (with-out-str (pr bus)))))))))
 
+(defn control-bus-get
+  "Synchronously get the current value of a control bus. If a
+   control-bus record is passed in, all channels are returned.
+
+   An optional offset may be supplied to access values within
+   multi-channel buses."
+  ([bus] (control-bus-get bus 0))
+  ([bus offset]
+     (if (control-bus? bus)
+       (control-bus-get-range bus (:n-channels bus) offset)
+       (control-bus-get-channel bus offset))))
 (defn- create-monitor-group
   "Creates a group for the audio bus monitor synths. Designed to be
    called in a dependency callback after :foundation-groups-created."
