@@ -11,7 +11,7 @@
 
 ;; should only be modified by a 'singleton' wall-clock synth
 ;; global shared state FTW!
-(defonce server-clock-tick-b (control-bus 2 "Server Clock Buses"))
+(defonce server-clock-b (control-bus 2 "Server Clock Buses"))
 
 ;; Only one of these should ever be created...
 (defonce __SERVER-CLOCK-SYNTH__
@@ -26,7 +26,7 @@
 
 (defn- server-clock-reset-tick-b
   []
-  (control-bus-set-range! server-clock-tick-b [0 0]))
+  (control-bus-set-range! server-clock-b [0 0]))
 
 (defn- server-clock-start
   []
@@ -36,7 +36,7 @@
   (server-clock-reset-tick-b)
   (let [start-t (+ (System/currentTimeMillis) 500)]
     (reset! server-clock-start-time start-t)
-    (at start-t (__internal-wall-clock__ [:head (foundation-timing-group)] server-clock-tick-b))))
+    (at start-t (__internal-wall-clock__ [:head (foundation-timing-group)] server-clock-b))))
 
 (defn server-clock-n-ticks
   "Returns the number of internal ticks since the server clock was
@@ -47,7 +47,7 @@
    See server-clock-uptime and server-clock-time for functions that
    return time in milliseconds."
   []
-  (let [[b-t s-t] (control-bus-get-range server-clock-tick-b 2)]
+  (let [[b-t s-t] (control-bus-get-range server-clock-b 2)]
     (+ (* b-t defaults/SC-MAX-FLOAT-VAL)
        s-t)))
 
