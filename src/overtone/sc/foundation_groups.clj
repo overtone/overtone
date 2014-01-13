@@ -17,9 +17,14 @@
           #(group "Overtone" :head 0)
           "whilst creating the main Overtone group")
 
+        timing-group
+        (with-server-sync
+          #(group "Overtone Timing" :head overtone-group)
+          "whilst creating the Overtone Timing group")
+
         input-group
         (with-server-sync
-          #(group "Overtone Inputs" :head overtone-group)
+          #(group "Overtone Inputs" :after timing-group)
           "whilst creating the Overtone Inputs group")
 
         root-group
@@ -55,6 +60,7 @@
           "whilst creating the Overtone Monitor group")]
     (swap! foundation-groups* assoc
            :overtone-group          overtone-group
+           :timing-group            timing-group
            :input-group             input-group
            :root-group              root-group
            :user-group              user-group
@@ -78,6 +84,17 @@
   []
   (ensure-connected!)
   (:overtone-group @foundation-groups*))
+
+(defn foundation-timing-group
+  "Returns the node id for the Overtone timing group for the default
+   timer synths.
+
+   This group should not typically be used. Prefer a group within
+   foundation-user-group such as foundation-default-group or
+   foundation-safe-group."
+  []
+  (ensure-connected!)
+  (:timing-group @foundation-groups*))
 
 (defn foundation-output-group
   "Returns the node id for the Overtone output group used for the
