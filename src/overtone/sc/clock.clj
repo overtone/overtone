@@ -11,18 +11,24 @@
 
 ;; should only be modified by a 'singleton' wall-clock synth
 ;; global shared state FTW!
-(defonce server-clock-b (control-bus 2 "Server Clock Buses"))
+(defonce ^{:doc (str "2 Channel server clock bus.
+
+ First channel is the small tick, second is big tick. Every
+ SC-MAX-FLOAT-VAL ticks, small tick resets back to 0 and big tick
+ increments by one.")}
+  server-clock-b
+  (control-bus 2 "Server Clock Buses"))
 
 ;; Only one of these should ever be created...
 (defonce __SERVER-CLOCK-SYNTH__
   (defsynth __internal-wall-clock__ [tick-bus-2c 0]
-    (let [[b-tick s-tick] (in:kr tick-bus-2c 2)
+    (let [[s-tick b-tick] (in:kr tick-bus-2c 2)
           maxed?          (= defaults/SC-MAX-FLOAT-VAL s-tick)
           small-tick      (select:kr maxed?
                                      [(+ s-tick 1)
                                       0])
           big-tick        (pulse-count maxed?)]
-      (replace-out:kr tick-bus-2c [big-tick small-tick]))))
+      (replace-out:kr tick-bus-2c [small-tick big-tick]))))
 
 (defn- server-clock-reset-tick-b
   []
@@ -47,7 +53,7 @@
    See server-clock-uptime and server-clock-time for functions that
    return time in milliseconds."
   []
-  (let [[b-t s-t] (control-bus-get-range server-clock-b 2)]
+  (let [[s-t b-t] (control-bus-get-range server-clock-b 2)]
     (+ (* b-t defaults/SC-MAX-FLOAT-VAL)
        s-t)))
 
