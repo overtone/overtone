@@ -77,9 +77,14 @@
   be the unique sync id.  This is useful when the action-fn is itself
   asynchronous yet you wish to synchronise with its completion. The
   action-fn can sync using the fn server-sync.  Returns the result of
-  action-fn."
+  action-fn
+
+  Throws an exception if the sync doesn't complete. By specifying an
+  optional error-msg, you can communicate back to the user through the
+  timeout exception the cause of the exception. Typical error-msg values
+  start with \"whilst...\" i.e. \"whilst creating group foo\"."
   ([action-fn] (with-server-self-sync action-fn ""))
-  ([action-fn msg]
+  ([action-fn error-msg]
      (let [id   (next-id ::server-sync-id)
            prom (promise)
            key  (uuid)]
@@ -88,14 +93,19 @@
                                  (deliver prom true)))
                       key)
        (let [res (action-fn id)]
-         (deref! prom (str "attempting to self-synchronise with the server " msg))
+         (deref! prom (str "attempting to self-synchronise with the server " error-msg))
          res))))
 
 (defn with-server-sync
   "Blocks current thread until all osc messages in action-fn have
-  completed. Returns result of action-fn."
+  completed. Returns result of action-fn.
+
+  Throws an exception if the sync doesn't complete. By specifying an
+  optional error-msg, you can communicate back to the user through the
+  timeout exception the cause of the exception. Typical error-msg values
+  start with \"whilst...\" i.e. \"whilst creating group foo\""
   ([action-fn] (with-server-sync action-fn ""))
-  ([action-fn msg]
+  ([action-fn error-msg]
      (let [id   (next-id ::server-sync-id)
            prom (promise)
            key  (uuid)]
@@ -106,7 +116,7 @@
                  key)
        (let [res (action-fn)]
          (server-snd "/sync" id)
-         (deref! prom (str "attempting to synchronise with the server " msg))
+         (deref! prom (str "attempting to synchronise with the server " error-msg))
          res))))
 
 (defn server-recv
