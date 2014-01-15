@@ -137,6 +137,7 @@ Sam Aaron performs with Overtone Live @ Arnolfini:
 A list of bands using Overtone to generate sounds:
 
 * [Meta-eX](http://meta-ex.com)
+* [Repl Electric](http://repl-electric.com)
 
 
 ## Cheat Sheet
