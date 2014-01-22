@@ -42,7 +42,11 @@
                :doc "1 means true, 0 means false. This is modulateable."}
 
               {:name "action"
-               :default 0}]
+               :default 0
+               :doc "an integer representing an action to be executed
+                     when the buffer is finished playing. This can be
+                     used to free the enclosing synth. Action is only
+                     evaluated if loop is 0"}]
        :doc "Plays back a sample resident in a buffer"}
 
 
@@ -110,12 +114,12 @@
                :default 1
                :mode :num-outs
                :doc "The number of channels of the supplied buffer. This
-                     must be a fixed integer. The architecture of the
-                     SynthDef cannot change after it is
-                     compiled. (Warning: if you supply a bufnum of a
-                     buffer that has a different numChannels than you
-                     have specified to the BufRd, it will fail
-                     silently)." }
+                     must be a fixed integer and not a signal or a
+                     control proxy. The architecture of the synth design
+                     cannot change after it is compiled. (Warning: if
+                     you supply a bufnum of a buffer that has a
+                     different number of channels than you have
+                     specified to buf-rd , it will fail silently)." }
 
               {:name "bufnum"
                :default 0
