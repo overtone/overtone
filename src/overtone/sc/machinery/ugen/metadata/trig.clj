@@ -317,7 +317,8 @@
 
    {:name "Sweep"
     :summary "Triggered linear ramp"
-    :doc "outputs a linear increasing signal by rate/second when trig input crosses from non-positive to positive"
+    :doc "outputs a linear increasing signal by rate/second when trig
+          input crosses from non-positive to positive"
 
     :args [{:name "trig"
             :doc "trigger input"
