@@ -68,7 +68,7 @@
             phase     (phasor:ar :start start-pos :end end-pos :rate rate)
             snd       (buf-rd 1 buf phase)
             e-gate    (+ loop?
-                         (latch (a2k (line 1 0 0.002)) (a2k (bpz2 phase))))
+                         (a2k (latch:ar (line 1 0 0.0001) (bpz2 phase))))
             env       (env-gen (asr 0 1 release) :gate e-gate :action FREE)]
         (out out-bus (* amp env snd))))
 
@@ -85,7 +85,7 @@
             phase     (phasor:ar :start start-pos :end end-pos :rate rate)
             snd       (buf-rd 2 buf phase)
             e-gate    (+ loop?
-                         (latch (a2k (line 1 0 0.002)) (a2k (bpz2 phase))))
+                         (a2k (latch:ar (line 1 0 0.0001) (bpz2 phase))))
             env       (env-gen (asr 0 1 release) :gate e-gate :action FREE)]
         (out out-bus (* amp env snd))))
 
