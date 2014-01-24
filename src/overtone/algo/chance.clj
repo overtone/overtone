@@ -88,3 +88,19 @@
             (next notes)
             (conj result (get phrase (first notes))))
      result)))
+
+(defn sputter
+  "Returns a list where some elements may repeat based on a probablity.
+
+  (sputter [1 2 3 4])       ;=> [1 1 2 3 3 4]
+  (sputter [1 2 3 4] 0.9 5) ;=> [1 1 2 3 4]
+  "
+  ([list]          (sputter list 0.25))
+  ([list prob]     (sputter list prob 100))
+  ([list prob max] (sputter list prob max []))
+  ([[head & tail] prob max result]
+    (if (and head (< (count result) max))
+      (if (< (rand) prob)
+        (recur (cons head tail) prob max (conj result head))
+        (recur tail prob max (conj result head)))
+      result)))
