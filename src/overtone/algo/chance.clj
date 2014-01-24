@@ -90,10 +90,18 @@
      result)))
 
 (defn sputter
-  "Returns a list where some elements may repeat based on a probablity.
+  "Returns a list where some elements may have been repeated.
 
-  (sputter [1 2 3 4])       ;=> [1 1 2 3 3 4]
-  (sputter [1 2 3 4] 0.9 5) ;=> [1 1 2 3 4]
+   Repetition is based on probabilty (defaulting to 0.25), therefore,
+   for each element in the original list, there's a chance that it will
+   be repeated. (The repetitions themselves are also subject to further
+   repetiton). The size of the resulting list can be constrained to max
+   elements (defaulting to 100).
+
+  (sputter [1 2 3 4])        ;=> [1 1 2 3 3 4]
+  (sputter [1 2 3 4] 0.7 5)  ;=> [1 1 1 2 3]
+  (sputter [1 2 3 4] 0.8 10) ;=> [1 2 2 2 2 2 2 2 3 3]
+  (sputter [1 2 3 4] 1 10)   ;=> [1 1 1 1 1 1 1 1 1 1]
   "
   ([list]          (sputter list 0.25))
   ([list prob]     (sputter list prob 100))
