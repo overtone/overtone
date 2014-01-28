@@ -80,19 +80,19 @@ you see anything missing, please feel free to add it yourself, or hit us
 up on the [mailing list](http://groups.google.com/group/overtone) and
 we'll sort something out.
 
-## Overtone Powered Bands
-
-A list of bands using Overtone to generate sounds:
-
-* [Meta-eX](http://meta-ex.com)
-* [Repl Electric](http://repl-electric.com)
-
 ## Cheat Sheet
 
 For a quick glance at all the exciting functionality Overtone puts at
 your musical fingertips check out the cheat sheet:
 
 https://github.com/overtone/overtone/raw/master/docs/cheatsheet/overtone-cheat-sheet.pdf
+
+## Overtone Powered Bands
+
+A list of bands using Overtone to generate sounds:
+
+* [Meta-eX](http://meta-ex.com)
+* [Repl Electric](http://repl-electric.com)
 
 ##  Videos
 
