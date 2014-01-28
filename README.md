@@ -19,8 +19,6 @@
 
 # Collaborative Programmable Music.
 
-## A Live-programmable music exploration & collaboration toolkit.
-
 Overtone is an Open Source toolkit for designing synthesizers and
 collaborating with music.  It provides:
 
