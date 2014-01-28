@@ -93,7 +93,6 @@ A list of bands using Overtone to generate sounds:
 
 * [Meta-eX](http://meta-ex.com)
 * [Repl Electric](http://repl-electric.com)
-* 
 
 ## Community
 
@@ -112,7 +111,7 @@ together.
 
 Follow `@overtone` on Twitter: http://twitter.com/overtone
 
-### Website
+### Web
 
 Our main website is hosted on GitHub: http://overtone.github.io
 
