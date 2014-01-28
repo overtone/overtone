@@ -9,7 +9,7 @@
             [overtone.sc bindings buffer bus envelope example info
              ugens defcgen node sample server synth clock
              foundation-groups dyn-vars trig]
-            [overtone.sc.cgens oscillators demand mix io buf-io env tap
+            [overtone.sc.cgens oscillators demand mix dyn io buf-io env tap
              line freq beq-suite berlach bhob info]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio mixer inst util fx wavetable midi midi-player core scope]
@@ -74,6 +74,7 @@
    'overtone.sc.cgens.oscillators
    'overtone.sc.cgens.demand
    'overtone.sc.cgens.mix
+   'overtone.sc.cgens.dyn
    'overtone.sc.cgens.io
    'overtone.sc.cgens.buf-io
    'overtone.sc.cgens.env

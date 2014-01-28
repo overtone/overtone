@@ -163,26 +163,6 @@
       ;;  }
       ;; }
 
-      {:name "DynKlank"}
-
-      ;; from FFSinOsc.sc
-      ;; DynKlang : UGen {
-      ;;  *ar { arg specificationsArrayRef, freqscale = 1.0, freqoffset = 0.0;
-      ;;    var inputs = [specificationsArrayRef, freqscale, freqoffset].flop;
-      ;;    ^inputs.collect { arg item; this.ar1(*item) }.unbubble
-      ;;  }
-      ;;  *ar1 { arg specificationsArrayRef, freqscale = 1.0, freqoffset = 0.0;
-      ;;    var spec = specificationsArrayRef.value;
-      ;;    ^SinOsc.ar(
-      ;;        spec[0] ? #[440.0] * freqscale + freqoffset,
-      ;;        spec[2] ? #[0.0],
-      ;;        spec[1] ? #[1.0]
-      ;;    ).sum
-      ;;  }
-      ;; }
-
-      {:name "DynKlang"}
-
       ;; from Hilbert.sc
       ;; // class using FFT (with a delay) for better results than the above UGen
       ;; // buffer should be 2048 or 1024
