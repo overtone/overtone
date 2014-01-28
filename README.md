@@ -80,6 +80,20 @@ you see anything missing, please feel free to add it yourself, or hit us
 up on the [mailing list](http://groups.google.com/group/overtone) and
 we'll sort something out.
 
+## Overtone Powered Bands
+
+A list of bands using Overtone to generate sounds:
+
+* [Meta-eX](http://meta-ex.com)
+* [Repl Electric](http://repl-electric.com)
+
+## Cheat Sheet
+
+For a quick glance at all the exciting functionality Overtone puts at
+your musical fingertips check out the cheat sheet:
+
+https://github.com/overtone/overtone/raw/master/docs/cheatsheet/overtone-cheat-sheet.pdf
+
 ##  Videos
 
 ### Introductions
@@ -108,6 +122,7 @@ There are also the following tutorials:
 
 ### Presentations
 
+* Rich Hickey - Harmonikit: http://www.youtube.com/watch?v=bhkdyCPYgLs
 * Sam Aaron - Programming Music With Overtone: http://www.youtube.com/watch?v=imoWGsipe4k
 * Chris Ford - Functional Composition: http://www.youtube.com/watch?v=Mfsnlbd-4xQ
 * Meta-eX - Live Coding with Meta-eX: https://www.youtube.com/watch?v=zJqH5bNcIN0
@@ -126,25 +141,8 @@ philosophy of Overtone:
 
 ### Performances
 
-Sam Aaron performs with Overtone Live @ Arnolfini:
-
-  https://vimeo.com/46867490
-
-## Overtone Powered Bands
-
-A list of bands using Overtone to generate sounds:
-
-* [Meta-eX](http://meta-ex.com)
-* [Repl Electric](http://repl-electric.com)
-
-
-## Cheat Sheet
-
-For a quick glance at all the exciting functionality Overtone puts at
-your musical fingertips check out the cheat sheet:
-
-https://github.com/overtone/overtone/raw/master/docs/cheatsheet/overtone-cheat-sheet.pdf
-
+* Sam Aaron Live @ Arnolfini:  https://vimeo.com/46867490
+* Meta-eX Live @ Music Tech Fest: http://youtu.be/zJqH5bNcIN0?t=15m25s
 
 ## Mailing List
 
