@@ -93,6 +93,28 @@ A list of bands using Overtone to generate sounds:
 
 * [Meta-eX](http://meta-ex.com)
 * [Repl Electric](http://repl-electric.com)
+* 
+
+## Community
+
+### Mailing List
+
+We encourage you to join the
+[mailing list](http://groups.google.com/group/overtone) to see what
+other people are getting up to with Overtone. Use it to ask questions,
+show off what you've made and even meet fellow Overtoners in your area
+so you can meet up for impromptu jam sessions. All we ask is that you be
+considerate, courteous and respectful and that you share as much of your
+code as possible so we can all learn how to make crazy cool sounds
+together.
+
+### Twitter
+
+Follow `@overtone` on Twitter: http://twitter.com/overtone
+
+### Website
+
+Our main website is hosted on GitHub: http://overtone.github.io
 
 ##  Videos
 
@@ -144,16 +166,7 @@ philosophy of Overtone:
 * Sam Aaron Live @ Arnolfini:  https://vimeo.com/46867490
 * Meta-eX Live @ Music Tech Fest: http://youtu.be/zJqH5bNcIN0?t=15m25s
 
-## Mailing List
 
-We encourage you to join the
-[mailing list](http://groups.google.com/group/overtone) to see what
-other people are getting up to with Overtone. Use it to ask questions,
-show off what you've made and even meet fellow Overtoners in your area
-so you can meet up for impromptu jam sessions. All we ask is that you be
-considerate, courteous and respectful and that you share as much of your
-code as possible so we can all learn how to make crazy cool sounds
-together.
 
 ## Source Repository
 
