@@ -4,6 +4,7 @@
   (:require [overtone.sc.examples demand osc trig compander audio-in blackrain
              vosim
              membrane
+             dyn
              ]))
 
 (defn example
