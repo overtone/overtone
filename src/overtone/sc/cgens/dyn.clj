@@ -66,13 +66,3 @@
   (:kr (let [[freqs amps rings] (init-dyn-klank specs)]
          (sum (map (fn [[f a r]] (* a (ringz:kr input (+ freq-offset (* freq-scale f)) (* r decay-scale))))
                    (map vector freqs amps rings))))))
-
-(comment
-  (defsynth dynklang-example []
-    (out 0 (* 0.1 (dyn-klang:ar [(+ [800, 1000, 1200] (* [13 24 12] (sin-osc:kr [2 3 4.2] 0)))
-                                 [0.3 0.3 0.3]
-                                 [Math/PI Math/PI Math/PI]])))))
-
-(comment
-  (defsynth dynklank-example []
-    (out 0 (dyn-klank:ar [[800, 1071, 1153, 1723], nil, [1, 1, 1, 1]] (*  0.1 (impulse:ar 2, 0))))))
