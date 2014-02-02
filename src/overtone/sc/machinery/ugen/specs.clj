@@ -29,6 +29,7 @@
     extras.vosim
     extras.berlach
     extras.membrane
+    extras.tju
     ])
 
 (defn- spec-arg-names

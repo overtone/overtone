@@ -48,7 +48,7 @@ work:
         - GravityGrid2
     [*] StkUGens
     [ ] SummerUGens
-    [ ] TJUGens
+    [*] TJUGens
     [ ] TagSystemUGens
     [ ] VBAPUGens
     [*] VOSIMUGens
