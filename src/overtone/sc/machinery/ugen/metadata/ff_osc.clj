@@ -14,7 +14,7 @@
 
        :doc "Very fast sine wave generator (2 PowerPC instructions per
              output sample!) implemented using a ringing filter.  This
-             generates a much cleane sine wave than a table lookup
+             generates a much cleaner sine wave than a table lookup
              oscillator and is a lot faster. However, the amplitude of
              the wave will vary with frequency. Generally the amplitude
              will go down as you raise the frequency and go up as you
