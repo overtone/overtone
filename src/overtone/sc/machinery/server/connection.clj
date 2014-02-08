@@ -10,7 +10,7 @@
         [overtone.osc.decode :only [osc-decode-packet]]
         [overtone.helpers.lib :only [print-ascii-art-overtone-logo windows-sc-path deref!]]
         [overtone.helpers.file :only [file-exists? dir-exists? resolve-tilde-path]]
-        [overtone.helpers.system :only [windows-os? get-os linux-os?]])
+        [overtone.helpers.system :only [windows-os? get-cpu-bits get-os linux-os?]])
   (:require [overtone.config.log :as log]))
 
 (defonce server-thread*       (ref nil))
@@ -198,10 +198,10 @@
 (defn- boot-internal-server
   "Boots internal server by executing it on a daemon thread."
   [opts]
-  (when (not (native-scsynth-available?))
+  (when-not  (native-scsynth-available?)
     (dosync
      (ref-set connection-status* :disconnected))
-    (throw (Exception. "Can't connect to native server - no compatible libraries for your system are available.")))
+    (throw (Exception. (str "Can't connect to native server - no compatible libraries for your system are available: " (get-cpu-bits) "-bit " (name (get-os)) "." ))))
 
   (let [sc-thread (Thread. #(internal-booter opts))]
     (.setDaemon sc-thread true)
