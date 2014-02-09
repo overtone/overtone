@@ -195,7 +195,14 @@
    "/c_setn"             [:ctl-bus-idx :count :ctl-val*]
    "/c_fill"             [:ctl-bus-idx :count :ctl-val]
    "/c_get"              [:ctl-bus-idx]
-   "/c_getn"             [:ctl-bus-idx :count]})
+   "/c_getn"             [:ctl-bus-idx :count]}
+
+  ;; Unused Commands (undocumented in server reference: http://doc.sccode.org/Reference/Server-Command-Reference.html)
+  ;; "/none"
+  ;; "/s_newargs"
+  ;; "/n_cmd"
+  ;; "/d_freeAll"
+  )
 
 (defn- description
   [type]
