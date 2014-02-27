@@ -66,7 +66,7 @@
                   higher)."}
 
            {:name "sustain"
-            :default 0.1
+            :default 0
             :doc "If positive, act as if the piano's sustain pedal is
                   pressed."}]
     :rates #{:ar}
