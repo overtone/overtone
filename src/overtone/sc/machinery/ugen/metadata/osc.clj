@@ -68,7 +68,15 @@
 
               {:name "phase"
                :default 0.0
-               :doc "Phase offset or modulator in radians"}]
+               :doc "Phase offset or modulator in radians"}
+
+              {:name "mul"
+               :default 1
+               :doc "Output will be multiplied by this value."}
+
+              {:name "add"
+               :default 0
+               :doc "This value will be added to the output."}]
 
        :summary "Sine table lookup oscillator"
        :doc "Outputs a sine wave with values oscillating between -1 and

@@ -128,7 +128,7 @@
       (let [trigger       (line:kr :start 1, :end 20, :dur 60)
             freq          (t-rand:kr :lo 100, :hi 1000, :trig (impulse:kr trigger))
             num-harmonics (t-rand:kr :lo 1,   :hi 10,   :trig (impulse:kr trigger))
-            amp           (linen:kr :gate (impulse:kr trigger) :attackTime 0, :susLevel 0.5, :releaseTime (/ 1 trigger))]
+            amp           (linen:kr :gate (impulse:kr trigger) :attack-time 0, :sus-level 0.5, :release-time (/ 1 trigger))]
         (* amp (blip freq num-harmonics))))
 
 
@@ -145,7 +145,7 @@
 ;;)
 
 (demo 10 (let [rate (mouse-x (/ 1 3) 10)
-               amp  (linen:kr :gate (impulse:kr rate), :attackTime 0, :susLevel 1, :releaseTime (/ 1 rate))]
+               amp  (linen:kr :gate (impulse:kr rate), :attack-time 0, :sus-level 1, :release-time (/ 1 rate))]
            (* amp (sin-osc))))
 
 
@@ -174,7 +174,7 @@
                ;;r (+ 7 (* 3 (lf-tri:kr 0.1)))
                t (impulse:kr r)
                ;;t (dust:kr r)
-               e (linen:kr :gate t, :attackTime 0, :susLevel 0.5, :releaseTime (/ 1 r))
+               e (linen:kr :gate t, :attack-time 0, :sus-level 0.5, :release-time (/ 1 r))
                f (t-rand:kr :lo 1, :hi 10, :trig t)
                ;;f (* 4 (+ 1 e))
                ]
@@ -327,10 +327,10 @@
   (let [freq (midicps midi)
         env (perc 0 art)
         mod (+ 5 (/ 1 (i-rand 2 6)))
-        src (* (pm-osc freq (* mod freq) (env-gen:kr env :timeScale art, :levelScale tone) 0)
-               (env-gen:kr env :timeScale art, :levelScale 0.3))
+        src (* (pm-osc freq (* mod freq) (env-gen:kr env :time-scale art, :level-scale tone) 0)
+               (env-gen:kr env :time-scale art, :level-scale 0.3))
         src (pan2 src pan)
-        src (* src (env-gen:kr env :timeScale (* art 1.3) :levelScale (ranged-rand 0.1 0.5) :action FREE))]
+        src (* src (env-gen:kr env :time-scale (* art 1.3) :level-scale (ranged-rand 0.1 0.5) :action FREE))]
     (out 0 src)))
 
 ;;Synth("PMCrotale", ["midi", rrand(48, 72).round(1), "tone", rrand(1, 6)])
@@ -344,7 +344,6 @@
 ;;
 ;;{PlayBuf.ar(1, ~houston)}.play;
 ;;{PlayBuf.ar(1, ~chooston)}.play;
-play
 
 ;;this assumes you have a separate install of SuperCollider and
 ;;you're running OS X. Feel free to change the following audio paths
@@ -384,7 +383,7 @@ chooston
               rate   [1 1.01]
               trigger (impulse:kr rate)
               src (play-buf 1 houston 1 trigger (* frames (line:kr 0 1 60)))
-              env (env-gen:kr (lin-env 0.01 0.96 0.01) trigger)]
+              env (env-gen:kr (lin 0.01 0.96 0.01) trigger)]
           (* src env rate)))
 
 ;; note how the envelope is used to stop clicking between segments. Contrast with the following
@@ -486,7 +485,7 @@ chooston
   (defsynth pulse-ctl [] (out:kr kbus4 (lin-lin (sin-osc:kr 1) -1 1 240 640)))
 
   (defsynth switch [freq 440]
-    (out 0 (sin-osc freq 0 0.3)))
+    (out 0 (sin-osc:ar freq 0 0.3)))
 
   (def s (switch))
   (def w (wave-ctl))
@@ -566,21 +565,21 @@ chooston
   (def c-syn (control-syn))
 
   (defsynth delay-syn [] (out:ar 0 (allpass-c (in delay-b 2) 2 [0.65 1.15] 10)))
-  (def d-syn (delay-syn :pos :after :tgt c-syn))
+  (def d-syn (delay-syn [ :after c-syn]))
 
   (defsynth mod-syn [] (out delay-b (* (in mod-b 2) (sin-osc (+ 1100 (* 500 (in:kr k5-b)))))))
-  (def m-syn (mod-syn :pos :before :tgt d-syn))
+  (def m-syn (mod-syn [:before d-syn]))
 
   (defsynth gate-syn [] (out [0 mod-b] (* (in gate-b 2) (max 0 (in:kr k5-b)))))
-  (def g-syn (gate-syn :pos :before :tgt m-syn ))
+  (def g-syn (gate-syn [:before m-syn]))
 
   (def pb-group (group :before c-syn))
 
   (defsynth hous [] (out gate-b (pan2 (play-buf 1 houston :loop 1) 0.5)))
   (defsynth choos [] (out gate-b (pan2 (play-buf 1 chooston :loop 1) -0.5))))
 
-(hous :tgt pb-group)
-(choos :tgt pb-group)
+(hous [:tail pb-group])
+(choos [:tail pb-group])
 
 (stop)
 
@@ -616,32 +615,31 @@ chooston
 ;;}).start
 ;; )
 
+(def cont (atom true))
+
 (do
   (def a [:C :C# :D :Eb :E :F :F# :G :Ab :A :Bb :B])
 
-  (def cont (atom true))
-
-  (loop []
-    (let [density 1
-          midi (choose [0 2 4 7 9])
-          oct (choose [48 60 72])]
-      (if (weighted-coin density)
-        (do
-          (println "")
-          (println [(+ midi oct) (nth (cycle a) midi) (round-to (/ oct 12) 1)])
-          (pmc-rotale :midi (+ midi oct)
-                      :tone (ranged-rand 1 7)
-                      :art (ranged-rand 0.3 2.0)
-                      :amp (ranged-rand 0.3 0.6)
-                      :pan (ranged-rand -1 1)))
-        (println "rest"))
-      (Thread/sleep 200)
-      (when @cont (recur)))))
-
+  (future
+    (loop []
+      (let [density 1
+            midi (choose [0 2 4 7 9])
+            oct (choose [48 60 72])]
+        (if (weighted-coin density)
+          (do
+            (println "")
+            (println [(+ midi oct) (nth (cycle a) midi) (round-to (/ oct 12) 1)])
+            (pmc-rotale :midi (+ midi oct)
+                        :tone (ranged-rand 1 7)
+                        :art (ranged-rand 0.3 2.0)
+                        :amp (ranged-rand 0.3 0.6)
+                        :pan (ranged-rand -1 1)))
+          (println "rest"))
+        (Thread/sleep 200)
+        (when @cont (recur))))))
 
 ;; to stop
 (reset! cont false)
-
 
 ;; Page 36
 

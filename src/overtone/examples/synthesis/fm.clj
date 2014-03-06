@@ -3,8 +3,8 @@
 
 (defsynth fm [carrier 440 divisor 2.0 depth 1.0 out-bus 0]
   (let [modulator (/ carrier divisor)
-        mod-env   (env-gen (lin-env 1 0 6))
-        amp-env   (env-gen (lin-env 1 1 5) :action FREE)]
+        mod-env   (env-gen (lin 1 0 6))
+        amp-env   (env-gen (lin 1 1 5) :action FREE)]
     (out out-bus (pan2 (* 0.5 amp-env
                           (sin-osc (+ carrier
                                       (* mod-env  (* carrier depth) (sin-osc modulator)))))))))
