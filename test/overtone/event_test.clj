@@ -73,8 +73,8 @@
   (let [fires (atom nil)]
     (on-sync-event :test-event #(swap! fires conj %) :test-event-key)
     (sync-event :test-event {:a "foo"
-                        :b "bar"
-                        :c "baz"})
+                             :b "bar"
+                             :c "baz"})
 
     (Thread/sleep 100)
 
