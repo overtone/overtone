@@ -43,7 +43,9 @@
 
     (is (= @fires [{:a "foo"
                     :b "bar"
-                    :c "baz"}]))))
+                    :c "baz"}]))
+
+    (remove-event-handler :test-event-key)))
 
 (deftest fire-map-arg-async-test
   (let [fires (atom nil)]
@@ -56,7 +58,9 @@
 
     (is (= @fires [{:a "foo"
                     :b "bar"
-                    :c "baz"}]))))
+                    :c "baz"}]))
+
+    (remove-event-handler :test-event-key)))
 
 (deftest fire-many-args-sync-test
   (let [fires (atom nil)]
@@ -67,7 +71,9 @@
 
     (is (= @fires [{:a "foo"
                     :b "bar"
-                    :c "baz"}]))))
+                    :c "baz"}]))
+
+    (remove-event-handler :test-event-key)))
 
 (deftest fire-map-arg-sync-test
   (let [fires (atom nil)]
@@ -80,7 +86,9 @@
 
     (is (= @fires [{:a "foo"
                     :b "bar"
-                    :c "baz"}]))))
+                    :c "baz"}]))
+
+    (remove-event-handler :test-event-key)))
       
 (defn event-tests []
   (binding [*test-out* *out*]
