@@ -35,7 +35,7 @@
     (is (= 7 @counter))))
 
 (deftest fire-many-args-async-test
-  (let [fires (atom nil)]
+  (let [fires (atom [])]
     (on-event :test-event #(swap! fires conj %) :test-event-key)
     (event :test-event :a "foo" :b "bar" :c "baz")
 
@@ -48,7 +48,7 @@
     (remove-event-handler :test-event-key)))
 
 (deftest fire-map-arg-async-test
-  (let [fires (atom nil)]
+  (let [fires (atom [])]
     (on-event :test-event #(swap! fires conj %) :test-event-key)
     (event :test-event {:a "foo"
                         :b "bar"
@@ -63,7 +63,7 @@
     (remove-event-handler :test-event-key)))
 
 (deftest fire-many-args-sync-test
-  (let [fires (atom nil)]
+  (let [fires (atom [])]
     (on-sync-event :test-event #(swap! fires conj %) :test-event-key)
     (sync-event :test-event :a "foo" :b "bar" :c "baz")
 
