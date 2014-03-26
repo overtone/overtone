@@ -224,7 +224,7 @@
     is similar to:
 
     (defsynth foo [freq 440]
-      (out 0 (sin-osc freq))))
+      (out 0 (sin-osc freq)))
 
   * Instruments are limited to 1 or 2 channels. Instruments with more
     than 2 channels are allowed, but additional channels will not be
