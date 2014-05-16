@@ -10,7 +10,7 @@
         [overtone.music time]
         [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
         [overtone.sc.machinery synthdef]
-        [overtone.sc bindings ugens server node foundation-groups]
+        [overtone.sc bindings ugens server node foundation-groups dyn-vars]
         [overtone.helpers seq]
         [clojure.pprint]
         [overtone.helpers.string :only [hash-shorten]])
@@ -322,8 +322,11 @@
   (let [grouped-params  (group-params params)
         [params pnames] (make-params grouped-params)
         with-ctl-ugens  (concat (make-control-ugens grouped-params) ugens)
-        detailed        (detail-ugens with-ctl-ugens constants grouped-params)]
-    (with-meta {:name (hash-shorten 31 (ns-name *ns*) (str "/" sname))
+        detailed        (detail-ugens with-ctl-ugens constants grouped-params)
+        full-name (if (add-current-namespace-to-synth-name?)
+                    (hash-shorten 31 (ns-name *ns*) (str "/" sname))
+                    sname)]
+    (with-meta {:name full-name
                 :constants constants
                 :params params
                 :pnames pnames

@@ -2,6 +2,7 @@
 
 (defonce ^{:dynamic true :private true} *inactive-node-modification-error* :exception)
 (defonce ^{:dynamic true :private true} *inactive-buffer-modification-error* :exception)
+(defonce ^{:dynamic true :private true} *add-current-namespace-to-synth-name* true)
 (defonce ^{:dynamic true :private true} *block-node-until-ready?* true)
 
 (defn inactive-node-modification-error
@@ -52,4 +53,17 @@
    macro being ignored by the server."
   [& body]
   `(binding [*block-node-until-ready?* false]
+     ~@body))
+
+(defn add-current-namespace-to-synth-name?
+  "Returns the current value for the dynamic var
+   *add-current-namespace-to-synth-name*"
+  []
+  *add-current-namespace-to-synth-name*)
+
+(defmacro without-namespace-in-synthdef
+  "Does not add the current namespace to the synthdef or shorten name to
+  within 31 chars."
+  [& body]
+  `(binding [*add-current-namespace-to-synth-name* false]
      ~@body))
