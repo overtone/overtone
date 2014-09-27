@@ -11,8 +11,8 @@
 ;; a low tone.
 (defsynth kick [amp 0.5 decay 0.6 freq 65]
   (let [env (env-gen (perc 0 decay) 1 1 0 1 FREE)
-        snd (sin-osc freq (* Math/PI 0.5) amp)]
-    (out 0 (pan2 (* snd env) 0))))
+        snd (sin-osc freq (* Math/PI 0.5))]
+    (out 0 (pan2 (* snd env amp) 0))))
 
 ;; This can be triggered using the name as a function call:
 (kick)
@@ -20,8 +20,9 @@
 ;; A shorter variation using definst which allows you to leave out the out and pan ugens,
 ;; which get added by default to synths that are rooted by an audio rate ugen that isn't out.
 (definst kick [amp 0.5 decay 0.6 freq 65]
-  (* (sin-osc freq (* Math/PI 0.5) amp)
-     (env-gen (perc 0 decay) 1 1 0 1 FREE)))
+  (* (sin-osc freq (* Math/PI 0.5))
+     (env-gen (perc 0 decay) 1 1 0 1 FREE)
+     amp))
 
 ;; Similarly this is also triggered using the name as a function call:
 (kick)
