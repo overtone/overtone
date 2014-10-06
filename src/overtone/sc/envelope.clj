@@ -232,6 +232,53 @@
       (map #(+ %1 bias) [0 level (* level sustain) 0])
       [attack decay release] curve 2)))
 
+(defunk-env adsr-ng
+  "Create an non-gated attack decay sustain release envelope
+  suitable for use as the envelope parameter of the
+  env-gen ugen.
+
+  attack       - the time it takes to go from 0 to the
+                 attack level (this defaults to 1)
+
+  attack-level - level of the amplitude at the attack,
+                 immediately before decay stage starts
+
+
+  decay        - the time it takes to go from the specified
+                 amplitude level to sustain * level (also
+                 defaulting to 1)
+
+  sustain      - sustain duration
+
+
+  release      - the time it takes to go from the sustain
+                 amplitude to 0
+
+  level        - the level of the amplitude after the attack,
+                 and the value to multiply the sustain
+                 fraction with to determine the sustain
+                 amplitude
+
+  curve        - the envelope curve
+
+  bias         - a value to add with every value of the
+                 envelope
+
+  This envelope has multiple phases: attack, decay, sustain and
+  release. Once the attack phase has started, after the specified attack
+  time, the envelope value is the attack-level + bias. Next the decay
+  phase kicks in. After the decay time, the amplitude is at level +
+  bias. The amplitude then stays at this level for sustain seconds, and
+  then enters the release phase.  After release time, the amplitude
+  is 0 + bias."
+  [attack 0.01 decay 0.3 sustain 1 release 1
+              attack-level 1 level 1 curve :linear bias 0]
+  (with-overloaded-ugens
+    (envelope
+     (map #(+ % bias) [0 attack-level level level 0])
+     [attack decay sustain release]
+     curve)))
+
 (defunk-env asr
   "Create an attack sustain release envelope sutable for use with the env-gen
   ugen"
