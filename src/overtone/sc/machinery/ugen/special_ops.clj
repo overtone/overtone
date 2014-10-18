@@ -63,8 +63,6 @@
 
 (def REVERSE-UNARY-OPS (zipmap (vals UNARY-OPS) (keys UNARY-OPS)))
 
-; Commented out ops are implemented with generics instead of generated
-; see sc/ops.clj
 (def BINARY-OPS
   {
    "+" 0             ; Addition
