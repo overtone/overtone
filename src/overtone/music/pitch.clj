@@ -74,7 +74,7 @@
   [octave interval]
   (+ (* octave 12) interval 12))
 
-(def NOTES {:C  0  :c  0  :b# 0  :B# 0
+(def NOTES {:C  0  :c  0  :b# 0  :B# 0  :his 0  :His 0
             :C# 1  :c# 1  :Db 1  :db 1  :DB 1  :dB 1 :cis 1 :Cis 1
             :D  2  :d  2
             :D# 3  :d# 3  :Eb 3  :eb 3  :EB 3  :eB 3 :es 3 :Es 3
