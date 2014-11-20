@@ -400,6 +400,8 @@
 (defn- synth-group? [obj]
   (= overtone.sc.node.SynthGroup (type obj)))
 
+(def ^:dynamic par-group-switch false)
+
 (defn group
   "Create a new synth group as a child of the target group. By default
   creates a new group at the tail of the root group.
@@ -439,10 +441,16 @@
      (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
            target (to-sc-id target)
            pos    (or pos 1)
+           create-command (if par-group-switch "/p_new" "/g_new")
+           name (if par-group-switch (str "Par-" name) name)
            snode  (SynthGroup. name id target position (atom :loading) (promise))]
        (swap! active-synth-nodes* assoc id snode)
-       (snd "/g_new" id pos target)
+       (snd create-command id pos target)
        snode)))
+
+(defn par-group [& args]
+  (binding [par-group-switch true]
+    (apply group args)))
 
 (defn- group-free*
   "Free synth groups, releasing their resources."

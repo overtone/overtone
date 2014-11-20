@@ -162,6 +162,7 @@
 
    ;;Group Commands
    "/g_new"              [:group-id :zero-to-four :node-id]
+   "/p_new"              [:group-id :zero-to-four :node-id]
    "/g_head"             [:group-id :node-id]
    "/g_tail"             [:group-id :node-id]
    "/g_freeAll"          [:group-id]
