@@ -394,6 +394,9 @@
 ;; SCLang (as opposed to from the command line) there will also be a 'default
 ;; group' with an ID of 1 which is the default target for all new Nodes. See
 ;; RootNode and default_group for more info.
+;; A ParGroup is behaves similarly to a group and has the same interface, but
+;; will allow parallel audio processing for nodes within it when run in the
+;; Supernova synthesis server.
 
 
 
