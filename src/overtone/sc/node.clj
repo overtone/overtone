@@ -394,8 +394,8 @@
 ;; SCLang (as opposed to from the command line) there will also be a 'default
 ;; group' with an ID of 1 which is the default target for all new Nodes. See
 ;; RootNode and default_group for more info.
-;; A ParGroup is behaves similarly to a group and has the same interface, but
-;; will allow parallel audio processing for nodes within it when run in the
+;; A ParGroup behaves similarly to a group and has the same interface, but
+;; will allow parallel audio processing for nodes within it when run on the
 ;; Supernova synthesis server.
 
 
@@ -727,33 +727,33 @@
   {:kill* node-free*})
 
 
-;;/g_queryTree				get a representation of this group's node subtree.
-;;	[
-;;		int - group ID
-;;		int - flag: if not 0 the current control (arg) values for synths will be included
-;;	] * N
+;;/g_queryTree        get a representation of this group's node subtree.
+;;  [
+;;    int - group ID
+;;    int - flag: if not 0 the current control (arg) values for synths will be included
+;;  ] * N
 ;;
 ;; Request a representation of this group's node subtree, i.e. all the groups and
 ;; synths contained within it. Replies to the sender with a /g_queryTree.reply
 ;; message listing all of the nodes contained within the group in the following
 ;; format:
 ;;
-;;	int - flag: if synth control values are included 1, else 0
-;;	int - node ID of the requested group
-;;	int - number of child nodes contained within the requested group
-;;	then for each node in the subtree:
-;;	[
-;;		int - node ID
-;;		int - number of child nodes contained within this node. If -1this is a synth, if >=0 it's a group
-;;		then, if this node is a synth:
-;;		symbol - the SynthDef name for this node.
-;;		then, if flag (see above) is true:
-;;		int - numControls for this synth (M)
-;;		[
-;;			symbol or int: control name or index
-;;			float or symbol: value or control bus mapping symbol (e.g. 'c1')
-;;		] * M
-;;	] * the number of nodes in the subtree
+;;  int - flag: if synth control values are included 1, else 0
+;;  int - node ID of the requested group
+;;  int - number of child nodes contained within the requested group
+;;  then for each node in the subtree:
+;;  [
+;;    int - node ID
+;;    int - number of child nodes contained within this node. If -1this is a synth, if >=0 it's a group
+;;    then, if this node is a synth:
+;;    symbol - the SynthDef name for this node.
+;;    then, if flag (see above) is true:
+;;    int - numControls for this synth (M)
+;;    [
+;;      symbol or int: control name or index
+;;      float or symbol: value or control bus mapping symbol (e.g. 'c1')
+;;    ] * M
+;;  ] * the number of nodes in the subtree
 
 (defonce ^{:dynamic true} *node-tree-data* nil)
 
