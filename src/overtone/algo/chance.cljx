@@ -2,8 +2,7 @@
     ^{:doc "Handy probability fns"
       :author "Sam Aaron"}
   overtone.algo.chance
-  (:use
-   [overtone.algo.scaling]))
+  (:require [overtone.algo.scaling :refer [scale-range]]))
 
 (defn choose
   "Choose a random element from col."
@@ -32,12 +31,12 @@
   ([val-prob-map] (weighted-choose (keys val-prob-map) (vals val-prob-map)))
   ([vals probabilities]
      (when-not (= (count vals) (count probabilities))
-       (throw (IllegalArgumentException. (str "Size of vals and probabilities don't match. Got "
+       (throw (#+clj IllegalArgumentException. #+cljs js/Error. (str "Size of vals and probabilities don't match. Got "
                                (count vals)
                                " and "
                                (count probabilities)))))
      (when-not (= (reduce + probabilities) 1.0)
-       (throw (IllegalArgumentException. (str "The sum of your probabilities is not 1.0"))))
+       (throw (#+clj IllegalArgumentException. #+cljs js/Error. (str "The sum of your probabilities is not 1.0"))))
 
      (let [paired (map vector probabilities vals)
            sorted (sort #(< (first %1) (first %2)) paired)
@@ -55,7 +54,7 @@
            rand-num (rand)]
        (loop [summed summed]
          (when (empty? summed)
-           (throw (Exception. (str "Error, Reached end of weighed choice options"))))
+           (throw (#+clj Exception. #+cljs js/Error. (str "Error, Reached end of weighed choice options"))))
          (if (< rand-num (ffirst summed))
            (second (first summed))
            (recur (rest summed)))))))
