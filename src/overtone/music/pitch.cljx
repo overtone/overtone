@@ -4,38 +4,36 @@
     intervals, etc."
       :author "Jeff Rose, Sam Aaron & Marius Kempe"}
   overtone.music.pitch
-  (:use [overtone.helpers old-contrib]
-        [overtone.helpers.map :only [reverse-get]]
-        [overtone.algo chance])
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [overtone.helpers.map :refer [reverse-get]]
+            [overtone.algo.chance :refer [choose-n]]
+            [overtone.helpers.old-contrib :refer [chop]])
+  (#+clj :require #+cljs :require-macros [overtone.music.pitch-macros :refer [defratio]]))
 
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
 ;; possible 7 note scales, the major scale has the highest number of consonant
 ;; intervals.
 
-(defmacro defratio [rname ratio]
-  `(defn ~rname [freq#] (* freq# ~ratio)))
-
 ; Perfect consonance
-(defratio unison    1/1)
-(defratio octave    2/1)
-(defratio fifth     3/2)
+(defratio unison    #+clj 1/1 #+cljs 1)
+(defratio octave    #+clj 2/1 #+cljs 2)
+(defratio fifth     #+clj 3/2 #+cljs 1.5)
 
 ; Imperfect consonance
-(defratio sixth     5/3)
-(defratio third     5/4)
+(defratio sixth     #+clj 5/3 #+cljs (/ 5 3))
+(defratio third     #+clj 5/4 #+cljs (/ 5 4))
 
 ; Dissonance
-(defratio fourth    4/3)
-(defratio min-third 6/5)
-(defratio min-sixth 8/5)
+(defratio fourth    #+clj 4/3 #+cljs (/ 4 3))
+(defratio min-third #+clj 6/5 #+cljs (/ 6 5))
+(defratio min-sixth #+clj 8/5 #+cljs (/ 8 5))
 
 (defn cents
   "Returns a frequency computed by adding n-cents to freq.  A cent is
   a logarithmic measurement of pitch, where 1-octave equals 1200
   cents."
   [freq n-cents]
-  (* freq (java.lang.Math/pow 2 (/ n-cents 1200))))
+  (* freq (Math/pow 2 (/ n-cents 1200))))
 
 ;; MIDI
 (def MIDI-RANGE (range 128))
@@ -123,13 +121,13 @@
   [mk]
   (let [matches (midi-string-matcher mk)]
     (when-not matches
-      (throw (IllegalArgumentException.
+      (throw (#+clj IllegalArgumentException. #+cljs js/Error.
               (str "Invalid midi-string. " mk
                    " does not appear to be in MIDI format i.e. C#4"))))
 
     (let [[match pictch-class octave] matches]
-      (when (< (Integer. octave) -1)
-        (throw (IllegalArgumentException.
+      (when (< (#+clj Integer. #+cljs js/parseInt octave) -1)
+        (throw (#+clj IllegalArgumentException. #+cljs js/Error.
                 (str "Invalid midi-string: " mk
                      ". Octave is out of range. Lowest octave value is -1")))))
     matches))
@@ -140,11 +138,11 @@
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
-        octave                     (Integer. octave)
+        octave                     (#+clj Integer.  #+cljs js/parseInt octave)
         interval                   (NOTES (keyword pitch-class))]
     {:match       match
      :pitch-class pitch-class
-     :octave      (Integer. octave)
+     :octave      octave
      :interval    interval
      :midi-note   (octave-note octave interval)}))
 
@@ -181,13 +179,13 @@
     (nil? n) nil
     (integer? n) (if (>= n 0)
                    n
-                   (throw (IllegalArgumentException.
+                   (throw (#+clj IllegalArgumentException. #+cljs js/Error.
                            (str "Unable to resolve note: "
                                 n
                                 ". Value is out of range. Lowest value is 0"))))
     (keyword? n) (note (name n))
     (string? n) (:midi-note (note-info n))
-    :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
+    :else (throw (#+clj IllegalArgumentException. #+cljs js/Error. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
 
 (defn match-note
   "Returns the first midi-note formatted substring in s. If passed
@@ -361,7 +359,9 @@
   [degree]
   (if (some #{degree} (keys DEGREE))
     (degree DEGREE)
-    (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
+    (throw (#+clj IllegalArgumentException. 
+            #+cljs js/Error. 
+            (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
 
 (defn resolve-degree
   "returns a map representing the degree, and the octave semitone
@@ -415,7 +415,9 @@
   [degrees scale root]
   (let [root (note root)]
     (when (nil? root)
-      (throw (IllegalArgumentException. (str "root resolved to a nil value. degrees->pitches requires a non-nil root."))))
+      (throw (#+clj IllegalArgumentException. 
+              #+cljs js/Error. 
+              (str "root resolved to a nil value. degrees->pitches requires a non-nil root."))))
     (map (fn [degree]
            (cond
             (coll? degree) (degrees->pitches degree scale root)
@@ -575,28 +577,28 @@
 (defn midi->hz
   "Convert a midi note number to a frequency in hz."
   [note]
-  (* 440.0 (java.lang.Math/pow 2.0 (/ (- note 69.0) 12.0))))
+  (* 440.0 (Math/pow 2.0 (/ (- note 69.0) 12.0))))
 
 ; cpsmidi
 (defn hz->midi
   "Convert from a frequency to the nearest midi note number."
   [freq]
-  (java.lang.Math/round (+ 69
+  (Math/round (+ 69
                  (* 12
-                    (/ (java.lang.Math/log (* freq 0.0022727272727))
-                       (java.lang.Math/log 2))))))
+                    (/ (Math/log (* freq 0.0022727272727))
+                       (Math/log 2))))))
 
 ; ampdb
 (defn amp->db
   "Convert linear amplitude to decibels."
   [amp]
-  (* 20 (java.lang.Math/log10 amp)))
+  (* 20 (Math/log10 amp)))
 
 ; dbamp
 (defn db->amp
   "Convert decibels to linear amplitude."
   [db]
-  (java.lang.Math/exp (* (/ db 20) (java.lang.Math/log 10))))
+  (Math/exp (* (/ db 20) (Math/log 10))))
 
 (defn nth-octave
   "Returns the freq n octaves from the supplied reference freq
@@ -604,14 +606,14 @@
    i.e. (nth-ocatve 440 1) will return 880 which is the freq of the
    next octave from 440."
   [freq n]
-  (* freq (java.lang.Math/pow 2 n)))
+  (* freq (Math/pow 2 n)))
 
 (defn nth-equal-tempered-freq
   "Returns the frequency of a given scale interval using an
   equal-tempered tuning i.e. dividing all 12 semi-tones equally across
   an octave. This is currently the standard tuning."
   [base-freq interval]
-  (* base-freq (java.lang.Math/pow 2 (/ interval 12))))
+  (* base-freq (Math/pow 2 (/ interval 12))))
 
 (defn interval-freq
   "Returns the frequency of the given interval using the specified
