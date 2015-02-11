@@ -35,7 +35,7 @@
   a logarithmic measurement of pitch, where 1-octave equals 1200
   cents."
   [freq n-cents]
-  (* freq (java.lang.Math/pow 2 (/ n-cents 1200))))
+  (* freq (Math/pow 2 (/ n-cents 1200))))
 
 ;; MIDI
 (def MIDI-RANGE (range 128))
@@ -575,43 +575,43 @@
 (defn midi->hz
   "Convert a midi note number to a frequency in hz."
   [note]
-  (* 440.0 (java.lang.Math/pow 2.0 (/ (- note 69.0) 12.0))))
+  (* 440.0 (Math/pow 2.0 (/ (- note 69.0) 12.0))))
 
 ; cpsmidi
 (defn hz->midi
   "Convert from a frequency to the nearest midi note number."
   [freq]
-  (java.lang.Math/round (+ 69
+  (Math/round (+ 69
                  (* 12
-                    (/ (java.lang.Math/log (* freq 0.0022727272727))
-                       (java.lang.Math/log 2))))))
+                    (/ (Math/log (* freq 0.0022727272727))
+                       (Math/log 2))))))
 
 ; ampdb
 (defn amp->db
   "Convert linear amplitude to decibels."
   [amp]
-  (* 20 (java.lang.Math/log10 amp)))
+  (* 20 (Math/log10 amp)))
 
 ; dbamp
 (defn db->amp
   "Convert decibels to linear amplitude."
   [db]
-  (java.lang.Math/exp (* (/ db 20) (java.lang.Math/log 10))))
+  (Math/exp (* (/ db 20) (Math/log 10))))
 
 (defn nth-octave
   "Returns the freq n octaves from the supplied reference freq
 
-   i.e. (nth-ocatve 440 1) will return 880 which is the freq of the
-   next octave from 440."
+  i.e. (nth-ocatve 440 1) will return 880 which is the freq of the
+  next octave from 440."
   [freq n]
-  (* freq (java.lang.Math/pow 2 n)))
+  (* freq (Math/pow 2 n)))
 
 (defn nth-equal-tempered-freq
   "Returns the frequency of a given scale interval using an
   equal-tempered tuning i.e. dividing all 12 semi-tones equally across
   an octave. This is currently the standard tuning."
   [base-freq interval]
-  (* base-freq (java.lang.Math/pow 2 (/ interval 12))))
+  (* base-freq (Math/pow 2 (/ interval 12))))
 
 (defn interval-freq
   "Returns the frequency of the given interval using the specified
@@ -619,8 +619,8 @@
   respectively)."
   ([base-freq n] (interval-freq base-freq n :ionian :equal-tempered))
   ([base-freq n mode tuning]
-     (case tuning
-           :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
+   (case tuning
+     :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
 
 (defn find-scale-name
   "Return the name of the first matching scale found in SCALE
@@ -658,7 +658,7 @@
   [note]
   (if (or (< 21 note) (contains? #{20 19 16 12} note))
     (fold-note (- note 12))
-     note ))
+    note ))
 
 (defn- simplify-chord
   "Expects notes to contain 0 (the root note) Reduces all notes into 2
@@ -680,15 +680,15 @@
   [notes root-index]
   (if (< 0 root-index)
     (let [new-root (nth (seq (sort notes)) root-index)
-         lowest-note (first (sort notes))
-         octaves (+ 1 (quot (- new-root lowest-note) 12))]
+          lowest-note (first (sort notes))
+          octaves (+ 1 (quot (- new-root lowest-note) 12))]
       (set (cons (- new-root (* octaves 12)) notes)))
     notes))
 
 (defn- find-chord-with-low-root
   "Finds the chord represented by notes
-   Assumes the root note is the lowest note in notes
-   notes can be spread over multiple octaves"
+  Assumes the root note is the lowest note in notes
+  notes can be spread over multiple octaves"
   [notes]
   (if (< 0 (count notes))
     (let [root (first (sort notes))
@@ -703,9 +703,9 @@
       (let [mod-notes (select-root notes note)
             chord  (find-chord-with-low-root mod-notes)
             root (find-pitch-class-name (first (sort mod-notes)))]
-       (if chord
-         {:root root :chord-type chord}
-         (recur (inc note))))
+        (if chord
+          {:root root :chord-type chord}
+          (recur (inc note))))
       nil)))
 
 
@@ -718,11 +718,11 @@
   (chord-degree :ii :c4 :melodic-minor-asc) ;=> (62 65 69 72)
   "
   ([degree root mode]
-    (chord-degree degree root mode 4))
+   (chord-degree degree root mode 4))
   ([degree root mode num-notes]
-    (let [d-int (degree->int degree)
-          num-degrees (- (+ d-int (* num-notes 2)) 1)]
-          (take-nth 2 (drop (degree->int degree) (scale root mode (range num-degrees)))))))
+   (let [d-int (degree->int degree)
+         num-degrees (- (+ d-int (* num-notes 2)) 1)]
+     (take-nth 2 (drop (degree->int degree) (scale root mode (range num-degrees)))))))
 
 ;; * shufflers (randomize a sequence, or notes within a scale, etc.)
 ;; *
