@@ -61,11 +61,30 @@
                  [overtone/scsynth "3.5.7.0"]
                  [overtone/scsynth-extras "3.5.7.0"]
                  [clj-glob "1.0.0"]]
-  :profiles {:test {:dependencies [[bultitude "0.2.0"]
-                                   [polynome "0.2.2"]]}}
+
+  :profiles  {:dev {:plugins [[com.keminglabs/cljx "0.5.0"]]}
+              :test {:dependencies [[bultitude "0.2.0"]
+                                    [polynome "0.2.2"]]}}
+
+  :cljx {:builds [{:source-paths ["src"]
+                   :output-path "target/classes"
+                   :rules :clj}
+                  {:source-paths ["src"]
+                   :output-path "target/classes"
+                   :rules :cljs}
+                  {:source-paths ["test"]
+                   :output-path "target/test-classes"
+                   :rules :clj}
+                  {:source-paths ["test"]
+                   :output-path "target/test-classes"
+                   :rules :cljs}]}
+
+  :prep-tasks [["cljx" "once"]]
+
   :test-selectors {:core (fn [m] (not (some m [:gui :hw])))
                    :gui  :gui
                    :hw   :hw}
+
   :native-path "native"
   :min-lein-version "2.0.0"
   :jvm-opts ^:replace ~(jvm-opts))
