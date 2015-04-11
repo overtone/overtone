@@ -2,7 +2,7 @@
   ^{:doc "Functions to help work with musical time."
      :author "Jeff Rose"}
   overtone.music.rhythm
-  (:use [overtone.music time]))
+  (:require [overtone.at-at :refer [now]]))
 
 (defonce ^{:private true}
   _PROTOCOLS_
