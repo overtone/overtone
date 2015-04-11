@@ -19,9 +19,13 @@
       (metro-beat [metro] [metro beat]
         "Returns the next beat number or the timestamp (in milliseconds) of the
      given beat.")
+      (metro-beat-phase [metro]
+        "Returns the distance traveled into the current beat [0.0, 1.0)")
       (metro-bar [metro] [metro  bar]
     "Returns the next bar number or the timestamp (in milliseconds) of the
      given bar")
+      (metro-bar-phase [metro]
+        "Returns the distance traveled into the current bar [0.0, 1.0)")
       (metro-bpb [metro] [metro new-bpb]
     "Get the current beats per bar or change it to new-bpb")
       (metro-bpm [metro] [metro new-bpm]
@@ -62,8 +66,14 @@
   (metro-tock  [metro] (beat-ms @bpb @bpm))
   (metro-beat  [metro] (inc (long (/ (- (now) @start) (metro-tick metro)))))
   (metro-beat  [metro b] (+ (* b (metro-tick metro)) @start))
+  (metro-beat-phase [metro]
+    (let [ratio (/ (- (now) @start) (metro-tick metro))]
+      (- (float ratio) (long ratio))))
   (metro-bar   [metro] (inc (long (/ (- (now) @bar-start) (metro-tock metro)))))
   (metro-bar   [metro b] (+ (* b (metro-tock metro)) @bar-start))
+  (metro-bar-phase [metro]
+    (let [ratio (/ (- (now) @start) (metro-tock metro))]
+      (- (float ratio) (long ratio))))
   (metro-bpm   [metro] @bpm)
   (metro-bpm   [metro new-bpm]
     (let [cur-beat      (metro-beat metro)
