@@ -26,6 +26,7 @@
     extras.ay
     extras.bbcut2u
     extras.bat
+    extras.vbap
     extras.vosim
     extras.berlach
     extras.membrane

@@ -3,6 +3,31 @@
 
 (def specs
   [
+   {:name "DelTapWr",
+    :args [{:name "buffer" :default 0.0 :doc "the buffer to write signal into. Max delay time is based on buffer size."}
+           {:name "in"
+            :default 0.0
+            :doc "the signal to write to the buffer."}]
+           
+           :check (nth-input-stream? 1)
+           :doc "Tap a delay line from a del-tap-wr UGen" }
+   {:name "DelTapRd",
+    :args [{:name "buffer" :default 0.0 :doc "buffer where del-tap-wr has written signal. Max delay time is based on buffer size."}
+
+           {:name "phase" :default 0.0 :doc "the current phase of the del-tap-wr UGen. This is the output of DelTapWr."}
+
+           {:name "delay" :default 0.0 :doc "A delay time in seconds."}
+
+           {:name "interp" :default 1 :doc "the kind of interpolation to be used. 1 is none, 2 is linear, 4 is cubic."}
+
+           {:name "mul" :default 1.0 :doc ""}
+           
+           {:name "add" :default 0.0 :doc ""}
+
+           ]
+;;    :check (nth-input-stream? 0)
+    :doc "Tap a delay line from a del-tap-wr UGen" }
+
    {:name "Delay1",
     :args [{:name "in"
             :default 0.0
