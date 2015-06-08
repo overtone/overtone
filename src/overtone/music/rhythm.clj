@@ -54,45 +54,78 @@
   IMetronome
   (metro-start [metro] @start)
   (metro-start [metro start-beat]
-    (let [new-start (- (now) (* start-beat (metro-tick metro)))]
-      (reset! start new-start)
-      new-start))
+    (dosync
+     (ensure bpm)
+     (let [new-start (- (now) (* start-beat (metro-tick metro)))]
+       (ref-set start new-start)
+       new-start)))
   (metro-bar-start [metro] @bar-start)
   (metro-bar-start [metro start-bar]
-    (let [new-bar-start (- (now) (* start-bar (metro-tock metro)))]
-      (reset! bar-start new-bar-start)
-      new-bar-start))
+    (dosync
+     (ensure bpm)
+     (ensure bpb)
+     (let [new-bar-start (- (now) (* start-bar (metro-tock metro)))]
+       (ref-set bar-start new-bar-start)
+       new-bar-start)))
   (metro-tick  [metro] (beat-ms 1 @bpm))
-  (metro-tock  [metro] (beat-ms @bpb @bpm))
-  (metro-beat  [metro] (inc (long (/ (- (now) @start) (metro-tick metro)))))
-  (metro-beat  [metro b] (+ (* b (metro-tick metro)) @start))
+  (metro-tock  [metro] (dosync
+                        (ensure bpm)
+                        (ensure bpb)
+                        (beat-ms @bpb @bpm)))
+  (metro-beat  [metro] (dosync
+                        (ensure start)
+                        (ensure bpm)
+                        (inc (long (/ (- (now) @start) (metro-tick metro))))))
+  (metro-beat  [metro b] (dosync
+                          (ensure start)
+                          (ensure bpm)
+                          (+ (* b (metro-tick metro)) @start)))
   (metro-beat-phase [metro]
-    (let [ratio (/ (- (now) @start) (metro-tick metro))]
-      (- (float ratio) (long ratio))))
-  (metro-bar   [metro] (inc (long (/ (- (now) @bar-start) (metro-tock metro)))))
-  (metro-bar   [metro b] (+ (* b (metro-tock metro)) @bar-start))
+    (dosync
+     (ensure start)
+     (ensure bpm)
+     (let [ratio (/ (- (now) @start) (metro-tick metro))]
+       (- (float ratio) (long ratio)))))
+  (metro-bar   [metro] (dosync
+                        (ensure bar-start)
+                        (ensure bpm)
+                        (ensure bpb)
+                        (inc (long (/ (- (now) @bar-start) (metro-tock metro))))))
+  (metro-bar   [metro b] (dosync
+                          (ensure bar-start)
+                          (ensure bpm)
+                          (ensure bpb)
+                          (+ (* b (metro-tock metro)) @bar-start)))
   (metro-bar-phase [metro]
-    (let [ratio (/ (- (now) @start) (metro-tock metro))]
-      (- (float ratio) (long ratio))))
+    (dosync
+     (ensure start)
+     (ensure bpm)
+     (ensure bpb)
+     (let [ratio (/ (- (now) @start) (metro-tock metro))]
+       (- (float ratio) (long ratio)))))
   (metro-bpm   [metro] @bpm)
   (metro-bpm   [metro new-bpm]
-    (let [cur-beat      (metro-beat metro)
-          cur-bar       (metro-bar metro)
-          new-tick      (beat-ms 1 new-bpm)
-          new-tock      (* @bpb new-tick)
-          new-start     (- (metro-beat metro cur-beat) (* new-tick cur-beat))
-          new-bar-start (- (metro-bar metro cur-bar) (* new-tock cur-bar))]
-      (reset! start new-start)
-      (reset! bar-start new-bar-start)
-      (reset! bpm new-bpm))
+    (dosync
+     (ensure bpb)
+     (let [cur-beat      (metro-beat metro)
+           cur-bar       (metro-bar metro)
+           new-tick      (beat-ms 1 new-bpm)
+           new-tock      (* @bpb new-tick)
+           new-start     (- (metro-beat metro cur-beat) (* new-tick cur-beat))
+           new-bar-start (- (metro-bar metro cur-bar) (* new-tock cur-bar))]
+       (ref-set start new-start)
+       (ref-set bar-start new-bar-start)
+       (ref-set bpm new-bpm)))
     [:bpm new-bpm])
   (metro-bpb   [metro] @bpb)
   (metro-bpb   [metro new-bpb]
-    (let [cur-bar       (metro-bar metro)
-          new-tock      (beat-ms new-bpb @bpm)
-          new-bar-start (- (metro-bar metro cur-bar) (* new-tock cur-bar))]
-      (reset! bar-start new-bar-start)
-      (reset! bpb new-bpb)))
+    (dosync
+     (ensure bpm)
+     (let [cur-bar       (metro-bar metro)
+           new-tock      (beat-ms new-bpb @bpm)
+           new-bar-start (- (metro-bar metro cur-bar) (* new-tock cur-bar))]
+       (ref-set bar-start new-bar-start)
+       (ref-set bpb new-bpb))))
 
   clojure.lang.ILookup
   (valAt [this key] (.valAt this key nil))
@@ -126,10 +159,10 @@
   (m :bpm)     ; => return the current bpm val
   (m :bpm 140) ; => set bpm to 140"
   [bpm]
-  (let [start (atom (now))
-        bar-start (atom @start)
-        bpm   (atom bpm)
-        bpb   (atom 4)]
+  (let [start (ref (now))
+        bar-start (ref @start)
+        bpm   (ref bpm)
+        bpb   (ref 4)]
     (Metronome. start bar-start bpm bpb)))
 
 ;== Grooves
