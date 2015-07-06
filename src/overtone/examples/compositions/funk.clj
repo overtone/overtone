@@ -25,7 +25,7 @@
 
 (defn subdivide
     "subdivide two time intervals by 4, and return the time interval
-    at position. this is a close-hihateap hack to sclose-hihatedule 16th notes without
+    at position. this is a cheap hack to schedule 16th notes without
     defining the whole pattern with the metronome firing every 16th note."
     [a b position]
     (+ a (* position (/ (- b a) 4) )))
