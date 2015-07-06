@@ -8,7 +8,7 @@
             [overtone.algo chance scaling trig fn lists]
             [overtone.sc bindings buffer bus envelope example info
              ugens defcgen node sample server synth clock
-             foundation-groups dyn-vars trig]
+             foundation-groups dyn-vars trig vbap]
             [overtone.sc.cgens oscillators demand mix dyn io buf-io env tap
              line freq beq-suite berlach bhob fx info]
             [overtone.music rhythm pitch tuning time]
@@ -71,6 +71,7 @@
    'overtone.sc.foundation-groups
    'overtone.sc.dyn-vars
    'overtone.sc.trig
+   'overtone.sc.vbap
    'overtone.sc.cgens.oscillators
    'overtone.sc.cgens.demand
    'overtone.sc.cgens.mix

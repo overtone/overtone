@@ -50,5 +50,5 @@ work:
     [ ] SummerUGens
     [*] TJUGens
     [ ] TagSystemUGens
-    [ ] VBAPUGens
+    [*] VBAPUGens
     [*] VOSIMUGens
