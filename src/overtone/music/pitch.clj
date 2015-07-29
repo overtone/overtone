@@ -586,6 +586,14 @@
                     (/ (java.lang.Math/log (* freq 0.0022727272727))
                        (java.lang.Math/log 2))))))
 
+(defn hz->midifloat
+  "Convert from a frequency to a midifloat note number."
+  [freq]
+  (+ 69
+     (* 12
+        (/ (java.lang.Math/log (* freq 0.0022727272727))
+           (java.lang.Math/log 2)))))
+
 ; ampdb
 (defn amp->db
   "Convert linear amplitude to decibels."

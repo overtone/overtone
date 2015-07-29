@@ -41,8 +41,6 @@
    :ugens-paths              {:default nil    :flag "-U" :desc "A list of paths of ugen directories. If specified, the standard paths are NOT searched for plugins."}
    :restricted-path          {:default nil    :flag "-P" :desc "Prevents file-accesing OSC commands from accessing files outside the specified path."}})
 
-
-
 (defn- number
   [arg-name val]
   (cond

@@ -70,7 +70,6 @@
 (extend-type java.lang.Integer to-sc-id* (to-sc-id [v] v))
 (extend-type java.lang.Float to-sc-id* (to-sc-id [v] v))
 
-
 (defonce ^{:private true} __RECORDS__
   (do
    (defrecord SynthNode [synth id target position args sdef status loaded?]
@@ -154,8 +153,6 @@
 
     (zipmap (map name-fn (keys arg-map))
             (map val-fn (vals arg-map)))))
-
-
 
 (defmethod print-method SynthNode [s-node w]
   (.write w (format "#<synth-node[%s]: %s %d>"

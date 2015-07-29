@@ -350,7 +350,7 @@
 (defn vbap-speaker-array
   "calculate the sets-and-matrices vector used by the vbap ugen by
   providing a sequence of angles (2-d) or angle/elevation
-  pairs (3-d). Elevation should be in the range [0..90] (no checking
+  pairs (3-d). Elevation should be in the range [-90..90] (no checking
   is done!). The sequences can be supplied either as lists or
   vectors. The calculated vector has to get stored in a buffer on the
   sc-server to be referenced by the vbap ugen.
