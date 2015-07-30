@@ -5,13 +5,16 @@
   (:use [overtone.samples.freesound.url]
         [overtone.samples.freesound.search-results]
         [overtone.sc.node]
-        [overtone.helpers.lib :only [defrecord-ifn]])
+        [overtone.helpers.lib :only [defrecord-ifn]]
+        [overtone.helpers.file :only [*authorization-header*]])
   (:require [clojure.data.json :as json]
             [overtone.libs.asset :as asset]
             [overtone.sc.sample :as samp]
             [overtone.sc.buffer :as buffer]))
 
-(def ^:dynamic *api-key* "47efd585321048819a2328721507ee23")
+(def ^:dynamic *client-id* "ea6297be42e9de76d47c")
+(def ^:dynamic *api-key* "32da10a118819877ec041752680588c62684c0b2")
+(def ^:dynamic *access-token* (atom false))
 
 (defonce ^{:private true} __RECORDS__
   (do
@@ -35,20 +38,14 @@
                      :else (str (:n-channels b) " channels"))
                     (:id b))))
 
-(defn- url-with-key
-  "Appends the api_key to a url. Takes an optional map of params."
-  [url & [params]]
-  (let [params (assoc params :api_key *api-key*)]
-    (build-url url params)))
-
-(def ^:private base-url "http://www.freesound.org/api")
+(def ^:private base-url "https://www.freesound.org/apiv2")
 
 (defn- freesound-url
   "Generate a freesound.org api url. Accepts an optional map of query-params as the last argument."
   [& url-tail]
   (let [params   (if (map? (last url-tail)) (last url-tail))
         url-tail (if params (butlast url-tail) url-tail)]
-    (url-with-key (apply str base-url url-tail) params)))
+    (build-url (apply str base-url url-tail) params)))
 
 (defn- slurp-json
   "Slurp and read the json asset."
@@ -64,12 +61,40 @@
   [url]
   (slurp-json (asset/asset-path url)))
 
+(defn post-request [url params]
+  (let [url (java.net.URL. url)
+        con (.openConnection url)]
+    (.setDoOutput con true)
+    (.setRequestMethod con "POST")
+    (let [w (java.io.BufferedWriter. (java.io.OutputStreamWriter. (.getOutputStream con)))]
+      (.write w (encode-query params))
+      (.close w))
+    (let [r (.getInputStream con)]
+      r)))
+
+(defn access-token [code]
+  (let [r (:access_token
+           (slurp-json
+            (post-request
+             (freesound-url "/oauth2/access_token/")
+             {:client_id *client-id*
+              :client_secret *api-key*
+              :grant_type "authorization_code"
+              :code code})))]
+    (reset! *access-token* r)))
+
+(defn authorization-instructions []
+  (println "Point your browser to")
+  (println (freesound-url "/oauth2/authorize/" {:client_id *client-id* :response_type "code"}))
+  (println "What authorization code did you get?")
+  (access-token (read-line)))
+
 ;; ## Sound Info
 (defn- info-url
   "Generate a freesound url for fetching a json datastructure representing the
   info for a given id."
   [id]
-  (freesound-url "/sounds/" id))
+  (freesound-url "/sounds/" id "/" {:format "json"}))
 
 (defn freesound-info
   "Returns a map containing information pertaining to a particular freesound.
@@ -81,20 +106,20 @@
 (defn- sound-serve-url
   "Generate a freesound url for fetching the original audio file by id."
   [id]
-  (freesound-url "/sounds/" id "/serve"))
+  (freesound-url "/sounds/" id "/download/"))
 
 (defn freesound-path
   "Download, cache, and persist the freesound audio file specified by
   id. Returns the path to a cached local copy of the audio file."
   [id]
-  (let [info (freesound-info id)
-        type (:type info)
-        name (:original_filename info)
-        url  (sound-serve-url id)]
-    (if (or (not type)
-            (some #{type} buffer/supported-file-types))
-      (asset/asset-path url name)
-      (throw (Exception. (str "Invalid sample type, only " buffer/supported-file-types " are supported. Found: " type))))))
+  (when (not @*access-token*)
+    (authorization-instructions))
+  (binding [*authorization-header* (str "Bearer " @*access-token*)]
+    (let [info (freesound-info id)
+          type (:type info)
+          name (:original_filename info)
+          url  (sound-serve-url id)]
+      (asset/asset-path url name))))
 
 
 (defn freesound-sample
@@ -119,7 +144,7 @@
 ;; ## Pack Info
 (defn- pack-info-url
   [id]
-  (freesound-url "/packs/" id))
+  (freesound-url "/packs/" id "/" {:format "json"}))
 
 (defn freesound-pack-info
   "Get information about a freesound sample pack. Returns a map of pack
@@ -131,7 +156,7 @@
 (defn- pack-serve-url
   "Freesound url for fetching a zipped sample pack by id."
   [id]
-  (freesound-url "/packs/" id "/serve"))
+  (freesound-url "/packs/" id "/download/"))
 
 (defn freesound-pack-dir
   "Download, cache, and persist all of the sounds in the freesound sample pack

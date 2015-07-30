@@ -11,6 +11,7 @@
             [clojure.string :as str]))
 
 (def ^{:dynamic true} *verbose-overtone-file-helpers* false)
+(def ^{:dynamic true} *authorization-header* false)
 
 (defn get-current-directory []
   (. (java.io.File. ".") getCanonicalPath))
@@ -178,6 +179,8 @@
   [url]
   (let [url (if (= URL (type url)) url (URL. url))
         con (.openConnection url)]
+    (when *authorization-header*
+      (.setRequestProperty con "Authorization" *authorization-header*))
     (.getContentLength con)))
 
 (defn- percentage-slices
@@ -242,6 +245,8 @@
         size        (remote-file-size url)
         url         (URL. url)
         con         (.openConnection url)]
+    (when *authorization-header*
+      (.setRequestProperty con "Authorization" *authorization-header*))
     (.setReadTimeout con timeout)
     (with-open [in (.getInputStream con)
                 out (output-stream target-path)]
@@ -255,9 +260,12 @@
   (let [url  (URL. url)
         con  (.openConnection url)
         size (remote-file-size url)]
+    (when *authorization-header*
+      (.setRequestProperty con "Authorization" *authorization-header*))
     (.setReadTimeout con timeout)
     (with-open [in (.getInputStream con)
                 out (StringWriter.)]
+      ;; NOTE: this seems broken when size is -1, which happens when getContentLength is absent
       (copy in out size)
       (.toString out))))
 
@@ -426,3 +434,4 @@
   ([url path timeout n-retries wait-t]
      (print-download-file url)
      (download-file* url path timeout n-retries wait-t)))
+
