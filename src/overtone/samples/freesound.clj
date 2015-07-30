@@ -61,7 +61,8 @@
   [url]
   (slurp-json (asset/asset-path url)))
 
-(defn post-request [url params]
+;; a generic POST request, nothing specific to freesound
+(defn- post-request [url params]
   (let [url (java.net.URL. url)
         con (.openConnection url)]
     (.setDoOutput con true)
@@ -84,10 +85,16 @@
     (reset! *access-token* r)))
 
 (defn authorization-instructions []
-  (println "Point your browser to")
-  (println (freesound-url "/oauth2/authorize/" {:client_id *client-id* :response_type "code"}))
-  (println "What authorization code did you get?")
+  (clojure.java.browse/browse-url (freesound-url "/oauth2/authorize/" {:client_id *client-id* :response_type "code"}))
   (access-token (read-line)))
+
+(defmacro with-authorization-header [b]
+  `(binding [*authorization-header*
+             (fn []
+               (when (not @*access-token*)
+                 (authorization-instructions))
+               (str "Bearer " @*access-token*))]
+     ~b))
 
 ;; ## Sound Info
 (defn- info-url
@@ -100,7 +107,7 @@
   "Returns a map containing information pertaining to a particular freesound.
   The freesound id may be specified as an integer or string."
   [id]
-  (slurp-json-asset (info-url id)))
+  (with-authorization-header (slurp-json-asset (info-url id))))
 
 ;; ## Sound Serve
 (defn- sound-serve-url
@@ -112,14 +119,11 @@
   "Download, cache, and persist the freesound audio file specified by
   id. Returns the path to a cached local copy of the audio file."
   [id]
-  (when (not @*access-token*)
-    (authorization-instructions))
-  (binding [*authorization-header* (str "Bearer " @*access-token*)]
-    (let [info (freesound-info id)
-          type (:type info)
-          name (:original_filename info)
-          url  (sound-serve-url id)]
-      (asset/asset-path url name))))
+  (let [info (freesound-info id)
+        type (:type info)
+        name (:original_filename info)
+        url  (sound-serve-url id)]
+    (with-authorization-header (asset/asset-path url name))))
 
 
 (defn freesound-sample
@@ -150,7 +154,7 @@
   "Get information about a freesound sample pack. Returns a map of pack
   properties for the given pack id."
   [id]
-  (slurp-json-asset (pack-info-url id)))
+  (with-authorization-header (slurp-json-asset (pack-info-url id))))
 
 ;; ## Pack Serve
 (defn- pack-serve-url
@@ -164,7 +168,7 @@
   audio files."
   [id]
   (let [url (pack-serve-url id)]
-  (asset/asset-bundle-dir url)))
+    (with-authorization-header (asset/asset-bundle-dir url))))
 
 ;; ## Sound Search
 (defn- search-url
@@ -262,5 +266,5 @@
     (map (fn [sound]
            (let [url  (sound-serve-url (:id sound))
                  name (:original_filename sound)]
-             (asset/asset-path url name)))
+             (with-authorization-header (asset/asset-path url name))))
          (freesound-search* params))))

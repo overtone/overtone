@@ -180,7 +180,7 @@
   (let [url (if (= URL (type url)) url (URL. url))
         con (.openConnection url)]
     (when *authorization-header*
-      (.setRequestProperty con "Authorization" *authorization-header*))
+      (.setRequestProperty con "Authorization" (*authorization-header*)))
     (.getContentLength con)))
 
 (defn- percentage-slices
@@ -246,7 +246,7 @@
         url         (URL. url)
         con         (.openConnection url)]
     (when *authorization-header*
-      (.setRequestProperty con "Authorization" *authorization-header*))
+      (.setRequestProperty con "Authorization" (*authorization-header*)))
     (.setReadTimeout con timeout)
     (with-open [in (.getInputStream con)
                 out (output-stream target-path)]
@@ -261,7 +261,7 @@
         con  (.openConnection url)
         size (remote-file-size url)]
     (when *authorization-header*
-      (.setRequestProperty con "Authorization" *authorization-header*))
+      (.setRequestProperty con "Authorization" (*authorization-header*)))
     (.setReadTimeout con timeout)
     (with-open [in (.getInputStream con)
                 out (StringWriter.)]
