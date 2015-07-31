@@ -8,6 +8,7 @@
         [overtone.helpers.lib :only [defrecord-ifn]]
         [overtone.helpers.file :only [*authorization-header*]])
   (:require [clojure.data.json :as json]
+            [clojure.java.browse]
             [overtone.libs.asset :as asset]
             [overtone.sc.sample :as samp]
             [overtone.sc.buffer :as buffer]))
