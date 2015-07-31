@@ -86,7 +86,10 @@
     (reset! *access-token* r)))
 
 (defn authorization-instructions []
-  (clojure.java.browse/browse-url (freesound-url "/oauth2/authorize/" {:client_id *client-id* :response_type "code"}))
+  (println "Authorize in browser and paste code in Stdin.")
+  (clojure.java.browse/browse-url
+   (freesound-url "/oauth2/authorize/"
+                  {:client_id *client-id* :response_type "code"}))
   (access-token (read-line)))
 
 (defmacro with-authorization-header [b]
