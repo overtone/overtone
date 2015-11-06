@@ -276,7 +276,7 @@
                   too large to be sent via UDP."))
        (let [data    (if (number? data) [data] data)
              doubles (map float data)]
-         (if (> (+ start-idx cnt) (:size buf))
+         (if (> (+ start-idx cnt) (:n-samples buf))
            (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index.")))
            (apply snd "/b_setn" (:id buf) start-idx cnt doubles))))
      buf))
