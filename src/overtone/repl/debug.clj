@@ -122,13 +122,14 @@
 (defn- expand-control-ug
   [ug c-idx sdef]
   (reduce (fn [res idx]
-            (conj res (assoc ug
-                        :inputs {}
-                        :orig-id c-idx
-                        :control-param (nth (:unified-params sdef) (+ (find-control-offset (:name ug) (:rate ug) sdef) idx))
-                        :default 1
-                        :id (mk-control-id (:id ug) idx)
-                        :outputs (nth (:outputs ug) idx))))
+            (let [cp (assoc (nth (:unified-params sdef) (+ (find-control-offset (:name ug) (:rate ug) sdef) idx)) :rate (:rate ug))]
+              (conj res (assoc ug
+                               :inputs {}
+                               :orig-id c-idx
+                               :control-param cp
+                               :default (:default cp)
+                               :id (mk-control-id (:id ug) idx)
+                               :outputs (nth (:outputs ug) idx)))))
           []
           (range (:n-outputs ug))))
 
