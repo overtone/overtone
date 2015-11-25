@@ -104,7 +104,7 @@
    an offest equalling the number of outputs of the first control ugen
    and the third equalling the summation of the number of outputs of the
    first and second control ugens, etc."
-  [c-name sdef]
+  [c-name rate sdef]
   (let [ctl-ugs (filter (fn [ug]
                           (control-ugen-name? (overtone-ugen-name (:name ug))))
                         (:ugens sdef))]
@@ -114,7 +114,8 @@
         (throw (Exception. (str "Couldn't find ugen with name " c-name
                                 " when calculating control offset val.") )))
       (let [ug (first ugs)]
-        (if (= c-name (overtone-ugen-name (:name ug)) )
+        (if (and (= c-name (overtone-ugen-name (:name ug)) )
+                 (= rate (REVERSE-RATES (:rate ug))))
           res
           (recur (+ res (:n-outputs ug)) (rest ugs)))))))
 
@@ -124,7 +125,7 @@
             (conj res (assoc ug
                         :inputs {}
                         :orig-id c-idx
-                        :control-param (nth (:unified-params sdef) (+ (find-control-offset (:name ug) sdef) idx))
+                        :control-param (nth (:unified-params sdef) (+ (find-control-offset (:name ug) (:rate ug) sdef) idx))
                         :default 1
                         :id (mk-control-id (:id ug) idx)
                         :outputs (nth (:outputs ug) idx))))
