@@ -49,7 +49,10 @@
   (with-out-str
     (doseq [ug ugs]
       (if (:control-param ug)
-        (println (str (:id ug) " [label = \"" (-> ug :name) "\n " (keyword (-> ug :control-param :name))  "\n default: " (-> ug :control-param :default) "\" shape=invhouse style=\"rounded, filled, bold\" fillcolor=black fontcolor=white ]; "))
+        (let [style (case (-> ug :control-param :rate)
+                          :ir "\" shape=invhouse style=\"rounded, dashed, filled, bold\" fillcolor=white fontcolor=black ]; "
+                          "\" shape=invhouse style=\"rounded, filled, bold\" fillcolor=black fontcolor=white ]; ")]
+          (println (str (:id ug) " [label = \"" (-> ug :name) "\n " (keyword (-> ug :control-param :name))  "\n default: " (-> ug :control-param :default) style)))
         (println (str (:id ug)
                       (with-out-str
                         (print " [label = \"{")
