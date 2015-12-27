@@ -1,0 +1,2005 @@
+nREPL server started on port 40166 on host 127.0.0.1 - nrepl://127.0.0.1:40166
+Jun 13, 2015 6:47:29 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: booting internal audio server
+no more csLADSPA plugins
+*** ERROR: dlsym load err '/home/orm/work/programmieren/clojure/vbap-test/target/native/linux/x86_64/libscsynth.so: undefined symbol: load'
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: The internal scsynth server has booted...
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:internal-server-booted)
+Found 379 LADSPA plugins
+JackDriver: client name is 'SuperCollider'
+SC_AudioDriver: sample rate = 44100,000000, driver's block size = 1024
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.server.connection/connect-internal
+--> Connecting to internal SuperCollider server...
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:internal-server-booted}
+event:  [:overtone :osc-msg-received] (:msg {:path "/status.reply", :type-tag "iiiiiffdd", :args (1 0 0 1 0 0.12364324 0.35953254 44100.0 44099.77157190807)}) 
+
+event:  "/status.reply" (:path "/status.reply" :args (1 0 0 1 0 0.12364324 0.35953254 44100.0 44099.77157190807)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/notify")}) 
+
+event:  "/done" (:path "/done" :args ("/notify")) 
+
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:server-connected)
+event:  :connection-complete nil 
+
+--> Connection established
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.server.connection/connect-jack-ports
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect SuperCollider:out_1 system:playback_1
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect SuperCollider:out_2 system:playback_2
+JackDriver: max output latency 46,4 ms
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect system:capture_1 SuperCollider:in_1
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect system:capture_2 SuperCollider:in_2
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.synthdef/load-all-synthdefs
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:synthdefs-loaded)
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+Jun 13, 2015 6:47:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.foundation-groups/setup-foundation-groups
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (1 0 -1 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (1 0 -1 -1 1 -1 -1)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :node-created 1] ({:node #<synth-group[live]: Overtone 1>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (0)}) 
+
+event:  "/synced" (:path "/synced" :args (0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (2 1 -1 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (2 1 -1 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 2] ({:node #<synth-group[live]: Overtone Timing 2>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (1)}) 
+
+event:  "/synced" (:path "/synced" :args (1)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (3 1 2 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (3 1 2 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 3] ({:node #<synth-group[live]: Overtone Inputs 3>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (2)}) 
+
+event:  "/synced" (:path "/synced" :args (2)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (4 1 3 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (4 1 3 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 4] ({:node #<synth-group[live]: Overtone Root 4>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (3)}) 
+
+event:  "/synced" (:path "/synced" :args (3)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (5 4 -1 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (5 4 -1 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 5] ({:node #<synth-group[live]: Overtone User 5>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (4)}) 
+
+event:  "/synced" (:path "/synced" :args (4)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (6 5 -1 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (6 5 -1 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 6] ({:node #<synth-group[live]: Overtone Safe Pre Default 6>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (5)}) 
+
+event:  "/synced" (:path "/synced" :args (5)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (7 5 6 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (7 5 6 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 7] ({:node #<synth-group[live]: Overtone Default 7>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (6)}) 
+
+event:  "/synced" (:path "/synced" :args (6)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (8 5 7 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (8 5 7 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 8] ({:node #<synth-group[live]: Overtone Safe Post Default 8>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (7)}) 
+
+event:  "/synced" (:path "/synced" :args (7)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (9 1 4 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (9 1 4 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 9] ({:node #<synth-group[live]: Overtone Output 9>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (8)}) 
+
+event:  "/synced" (:path "/synced" :args (8)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (10 1 9 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (10 1 9 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 10] ({:node #<synth-group[live]: Overtone Monitor 10>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (9)}) 
+
+event:  "/synced" (:path "/synced" :args (9)) 
+
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:foundation-groups-created)
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:internal-server-booted :server-connected}
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.bus/allocate-hw-audio-busses
+event:  [:overtone :osc-msg-received] (:msg {:path "/server-info", :type-tag "iiffffffffffff", :args (11 0 44100.0 2.2675737E-5 1.4247585E-4 689.0625 0.0014512471 0.0 8.0 8.0 512.0 4096.0 1024.0 1.0)}) 
+
+event:  "/server-info" (:path "/server-info" :args (11 0 44100.0 2.2675737E-5 1.4247585E-4 689.0625 0.0014512471 0.0 8.0 8.0 512.0 4096.0 1024.0 1.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (11 7 -1 -1 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (11 7 -1 -1 0)) 
+
+event:  [:overtone :node-created 11] ({:node #<synth-node[live]: overtone.sc.4a6/snd-server-info 11>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/server-info", :type-tag "iiffffffffffff", :args (12 1 44100.0 2.2675737E-5 1.4247585E-4 689.0625 0.0014512471 0.0 8.0 8.0 512.0 4096.0 1024.0 1.0)}) 
+
+event:  "/server-info" (:path "/server-info" :args (12 1 44100.0 2.2675737E-5 1.4247585E-4 689.0625 0.0014512471 0.0 8.0 8.0 512.0 4096.0 1024.0 1.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_end", :type-tag "iiiii", :args (11 7 -1 -1 0)}) 
+
+event:  "/n_end" (:path "/n_end" :args (11 7 -1 -1 0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (12 7 -1 -1 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (12 7 -1 -1 0)) 
+
+event:  [:overtone :node-destroyed 11] ({:node #<synth-node[destroyed]: overtone.sc.4a6/snd-server-info 11>}) 
+
+event:  [:overtone :node-created 12] ({:node #<synth-node[live]: overtone.sc.4a6/snd-server-info 12>}) 
+
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:hw-audio-buses-reserved)
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_end", :type-tag "iiiii", :args (12 7 -1 -1 0)}) 
+
+event:  "/n_end" (:path "/n_end" :args (12 7 -1 -1 0)) 
+
+event:  [:overtone :node-destroyed 12] ({:node #<synth-node[destroyed]: overtone.sc.4a6/snd-server-info 12>}) 
+
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :internal-server-booted :server-connected}
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.bus/create-monitor-group
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (13 10 -1 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (13 10 -1 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 13] ({:node #<synth-group[live]: Audio Bus Monitors 13>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (10)}) 
+
+event:  "/synced" (:path "/synced" :args (10)) 
+
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.clock/start-clock
+event:  [:overtone :osc-msg-received] (:msg {:path "/g_queryTree.reply", :type-tag "iiiiiiiiiii", :args (0 4 1 5 3 6 0 7 0 8 0)}) 
+
+event:  "/g_queryTree.reply" (:path "/g_queryTree.reply" :args (0 4 1 5 3 6 0 7 0 8 0)) 
+
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.mixer/start-bus-mixers
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (11)}) 
+
+event:  "/synced" (:path "/synced" :args (11)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (12)}) 
+
+event:  "/synced" (:path "/synced" :args (12)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (15 9 -1 -1 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (15 9 -1 -1 0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (16 9 -1 15 0)}) 
+
+event:  [:overtone :node-created 15] ({:node #<synth-node[live]: overtone.studid9b/out-bus-mixer 15>}) 
+
+event:  "/n_go" (:path "/n_go" :args (16 9 -1 15 0)) 
+
+event:  [:overtone :node-created 16] ({:node #<synth-node[live]: overtone.studid9b/out-bus-mixer 16>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (17 9 -1 16 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (17 9 -1 16 0)) 
+
+event:  [:overtone :node-created 17] ({:node #<synth-node[live]: overtone.studid9b/out-bus-mixer 17>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (18 9 -1 17 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (18 9 -1 17 0)) 
+
+event:  [:overtone :node-created 18] ({:node #<synth-node[live]: overtone.studid9b/out-bus-mixer 18>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (19 9 -1 18 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (19 9 -1 18 0)) 
+
+event:  [:overtone :node-created 19] ({:node #<synth-node[live]: overtone.studid9b/out-bus-mixer 19>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (20 9 -1 19 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (20 9 -1 19 0)) 
+
+event:  [:overtone :node-created 20] ({:node #<synth-node[live]: overtone.studid9b/out-bus-mixer 20>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (21 9 -1 20 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (21 9 -1 20 0)) 
+
+event:  [:overtone :node-created 21] ({:node #<synth-node[live]: overtone.studid9b/out-bus-mixer 21>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (22 9 -1 21 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (22 9 -1 21 0)) 
+
+event:  [:overtone :node-created 22] ({:node #<synth-node[live]: overtone.studid9b/out-bus-mixer 22>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (23 3 -1 -1 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (23 3 -1 -1 0)) 
+
+event:  [:overtone :node-created 23] ({:node #<synth-node[live]: overtone.studiod9b/in-bus-mixer 23>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (24 3 -1 23 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (24 3 -1 23 0)) 
+
+event:  [:overtone :node-created 24] ({:node #<synth-node[live]: overtone.studiod9b/in-bus-mixer 24>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (25 3 -1 24 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (25 3 -1 24 0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (26 3 -1 25 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (26 3 -1 25 0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (27 3 -1 26 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (27 3 -1 26 0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (28 3 -1 27 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (28 3 -1 27 0)) 
+
+event: event: event:   [:overtone :node-created 27] ({:node #<synth-node[live]: overtone.studiod9b/in-bus-mixer 27>}) [:overtone :node-created 25] ({:node #<synth-node[live]: overtone.studiod9b/in-bus-mixer 25>})
+ 
+ [:overtone :node-created 26] ({:node #<synth-node[live]: overtone.studiod9b/in-bus-mixer 26>}) 
+
+event:  [:overtone :node-created 28] ({:node #<synth-node[live]: overtone.studiod9b/in-bus-mixer 28>}) 
+
+
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (29 3 -1 28 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (29 3 -1 28 0)) 
+
+event:  [:overtone :node-created 29] ({:node #<synth-node[live]: overtone.studiod9b/in-bus-mixer 29>}) event: 
+ 
+[:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (30 3 -1 29 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (30 3 -1 29 0)) 
+
+event:  [:overtone :node-created 30] ({:node #<synth-node[live]: overtone.studiod9b/in-bus-mixer 30>}) 
+
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :foundation-groups-created :internal-server-booted :server-connected}
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.mixer/signal-server-ready
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:server-ready)
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :foundation-groups-created :internal-server-booted :hw-audio-buses-reserved :server-connected}
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.sample/load-all-samples
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.mixer/setup-studio-groups
+Jun 13, 2015 6:47:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Creating studio group  overtone.sc.node.SynthGroup@40df8005
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (31 4 -1 5 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (31 4 -1 5 1 -1 -1)) 
+
+event:  [:overtone :node-created 31] ({:node #<synth-group[live]: Studio 31>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (13)}) 
+
+event:  "/synced" (:path "/synced" :args (13)) 
+
+Jun 13, 2015 6:47:32 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:studio-setup-completed)
+Jun 13, 2015 6:47:32 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :foundation-groups-created :internal-server-booted :hw-audio-buses-reserved :server-ready :server-connected}
+Jun 13, 2015 6:47:32 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.scope/create-scope-group
+Jun 13, 2015 6:47:32 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:scope-group-created)
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (32 10 13 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (32 10 13 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 32] ({:node #<synth-group[live]: Scope 32>}) 
+
+Jun 13, 2015 6:47:32 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :studio-setup-completed :foundation-groups-created :internal-server-booted :hw-audio-buses-reserved :server-ready :server-connected}
+Jun 13, 2015 6:47:32 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.scope/reset-scopes
+Jun 13, 2015 6:47:32 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :studio-setup-completed :foundation-groups-created :internal-server-booted :scope-group-created :hw-audio-buses-reserved :server-ready :server-connected}
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (33 10 32 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (33 10 32 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 33] ({:node #<synth-group[live]: Vu 33>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (14 2 -1 -1 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (14 2 -1 -1 0)) 
+
+event:  [:overtone :node-created 14] ({:node #<synth-node[live]: over1ee/__internal-wall-clock__ 14>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (14)}) 
+
+event:  "/synced" (:path "/synced" :args (14)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 0)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (15)}) 
+
+event:  "/synced" (:path "/synced" :args (15)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (0 279558 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (0 279558 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (16)}) 
+
+event:  "/synced" (:path "/synced" :args (16)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/server-info", :type-tag "iiffffffffffff", :args (34 2 44100.0 2.2675737E-5 1.4247585E-4 689.0625 0.0014512471 0.0 8.0 8.0 512.0 4096.0 1024.0 18.0)}) 
+
+event:  "/server-info" (:path "/server-info" :args (34 2 44100.0 2.2675737E-5 1.4247585E-4 689.0625 0.0014512471 0.0 8.0 8.0 512.0 4096.0 1024.0 18.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (34 7 -1 -1 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (34 7 -1 -1 0)) 
+
+event:  [:overtone :node-created 34] ({:node #<synth-node[live]: overtone.sc.4a6/snd-server-info 34>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_end", :type-tag "iiiii", :args (34 7 -1 -1 0)}) 
+
+event:  "/n_end" (:path "/n_end" :args (34 7 -1 -1 0)) 
+
+event:  [:overtone :node-destroyed 34] ({:node #<synth-node[destroyed]: overtone.sc.4a6/snd-server-info 34>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 1)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 1)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (17)}) 
+
+event:  "/synced" (:path "/synced" :args (17)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (1 1197068 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (1 1197068 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (18)}) 
+
+event:  "/synced" (:path "/synced" :args (18)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 2)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 2)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (19)}) 
+
+event:  "/synced" (:path "/synced" :args (19)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (2 979767 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (2 979767 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (20)}) 
+
+event:  "/synced" (:path "/synced" :args (20)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 3)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 3)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (21)}) 
+
+event:  "/synced" (:path "/synced" :args (21)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (3 221165 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (3 221165 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (22)}) 
+
+event:  "/synced" (:path "/synced" :args (22)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 4)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 4)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (23)}) 
+
+event:  "/synced" (:path "/synced" :args (23)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (4 160698 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (4 160698 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (24)}) 
+
+event:  "/synced" (:path "/synced" :args (24)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 5)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 5)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (25)}) 
+
+event:  "/synced" (:path "/synced" :args (25)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (5 227837 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (5 227837 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (26)}) 
+
+event:  "/synced" (:path "/synced" :args (26)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 6)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 6)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (27)}) 
+
+event:  "/synced" (:path "/synced" :args (27)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (6 219916 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (6 219916 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (28)}) 
+
+event:  "/synced" (:path "/synced" :args (28)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 7)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 7)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (29)}) 
+
+event:  "/synced" (:path "/synced" :args (29)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (7 38834 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (7 38834 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (30)}) 
+
+event:  "/synced" (:path "/synced" :args (30)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 8)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 8)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (31)}) 
+
+event:  "/synced" (:path "/synced" :args (31)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (8 505339 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (8 505339 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (32)}) 
+
+event:  "/synced" (:path "/synced" :args (32)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 9)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 9)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (33)}) 
+
+event:  "/synced" (:path "/synced" :args (33)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (9 548128 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (9 548128 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (34)}) 
+
+event:  "/synced" (:path "/synced" :args (34)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 10)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 10)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (35)}) 
+
+event:  "/synced" (:path "/synced" :args (35)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (10 1618053 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (10 1618053 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (36)}) 
+
+event:  "/synced" (:path "/synced" :args (36)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 11)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 11)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (37)}) 
+
+event:  "/synced" (:path "/synced" :args (37)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (11 533099 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (11 533099 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (38)}) 
+
+event:  "/synced" (:path "/synced" :args (38)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 12)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 12)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (39)}) 
+
+event:  "/synced" (:path "/synced" :args (39)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (12 133235 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (12 133235 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (40)}) 
+
+event:  "/synced" (:path "/synced" :args (40)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 13)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 13)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (41)}) 
+
+event:  "/synced" (:path "/synced" :args (41)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (13 531900 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (13 531900 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (42)}) 
+
+event:  "/synced" (:path "/synced" :args (42)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 14)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 14)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (43)}) 
+
+event:  "/synced" (:path "/synced" :args (43)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (14 524087 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (14 524087 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (44)}) 
+
+event:  "/synced" (:path "/synced" :args (44)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 15)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 15)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (45)}) 
+
+event:  "/synced" (:path "/synced" :args (45)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (15 407152 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (15 407152 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (46)}) 
+
+event:  "/synced" (:path "/synced" :args (46)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 16)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 16)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (47)}) 
+
+event:  "/synced" (:path "/synced" :args (47)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (16 433934 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (16 433934 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (48)}) 
+
+event:  "/synced" (:path "/synced" :args (48)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 17)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 17)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (49)}) 
+
+event:  "/synced" (:path "/synced" :args (49)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (17 649233 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (17 649233 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (50)}) 
+
+event:  "/synced" (:path "/synced" :args (50)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 18)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 18)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (51)}) 
+
+event:  "/synced" (:path "/synced" :args (51)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (18 425685 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (18 425685 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (52)}) 
+
+event:  "/synced" (:path "/synced" :args (52)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 19)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 19)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (53)}) 
+
+event:  "/synced" (:path "/synced" :args (53)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (19 61576 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (19 61576 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (54)}) 
+
+event:  "/synced" (:path "/synced" :args (54)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 20)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 20)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (55)}) 
+
+event:  "/synced" (:path "/synced" :args (55)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (20 36239 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (20 36239 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (56)}) 
+
+event:  "/synced" (:path "/synced" :args (56)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 21)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 21)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (57)}) 
+
+event:  "/synced" (:path "/synced" :args (57)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (21 788300 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (21 788300 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (58)}) 
+
+event:  "/synced" (:path "/synced" :args (58)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 22)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 22)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (59)}) 
+
+event:  "/synced" (:path "/synced" :args (59)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (22 312615 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (22 312615 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (60)}) 
+
+event:  "/synced" (:path "/synced" :args (60)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 23)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 23)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (61)}) 
+
+event:  "/synced" (:path "/synced" :args (61)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (23 454587 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (23 454587 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (62)}) 
+
+event:  "/synced" (:path "/synced" :args (62)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 24)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 24)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (63)}) 
+
+event:  "/synced" (:path "/synced" :args (63)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (24 38380 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (24 38380 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (64)}) 
+
+event:  "/synced" (:path "/synced" :args (64)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 25)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 25)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (65)}) 
+
+event:  "/synced" (:path "/synced" :args (65)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (25 403280 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (25 403280 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (66)}) 
+
+event:  "/synced" (:path "/synced" :args (66)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 26)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 26)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (67)}) 
+
+event:  "/synced" (:path "/synced" :args (67)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (26 449980 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (26 449980 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (68)}) 
+
+event:  "/synced" (:path "/synced" :args (68)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 27)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 27)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (69)}) 
+
+event:  "/synced" (:path "/synced" :args (69)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (27 341909 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (27 341909 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (70)}) 
+
+event:  "/synced" (:path "/synced" :args (70)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 28)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 28)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (71)}) 
+
+event:  "/synced" (:path "/synced" :args (71)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (28 496191 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (28 496191 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (72)}) 
+
+event:  "/synced" (:path "/synced" :args (72)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 29)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 29)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (73)}) 
+
+event:  "/synced" (:path "/synced" :args (73)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (29 53888 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (29 53888 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (74)}) 
+
+event:  "/synced" (:path "/synced" :args (74)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 30)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 30)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (75)}) 
+
+event:  "/synced" (:path "/synced" :args (75)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (30 378971 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (30 378971 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (76)}) 
+
+event:  "/synced" (:path "/synced" :args (76)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 31)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 31)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (77)}) 
+
+event:  "/synced" (:path "/synced" :args (77)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (31 630598 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (31 630598 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (78)}) 
+
+event:  "/synced" (:path "/synced" :args (78)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 32)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 32)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (79)}) 
+
+event:  "/synced" (:path "/synced" :args (79)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (32 47404 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (32 47404 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (80)}) 
+
+event:  "/synced" (:path "/synced" :args (80)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 33)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 33)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (81)}) 
+
+event:  "/synced" (:path "/synced" :args (81)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (33 296267 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (33 296267 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (82)}) 
+
+event:  "/synced" (:path "/synced" :args (82)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 34)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 34)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (83)}) 
+
+event:  "/synced" (:path "/synced" :args (83)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (34 70787 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (34 70787 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (84)}) 
+
+event:  "/synced" (:path "/synced" :args (84)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 35)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 35)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (85)}) 
+
+event:  "/synced" (:path "/synced" :args (85)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (35 271287 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (35 271287 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (86)}) 
+
+event:  "/synced" (:path "/synced" :args (86)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 36)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 36)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (87)}) 
+
+event:  "/synced" (:path "/synced" :args (87)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (36 243029 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (36 243029 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (88)}) 
+
+event:  "/synced" (:path "/synced" :args (88)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 37)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 37)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (89)}) 
+
+event:  "/synced" (:path "/synced" :args (89)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (37 322711 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (37 322711 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (90)}) 
+
+event:  "/synced" (:path "/synced" :args (90)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 38)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 38)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (91)}) 
+
+event:  "/synced" (:path "/synced" :args (91)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (38 331805 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (38 331805 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (92)}) 
+
+event:  "/synced" (:path "/synced" :args (92)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 39)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 39)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (93)}) 
+
+event:  "/synced" (:path "/synced" :args (93)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (39 451843 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (39 451843 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (94)}) 
+
+event:  "/synced" (:path "/synced" :args (94)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 40)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 40)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (95)}) 
+
+event:  "/synced" (:path "/synced" :args (95)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (40 331849 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (40 331849 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (96)}) 
+
+event:  "/synced" (:path "/synced" :args (96)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 41)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 41)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (97)}) 
+
+event:  "/synced" (:path "/synced" :args (97)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (41 42032 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (41 42032 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (98)}) 
+
+event:  "/synced" (:path "/synced" :args (98)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 42)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 42)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (99)}) 
+
+event:  "/synced" (:path "/synced" :args (99)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (42 232473 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (42 232473 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (100)}) 
+
+event:  "/synced" (:path "/synced" :args (100)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 43)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 43)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (101)}) 
+
+event:  "/synced" (:path "/synced" :args (101)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (43 75702 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (43 75702 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (102)}) 
+
+event:  "/synced" (:path "/synced" :args (102)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 44)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 44)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (103)}) 
+
+event:  "/synced" (:path "/synced" :args (103)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (44 131667 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (44 131667 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (104)}) 
+
+event:  "/synced" (:path "/synced" :args (104)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 45)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 45)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (105)}) 
+
+event:  "/synced" (:path "/synced" :args (105)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (45 52125 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (45 52125 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (106)}) 
+
+event:  "/synced" (:path "/synced" :args (106)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 46)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 46)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (107)}) 
+
+event:  "/synced" (:path "/synced" :args (107)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (46 72836 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (46 72836 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (108)}) 
+
+event:  "/synced" (:path "/synced" :args (108)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 47)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 47)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (109)}) 
+
+event:  "/synced" (:path "/synced" :args (109)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (47 36118 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (47 36118 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (110)}) 
+
+event:  "/synced" (:path "/synced" :args (110)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 48)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 48)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (111)}) 
+
+event:  "/synced" (:path "/synced" :args (111)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (48 118228 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (48 118228 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (112)}) 
+
+event:  "/synced" (:path "/synced" :args (112)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 49)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 49)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (113)}) 
+
+event:  "/synced" (:path "/synced" :args (113)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (49 97942 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (49 97942 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (114)}) 
+
+event:  "/synced" (:path "/synced" :args (114)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 50)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 50)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (115)}) 
+
+event:  "/synced" (:path "/synced" :args (115)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (50 302963 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (50 302963 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (116)}) 
+
+event:  "/synced" (:path "/synced" :args (116)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 51)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 51)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (117)}) 
+
+event:  "/synced" (:path "/synced" :args (117)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (51 789275 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (51 789275 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (118)}) 
+
+event:  "/synced" (:path "/synced" :args (118)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 52)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 52)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (119)}) 
+
+event:  "/synced" (:path "/synced" :args (119)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (52 103718 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (52 103718 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (120)}) 
+
+event:  "/synced" (:path "/synced" :args (120)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 53)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 53)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (121)}) 
+
+event:  "/synced" (:path "/synced" :args (121)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (53 492511 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (53 492511 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (122)}) 
+
+event:  "/synced" (:path "/synced" :args (122)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 54)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 54)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (123)}) 
+
+event:  "/synced" (:path "/synced" :args (123)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (54 597229 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (54 597229 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (124)}) 
+
+event:  "/synced" (:path "/synced" :args (124)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 55)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 55)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (125)}) 
+
+event:  "/synced" (:path "/synced" :args (125)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (55 909401 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (55 909401 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (126)}) 
+
+event:  "/synced" (:path "/synced" :args (126)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 56)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 56)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (127)}) 
+
+event:  "/synced" (:path "/synced" :args (127)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (56 237688 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (56 237688 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (128)}) 
+
+event:  "/synced" (:path "/synced" :args (128)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 57)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 57)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (129)}) 
+
+event:  "/synced" (:path "/synced" :args (129)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (57 44900 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (57 44900 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (130)}) 
+
+event:  "/synced" (:path "/synced" :args (130)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 58)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 58)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (131)}) 
+
+event:  "/synced" (:path "/synced" :args (131)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (58 78029 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (58 78029 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (132)}) 
+
+event:  "/synced" (:path "/synced" :args (132)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 59)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 59)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (133)}) 
+
+event:  "/synced" (:path "/synced" :args (133)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (59 224703 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (59 224703 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (134)}) 
+
+event:  "/synced" (:path "/synced" :args (134)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 60)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 60)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (135)}) 
+
+event:  "/synced" (:path "/synced" :args (135)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (60 503375 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (60 503375 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (136)}) 
+
+event:  "/synced" (:path "/synced" :args (136)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 61)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 61)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (137)}) 
+
+event:  "/synced" (:path "/synced" :args (137)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (61 819252 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (61 819252 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (138)}) 
+
+event:  "/synced" (:path "/synced" :args (138)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 62)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 62)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (139)}) 
+
+event:  "/synced" (:path "/synced" :args (139)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (62 195702 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (62 195702 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (140)}) 
+
+event:  "/synced" (:path "/synced" :args (140)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 63)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 63)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (141)}) 
+
+event:  "/synced" (:path "/synced" :args (141)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (63 340909 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (63 340909 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (142)}) 
+
+event:  "/synced" (:path "/synced" :args (142)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 64)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 64)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (143)}) 
+
+event:  "/synced" (:path "/synced" :args (143)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (64 214091 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (64 214091 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (144)}) 
+
+event:  "/synced" (:path "/synced" :args (144)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 65)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 65)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (145)}) 
+
+event:  "/synced" (:path "/synced" :args (145)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (65 406710 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (65 406710 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (146)}) 
+
+event:  "/synced" (:path "/synced" :args (146)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 66)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 66)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (147)}) 
+
+event:  "/synced" (:path "/synced" :args (147)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (66 527702 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (66 527702 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (148)}) 
+
+event:  "/synced" (:path "/synced" :args (148)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 67)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 67)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (149)}) 
+
+event:  "/synced" (:path "/synced" :args (149)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (67 44322 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (67 44322 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (150)}) 
+
+event:  "/synced" (:path "/synced" :args (150)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 68)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 68)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (151)}) 
+
+event:  "/synced" (:path "/synced" :args (151)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (68 729750 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (68 729750 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (152)}) 
+
+event:  "/synced" (:path "/synced" :args (152)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 69)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 69)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (153)}) 
+
+event:  "/synced" (:path "/synced" :args (153)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (69 298632 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (69 298632 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (154)}) 
+
+event:  "/synced" (:path "/synced" :args (154)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 70)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 70)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (155)}) 
+
+event:  "/synced" (:path "/synced" :args (155)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (70 488867 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (70 488867 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (156)}) 
+
+event:  "/synced" (:path "/synced" :args (156)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 71)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 71)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (157)}) 
+
+event:  "/synced" (:path "/synced" :args (157)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (71 814560 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (71 814560 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (158)}) 
+
+event:  "/synced" (:path "/synced" :args (158)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 72)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 72)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (159)}) 
+
+event:  "/synced" (:path "/synced" :args (159)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (72 300806 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (72 300806 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (160)}) 
+
+event:  "/synced" (:path "/synced" :args (160)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 73)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 73)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (161)}) 
+
+event:  "/synced" (:path "/synced" :args (161)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (73 145046 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (73 145046 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (162)}) 
+
+event:  "/synced" (:path "/synced" :args (162)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 74)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 74)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (163)}) 
+
+event:  "/synced" (:path "/synced" :args (163)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (74 988977 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (74 988977 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (164)}) 
+
+event:  "/synced" (:path "/synced" :args (164)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 75)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 75)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (165)}) 
+
+event:  "/synced" (:path "/synced" :args (165)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (75 558489 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (75 558489 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (166)}) 
+
+event:  "/synced" (:path "/synced" :args (166)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 76)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 76)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (167)}) 
+
+event:  "/synced" (:path "/synced" :args (167)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (76 82932 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (76 82932 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (168)}) 
+
+event:  "/synced" (:path "/synced" :args (168)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 77)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 77)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (169)}) 
+
+event:  "/synced" (:path "/synced" :args (169)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (77 555368 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (77 555368 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (170)}) 
+
+event:  "/synced" (:path "/synced" :args (170)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 78)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 78)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (171)}) 
+
+event:  "/synced" (:path "/synced" :args (171)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (78 139884 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (78 139884 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (172)}) 
+
+event:  "/synced" (:path "/synced" :args (172)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 79)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 79)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (173)}) 
+
+event:  "/synced" (:path "/synced" :args (173)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (79 137911 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (79 137911 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (174)}) 
+
+event:  "/synced" (:path "/synced" :args (174)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 80)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 80)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (175)}) 
+
+event:  "/synced" (:path "/synced" :args (175)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (80 44595 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (80 44595 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (176)}) 
+
+event:  "/synced" (:path "/synced" :args (176)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 81)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 81)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (177)}) 
+
+event:  "/synced" (:path "/synced" :args (177)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (81 448837 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (81 448837 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (178)}) 
+
+event:  "/synced" (:path "/synced" :args (178)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 82)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 82)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (179)}) 
+
+event:  "/synced" (:path "/synced" :args (179)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (82 556780 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (82 556780 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (180)}) 
+
+event:  "/synced" (:path "/synced" :args (180)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 83)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 83)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (181)}) 
+
+event:  "/synced" (:path "/synced" :args (181)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (83 1166069 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (83 1166069 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (182)}) 
+
+event:  "/synced" (:path "/synced" :args (182)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 84)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 84)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (183)}) 
+
+event:  "/synced" (:path "/synced" :args (183)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (84 79584 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (84 79584 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (184)}) 
+
+event:  "/synced" (:path "/synced" :args (184)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 85)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 85)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (185)}) 
+
+event:  "/synced" (:path "/synced" :args (185)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (85 230659 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (85 230659 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (186)}) 
+
+event:  "/synced" (:path "/synced" :args (186)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 86)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 86)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (187)}) 
+
+event:  "/synced" (:path "/synced" :args (187)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (86 543968 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (86 543968 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (188)}) 
+
+event:  "/synced" (:path "/synced" :args (188)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_allocRead" 87)}) 
+
+event:  "/done" (:path "/done" :args ("/b_allocRead" 87)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (189)}) 
+
+event:  "/synced" (:path "/synced" :args (189)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (87 45801 2 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (87 45801 2 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (190)}) 
+
+event:  "/synced" (:path "/synced" :args (190)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_alloc" 88)}) 
+
+event:  "/done" (:path "/done" :args ("/b_alloc" 88)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (191)}) 
+
+event:  "/synced" (:path "/synced" :args (191)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (88 128 1 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (88 128 1 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (192)}) 
+
+event:  "/synced" (:path "/synced" :args (192)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "si", :args ("/b_alloc" 89)}) 
+
+event:  "/done" (:path "/done" :args ("/b_alloc" 89)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (193)}) 
+
+event:  "/synced" (:path "/synced" :args (193)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/b_info", :type-tag "iiif", :args (89 128 1 44100.0)}) 
+
+event:  "/b_info" (:path "/b_info" :args (89 128 1 44100.0)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (194)}) 
+
+event:  "/synced" (:path "/synced" :args (194)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (35 31 -1 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (35 31 -1 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 35] ({:node #<synth-group[live]: Inst sampled-piano Container 35>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (195)}) 
+
+event:  "/synced" (:path "/synced" :args (195)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (36 35 -1 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (36 35 -1 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 36] ({:node #<synth-group[live]: Inst sampled-piano 36>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (196)}) 
+
+event:  "/synced" (:path "/synced" :args (196)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiiiii", :args (37 35 36 -1 1 -1 -1)}) 
+
+event:  "/n_go" (:path "/n_go" :args (37 35 36 -1 1 -1 -1)) 
+
+event:  [:overtone :node-created 37] ({:node #<synth-group[live]: Inst sampled-piano FX 37>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (197)}) 
+
+event:  "/synced" (:path "/synced" :args (197)) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/n_go", :type-tag "iiiii", :args (38 35 37 -1 0)}) 
+
+event:  "/n_go" (:path "/n_go" :args (38 35 37 -1 0)) 
+
+event:  [:overtone :node-created 38] ({:node #<synth-node[live]: overtone.s547/stereo-inst-mixer 38>}) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/done", :type-tag "s", :args ("/d_recv")}) 
+
+event:  "/done" (:path "/done" :args ("/d_recv")) 
+
+event:  [:overtone :osc-msg-received] (:msg {:path "/synced", :type-tag "i", :args (198)}) 
+
+event:  "/synced" (:path "/synced" :args (198)) 
+

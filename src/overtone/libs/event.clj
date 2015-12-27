@@ -222,7 +222,7 @@
       (handlers/event handler-pool event-type event-info))))
 
 (defn sync-event
-  "Runs all event handlers synchronously of type event-tye regardless
+  "Runs all event handlers synchronously of type event-type regardless
   of whether they were declared as async or not. If handlers create
   new threads which generate events, these will revert back to the
   default behaviour of event (i.e. not forced sync). See event."

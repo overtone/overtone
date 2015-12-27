@@ -1,0 +1,81 @@
+nREPL server started on port 38316 on host 127.0.0.1 - nrepl://127.0.0.1:38316
+Jun 13, 2015 6:26:12 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: booting internal audio server
+no more csLADSPA plugins
+*** ERROR: dlsym load err '/home/orm/work/programmieren/clojure/vbap-test/target/native/linux/x86_64/libscsynth.so: undefined symbol: load'
+Jun 13, 2015 6:26:12 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: The internal scsynth server has booted...
+Found 379 LADSPA plugins
+JackDriver: client name is 'SuperCollider'
+SC_AudioDriver: sample rate = 44100,000000, driver's block size = 1024
+Jun 13, 2015 6:26:12 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:internal-server-booted)
+Jun 13, 2015 6:26:12 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.server.connection/connect-internal
+--> Connecting to internal SuperCollider server...
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:internal-server-booted}
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:server-connected)
+--> Connection established
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.server.connection/connect-jack-ports
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect SuperCollider:out_1 system:playback_1
+JackDriver: max output latency 46,4 ms
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect SuperCollider:out_2 system:playback_2
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect system:capture_1 SuperCollider:in_1
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect system:capture_2 SuperCollider:in_2
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.synthdef/load-all-synthdefs
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:synthdefs-loaded)
+Jun 13, 2015 6:26:13 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.foundation-groups/setup-foundation-groups
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:foundation-groups-created)
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:internal-server-booted :server-connected}
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.bus/allocate-hw-audio-busses
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:hw-audio-buses-reserved)
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :internal-server-booted :server-connected}
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.bus/create-monitor-group
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.clock/start-clock
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.mixer/start-bus-mixers
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :foundation-groups-created :internal-server-booted :server-connected}
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.mixer/signal-server-ready
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:server-ready)
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :foundation-groups-created :internal-server-booted :hw-audio-buses-reserved :server-connected}
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.sample/load-all-samples
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.mixer/setup-studio-groups
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Creating studio group  overtone.sc.node.SynthGroup@35d9f27c
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:studio-setup-completed)
+Jun 13, 2015 6:26:14 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :foundation-groups-created :internal-server-booted :hw-audio-buses-reserved :server-ready :server-connected}
+Jun 13, 2015 6:26:15 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.scope/create-scope-group
+Jun 13, 2015 6:26:15 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:scope-group-created)
+Jun 13, 2015 6:26:15 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :studio-setup-completed :foundation-groups-created :internal-server-booted :hw-audio-buses-reserved :server-ready :server-connected}
+Jun 13, 2015 6:26:15 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.scope/reset-scopes
+Jun 13, 2015 6:26:15 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :studio-setup-completed :foundation-groups-created :internal-server-booted :scope-group-created :hw-audio-buses-reserved :server-ready :server-connected}

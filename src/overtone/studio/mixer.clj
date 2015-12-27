@@ -36,16 +36,17 @@
 (defonce __BUS-MIXERS__
   (do
     (defsynth out-bus-mixer [out-bus 0
-                             volume 0.5 master-volume (:master-volume @studio*)
+                             volume 0.5
+                             master-volume (:master-volume @studio*)
                              safe-recovery-time 3]
       (let [source    (in out-bus)
             source    (* volume master-volume source)
             not-safe? (trig1 (a2k (> source 1)) safe-recovery-time)
-            safe-snd  (limiter source 0.99 0.001)]
+            safe-snd  (limiter source 1.000 0.001)]
         (send-reply not-safe?
                     "/server-audio-clipping-rogue-vol"
                     out-bus)
-        (replace-out out-bus safe-snd)))
+        (replace-out out-bus source)))
 
     (comment defsynth out-bus-mixer [out-bus 0
                              volume 0.5 master-volume (volume)

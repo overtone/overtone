@@ -1,0 +1,122 @@
+nREPL server started on port 45429 on host 127.0.0.1 - nrepl://127.0.0.1:45429
+
+Jun 13, 2015 6:29:29 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: booting internal audio server
+*** ERROR: dlsym load err '/home/orm/work/programmieren/clojure/vbap-test/target/native/linux/x86_64/libscsynth.so: undefined symbol: load'
+no more csLADSPA plugins
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: The internal scsynth server has booted...
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:internal-server-booted)
+Found 379 LADSPA plugins
+JackDriver: client name is 'SuperCollider'
+SC_AudioDriver: sample rate = 44100,000000, driver's block size = 1024
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.server.connection/connect-internal
+--> Connecting to internal SuperCollider server...
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:internal-server-booted}
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:server-connected)
+--> Connection established
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.server.connection/connect-jack-ports
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect SuperCollider:out_1 system:playback_1
+JackDriver: max output latency 46,4 ms
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect SuperCollider:out_2 system:playback_2
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect system:capture_1 SuperCollider:in_1
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: jack_connect system:capture_2 SuperCollider:in_2
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.synthdefv2/load-all-synthdefs
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:synthdefs-loaded)
+Jun 13, 2015 6:29:30 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.foundation-groups/setup-foundation-groups
+Jun 13, 2015 6:29:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:foundation-groups-created)
+Jun 13, 2015 6:29:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.machinery.synthdef/load-all-synthdefs
+Jun 13, 2015 6:29:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: satisfying deps: (:synthdefs-loaded)
+Jun 13, 2015 6:29:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:internal-server-booted :server-connected}
+Jun 13, 2015 6:29:31 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.bus/allocate-hw-audio-busses
+*** ERROR: SynthDef overtone.sc.4a6/snd-server-info not found
+FAILURE /s_new SynthDef not found
+java.util.concurrent.TimeoutException: deref! timeout error. Dereference took longer than 5000 ms whilst attempting to fetch server information
+	at overtone.helpers.lib$deref_BANG_.invoke(lib.clj:275)
+	at overtone.helpers.lib$deref_BANG_.invoke(lib.clj:269)
+	at overtone.sc.info$server_info.invoke(info.clj:73)
+	at overtone.sc.info$server_num_input_buses.invoke(info.clj:130)
+	at overtone.sc.bus$allocate_hw_audio_buses.invoke(bus.clj:346)
+	at overtone.libs.deps$satisfy_STAR_$execute_tasks__10749$fn__10752.invoke(deps.clj:85)
+	at overtone.libs.deps$satisfy_STAR_$execute_tasks__10749.invoke(deps.clj:84)
+	at clojure.lang.ArrayChunk.reduce(ArrayChunk.java:63)
+	at clojure.core.protocols$fn__6093.invoke(protocols.clj:98)
+	at clojure.core.protocols$fn__6057$G__6052__6066.invoke(protocols.clj:19)
+	at clojure.core.protocols$seq_reduce.invoke(protocols.clj:31)
+	at clojure.core.protocols$fn__6076.invoke(protocols.clj:60)
+	at clojure.core.protocols$fn__6031$G__6026__6044.invoke(protocols.clj:13)
+	at clojure.core$reduce.invoke(core.clj:6289)
+	at overtone.libs.deps$satisfy_STAR_.invoke(deps.clj:95)
+	at clojure.core$binding_conveyor_fn$fn__4145.invoke(core.clj:1916)
+	at clojure.lang.AFn.applyToHelper(AFn.java:156)
+	at clojure.lang.RestFn.applyTo(RestFn.java:132)
+	at clojure.lang.Agent$Action.doRun(Agent.java:114)
+	at clojure.lang.Agent$Action.run(Agent.java:163)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+	at java.lang.Thread.run(Thread.java:745)
+Jun 13, 2015 6:29:36 PM clojure.lang.Reflector invokeMatchingMethod
+SCHWERWIEGEND: Exception in dependency handler: :overtone.sc.bus/allocate-hw-audio-busses
+
+Jun 13, 2015 6:29:36 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :internal-server-booted :server-connected}
+Jun 13, 2015 6:29:36 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.bus/create-monitor-group
+Jun 13, 2015 6:29:36 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.sc.clock/start-clock
+Jun 13, 2015 6:29:36 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: Running dep handler: :overtone.studio.mixer/start-bus-mixers
+*** ERROR: SynthDef overtone.sc.4a6/snd-server-info not found
+FAILURE /s_new SynthDef not found
+*** ERROR: SynthDef over1ee/__internal-wall-clock__ not found
+FAILURE /s_new SynthDef not found
+java.util.concurrent.TimeoutException: deref! timeout error. Dereference took longer than 5000 ms whilst attempting to fetch server information
+	at overtone.helpers.lib$deref_BANG_.invoke(lib.clj:275)
+	at overtone.helpers.lib$deref_BANG_.invoke(lib.clj:269)
+	at overtone.sc.info$server_info.invoke(info.clj:73)
+	at overtone.sc.info$server_num_input_buses.invoke(info.clj:130)
+	at overtone.studio.mixer$start_io_mixers$fn__18000.invoke(mixer.clj:92)
+	at overtone.sc.machinery.server.comms$with_server_sync.invoke(comms.clj:117)
+	at overtone.studio.mixer$start_io_mixers.invoke(mixer.clj:91)
+	at overtone.libs.deps$satisfy_STAR_$execute_tasks__10749$fn__10752.invoke(deps.clj:85)
+	at overtone.libs.deps$satisfy_STAR_$execute_tasks__10749.invoke(deps.clj:84)
+	at clojure.lang.ArrayChunk.reduce(ArrayChunk.java:63)
+	at clojure.core.protocols$fn__6093.invoke(protocols.clj:98)
+	at clojure.core.protocols$fn__6057$G__6052__6066.invoke(protocols.clj:19)
+	at clojure.core.protocols$seq_reduce.invoke(protocols.clj:31)
+	at clojure.core.protocols$fn__6076.invoke(protocols.clj:60)
+	at clojure.core.protocols$fn__6031$G__6026__6044.invoke(protocols.clj:13)
+	at clojure.core$reduce.invoke(core.clj:6289)
+	at overtone.libs.deps$satisfy_STAR_.invoke(deps.clj:95)
+	at clojure.core$binding_conveyor_fn$fn__4145.invoke(core.clj:1916)
+	at clojure.lang.AFn.applyToHelper(AFn.java:156)
+	at clojure.lang.RestFn.applyTo(RestFn.java:132)
+	at clojure.lang.Agent$Action.doRun(Agent.java:114)
+	at clojure.lang.Agent$Action.run(Agent.java:163)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)
+	at java.lang.Thread.run(Thread.java:745)
+Jun 13, 2015 6:29:41 PM clojure.lang.Reflector invokeMatchingMethod
+SCHWERWIEGEND: Exception in dependency handler: :overtone.studio.mixer/start-bus-mixers
+
+Jun 13, 2015 6:29:41 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :foundation-groups-created :internal-server-booted :server-connected}
+Jun 13, 2015 6:29:41 PM clojure.lang.Reflector invokeMatchingMethod
+INFORMATION: deps-satisfied: #{:synthdefs-loaded :foundation-groups-created :internal-server-booted :server-connected}

@@ -236,12 +236,22 @@
   [devs]
   (vals (into {} (map (fn [dev] [(:device dev) dev]) devs))))
 
+
+(defn- remove-virmidi-subdevices
+  "Removes all snd-virmidi subdevices with index > 0 as the linux
+  module assigns 16 subdevices for each device."
+  [devs]
+  (filter (fn [dev] (not (re-find #"VirMIDI.*,(\d+\d|[^0])\]"
+                                  (:name dev))))
+          (remove-duplicate-devices (midi/midi-sources))))
+
 (defn- detect-midi-devices
   "Returns a set of MIDI device maps filtered to remove unwanted devices
    such as the Java Real Time Sequencer and duplicates"
   []
   (let [devs   (midi/midi-sources)
         devs   (remove-duplicate-devices devs)
+        devs   (remove-virmidi-subdevices devs)
         devs   (map #(assoc % ::dev-num (next-id
                                          (str "overtone.studio.midi - device - "
                                               (:vendor %)

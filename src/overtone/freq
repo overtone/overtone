@@ -1,0 +1,196 @@
+api.clj:            [overtone.studio mixer inst util fx wavetable midi midi-player core scope]
+api.clj:   'overtone.studio.midi-player
+device/midi/nanoKONTROL2.clj:(def event-handle [:midi-device "KORG INC." "SLIDER/KNOB" "nanoKONTROL2 SLIDER/KNOB" 0 :control-change])
+device/midi/nanoKONTROL2.clj:                                  :type :midi-in
+device/midi/nanoKONTROL2.clj:                                  :midi-handle "nanoKONTROL2"
+device/midi/nanoKONTROL2.clj:                        :type :midi-out
+device/midi/nanoKONTROL2.clj:                        :midi-handle "nanoKONTROL2"
+device/midi/nanoKONTROL2.clj:  incantation to the nanoKontrol2 midi-out object nko (this was
+device/midi/nanoKONTROL2.clj:     (midi-sysex (:out nko) m)))
+device/midi/nanoKONTROL2.clj:  (dotimes [n 100] (midi-control nko n 127)))
+device/midi/nanoKONTROL2.clj:    (midi-control out led-id 127)))
+device/midi/nanoKONTROL2.clj:    (midi-control out led-id 0)))
+device/midi/nanoKONTROL2.clj:  doesn't have the midi-handle \"nanoKONTROL2\" for both the input
+device/midi/nanoKONTROL2.clj:              (-> config :interfaces :input-controls :midi-handle)
+device/midi/nanoKONTROL2.clj:              (-> config :interfaces :leds :midi-handle)))
+device/midi/nanoKONTROL2.clj:  ([midi-in-str midi-out-str] (connect true midi-in-str midi-out-str))
+device/midi/nanoKONTROL2.clj:  ([force-external-led-mode? midi-in-str midi-out-str]
+device/midi/nanoKONTROL2.clj:     (let [out        (midi-out midi-out-str)
+examples/getting_started/melody.clj:  (let [play-note (fn [[beat midi]] (at (metro beat) (-> midi midi->hz harpsichord)))]
+examples/instruments/thx.clj:  (let [target-pitches (map midi->hz [77 74 72 70 65 62 60 58 53 50 46 34 26 22 14 10])
+examples/workshops/resonate2013/ex04_midi.clj:(midi-connected-devices)
+examples/compositions/auto_dubstep_bass.clj:            note (demand trig 0 (dseq (shuffle (map midi->hz (conj (range 24 45) 22))) INF))
+examples/compositions/blues.clj:            (bass (midi->hz (first pitch)) (* 4 (/ dur 1000.0))))
+examples/compositions/blues.clj:              (bass (midi->hz (first pitch)) (* 4 (/ dur 1000.0 2)) 0.1))
+examples/compositions/bells.clj:              (map #(when % (midi->hz %)) (apply degrees->pitches intervals scale)))]
+examples/compositions/rotater.clj:(def synth-out (first (midi-connected-receivers)))
+examples/compositions/rotater.clj:     (doseq [n notes] (midi-note-on synth-out n vel))
+examples/compositions/rotater.clj:    (doseq [n notes] (midi-note-off synth-out n))
+examples/compositions/jazz.clj:         (bass (midi->hz note)))
+examples/compositions/jazz.clj:           (bass (midi->hz note))))
+examples/compositions/jazz.clj:(def device-filter [ :midi-device "Novation DMS Ltd" "Launchpad" "Launchpad"])
+examples/midi/keyboard.clj:(defn midi-player [event]
+examples/midi/keyboard.clj:; Calling midi-in without any arguments will bring up a swing dialog to choose
+examples/midi/keyboard.clj:;(def keyboard (midi-in))
+examples/midi/keyboard.clj:; The low level midi handler mechanism from midi-clj uses midi-handle-events,
+examples/midi/keyboard.clj:;(midi-handle-events keyboard #'midi-player)
+examples/midi/keyboard.clj:; envelope so the release starts.  This is what overtone.studio.midi/midi-poly-player
+examples/midi/keyboard.clj:;(def ding-player (midi-poly-player poly-ding))
+examples/midi/keyboard.clj:;(midi-player-stop ding-player)
+examples/midi/basic.clj:              (prophet :freq (midi->hz note)
+examples/midi/basic.clj:              (prophet :freq (midi->hz note)
+examples/midi/basic.clj:          ::midi-debug)
+examples/midi/basic.clj:(remove-event-handler ::midi-debug)
+examples/midi/basic.clj:                          s (pad2 :freq (midi->hz n))]
+examples/midi/basic.clj:(midi-connected-devices)
+examples/midi/basic.clj:(def nk (midi-find-connected-device "nanoKEY2"))
+examples/midi/basic.clj:(def nks (midi-find-connected-devices "nanoKEY2"))
+examples/midi/basic.clj:(midi-mk-full-device-key nk)
+examples/midi/basic.clj:;;=> [:midi-device "KORG INC." "KEYBOARD" "nanoKEY2 KEYBOARD" 0]
+examples/midi/basic.clj:(on-event (conj (midi-mk-full-device-key nk) :note-on)
+examples/midi/basic.clj:              (prophet :freq (midi->hz note)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 28) :amp 3 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 40) :amp 3 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 45) :amp 2 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 48) :amp 2 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 52) :amp 2 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 55) :amp 2 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 57) :amp 2 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 64) :amp 1 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 67) :amp 1 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+examples/timing/internal_sequencer.clj:(supersaw2 (midi->hz 69) :amp 1 :fil-mul ssaw-fil-mul :rq ssaw-rq)
+libs/event.clj:  (on-event :midi-note-down (fn [event]
+libs/event.clj:                            ::midi-note-down-hdlr)
+libs/event.clj:  (on-event :midi-note-down (fn [event]
+libs/event.clj:                            ::midi-note-down-hdlr)
+music/pitch.clj:(defn- midi-string-matcher
+music/pitch.clj:(defn- validate-midi-string!
+music/pitch.clj:  "Throws a friendly exception if midi-keyword mk is not
+music/pitch.clj:  (let [matches (midi-string-matcher mk)]
+music/pitch.clj:              (str "Invalid midi-string. " mk
+music/pitch.clj:                (str "Invalid midi-string: " mk
+music/pitch.clj:  [midi-string]
+music/pitch.clj:  (let [[match pitch-class octave] (validate-midi-string! midi-string)
+music/pitch.clj:     :midi-note   (octave-note octave interval)}))
+music/pitch.clj:(defn mk-midi-string
+music/pitch.clj:  (midi-string :F 7)  ;=> \"F7\"
+music/pitch.clj:  (midi-string :Eb 3) ;=> \"Eb3\""
+music/pitch.clj:    (validate-midi-string! res)
+music/pitch.clj:    (string? n) (:midi-note (note-info n))
+music/pitch.clj:  "Returns the first midi-note formatted substring in s. If passed
+music/pitch.clj:(defn midi->hz
+samples/flute.clj:(defn- buffer->midi-note [buf note-map] (-> buf :freesound-id note-map name note))
+samples/flute.clj:                  note (buffer->midi-note buf note-map)]
+samples/piano.clj:(defn- buffer->midi-note [buf]
+samples/piano.clj:  (-> buf :freesound-id FREESOUND-PIANO-SAMPLES name match-note :midi-note))
+samples/piano.clj:  "Returns a map of midi-note values [0-127] to buffer ids."
+samples/piano.clj:            (let [note (buffer->midi-note buf)
+sc/machinery/ugen/metadata/unaryopugen.clj:   "midicps"     {:args [{:name "midi-note" :doc "MIDI note to convert"}]
+sc/machinery/ugen/special_ops.clj:    ^{:doc "Metadata regarding the various functionalities of the unary and binary ugens. These ugens are different to typical ugens in that they receive an 'opcode' as a parameter which defines its behviour - ranging from addition to trig functions to midi->cps conversion."
+studio/midi.clj:(defonce midi-control-agents* (atom {}))
+studio/midi.clj:(declare midi-connected-devices)
+studio/midi.clj:(declare midi-connected-receivers)
+studio/midi.clj:(defn midi-mk-full-device-key
+studio/midi.clj:                        (::dev-num (get (midi-connected-devices) (:device dev)))
+studio/midi.clj:        [:midi-device (dev :vendor) (dev :name) (dev :description) dev-num])))
+studio/midi.clj:(defn- midi-find-connected
+studio/midi.clj:                      (let [key-as-str (str (midi-mk-full-device-key dev))]
+studio/midi.clj:(defn midi-find-connected-devices
+studio/midi.clj:  (midi-find-connected search (midi-connected-devices)))
+studio/midi.clj:(defn midi-find-connected-receivers
+studio/midi.clj:  (midi-find-connected search (midi-connected-receivers)))
+studio/midi.clj:(defn midi-find-connected-device
+studio/midi.clj:  (first (midi-find-connected-devices search)))
+studio/midi.clj:(defn midi-find-connected-receiver
+studio/midi.clj:  (first (midi-find-connected-receivers search)))
+studio/midi.clj:(defn midi-mk-full-device-event-key
+studio/midi.clj:  (concat (midi-mk-full-device-key dev) [command]))
+studio/midi.clj:(defn midi-mk-full-control-event-key
+studio/midi.clj:  (concat (midi-mk-full-device-event-key dev command) [control-id]))
+studio/midi.clj:(defn midi-device-keys
+studio/midi.clj:  (map midi-mk-full-device-key (vals (midi-connected-devices))))
+studio/midi.clj:(defn- midi-control-handler
+studio/midi.clj:(defn midi-inst-controller
+studio/midi.clj:  (midi-inst-controller ding-state (partial ctl ding) ding-mapping)
+studio/midi.clj:              #(midi-control-handler state-atom handler mapping %)
+studio/midi.clj:(defn midi-player-stop
+studio/midi.clj:     (remove-event-handler [::midi-poly-player :midi :note-on])
+studio/midi.clj:     (remove-event-handler [::midi-poly-player :midi :note-off]))
+studio/midi.clj:       (midi-player-stop (get @poly-players* player-or-key))
+studio/midi.clj:         (when-not (= :overtone.studio.midi-player/midi-poly-player (type player))
+studio/midi.clj:           (throw (IllegalArgumentException. (str "Expected a midi-poly-player. Got: " (prn-str (type player))))))
+studio/midi.clj:(defn midi-capture-next-control-input
+studio/midi.clj:  ([] (midi-capture-next-control-input false))
+studio/midi.clj:                                    (assoc res :key (midi-mk-full-device-event-key (:device msg) :control-change))
+studio/midi.clj:(defn midi-capture-next-controller-key
+studio/midi.clj:  (:key (midi-capture-next-control-input true)))
+studio/midi.clj:(defn midi-capture-next-controller-control-key
+studio/midi.clj:  (let [next-input (midi-capture-next-control-input true)]
+studio/midi.clj:(defn midi-mk-control-key-keyword
+studio/midi.clj:  (midi-mk-control-key-keyword "overtone.studio.midi/update-agent-for-control-" control-key))
+studio/midi.clj:(defn midi-agent-for-control
+studio/midi.clj:  key such as that generated by midi-mk-full-control-event-key. If the
+studio/midi.clj:  (let [control-agents (swap! midi-control-agents*
+studio/midi.clj:(defn- handle-incoming-midi-event
+studio/midi.clj:  "Place incoming midi-event onto the global event stream."
+studio/midi.clj:        dev-key       (midi-mk-full-device-key dev)
+studio/midi.clj:        dev-event-key (midi-mk-full-device-event-key dev command)
+studio/midi.clj:    (event (midi-mk-full-device-key dev) msg)
+studio/midi.clj:    (event (midi-mk-full-control-event-key dev command (:data1 msg)) msg)
+studio/midi.clj:(defn- handle-incoming-midi-sysex
+studio/midi.clj:  (let [dev-key (midi-mk-full-device-key dev)
+studio/midi.clj:    (event (midi-mk-full-device-key dev) :sysex msg)))
+studio/midi.clj:(defn- remove-virmidi-subdevices
+studio/midi.clj:          (remove-duplicate-devices (midi/midi-sources))))
+studio/midi.clj:(defn- detect-midi-devices
+studio/midi.clj:  (let [devs   (midi/midi-sources)
+studio/midi.clj:        devs   (remove-virmidi-subdevices devs)
+studio/midi.clj:        devs   (map #(assoc % ::full-device-key (midi-mk-full-device-key %)) devs)]
+studio/midi.clj:(defn- detect-midi-receivers
+studio/midi.clj:  (let [rcvs   (midi/midi-sinks)
+studio/midi.clj:        rcvs   (map #(assoc % ::full-device-key (midi-mk-full-device-key %)) rcvs)]
+studio/midi.clj:              (midi/midi-handle-events (midi/midi-in dev)
+studio/midi.clj:                                  #(handle-incoming-midi-event dev %1)
+studio/midi.clj:                                  #(handle-incoming-midi-sysex dev %1))
+studio/midi.clj:(defonce ^:private midi-connected-devices*
+studio/midi.clj:  (-> (detect-midi-devices) add-listener-handles!))
+studio/midi.clj:(defonce ^:private midi-connected-receivers*
+studio/midi.clj:  (map midi/midi-out (detect-midi-receivers)))
+studio/midi.clj:(defn midi-connected-devices
+studio/midi.clj:  midi-connected-devices*)
+studio/midi.clj:(defn midi-connected-receivers
+studio/midi.clj:  midi-connected-receivers*)
+studio/midi.clj:(defn midi-device-num
+studio/midi.clj:(defn midi-full-device-key
+studio/midi.clj:(defn midi-sysex
+studio/midi.clj:   See midi-connected-receivers for a full list of available receivers."
+studio/midi.clj:  (midi/midi-sysex rcv byte-seq))
+studio/midi.clj:(defn midi-control
+studio/midi.clj:  "Send a MIDI control msg to the receiver. See midi-connected-receivers
+studio/midi.clj:     (midi/midi-control rcv ctl-num val))
+studio/midi.clj:     (midi/midi-control rcv ctl-num val channel)))
+studio/midi.clj:(defn midi-note-on
+studio/midi.clj:  "Send a MIDI note on msg to the receiver. See midi-connected-receivers
+studio/midi.clj:     (midi/midi-note-on rcv note-num vel))
+studio/midi.clj:     (midi/midi-note-on rcv note-num vel channel)))
+studio/midi.clj:(defn midi-note-off
+studio/midi.clj:  "Send a MIDI note off msg to the receiver. See midi-connected-receivers
+studio/midi.clj:     (midi/midi-note-off rcv note-num))
+studio/midi.clj:     (midi/midi-note-off rcv note-num channel)))
+studio/midi.clj:(defn midi-note
+studio/midi.clj:   See midi-connected-receivers for a full list of available receivers."
+studio/midi.clj:     (midi/midi-note rcv note-num vel dur))
+studio/midi.clj:     (midi/midi-note rcv note-num vel dur channel)))
+studio/midi_player.clj:(ns overtone.studio.midi-player
+studio/midi_player.clj:(defn midi-poly-player
+studio/midi_player.clj:    (def dinger (midi-poly-player ding))
+studio/midi_player.clj:  ([play-fn] (midi-poly-player play-fn ::midi-poly-player))
+studio/midi_player.clj:  ([play-fn player-key] (midi-poly-player play-fn [:midi] player-key))
+studio/midi_player.clj:           on-key        (concat [::midi-poly-player] on-event-key)
+studio/midi_player.clj:           off-key       (concat [::midi-poly-player] off-event-key)]
+studio/midi_player.clj:                      {:type ::midi-poly-player})]
+synth/stringed.clj:;; Ektara - a single-string synth.  Mainly for use with the midi-poly-player.
+synth/stringed.clj:;; For use with midi-poly-player, we need to make the default gate 1.
+synth/stringed.clj:;;   (def mpp (midi-poly-player (partial ektara :gate 1)))
+synth/sts.clj:;;(prophet :freq (midi->hz (note :E2)) :amp 3 :decay 5)
+synth/sts.clj:;;(prophet :freq (midi->hz (note :C3)) :amp 3 :decay 5)

@@ -202,7 +202,6 @@
     (dosync
      (ref-set connection-status* :disconnected))
     (throw (Exception. (str "Can't connect to native server - no compatible libraries for your system are available: " (get-cpu-bits) "-bit " (name (get-os)) "." ))))
-
   (let [sc-thread (Thread. #(internal-booter opts))]
     (.setDaemon sc-thread true)
     (println "--> Booting internal SuperCollider server...")

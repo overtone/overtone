@@ -1,6 +1,6 @@
 (ns
   ^{:doc "The ugen functions create a data structure representing a synthesizer
-         graph that can be executed on the synthesis server.  This is the logic
+         graph that can be executed on the synthesis server. This is the logic
          to \"compile\" these clojure data structures into a form that can be
          serialized by the byte-spec defined in synthdef.clj."
     :author "Jeff Rose"}

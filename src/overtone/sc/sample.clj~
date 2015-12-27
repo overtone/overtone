@@ -60,7 +60,7 @@
        values between 0 and 1). May be looped via the loop?
        argument. Release time is the release phase after the looping has
        finished to remove clipping."
-      [buf 0 rate 1 start 0 end 1 loop? 0 amp 1 release 0.1 attack 0 out-bus 0]
+      [buf 0 rate 1 start 0 end 1 loop? 0 amp 1 release 0.1 out-bus 0]
       (let [n-frames  (buf-frames buf)
             rate      (* rate (buf-rate-scale buf))
             start-pos (* start n-frames)
@@ -69,7 +69,7 @@
             snd       (buf-rd 1 buf phase)
             e-gate    (+ loop?
                          (a2k (latch:ar (line 1 0 0.0001) (bpz2 phase))))
-            env       (env-gen (asr attack 1 release) :gate e-gate :action FREE)]
+            env       (env-gen (asr 0 1 release) :gate e-gate :action FREE)]
         (out out-bus (* amp env snd))))
 
     (defsynth stereo-partial-player
@@ -118,11 +118,11 @@
     (let [f-name   (or (:name arg-map) (.getName f))
           start    (get arg-map :start 0)
           n-frames (get arg-map :size 0)
-          buf      (buffer-alloc-read path start n-frames arg-map)
+          buf      (buffer-alloc-read path start n-frames)
           sample   (map->Sample
                     (assoc buf
                       :path path
-                      :args (dissoc arg-map :timeout)
+                      :args arg-map
                       :name f-name))]
       (swap! cached-samples* assoc [path arg-map] sample)
       (swap! loaded-samples* assoc (:id buf) sample)
@@ -148,7 +148,7 @@
   (ensure-connected!)
   (let [args   (apply hash-map args)
         force? (:force args)
-        args   (select-keys args [:start :size :timeout])
+        args   (select-keys args [:start :size])
         path   (canonical-path path)]
     (if-let [sample (and (not force?)
                          (get @cached-samples* [path args]))]
@@ -183,6 +183,25 @@
   "Returns true if s is a sample"
   [s]
   (isa? (type s) ::sample))
+
+(comment
+  (defn sample?
+    "Returns true if s is a sample"
+    [s]
+    true)
+
+  (defn sample?
+    "Returns true if s is a sample"
+    [s]
+    (or (isa? (type s) ::sample)
+        (isa? (type s) vbap_test.solplayer.PlayableAstSample)))
+  (derive vbap_test.solplayer.PlayableAstSample ::playable-sample)
+  (derive ::playable-sample ::sample)
+  <)
+;;; (sample? (vbap-test.solplayer/ast-sample "/home/orm/work/snd/click-betont.wav"))
+
+;;; (derive vbap_test.solplayer.PlayableAstSample ::playable-sample)
+
 
 (defn- free-loaded-sample
   [smpl]
