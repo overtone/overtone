@@ -398,6 +398,11 @@
      (let [path (resolve-tilde-path path)]
        (try
          (download-file-with-timeout url path timeout)
+         (catch java.io.FileNotFoundException e
+           (rm-rf! path)
+           (Thread/sleep wait-t)
+           (print-if-verbose (str "Download failed. File not found: " url ))
+           (throw (Exception. (str "Aborting! Download failed. File not found: " url ))))
          (catch Exception e
            (rm-rf! path)
            (Thread/sleep wait-t)
