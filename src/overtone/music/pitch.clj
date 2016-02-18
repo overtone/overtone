@@ -355,13 +355,18 @@
              :v     5
              :vi    6
              :vii   7
+             :viii  8
+             :ix    9
+             :x     10
+             :xi    11
+             :xii   12
              :_     nil})
 
 (defn degree->int
   [degree]
   (if (some #{degree} (keys DEGREE))
     (degree DEGREE)
-    (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
+    (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :xii or the nil-note symbol :_")))))
 
 (defn resolve-degree
   "returns a map representing the degree, and the octave semitone
