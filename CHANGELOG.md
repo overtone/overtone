@@ -1,6 +1,6 @@
-# Change Log
+# Change Log 
 
-## Version 0.10.0 (1st April 2016)
+## Version 0.10.1 (1st April 2016)
 
 # Breaking Changes
 
