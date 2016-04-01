@@ -147,7 +147,7 @@
                   init time and can't be modified. This can be set lower
                   for more efficient use of memory." }]
     :rates #{:ar}
-    :check (nth-input-stream? 3)
+    :check (nth-input-stream? 2)
     :doc "Granulate an input signal"}
 
 
