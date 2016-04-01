@@ -2,8 +2,8 @@
 
 (def OVERTONE-VERSION {:major 0
                        :minor 10
-                       :patch 0
-                       :snapshot true})
+                       :patch 1
+                       :snapshot false})
 
 (def OVERTONE-VERSION-STR
   (let [version OVERTONE-VERSION]
