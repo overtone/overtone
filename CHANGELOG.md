@@ -1,5 +1,82 @@
 # Change Log
 
+## Version 0.10.0 (1st April 2016)
+
+# Breaking Changes
+
+* `control-bus-set-range!` arguments have been updated (to match OSC
+  API).  start and len args have been removed and offest params have
+  been added.
+* Freesound API has been updated to v2 and now requires a key :-(  
+  
+# New Synths
+
+* `mono-play-buffer-partial`
+* `stereo-play-buffer-partial`
+* Sample flute with vibrato
+
+# New ugens/cgens
+
+* `dyn-klang`
+* `dyn-klank`
+* `dfm1`
+* `distortion2`
+* `varlag`
+* `del-tap-wr`
+* `del-tap-rd`
+* `vbap`
+* `grain-fm`
+
+
+# New Fns
+
+* `sputter` - probabilistic repetition of a list's elements
+* `buffer-mix-to-mono` - create a new mono buffer by mixing a stereo buffer
+* `server-radians-per-sample`
+* `server-control-dur`
+* `server-control-rate`
+* `server-sample-dur`
+* `control-bus-get-channel` - get the value of an individual channel of a control bus.
+* `control-bus-fill!` - fill a sequence of control bus values with a specific value.
+* `env-adsr-ng` non-gated ADSR envelope
+
+
+# New clock
+Add new internal server clock with control-rate resolution. Introduces the folloing functions:
+
+* `server-clock-n-ticks` 
+* `server-clock-uptime`
+* `server-clock-time`
+* `server-clock-drift`
+
+And also a new group: `foundation-timing-group` which is at the head of
+all groups. There's also a new two-channel global clock-bus:
+`server-clock-b`.
+
+
+# Improvements
+
+
+* Make metronome safe to use across multiple threads
+* `*add-current-namespace-to-synth-name*`- new dynamic var for switching off auto namespacing of a synthdef name
+* `control-bus-get` may now return a sequence of vals when passed a multi-channel control bus. 
+* `.aif` is now a synonym for `.aiff` in list of supported audio files
+* Reduce chance of unexpected control bus clashes by auto-reserving bus
+  0 (and therefore ensuring that a default bus of 0 has no bad side
+  effects.)
+* Added new default value: `SC-MAX-FLOAT-VAL` - representing the maximum
+  whole number represented with scsynth's floats due to precision
+  constraints (2**24)
+* Only auto-allocate the required number of audio busses based on sound card properties.
+* Add support for par-groups (for supernova)
+
+# Bug Fixes
+
+* Graphviz - draw `:ir` rate control ugens with dashes
+* `node-tree-seq` now works correctly with no args
+* `defunk` now handles `nil` correctly in args
+
+
 ## Version 0.9.1 (25th November 2013)
 
 Version bump forced by Clojars missing a commit. Nothing new here.
