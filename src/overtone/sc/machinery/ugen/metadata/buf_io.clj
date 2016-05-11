@@ -223,6 +223,16 @@
        :rates #{:ar}
        :num-outs 0}
 
+      {:name "ScopeOut2",
+       :args [{:name "input-array", :mode :append-sequence}
+              {:name "scope-num", :default 0.0}
+              {:name "max-frames", :default 4096}
+              {:name "scope-frames", :default 4096}
+              ],
+       :rates #{:ar :kr}
+       :internal-name true
+       :num-outs 0}
+
       {:name "LocalBuf"
        :args [{:name "num-channels" :default 1}
               {:name "num-frames"}]

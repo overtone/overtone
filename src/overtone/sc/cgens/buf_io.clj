@@ -21,3 +21,20 @@
    num-channels {:default 1 :doc "The number of channels for the buffer."}]
   "A given local-buf may only be used within the synth it is defined in. More efficient than using a standard buffer"
   (:ir (internal:local-buf:ir num-channels num-frames)))
+
+(defcgen scope-out2
+  "Scope IO via shared memory"
+  [input-array
+   scope-num {:default 0}
+   max-frames {:default 4096}
+   scope-frames {:default nil}]
+  "Scope comms"
+  (:ar (let [scope-frames (if scope-frames
+                            scope-frames
+                            max-frames)]
+         (internal:scope-out2:ar input-array scope-num max-frames scope-frames)))
+
+  (:kr (let [scope-frames (if scope-frames
+                            scope-frames
+                            max-frames)]
+         (internal:scope-out2:kr input-array scope-num max-frames scope-frames))))
