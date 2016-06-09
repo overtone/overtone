@@ -512,6 +512,10 @@
     (let [arg-names         (map keyword (map :name params))
           args              (or args [])
           [target pos args] (extract-target-pos-args args (foundation-default-group) :tail)
+          args              (if (and (= (count args) 1)
+                                     (map? (first args)))
+                              (flatten (seq (first args)))
+                              args)
           args              (idify args)
           args              (map (fn [arg] (if-let [id (:id arg)]
                                             id
