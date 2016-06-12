@@ -91,10 +91,12 @@
 
 (defn- midi-control-handler
   [state-atom handler mapping msg]
-  (let [[ctl-name scale-fn] (get mapping (:note msg))
-        ctl-val  (scale-fn (:velocity msg))]
-    (swap! state-atom assoc ctl-name ctl-val)
-    (handler ctl-name ctl-val)))
+  (let [note (:note msg)]
+    (when (contains? mapping note)
+      (let [[ctl-name scale-fn] (get mapping note)
+            ctl-val (scale-fn (:velocity msg))]
+        (swap! state-atom assoc ctl-name ctl-val)
+        (handler ctl-name ctl-val)))))
 
 (defn midi-inst-controller
   "Create a midi instrument controller for manipulating the parameters of an instrument
