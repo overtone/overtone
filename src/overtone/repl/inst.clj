@@ -1,4 +1,5 @@
 (ns overtone.repl.inst
+  (:refer-clojure :exclude [inst?])
   (:use [overtone.studio.inst :only (inst?)]))
 
 (defn ns-instruments
@@ -22,4 +23,3 @@
   [ns]
   (for [[n v] (ns-publics ns) :when (inst? @v)]
     @v))
-
