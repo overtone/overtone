@@ -1,4 +1,5 @@
 (ns overtone.studio.inst
+  (:refer-clojure :exclude [Inst inst?])
   (:use [overtone.sc defaults bindings server synth ugens envelope node bus dyn-vars]
         [overtone.sc.machinery synthdef]
         [overtone.sc.machinery.server.comms :only [with-server-sync]]
