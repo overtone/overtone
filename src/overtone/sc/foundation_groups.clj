@@ -2,13 +2,13 @@
     ^{:doc "Foundation Group Structure"
       :author "Sam Aaron"}
   overtone.sc.foundation-groups
-  (use [overtone.libs.deps                 :only [on-deps satisfy-deps]]
-       [overtone.libs.event                :only [on-sync-event]]
-       [overtone.sc.node                   :only [group group-deep-clear group-clear]]
-       [overtone.sc.server                 :only [ensure-connected!]]
-       [overtone.sc.defaults               :only [foundation-groups* empty-foundation-groups]]
-       [overtone.sc.server                 :only [clear-msg-queue]]
-       [overtone.sc.machinery.server.comms :only [with-server-sync]]))
+  (:use [overtone.libs.deps                 :only [on-deps satisfy-deps]]
+        [overtone.libs.event                :only [on-sync-event]]
+        [overtone.sc.node                   :only [group group-deep-clear group-clear]]
+        [overtone.sc.server                 :only [ensure-connected!]]
+        [overtone.sc.defaults               :only [foundation-groups* empty-foundation-groups]]
+        [overtone.sc.server                 :only [clear-msg-queue]]
+        [overtone.sc.machinery.server.comms :only [with-server-sync]]))
 
 (defn- setup-foundation-groups
   []
