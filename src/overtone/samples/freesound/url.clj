@@ -3,7 +3,7 @@
   overtone.samples.freesound.url
   (:use [clojure.walk :only [keywordize-keys]])
   (:require [clojure.string :as str])
-  (import [java.net URLEncoder URLDecoder]))
+  (:import [java.net URLEncoder URLDecoder]))
 
 (defn url-encode [s & [encoding]]
   (URLEncoder/encode s (or encoding "UTF-8")))
