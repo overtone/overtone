@@ -148,10 +148,12 @@
   Ignores OSC scheduling via the at macro; all inner OSC calls are sent
   immediately."
   ([path]
-     (buffer-alloc-read path 0 -1))
+     (buffer-alloc-read path 0 -1 {}))
   ([path start]
-     (buffer-alloc-read path start -1))
+   (buffer-alloc-read path start -1 {}))
   ([path start n-frames]
+     (buffer-alloc-read path start n-frames {}))
+  ([path start n-frames args]
      (ensure-path-exists! path)
      (let [path (canonical-path path)
            f    (file path)
@@ -159,9 +161,10 @@
        (snd-immediately
         (with-server-sync
           #(snd "/b_allocRead" id path start n-frames)
-          (str "whilst allocating a buffer to contain the contents of file: " path))
-         (let [info                              (buffer-info id)
-               {:keys [id size rate n-channels]} info]
+          (str "whilst allocating a buffer to contain the contents of file: " path)
+          args)
+        (let [info (buffer-info id)
+              {:keys [id size rate n-channels]} info]
            (when (every? zero? [size rate n-channels])
              (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
 

@@ -118,11 +118,11 @@
     (let [f-name   (or (:name arg-map) (.getName f))
           start    (get arg-map :start 0)
           n-frames (get arg-map :size 0)
-          buf      (buffer-alloc-read path start n-frames)
+          buf      (buffer-alloc-read path start n-frames arg-map)
           sample   (map->Sample
                     (assoc buf
                       :path path
-                      :args arg-map
+                      :args (dissoc arg-map :timeout)
                       :name f-name))]
       (swap! cached-samples* assoc [path arg-map] sample)
       (swap! loaded-samples* assoc (:id buf) sample)
@@ -148,7 +148,7 @@
   (ensure-connected!)
   (let [args   (apply hash-map args)
         force? (:force args)
-        args   (select-keys args [:start :size])
+        args   (select-keys args [:start :size :timeout])
         path   (canonical-path path)]
     (if-let [sample (and (not force?)
                          (get @cached-samples* [path args]))]
@@ -232,8 +232,6 @@
     (cond
       (= n-channels 1) (apply mono-partial-player [pos target] id pargs)
       (= n-channels 2) (apply stereo-partial-player [pos target] id pargs))))
-
-
 
 (defn sample
   "Loads a .wav or .aiff file into a memory buffer. Returns a function

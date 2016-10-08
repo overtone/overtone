@@ -1,7 +1,7 @@
 (ns overtone.sc.machinery.server.comms
   (:use [overtone.sc.machinery.server osc-validator]
         [overtone.libs event counters]
-        [overtone.helpers.lib :only [uuid deref!]])
+        [overtone.helpers.lib :only [uuid deref! DEFAULT-PROMISE-TIMEOUT]])
   (:require [overtone.config.log :as log]))
 
 (defonce osc-debug*       (atom false))
@@ -104,11 +104,13 @@
   optional error-msg, you can communicate back to the user through the
   timeout exception the cause of the exception. Typical error-msg values
   start with \"whilst...\" i.e. \"whilst creating group foo\""
-  ([action-fn] (with-server-sync action-fn ""))
-  ([action-fn error-msg]
+  ([action-fn] (with-server-sync action-fn "" {}))
+  ([action-fn error-msg] (with-server-sync action-fn "" {}))
+  ([action-fn error-msg args]
      (let [id   (next-id ::server-sync-id)
            prom (promise)
-           key  (uuid)]
+           key  (uuid)
+           timeout (get args :timeout DEFAULT-PROMISE-TIMEOUT)]
        (on-event "/synced"
                  (fn [msg] (when (= id (first (:args msg)))
                             (deliver prom true)
@@ -116,8 +118,9 @@
                  key)
        (let [res (action-fn)]
          (server-snd "/sync" id)
-         (deref! prom (str "attempting to synchronise with the server " error-msg))
+         (deref! prom timeout (str "attempting to synchronise with the server " error-msg))
          res))))
+
 
 (defn server-recv
   "Register your intent to wait for a message associated with given path

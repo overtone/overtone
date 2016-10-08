@@ -1,4 +1,4 @@
-(ns ^{:doc "Default vals and fns required  to manipulate ugens."
+(ns ^{:doc "Default vals and fns required to manipulate ugens."
       :author "Jeff Rose"}
   overtone.sc.machinery.ugen.defaults
   (:use [overtone.helpers lib]))
