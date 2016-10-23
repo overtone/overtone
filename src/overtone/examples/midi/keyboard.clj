@@ -65,3 +65,96 @@
 
 ; and stop it:
 ;(midi-player-stop ding-player)
+
+; Below is a more sophisticated example that demonstrates how to
+; control :gate and :sustain parameters of an instrument based on MIDI
+; events. inst-player can be used to handle input from a MIDI keyboard
+; and its sustain pedal.
+
+(defn inst-player [inst]
+  "Handle incoming midi events by playing notes on inst, updating
+  the :gate and :sustain parameters of inst based on MIDI
+  note-on/note-off and sustain pedal (control-change 64) events
+  respectively."
+  (let [notes* (atom {
+                      ; Notes are active if the key is still being
+                      ; pressed.
+                      :active {}
+                      ; Notes are finished if the key is no longer
+                      ; being pressed (but it may still be generating
+                      ; sound).
+                      :finished {}})
+        sustain* (atom 0)
+        on-id (keyword (gensym "on-handler"))
+        off-id (keyword (gensym "off-handler"))
+        cc-id (keyword (gensym "cc-handler"))]
+
+    ; Handle note-on MIDI events.
+    (on-event [:midi :note-on]
+              (fn [{:keys [note velocity]}]
+                (let [amp (float (/ velocity 127))]
+                  ; Ignore the event if this note is already active.
+                  (when (not (contains? (:active @notes*) note))
+                    (let [sound (get-in @notes* [:finished note])]
+                      ; If there is a "finished" version of this note,
+                      ; set gate and sustain to zero to prevent
+                      ; overlapping with the new note.
+                      (when (and sound (node-active? sound))
+                        (node-control sound [:gate 0 :sustain 0]))
+                      ; Create a new note and set it to "active".
+                      (swap! notes* assoc-in [:active note]
+                             (inst :note note :amp amp :sustain @sustain*))))))
+              on-id)
+
+    ; Handle note-off MIDI events.
+    (on-event [:midi :note-off]
+              (fn [{:keys [note velocity]}]
+                (let [velocity (float (/ velocity 127))]
+                  (when-let [sound (get-in @notes* [:active note])]
+                    ; Set the note's gate to 0, and move it
+                    ; from "active" to "finished".
+                    (with-inactive-node-modification-error :silent
+                      (node-control sound [:gate 0 :after-touch velocity]))
+                    (swap! notes* update-in [:active] dissoc note)
+                    (swap! notes* assoc-in [:finished note] sound))))
+              off-id)
+
+    ; Handle control-change MIDI events.
+    (on-event [:midi :control-change]
+              (fn [{:keys [note data2]}]
+                (case note
+                  ; Note 64 = MIDI sustain pedal control-change
+                  64 (let [sustain? (>= data2 64)
+                           sustain (if sustain? 1 0)]
+                       ; Update the sustain atom, and update the
+                       ; sustain of all active notes.
+                       (reset! sustain* sustain)
+                       (if sustain?
+                         (doseq [sound (:active @notes*)]
+                           (ctl sound :sustain sustain))
+                         (ctl inst :sustain sustain)))))
+              cc-id)
+
+    ; Return the ids of the event handlers so they can be stopped
+    ; later.
+    [on-id off-id cc-id]))
+
+(defn stop-inst-player [event-handler-ids]
+  "Given a list of event-handler-ids returned by inst-player, remove
+  all event handlers."
+  (doseq [id event-handler-ids]
+    (remove-event-handler id)))
+
+; Create an instrument with a sustain parameter.
+(definst sustain-ding
+  [note 60 amp 1 gate 1 sustain 0]
+  (let [freq (midicps note)
+        snd  (sin-osc freq)
+        env  (env-gen (adsr 0.001 0.1 0.6 0.3) (or gate sustain) :action FREE)]
+    (* amp env snd)))
+
+; Start an instrument player.
+;(def sustain-ding-player (inst-player sustain-ding))
+
+; Stop the instrument player.
+;(stop-inst-player sustain-ding-player)
