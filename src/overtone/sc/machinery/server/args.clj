@@ -1,7 +1,8 @@
 (ns overtone.sc.machinery.server.args
   (:use [overtone.sc.defaults]
         [overtone.config store]
-        [overtone.helpers.system])
+        [overtone.helpers.system]
+        [clojure.java.shell])
   (:require [overtone.helpers.math :as math]
             [overtone.jna-path]))
 
@@ -41,7 +42,26 @@
    :ugens-paths              {:default nil    :flag "-U" :desc "A list of paths of ugen directories. If specified, the standard paths are NOT searched for plugins."}
    :restricted-path          {:default nil    :flag "-P" :desc "Prevents file-accesing OSC commands from accessing files outside the specified path."}})
 
+(defn- find-sc-external-version
+  "In scsynth 3.7 the -V and -v flags switch places. We check the version by
+  trying both and examining the output from the successful run. Returns a float
+  representing major and minor release" 
+  []
+  (let [attempts [(sh "scsynth" "-V") (sh "scsynth" "-v")]
+        successful (first (filter #(= (:exit %) 0) attempts))
+        version (re-find #"scsynth\s+(\d+\.\d+)\.\d+" (:out successful))
+        ]
+    (Float. (last version))))
 
+(defn- fix-verbosity-flag
+  "If scsynth version is 3.7 or above, upper-case the :flag in the :verbosity
+  arg"
+  [args]
+  (if (< 3.6 (find-sc-external-version))
+    (update-in args [:verbosity] assoc :flag (clojure.string/upper-case (:flag (:verbosity args))))
+    args))
+
+(def SC-ARG-INFO (fix-verbosity-flag SC-ARG-INFO))
 
 (defn- number
   [arg-name val]
