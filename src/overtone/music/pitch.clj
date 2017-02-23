@@ -74,18 +74,18 @@
   [octave interval]
   (+ (* octave 12) interval 12))
 
-(def NOTES {:C  0  :c  0  :b# 0  :B# 0
-            :C# 1  :c# 1  :Db 1  :db 1  :DB 1  :dB 1
+(def NOTES {:C  0  :c  0  :b# 0  :B# 0  :his 0  :His 0
+            :C# 1  :c# 1  :Db 1  :db 1  :DB 1  :dB 1 :cis 1 :Cis 1
             :D  2  :d  2
-            :D# 3  :d# 3  :Eb 3  :eb 3  :EB 3  :eB 3
-            :E  4  :e  4
-            :E# 5  :e# 5  :F  5  :f  5
-            :F# 6  :f# 6  :Gb 6  :gb 6  :GB 6  :gB 6
+            :D# 3  :d# 3  :Eb 3  :eb 3  :EB 3  :eB 3 :es 3 :Es 3
+            :E  4  :e  4  :Fb 4  :fb 4  :Fes 4 :fes 4
+            :E# 5  :e# 5  :F  5  :f  5  :eis 5 :Eis 5
+            :F# 6  :f# 6  :Gb 6  :gb 6  :GB 6  :gB 6 :fis 6 :Fis 6 :ges 6 :Ges 6
             :G  7  :g  7
-            :G# 8  :g# 8  :Ab 8  :ab 8  :AB 8  :aB 8
+            :G# 8  :g# 8  :Ab 8  :ab 8  :AB 8  :aB 8 :gis 8 :Gis 8 :as 8 :As 8
             :A  9  :a  9
-            :A# 10 :a# 10 :Bb 10 :bb 10 :BB 10 :bB 10
-            :B  11 :b  11 :Cb 11 :cb 11 :CB 11 :cB 11})
+            :A# 10 :a# 10 :Bb 10 :bb 10 :BB 10 :bB 10 :ais 10 :Ais 10 :hes 10 :Hes 10
+            :B  11 :b  11 :Cb 11 :cb 11 :CB 11 :cB 11 :H 11   :h 11   :Ces 11   :ces 11})
 
 (def REVERSE-NOTES
   {0 :C
