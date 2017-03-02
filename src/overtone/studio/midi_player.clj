@@ -2,14 +2,17 @@
   (:use [overtone.studio.midi]
         [overtone.sc.node]
         [overtone.sc.dyn-vars])
-  (:require [overtone.libs.event :as e]))
+  (:require [overtone.libs.event :as e]
+            [overtone.music.pitch :refer [midi->hz]]))
 
 (defn midi-poly-player
   "Sets up the event handlers and manages synth instances to easily play
   a polyphonic instrument with a midi controller.  The play-fn should
-  take the note and velocity as the only two arguments, and the synth
-  should have a gate parameter that can be set to zero when a :note-off
-  event is received.
+  be a synth function with these parameters:
+
+  * one of note or freq, to control the pitch
+  * one of amp, level, or velocity, to control the volume
+  * gate, which will be set set to zero when a :note-off event is received.
 
     (definst ding
       [note 60 velocity 100 gate 1]
@@ -30,8 +33,13 @@
            on-key        (concat [::midi-poly-player] on-event-key)
            off-key       (concat [::midi-poly-player] off-event-key)]
        (e/on-event on-event-key (fn [{note :note velocity :velocity}]
-                                  (let [amp (float (/ velocity 127))]
-                                    (swap! notes* assoc note (play-fn :note note :amp amp :velocity velocity))))
+                                  (let [amp (float (/ velocity 127))
+                                        freq (midi->hz note)]
+                                    (swap! notes* assoc note (play-fn :note note
+                                                                      :amp amp
+                                                                      :velocity velocity    
+                                                                      :freq freq
+                                                                      :level amp))))
                    on-key)
 
        (e/on-event off-event-key (fn [{note :note velocity :velocity}]
