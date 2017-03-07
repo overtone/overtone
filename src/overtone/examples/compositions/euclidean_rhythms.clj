@@ -3,22 +3,23 @@
    overtone.live
    [overtone.algo.euclidean-rhythm :only [euclidean-rhythm]]))
 
-(def notes (vec (map (comp midi->hz note) [:c3 :e3 :g3])))
+(def metro (metronome 200))
 
-(defcgen polycomponent
-  "rhythmic sine osc"
-  [bpm {:default 120}
-   pattern {:default [1 0]}
-   freq {:default 440}]
-  (:ar
-   (let [env (decay2 (t2a (demand (impulse:kr (/ bpm 30)) 0 (dseq pattern INF))) 0.1 0.7)]
-     (* 0.5 env (sin-osc freq))
-     )))
+(definst sine-blip [freq 400]
+  (let [snd (sin-osc freq)
+        env (env-gen (perc 0.02 0.7) :action FREE)]
+    (* 0.2 env (sin-osc freq))))
 
-(definst polyrhythm []
-  (let [low (polycomponent 220 (euclidean-rhythm 2 5) (notes 0))
-        mid (polycomponent 220 (euclidean-rhythm 1 7) (notes 2))
-        hi  (polycomponent 220 (euclidean-rhythm 3 8) (notes 1))]
-    (+ hi low mid)))
+(defn player [m num r sound]
+  (at (m num)
+      (if (= 1 (first r))
+        (sound)
+        ))
+  (apply-at (m (inc num)) #'player [m (inc num) (next r) sound])
+  )
 
-(polyrhythm) ;; play
+(def notes (vec (map (comp midi->hz note) [:c3 :g3 :d3])))
+
+(player metro (metro) (cycle (euclidean-rhythm 3 8)) (partial sine-blip (notes 0)))
+(player metro (metro) (cycle (euclidean-rhythm 4 4)) (partial sine-blip (notes 1)))
+(player metro (metro) (cycle (euclidean-rhythm 5 13)) (partial sine-blip (notes 2)))
