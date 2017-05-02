@@ -16,8 +16,8 @@
 (defn get-current-directory []
   (. (java.io.File. ".") getCanonicalPath))
 
-(defn print-if-verbose
-  "Prints the arguments if *verbose-overtone-file-helpers* is bound to true. If
+(defn println-if-verbose
+  "Printlns the arguments if *verbose-overtone-file-helpers* is bound to true. If
   it is also bound to an integer, will print a corresponding number of spaces at
   the start of each line to indent the output."
   [& to-print]
@@ -25,6 +25,13 @@
     (when (integer? *verbose-overtone-file-helpers*)
       (dotimes [_ *verbose-overtone-file-helpers*] (print " ")))
     (apply println to-print)))
+
+(defn print-if-verbose
+  "Prints the arguments if *verbose-overtone-file-helpers* is bound to true."
+  [& to-print]
+  (when *verbose-overtone-file-helpers*
+    (apply print to-print)
+    (flush)))
 
 (defn pretty-file-size
   "Takes number of bytes and returns a prettied string with an appropriate unit:
@@ -207,7 +214,8 @@
                                         (< (:val slice) max))
                                slice))
                            slices)]
-      (print-if-verbose (str (:perc slice) "% (" (pretty-file-size num-copied-bytes)  ") completed")))))
+      ;;(println-if-verbose (str (:perc slice) "% (" (pretty-file-size num-copied-bytes)  ") completed"))
+      (print-if-verbose "="))))
 
 (defn- remote-file-copy [in-stream out-stream file-size]
   "Similar to  the corresponding implementation of #'do-copy in 'clojure.java.io
@@ -215,14 +223,18 @@
   statements when *verbose-overtone-file-helpers* is bound to true."
   (let [buf-size 2048
         buffer   (make-array Byte/TYPE buf-size)
-        slices   (percentage-slices file-size 100)]
+        slices   (percentage-slices file-size 50)]
+    (if (> file-size buf-size)
+        (print-if-verbose "      ["))
     (loop [bytes-copied 0]
       (let [size (.read in-stream buffer)]
         (print-file-copy-status bytes-copied size file-size slices)
         (when (pos? size)
           (do (.write out-stream buffer 0 size)
               (recur (+ size bytes-copied))))))
-    (print-if-verbose "--> Download successful")))
+    (if (> file-size buf-size)
+      (print-if-verbose "]\n"))
+    (println-if-verbose "--> Download successful")))
 
 (defn- download-file-without-timeout
   "Downloads remote file at url to local file specified by target path. Has
@@ -401,7 +413,7 @@
          (catch Exception e
            (rm-rf! path)
            (Thread/sleep wait-t)
-           (print-if-verbose (str "Download timed out. Retry " (inc attempts-made) ": " url ))
+           (println-if-verbose (str "Download timed out. Retry " (inc attempts-made) ": " url ))
            (download-file* url path timeout n-retries wait-t (inc attempts-made)))))))
 
 (defn- print-download-file
@@ -409,7 +421,7 @@
   (let [size     (remote-file-size url)
         p-size   (pretty-file-size size)
         size-str (if (<= size 0) "" (str "(" p-size ")"))]
-    (print-if-verbose (str "--> Downloading file " size-str " - "  url))))
+    (println-if-verbose (str "--> Downloading file " size-str " - "  url))))
 
 (defn download-file
   "Downloads the file pointed to by url to local path. If no timeout
