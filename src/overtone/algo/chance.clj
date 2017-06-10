@@ -36,7 +36,7 @@
                                (count vals)
                                " and "
                                (count probabilities)))))
-     (when-not (= (reduce + probabilities) 1.0)
+     (when-not (== (reduce + probabilities) 1.0)
        (throw (IllegalArgumentException. (str "The sum of your probabilities is not 1.0"))))
 
      (let [paired (map vector probabilities vals)
