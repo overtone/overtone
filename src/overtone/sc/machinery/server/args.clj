@@ -47,10 +47,12 @@
   trying both and examining the output from the successful run. Returns a float
   representing major and minor release" 
   []
-  (let [attempts [(sh "scsynth" "-V") (sh "scsynth" "-v")]
-        successful (first (filter #(= (:exit %) 0) attempts))
-        version (re-find #"scsynth\s+(\d+\.\d+)\.\d+" (:out successful))
-        ]
+  (let [attempt (sh "scsynth" "-v")
+        _ (when (not= 0 (:exit attempt))
+            (throw (Exception. (str "scsynth was not found, "
+                                    "please make sure that "
+                                    "Supercollider is installed."))))
+        version (re-find #"scsynth\s+(\d+\.\d+)" (:out attempt))]
     (Float. (last version))))
 
 (defn- fix-verbosity-flag
