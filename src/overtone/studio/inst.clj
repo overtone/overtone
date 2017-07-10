@@ -2,12 +2,12 @@
   (:refer-clojure :exclude [Inst inst?])
   (:use [overtone.sc defaults bindings server synth ugens envelope node bus dyn-vars]
         [overtone.sc.machinery synthdef]
-        [overtone.sc.machinery.server.comms :only [with-server-sync]]
-        [overtone.sc.util :only (id-mapper)]
         [overtone.studio core mixer fx]
         [overtone.helpers lib]
         [overtone.libs event])
-  (:require [overtone.sc.protocols :as protocols]))
+  (:require [overtone.sc.protocols :as protocols]
+            [overtone.sc.util :refer [id-mapper]]
+            [overtone.sc.machinery.server.comms :refer [with-server-sync]] ))
 
 (defonce ^{:private true} __RECORDS__
   (do

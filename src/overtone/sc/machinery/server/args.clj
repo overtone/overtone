@@ -3,7 +3,9 @@
         [overtone.config store]
         [overtone.helpers.system]
         [clojure.java.shell])
-  (:require [overtone.helpers.math :as math]
+  (:require [clojure.string :as string]
+            [overtone.helpers.math :as math]
+            [overtone.helpers.string :refer [numeric?]]
             [overtone.jna-path]))
 
 (def SC-ARG-INFO
@@ -45,13 +47,14 @@
 (defn- find-sc-external-version
   "In scsynth 3.7 the -V and -v flags switch places. We check the version by
   trying both and examining the output from the successful run. Returns a float
-  representing major and minor release" 
+  representing major and minor release." 
   []
   (let [attempts [(sh "scsynth" "-V") (sh "scsynth" "-v")]
         successful (first (filter #(= (:exit %) 0) attempts))
-        version (re-find #"scsynth\s+(\d+\.\d+)\.\d+" (:out successful))
-        ]
-    (Float. (last version))))
+        version-regex [(re-find #"scsynth\s+(\d+\.\d+)\.\d+" (:out successful))
+                       (re-find #"scsynth\s+(\d+\.\d+)" (:out successful))]
+        version (->> version-regex (remove nil?) (map second) (filter numeric?) first)]
+    (Float. version)))
 
 (defn- fix-verbosity-flag
   "If scsynth version is 3.7 or above, upper-case the :flag in the :verbosity

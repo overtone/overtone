@@ -70,13 +70,23 @@
         hash    (subs (str (md5 prefix)) 0 3)
         cnt     (+ (count prefix) (count postfix))]
     (cond
-     (< cnt max-size) (str prefix postfix)
+      (< cnt max-size) (str prefix postfix)
 
-     (> (+ (count hash) (count postfix)) max-size)
-     (throw (Exception.
-             (str "Cannot shorten string. The max-size you supplied to hash-shorten is too small. Try something larger than "
-                  (+ (count hash) (count postfix)))))
+      (> (+ (count hash) (count postfix)) max-size)
+      (throw (Exception.
+              (str "Cannot shorten string. The max-size you supplied to hash-shorten is too small. Try something larger than "
+                   (+ (count hash) (count postfix)))))
 
-     :else (let [num-allowed-chars (- max-size (count hash) (count postfix))
-                 allowed-s         (subs prefix 0 num-allowed-chars)]
-             (str allowed-s hash postfix)))))
+      :else (let [num-allowed-chars (- max-size (count hash) (count postfix))
+                  allowed-s         (subs prefix 0 num-allowed-chars)]
+              (str allowed-s hash postfix)))))
+
+(defn numeric?
+  "Determines if string is numeric."
+  [s]
+  (if-let [s (seq s)]
+    (let [s (if (= (first s) \-) (next s) s)
+          s (drop-while #(Character/isDigit %) s)
+          s (if (= (first s) \.) (next s) s)
+          s (drop-while #(Character/isDigit %) s)]
+      (empty? s))))

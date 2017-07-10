@@ -1,7 +1,6 @@
 (ns overtone.examples.compositions.at-all
-  (:use
-    overtone.live
-    [overtone.inst.sampled-piano :only [sampled-piano]]))
+  (:use overtone.live)
+  (:require [overtone.inst.sampled-piano :refer [sampled-piano]]))
 
 (defn from [metro offset]
   (fn [beat] (metro (+ beat offset))))

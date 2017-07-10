@@ -2,7 +2,7 @@
     and its sc port by Scott Wilson."
       :author "Orm Finnendahl"
       :date "06/06/2015"}
-  overtone.sc.vbap)
+    overtone.sc.vbap)
 
 ;; VBAP originally created by Ville Pukki
 ;; This version is a complete reimplementation
@@ -11,7 +11,7 @@
 ;; paper "Creating Auditory Displays with Multiple Loudspeakers Using
 ;; VBAP: A Case Study with DIVA Project" by Ville Pukki.
 ;;
-;; The original C-code was written by Ville Pulkki 1999
+;; The original C-code was written by Ville Pukki 1999
 ;; Helsinki University of Technology
 ;; and
 ;; University of California at Berkeley
@@ -102,7 +102,8 @@
   (mapv #(v* (inv-det x y z)
              (v-perm-prod-diff %1 %2)) [y z x] [z x y]))
 
-(def any? (comp boolean some))
+;; From clojure 1.9 any? is a core function
+;; (def any? (comp boolean some))
 
 (defn- get-coords [speaker-set]
   (into [] (map :coords speaker-set)))
