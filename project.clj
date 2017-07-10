@@ -1,4 +1,4 @@
-(require 'leiningen.core.eval)
+(require '[leiningen.core.utils :refer [get-os]])
 
 (def JVMOPTS
   "Per os jvm options. Options common to all cases go under
@@ -11,7 +11,6 @@
     "-XX:+UseConcMarkSweepGC"     ;  the concurrent garbage collector
     "-XX:+CMSConcurrentMTEnabled" ; Enable multi-threaded concurrent gc work (ParNewGC)
     "-XX:MaxGCPauseMillis=20"     ; Specify a target of 20ms for max gc pauses
-    "-XX:+CMSIncrementalMode"     ; Do many small GC cycles to minimize pauses
     "-XX:MaxNewSize=257m"         ; Specify the max and min size of the new
     "-XX:NewSize=256m"            ;  generation to be small
     "-XX:+UseTLAB"                ; Uses thread-local object allocation blocks. This
@@ -35,7 +34,7 @@
 
 (defn jvm-opts
   "Return a complete vector of jvm-opts for the current os."
-  [] (let [os (leiningen.core.eval/get-os)]
+  [] (let [os (get-os)]
        (vec (set (concat (get JVMOPTS :any)
                          (get JVMOPTS os))))))
 
