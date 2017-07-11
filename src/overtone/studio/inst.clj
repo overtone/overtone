@@ -1,5 +1,5 @@
 (ns overtone.studio.inst
-  (:refer-clojure :exclude [Inst inst?])
+  (:refer-clojure :exclude [Inst])
   (:use [overtone.sc defaults bindings server synth ugens envelope node bus dyn-vars]
         [overtone.sc.machinery synthdef]
         [overtone.studio core mixer fx]
@@ -133,7 +133,7 @@
 
 
 
-(defn inst?
+(defn instrument?
   "Returns true if o is an instrument, false otherwise"
   [o]
   (= overtone.studio.inst.Inst (type o)))

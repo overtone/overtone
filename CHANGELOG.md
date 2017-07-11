@@ -2,6 +2,10 @@
 
 ## master (unreleased)
 
+# Breaking Changes
+
+* `inst?` has been renamed to `instrument?`
+
 # Bug Fixes
 * Fix error when Supercollider version is in development
 * Fix warning for deprecated CMSIncrementalMode

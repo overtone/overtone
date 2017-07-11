@@ -1,6 +1,5 @@
 (ns overtone.repl.inst
-  (:refer-clojure :exclude [inst?])
-  (:use [overtone.studio.inst :only (inst?)]))
+  (:require [overtone.studio.inst :refer [instrument?]]))
 
 (defn ns-instruments
   "Returns a sequence of all the (public) instruments in the given
@@ -21,5 +20,5 @@
 
   "
   [ns]
-  (for [[n v] (ns-publics ns) :when (inst? @v)]
+  (for [[n v] (ns-publics ns) :when (instrument? @v)]
     @v))

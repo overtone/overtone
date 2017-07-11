@@ -1,5 +1,4 @@
 (ns overtone.live
-  (:refer-clojure :exclude [inst?])
   (:require [overtone.api]))
 
 (overtone.api/immigrate-overtone-api)
