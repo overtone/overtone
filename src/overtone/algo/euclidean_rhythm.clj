@@ -15,8 +15,7 @@
                    ) [] level)
         first-hit (first (keep-indexed #(when (= %2 1) %1) pattern))]
     ;; shift pattern to get hits on first step (e.g. [1 0] vs [0 1])
-    (vec (lazy-cat (drop first-hit pattern) (take first-hit pattern)))
-))
+    (vec (lazy-cat (drop first-hit pattern) (take first-hit pattern)))))
 
 (defn euclidean-rhythm [pulses steps]
  "Generate euclidean rhythms using bjorklund's algorithm:
