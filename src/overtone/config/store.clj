@@ -21,9 +21,13 @@
 (defn- file-store-get
   "Get the file store reference"
   ([store-atom key]
-     (get @store-atom key))
+   (if (keyword? key)
+     (get @store-atom key)
+     (get-in @store-atom key)))
   ([store-atom key not-found]
-     (get @store-atom key not-found)))
+   (if (keyword? key)
+     (get @store-atom key not-found)
+     (get-in @store-atom key not-found))))
 
 (defn- file-store-set!
   "Set file store reference key to val"

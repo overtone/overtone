@@ -147,7 +147,8 @@
             (server-snd "/status")
             (Thread/sleep 100)
             (recur (inc cnt)))
-          (throw (Exception. (str "Error: unable to connect to externally booted server after " N-RETRIES " attempts."))))))))
+          (throw (Exception. (str "Error: unable to connect to externally booted server after " N-RETRIES " attempts.\n"
+                                  "Maybe the port number is already in use?"))))))))
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect

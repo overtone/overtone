@@ -33,7 +33,7 @@
 
 (def SERVER-PORT
   "Default port number used when booting external server. If nil, a random port is used"
-  nil)
+  (overtone.config.store/config-get [:sc-args :port]))
 
 (def N-RETRIES
   "Number of times to attempt to connect to an externally booted server"

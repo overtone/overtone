@@ -1,4 +1,11 @@
-# Change Log 
+# Change Log
+
+## master (unreleased)
+
+# Bug Fixes
+* Fix error when Supercollider version is in development
+* Fix warning for deprecated CMSIncrementalMode
+* `connect-to-external-server` logs correctly configured port number
 
 ## Version 0.10.1 (1st April 2016)
 
