@@ -147,8 +147,11 @@
             (server-snd "/status")
             (Thread/sleep 100)
             (recur (inc cnt)))
-          (throw (Exception. (str "Error: unable to connect to externally booted server after " N-RETRIES " attempts.\n"
-                                  "Maybe the port number is already in use?"))))))))
+          (do
+            (reset-deps)
+            (throw
+             (Exception. (str "Error: unable to connect to externally booted server after "
+                              N-RETRIES " attempts.\n")))))))))
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
@@ -218,9 +221,12 @@
   (while (pos? (.available stream))
     (let [n   (min (count read-buf) (.available stream))
           _   (.read stream read-buf 0 n)
-          msg (String. read-buf 0 n)]
+          msg (String. read-buf 0 n)
+          error? (re-find #"World_OpenUDP" msg)]
       (swap! external-server-log* conj msg)
-      (log/info (String. read-buf 0 n)))))
+      (when error?
+        (log/error msg)
+       (log/info msg)))))
 
 (defn- external-booter
   "Boot thread to start the external audio server process and hook up to
