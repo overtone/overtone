@@ -6,7 +6,20 @@
 
 * `inst?` has been renamed to `instrument?`
 
+# New Fns
+* `overtone.algo.euclidean-rhythm` Generates euclidean rhythms using bjorklund's algorithm.
+
+# New example
+* `overtone.examples.midi.keyboard` `sustain-ding` Creates an midi instrument with a sustain parameter.
+
+# Improvements
+* `overtone` is now running on clojure-1.9-alpha
+* `freesound` gives better error message when file/sample is not found.
+* `overtone.sc.vbap` uses clojure 1.9's `clojure.core.any?`, removes replace symbol warnings.
+
 # Bug Fixes
+* Prevent double trigger of freesound samples by setting #318
+* Replace `use` with `:use` for Clojure 1.9 compatability.
 * Fix error when Supercollider version is in development
 * Fix warning for deprecated CMSIncrementalMode
 * `connect-to-external-server` logs correctly configured port number
