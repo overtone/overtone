@@ -1,16 +1,24 @@
 (ns overtone.sc.machinery.server.native
   (:import [java.nio ByteOrder ByteBuffer])
   (:require [overtone.jna-path]
-            [overtone.at-at :as at-at])
-  (:use [overtone.helpers.file :only [get-current-directory home-dir]]
-        [overtone.helpers.system :only [get-os get-cpu-bits windows-os? os-description]]
-        [overtone.sc.machinery.server args]
-        [overtone.sc.defaults :only [INTERNAL-POOL]]
-        [overtone.nativescsynth.availability :only [native-scsynth-lib-availability]]
-        [clj-native.direct :only [defclib loadlib]]
-        [clj-native.structs :only [byref]]
-        [clj-native.callbacks :only [callback]]
-        [overtone.config.log :only [warn error]]))
+            [overtone.at-at :as at-at]
+            [overtone.helpers.file :refer [get-current-directory home-dir]]
+            [overtone.helpers.system :refer [get-os get-cpu-bits windows-os? os-description]]
+            [overtone.sc.machinery.server.args :refer :all]
+            [overtone.sc.defaults :refer [INTERNAL-POOL]]
+            ;; [overtone.nativescsynth.availability :only [native-scsynth-lib-availability]]
+            [clj-native.direct :refer [defclib loadlib]]
+            [clj-native.structs :refer [byref]]
+            [clj-native.callbacks :refer [callback]]
+            [overtone.config.log :refer [warn error]]))
+
+(def native-scsynth-lib-availability
+  {:windows {64 false
+             32 true}
+   :linux   {64 true
+             32 false}
+   :mac     {64 true
+             32 true}})
 
 (defn native-scsynth-available? []
   (let [os-arc-path [(get-os) (get-cpu-bits)]]
@@ -36,6 +44,7 @@
         lib-scsynth
         (:libname "scsynth")
         (:structs
+         ;; supercollider/include/plugin_interface/SC_Rate.h
          (rate
           :sample-rate double
           :buf-rate    double
@@ -55,7 +64,7 @@
           :mNumControlBusChannels             i32
           :mBufLength                         i32
           :mRealTimeMemorySize                i32
-          :mNumSharedControls                 i32
+          :mNumSharedControls                 int
           :mSharedControls                    float*
           :mRealTime                          byte
           :mMemoryLocking                     byte
@@ -71,25 +80,26 @@
           :mInputStreamsEnabled               constchar*
           :mOutputStreamsEnabled              constchar*
           :mInDeviceName                      constchar*
-          :mVerbosity                         i32
+          :mVerbosity                         int
           :mRendezvous                        byte
           :mUGensPluginPath                   constchar*
           :mOutDeviceName                     constchar*
           :mRestrictedPath                    constchar*
-          :mSharedMemoryID                    i32)
+          :mSharedMemoryID                    int)
 
          ;; supercollider/include/plugin_interface/SC_SndBuf.h
          (sound-buffer
           :samplerate double
           :sampledur  double
-          :data       void*             ;float*
-          :channels   i32
-          :samples    i32
-          :frames     i32
-          :mask       i32
-          :mask1      i32
-          :coord      i32
-          :sndfile    void*)
+          :data       float*
+          :channels   int
+          :samples    int
+          :frames     int
+          :mask       int
+          :mask1      int
+          :coord      int
+          :sndfile    void*
+          :isLocal    byte)
 
          (bool-val
           :value byte)
@@ -154,12 +164,12 @@
 
          ;; supercollider/include/server/SC_WorldOptions.h
          (world-new World_New [world-options*] void*)
-         (world-run World_WaitForQuit [void*])
-         (world-cleanup World_Cleanup [void*])
+         (world-run World_WaitForQuit [void* byte*])
+         (world-cleanup World_Cleanup [void* byte*])
 
-         (world-open-udp-port World_OpenUDP [void* i32] i32)
-         (world-open-tcp-port World_OpenTCP [void* i32 i32 i32] i32)
-         (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
+         (world-open-udp-port World_OpenUDP [void* constchar* i32] i32)
+         (world-open-tcp-port World_OpenTCP [void* constchar* i32 i32 i32] i32)         
+         (world-send-packet World_SendPacket [void* i32 constchar* reply-callback] byte)
          (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
       (when-not (windows-os?)
@@ -219,46 +229,63 @@
   the World pointer."
   ([recv-fn] (scsynth recv-fn {}))
   ([recv-fn options-map]
-     (when (not (native-scsynth-available?))
-       (throw (Exception. (str "Can't connect to a native server - this version of Overtone does not yet have any compatible libraries for your system: " (os-description) ". Please consider contributing a build to the project."))))
-     (let [options (byref world-options)
-           cb      (callback reply-callback
-                             (fn [addr msg-buf msg-size]
-                               (let [byte-buf (.getByteBuffer msg-buf 0 msg-size)]
-                                 (recv-fn (.order byte-buf ByteOrder/BIG_ENDIAN)))))
+   (when (not (native-scsynth-available?))
+     (throw (Exception. (str "Can't connect to a native server - this version of Overtone does not yet have any compatible libraries for your system: " (os-description) ". Please consider contributing a build to the project."))))
+   (let [options (byref world-options)
+         cb      (callback reply-callback
+                           (fn [addr msg-buf msg-size]
+                             (let [byte-buf (.getByteBuffer msg-buf 0 msg-size)]
+                               (recv-fn (.order byte-buf ByteOrder/BIG_ENDIAN)))))
 
-           args    (merge-native-sc-args options-map)]
-       (set-world-options! options args)
-       {:world (world-new options)
-        :callback cb})))
+         args    (merge-native-sc-args options-map)]
+     (set-world-options! options args)
+     {:world (world-new options)
+      :callback cb})))
+
+(def scsynth-local-address
+  (let [local-address (java.nio.ByteBuffer/allocate 9)]
+    (map-indexed (fn [index char] (.putChar local-address index (byte char))) "127.0.0.1")
+    local-address))
 
 (defn scsynth-listen-udp
   [sc port]
-  (world-open-udp-port (:world sc) port))
+  (world-open-udp-port (:world sc) scsynth-local-address ;;"127.0.0.1"
+                       port))
 
 (def SC-MAX-CONNECTIONS 1024)
 (def SC-BACKLOG 64) ; What's this?
 
 (defn scsynth-listen-tcp
   [sc port]
-  (world-open-tcp-port (:world sc) port SC-MAX-CONNECTIONS SC-BACKLOG))
+  (world-open-tcp-port (:world sc) scsynth-local-address ;; "127.0.0.1"
+                       port SC-MAX-CONNECTIONS SC-BACKLOG))
 
 (defn scsynth-send
   [sc ^ByteBuffer buf]
   (world-send-packet (:world sc) (.limit buf) buf (:callback sc)))
 
+;; struct World *inWorld, int inSize, char *inData, ReplyFunc inFunc
+
+#_(defn- osc-msg-decoder2
+    "Decodes incoming osc message buffers and then sends them as overtone events."
+    [buf]
+    (overtone.libs.event/event [:overtone :osc-msg-received]
+                               :msg (overtone.osc.decode/osc-decode-packet buf)))
+
+
+;; (scsynth-run (scsynth osc-msg-decoder2 {}))
 (defn scsynth-run
   "Starts the synthesis server main loop, and does not return until the /quit message
   is received."
   [sc]
   (flush-all)
-  (world-run (:world sc)))
+  (world-run (:world sc) (.put (java.nio.ByteBuffer/allocate 1) 0 1)))
 
 (defn scsynth-get-buffer-data
   "Get a an array of floats for the synthesis sound buffer with the given ID."
   [sc buf-id]
   (let [buf (byref sound-buffer)
-        ;changed? (byref bool-val)]
+        ;; changed? (byref bool-val)]
         changed? (java.nio.ByteBuffer/allocate 1)]
     (world-copy-sound-buffer (:world sc) buf-id buf 0 changed?)
     (.getFloatArray (.data buf) 0 (.samples buf))))

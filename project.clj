@@ -57,8 +57,8 @@
                  [overtone/byte-spec "0.3.1"]
                  [overtone/midi-clj "0.5.0"]
                  [overtone/libs.handlers "0.2.0"]
-                 [overtone/scsynth "3.5.7.0"]
-                 [overtone/scsynth-extras "3.5.7.0"]
+                 ;; [overtone/scsynth "3.5.7.0"]
+                 ;; [overtone/scsynth-extras "3.5.7.0"]
                  [clj-glob "1.0.0"]]
   :profiles {:test {:dependencies [[bultitude "0.2.0"]
                                    [polynome "0.2.2"]]}}
