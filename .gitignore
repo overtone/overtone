@@ -32,3 +32,4 @@ target/
 /bin
 /.settings
 .nrepl-port
+*~

@@ -1,6 +1,0 @@
-#!/bin/bash
-
-SCRIPT_DIR=`dirname $0`
-JAVA_ENV=`$SCRIPT_DIR/java-env`
-
-exec java $JAVA_ENV jline.ConsoleRunner clojure.main $@

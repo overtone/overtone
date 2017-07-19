@@ -44,23 +44,24 @@
    :ugens-paths              {:default nil    :flag "-U" :desc "A list of paths of ugen directories. If specified, the standard paths are NOT searched for plugins."}
    :restricted-path          {:default nil    :flag "-P" :desc "Prevents file-accesing OSC commands from accessing files outside the specified path."}})
 
-(defn- find-sc-external-version
+(defn- find-sc-version
   "In scsynth 3.7 the -V and -v flags switch places. We check the version by
   trying both and examining the output from the successful run. Returns a float
   representing major and minor release." 
   []
-  (let [attempts [(sh "scsynth" "-V") (sh "scsynth" "-v")]
-        successful (first (filter #(= (:exit %) 0) attempts))
-        version-regex [(re-find #"scsynth\s+(\d+\.\d+)\.\d+" (:out successful))
-                       (re-find #"scsynth\s+(\d+\.\d+)" (:out successful))]
-        version (->> version-regex (remove nil?) (map second) (filter numeric?) first)]
-    (Float. version)))
+  (try (let [attempts [(sh "scsynth" "-V") (sh "scsynth" "-v")]
+             successful (first (filter #(= (:exit %) 0) attempts))
+             version-regex [(re-find #"scsynth\s+(\d+\.\d+)\.\d+" (:out successful))
+                            (re-find #"scsynth\s+(\d+\.\d+)" (:out successful))]
+             version (->> version-regex (remove nil?) (map second) (filter numeric?) first)]
+         (Float. version))
+       (catch Exception e 3.5)))
 
 (defn- fix-verbosity-flag
   "If scsynth version is 3.7 or above, upper-case the :flag in the :verbosity
   arg"
   [args]
-  (if (< 3.6 (find-sc-external-version))
+  (if (< 3.6 (find-sc-version))
     (update-in args [:verbosity] assoc :flag (clojure.string/upper-case (:flag (:verbosity args))))
     args))
 
@@ -152,7 +153,7 @@
    :mPreferredSampleRate              0
    :mPreferredHardwareBufferFrameSize 0
    :mSharedMemoryID                   0
-   :mUGensPluginPath                  (System/getProperty "jna.library.path")})
+   :mUGensPluginPath                  (str (System/getProperty "jna.library.path") "/plugins")})
 
 (defn- cleanup-sc-args
   [args]

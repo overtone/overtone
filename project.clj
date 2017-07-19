@@ -51,6 +51,7 @@
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
                  [org.clojure/data.json "0.2.6"]
+                 ;; [com.github.jnr/jnr-ffi "2.1.6"]
                  [clj-native "0.9.5"]
                  [overtone/at-at "1.2.0"]
                  [overtone/osc-clj "0.9.0"]
@@ -59,7 +60,9 @@
                  [overtone/libs.handlers "0.2.0"]
                  ;; [overtone/scsynth "3.5.7.0"]
                  ;; [overtone/scsynth-extras "3.5.7.0"]
-                 [clj-glob "1.0.0"]]
+                 [clj-glob "1.0.0"]
+                 [net.java.dev.jna/jna "4.4.0"]
+                 [im.chit/lucid "1.3.13"]]
   :profiles {:test {:dependencies [[bultitude "0.2.0"]
                                    [polynome "0.2.2"]]}}
   :test-selectors {:core (fn [m] (not (some m [:gui :hw])))

@@ -188,13 +188,11 @@
   "Fn to actually boot internal server. Typically called within a thread."
   [opts]
   (log/info "booting internal audio server")
-  (println opts)
   (deps/on-deps :internal-server-booted ::connect-internal connect-internal)
   (let [server (native/scsynth osc-msg-decoder opts)
         full-opts (args/merge-sc-args opts)]
     (dosync (ref-set sc-world* server)
             (alter connection-info* assoc :opts full-opts))
-
     (if (= 1 (:udp? full-opts))
       (native/scsynth-listen-udp server (:port full-opts))
       (native/scsynth-listen-tcp server (:port full-opts)))

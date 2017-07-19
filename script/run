@@ -1,8 +1,0 @@
-#!/bin/bash
-
-# Run main with the classpath setup correctly
-
-SCRIPT_DIR=`dirname $0`
-JAVA_ENV=`$SCRIPT_DIR/java-env`
-
-exec java $JAVA_ENV clojure.main -e "(use 'overtone.app.main) (-main $@)"

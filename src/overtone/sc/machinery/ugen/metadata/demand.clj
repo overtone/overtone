@@ -368,10 +368,10 @@
     :doc "Replicates input values n times on demand.  Both inputs can be
           demand rate ugens." }
 
-
-   {:name "Donce",
-    :args [{:name "in"}],
-    :rates #{:dr}}
+   ;; Deprecated from SC changelog
+   #_{:name "Donce",
+      :args [{:name "in"}],
+      :rates #{:dr}}
 
 
    {:name "Dpoll",
@@ -391,7 +391,7 @@
            {:name "run"
             :default 1.0
             :doc "activation switch 0 or 1 (can be a demand ugen)"}]
-   :rates #{:dr}
+    :rates #{:dr}
     :check (arg-is-demand-ugen? :in)
     :doc "Print the value of an input demand ugen. The print-out is in
           the form: label: value block offset: offset.

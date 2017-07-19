@@ -10,7 +10,8 @@
             [clj-native.direct :refer [defclib loadlib]]
             [clj-native.structs :refer [byref]]
             [clj-native.callbacks :refer [callback]]
-            [overtone.config.log :refer [warn error]]))
+            [overtone.config.log :refer [warn error]]
+            ))
 
 (def native-scsynth-lib-availability
   {:windows {64 false
@@ -147,8 +148,9 @@
           :restricted-path          constchar*)
 
          (reply-address
-          :sockaddr     void*
-          :sockaddr-len i32
+          :address      constchar*
+          :protocol     i32
+          :port         i32
           :socket       i32
           :reply-func   void*
           :reply-data   void*)
@@ -167,8 +169,10 @@
          (world-run World_WaitForQuit [void* byte*])
          (world-cleanup World_Cleanup [void* byte*])
 
-         (world-open-udp-port World_OpenUDP [void* constchar* i32] i32)
-         (world-open-tcp-port World_OpenTCP [void* constchar* i32 i32 i32] i32)         
+         (world-open-udp-port World_OpenUDP [void* constchar* i32] ;;i32
+                              )
+         (world-open-tcp-port World_OpenTCP [void* constchar* i32 i32 i32] ;;i32
+                              )         
          (world-send-packet World_SendPacket [void* i32 constchar* reply-callback] byte)
          (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
@@ -242,27 +246,40 @@
      {:world (world-new options)
       :callback cb})))
 
-(def scsynth-local-address
-  (let [local-address (java.nio.ByteBuffer/allocate 9)]
-    (map-indexed (fn [index char] (.putChar local-address index (byte char))) "127.0.0.1")
-    local-address))
+#_(def scsynth-local-address
+    (let [local-address (java.nio.ByteBuffer/allocate 9)]
+      (map-indexed (fn [index char] (.putChar local-address index (byte char))) "127.0.0.1")
+      local-address))
 
 (defn scsynth-listen-udp
   [sc port]
-  (world-open-udp-port (:world sc) scsynth-local-address ;;"127.0.0.1"
-                       port))
+  ;; (println "TYPES: " (str (type (:world sc)) (type scsynth-local-address) (type port)))
+  (world-open-udp-port (:world sc)
+                       ;; scsynth-local-address
+                       "127.0.0.1"
+                       ;; nil
+                       port
+                       ;; 5111
+                       ))
 
 (def SC-MAX-CONNECTIONS 1024)
 (def SC-BACKLOG 64) ; What's this?
 
 (defn scsynth-listen-tcp
   [sc port]
-  (world-open-tcp-port (:world sc) scsynth-local-address ;; "127.0.0.1"
+  (world-open-tcp-port (:world sc)
+                       ;; scsynth-local-address
+                       "127.0.0.1"
+                       ;; nil
                        port SC-MAX-CONNECTIONS SC-BACKLOG))
 
 (defn scsynth-send
-  [sc ^ByteBuffer buf]
-  (world-send-packet (:world sc) (.limit buf) buf (:callback sc)))
+  [sc ^ByteBuffer buf] 
+  (println "flip: " (new java.lang.String (.array (.flip buf))) ;;(min (.limit buf) 30) " string " (apply str (.array buf))
+           )
+  (world-send-packet (:world sc) (.limit buf) (str buf)
+                     ;; (new java.lang.String (.array (.flip buf)))
+                     (:callback sc)))
 
 ;; struct World *inWorld, int inSize, char *inData, ReplyFunc inFunc
 
@@ -279,13 +296,14 @@
   is received."
   [sc]
   (flush-all)
-  (world-run (:world sc) (.put (java.nio.ByteBuffer/allocate 1) 0 1)))
+  (world-run (:world sc) nil))
 
 (defn scsynth-get-buffer-data
   "Get a an array of floats for the synthesis sound buffer with the given ID."
   [sc buf-id]
   (let [buf (byref sound-buffer)
-        ;; changed? (byref bool-val)]
-        changed? (java.nio.ByteBuffer/allocate 1)]
+        changed? (byref bool-val)
+        ;; changed? (java.nio.ByteBuffer/allocate 1)
+        ]
     (world-copy-sound-buffer (:world sc) buf-id buf 0 changed?)
     (.getFloatArray (.data buf) 0 (.samples buf))))

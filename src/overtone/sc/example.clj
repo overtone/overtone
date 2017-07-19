@@ -1,9 +1,10 @@
 (ns overtone.sc.example
   (:use [overtone.sc.machinery defexample]
         [overtone.helpers lib])
-  (:require [overtone.sc.examples demand osc trig compander audio-in blackrain
-             vosim
-             membrane
+  (:require [overtone.sc.examples demand osc trig compander audio-in
+             ;; blackrain
+             ;; vosim
+             ;; membrane
              dyn
              ]))
 
