@@ -1,5 +1,6 @@
 (ns overtone.sc.machinery.server.native
-  (:import [java.nio ByteOrder ByteBuffer])
+  (:import [java.nio ByteOrder ByteBuffer CharBuffer]
+           [java.nio.charset StandardCharsets])
   (:require [overtone.jna-path]
             [overtone.at-at :as at-at]
             [overtone.helpers.file :refer [get-current-directory home-dir]]
@@ -65,7 +66,7 @@
           :mNumControlBusChannels             i32
           :mBufLength                         i32
           :mRealTimeMemorySize                i32
-          :mNumSharedControls                 int
+          :mNumSharedControls                 i32
           :mSharedControls                    float*
           :mRealTime                          byte
           :mMemoryLocking                     byte
@@ -81,24 +82,24 @@
           :mInputStreamsEnabled               constchar*
           :mOutputStreamsEnabled              constchar*
           :mInDeviceName                      constchar*
-          :mVerbosity                         int
+          :mVerbosity                         i32
           :mRendezvous                        byte
           :mUGensPluginPath                   constchar*
           :mOutDeviceName                     constchar*
           :mRestrictedPath                    constchar*
-          :mSharedMemoryID                    int)
+          :mSharedMemoryID                    i32)
 
          ;; supercollider/include/plugin_interface/SC_SndBuf.h
          (sound-buffer
           :samplerate double
           :sampledur  double
           :data       float*
-          :channels   int
-          :samples    int
-          :frames     int
-          :mask       int
-          :mask1      int
-          :coord      int
+          :channels   i32
+          :samples    i32
+          :frames     i32
+          :mask       i32
+          :mask1      i32
+          :coord      i32
           :sndfile    void*
           :isLocal    byte)
 
@@ -153,8 +154,7 @@
           :port         i32
           :socket       i32
           :reply-func   void*
-          :reply-data   void*)
-         )
+          :reply-data   void*))
 
         (:callbacks
 
@@ -169,11 +169,9 @@
          (world-run World_WaitForQuit [void* byte*])
          (world-cleanup World_Cleanup [void* byte*])
 
-         (world-open-udp-port World_OpenUDP [void* constchar* i32] ;;i32
-                              )
-         (world-open-tcp-port World_OpenTCP [void* constchar* i32 i32 i32] ;;i32
-                              )         
-         (world-send-packet World_SendPacket [void* i32 constchar* reply-callback] byte)
+         (world-open-udp-port World_OpenUDP [void* constchar* i32])
+         (world-open-tcp-port World_OpenTCP [void* constchar* i32 i32 i32])
+         (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
          (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
 
       (when-not (windows-os?)
@@ -193,40 +191,40 @@
 
 (defn set-world-options!
   [ptr option-map]
-   (set! (.mPassword ptr)                         (:pwd option-map))
-   (set! (.mNumBuffers ptr)                       (:max-buffers option-map))
-   (set! (.mMaxLogins ptr)                        (:max-logins option-map))
-   (set! (.mMaxNodes ptr)                         (:max-nodes option-map))
-   (set! (.mMaxGraphDefs ptr)                     (:max-sdefs option-map))
-   (set! (.mMaxWireBufs ptr)                      (:max-w-buffers option-map))
-   (set! (.mNumAudioBusChannels ptr)              (:max-audio-bus option-map))
-   (set! (.mNumInputBusChannels ptr)              (:max-input-bus option-map))
-   (set! (.mNumOutputBusChannels ptr)             (:max-output-bus option-map))
-   (set! (.mNumControlBusChannels ptr)            (:max-control-bus option-map))
-   (set! (.mBufLength ptr)                        (:mBufLength option-map))
-   (set! (.mRealTimeMemorySize ptr)               (:rt-mem-size option-map))
-   (set! (.mNumSharedControls ptr)                (:mNumSharedControls option-map))
-   (set! (.mSharedControls ptr)                   (:mSharedControls option-map))
-   (set! (.mRealTime ptr)                         (:realtime? option-map))
-   (set! (.mMemoryLocking ptr)                    (:mMemoryLocking option-map))
-   (set! (.mNonRealTimeCmdFilename ptr)           (:mNonRealTimeCmdFilename option-map))
-   (set! (.mNonRealTimeInputFilename ptr)         (:mNonRealTimeInputFilename option-map))
-   (set! (.mNonRealTimeOutputFilename ptr)        (:mNonRealTimeOutputFilename option-map))
-   (set! (.mNonRealTimeOutputHeaderFormat ptr)    (:mNonRealTimeOutputHeaderFormat option-map))
-   (set! (.mNonRealTimeOutputSampleFormat ptr)    (:mNonRealTimeOutputSampleFormat option-map))
-   (set! (.mPreferredSampleRate ptr)              (:mPreferredSampleRate option-map))
-   (set! (.mNumRGens ptr)                         (:num-rand-seeds option-map))
-   (set! (.mPreferredHardwareBufferFrameSize ptr) (:mPreferredHardwareBufferFrameSize option-map))
-   (set! (.mLoadGraphDefs ptr)                    (:load-sdefs? option-map))
-   (set! (.mInputStreamsEnabled ptr)              (:in-streams option-map))
-   (set! (.mOutputStreamsEnabled ptr)             (:out-streams option-map))
-   (set! (.mInDeviceName ptr)                     (:hw-device-name option-map))
-   (set! (.mVerbosity ptr)                        (:verbosity option-map))
-   (set! (.mRendezvous ptr)                       (:rendezvous? option-map))
-   (set! (.mUGensPluginPath ptr)                  (:mUGensPluginPath option-map))
-   (set! (.mOutDeviceName ptr)                    (:hw-out-device-name option-map))
-   (set! (.mRestrictedPath ptr)                   (:mRestrictedPath option-map))
-   (set! (.mSharedMemoryID ptr)                   (:mSharedMemoryID option-map)))
+  (set! (.mPassword ptr)                         (:pwd option-map))
+  (set! (.mNumBuffers ptr)                       (:max-buffers option-map))
+  (set! (.mMaxLogins ptr)                        (:max-logins option-map))
+  (set! (.mMaxNodes ptr)                         (:max-nodes option-map))
+  (set! (.mMaxGraphDefs ptr)                     (:max-sdefs option-map))
+  (set! (.mMaxWireBufs ptr)                      (:max-w-buffers option-map))
+  (set! (.mNumAudioBusChannels ptr)              (:max-audio-bus option-map))
+  (set! (.mNumInputBusChannels ptr)              (:max-input-bus option-map))
+  (set! (.mNumOutputBusChannels ptr)             (:max-output-bus option-map))
+  (set! (.mNumControlBusChannels ptr)            (:max-control-bus option-map))
+  (set! (.mBufLength ptr)                        (:mBufLength option-map))
+  (set! (.mRealTimeMemorySize ptr)               (:rt-mem-size option-map))
+  (set! (.mNumSharedControls ptr)                (:mNumSharedControls option-map))
+  (set! (.mSharedControls ptr)                   (:mSharedControls option-map))
+  (set! (.mRealTime ptr)                         (:realtime? option-map))
+  (set! (.mMemoryLocking ptr)                    (:mMemoryLocking option-map))
+  (set! (.mNonRealTimeCmdFilename ptr)           (:mNonRealTimeCmdFilename option-map))
+  (set! (.mNonRealTimeInputFilename ptr)         (:mNonRealTimeInputFilename option-map))
+  (set! (.mNonRealTimeOutputFilename ptr)        (:mNonRealTimeOutputFilename option-map))
+  (set! (.mNonRealTimeOutputHeaderFormat ptr)    (:mNonRealTimeOutputHeaderFormat option-map))
+  (set! (.mNonRealTimeOutputSampleFormat ptr)    (:mNonRealTimeOutputSampleFormat option-map))
+  (set! (.mPreferredSampleRate ptr)              (:mPreferredSampleRate option-map))
+  (set! (.mNumRGens ptr)                         (:num-rand-seeds option-map))
+  (set! (.mPreferredHardwareBufferFrameSize ptr) (:mPreferredHardwareBufferFrameSize option-map))
+  (set! (.mLoadGraphDefs ptr)                    (:load-sdefs? option-map))
+  (set! (.mInputStreamsEnabled ptr)              (:in-streams option-map))
+  (set! (.mOutputStreamsEnabled ptr)             (:out-streams option-map))
+  (set! (.mInDeviceName ptr)                     (:hw-device-name option-map))
+  (set! (.mVerbosity ptr)                        (:verbosity option-map))
+  (set! (.mRendezvous ptr)                       (:rendezvous? option-map))
+  (set! (.mUGensPluginPath ptr)                  (:mUGensPluginPath option-map))
+  (set! (.mOutDeviceName ptr)                    (:hw-out-device-name option-map))
+  (set! (.mRestrictedPath ptr)                   (:mRestrictedPath option-map))
+  (set! (.mSharedMemoryID ptr)                   (:mSharedMemoryID option-map)))
 
 (defn scsynth
   "Load libscsynth and start the synthesis server with the given options.  Returns
@@ -246,51 +244,22 @@
      {:world (world-new options)
       :callback cb})))
 
-#_(def scsynth-local-address
-    (let [local-address (java.nio.ByteBuffer/allocate 9)]
-      (map-indexed (fn [index char] (.putChar local-address index (byte char))) "127.0.0.1")
-      local-address))
-
 (defn scsynth-listen-udp
   [sc port]
-  ;; (println "TYPES: " (str (type (:world sc)) (type scsynth-local-address) (type port)))
-  (world-open-udp-port (:world sc)
-                       ;; scsynth-local-address
-                       "127.0.0.1"
-                       ;; nil
-                       port
-                       ;; 5111
-                       ))
+  (world-open-udp-port (:world sc) "127.0.0.1" port))
 
 (def SC-MAX-CONNECTIONS 1024)
-(def SC-BACKLOG 64) ; What's this?
+(def SC-BACKLOG 64)
 
 (defn scsynth-listen-tcp
   [sc port]
-  (world-open-tcp-port (:world sc)
-                       ;; scsynth-local-address
-                       "127.0.0.1"
-                       ;; nil
-                       port SC-MAX-CONNECTIONS SC-BACKLOG))
+  (world-open-tcp-port (:world sc) "127.0.0.1" port SC-MAX-CONNECTIONS SC-BACKLOG))
 
 (defn scsynth-send
-  [sc ^ByteBuffer buf] 
-  (println "flip: " (new java.lang.String (.array (.flip buf))) ;;(min (.limit buf) 30) " string " (apply str (.array buf))
-           )
-  (world-send-packet (:world sc) (.limit buf) (str buf)
-                     ;; (new java.lang.String (.array (.flip buf)))
-                     (:callback sc)))
+  [sc ^ByteBuffer buf]
+  ;; (prn buf)
+  (world-send-packet (:world sc) (.limit buf) buf (:callback sc)))
 
-;; struct World *inWorld, int inSize, char *inData, ReplyFunc inFunc
-
-#_(defn- osc-msg-decoder2
-    "Decodes incoming osc message buffers and then sends them as overtone events."
-    [buf]
-    (overtone.libs.event/event [:overtone :osc-msg-received]
-                               :msg (overtone.osc.decode/osc-decode-packet buf)))
-
-
-;; (scsynth-run (scsynth osc-msg-decoder2 {}))
 (defn scsynth-run
   "Starts the synthesis server main loop, and does not return until the /quit message
   is received."

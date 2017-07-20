@@ -44,14 +44,14 @@
                     (:name b)
                     (:duration b)
                     (cond
-                     (= 1 (:n-channels b)) "mono"
-                     (= 2 (:n-channels b)) "stereo"
-                     :else (str (:n-channels b) " channels"))
+                      (= 1 (:n-channels b)) "mono"
+                      (= 2 (:n-channels b)) "stereo"
+                      :else (str (:n-channels b) " channels"))
                     (:id b))))
 
 
 
-; Define a default wav player synth
+                                        ; Define a default wav player synth
 (defonce __DEFINE-PLAYERS__
   (do
 
@@ -227,8 +227,8 @@
   (let [{:keys [path args]}     smpl
         {:keys [id n-channels]} (get @cached-samples* [path args])
         [target pos pargs]      (extract-target-pos-args pargs
-                                                               (foundation-default-group)
-                                                               :tail)]
+                                                         (foundation-default-group)
+                                                         :tail)]
     (cond
       (= n-channels 1) (apply mono-partial-player [pos target] id pargs)
       (= n-channels 2) (apply stereo-partial-player [pos target] id pargs))))

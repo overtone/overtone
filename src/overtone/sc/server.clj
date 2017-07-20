@@ -81,7 +81,7 @@
   [time-ms & body]
   `(with-inactive-modification-error :silent
      (without-node-blocking
-           (in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))))
+      (in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))))
 
 (defmacro snd-immediately
   [& body]
