@@ -1,6 +1,6 @@
 # Change Log
 
-## master (unreleased)
+## Version 0.10.2 (30th August 2017)
 
 # Breaking Changes
 
