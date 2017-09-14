@@ -95,7 +95,7 @@
      [t freq]
      (at t (my-synth freq))
      (let [next-t (+ t 200)
-           next-f (+ freq 100]
+           next-f (+ freq 100)]
        (apply-by next-t #'foo [next-t next-f])))
 
    (foo (now) 100)
