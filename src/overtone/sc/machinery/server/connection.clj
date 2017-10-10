@@ -14,7 +14,7 @@
             [overtone.osc.decode :refer [osc-decode-packet]]
             [overtone.helpers.lib :refer [print-ascii-art-overtone-logo windows-sc-path deref!]]
             [overtone.helpers.file :refer [file-exists? dir-exists? resolve-tilde-path]]
-            [overtone.helpers.system :refer [windows-os? get-cpu-bits get-os linux-os?]]))
+            [overtone.helpers.system :refer [windows-os? get-cpu-bits get-os linux-os?]]            ))
 
 (defonce server-thread*       (ref nil))
 (defonce sc-world*            (ref nil))
@@ -235,17 +235,18 @@
   STDOUT for log messages."
   ([cmd] (external-booter cmd "."))
   ([cmd working-dir]
-     (log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
-     (let [working-dir (File. working-dir)
-           proc        (.exec (Runtime/getRuntime) cmd nil working-dir)
-           in-stream   (BufferedInputStream. (.getInputStream proc))
-           err-stream  (BufferedInputStream. (.getErrorStream proc))
-           read-buf    (make-array Byte/TYPE 256)]
-       (while (not (= :disconnected @connection-status*))
-         (sc-log-external in-stream read-buf)
-         (sc-log-external err-stream read-buf)
-         (Thread/sleep 250))
-       (.destroy proc))))
+   (println "cmd: " cmd " working-dir: " working-dir)
+   (log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
+   (let [working-dir (File. working-dir)
+         proc        (.exec (Runtime/getRuntime) cmd nil working-dir)
+         in-stream   (BufferedInputStream. (.getInputStream proc))
+         err-stream  (BufferedInputStream. (.getErrorStream proc))
+         read-buf    (make-array Byte/TYPE 256)]
+     (while (not (= :disconnected @connection-status*))
+       (sc-log-external in-stream read-buf)
+       (sc-log-external err-stream read-buf)
+       (Thread/sleep 250))
+     (.destroy proc))))
 
 (defn- find-sc-path
   "Find the path for SuperCollider. If linux don't check for a file as

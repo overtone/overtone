@@ -6,7 +6,7 @@
   `leiningen.core.eval/get-os` for that system. Temporarily disabled
   options can be kept under `:disabled`."
   {:any
-   ["-Xms512" "-Xmx1g"           ; Minimum and maximum sizes of the heap
+   ["-Xms512m" "-Xmx1g"           ; Minimum and maximum sizes of the heap
     "-XX:+UseParNewGC"            ; Use the new parallel GC in conjunction with
     "-XX:+UseConcMarkSweepGC"     ;  the concurrent garbage collector
     "-XX:+CMSConcurrentMTEnabled" ; Enable multi-threaded concurrent gc work (ParNewGC)
@@ -38,7 +38,7 @@
        (vec (set (concat (get JVMOPTS :any)
                          (get JVMOPTS os))))))
 
-(defproject overtone "0.10.2"
+(defproject overtone "0.11.0-alpha"
   :description "Collaborative Programmable Music."
   :url "http://overtone.github.io/"
   :mailing-list {:name "overtone"
@@ -51,15 +51,12 @@
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
                  [org.clojure/data.json "0.2.6"]
-                 ;; [com.github.jnr/jnr-ffi "2.1.6"]
                  [clj-native "0.9.5"]
                  [overtone/at-at "1.2.0"]
                  [overtone/osc-clj "0.9.0"]
                  [overtone/byte-spec "0.3.1"]
                  [overtone/midi-clj "0.5.0"]
                  [overtone/libs.handlers "0.2.0"]
-                 ;; [overtone/scsynth "3.5.7.0"]
-                 ;; [overtone/scsynth-extras "3.5.7.0"]
                  [clj-glob "1.0.0"]
                  [net.java.dev.jna/jna "4.4.0"]]
   :profiles {:test {:dependencies [[bultitude "0.2.0"]
