@@ -65,5 +65,6 @@
                    :gui  :gui
                    :hw   :hw}
   :native-path "native"
+  :resource-paths ["native/windows"]
   :min-lein-version "2.0.0"
   :jvm-opts ^:replace ~(jvm-opts))

@@ -15,7 +15,7 @@
             ))
 
 (def native-scsynth-lib-availability
-  {:windows {64 false
+  {:windows {64 true
              32 true}
    :linux   {64 true
              32 false}
@@ -29,6 +29,7 @@
 (declare world-options)
 (declare reply-callback)
 (declare sound-buffer)
+(declare bool-val)
 
 (defn fflush [_] nil)
 
@@ -104,7 +105,7 @@
           :isLocal    byte)
 
          (bool-val
-          :value byte)
+           :value byte)
 
          ;; supercollider/include/plugin_interface/SC_World.h
          (world
