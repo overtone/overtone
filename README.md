@@ -45,7 +45,7 @@ collaborating with music.  It provides:
 
     # add the following dependencies to insane-noises/project.clj
     # [org.clojure/clojure "1.8.0"]
-    # [overtone "0.10.2"]
+    # [overtone "0.10.3"]
 
     $ cd insane-noises
     $ lein repl
@@ -62,8 +62,8 @@ collaborating with music.  It provides:
     user=> (demo (sin-osc))
 
     ;; or something more interesting...
-    user=>(demo 7 (lpf (mix (saw [50 (line 100 1600 5) 101 100.5]))
-                  (lin-lin (lf-tri (line 2 20 5)) -1 1 400 4000)))
+    user=> (demo 7 (lpf (mix (saw [50 (line 100 1600 5) 101 100.5]))
+                   (lin-lin (lf-tri (line 2 20 5)) -1 1 400 4000)))
 ```
 
 ### Detailed Instructions
@@ -162,9 +162,10 @@ philosophy of Overtone:
 
 ### Performances
 
+* Repl Electric: https://vimeo.com/95988263
+* Piotr Jagielski‏: https://www.youtube.com/watch?v=r8YKC7Qugm8
 * Sam Aaron Live @ Arnolfini:  https://vimeo.com/46867490
 * Meta-eX Live @ Music Tech Fest: http://youtu.be/zJqH5bNcIN0?t=15m25s
-
 
 
 ## Source Repository
@@ -181,7 +182,7 @@ ready to submit a patch then fork your own copy and do a pull request.
 Overtone and its dependencies are on http://clojars.org, and the
 dependency for your `project.clj` is:
 
-    [overtone "0.10.2"]
+    [overtone "0.10.3"]
 
 ## Contributors
 

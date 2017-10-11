@@ -102,8 +102,8 @@
   (mapv #(v* (inv-det x y z)
              (v-perm-prod-diff %1 %2)) [y z x] [z x y]))
 
-;; From clojure 1.9 any? is a core function
-;; (def any? (comp boolean some))
+(def some-element?
+  (comp boolean some))
 
 (defn- get-coords [speaker-set]
   (into [] (map :coords speaker-set)))
@@ -180,7 +180,7 @@
   "given the coordinate vector of a speaker and the inverse matrix of
   a speaker triplet, check, if the speaker is outside the area of the
   triplet."
-  (any? #(< (v-dot ls %) -0.001) inv-matrix))
+  (some-element? #(< (v-dot ls %) -0.001) inv-matrix))
 
 (defn- remove-triplet
   "remove all speakers of triplet from speakers sequence."
@@ -255,7 +255,7 @@
                              (rest connections))))))
 
 (defn- contained? [conn connections]
-  (any? #(= % conn) connections))
+  (some-element? #(= % conn) connections))
 
 (defn- triplet-connectable? [triplet connections]
   "is every speaker pair in the triplet contained in connections?"

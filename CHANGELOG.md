@@ -1,5 +1,10 @@
 # Change Log
 
+## Version 0.10.3 (11th October 2017)
+
+# Bug Fix
+* `overtone.sc.vbap` any? now called `some-element?` and doesn't rely on Clojure 1.9
+
 ## Version 0.10.2 (30th August 2017)
 
 # Breaking Changes
