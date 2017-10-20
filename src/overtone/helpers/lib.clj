@@ -345,17 +345,24 @@
     (keyword (:name gen))
         gen))
 
+(defn env-files
+  "Returns the files that exist in the directory mentioned in env-var. Code from: https://stackoverflow.com/a/46840668/1005039 "
+  [env-var]
+  (some-> env-var
+          System/getenv
+          File.
+          .listFiles))
+
 (defn windows-sc-path
   "Returns a string representing the path for SuperCollider on Windows,
    or nil if not on Windows."
   []
   (when (windows-os?)
-    (let [p-files-dir (System/getenv "PROGRAMFILES(X86)")
-          p-files-dir (or p-files-dir (System/getenv "PROGRAMFILES"))
-          p-files-dir (File. p-files-dir)
-          p-files     (map str (.listFiles p-files-dir))
-          sc-files    (filter #(.contains % "SuperCollider") p-files)
-          recent-sc   (last (sort (seq sc-files)))]
+    (let [p-files   (map str (concat
+                              (env-files "PROGRAMFILES")
+                              (env-files "PROGRAMFILES(X86)")))
+          sc-files  (filter #(.contains % "SuperCollider") p-files)
+          recent-sc (last (sort (seq sc-files)))]
       recent-sc)))
 
 (defmacro branch
