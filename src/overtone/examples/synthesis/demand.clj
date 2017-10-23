@@ -82,7 +82,7 @@
 
 ;(def generator-node (note-generator))
 ;(def beep-node (beep))
-;(node-map-controls beep-node 0 0)
+;(node-map-controls beep-node [0 0])
 ;(stop)
 
 (demo 4
