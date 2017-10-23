@@ -123,7 +123,7 @@
       (after-delay delay-time #(apply f (#'clojure.core/spread args))))))
 
 (defn apply-at
-  "Scheduled function appliction. Works identically to apply, except
+  "Scheduled function application. Works identically to apply, except
    that it takes an additional initial argument: ms-time. If ms-time is
    in the future, function application is delayed until that time, if
    ms-time is in the past function application is immediate.
