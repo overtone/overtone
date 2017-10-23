@@ -112,7 +112,7 @@
                :doc "Buffer index.  The buffer size must be a power of
                      2.  The buffer should NOT be filled using Wavetable
                      format (b_gen commands should set wavetable flag to
-                     false.  Raw signals (not converted with
+                     false).  Raw signals (not converted with
                      asWavetable) can be saved to disk and loaded into
                      the buffer." }
               {:name "freq", :default 440.0

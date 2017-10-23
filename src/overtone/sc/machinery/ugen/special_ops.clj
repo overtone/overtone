@@ -1,5 +1,5 @@
 (ns
-    ^{:doc "Metadata regarding the various functionalities of the unary and binary ugens. These ugens are different to typical ugens in that they receive an 'opcode' as a parameter which defines its behviour - ranging from addition to trig functions to midi->cps conversion."
+    ^{:doc "Metadata regarding the various functionalities of the unary and binary ugens. These ugens are different to typical ugens in that they receive an 'opcode' as a parameter which defines its behaviour - ranging from addition to trig functions to midi->cps conversion."
       :author "Jeff Rose & Sam Aaron"}
 
   overtone.sc.machinery.ugen.special-ops)
