@@ -224,9 +224,9 @@
           msg (String. read-buf 0 n)
           error? (re-find #"World_OpenUDP" msg)]
       (swap! external-server-log* conj msg)
-      (when error?
+      (if error?
         (log/error msg)
-       (log/info msg)))))
+        (log/info msg)))))
 
 (defn- external-booter
   "Boot thread to start the external audio server process and hook up to
