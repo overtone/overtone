@@ -40,7 +40,7 @@
    :in-streams               {:default nil    :flag "-I" :desc "Input streams enabled"}
    :out-streams              {:default nil    :flag "-O" :desc "Output streams enabled"}
    :hw-device-name           {:default nil    :flag "-H" :desc "Hardware device name"}
-   :verbosity                {:default 0      :flag "-v" :desc "Verbosity mode. 0 is normal behaviour, -1 suppress information messages, -2 suppresses informational and many error messages"}
+   :verbosity                {:default 0      :flag "-V" :desc "Verbosity mode. 0 is normal behaviour, -1 suppress information messages, -2 suppresses informational and many error messages"}
    :ugens-paths              {:default nil    :flag "-U" :desc "A list of paths of ugen directories. If specified, the standard paths are NOT searched for plugins."}
    :restricted-path          {:default nil    :flag "-P" :desc "Prevents file-accesing OSC commands from accessing files outside the specified path."}})
 
