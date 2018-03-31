@@ -13,7 +13,7 @@
 
 ;; Audio buses can carry both audio and control rate signals. However,
 ;; they will use more computational resources. Therefore, consider using
-;; a control bus if you're signal doesn't need to change more than, say,
+;; a control bus if your signal doesn't need to change more than, say,
 ;; 60 times a second.
 
 ;; You can create many new control and audio buses. However, your system
@@ -99,7 +99,7 @@
 ;; by taking the sample value from the bus, multipling it by
 ;; the frequency amplitude, and then adding the result to the midpoint
 ;; or median frequency.  Therefore, if you hook it up to a bus carrying
-;; a sine wave signal and use the defalt mid-freq and freq-amp values
+;; a sine wave signal and use the default mid-freq and freq-amp values
 ;; you'll get an lf-tri ugen that oscillates between 165 and 275 Hz
 ;; (165 is 55 below 220, and 275 is 55 above 220)
 (defsynth modulated-freq-tri [freq-bus 0 mid-freq 220 freq-amp 55]
