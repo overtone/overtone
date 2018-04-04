@@ -7,4 +7,5 @@
 (defonce __SET_JNA_PATH__
   (case (get-os)
     :linux (System/setProperty "jna.library.path" "native/linux/x86_64")
+    :mac (System/setProperty "jna.library.path" "native/macosx/x86_64")
     :windows (System/setProperty "jna.library.path" "native/windows/x86_64")))
