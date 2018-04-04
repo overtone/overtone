@@ -6,5 +6,5 @@
 ;; from pulling out third party lib files from path
 (defonce __SET_JNA_PATH__
   (case (get-os)
-    :linux (System/setProperty "jna.library.path" "./native/linux")
-    :windows (System/setProperty "jna.library.path" "./native/windows")))
+    :linux (System/setProperty "jna.library.path" "native/linux/x86_64")
+    :windows (System/setProperty "jna.library.path" "native/windows/x86_64")))

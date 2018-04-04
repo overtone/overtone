@@ -4,7 +4,7 @@
 
 (def metro (metronome 128))
 
-; Our bar is a map of beat to instruments to play
+;; Our bar is a map of beat to instruments to play
 
 (def bar {0   [kick]
           0.5 [closed-hat]

@@ -153,7 +153,7 @@
    :mPreferredSampleRate              0
    :mPreferredHardwareBufferFrameSize 0
    :mSharedMemoryID                   0
-   :mUGensPluginPath                  (str (System/getProperty "jna.library.path") "/plugins")})
+   :mUGensPluginPath                  (System/getProperty "jna.library.path")})
 
 (defn- cleanup-sc-args
   [args]
