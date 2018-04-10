@@ -15,22 +15,22 @@
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
     ff-osc fft info noise pan trig line input filter random
-
-    ;; extras.mda
-    ;; extras.stk
-    ;; extras.glitch
-    ;; extras.bhob
-    ;; extras.blackrain
-    ;; extras.distortion
-    ;; extras.sl
-    ;; extras.ay
-    ;; extras.bbcut2u
-    ;; extras.bat
-    ;; extras.vbap
-    ;; extras.vosim
-    ;; extras.berlach
-    ;; extras.membrane
-    ;; extras.tju
+    
+    extras.mda
+    extras.stk
+    extras.glitch
+    extras.bhob
+    extras.blackrain
+    extras.distortion
+    extras.sl
+    extras.ay
+    extras.bbcut2u
+    extras.bat
+    extras.vbap
+    extras.vosim
+    extras.berlach
+    extras.membrane
+    extras.tju
     ])
 
 (defn- spec-arg-names

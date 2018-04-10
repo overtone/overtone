@@ -258,7 +258,6 @@
 
 (defn scsynth-send
   [sc ^ByteBuffer buf]
-  ;; (prn buf)
   (world-send-packet (:world sc) (.limit buf) buf (:callback sc)))
 
 (defn scsynth-run

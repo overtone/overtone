@@ -243,7 +243,6 @@
 (defn- load-all-synthdefs []
   (doseq [[sname sdef] @loaded-synthdefs*]
     ;; (Thread/sleep 1000)
-    (println sname)
     (snd "/d_recv" (synthdef-bytes sdef)))
   (satisfy-deps :synthdefs-loaded))
 
