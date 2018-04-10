@@ -38,7 +38,7 @@
        (vec (set (concat (get JVMOPTS :any)
                          (get JVMOPTS os))))))
 
-(defproject overtone "0.11.0-alpha1"
+(defproject overtone "0.11.0"
   :description "Collaborative Programmable Music."
   :url "http://overtone.github.io/"
   :mailing-list {:name "overtone"
@@ -58,7 +58,9 @@
                  [overtone/midi-clj "0.5.0"]
                  [overtone/libs.handlers "0.2.0"]
                  [clj-glob "1.0.0"]
-                 [net.java.dev.jna/jna "4.4.0"]]
+                 [net.java.dev.jna/jna "4.4.0"]
+                 [overtone/scsynth "3.9.3-0"]
+                 [overtone/scsynth-extras "3.9.3-0"]]
   :profiles {:test {:dependencies [[bultitude "0.2.0"]
                                    [polynome "0.2.2"]]}}
   :test-selectors {:core (fn [m] (not (some m [:gui :hw])))
