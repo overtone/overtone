@@ -105,7 +105,7 @@
           :isLocal    byte)
 
          (bool-val
-           :value byte)
+          :value byte)
 
          ;; supercollider/include/plugin_interface/SC_World.h
          (world

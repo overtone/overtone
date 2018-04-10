@@ -145,6 +145,8 @@
    :hw-device-name           ""
    :hw-out-device-name       ""})
 
+
+
 (def non-modifiable-native-scsynth-options
   {:mBufLength                        64
    :mNumSharedControls                0
@@ -153,7 +155,8 @@
    :mPreferredSampleRate              0
    :mPreferredHardwareBufferFrameSize 0
    :mSharedMemoryID                   0
-   :mUGensPluginPath                  (System/getProperty "jna.library.path")})
+   ;; ugens-plugins-path needs to be seperated from libscsynth paths
+   :mUGensPluginPath (str (System/getProperty "jna.library.path") "/plugins")})
 
 (defn- cleanup-sc-args
   [args]
