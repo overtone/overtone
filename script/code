@@ -1,8 +1,0 @@
-#!/bin/bash
-
-echo "Project Overtone initializing..."
-
-./script/ng-server &
-./script/start.sh
-
-$EDITOR TODO

@@ -1,8 +1,0 @@
-#! /bin/bash
-
-pkill -9 java
-
-SCRIPT_DIR=`dirname $0`
-JAVA_ENV=`$SCRIPT_DIR/java-env`
-
-exec java $JAVA_ENV vimclojure.nailgun.NGServer 127.0.0.1

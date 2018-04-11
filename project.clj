@@ -14,19 +14,19 @@
     "-XX:MaxNewSize=257m"         ; Specify the max and min size of the new
     "-XX:NewSize=256m"            ;  generation to be small
     "-XX:+UseTLAB"                ; Uses thread-local object allocation blocks. This
-                                  ;  improves concurrency by reducing contention on
-                                  ;  the shared heap lock.
+                                        ;  improves concurrency by reducing contention on
+                                        ;  the shared heap lock.
     "-XX:MaxTenuringThreshold=0"] ; Makes the full NewSize available to every NewGC
-                                  ;  cycle, and reduces the pause time by not
-                                  ;  evaluating tenured objects. Technically, this
-                                  ;  setting promotes all live objects to the older
-                                  ;  generation, rather than copying them.
+                                        ;  cycle, and reduces the pause time by not
+                                        ;  evaluating tenured objects. Technically, this
+                                        ;  setting promotes all live objects to the older
+                                        ;  generation, rather than copying them.
    :macosx
    ["-Xdock:name=Overtone"]
    :disabled
    ["-XX:ConcGCThreads=2"         ; Use 2 threads with concurrent gc collections
     "-XX:TieredCompilation"       ; JVM7 - combine both client and server compilation
-                                  ;  strategies
+                                        ;  strategies
     "-XX:CompileThreshold=1"      ; JIT each function after one execution
     "-XX:+PrintGC"                ; Print GC info to stdout
     "-XX:+PrintGCDetails"         ;  - with details
@@ -38,7 +38,7 @@
        (vec (set (concat (get JVMOPTS :any)
                          (get JVMOPTS os))))))
 
-(defproject overtone "0.10.3"
+(defproject overtone "0.11.0"
   :description "Collaborative Programmable Music."
   :url "http://overtone.github.io/"
   :mailing-list {:name "overtone"
@@ -49,7 +49,7 @@
             :distribution :repo
             :comments "Please use Overtone for good"}
 
-  :dependencies [[org.clojure/clojure "1.9.0-alpha17"]
+  :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/data.json "0.2.6"]
                  [clj-native "0.9.5"]
                  [overtone/at-at "1.2.0"]
@@ -57,9 +57,10 @@
                  [overtone/byte-spec "0.3.1"]
                  [overtone/midi-clj "0.5.0"]
                  [overtone/libs.handlers "0.2.0"]
-                 [overtone/scsynth "3.5.7.0"]
-                 [overtone/scsynth-extras "3.5.7.0"]
-                 [clj-glob "1.0.0"]]
+                 [clj-glob "1.0.0"]
+                 [net.java.dev.jna/jna "4.4.0"]
+                 [overtone/scsynth "3.9.3-0"]
+                 [overtone/scsynth-extras "3.9.3-0"]]
   :profiles {:test {:dependencies [[bultitude "0.2.0"]
                                    [polynome "0.2.2"]]}}
   :test-selectors {:core (fn [m] (not (some m [:gui :hw])))

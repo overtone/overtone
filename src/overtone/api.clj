@@ -10,7 +10,8 @@
              ugens defcgen node sample server synth clock
              foundation-groups dyn-vars trig vbap]
             [overtone.sc.cgens oscillators demand mix dyn io buf-io env tap
-             line freq beq-suite berlach bhob fx info]
+             line freq beq-suite berlach ;; bhob
+             fx info]
             [overtone.music rhythm pitch tuning time]
             [overtone.studio mixer inst util fx wavetable midi midi-player core scope]
             [overtone.repl ugens examples shell inst debug graphviz]
@@ -84,7 +85,7 @@
    'overtone.sc.cgens.freq
    'overtone.sc.cgens.beq-suite
    'overtone.sc.cgens.berlach
-   'overtone.sc.cgens.bhob
+   ;; 'overtone.sc.cgens.bhob
    'overtone.sc.cgens.fx
    'overtone.sc.cgens.info
    'overtone.sc.clock
