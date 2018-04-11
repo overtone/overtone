@@ -1,5 +1,15 @@
 # Change Log
 
+## Master (0.11.0-SNAPSHOT)
+# scsynth
+* now compiled against supercollider 3.9.3
+* scsynth-extras includes new plugins that can to be spec'd in metadata/extras
+* jna paths are explicitly set for every os
+* 64-bit architecture support for windows machines
+
+# Breaking Changes
+* 32-bit support for internal-synths on windows is discontinued (use 64-bits instead)
+
 ## Version 0.10.3 (11th October 2017)
 
 # Bug Fix
