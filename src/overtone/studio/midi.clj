@@ -4,7 +4,6 @@
            external MIDI devices and automatically hooking into
            Overtone's event system." }
   (:use [overtone.sc.dyn-vars]
-        [overtone.at-at :only [mk-pool every]]
         [overtone.libs event counters]
         [overtone.sc.defaults :only [INTERNAL-POOL]]
         [overtone.helpers.system :only [mac-os?]]

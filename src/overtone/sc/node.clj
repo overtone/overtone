@@ -10,7 +10,6 @@
         [clojure.pprint])
   (:require [clojure.zip :as zip]
             [overtone.config.log :as log]
-            [overtone.at-at :as at-at]
             [overtone.sc.protocols :as protocols]))
 
 ;; The root group is implicitly allocated
