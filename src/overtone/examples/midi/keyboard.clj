@@ -84,8 +84,7 @@
         ; to a number between -8192 and 8191
         signed (- unsigned 8192)
         ; correcting for having less values (8191) for pitch increase than decrease
-        divisor (if (< signed 0) 8192 8191)
-        _ (println unsigned signed divisor (float (/ signed divisor)))]
+        divisor (if (< signed 0) 8192 8191)]
     (float (/ signed divisor))))
 
 (defn inst-player [inst]
