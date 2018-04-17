@@ -1,6 +1,5 @@
 (ns overtone.examples.midi.keyboard
-  (:use overtone.live)
-  (:import (java.nio ByteBuffer ByteOrder)))
+  (:use overtone.live))
 
 (definst ding
   [note 60 velocity 100]
@@ -72,6 +71,23 @@
 ; events. inst-player can be used to handle input from a MIDI keyboard
 ; and its sustain pedal and pitch bend controller.
 
+; This function transforms pitch-bend midi signal of 14 bits to a
+; float between -1.0 and 1.0 where -1.0 means lowest bend,
+; 0.0 means no bend, and 1.0 means highest bend.
+; See https://www.midikits.net/midi_analyser/pitch_bend.htm for reference.
+(defn midi-pitch-bend-to-float [data1 data2]
+  (let [; midi two bytes to a number between 0 and 16383,
+        ; 0 means lowest bend, 8192 means no bend, 16383 means highest bend
+        unsigned (bit-or
+                   (-> data2 (bit-flip 6) (bit-shift-left 7))
+                   data1)
+        ; to a number between -8192 and 8191
+        signed (- unsigned 8192)
+        ; correcting for having less values (8191) for pitch increase than decrease
+        divisor (if (< signed 0) 8192 8191)
+        _ (println unsigned signed divisor (float (/ signed divisor)))]
+    (float (/ signed divisor))))
+
 (defn inst-player [inst]
   "Handle incoming midi events by playing notes on inst, updating
   the :gate and :sustain parameters of inst based on MIDI
@@ -90,14 +106,7 @@
         on-id (keyword (gensym "on-handler"))
         off-id (keyword (gensym "off-handler"))
         cc-id (keyword (gensym "cc-handler"))
-        pitch-bend-id (keyword (gensym "pitch-bend-handler"))
-        bytes-to-short (fn [b1 b2]
-                         (let [bb (. ByteBuffer allocate 2)
-                               _ (. bb order (. ByteOrder LITTLE_ENDIAN))
-                               _ (. bb put b1)
-                               _ (. bb put b2)
-                               short-val (. bb getShort 0)]
-                           short-val))]
+        pitch-bend-id (keyword (gensym "pitch-bend-handler"))]
 
     ; Handle note-on MIDI events.
     (on-event [:midi :note-on]
@@ -148,13 +157,9 @@
     ; Handle pitch-bend MIDI events
     (on-event [:midi :pitch-bend]
               (fn [{:keys [data1 data2]}]
-                (let [d1 data1
-                      d2 (mod (+ 64 data2) 128)
-                      pitch (bytes-to-short (byte d1) (byte d2))
-                      pitch-f (double (/ pitch (. Short MAX_VALUE)))
-                      norm-pitch-f (- (* 2 pitch-f) 1)]
+                (let [pitch-f (midi-pitch-bend-to-float data1 data2)]
                   ; Update pitch bend, even if no nodes are active.
-                  (reset! pitch-bend* norm-pitch-f)
+                  (reset! pitch-bend* (* 2 pitch-f))
                   ; Ignore bending pitch if no nodes are active
                   (when (not (empty? (:active @notes*)))
                     (ctl inst :pitch-bend @pitch-bend*))))
