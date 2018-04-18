@@ -67,9 +67,25 @@
 ;(midi-player-stop ding-player)
 
 ; Below is a more sophisticated example that demonstrates how to
-; control :gate and :sustain parameters of an instrument based on MIDI
+; control :gate and :sustain parameters, and pitch bend of an instrument based on MIDI
 ; events. inst-player can be used to handle input from a MIDI keyboard
-; and its sustain pedal.
+; and its sustain pedal and pitch bend controller.
+
+; This function transforms pitch-bend midi signal of 14 bits to a
+; float between -1.0 and 1.0 where -1.0 means lowest bend,
+; 0.0 means no bend, and 1.0 means highest bend.
+; See https://www.midikits.net/midi_analyser/pitch_bend.htm for reference.
+(defn midi-pitch-bend-to-float [data1 data2]
+  (let [; midi two bytes to a number between 0 and 16383,
+        ; 0 means lowest bend, 8192 means no bend, 16383 means highest bend
+        unsigned (bit-or
+                   (-> data2 (bit-flip 6) (bit-shift-left 7))
+                   data1)
+        ; to a number between -8192 and 8191
+        signed (- unsigned 8192)
+        ; correcting for having less values (8191) for pitch increase than decrease
+        divisor (if (< signed 0) 8192 8191)]
+    (float (/ signed divisor))))
 
 (defn inst-player [inst]
   "Handle incoming midi events by playing notes on inst, updating
@@ -85,9 +101,11 @@
                       ; sound).
                       :finished {}})
         sustain* (atom 0)
+        pitch-bend* (atom 0)
         on-id (keyword (gensym "on-handler"))
         off-id (keyword (gensym "off-handler"))
-        cc-id (keyword (gensym "cc-handler"))]
+        cc-id (keyword (gensym "cc-handler"))
+        pitch-bend-id (keyword (gensym "pitch-bend-handler"))]
 
     ; Handle note-on MIDI events.
     (on-event [:midi :note-on]
@@ -135,9 +153,20 @@
                          (ctl inst :sustain sustain)))))
               cc-id)
 
+    ; Handle pitch-bend MIDI events
+    (on-event [:midi :pitch-bend]
+              (fn [{:keys [data1 data2]}]
+                (let [pitch-f (midi-pitch-bend-to-float data1 data2)]
+                  ; Update pitch bend, even if no nodes are active.
+                  (reset! pitch-bend* (* 2 pitch-f))
+                  ; Ignore bending pitch if no nodes are active
+                  (when (not (empty? (:active @notes*)))
+                    (ctl inst :pitch-bend @pitch-bend*))))
+              pitch-bend-id)
+
     ; Return the ids of the event handlers so they can be stopped
     ; later.
-    [on-id off-id cc-id]))
+    [on-id off-id cc-id pitch-bend-id]))
 
 (defn stop-inst-player [event-handler-ids]
   "Given a list of event-handler-ids returned by inst-player, remove
@@ -147,8 +176,8 @@
 
 ; Create an instrument with a sustain parameter.
 (definst sustain-ding
-  [note 60 amp 1 gate 1 sustain 0]
-  (let [freq (midicps note)
+  [note 60 amp 1 gate 1 sustain 0 pitch-bend 0]
+  (let [freq (midicps (+ note pitch-bend))
         snd  (sin-osc freq)
         env  (env-gen (adsr 0.001 0.1 0.6 0.3) (or gate sustain) :action FREE)]
     (* amp env snd)))
