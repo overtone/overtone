@@ -60,8 +60,8 @@
                  [overtone/ableton-link "1.0.0-alpha"]
                  [clj-glob "1.0.0"]
                  [net.java.dev.jna/jna "4.4.0"]
-                 [overtone/scsynth "3.9.3-0"]
-                 [overtone/scsynth-extras "3.9.3-0"]]
+                 [overtone/scsynth "3.9.3-1"]
+                 [overtone/scsynth-extras "3.9.3-1"]]
   :profiles {:test {:dependencies [[bultitude "0.2.0"]
                                    [polynome "0.2.2"]]}}
   :test-selectors {:core (fn [m] (not (some m [:gui :hw])))
