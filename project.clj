@@ -57,7 +57,7 @@
                  [overtone/byte-spec "0.3.1"]
                  [overtone/midi-clj "0.5.0"]
                  [overtone/libs.handlers "0.2.0"]
-                 [overtone/ableton-link "1.0.0-alpha"]
+                 [overtone/ableton-link "1.0.0-alpha3"]
                  [clj-glob "1.0.0"]
                  [net.java.dev.jna/jna "4.4.0"]
                  [overtone/scsynth "3.9.3-1"]
