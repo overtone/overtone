@@ -1,11 +1,12 @@
-(ns overtone.sc.core-test
+(ns overtone.sc.core-test 
   (:use
-    clojure.test
-    overtone.live
-    ; TODO: this is not importable until the server is booted?
-    overtone.inst.synth)
+   clojure.test
+   overtone.live
+   ;; TODO: this is not importable until the server is booted?
+   overtone.inst.synth)
   (:require
-    [overtone.config.log :as log]))
+   [overtone.sc.machinery.server.connection :refer [connection-info*]]
+   [overtone.config.log :as log]))
 
 (def ditty-notes [50 50 57 50 48 62 62 50])
 (def ditty-durs  [250 250 500 125 125 250 250 500])
@@ -15,18 +16,18 @@
          durs durs
          t (now)]
     (when (and notes durs)
-      ; TODO: hit is not defined
-      (hit t inst :note (first notes) :dur (first durs))
+      ;; TODO: hit is not defined
+      ;; (hit t inst :note (first notes) :dur (first durs))
       (recur (next notes) (next durs) (+ t (first durs))))))
 
 (deftest boot-test
   (try
     (boot-server)
     (Thread/sleep 500)
-    (is (not (nil? @server*)))
+    (is (not (nil? @connection-info*)))
     (is (= 1 (:n-groups (status))))
 
-    (play-seqs "sin" ditty-notes ditty-durs)
+    ;; (play-seqs "sin" ditty-notes ditty-durs)
     (Thread/sleep 3000)
     (finally
       (kill-server))))
@@ -38,9 +39,9 @@
         b (group :head DEFAULT-GROUP)
         c (group :head DEFAULT-GROUP)]
     (is (= 4 (:n-groups (status))))
-    (group-free a b c)
+    (run! group-free [a b c])
     (is (= 1 (:n-groups (status))))
-    ; We should get the old ID again with the bitset allocator
+    ;; We should get the old ID again with the bitset allocator
     (is (= a (group :head DEFAULT-GROUP)))))
 
 (deftest node-tree-test
