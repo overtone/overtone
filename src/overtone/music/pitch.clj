@@ -16,16 +16,16 @@
 (defmacro defratio [rname ratio]
   `(defn ~rname [freq#] (* freq# ~ratio)))
 
-; Perfect consonance
+;; Perfect consonance
 (defratio unison    1/1)
 (defratio octave    2/1)
 (defratio fifth     3/2)
 
-; Imperfect consonance
+;; Imperfect consonance
 (defratio sixth     5/3)
 (defratio third     5/4)
 
-; Dissonance
+;; Dissonance
 (defratio fourth    4/3)
 (defratio min-third 6/5)
 (defratio min-sixth 8/5)
@@ -562,14 +562,16 @@
   bound within the range of the specified root and pitch-range and
   only containing pitches within the specified chord-name. Similar to
   Impromptu's pc:make-chord"
-  [root chord-name num-pitches pitch-range]
-  (let [chord (chord root chord-name)
-        root (note root)
-        max-pitch (+ pitch-range root)
-        roots (range 0 max-pitch 12)
-        notes (flatten (map (fn [root] (map #(+ root %) chord)) roots))
-        notes (take-while #(<= % max-pitch) notes)]
-    (sort (choose-n num-pitches notes))))
+  ([root chord-name num-pitches pitch-range]
+   (rand-chord root chord-name num-pitches pitch-range 0))
+  ([root chord-name num-pitches pitch-range inversion]
+   (let [chord (chord root chord-name inversion)
+         root (note root)
+         max-pitch (+ pitch-range root)
+         roots (range 0 max-pitch 12)
+         notes (flatten (map (fn [root] (map #(+ root %) chord)) roots))
+         notes (take-while #(<= % max-pitch) notes)]
+     (sort (choose-n num-pitches notes)))))
 
 ; midicps
 (defn midi->hz

@@ -10,6 +10,10 @@
 # Breaking Changes
 * 32-bit support for internal-synths on windows is discontinued (use 64-bits instead)
 
+# Improvements
+* `add` parameter added to `var-saw`
+* `overtone.music.pitch/rand-chord` now vararg with `inversions` parameter
+
 ## Version 0.10.3 (11th October 2017)
 
 # Bug Fix
