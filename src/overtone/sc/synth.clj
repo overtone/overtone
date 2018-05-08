@@ -1,10 +1,10 @@
 (ns
-  ^{:doc "The ugen functions create a data structure representing a synthesizer
+    ^{:doc "The ugen functions create a data structure representing a synthesizer
          graph that can be executed on the synthesis server.  This is the logic
          to \"compile\" these clojure data structures into a form that can be
          serialized by the byte-spec defined in synthdef.clj."
-    :author "Jeff Rose"}
-  overtone.sc.synth
+      :author "Jeff Rose"}
+    overtone.sc.synth
   (:use [overtone.helpers lib old-contrib synth]
         [overtone.libs event counters]
         [overtone.music time]
@@ -17,6 +17,7 @@
 
   (:require [overtone.config.log :as log]
             [clojure.set :as set]
+            [overtone.sc.cgens.env :refer [hold]]
             [overtone.sc.protocols :as protocols]))
 
 (declare synth-player)
@@ -681,7 +682,7 @@
                            [(second body) (nth body 2)]
                            [0 body])
 
-        body (list 'out out-bus (list 'hold body demo-time :done 'FREE))]
+        body (list `out out-bus (list `hold body demo-time :done `FREE))]
     `((synth "audition-synth" ~body))))
 
 (defn active-synths
