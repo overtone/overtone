@@ -1,9 +1,14 @@
 (ns
-    ^{:doc "Useful file manipulation fns"
+    ^{:doc    "Useful file manipulation fns"
       :author "Sam Aaron"}
-  overtone.helpers.file
+    overtone.helpers.file 
   (:import [java.net URL]
-           [java.io StringWriter])
+           [java.io StringWriter]
+           ;; Requires Java7
+           [java.nio.file Files Paths
+            SimpleFileVisitor StandardCopyOption
+            FileVisitResult LinkOption CopyOption]
+           [java.nio.file.attribute FileAttribute])
   (:use [overtone.helpers.string]
         [clojure.java.io]
         [overtone.helpers.system :only [windows-os?]])
@@ -336,7 +341,7 @@
   "Returns true if file or dir specified by path exists"
   [path]
   (let [path (canonical-path path)
-        f (file path)]
+        f    (file path)]
     (.exists f)))
 
 (defn ensure-path-exists!
@@ -378,10 +383,33 @@
       (if (= num-attempts max-attempts)
         (throw (Exception. (str "Failed to create temporary directory after " max-attempts " attempts.")))
         (let [tmp-dir-name (str tmp-base num-attempts)
-              tmp-dir (file tmp-dir-name)]
+              tmp-dir      (file tmp-dir-name)]
           (if (.mkdir tmp-dir)
             tmp-dir
             (recur (inc num-attempts))))))))
+
+(defn- copy-dir-visitor [from to]
+  (proxy [SimpleFileVisitor] []
+    (preVisitDirectory [dir attrs]
+      (let [target (.resolve to (.relativize from dir))]
+        (if-not (Files/exists target (into-array LinkOption []))
+          (Files/createDirectory target (into-array FileAttribute [])))
+        FileVisitResult/CONTINUE))
+    (visitFile [file attrs]
+      (let [target (.resolve to (.relativize from file))]
+        (Files/copy file target (into-array CopyOption [StandardCopyOption/REPLACE_EXISTING])))
+      FileVisitResult/CONTINUE)))
+
+(defn copy-dir!
+  "Copies a directory recursively useing java7 functionality.
+   Paths from and to must be strings."
+  [from to] 
+  (letfn [(path [str-path] (Paths/get str-path (into-array String [])))]
+    (let [from    (path from)
+          to      (path to)
+          visitor (copy-dir-visitor from to)]
+      (Files/walkFileTree from visitor))))
+
 
 (defn- download-file*
   ([url path]                          (download-file-without-timeout url path))
@@ -389,25 +417,25 @@
   ([url path timeout n-retries]        (download-file* url path timeout n-retries 5000))
   ([url path timeout n-retries wait-t] (download-file* url path timeout n-retries wait-t 0))
   ([url path timeout n-retries wait-t attempts-made]
-     (when (>= attempts-made n-retries)
-       (throw (Exception. (str "Aborting! Download failed after "
-                               n-retries
-                               " attempts. URL attempted to download: "
-                               url ))))
+   (when (>= attempts-made n-retries)
+     (throw (Exception. (str "Aborting! Download failed after "
+                             n-retries
+                             " attempts. URL attempted to download: "
+                             url ))))
 
-     (let [path (resolve-tilde-path path)]
-       (try
-         (download-file-with-timeout url path timeout)
-         (catch java.io.FileNotFoundException e
-           (rm-rf! path)
-           (Thread/sleep wait-t)
-           (print-if-verbose (str "Download failed. File not found: " url ))
-           (throw (Exception. (str "Aborting! Download failed. File not found: " url ))))
-         (catch Exception e
-           (rm-rf! path)
-           (Thread/sleep wait-t)
-           (print-if-verbose (str "Download timed out. Retry " (inc attempts-made) ": " url ))
-           (download-file* url path timeout n-retries wait-t (inc attempts-made)))))))
+   (let [path (resolve-tilde-path path)]
+     (try
+       (download-file-with-timeout url path timeout)
+       (catch java.io.FileNotFoundException e
+         (rm-rf! path)
+         (Thread/sleep wait-t)
+         (print-if-verbose (str "Download failed. File not found: " url ))
+         (throw (Exception. (str "Aborting! Download failed. File not found: " url ))))
+       (catch Exception e
+         (rm-rf! path)
+         (Thread/sleep wait-t)
+         (print-if-verbose (str "Download timed out. Retry " (inc attempts-made) ": " url ))
+         (download-file* url path timeout n-retries wait-t (inc attempts-made)))))))
 
 (defn- print-download-file
   [url]
@@ -428,14 +456,29 @@
 
   Verbose mode is enabled by binding *verbose-overtone-file-helpers* to true."
   ([url path]
-     (print-download-file url)
-     (download-file* url path))
+   (print-download-file url)
+   (download-file* url path))
   ([url path timeout]
-     (print-download-file url)
-     (download-file* url path timeout))
+   (print-download-file url)
+   (download-file* url path timeout))
   ([url path timeout n-retries]
-     (print-download-file url)
-     (download-file* url path timeout n-retries))
+   (print-download-file url)
+   (download-file* url path timeout n-retries))
   ([url path timeout n-retries wait-t]
-     (print-download-file url)
-     (download-file* url path timeout n-retries wait-t)))
+   (print-download-file url)
+   (download-file* url path timeout n-retries wait-t)))
+
+
+(defn ensure-native
+  "To use Overtone's native resources like internal native synth and
+   ableton-link, there needs to be a native directory in the project
+   root. This can be done by setting `:native-paths \"native\"` in
+   leiningen. If this configuration is missing, this function will
+   attempt to copy over the native dir from the target directory if
+   present."
+  []
+  (let [native-dir        (str (System/getProperty "user.dir") "/native")
+        target-native-dir (str (System/getProperty "user.dir") "/target/native")]
+    (when (and (not (.exists (file native-dir)))
+               (.exists (file target-native-dir)))
+      (copy-dir! target-native-dir native-dir))))

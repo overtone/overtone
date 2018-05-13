@@ -468,7 +468,8 @@ rate; can change once per cycle of vibrato." }
             these stages." }])
 
 (def specs-collide
-  [{:name "Index",
-       :args [{:name "bufnum"}
-              {:name "in", :default 0.0}]
-       :doc "the input signal value is truncated to an integer and used as an index into the table"}])
+  [{:name  "Index",
+    :args  [{:name "bufnum"}
+            {:name "in", :default 0.0}]
+    :rates #{:kr :ir}
+    :doc   "the input signal value is truncated to an integer and used as an index into the table"}])
