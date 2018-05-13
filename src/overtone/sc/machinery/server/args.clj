@@ -94,6 +94,12 @@
     (throw (Exception. (str "Unable to use sc-arg " arg-name " on non mac platforms."))))
   val)
 
+(defn linux-jack-device-name
+  [args]
+  (if (and (linux-os?) (empty? (:hw-device-name args)))
+    (assoc args :hw-device-name "Overtone")
+    args))
+
 (defn- arg-identity
   [k v]
   v)
@@ -201,7 +207,8 @@
                                          (contains? native-arg-defaults k))
                                   (get native-arg-defaults k)
                                   v)])
-                           args))]
+                           args))
+        args (linux-jack-device-name args)]
     (ensure-native-sc-args-valid! args)
     args))
 

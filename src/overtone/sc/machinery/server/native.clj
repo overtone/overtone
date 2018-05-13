@@ -16,11 +16,11 @@
 
 (def native-scsynth-lib-availability
   {:windows {64 true
-             32 true}
+             32 false}
    :linux   {64 true
              32 false}
    :mac     {64 true
-             32 true}})
+             32 false}})
 
 (defn native-scsynth-available? []
   (let [os-arc-path [(get-os) (get-cpu-bits)]]

@@ -1,14 +1,19 @@
 # Change Log
 
 ## Master (0.11.0-SNAPSHOT)
+# ugens
+* `index` now available on :ir rate, but keeps defaulting to :kr.
+
 # scsynth
 * now compiled against supercollider 3.9.3
 * scsynth-extras includes new plugins that can to be spec'd in metadata/extras
 * jna paths are explicitly set for every os
 * 64-bit architecture support for windows machines
+* native resources will be copied from target to project's root-dir, if present in target and missing in root-dir.
 
 # Breaking Changes
 * 32-bit support for internal-synths on windows is discontinued (use 64-bits instead)
+* Linux: Jack client name now defaults to `Overtone` instead of `SuperCollider` #409
 
 # Improvements
 * `add` parameter added to `var-saw`

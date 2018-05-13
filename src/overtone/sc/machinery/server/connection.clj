@@ -79,8 +79,8 @@
   ([] (connect-jack-ports 2))
   ([n-channels]
      (let [port-list      (logged-sh "jack_lsp")
-           sc-ins         (re-seq #"SuperCollider.*:in_[0-9]*" port-list)
-           sc-outs        (re-seq #"SuperCollider.*:out_[0-9]*" port-list)
+           sc-ins         (re-seq #"Overtone.*:in_[0-9]*" port-list)
+           sc-outs        (re-seq #"Overtone.*:out_[0-9]*" port-list)
            system-ins     (re-seq #"system:capture_[0-9]*" port-list)
            system-outs    (re-seq #"system:playback_[0-9]*" port-list)
            interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
@@ -235,7 +235,6 @@
   STDOUT for log messages."
   ([cmd] (external-booter cmd "."))
   ([cmd working-dir]
-   (println "cmd: " cmd " working-dir: " working-dir)
    (log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
    (let [working-dir (File. working-dir)
          proc        (.exec (Runtime/getRuntime) cmd nil working-dir)
@@ -281,6 +280,7 @@
         ugens-paths (or (:ugens-paths args) [])
         args        (select-keys args (keys args/SC-ARG-INFO))
         args        (dissoc args :udp? :port :realtime? :nrt-cmd-filename :nrt-output-filename :nrt-output-header-format :nrt-output-sample-format)
+        args        (args/linux-jack-device-name args)
         port-arg    (if (= 1 udp?)
                       ["-u" port]
                       ["-t" port])
