@@ -7,7 +7,13 @@
 
       {:name "WhiteNoise"
        :summary "Noise whose spectrum has equal power at all frequencies."
-       :args []
+       :args [{:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Noise that contains equal amounts of energy at every
              frequency - comparable to radio static.
@@ -20,7 +26,13 @@
 
       {:name "BrownNoise"
        :summary "Noise whose spectrum falls off in power by 6 dB per octave."
-       :args []
+       :args [{:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Useful for generating percussive sounds such as snares and
              hand claps. Also useful for simulating wind or sea
@@ -30,7 +42,13 @@
 
       {:name "PinkNoise"
        :summary "Noise whose spectrum falls off in power by 3 dB per octave."
-       :args []
+       :args [{:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Noise that gives equal power over the span of each octave.
 
@@ -44,7 +62,13 @@
 
       {:name "ClipNoise"
        :summary "Noise whose values are either -1 or 1."
-       :args []
+       :args [{:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar}
        :doc "This produces the maximum energy for the least peak to peak amplitude.
 
@@ -56,7 +80,13 @@
 
       {:name "GrayNoise"
        :summary "Random impulses from -1 to +1 given a density "
-       :args []
+       :args [{:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar}
        :doc "Given a density (average number of impulses per second)
              creates a sequence of random impulses from -1 to +1.
@@ -73,7 +103,14 @@
                :default 1.5
                :doc "a parameter of the chaotic function with useful
                      values from just below 1.0 to just above
-                     2.0. Towards 2.0 the sound crackles."}]
+                     2.0. Towards 2.0 the sound crackles."}
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "A noise generator based on a chaotic function.
 
@@ -98,7 +135,15 @@
 
               {:name "init"
                :default 0.5
-               :doc "Initial value of y (see equation below)"}]
+               :doc "Initial value of y (see equation below)"}
+
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
 
        :rates #{:ar}
        :doc "A noise generator based on the logistic map:
@@ -116,7 +161,14 @@
        :args [{:name "freq",
                :default 500.0
                :doc "approximate rate at which to generate random
-                     values." }]
+                     values." }
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Generates random values between -1 and 1 at a rate (the
              rate is not guaranteed but approximate)"}
@@ -127,7 +179,14 @@
        :args [{:name "freq",
                :default 500.0
                :doc "approximate rate at which to generate random
-                     values." }]
+                     values." }
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
 
        :rates #{:ar :kr}
        :doc "Generates linearly interpolated random values between -1
@@ -140,7 +199,14 @@
        :args [{:name "freq",
                :default 500.0
                :doc "approximate rate at which to generate random
-                     values." }]
+                     values." }
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Generates quadratically interpolated random values between
              -1 and 1 at the supplied rate (the rate is not guaranteed
@@ -157,7 +223,14 @@
        :args [{:name "freq"
                :default 500.0
                :doc "approximate rate at which to generate random
-                     values." }]
+                     values." }
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Randomly generates the values -1 or +1 at a rate given by
              the nearest integer division of the sample rate by the freq
@@ -167,7 +240,15 @@
       {:name "LFDNoise0"
        :args [{:name "freq"
                :default 500.0
-               :doc "rate at which to generate random values."}]
+               :doc "rate at which to generate random values."}
+
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Like lf-noise0, it generates random values between -1 and 1
              at a rate given by the freq argument, with two differences:
@@ -186,7 +267,15 @@
       {:name "LFDNoise1"
        :args [{:name "freq"
                :default 500.0
-               :doc "rate at which to generate random values."}]
+               :doc "rate at which to generate random values."}
+
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Like lf-noise1, it generates linearly interpolated random
              values between -1 and 1 at a rate given by the freq
@@ -207,7 +296,15 @@
       {:name "LFDNoise3"
        :args [{:name "freq"
                :default 500.0
-               :doc "rate at which to generate random values."}]
+               :doc "rate at which to generate random values."}
+
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Similar to lf-noise2, it generates polynomially
              interpolated random values between -1 and 1 at a rate given
@@ -229,7 +326,15 @@
       {:name "LFDClipNoise"
        :args [{:name "freq"
                :default 500.0
-               :doc "rate at which to generate random values."}]
+               :doc "rate at which to generate random values."}
+
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Like lf-clip-noise, it generates the values -1 or +1 at a
              rate given by the freq argument, with two differences:
@@ -250,7 +355,15 @@
       {:name "Hasher"
        :args [{:name "in"
                :default 0.0
-               :doc "input signal"}]
+               :doc "input signal"}
+
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar}
        :doc "Returns a unique output value from zero to one for each
              input value according to a hash function. The same input
@@ -266,7 +379,14 @@
               {:name "bits"
                :default 3
                :doc "the number of mantissa bits to preserve. a number
-                     from 0 to 23." }]
+                     from 0 to 23." }
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar}
        :doc "Masks off bits in the mantissa of the floating point sample
              value. This introduces a quantization noise, but is less
@@ -276,7 +396,15 @@
       {:name "Dust"
        :args [{:name "density"
                :default 0.0
-               :doc "average number of impulses per second"}]
+               :doc "average number of impulses per second"}
+
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Generates random impulses from 0 to +1."}
 
@@ -284,6 +412,14 @@
       {:name "Dust2"
        :args [{:name "density"
                :default 0.0
-               :doc "average number of impulses per second."}]
+               :doc "average number of impulses per second."}
+
+              {:name    "mul"
+               :default 1.0
+               :doc     "Output will be multiplied by this value."}
+
+              {:name    "add"
+               :default 0.0
+               :doc     "This value will be added to the output."}]
        :rates #{:ar :kr}
        :doc "Generates random impulses from -1 to +1."}])
