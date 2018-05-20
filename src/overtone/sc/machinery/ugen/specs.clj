@@ -31,6 +31,7 @@
     extras.berlach
     extras.membrane
     extras.tju
+    extras.dwg
     ])
 
 (defn- spec-arg-names
