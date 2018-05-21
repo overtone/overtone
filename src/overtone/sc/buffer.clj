@@ -277,30 +277,98 @@
   very slow."
   ([buf data] (buffer-write-relay! buf 0 data))
   ([buf start-idx data]
-     (ensure-buffer-active! buf)
-     (assert (buffer? buf))
-     (loop [data-left (vec data)
-            idx       0]
-       (let [left-cnt  (min MAX-OSC-SAMPLES (count data-left))
-             to-write  (subvec data-left 0 left-cnt)
-             data-left (subvec data-left left-cnt)]
-         (buffer-write! buf idx to-write)
-         (when-not (empty? data-left)
-           (recur data-left (+ idx left-cnt)))))
-     buf))
+   (ensure-buffer-active! buf)
+   (assert (buffer? buf))
+   (loop [data-left (vec data)
+          idx       0]
+     (let [left-cnt  (min MAX-OSC-SAMPLES (count data-left))
+           to-write  (subvec data-left 0 left-cnt)
+           data-left (subvec data-left left-cnt)]
+       (buffer-write! buf idx to-write)
+       (when-not (empty? data-left)
+         (recur data-left (+ idx left-cnt)))))
+   buf))
 
 (defn buffer-fill!
   "Fill a buffer range with a single value. Modifies the buffer in place
   on the server. Defaults to filling in the full buffer unless start and
   len vals are specified. Asynchronous."
   ([buf val]
-     (ensure-buffer-active! buf)
-     (assert (buffer? buf))
-     (buffer-fill! buf 0 (:size buf) val))
+   (ensure-buffer-active! buf)
+   (assert (buffer? buf))
+   (buffer-fill! buf 0 (:size buf) val))
   ([buf start len val]
-     (assert (buffer? buf))
-     (snd "/b_fill" (:id buf) start len (double val))
-     buf))
+   (assert (buffer? buf))
+   (snd "/b_fill" (:id buf) start len (double val))
+   buf))
+
+(defn buffer-wave-fill!
+  "Automatically fills a buffer with a generated wavetable
+   useing a pre-specified algorithm, by providing partials
+   information. Unlike `buffer-fill!` the wavetable generation
+   takes place inside of scsynth. The filled buffer can be
+   called with osc/oscy/v-osc family of interpolating
+   oscillators.
+
+   One following strings can be used to specify option
+   to generate wavetable (defaults to \"sine1\"):
+ 
+   \"sine1\" - Fills a buffer with a series of sine wave partials.
+               The first float value specifies the amplitude of
+               the first partial, the second float value specifies
+               the amplitude of the second partial, and so on.
+   \"sine2\" - Similar to sine1 except that each partial frequency is
+               specified explicitly instead of being an integer series
+               of partials. Non-integer partial frequencies are possible.
+   \"sine3\" - Similar to sine2 except that each partial may have
+               a nonzero starting phase.
+   \"cheby\" - Fills a buffer with a series of chebyshev polynomials,
+               which can be defined as: cheby(n) = amplitude * cos(n * acos(x))
+               The first float value specifies the amplitude for n = 1,
+               the second float value specifies the amplitude for n = 2,
+               and so on. To eliminate a DC offset when used as a waveshaper,
+               the wavetable is offset so that the center value is zero.
+ 
+   The flags are defined as follows (defaults to 7):
+    1 normalize - Normalize peak amplitude of wave to 1.0.
+    2 wavetable - If set, then the buffer is written in wavetable
+                  format so that it can be read by interpolating oscillators.
+    4 clear     - If set then the buffer is cleared before new partials are
+                  written into it. Otherwise the new partials are summed with
+                  the existing contents of the buffer.
+
+   These flags can be added together to create a unique single integer flag that
+   describes the true/false combinations for these three options:
+     3 - 1 + 2     normalize + wavetable
+     5 - 1 + 4     normalize + clear
+     6 - 2 + 4     wavetable + clear
+     7 - 1 + 2 + 4 normalize + wavetable + clear
+
+   Depending on the option selected, the partials-vector needs specific values:
+
+   \"sine1\" [amp1...ampN] ex: [1 0.9 0.8 0.7]
+   \"sine2\" [freq1, amp1...freqN, ampN] ex: [440 1 880 0.9 1660 0.8]
+   \"sine3\" [freq1, amp1, phase1...freqN, ampN, phaseN] ex: [110 1 0 220 0.9 0.1]
+   \"cheby\" [amp1..ampN] ex: [1 0.9 0.8 0.7] 
+  "
+  [buf option flag partials-vector]
+  (ensure-buffer-active! buf)
+  (assert (buffer? buf))
+  (assert (and (number? flag) (pos? flag)) "the flags needs to be positive integer")
+  (let [error-msg (str "attempting to generate wavetable "
+                       option " in buffer " (with-out-str (pr buf)))
+        buf-id    (:id buf)
+        option    (to-str option)
+        prom      (recv "/done"
+                        (fn [msg]
+                          (let [[msg-server-flag msg-buf-id] (:args msg)]
+                            (and (= "/b_gen" msg-server-flag)
+                                 (= msg-buf-id buf-id)))))]
+    (with-server-sync
+      #(apply snd "/b_gen" buf-id option flag partials-vector)
+      (str "whilst " error-msg))
+    (last (:args (deref! prom error-msg)))
+    buf))
 
 (defn buffer-set!
   "Write a single value into a buffer. Modifies the buffer in place on
@@ -329,6 +397,8 @@
          #(snd "/b_get" buf-id index)
          (str "whilst " error-msg))
        (last (:args (deref! prom error-msg))))))
+
+
 
 (defn buffer-save
   "Save the float audio data in buf to a file in the specified path on the
