@@ -225,7 +225,7 @@
                                 [] paths)]
     (reduce (fn [return-samples path-or-cache]
               (if (sample? path-or-cache)
-                (do (prn "yes ") (conj return-samples path-or-cache))
+                (conj return-samples path-or-cache)
                 (let [id          (next-id :audio-buffer)
                       *size       (atom nil)
                       *n-channels (atom nil)
