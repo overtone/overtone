@@ -10,8 +10,11 @@
         [overtone.sc.machinery.server comms]
         [overtone.sc.cgens buf-io io]
         [overtone.studio core]
-        [overtone.helpers.file :only [glob canonical-path resolve-tilde-path mk-path]])
-  (:require [overtone.sc.envelope :refer [asr]]))
+        [overtone.helpers.file :only [glob canonical-path resolve-tilde-path mk-path file-extension]])
+  (:require [overtone.sc.envelope :refer [asr]]
+            [overtone.sc.info :refer [server-sample-rate]]
+            [overtone.libs.counters :refer [next-id]]
+            [overtone.osc :refer [osc-send]]))
 
 (declare sample-player)
 
@@ -26,6 +29,11 @@
       sample-player
       to-sc-id*
       (to-sc-id [this] (:id this)))))
+
+(defn sample?
+  "Returns true if s is a sample"
+  [s]
+  (isa? (type s) ::sample))
 
 (defmethod print-method Sample [b w]
   (.write w (format "#<buffer[%s]: %s %fs %s %d>"
@@ -49,9 +57,7 @@
                       :else (str (:n-channels b) " channels"))
                     (:id b))))
 
-
-
-                                        ; Define a default wav player synth
+;; Define a default wav player synth
 (defonce __DEFINE-PLAYERS__
   (do
 
@@ -105,6 +111,7 @@
       (let [s (scaled-v-disk-in 2 buf rate loop?)]
         (out out-bus (* amp (balance2 (first s) (second s) pan)))))))
 
+
 (defonce loaded-samples* (atom {}))
 (defonce cached-samples* (atom {}))
 
@@ -155,6 +162,21 @@
       sample
       (load-sample* path args))))
 
+
+(defn- assert-audio-files [file-seq]
+  (run! (fn [f]
+          (let [ext (file-extension f)]
+            (assert (or (= ext "aiff") (= ext "wav"))
+                    (if (.isDirectory f)
+                      (str "The file " (.getPath f) " is a directory. "
+                           "If you wish to load all the files inside the directory, "
+                           "you need to provide the path with a glob pattern (asterix).\n"
+                           "Example \"~/samples/*\" or \"~/samples/*.wav\".")
+                      (str "The file " (.getPath f) " was not a .wav or .aiff audiofile. "
+                           "If you wish to choose only audiofile from a directory, you could "
+                           "provide the glob pattern like in this:\n \"~/samples/*.wav\".")))))
+        file-seq))
+
 (defn load-samples
   "Takes a directory path or glob path (see #'overtone.helpers.file/glob)
    and loads up all matching samples and returns a seq of maps
@@ -170,6 +192,84 @@
               (load-sample path)))
           files))))
 
+(defn load-samples-async
+  "Takes one or more directory paths, supports glob paths
+   (see #'overtone.helpers.file/glob) and loads up all
+   matching samples and returns a seq of maps
+   representing information for each loaded sample (see
+   load-sample). Samples should be in .aiff or .wav format.
+
+   Returns immedietly a vector of samples,
+   some of which could still be loading.
+   The buffer id for the sample is available immedietly,
+   the rest of the metadata, like n-frames, n-channels and rate
+   are available via atom when the sample is loaded.
+
+   This function is thought of as faster and unsafer
+   alternative to `load-samples`, which is synchronous."
+  [& glob-paths]
+  (let [paths           (reduce (fn [paths-vector path-glob]
+                                  (into paths-vector
+                                        (let [files (glob path-glob)]
+                                          (assert-audio-files files)
+                                          (mapv #(.getAbsolutePath %)
+                                                (sort files)))))
+                                [] glob-paths)
+        ;; always load the entire sample, hence same args always
+        cache-args            {:start 0 :size -1}
+        paths-and-cache (reduce (fn [out-vec path]
+                                  (conj out-vec
+                                        (do (prn (contains? @cached-samples* [path cache-args]))
+                                          (or (get @cached-samples* [path cache-args])
+                                              path))))
+                                [] paths)]
+    (reduce (fn [return-samples path-or-cache]
+              (if (sample? path-or-cache)
+                (do (prn "yes ") (conj return-samples path-or-cache))
+                (let [id          (next-id :audio-buffer)
+                      *size       (atom nil)
+                      *n-channels (atom nil)
+                      *rate       (atom nil)
+                      *status     (atom :loading)
+                      path        path-or-cache
+                      name        (.getName (file path))
+                      sample      (Sample. id *size *n-channels *rate *status path cache-args name)]
+                  (future
+                    (recv "/done"
+                          (fn [{:keys [args] :as msg}]
+                            (when (and (= (first args) "/b_allocRead")
+                                       (= (second args) id))
+                              (snd "/b_query" id)
+                              (future
+                                (let [info                     (deref (recv "/b_info" (fn [msg] (= id (first (:args msg))))))
+                                      [_ size rate n-channels] (:args info)
+                                      server-rate              (server-sample-rate)
+                                      rate-scale               (when (> server-rate 0)
+                                                                 (/ rate server-rate))
+                                      duration                 (when (> rate 0)
+                                                                 (/ size rate))
+                                      ;; sample                   (map->Sample
+                                      ;;                           (assoc sample
+                                      ;;                                  :rate-scale rate-scale
+                                      ;;                                  :duration duration
+                                      ;;                                  :size size
+                                      ;;                                  :n-channels n-channels))
+                                      ]
+                                  (when (every? zero? [size rate n-channels])
+                                    (throw (Exception.
+                                            (str "Unable to read file - perhaps path is not a valid audio file (only "
+                                                 supported-file-types " supported) : " path))))
+                                  (reset! *size size)
+                                  (reset! *n-channels n-channels)
+                                  (reset! *status :live)
+                                  (swap! cached-samples* assoc [path cache-args] sample)
+                                  (swap! loaded-samples* assoc id sample))))))
+                    (with-server-sync
+                      #(snd "/b_allocRead" id path 0 -1)
+                      (str "whilst allocating buffers for file: " path)))
+                  (conj return-samples sample))))
+            [] paths-and-cache)))
+
 (defn- reload-all-samples []
   (let [previously-loaded-samples (vals @loaded-samples* )]
     (reset! cached-samples* {})
@@ -178,11 +278,6 @@
       (apply load-sample* (:path smpl) (:args smpl)))))
 
 (on-deps :server-ready ::load-all-samples reload-all-samples)
-
-(defn sample?
-  "Returns true if s is a sample"
-  [s]
-  (isa? (type s) ::sample))
 
 (defn- free-loaded-sample
   [smpl]

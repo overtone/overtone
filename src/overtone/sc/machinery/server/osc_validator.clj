@@ -175,7 +175,7 @@
 
    ;;Buffer Commands
    "/b_alloc"            [:buf-num :num-frames :count]
-   "/b_allocRead"        [:buf-num :pathname :frame-start :num-frames]
+   "/b_allocRead"        [:buf-num :pathname :frame-start :num-frames :anything*]
    "/b_allocReadChannel" [:buf-num :pathname :frame-start :num-frames :chan-idx*]
    "/b_read"             [:buf-num :pathname :frame-start :num-frames :frame-start :zero-or-one]
    "/b_readChannel"      [:buf-num :pathname :frame-start :num-frames :frame-start :zero-or-one :chan-idx*]
@@ -294,7 +294,6 @@
                             args)]
         (log/error err-string)
         (throw (IllegalArgumentException. err-string))))
-
     (apply osc-send host path args)))
 
 
