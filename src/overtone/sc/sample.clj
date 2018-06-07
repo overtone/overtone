@@ -166,7 +166,7 @@
 (defn- assert-audio-files [file-seq]
   (run! (fn [f]
           (let [ext (file-extension f)]
-            (assert (or (= ext "aiff") (= ext "wav"))
+            (assert (or (= ext "aif") (= ext "aiff") (= ext "wav"))
                     (if (.isDirectory f)
                       (str "The file " (.getPath f) " is a directory. "
                            "If you wish to load all the files inside the directory, "
@@ -178,24 +178,25 @@
         file-seq))
 
 (defn load-samples
-  "Takes a directory path or glob path (see #'overtone.helpers.file/glob)
+  "Takes one or more directory and/or file paths,
+   suppoerts glob or glob paths (see #'overtone.helpers.file/glob)
    and loads up all matching samples and returns a seq of maps
    representing information for each loaded sample (see
    load-sample). Samples should be in .aiff or .wav format."
-  [& path-glob]
-  (let [path  (apply mk-path path-glob)
-        path  (resolve-tilde-path path)
-        files (glob path)]
-    (doall
-     (map (fn [file]
-            (let [path (.getAbsolutePath file)]
-              (load-sample path)))
-          files))))
+  [& glob-paths]
+  (let [paths (reduce (fn [paths-vector path-glob]
+                        (into paths-vector
+                              (let [files (glob path-glob)]
+                                (assert-audio-files files)
+                                (mapv #(.getAbsolutePath %)
+                                      (sort files)))))
+                      [] glob-paths)]
+    (doall (mapv (fn [path] (load-sample path)) paths))))
 
 (defn load-samples-async
-  "Takes one or more directory paths, supports glob paths
-   (see #'overtone.helpers.file/glob) and loads up all
-   matching samples and returns a seq of maps
+  "Takes one or more directory and/or file paths,
+   supports glob paths (see #'overtone.helpers.file/glob).
+   Loads up all matching samples and returns a seq of maps
    representing information for each loaded sample (see
    load-sample). Samples should be in .aiff or .wav format.
 
@@ -205,7 +206,7 @@
    the rest of the metadata, like n-frames, n-channels and rate
    are available via atom when the sample is loaded.
 
-   This function is thought of as faster and unsafer
+   This function is thought of as a faster but unsafer
    alternative to `load-samples`, which is synchronous."
   [& glob-paths]
   (let [paths           (reduce (fn [paths-vector path-glob]
@@ -247,14 +248,7 @@
                                       rate-scale               (when (> server-rate 0)
                                                                  (/ rate server-rate))
                                       duration                 (when (> rate 0)
-                                                                 (/ size rate))
-                                      ;; sample                   (map->Sample
-                                      ;;                           (assoc sample
-                                      ;;                                  :rate-scale rate-scale
-                                      ;;                                  :duration duration
-                                      ;;                                  :size size
-                                      ;;                                  :n-channels n-channels))
-                                      ]
+                                                                 (/ size rate))]
                                   (when (every? zero? [size rate n-channels])
                                     (throw (Exception.
                                             (str "Unable to read file - perhaps path is not a valid audio file (only "

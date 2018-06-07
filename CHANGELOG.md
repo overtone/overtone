@@ -14,10 +14,14 @@
 # Breaking Changes
 * 32-bit support for internal-synths on windows is discontinued (use 64-bits instead)
 * Linux: Jack client name now defaults to `Overtone` instead of `SuperCollider` #409
+* `load-samples` now accepts many directory and/or file paths, this breaks the functionality of the previous varag sequence.
 
 # Improvements
 * `add` parameter added to `var-saw`
 * `overtone.music.pitch/rand-chord` now vararg with `inversions` parameter
+
+# New Fns
+* `overtone.sc.sample/load-samples-async` works like `load-samples` a faster but unsafer alternative to `load-samples`
 
 ## Version 0.10.3 (11th October 2017)
 
