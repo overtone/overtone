@@ -220,9 +220,8 @@
         cache-args      {:start 0 :size -1}
         paths-and-cache (reduce (fn [out-vec path]
                                   (conj out-vec
-                                        (do (prn (contains? @cached-samples* [path cache-args]))
-                                            (or (get @cached-samples* [path cache-args])
-                                                path))))
+                                        (or (get @cached-samples* [path cache-args])
+                                            path)))
                                 [] paths)]
     (reduce (fn [return-samples path-or-cache]
               (if (sample? path-or-cache)
