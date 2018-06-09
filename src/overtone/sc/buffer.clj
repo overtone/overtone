@@ -6,7 +6,8 @@
         [overtone.sc.machinery.server connection comms native]
         [overtone.sc server info]
         [overtone.helpers audio-file lib file doc]
-        [overtone.sc.util :only [id-mapper]]))
+        [overtone.sc.util :only [id-mapper]]
+        [overtone.config.store :refer [config-get]]))
 
 (defonce ^{:private true} __RECORDS__
   (do
@@ -58,15 +59,21 @@
              ibme
              "Expected one of :silent, :warning, :exception."))))))
 
-
+(defn assert-less-than-max-buffers []
+  (when (transient-server?)
+    (let [config-max-buffers (config-get [:sc-args :max-buffers])]
+      (assert (< (get counters* key 0) config-max-buffers)
+              (str "Allocation of audio-buffer exceeded the max-buffers size: "
+                   config-max-buffers "\n."
+                   "This can be configured in overtone config under :sc-args {:max-buffers 2^x}.")))))
 
 (defmethod print-method BufferInfo [b w]
   (.write w (format "#<buffer-info: %fs %s %d>"
                     (:duration b)
                     (cond
-                     (= 1 (:n-channels b)) "mono"
-                     (= 2 (:n-channels b)) "stereo"
-                     :else (str (:n-channels b) " channels"))
+                      (= 1 (:n-channels b)) "mono"
+                      (= 2 (:n-channels b)) "stereo"
+                      :else                 (str (:n-channels b) " channels"))
                     (:id b))))
 
 
@@ -120,22 +127,23 @@
   automatically floored and converted to a Long - i.e. 2.7 -> 2"
   ([size] (buffer size 1 ""))
   ([size num-channels-or-name]
-     (if (string? num-channels-or-name)
-       (buffer size 1 num-channels-or-name)
-       (buffer size num-channels-or-name "")))
+   (if (string? num-channels-or-name)
+     (buffer size 1 num-channels-or-name)
+     (buffer size num-channels-or-name "")))
   ([size num-channels name]
-     (let [size (long size)
-           id   (next-id :audio-buffer)
-           buf  (with-server-sync
-                  #(snd "/b_alloc" id size num-channels)
-                  (str "whilst allocating a new buffer with size: " size " and num channels: " num-channels))
+   (let [size (long size)
+         id   (do (assert-less-than-max-buffers)
+                  (next-id :audio-buffer))
+         buf  (with-server-sync
+                #(snd "/b_alloc" id size num-channels)
+                (str "whilst allocating a new buffer with size: " size " and num channels: " num-channels))
 
-           info (buffer-info id)]
+         info (buffer-info id)]
 
-       (map->Buffer
-        (assoc info
-          :name name
-          :status (atom :live))))))
+     (map->Buffer
+      (assoc info
+             :name name
+             :status (atom :live))))))
 
 (defn buffer-alloc-read
   "Synchronously allocates a buffer with the same number of channels as
@@ -148,26 +156,27 @@
   Ignores OSC scheduling via the at macro; all inner OSC calls are sent
   immediately."
   ([path]
-     (buffer-alloc-read path 0 -1))
+   (buffer-alloc-read path 0 -1))
   ([path start]
-     (buffer-alloc-read path start -1))
+   (buffer-alloc-read path start -1))
   ([path start n-frames]
-     (ensure-path-exists! path)
-     (let [path (canonical-path path)
-           f    (file path)
-           id   (next-id :audio-buffer)]
-       (snd-immediately
-        (with-server-sync
-          #(snd "/b_allocRead" id path start n-frames)
-          (str "whilst allocating a buffer to contain the contents of file: " path))
-         (let [info                              (buffer-info id)
-               {:keys [id size rate n-channels]} info]
-           (when (every? zero? [size rate n-channels])
-             (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
+   (ensure-path-exists! path)
+   (let [path (canonical-path path)
+         f    (file path)
+         id   (do (assert-less-than-max-buffers)
+                  (next-id :audio-buffer))]
+     (snd-immediately
+      (with-server-sync
+        #(snd "/b_allocRead" id path start n-frames)
+        (str "whilst allocating a buffer to contain the contents of file: " path))
+      (let [info                              (buffer-info id)
+            {:keys [id size rate n-channels]} info]
+        (when (every? zero? [size rate n-channels])
+          (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
 
-           (map->BufferFile
-            (assoc info
-              :status (atom :live))))))))
+        (map->BufferFile
+         (assoc info
+                :status (atom :live))))))))
 
 (derive BufferInfo ::buffer-info)
 (derive Buffer     ::buffer)
