@@ -1,14 +1,7 @@
 (ns overtone.samples.piano
   (:use [overtone.core]))
 
-(defn- registered-samples
-  "Fetch piano samples from the asset store if they have been manually
-  registered"
-  []
-  (filter #(.contains % "LOUD")
-          (registered-assets ::MISStereoPiano)))
 
-;;(freesound-searchm [:id] "LOUD" :f "pack:MISStereoPiano")
 (def FREESOUND-PIANO-SAMPLES
   "Freesound ids and matching notes for all the loud samples in the MISStereoPiano pack"
   {148401 :BB5 148402 :BB6 148403 :B7  148404 :BB0 148405 :B5  148406 :B6  148407 :BB3
@@ -27,8 +20,12 @@
 
 (def PIANO-SAMPLE-IDS (keys FREESOUND-PIANO-SAMPLES))
 
+#_(defonce piano-samples
+    (doall (map freesound-sample PIANO-SAMPLE-IDS)))
+
 (defonce piano-samples
-  (doall (map freesound-sample PIANO-SAMPLE-IDS)))
+  (apply freesound-samples PIANO-SAMPLE-IDS))
+
 
 (defn- buffer->midi-note [buf]
   (-> buf :freesound-id FREESOUND-PIANO-SAMPLES name match-note :midi-note))

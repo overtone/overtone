@@ -22,8 +22,8 @@
 (def VIBRATO-FLUTE-SAMPLE-IDS     (keys FREESOUND-VIBRATO-FLUTE-SAMPLES))
 (def NON-VIBRATO-FLUTE-SAMPLE-IDS (keys FREESOUND-NON-VIBRATO-FLUTE-SAMPLES))
 
-(def vibrato-flute-samples     (doall (map freesound-sample VIBRATO-FLUTE-SAMPLE-IDS)))
-(def non-vibato-flute-samples  (doall (map freesound-sample NON-VIBRATO-FLUTE-SAMPLE-IDS)))
+(def vibrato-flute-samples     (apply freesound-samples VIBRATO-FLUTE-SAMPLE-IDS))
+(def non-vibato-flute-samples  (apply freesound-samples NON-VIBRATO-FLUTE-SAMPLE-IDS))
 
 (defn- buffer->midi-note [buf note-map] (-> buf :freesound-id note-map name note))
 

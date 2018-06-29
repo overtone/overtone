@@ -61,7 +61,7 @@
 
 (defn- cached-path
   [url name]
-  (mk-path (cache-dir url) (safe-path name)))
+  (mk-path (cache-dir url) name))
 
 (defn- fetch-cached-path
   "Returns the path to the cached asset if present, otherwise nil."
@@ -73,11 +73,12 @@
 (defn- download-and-cache-asset
   "Downloads the file pointed to by url and caches it on the local file system"
   [url name]
-  (let [name      (safe-path name)
+  (let [safe-name (safe-path name)
         tmp-dir   (str (mk-tmp-dir!))
-        tmp-file  (mk-path tmp-dir name)
+        tmp-file  (mk-path tmp-dir safe-name)
         dest-dir  (cache-dir url)
         dest-file (mk-path dest-dir name)]
+
     (try
       (mk-cache-dir! url)
       (download-asset-file url tmp-file)

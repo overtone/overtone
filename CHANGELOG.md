@@ -15,10 +15,12 @@
 * 32-bit support for internal-synths on windows is discontinued (use 64-bits instead)
 * Linux: Jack client name now defaults to `Overtone` instead of `SuperCollider` #409
 * `load-samples` now accepts many directory and/or file paths, this breaks the functionality of the previous varag sequence.
+* freesound.org samples are now saved with filename and extension, preserving safe-filenames for tmp storage (this causes all freesound.org samples to be redownloaded if they are cached from older overtone version)
 
 # Improvements
 * `add` parameter added to `var-saw`
 * `overtone.music.pitch/rand-chord` now vararg with `inversions` parameter
+* `sampled-flute` and `sampled-piano` now load faster from cache
 
 # New Fns
 * `overtone.sc.sample/load-samples-async` works like `load-samples` a faster but unsafer alternative to `load-samples`

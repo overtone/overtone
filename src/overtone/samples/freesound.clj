@@ -1,17 +1,17 @@
-(ns ^{:doc "An API for interacting with the awesome free online sample resource
+(ns ^{:doc    "An API for interacting with the awesome free online sample resource
             freesound.org"
       :author "Sam Aaron, Kevin Neaton"}
-  overtone.samples.freesound
+    overtone.samples.freesound
   (:use [overtone.samples.freesound.url]
         [overtone.samples.freesound.search-results]
-        [overtone.sc.node]
-        [overtone.helpers.lib :only [defrecord-ifn]]
-        [overtone.helpers.file :only [*authorization-header*]])
+        [overtone.sc.node])
   (:require [clojure.data.json :as json]
             [clojure.java.browse]
             [overtone.libs.asset :as asset]
             [overtone.sc.sample :as samp]
-            [overtone.sc.buffer :as buffer]))
+            [overtone.sc.buffer :as buffer]
+            [overtone.helpers.lib :refer [defrecord-ifn]]
+            [overtone.helpers.file :refer [*authorization-header* file-extension]]))
 
 (def ^:dynamic *client-id* "ea6297be42e9de76d47c")
 (def ^:dynamic *api-key* "32da10a118819877ec041752680588c62684c0b2")
@@ -109,6 +109,17 @@
   [id]
   (freesound-url "/sounds/" id "/" {:format "json"}))
 
+(defn- freesound-filename
+  "Returns filename string, and ensures that the filename
+   ends with extension, in case it's not provided in the
+   `:name` attribute."
+  [info]
+  (let [filename (str (or (:name info) (:id info)))
+        filetype (str (:type info))]
+    (if (file-extension filename)
+      filename
+      (str filename "." filetype))))
+
 (defn freesound-info
   "Returns a map containing information pertaining to a particular freesound.
   The freesound id may be specified as an integer or string."
@@ -126,11 +137,9 @@
   id. Returns the path to a cached local copy of the audio file."
   [id]
   (let [info (freesound-info id)
-        type (:type info)
-        name (:original_filename info)
+        name (freesound-filename info)
         url  (sound-serve-url id)]
     (with-authorization-header (asset/asset-path url name))))
-
 
 (defn freesound-sample
   "Download, cache and persist the freesound audio file specified by
@@ -142,6 +151,17 @@
         smpl      (apply samp/load-sample path args)
         free-smpl (assoc smpl :freesound-id id) ]
     (map->FreesoundSample free-smpl)))
+
+(defn freesound-samples
+  "Download, cache and persist multiple freesound audio files specified by
+   ids. Creates a vector of buffers containing the samples loaded onto the server and
+   returns a vector of playable samples, each capable of being when called
+   as a fn."
+  [& ids]
+  (let [paths      (mapv freesound-path ids)
+        smpls      (apply samp/load-samples paths)
+        free-smpls (mapv #(assoc %1 :freesound-id %2) smpls ids)]
+    (mapv map->FreesoundSample free-smpls)))
 
 (defn freesound
   "Download, cache and persist the freesound audio file specified by
