@@ -13,10 +13,11 @@
 (declare live-config)
 
 (def CONFIG-DEFAULTS
-  {:os (get-os)
+  {:os        (get-os)
    :user-name (capitalize (system-user-name))
-   :server :internal
-   :sc-args {}})
+   :server    :internal
+   :clock     :at-at
+   :sc-args   {}})
 
 (defn- file-store-get
   "Get the file store reference"

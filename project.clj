@@ -41,13 +41,13 @@
 (defproject overtone "0.11.0"
   :description "Collaborative Programmable Music."
   :url "http://overtone.github.io/"
-  :mailing-list {:name "overtone"
+  :mailing-list {:name    "overtone"
                  :archive "https://groups.google.com/group/overtone"
-                 :post "overtone@googlegroups.com"}
-  :license {:name "The MIT License (MIT)"
-            :url "http://opensource.org/licenses/MIT"
+                 :post    "overtone@googlegroups.com"}
+  :license {:name         "The MIT License (MIT)"
+            :url          "http://opensource.org/licenses/MIT"
             :distribution :repo
-            :comments "Please use Overtone for good"}
+            :comments     "Please use Overtone for good"}
 
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [org.clojure/data.json "0.2.6"]
