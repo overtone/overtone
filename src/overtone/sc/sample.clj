@@ -258,9 +258,7 @@
                                   (reset! *status :live)
                                   (swap! cached-samples* assoc [path cache-args] sample)
                                   (swap! loaded-samples* assoc id sample))))))
-                    (with-server-sync
-                      #(snd "/b_allocRead" id path 0 -1)
-                      (str "whilst allocating buffers for file: " path)))
+                    (snd "/b_allocRead" id path 0 -1))
                   (conj return-samples sample))))
             [] paths-and-cache)))
 
