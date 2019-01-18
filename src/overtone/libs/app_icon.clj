@@ -2,7 +2,7 @@
   (:use [clojure.java.io]
         [overtone.helpers.lib :only [branch]]
         [overtone.helpers.system :only [get-os]])
-  (:import [java.awt.Toolkit]))
+  (:import java.awt.Toolkit))
 
 (defn- load-icon [path]
   (let [icon-url (clojure.java.io/resource path)]
