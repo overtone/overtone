@@ -154,7 +154,9 @@
             (deps/reset-deps)
             (throw
              (Exception. (str "Error: unable to connect to externally booted server after "
-                              defaults/N-RETRIES " attempts.\n")))))))))
+                              defaults/N-RETRIES " attempts.\n"
+                              "Make sure that you have Server.options.maxLogins set to greater than 1 in startup file (startup.scd).\n"
+                              "Or if you're on Windows, make sure that the Windows defender isn't blocking the scsynth.exe\n")))))))))
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server
 (defn connect
