@@ -7,8 +7,7 @@
   options can be kept under `:disabled`."
   {:any
    ["-Xms512m" "-Xmx1g"           ; Minimum and maximum sizes of the heap
-    "-XX:+UseParNewGC"            ; Use the new parallel GC in conjunction with
-    "-XX:+UseConcMarkSweepGC"     ;  the concurrent garbage collector
+    "-XX:+UseConcMarkSweepGC"     ; Use concurrent garbage collector
     "-XX:+CMSConcurrentMTEnabled" ; Enable multi-threaded concurrent gc work (ParNewGC)
     "-XX:MaxGCPauseMillis=20"     ; Specify a target of 20ms for max gc pauses
     "-XX:MaxNewSize=257m"         ; Specify the max and min size of the new
@@ -21,8 +20,6 @@
                                         ;  evaluating tenured objects. Technically, this
                                         ;  setting promotes all live objects to the older
                                         ;  generation, rather than copying them.
-   :macosx
-   ["-Xdock:name=Overtone"]
    :disabled
    ["-XX:ConcGCThreads=2"         ; Use 2 threads with concurrent gc collections
     "-XX:TieredCompilation"       ; JVM7 - combine both client and server compilation
@@ -38,7 +35,7 @@
        (vec (set (concat (get JVMOPTS :any)
                          (get JVMOPTS os))))))
 
-(defproject overtone "0.11.0"
+(defproject overtone "0.10.4"
   :description "Collaborative Programmable Music."
   :url "http://overtone.github.io/"
   :mailing-list {:name "overtone"
@@ -57,7 +54,7 @@
                  [overtone/byte-spec "0.3.1"]
                  [overtone/midi-clj "0.5.0"]
                  [overtone/libs.handlers "0.2.0"]
-                 [overtone/ableton-link "1.0.0-alpha3"]
+                 [overtone/ableton-link "1.0.0-beta1"]
                  [clj-glob "1.0.0"]
                  [net.java.dev.jna/jna "4.4.0"]
                  [overtone/scsynth "3.9.3-1"]
