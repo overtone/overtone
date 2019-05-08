@@ -1,6 +1,6 @@
 # Change Log
 
-## Master (0.11.0-SNAPSHOT)
+## Version 0.10.4 (8th May 2019)
 # ugens
 * `index` now available on :ir rate, but keeps defaulting to :kr.
 
@@ -61,8 +61,8 @@
 * `control-bus-set-range!` arguments have been updated (to match OSC
   API).  start and len args have been removed and offest params have
   been added.
-* Freesound API has been updated to v2 and now requires a key :-(  
-  
+* Freesound API has been updated to v2 and now requires a key :-(
+
 # New Synths
 
 * `mono-play-buffer-partial`
@@ -98,7 +98,7 @@
 # New clock
 Add new internal server clock with control-rate resolution. Introduces the folloing functions:
 
-* `server-clock-n-ticks` 
+* `server-clock-n-ticks`
 * `server-clock-uptime`
 * `server-clock-time`
 * `server-clock-drift`
@@ -113,7 +113,7 @@ all groups. There's also a new two-channel global clock-bus:
 
 * Make metronome safe to use across multiple threads
 * `*add-current-namespace-to-synth-name*`- new dynamic var for switching off auto namespacing of a synthdef name
-* `control-bus-get` may now return a sequence of vals when passed a multi-channel control bus. 
+* `control-bus-get` may now return a sequence of vals when passed a multi-channel control bus.
 * `.aif` is now a synonym for `.aiff` in list of supported audio files
 * Reduce chance of unexpected control bus clashes by auto-reserving bus
   0 (and therefore ensuring that a default bus of 0 has no bad side
