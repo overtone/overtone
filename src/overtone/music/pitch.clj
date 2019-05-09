@@ -128,7 +128,7 @@
                    " does not appear to be in MIDI format i.e. C#4"))))
 
     (let [[match pictch-class octave] matches]
-      (when (< (Integer. octave) -1)
+      (when (< (int octave) -1)
         (throw (IllegalArgumentException.
                 (str "Invalid midi-string: " mk
                      ". Octave is out of range. Lowest octave value is -1")))))
@@ -140,7 +140,7 @@
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
-        octave                     (Integer. octave)
+        octave                     (int octave)
         interval                   (NOTES (keyword pitch-class))]
     {:match       match
      :pitch-class pitch-class

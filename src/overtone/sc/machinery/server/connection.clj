@@ -221,11 +221,11 @@
 
 (defn- sc-log-external
   "Pull audio server log data from a pipe and store for later printing."
-  [stream read-buf]
+  [^java.io.BufferedInputStream stream read-buf]
   (while (pos? (.available stream))
     (let [n   (min (count read-buf) (.available stream))
           _   (.read stream read-buf 0 n)
-          msg (String. read-buf 0 n)
+          msg (String. ^"[B" read-buf 0 n)
           error? (re-find #"World_OpenUDP" msg)]
       (swap! external-server-log* conj msg)
       (if error?
@@ -235,11 +235,11 @@
 (defn- external-booter
   "Boot thread to start the external audio server process and hook up to
   STDOUT for log messages."
-  ([cmd] (external-booter cmd "."))
-  ([cmd working-dir]
+  ([^"[Ljava.lang.String;" cmd] (external-booter cmd "."))
+  ([^"[Ljava.lang.String;" cmd ^java.lang.String working-dir]
    (log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
    (let [working-dir (File. working-dir)
-         proc        (.exec (Runtime/getRuntime) cmd nil working-dir)
+         proc        (.exec (Runtime/getRuntime) cmd ^"[Ljava.lang.String;" (into-array String []) working-dir)
          in-stream   (BufferedInputStream. (.getInputStream proc))
          err-stream  (BufferedInputStream. (.getErrorStream proc))
          read-buf    (make-array Byte/TYPE 256)]

@@ -43,7 +43,7 @@
         n-bytes      (* data-size sample-bytes)
         b-data       (ByteBuffer/allocate n-bytes)
         b-data       (fill-data-buffer! b-data data sample-bytes)
-        stream       (AudioInputStream. (ByteArrayInputStream. (.array b-data))
+        stream       (AudioInputStream. (ByteArrayInputStream. (.array ^ByteBuffer b-data))
                                         a-format
                                         data-size)
         f            (file path)

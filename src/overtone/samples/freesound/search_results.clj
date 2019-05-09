@@ -3,7 +3,7 @@
   overtone.samples.freesound.search-results
   (:use [overtone.samples.freesound.url :only [build-url]]))
 
-(deftype SearchResults [n-results results-seq]
+(deftype SearchResults [n-results ^clojure.lang.LazySeq results-seq]
   clojure.lang.Sequential
   clojure.lang.Seqable
   (seq [this] this)
@@ -18,8 +18,8 @@
     (.empty results-seq))
   (equiv [_ o]
     (if (instance? SearchResults o)
-      (and (= n-results (.n-results o))
-           (.equiv results-seq (.results-seq o)))
+      (and (= n-results (.n-results ^SearchResults o))
+           (.equiv results-seq (.results-seq ^SearchResults o)))
       (.equiv results-seq o)))
 
   clojure.lang.ISeq
@@ -39,7 +39,7 @@
   (deref [_] results-seq))
 
 (defmethod print-method SearchResults
-  [x writer]
+  [x ^java.io.Writer writer]
   (.write writer (str x)))
 
 (defn search-results

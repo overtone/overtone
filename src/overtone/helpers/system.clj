@@ -31,8 +31,8 @@
 (defn classpath-seq
   "Return the classpath as a seq"
   []
-  (map (memfn getPath)
-       (seq (.getURLs (.getClassLoader clojure.lang.RT)))))
+  (map (memfn ^java.io.File getPath)
+       (seq (.getURLs ^java.net.URLClassLoader (.getClassLoader clojure.lang.RT)))))
 
 (defn windows-os?
   "Returns true if the current os is windows based"

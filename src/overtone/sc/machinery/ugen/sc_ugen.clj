@@ -52,7 +52,7 @@
             0
             args)))
 
-(defmethod print-method SCUGen [ug w]
+(defmethod print-method SCUGen [ug ^java.io.Writer w]
   (.write w (str "#<sc-ugen: " (overtone-ugen-name (:name ug)) (:rate-name ug) " [" (count-ugen-args ug) "]>")))
 
 (defn control-proxy

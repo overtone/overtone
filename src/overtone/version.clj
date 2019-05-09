@@ -1,8 +1,8 @@
 (ns overtone.version)
 
 (def OVERTONE-VERSION {:major 0
-                       :minor 11
-                       :patch 0
+                       :minor 10
+                       :patch 4
                        :snapshot false})
 
 (def OVERTONE-VERSION-STR

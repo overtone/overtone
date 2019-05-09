@@ -259,6 +259,6 @@
 (on-sync-event [:overtone :osc-msg-received]
                (fn [{{path :path args :args} :msg}]
                  (let [poll-path "/overtone/internal/poll/"]
-                   (when (.startsWith path poll-path)
-                     (println "-->" (.substring path (count poll-path)) (nth args 2)))))
+                   (when (.startsWith ^java.lang.String path poll-path)
+                     (println "-->" (.substring ^java.lang.String path (count poll-path)) (nth args 2)))))
                ::handle-incoming-poll-messages)

@@ -34,7 +34,7 @@
         doc-map (into {} arg-doc)
         arg-max-key-len (length-of-longest-key doc-map)
         indentation (+ 5 arg-max-key-len)]
-    (apply str (map (fn [[name docs]]
+    (apply str (map (fn [[^java.lang.String name docs]]
                       (str "  "
                            name
                            (gen-padding (inc (- arg-max-key-len (.length name))) " ")

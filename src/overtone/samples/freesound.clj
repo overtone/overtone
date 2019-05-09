@@ -27,16 +27,16 @@
 
 (derive FreesoundSample :overtone.sc.sample/playable-sample)
 
-(defmethod print-method FreesoundSample [b w]
+(defmethod print-method FreesoundSample [b ^java.io.Writer w]
   (.write w (format "#<freesound[%s]: %d %s %fs %s %d>"
                     (name @(:status b))
                     (:freesound-id b)
                     (:name b)
                     (:duration b)
                     (cond
-                     (= 1 (:n-channels b)) "mono"
-                     (= 2 (:n-channels b)) "stereo"
-                     :else (str (:n-channels b) " channels"))
+                      (= 1 (:n-channels b)) "mono"
+                      (= 2 (:n-channels b)) "stereo"
+                      :else (str (:n-channels b) " channels"))
                     (:id b))))
 
 (def ^:private base-url "https://www.freesound.org/apiv2")
@@ -64,12 +64,12 @@
 
 ;; a generic POST request, nothing specific to freesound
 (defn- post-request [url params]
-  (let [url (java.net.URL. url)
-        con (.openConnection url)]
+  (let [^java.net.URL url (java.net.URL. url)
+        ^java.net.HttpURLConnection con (.openConnection url)]
     (.setDoOutput con true)
     (.setRequestMethod con "POST")
     (let [w (java.io.BufferedWriter. (java.io.OutputStreamWriter. (.getOutputStream con)))]
-      (.write w (encode-query params))
+      (.write w ^java.lang.String (encode-query params))
       (.close w))
     (let [r (.getInputStream con)]
       r)))

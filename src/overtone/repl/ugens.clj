@@ -22,7 +22,7 @@
      (map #(second %)
           (filter (fn [[key spec]]
                     (let [names (str (:name spec) " "
-                                     (.toLowerCase (:name spec)) " "
+                                     (.toLowerCase ^java.lang.String (:name spec)) " "
                                      (overtone-ugen-name (:name spec)))
                           search-str (str (:full-doc spec) " " names)
                           matches (filter #(re-find % search-str) regexps)]
@@ -48,18 +48,18 @@
   "Returns a prettified string representing the documentation of a ugen
   collider. Matches default Clojure documentation format."
   ([ug-spec] (pretty-ugen-doc-string ug-spec ""))
-  ([ug-spec ns-str]
-     (let [ns-str (if (or
-                       (empty? ns-str)
-                       (.endsWith ns-str "/"))
-                    ns-str
-                    (str ns-str "/"))]
-       (str "-------------------------"
-            "\n"
-            ns-str (overtone-ugen-name (:name ug-spec))
-            "\n"
-            (:full-doc ug-spec)
-            "\n\n"))))
+  ([ug-spec ^java.lang.String ns-str]
+   (let [ns-str (if (or
+                     (empty? ns-str)
+                     (.endsWith ns-str "/"))
+                  ns-str
+                  (str ns-str "/"))]
+     (str "-------------------------"
+          "\n"
+          ns-str (overtone-ugen-name (:name ug-spec))
+          "\n"
+          (:full-doc ug-spec)
+          "\n\n"))))
 
 (defn print-ugen-docs
   "Pretty print out a list of ugen specs by printing out their names and

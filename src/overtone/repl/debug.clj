@@ -108,7 +108,7 @@
   (let [ctl-ugs (filter (fn [ug]
                           (control-ugen-name? (overtone-ugen-name (:name ug))))
                         (:ugens sdef))]
-    (loop [res 0
+    (loop [result 0
            ugs ctl-ugs]
       (when (empty? ugs)
         (throw (Exception. (str "Couldn't find ugen with name " c-name
@@ -116,8 +116,8 @@
       (let [ug (first ugs)]
         (if (and (= c-name (overtone-ugen-name (:name ug)) )
                  (= rate (REVERSE-RATES (:rate ug))))
-          res
-          (recur (+ res (:n-outputs ug)) (rest ugs)))))))
+          result
+          (recur (+ result (:n-outputs ug)) (rest ugs)))))))
 
 (defn- expand-control-ug
   [ug c-idx sdef]

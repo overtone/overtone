@@ -11,7 +11,7 @@
   (equiv
     [self o]
     (and (instance? ShellStringList o)
-         (= strlist (.strlist o))))
+         (= strlist (.strlist ^ShellStringList o))))
   clojure.lang.ISeq
   (first [self] (first strlist))
   (next [self] (next strlist))
@@ -19,7 +19,7 @@
   Object
   (toString [self] (str/join "\n" (.strlist self))))
 
-(defmethod print-method ShellStringList [str-l w]
+(defmethod print-method ShellStringList [str-l ^java.io.Writer w]
   (.write w (str str-l)))
 
 (prefer-method print-method ShellStringList clojure.lang.IPersistentCollection)

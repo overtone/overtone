@@ -5,21 +5,21 @@
 
 (defn- print-gen-examples
   ([gen-examples] (print-gen-examples gen-examples "" 0))
-  ([gen-examples indent-str desc-indent-len]
-     (if (empty? gen-examples)
-       (println "Sorry, no examples for this generator have been contributed.\n Please consider submitting one.")
-       (dorun
-        (for [orig-key (keys gen-examples)]
-          (let [key             (str indent-str orig-key)
-                key-len         (.length key)
-                desc-indent-len (+ desc-indent-len (.length indent-str))
-                key             (if (< key-len desc-indent-len)
-                                  (gen-padding key (- desc-indent-len key-len) " ")
-                                  key)
-                full-key        (str key " (" (:rate (get gen-examples orig-key)) ") - ")
-                full-key-len    (.length full-key)
-                indented-desc   (indented-str-block (:summary (get gen-examples orig-key)) DOC-WIDTH full-key-len)]
-            (println (str full-key indented-desc))))))))
+  ([gen-examples ^java.lang.String indent-str desc-indent-len]
+   (if (empty? gen-examples)
+     (println "Sorry, no examples for this generator have been contributed.\n Please consider submitting one.")
+     (dorun
+      (for [orig-key (keys gen-examples)]
+        (let [key             (str indent-str orig-key)
+              key-len         (.length key)
+              desc-indent-len (+ desc-indent-len (.length indent-str))
+              key             (if (< key-len desc-indent-len)
+                                (gen-padding key (- desc-indent-len key-len) " ")
+                                key)
+              full-key        (str key " (" (:rate (get gen-examples orig-key)) ") - ")
+              full-key-len    (.length full-key)
+              indented-desc   (indented-str-block (:summary (get gen-examples orig-key)) DOC-WIDTH full-key-len)]
+          (println (str full-key indented-desc))))))))
 
 (defn- longest-example-key
   [examples]

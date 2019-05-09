@@ -61,15 +61,4 @@
           "/Applications/SuperCollider.app/Contents/Resources/scsynth"
           "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth"]})
 
-(def SC-OS-SPECIFIC-ARGS
-  "Extra arguments required to correctly boot an external SuperCollider
-  server for various operating systems."
-  {:linux   {}
-   :windows {}
-   :mac     {:ugens-paths  ["~/Library/Application Support/SuperCollider/Extensions/SC3plugins"
-                            "/Library/Application Support/SuperCollider/Extensions/SC3plugins"
-                            "/Applications/SuperCollider/plugins"
-                            "/Applications/SuperCollider.app/Contents/Resources/plugins"
-                            "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/plugins"]}})
-
 (def SC-MAX-FLOAT-VAL (Math/pow 2 24))

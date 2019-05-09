@@ -212,6 +212,6 @@
 
     `(do ~@cgen-defs))))
 
-(defmethod print-method ::cgen [cgen w]
+(defmethod print-method ::cgen [cgen ^java.io.Writer w]
   (let [info (meta cgen)]
     (.write w (format "#<cgen: %s>" (:name info)))))

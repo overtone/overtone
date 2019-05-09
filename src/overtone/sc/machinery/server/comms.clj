@@ -22,15 +22,15 @@
   just casts all Longs to Integers and Doubles to Floats."
   [argv]
   (mapv (fn [arg]
-         (cond (instance? Long arg)
-               (Integer. arg)
+          (cond (instance? Long arg)
+                (int arg)
 
-               (instance? Double arg)
-               (Float. arg)
+                (instance? Double arg)
+                (float arg)
 
-               :else
-               arg))
-       argv))
+                :else
+                arg))
+        argv))
 
 (defn server-snd
   "Sends an OSC message to the server. If the message path is a known

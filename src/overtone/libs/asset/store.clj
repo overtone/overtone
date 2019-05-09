@@ -58,8 +58,8 @@
   project's root directory, resulting in a list of canonical file paths."
   [paths]
   (->> (mapcat ls* paths)
-       (filter #(.isFile %))
-       (map #(.getCanonicalPath %))))
+       (filter #(.isFile ^java.io.File %))
+       (map #(.getCanonicalPath ^java.io.File %))))
 
 (defn register-assets!
   "Register the asset(s) at the given path(s) with the key provided. Directory
@@ -84,10 +84,10 @@
   "Get all of the asset paths registered with the given key. Provide a name to
   filter by filename. Returns a seq of path strings or nil."
   ([key]
-     (get @assets* key))
+   (get @assets* key))
   ([key name]
-     (when-let [paths (registered-assets key)]
-       (if name
-         (filter #(. % (endsWith (str (file-separator) name)))
-                 paths)
-         paths))))
+   (when-let [paths (registered-assets key)]
+     (if name
+       (filter #(.endsWith ^java.lang.String % (str (file-separator) name))
+               paths)
+       paths))))

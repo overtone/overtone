@@ -83,7 +83,7 @@
 (derive SynthNode ::node)
 (derive SynthGroup ::node)
 
-(defmethod print-method SynthGroup [s-group w]
+(defmethod print-method SynthGroup [s-group ^java.io.Writer w]
   (.write w (format "#<synth-group[%s]: %s %d>" (name @(:status s-group)) (:group s-group) (:id s-group))))
 
 (defn- emit-inactive-node-modification-error
@@ -156,7 +156,7 @@
 
 
 
-(defmethod print-method SynthNode [s-node w]
+(defmethod print-method SynthNode [s-node ^java.io.Writer w]
   (.write w (format "#<synth-node[%s]: %s %d>"
                     (name @(:status s-node)) (:synth s-node) (:id s-node))))
 

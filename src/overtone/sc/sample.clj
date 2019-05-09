@@ -35,18 +35,18 @@
   [s]
   (isa? (type s) ::sample))
 
-(defmethod print-method Sample [b w]
+(defmethod print-method Sample [b ^java.io.Writer w]
   (.write w (format "#<buffer[%s]: %s %fs %s %d>"
                     (name @(:status b))
                     (:name b)
                     (:duration b)
                     (cond
-                     (= 1 (:n-channels b)) "mono"
-                     (= 2 (:n-channels b)) "stereo"
-                     :else (str (:n-channels b) " channels"))
+                      (= 1 (:n-channels b)) "mono"
+                      (= 2 (:n-channels b)) "stereo"
+                      :else (str (:n-channels b) " channels"))
                     (:id b))))
 
-(defmethod print-method PlayableSample [b w]
+(defmethod print-method PlayableSample [b ^java.io.Writer w]
   (.write w (format "#<buffer[%s]: %s %fs %s %d>"
                     (name @(:status b))
                     (:name b)
@@ -164,7 +164,7 @@
 
 
 (defn- assert-audio-files [file-seq]
-  (run! (fn [f]
+  (run! (fn [^java.io.File f]
           (let [ext (file-extension f)]
             (assert (or (= ext "aif") (= ext "aiff") (= ext "wav"))
                     (if (.isDirectory f)
@@ -188,7 +188,7 @@
                         (into paths-vector
                               (let [files (glob path-glob)]
                                 (assert-audio-files files)
-                                (mapv #(.getAbsolutePath %)
+                                (mapv #(.getAbsolutePath ^java.io.File %)
                                       (sort files)))))
                       [] glob-paths)]
     (doall (mapv (fn [path] (load-sample path)) paths))))
@@ -213,7 +213,7 @@
                                   (into paths-vector
                                         (let [files (glob path-glob)]
                                           (assert-audio-files files)
-                                          (mapv #(.getAbsolutePath %)
+                                          (mapv #(.getAbsolutePath ^java.io.File %)
                                                 (sort files)))))
                                 [] glob-paths)
         ;; always load the entire sample, hence same args always

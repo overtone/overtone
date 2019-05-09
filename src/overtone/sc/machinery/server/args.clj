@@ -27,7 +27,7 @@
    :rt-mem-size              {:default 262144 :flag "-m" :desc "Real time memory size"}
    :max-w-buffers            {:default 64     :flag "-w" :desc "Number of wire buffers"}
    :num-rand-seeds           {:default 64     :flag "-r" :desc "Number of random seeds"}
-   :load-sdefs?              {:default 1      :flag "-D" :desc "Load synthdefs on boot? 0 or 1"}
+   :load-sdefs?              {:default 0      :flag "-D" :desc "Load synthdefs on boot? 0 or 1"}
    :rendezvous?              {:default 0      :flag "-R" :desc "Publish to rendezvous? 0 or 1"}
    :max-logins               {:default 64     :flag "-l" :desc "Maximum number of named return addresses stored - also maximum number of TCP connections accepted."}
    :pwd                      {:default nil    :flag "-p" :desc "When using TCP, the session password must be the first command sent."}
@@ -46,16 +46,16 @@
 
 (defn- find-sc-version
   "In scsynth 3.7 the -V and -v flags switch places. We check the version by
-  trying both and examining the output from the successful run. Returns a float
-  representing major and minor release." 
+  trying both and examining the output from the successful run. Returns a number
+  representing major and minor release."
   []
-  (try (let [attempts [(sh "scsynth" "-V") (sh "scsynth" "-v")]
+  (try (let [attempts [(sh "scsynth" "-v") (sh "scsynth" "-V")]
              successful (first (filter #(= (:exit %) 0) attempts))
              version-regex [(re-find #"scsynth\s+(\d+\.\d+)\.\d+" (:out successful))
                             (re-find #"scsynth\s+(\d+\.\d+)" (:out successful))]
              version (->> version-regex (remove nil?) (map second) (filter numeric?) first)]
-         (Float. version))
-       (catch Exception e 3.5)))
+         (read-string version))
+       (catch Exception e 3.9)))
 
 (defn- fix-verbosity-flag
   "If scsynth version is 3.7 or above, upper-case the :flag in the :verbosity
@@ -71,7 +71,7 @@
   [arg-name val]
   (cond
     (number? val) val
-    (string? val) (Integer. val)
+    (string? val) (read-string val)
     :else (throw (Exception. (str "Cannot convert sc-arg " arg-name " to val: " val)))))
 
 (defn- truth-int
@@ -182,12 +182,11 @@
 (defn merge-sc-args
   ([user-opts] (merge-sc-args user-opts {}))
   ([user-opts default-opts]
-     (let [opts (merge (sc-default-args)
-                       (SC-OS-SPECIFIC-ARGS (get-os))
-                       default-opts
-                       (config-get :sc-args {})
-                       user-opts)]
-       (cleanup-sc-args opts))))
+   (let [opts (merge (sc-default-args)
+                     default-opts
+                     (config-get :sc-args {})
+                     user-opts)]
+     (cleanup-sc-args opts))))
 
 (defn ensure-native-sc-args-valid!
   [args]

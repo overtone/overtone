@@ -314,7 +314,7 @@
           (Math/sin (* Math/PI 0.5 pos))))))
 
 (defn curve-shape [pos y1 y2 curvature]
-  (if (< (Math/abs curvature) 0.0001)
+  (if (< (Math/abs (double curvature)) 0.0001)
     (+ (* pos (- y2 y1))
        y1)
     (let [denominator (- 1.0 (Math/exp curvature))

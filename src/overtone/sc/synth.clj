@@ -700,7 +700,7 @@
       (filter #(= (:name synth-filter) (:name %)) active-nodes)
       active-nodes)))
 
-(defmethod print-method ::synth [syn w]
+(defmethod print-method ::synth [syn ^java.io.Writer w]
   (let [info (meta syn)]
     (.write w (format "#<synth: %s>" (:name info)))))
 

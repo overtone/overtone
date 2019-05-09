@@ -45,25 +45,25 @@
       IBus
       (free-bus [this] (free-id :control-bus (:id this) (:n-channels this))))))
 
-(defmethod print-method AudioBus [b w]
+(defmethod print-method AudioBus [b ^java.io.Writer w]
   (.write w (format "#<audio-bus: %s, %s, id %d>"
                     (if (empty? (:name b))
                       "No Name"
                       (:name b))
                     (cond
-                     (= 1 (:n-channels b)) "mono"
-                     (= 2 (:n-channels b)) "stereo"
-                     :else (str (:n-channels b) " channels"))
+                      (= 1 (:n-channels b)) "mono"
+                      (= 2 (:n-channels b)) "stereo"
+                      :else (str (:n-channels b) " channels"))
                     (:id b))))
 
-(defmethod print-method ControlBus [b w]
+(defmethod print-method ControlBus [b ^java.io.Writer w]
   (.write w (format "#<control-bus: %s, %s, id %d>"
                     (if (empty? (:name b))
                       "No Name"
                       (:name b))
                     (cond
-                     (= 1 (:n-channels b)) "1 channel"
-                     :else (str (:n-channels b) " channels"))
+                      (= 1 (:n-channels b)) "1 channel"
+                      :else (str (:n-channels b) " channels"))
                     (:id b))))
 
 (derive AudioBus ::bus)

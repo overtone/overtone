@@ -1,7 +1,7 @@
 (ns
     ^{:doc    "Useful file manipulation fns"
       :author "Sam Aaron"}
-    overtone.helpers.file 
+    overtone.helpers.file
   (:import [java.net URL]
            [java.io StringWriter]
            ;; Requires Java7
@@ -51,13 +51,13 @@
   "Given a seq of java.io.File objects, returns a seq of absolute paths for each
   file."
   [files]
-  (map #(.getAbsolutePath %) files))
+  (map #(.getAbsolutePath ^java.io.File %) files))
 
 (defn- files->names
   "Given a seq of java.io.File objects, returns a seq of names for each
   file."
   [files]
-  (map #(.getName %) files))
+  (map #(.getName ^java.io.File %) files))
 
 (defn file-separator
   "Returns the system's file separator"
@@ -76,24 +76,24 @@
    ~ to point to home directory."
   [path]
   (let [path (if (file? path)
-               (.getCanonicalPath path)
+               (.getCanonicalPath ^java.io.File path)
                (str path))]
     (cond
-     (= "~" path)
-     (home-dir)
+      (= "~" path)
+      (home-dir)
 
-     (.startsWith path (str "~" (file-separator)))
-     (mk-path (home-dir) (chop-first-n (inc (count (file-separator))) path))
+      (.startsWith ^java.lang.String path (str "~" (file-separator)))
+      (mk-path (home-dir) (chop-first-n (inc (count (file-separator))) path))
 
-     :default
-     path)))
+      :default
+      path)))
 
 (defn ensure-trailing-file-separator
   "Returns a string representing the supplied path that ends with the
   appropriate file separator."
   [path]
   (let [path (resolve-tilde-path path)]
-    (if (.endsWith path (file-separator))
+    (if (.endsWith ^java.lang.String path (file-separator))
       path
       (str path (file-separator)))))
 
@@ -104,7 +104,7 @@
         sdir (ensure-trailing-file-separator sdir)
         dir  (resolve-tilde-path dir)
         dir  (ensure-trailing-file-separator dir)]
-    (.startsWith sdir dir)))
+    (.startsWith ^java.lang.String sdir dir)))
 
 (defn mk-path
   "Takes a seq of strings and returns a string which is a concatanation of all
@@ -146,28 +146,28 @@
   "Given a path to a directory, returns a seq of strings representing the full
   paths of only the files within."
   [path]
-  (let [files (filter #(.isFile %) (ls* path))]
+  (let [files (filter #(.isFile ^java.io.File %) (ls* path))]
     (files->abs-paths files)))
 
 (defn ls-file-names
   "Given a path to a directory, returns a seq of strings representing the name
   of only the files within."
   [path]
-  (let [files (filter #(.isFile %) (ls* path))]
+  (let [files (filter #(.isFile ^java.io.File %) (ls* path))]
     (files->names files)))
 
 (defn ls-dir-paths
   "Given a path to a directory, returns a seq of strings representing the full
   paths of only the dirs within. "
   [path]
-  (let [files (filter #(.isDirectory %) (ls* path))]
+  (let [files (filter #(.isDirectory ^java.io.File %) (ls* path))]
     (files->abs-paths files)))
 
 (defn ls-dir-names
   "Given a path to a directory, returns a seq of strings representing the name
   of only the dirs within. "
   [path]
-  (let [files (filter #(.isDirectory %) (ls* path))]
+  (let [files (filter #(.isDirectory ^java.io.File %) (ls* path))]
     (files->names files)))
 
 (defn glob
@@ -182,8 +182,8 @@
 (defn remote-file-size
   "Returns the size of the file referenced by url in bytes."
   [url]
-  (let [url (if (= URL (type url)) url (URL. url))
-        con (.openConnection url)]
+  (let [^java.net.URL url (if (= URL (type url)) url (URL. url))
+        ^java.net.URLConnection con (.openConnection url)]
     (when *authorization-header*
       (.setRequestProperty con "Authorization" (*authorization-header*)))
     (.getContentLength con)))
@@ -222,10 +222,10 @@
         buffer   (make-array Byte/TYPE buf-size)
         slices   (percentage-slices file-size 100)]
     (loop [bytes-copied 0]
-      (let [size (.read in-stream buffer)]
+      (let [size (.read ^java.io.BufferedInputStream in-stream buffer)]
         (print-file-copy-status bytes-copied size file-size slices)
         (when (pos? size)
-          (do (.write out-stream buffer 0 size)
+          (do (.write ^java.io.BufferedOutputStream out-stream buffer 0 size)
               (recur (+ size bytes-copied))))))
     (print-if-verbose "--> Download successful")))
 
@@ -388,22 +388,23 @@
             tmp-dir
             (recur (inc num-attempts))))))))
 
-(defn- copy-dir-visitor [from to]
+(defn- copy-dir-visitor [^java.nio.file.Path from ^java.nio.file.Path to]
   (proxy [SimpleFileVisitor] []
     (preVisitDirectory [dir attrs]
       (let [target (.resolve to (.relativize from dir))]
         (if-not (Files/exists target (into-array LinkOption []))
           (Files/createDirectory target (into-array FileAttribute [])))
         FileVisitResult/CONTINUE))
-    (visitFile [file attrs]
-      (let [target (.resolve to (.relativize from file))]
-        (Files/copy file target (into-array CopyOption [StandardCopyOption/REPLACE_EXISTING])))
+    (visitFile [^java.nio.file.Path file attrs]
+      (let [^java.nio.file.Path target (.resolve to (.relativize from file))]
+        (Files/copy file target
+                    ^java.nio.file.CopyOption (into-array CopyOption [StandardCopyOption/REPLACE_EXISTING])))
       FileVisitResult/CONTINUE)))
 
 (defn copy-dir!
   "Copies a directory recursively useing java7 functionality.
    Paths from and to must be strings."
-  [from to] 
+  [from to]
   (letfn [(path [str-path] (Paths/get str-path (into-array String [])))]
     (let [from    (path from)
           to      (path to)

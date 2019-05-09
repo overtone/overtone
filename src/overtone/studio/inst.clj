@@ -268,7 +268,7 @@
         i-name                    (with-meta i-name (merge (meta i-name) {:type ::instrument}))]
     `(def ~i-name (inst ~i-name ~params ~ugen-form))))
 
-(defmethod print-method ::instrument [ins w]
+(defmethod print-method ::instrument [ins ^java.io.Writer w]
   (let [info (meta ins)]
     (.write w (format "#<instrument: %s>" (:name info)))))
 

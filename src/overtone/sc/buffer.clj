@@ -31,15 +31,15 @@
       to-sc-id*
       (to-sc-id [this] (:id this)))))
 
-(defmethod print-method Buffer [b w]
+(defmethod print-method Buffer [b ^java.io.Writer w]
   (.write w (format "#<buffer[%s]: %s %fs %s %d>"
                     (name @(:status b))
                     (:name b)
                     (:duration b)
                     (cond
-                     (= 1 (:n-channels b)) "mono"
-                     (= 2 (:n-channels b)) "stereo"
-                     :else (str (:n-channels b) " channels"))
+                      (= 1 (:n-channels b)) "mono"
+                      (= 2 (:n-channels b)) "stereo"
+                      :else (str (:n-channels b) " channels"))
                     (:id b))))
 
 (def supported-file-types ["wav" "aiff" "aif"])
@@ -67,7 +67,7 @@
                    config-max-buffers "\n."
                    "This can be configured in overtone config under :sc-args {:max-buffers 2^x}.")))))
 
-(defmethod print-method BufferInfo [b w]
+(defmethod print-method BufferInfo [b ^java.io.Writer w]
   (.write w (format "#<buffer-info: %fs %s %d>"
                     (:duration b)
                     (cond
@@ -321,7 +321,7 @@
 
    One following strings can be used to specify option
    to generate wavetable (defaults to \"sine1\"):
- 
+
    \"sine1\" - Fills a buffer with a series of sine wave partials.
                The first float value specifies the amplitude of
                the first partial, the second float value specifies
@@ -337,7 +337,7 @@
                the second float value specifies the amplitude for n = 2,
                and so on. To eliminate a DC offset when used as a waveshaper,
                the wavetable is offset so that the center value is zero.
- 
+
    The flags are defined as follows (defaults to 7):
     1 normalize - Normalize peak amplitude of wave to 1.0.
     2 wavetable - If set, then the buffer is written in wavetable
@@ -358,7 +358,7 @@
    \"sine1\" [amp1...ampN] ex: [1 0.9 0.8 0.7]
    \"sine2\" [freq1, amp1...freqN, ampN] ex: [440 1 880 0.9 1660 0.8]
    \"sine3\" [freq1, amp1, phase1...freqN, ampN, phaseN] ex: [110 1 0 220 0.9 0.1]
-   \"cheby\" [amp1..ampN] ex: [1 0.9 0.8 0.7] 
+   \"cheby\" [amp1..ampN] ex: [1 0.9 0.8 0.7]
   "
   [buf option flag partials-vector]
   (ensure-buffer-active! buf)

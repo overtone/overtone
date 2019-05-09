@@ -1,8 +1,8 @@
 (ns
     ^{:doc "An oscilloscope style waveform viewer"
       :author "Jeff Rose & Sam Aaron"}
-  overtone.studio.scope
-  (:import [java.awt Graphics Dimension Color BasicStroke BorderLayout RenderingHints]
+    overtone.studio.scope
+  (:import [java.awt Graphics2D Dimension Color BasicStroke BorderLayout RenderingHints LayoutManager]
            [java.awt.event WindowListener ComponentListener]
            [java.awt.geom Rectangle2D$Float Path2D$Float]
            [javax.swing JFrame JPanel JSlider]
@@ -49,7 +49,7 @@
   "Updates the scope by reading the current status of the buffer and repainting."
   [s]
 
-  (let [{:keys [buf size width height panel y-arrays x-array panel]} s
+  (let [{:keys [buf size width height panel y-arrays x-array]} s
         frames    (if (buffer-live? buf)
                     (buffer-data buf)
                     [])
@@ -63,7 +63,7 @@
               (int (* y-scale
                       (aget ^floats frames (unchecked-multiply x step))))))
       (reset! y-arrays [y-b y-a])
-      (.repaint panel))))
+      (.repaint ^JPanel panel))))
 
 (defn- update-scopes []
   (try
@@ -71,10 +71,10 @@
     (catch Exception e
       (println "Exception when updating scopes:" (with-out-str (.printStackTrace e))))))
 
-(defn- paint-scope [^Graphics g id]
+(defn- paint-scope [^Graphics2D g id]
   (if-let [scope (get @scopes* id)]
     (let [{:keys [background width height color x-array y-arrays slider]} scope
-          s-val     (.getValue slider)
+          s-val     (.getValue ^JSlider slider)
           y-zoom    (if (> s-val 49)
                       (+ 1 (* 0.1 (- s-val 50)))
                       (+ (* 0.02 s-val) 0.01))
@@ -88,7 +88,7 @@
         (.setColor ^Color (Color. 100 100 100))
         (.drawRect 0 0 width height)
         (.setColor ^Color color)
-        (.translate 0 y-shift)
+        (.translate (double 0) y-shift)
         (.scale 1 (* -1 y-zoom))
         (.drawPolyline ^ints x-array ^ints y-a width)))))
 
@@ -102,18 +102,18 @@
   "Display scope window. If you specify keep-on-top to be true, the
   window will stay on top of the other windows in your environment."
   ([panel slider title keep-on-top width height]
-     (let [f    (JFrame. title)
-           cp   (.getContentPane f)
-           side (JPanel. (BorderLayout.))]
-       (.add side slider BorderLayout/CENTER)
-       (doto cp
-         (.add side BorderLayout/WEST)
-         (.add panel BorderLayout/CENTER))
-       (doto f
-         (.setPreferredSize (Dimension. width height))
-         (.pack)
-         (.show)
-         (.setAlwaysOnTop keep-on-top)))))
+   (let [f    (new JFrame ^java.lang.String title)
+         cp   (.getContentPane f)
+         side (new JPanel ^LayoutManager (BorderLayout.))]
+     (.add side ^JSlider slider BorderLayout/CENTER)
+     (doto cp
+       (.add side BorderLayout/WEST)
+       (.add ^JPanel panel BorderLayout/CENTER))
+     (doto f
+       (.setPreferredSize (Dimension. width height))
+       (.pack)
+       (.show)
+       (.setAlwaysOnTop keep-on-top)))))
 
 (defn scopes-start
   "Schedule the scope to be updated every (/ 1000 FPS) ms (unless the
@@ -133,11 +133,11 @@
         [y-a y-b] @(scope :y-arrays)]
 
     (dotimes [i width]
-      (aset x-array i i))
+      (aset ^ints x-array i i))
 
     (dotimes [i width]
-      (aset y-a i (/ height 2))
-      (aset y-b i (/ height 2)))))
+      (aset ^ints y-a i (long (/ height 2)))
+      (aset ^ints y-b i (long (/ height 2))))))
 
 (defn- empty-scope-data
   []
@@ -251,7 +251,7 @@
                   :y-arrays   (atom [y-a y-b])}
 
         _        (reset-data-arrays scope)]
-    (.addWindowListener frame
+    (.addWindowListener ^JFrame frame
                         (reify WindowListener
                           (windowActivated [this e])
                           (windowClosing [this e]
@@ -274,10 +274,10 @@
                    (dosync
                     (let [s (get (ensure scopes*) scope-id)
                           s (assoc s
-                              :width w
-                              :height h
-                              :x-array xs
-                              :y-arrays (atom [ya yb]))]
+                                   :width w
+                                   :height h
+                                   :x-array xs
+                                   :y-arrays (atom [ya yb]))]
                       (alter scopes* assoc scope-id s)))))
                (componentShown [this e])))
 

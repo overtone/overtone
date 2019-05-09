@@ -1,6 +1,6 @@
 (ns overtone.api
   (:import [java.lang.management ManagementFactory])
-  (:use [overtone.libs boot-msg app-icon]
+  (:use [overtone.libs boot-msg]
         [overtone.helpers.ns])
   (:require clojure.stacktrace
             [overtone.config store]
@@ -111,4 +111,3 @@
    'overtone.libs.event
    'overtone.samples.freesound
    'overtone.version))
-

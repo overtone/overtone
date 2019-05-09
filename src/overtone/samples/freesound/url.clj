@@ -5,10 +5,10 @@
   (:require [clojure.string :as str])
   (:import [java.net URLEncoder URLDecoder]))
 
-(defn url-encode [s & [encoding]]
-  (URLEncoder/encode s (or encoding "UTF-8")))
+(defn url-encode [^java.lang.String s & [^java.lang.String encoding]]
+  (URLEncoder/encode s  (or encoding "UTF-8")))
 
-(defn url-decode [s & [encoding]]
+(defn url-decode [^java.lang.String s & [^java.lang.String encoding]]
   (URLDecoder/decode s (or encoding "UTF-8")))
 
 (defn encode-query

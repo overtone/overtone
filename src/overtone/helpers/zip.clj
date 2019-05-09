@@ -22,7 +22,7 @@
   entry-name within the zipfile pointed to by path. Ensures zipfile is closed.
   Returns nil if entry-name not found within zipfile."
   [path entry-name]
-  (let [zip   (zip-file path)
+  (let [^ZipFile zip (zip-file path)
         entry (.getEntry zip entry-name)]
     (.close zip)
     entry))
@@ -31,7 +31,7 @@
   "Returns a seq of java.util.zip.ZipEntry objects representing the contents of
    the zip file at the specified path. Ensures zipfile is closed"
   [path]
-  (let [zip     (zip-file path)
+  (let [^ZipFile zip (zip-file path)
         entries (.entries zip)
         entries (doall (enumeration-seq entries))]
     (.close zip)
@@ -43,7 +43,7 @@
   entry-name not found within zipfile."
   [path entry-name]
   (let [sw    (StringWriter.)
-        zip   (zip-file path)
+        ^ZipFile zip (zip-file path)
         entry (zip-entry path entry-name)]
     (if (and zip entry)
       (do
@@ -68,15 +68,15 @@
     (when-not (file-exists? zip-path)
       (throw (Exception. (str "Source zip file does not exist: " zip-path))))
 
-    (let [zip     (zip-file zip-path)
+    (let [^ZipFile zip (zip-file zip-path)
           entries (.entries zip)
           entries (doall (enumeration-seq entries))]
       (dorun
        (map
-        (fn [entry]
+        (fn [^java.io.File entry]
           (let [name           (.getName entry)
                 full-dest-path (mk-path dest-path name)
-                full-dest-path (canonical-path full-dest-path)]
+                ^java.lang.String full-dest-path (canonical-path full-dest-path)]
             (when-not (subdir? full-dest-path dest-path)
               (throw (Exception. "Security warning - unzip was requested to create a path which is not within original dest-path. Aborting operation.")))
             (if (.isDirectory entry)
