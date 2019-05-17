@@ -141,7 +141,7 @@
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
-        octave                     (int octave)
+        octave                     (Integer/parseInt octave)
         interval                   (NOTES (keyword pitch-class))]
     {:match       match
      :pitch-class pitch-class
