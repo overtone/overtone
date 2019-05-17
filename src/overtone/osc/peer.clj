@@ -1,5 +1,3 @@
-;; A mock of https://github.com/overtone/osc-clj/blob/master/src/overtone/osc/peer.clj
-;; for Java9 compatability (Hlolli May, 2019)
 (ns overtone.osc.peer
   (:import [java.net InetSocketAddress DatagramSocket DatagramPacket]
            [java.util.concurrent TimeUnit TimeoutException PriorityBlockingQueue]

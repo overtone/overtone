@@ -34,7 +34,7 @@
        (vec (set (concat (get JVMOPTS :any)
                          (get JVMOPTS os))))))
 
-(defproject overtone "0.10.4"
+(defproject overtone "0.10.5"
   :description "Collaborative Programmable Music."
   :url "http://overtone.github.io/"
   :mailing-list {:name "overtone"
@@ -45,23 +45,18 @@
             :distribution :repo
             :comments "Please use Overtone for good"}
 
-  :dependencies [[org.clojure/clojure "1.10.0"]
-                 [org.clojure/data.json "0.2.6"]
-                 [clj-native "0.9.5"]
-                 [overtone/at-at "1.2.0"]
-                 [overtone/osc-clj "0.9.0"]
-                 [overtone/libs.handlers "0.2.0"]
-                 [overtone/ableton-link "1.0.0-beta1"]
-                 [clj-glob "1.0.0"]
-                 [net.java.dev.jna/jna "4.4.0"]
-                 [overtone/scsynth "3.10.2"]
-                 [overtone/scsynth-extras "3.10.2"]
-                 ]
+  :middleware [lein-tools-deps.plugin/resolve-dependencies-with-deps-edn]
+  :lein-tools-deps/config {:config-files [:install :user :project]}
+  :plugins [[lein-tools-deps "0.4.5"]]
+
   :profiles {:test {:dependencies [[bultitude "0.2.0"]
                                    [polynome "0.2.2"]]}}
+
   :test-selectors {:core (fn [m] (not (some m [:gui :hw])))
                    :gui  :gui
                    :hw   :hw}
+
   :native-path "native"
   :min-lein-version "2.0.0"
-  :jvm-opts ^:replace ~(jvm-opts))
+  :jvm-opts ^:replace ~(jvm-opts)
+  )
