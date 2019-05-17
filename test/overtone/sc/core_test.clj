@@ -1,4 +1,4 @@
-(ns overtone.sc.core-test 
+(ns overtone.sc.core-test
   (:use
    clojure.test
    overtone.live
@@ -44,26 +44,26 @@
     ;; We should get the old ID again with the bitset allocator
     (is (= a (group :head DEFAULT-GROUP)))))
 
-(deftest node-tree-test
-  (reset)
-  (let [g1 (group :head 0)
-        g2 (group :tail 0)]
-    (hit :sin :dur 2000 :target g2)
-    (Thread/sleep 100)
-    (is (= 1 (:n-synths (status))))))
+#_(deftest node-tree-test
+    ;; (reset)
+    (let [g1 (group :head 0)
+          g2 (group :tail 0)]
+      (hit :sin :dur 2000 :target g2)
+      (Thread/sleep 100)
+      (is (= 1 (:n-synths (status))))))
 
-; These are what the responses look like for a queryTree msg.  The first
-; without and the second with control information.
+;; These are what the responses look like for a queryTree msg.  The first
+;; without and the second with control information.
 (def no-ctls [0 0 2 1 2 2 0 3 0 1001 -1 "sin"])
 (def with-ctls [1 0 2 1 2 2 0 3 0 1001 -1 "sin" 3 "out" 0.0 "pitch" 40.0 "dur" 100000.0])
 
 (defn test-ns-hook []
   (try
-    (boot-test)
-    (boot-server)
-    (Thread/sleep 500)
+    ;; (boot-test)
+    ;; (boot-server)
+    ;; (Thread/sleep 500)
     (groups-test)
-    (node-tree-test)
-    (reset)
-    (finally
-      (kill-server))))
+    ;; (node-tree-test)
+    ;; (reset)
+    #_(finally
+        (kill-server))))

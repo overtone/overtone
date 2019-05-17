@@ -3,6 +3,5 @@
         clojure.test))
 
 (deftest wavetable-signal-conversion-test
-  (is (= (range 1000.0)
+  (is (= (map double (range 1000.0))
          (wavetable->signal (signal->wavetable (range 1000.0))))))
-

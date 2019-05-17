@@ -25,6 +25,7 @@ pom.xml
 *.dvi
 .lein-deps-sum
 .lein-repl-history
+.lein-failures
 .project
 target/
 /classes

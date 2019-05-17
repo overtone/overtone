@@ -1,51 +1,55 @@
-(ns studio-test
+(ns overtone.studio-test
   (:use overtone.live))
 
-(defn inst-test []
-  (definst bar [freq 200]
-           (* (env-gen (perc 0.1 0.8) 1 1 0 1 FREE)
-              (rlpf (saw freq) (* 1.1 freq) 0.3)
-              0.4))
+(comment
+  (defn inst-test []
+    (definst bar [freq 200]
+      (* (env-gen (perc 0.1 0.8) 1 1 0 1 FREE)
+         (rlpf (saw freq) (* 1.1 freq) 0.3)
+         0.4))
 
-  (definst buz [freq 200]
-           (* (env-gen (perc 0.1 0.8) 1 1 0 1 FREE)
-              (+ (sin-osc (/ freq 2))
-                 (rlpf (saw freq) (* 1.1 freq) 0.3))
-              0.4)))
+    (definst buz [freq 200]
+      (* (env-gen (perc 0.1 0.8) 1 1 0 1 FREE)
+         (+ (sin-osc (/ freq 2))
+            (rlpf (saw freq) (* 1.1 freq) 0.3))
+         0.4)))
 
-(def metro (metronome 128))
-(defonce sequences* (ref {}))
 
-(defn sequence-pattern [inst pat]
-  (dosync (alter sequences* assoc inst pat)))
+  (def metro (metronome 128))
 
-(defn- sequencer-player [beat]
-  (doseq [[inst pat] @sequences]
-    (pat inst))
-  (apply-at #'sequence-player (@sequencer-metro* (inc beat)) (inc beat)))
+  (defonce sequences (atom {}))
 
-(defn sequencer-play []
-  (sequencer-player (metro)))
+  (defn sequence-pattern [inst pat]
+    (swap! sequences assoc inst pat))
 
-(def _ nil)
-(def X 440)
-(def x 220)
+  (defn sequencer-player [beat]
+    (doseq [[inst pat] @sequences]
+      (pat inst))
+    (apply-at #'sequence-player (@sequencer-metro* (inc beat)) (inc beat)))
 
-(definst foo [freq 440]
-  (* 0.8
-     (env-gen (perc 0.1 0.4) :action FREE)
-     (rlpf (saw [freq (* 0.98 freq)])
-           (mul-add (sin-osc:kr 30) 100 (* 1.8 freq)) 0.2)))
+  (defn sequencer-play []
+    (sequencer-player (metro)))
 
-(definst kick [freq 240]
-  (* 0.8
-     (env-gen (perc 0.01 0.3) :action FREE)
-     (sin-osc freq)))
+  (def _ nil)
+  (def X 440)
+  (def x 220)
 
-(defn test-session []
-  (track :kick kick)
-  (track-fn :kick (fn [] [220]))
-  (session-play))
+  (definst foo [freq 440]
+    (* 0.8
+       (env-gen (perc 0.1 0.4) :action FREE)
+       (rlpf (saw [freq (* 0.98 freq)])
+             (mul-add (sin-osc:kr 30) 100 (* 1.8 freq)) 0.2)))
 
+  (definst kick [freq 240]
+    (* 0.8
+       (env-gen (perc 0.01 0.3) :action FREE)
+       (sin-osc freq)))
+
+  (defn test-session []
+    (track :kick kick)
+    (track-fn :kick (fn [] [220]))
+    (session-play))
+
+  )
 ;  (track :foo #'foo)
 ;  (track-fn :foo #(if (> (rand) 0.7) (+ 300 (rand-int 500))))

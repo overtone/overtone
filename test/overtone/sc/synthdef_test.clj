@@ -38,9 +38,17 @@
         b (bytes-and-back synth-spec a)]
     (is (= a b))))
 
-; TODO: this call no longer matches the signature of synthdef.
-(def mini-sin (synthdef "mini-sin" {"freq" 440}
-                        (out:ar 0 (sin-osc:ar 0))))
+(def mini-sin-pre
+  (pre-synth
+   "mini-sin" {"freq" 440}
+   (out:ar 0 (sin-osc:ar 0))))
+
+(deftest pre-synth-test
+  (is (= (str mini-sin-pre)
+         "[\"mini-sin\" [] (#<sc-ugen: sin-osc:ar [0]> #<sc-ugen: out:ar [1]>) [0.0 1.0]]")))
+
+(def mini-sin
+  (apply synthdef mini-sin-pre))
 
 (deftest native-synth-test
   (let [bytes (synthdef-bytes mini-sin)

@@ -137,7 +137,10 @@
         (remove-handler! hp key))
       res)
     (catch Exception e
-      (log-error "Handler Exception - with event-map: " event-map "\n"
+      (log-error (str "Handler Exception - with event-map: ") event-map "\n"
+                 "Make sure that your callback function accepts at least 1 argument \n"
+                 "A function signature containing #(fn) will not work without % in it.\n"
+                 "Use (fn [event-map] (fn)) instead.\n"
                  (with-out-str (.printStackTrace e))))))
 
 (defn- run-handlers
@@ -145,7 +148,6 @@
   [keyed-fns event-map hp]
   (doseq [[k f] keyed-fns]
     (run-handler k f event-map hp)))
-
 
 (defn- handlers-rm-specific-handler
   "Returns a new handlers map ommitting handler. Removes event-matcher
