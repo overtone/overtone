@@ -29,6 +29,7 @@ pom.xml
 target/
 /classes
 /.classpath
+.cpcache
 /bin
 /.settings
 .nrepl-port

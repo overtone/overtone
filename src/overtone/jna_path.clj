@@ -1,6 +1,19 @@
 (ns overtone.jna-path
-  (:require [overtone.helpers.file :refer [ensure-native]]
+  (:require [badigeon.bundle :as bundle]
+            [clojure.tools.deps.alpha.reader :as deps-reader]
+            [overtone.helpers.file :refer [ensure-native]]
             [overtone.helpers.system :refer [get-os]]))
+
+;; extract the native dependencies with badigeon
+(bundle/extract-native-dependencies
+ (System/getProperty "user.dir")
+ {:deps-map (deps-reader/slurp-deps "deps.edn")
+  :allow-unstable-deps? true
+  :native-path "native"
+  :native-prefixes {'overtone/ableton-link ""
+                    'overtone/scsynth "native"
+                    'overtone/scsynth-extras "native"}})
+
 
 ;; set jna.library.path to point to native libraries
 ;; dependant on OS. No path merge to prevent clj-native
