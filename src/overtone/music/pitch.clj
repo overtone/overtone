@@ -127,7 +127,8 @@
               (str "Invalid midi-string. " mk
                    " does not appear to be in MIDI format i.e. C#4"))))
 
-    (let [[match pictch-class octave] matches]
+    (let [[match pictch-class octave-str] matches
+          octave (first octave-str)]
       (when (< (int octave) -1)
         (throw (IllegalArgumentException.
                 (str "Invalid midi-string: " mk
