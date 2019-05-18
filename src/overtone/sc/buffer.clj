@@ -61,9 +61,11 @@
 
 (defn assert-less-than-max-buffers []
   (when (transient-server?)
-    (let [config-max-buffers (config-get [:sc-args :max-buffers])]
+    (let [config-max-buffers (config-get [:sc-args :max-buffers])
+          default-max-buffers 1024
+          max-buffers (or config-max-buffers default-max-buffers)]
       (assert (< (get counters* key 0) config-max-buffers)
-              (str "Allocation of audio-buffer exceeded the max-buffers size: "
+              (str "Allocation of buffer exceeded the max-buffers size: "
                    config-max-buffers "\n."
                    "This can be configured in overtone config under :sc-args {:max-buffers 2^x}.")))))
 
