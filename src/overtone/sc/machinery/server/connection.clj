@@ -71,6 +71,14 @@
       (log/error "Subprocess error: " (:err res)))
     (:out res)))
 
+(defn- jack-is-running?
+  "Query the jack ports to see if it's running.
+   This is useful to do before attemting external
+   server connection on Linux, as not to fail silently"
+  []
+  (let [exit-code (:exit (shell/sh "jack_lsp"))]
+    (zero? exit-code)))
+
 (defn- connect-jack-ports
   "Connect the jack input and output ports as best we can.  If jack
   ports are always different names with different drivers or hardware
@@ -78,21 +86,21 @@
   users)"
   ([] (connect-jack-ports 2))
   ([n-channels]
-     (let [port-list      (logged-sh "jack_lsp")
-           sc-ins         (re-seq #"Overtone.*:in_[0-9]*" port-list)
-           sc-outs        (re-seq #"Overtone.*:out_[0-9]*" port-list)
-           system-ins     (re-seq #"system:capture_[0-9]*" port-list)
-           system-outs    (re-seq #"system:playback_[0-9]*" port-list)
-           interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
-           interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
-           connections    (partition 2 (concat
-                                        (interleave sc-outs system-outs)
-                                        (interleave sc-outs interface-outs)
-                                        (interleave system-ins sc-ins)
-                                        (interleave interface-ins sc-ins)))]
-       (doseq [[src dest] connections]
-         (logged-sh "jack_connect" src dest)
-         (log/info "jack_connect " src " " dest)))))
+   (let [port-list      (logged-sh "jack_lsp")
+         sc-ins         (re-seq #"Overtone.*:in_[0-9]*" port-list)
+         sc-outs        (re-seq #"Overtone.*:out_[0-9]*" port-list)
+         system-ins     (re-seq #"system:capture_[0-9]*" port-list)
+         system-outs    (re-seq #"system:playback_[0-9]*" port-list)
+         interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
+         interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
+         connections    (partition 2 (concat
+                                      (interleave sc-outs system-outs)
+                                      (interleave sc-outs interface-outs)
+                                      (interleave system-ins sc-ins)
+                                      (interleave interface-ins sc-ins)))]
+     (doseq [[src dest] connections]
+       (logged-sh "jack_connect" src dest)
+       (log/info "jack_connect " src " " dest)))))
 
 (when (linux-os?)
   (deps/on-deps :server-connected
@@ -130,6 +138,9 @@
 
 (defn- external-connection-runner
   [host port]
+  (when (linux-os?)
+    (assert (jack-is-running?)
+            "Jack Server should be running before connecting to an external server."))
   (println  "--> Connecting to external SuperCollider server:" (str host ":" port))
   (log/debug "Connecting to external SuperCollider server: " host ":" port)
   (let [sc-server (osc/osc-client host port false)]
@@ -155,7 +166,7 @@
             (throw
              (Exception. (str "Error: unable to connect to externally booted server after "
                               defaults/N-RETRIES " attempts.\n"
-                              "Make sure that you have Server.options.maxLogins set to greater than 1 in startup file (startup.scd).\n"
+                              "Make sure that you have Server.local.options.maxLogins set to greater than 1 in startup file (startup.scd).\n"
                               "Or if you're on Windows, make sure that the Windows defender isn't blocking the scsynth.exe\n")))))))))
 
 ;; TODO: setup an error-handler in the case that we can't connect to the server

@@ -3,6 +3,7 @@
 * overtone can now be used with tools.deps
 * fix classException for note and chord function $428
 * failures in the test runner fixed
+* alert linux users in case jack server wasn't started prior to external-server connection runner
 
 ## Version 0.10.4 (8th May 2019)
 # ugens
