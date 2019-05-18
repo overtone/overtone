@@ -10,9 +10,6 @@
          javax.jmdns/jmdns {:mvn/version "3.4.1"}
          clj-glob {:mvn/version "1.0.0"}
          clj-native {:mvn/version "0.9.5"}
-         badigeon/badigeon
-         {:git/url "https://github.com/hlolli/badigeon.git"
-          :sha "2867e8434cc999bbae40001a026803b9fdfb0e5e"}
-         #_{:git/url "https://github.com/EwenG/badigeon.git"
-            :sha "dca97f9680a6ea204a2504c4414cafc4ba182a83"
-            :tag "0.0.6"}}}
+         badigeon/badigeon {:git/url "https://github.com/EwenG/badigeon.git"
+                            :sha "e7f62a60d8e890fc84a47bcfdd59137e11ff1c95"
+                            :tag "0.0.7"}}}
