@@ -1,5 +1,7 @@
 # Change Log
-## MASTER
+
+
+## Version 0.10.5 (18th May 2019)
 * overtone can now be used with tools.deps
 * fix classException for note and chord function $428
 * failures in the test runner fixed

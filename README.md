@@ -38,14 +38,24 @@ collaborating with music.  It provides:
 ### Installation
 
 ```sh
-    # Install lein2
+    # Install the clojure-cli tools
+    # https://clojure.org/guides/getting_started
+
+    # Create a deps.edn file with a minimum
+    # {:deps {overtone/overtone {:mvn/version "0.10.5"}}}
+    $ clojure
+    $ (use 'overtone.live)
+```
+
+```sh
+    # Or install leiningen
     # https://github.com/technomancy/leiningen
 
     $ lein new insane-noises
 
     # add the following dependencies to insane-noises/project.clj
     # [org.clojure/clojure "1.9.0"]
-    # [overtone "0.10.4"]
+    # [overtone "0.10.5"]
 
     $ cd insane-noises
     $ lein repl
@@ -177,12 +187,14 @@ Downloads and the source repository can be found on GitHub:
 Clone the repository on GitHub to get started developing, and if you are
 ready to submit a patch then fork your own copy and do a pull request.
 
-##  Lein Support
+##  clojure.tools.deps and Leiningen Support
 
 Overtone and its dependencies are on http://clojars.org, and the
-dependency for your `project.clj` is:
+dependency for your `deps.edn` is:
+    {overtone/overtone {:mvn/version "0.10.5"}}
 
-    [overtone "0.10.4"]
+    or for your `project.clj`
+    [overtone "0.10.5"]
 
 ## Contributors
 
