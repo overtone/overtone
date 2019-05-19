@@ -196,7 +196,7 @@ dependency for your `deps.edn` is:
     {overtone/overtone {:mvn/version "0.10.6"}}
 ```
 
-    or for your `project.clj` (Leiningen)
+or for your `project.clj` (Leiningen)
 
 ```Clojure
     [overtone "0.10.6"]
