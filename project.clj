@@ -34,7 +34,7 @@
        (vec (set (concat (get JVMOPTS :any)
                          (get JVMOPTS os))))))
 
-(defproject overtone "0.10.5"
+(defproject overtone "0.10.6"
   :description "Collaborative Programmable Music."
   :url "http://overtone.github.io/"
   :mailing-list {:name "overtone"
@@ -58,5 +58,6 @@
 
   :native-path "native"
   :min-lein-version "2.0.0"
+  :clean-targets ^{:protect false} ["target" "native"]
   :jvm-opts ^:replace ~(jvm-opts)
   )

@@ -1,5 +1,7 @@
 # Change Log
 
+## Version 0.10.6 (19th May 2019)
+* major bug fix: make sure that deps.edn is loaded from the classpath if it's not found locally (version 0.10.5 will crash when used with leiningen)
 
 ## Version 0.10.5 (18th May 2019)
 * overtone can now be used with tools.deps
