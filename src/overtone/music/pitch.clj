@@ -78,7 +78,7 @@
             :C# 1  :c# 1  :Db 1  :db 1  :DB 1  :dB 1
             :D  2  :d  2
             :D# 3  :d# 3  :Eb 3  :eb 3  :EB 3  :eB 3
-            :E  4  :e  4
+            :E  4  :e  4  :Fb 4  :fb 4  :FB 4  :fB 4
             :E# 5  :e# 5  :F  5  :f  5
             :F# 6  :f# 6  :Gb 6  :gb 6  :GB 6  :gB 6
             :G  7  :g  7
