@@ -554,7 +554,7 @@
    (chord root chord-name 0))
   ([root chord-name inversion]
      (let [root (note root)
-           chord (resolve-chord chord-name)
+           chord (sort (resolve-chord chord-name))
            notes (map #(+ % root) chord)]
        (invert-chord notes inversion))))
 
