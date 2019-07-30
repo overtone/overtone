@@ -525,7 +525,7 @@
 (defn- dec-last
   "Remove the last element, decrement it by n, and prepend to seq."
   [elems n]
-  (concat [(- (last elems) n)] (next elems)))
+  (concat [(- (last elems) n)] (pop (vec elems))))
 
 (defn invert-chord
   "Move a chord voicing up or down.
