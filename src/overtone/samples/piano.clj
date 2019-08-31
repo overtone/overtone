@@ -20,9 +20,6 @@
 
 (def PIANO-SAMPLE-IDS (keys FREESOUND-PIANO-SAMPLES))
 
-#_(defonce piano-samples
-    (doall (map freesound-sample PIANO-SAMPLE-IDS)))
-
 (defonce piano-samples
   (apply freesound-samples PIANO-SAMPLE-IDS))
 
