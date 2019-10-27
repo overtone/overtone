@@ -1,4 +1,6 @@
-{:paths ["src" "test" "./deps.edn"]
+{:mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+             "clojars" {:url "https://repo.clojars.org/"}}
+ :paths ["src" "test" "./deps.edn"]
  :deps  {org.clojure/clojure {:mvn/version "1.10.0"}
          org.clojure/data.json {:mvn/version "0.2.6"}
          org.clojure/tools.deps.alpha {:mvn/version "0.6.496"}
