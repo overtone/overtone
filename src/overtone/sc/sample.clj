@@ -35,6 +35,17 @@
   [s]
   (isa? (type s) ::sample))
 
+(defmethod clojure.pprint/simple-dispatch Sample [b]
+  (println (format "#<buffer[%s]: %s %fs %s %d>"
+                   (name @(:status b))
+                   (:name b)
+                   (:duration b)
+                   (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                   (:id b))))
+
 (defmethod print-method Sample [b ^java.io.Writer w]
   (.write w (format "#<buffer[%s]: %s %fs %s %d>"
                     (name @(:status b))
@@ -45,6 +56,17 @@
                       (= 2 (:n-channels b)) "stereo"
                       :else (str (:n-channels b) " channels"))
                     (:id b))))
+
+(defmethod clojure.pprint/simple-dispatch PlayableSample [b]
+  (println (format "#<buffer[%s]: %s %fs %s %d>"
+                   (name @(:status b))
+                   (:name b)
+                   (:duration b)
+                   (cond
+                     (= 1 (:n-channels b)) "mono"
+                     (= 2 (:n-channels b)) "stereo"
+                     :else (str (:n-channels b) " channels"))
+                   (:id b))))
 
 (defmethod print-method PlayableSample [b ^java.io.Writer w]
   (.write w (format "#<buffer[%s]: %s %fs %s %d>"

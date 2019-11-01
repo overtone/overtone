@@ -7,6 +7,7 @@
         [overtone.sc.node])
   (:require [clojure.data.json :as json]
             [clojure.java.browse]
+            [clojure.pprint]
             [overtone.libs.asset :as asset]
             [overtone.sc.sample :as samp]
             [overtone.sc.buffer :as buffer]
@@ -26,6 +27,19 @@
       (to-sc-id [this] (:id this)))))
 
 (derive FreesoundSample :overtone.sc.sample/playable-sample)
+
+(defmethod clojure.pprint/simple-dispatch FreesoundSample [b]
+  (println
+   (format "#<freesound[%s]: %d %s %fs %s %d>"
+           (name @(:status b))
+           (:freesound-id b)
+           (:name b)
+           (:duration b)
+           (cond
+             (= 1 (:n-channels b)) "mono"
+             (= 2 (:n-channels b)) "stereo"
+             :else (str (:n-channels b) " channels"))
+           (:id b))))
 
 (defmethod print-method FreesoundSample [b ^java.io.Writer w]
   (.write w (format "#<freesound[%s]: %d %s %fs %s %d>"

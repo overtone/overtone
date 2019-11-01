@@ -7,7 +7,8 @@
         [overtone.helpers lib]
         [overtone.sc.foundation-groups :only [foundation-monitor-group]]
         [overtone.libs.deps            :only [on-deps]])
-  (:require [overtone.at-at :as at-at]
+  (:require [clojure.pprint]
+            [overtone.at-at :as at-at]
             [overtone.sc.info :refer [server-num-input-buses server-num-output-buses]]
             [overtone.libs.deps :refer [satisfy-deps]]))
 
@@ -45,6 +46,18 @@
       IBus
       (free-bus [this] (free-id :control-bus (:id this) (:n-channels this))))))
 
+(defmethod clojure.pprint/simple-dispatch AudioBus [b]
+  (println
+   (format "#<audio-bus: %s, %s, id %d>"
+           (if (empty? (:name b))
+             "No Name"
+             (:name b))
+           (cond
+             (= 1 (:n-channels b)) "mono"
+             (= 2 (:n-channels b)) "stereo"
+             :else (str (:n-channels b) " channels"))
+           (:id b))))
+
 (defmethod print-method AudioBus [b ^java.io.Writer w]
   (.write w (format "#<audio-bus: %s, %s, id %d>"
                     (if (empty? (:name b))
@@ -55,6 +68,17 @@
                       (= 2 (:n-channels b)) "stereo"
                       :else (str (:n-channels b) " channels"))
                     (:id b))))
+
+(defmethod clojure.pprint/simple-dispatch ControlBus [b]
+  (println
+   (format "#<control-bus: %s, %s, id %d>"
+           (if (empty? (:name b))
+             "No Name"
+             (:name b))
+           (cond
+             (= 1 (:n-channels b)) "1 channel"
+             :else (str (:n-channels b) " channels"))
+           (:id b))))
 
 (defmethod print-method ControlBus [b ^java.io.Writer w]
   (.write w (format "#<control-bus: %s, %s, id %d>"

@@ -7,7 +7,8 @@
         [overtone.sc server info]
         [overtone.helpers audio-file lib file doc]
         [overtone.sc.util :only [id-mapper]]
-        [overtone.config.store :refer [config-get]]))
+        [overtone.config.store :refer [config-get]])
+  (:require [clojure.pprint]))
 
 (defonce ^{:private true} __RECORDS__
   (do
@@ -30,6 +31,18 @@
     (defrecord BufferInStream [id size n-channels rate status path open?]
       to-sc-id*
       (to-sc-id [this] (:id this)))))
+
+(defmethod clojure.pprint/simple-dispatch Buffer [b]
+  (println
+   (format "#<buffer[%s]: %s %fs %s %d>"
+           (name @(:status b))
+           (:name b)
+           (:duration b)
+           (cond
+             (= 1 (:n-channels b)) "mono"
+             (= 2 (:n-channels b)) "stereo"
+             :else (str (:n-channels b) " channels"))
+           (:id b))))
 
 (defmethod print-method Buffer [b ^java.io.Writer w]
   (.write w (format "#<buffer[%s]: %s %fs %s %d>"
@@ -68,6 +81,16 @@
               (str "Allocation of buffer exceeded the max-buffers size: "
                    max-buffers "\n."
                    "This can be configured in overtone config under :sc-args {:max-buffers 2^x}.")))))
+
+(defmethod clojure.pprint/simple-dispatch BufferInfo [b]
+  (println
+   (format "#<buffer-info: %fs %s %d>"
+           (:duration b)
+           (cond
+             (= 1 (:n-channels b)) "mono"
+             (= 2 (:n-channels b)) "stereo"
+             :else                 (str (:n-channels b) " channels"))
+           (:id b))))
 
 (defmethod print-method BufferInfo [b ^java.io.Writer w]
   (.write w (format "#<buffer-info: %fs %s %d>"

@@ -5,7 +5,8 @@
         [overtone.studio core mixer fx]
         [overtone.helpers lib]
         [overtone.libs event])
-  (:require [overtone.sc.protocols :as protocols]
+  (:require [clojure.pprint]
+            [overtone.sc.protocols :as protocols]
             [overtone.sc.util :refer [id-mapper]]
             [overtone.sc.machinery.server.comms :refer [with-server-sync]] ))
 
@@ -267,6 +268,12 @@
   (let [[i-name params ugen-form] (synth-form i-name inst-form)
         i-name                    (with-meta i-name (merge (meta i-name) {:type ::instrument}))]
     `(def ~i-name (inst ~i-name ~params ~ugen-form))))
+
+(defmethod clojure.pprint/simple-dispatch Inst [ins]
+  (println (format "#<instrument: %s>" (:name ins))))
+
+(defmethod print-method Inst [ins ^java.io.Writer w]
+  (.write w (format "#<instrument: %s>" (:name ins))))
 
 (defmethod print-method ::instrument [ins ^java.io.Writer w]
   (let [info (meta ins)]

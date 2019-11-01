@@ -1,4 +1,7 @@
 # Change Log
+## Master
+* Fix printing of huge map when calling instruments with Cider #432
+* Fix size checks to multichannel buffer writes #338
 
 ## Version 0.10.6 (19th May 2019)
 * major bug fix: make sure that deps.edn is loaded from the classpath if it's not found locally (version 0.10.5 will crash when used with leiningen)

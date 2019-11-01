@@ -6,7 +6,8 @@
       :author "Sam Aaron"}
     overtone.sc.machinery.ugen.sc-ugen
   (:use [overtone.sc.machinery.ugen defaults]
-        [overtone.helpers lib]))
+        [overtone.helpers lib])
+  (:require [clojure.pprint]))
 
 (defonce ^{:private true} __RECORDS__
   (do
@@ -51,6 +52,10 @@
                 sum))
             0
             args)))
+
+(defmethod clojure.pprint/simple-dispatch SCUGen [ug]
+  (println
+   (str "#<sc-ugen: " (overtone-ugen-name (:name ug)) (:rate-name ug) " [" (count-ugen-args ug) "]>")))
 
 (defmethod print-method SCUGen [ug ^java.io.Writer w]
   (.write w (str "#<sc-ugen: " (overtone-ugen-name (:name ug)) (:rate-name ug) " [" (count-ugen-args ug) "]>")))

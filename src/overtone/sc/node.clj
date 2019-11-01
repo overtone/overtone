@@ -6,9 +6,9 @@
         [overtone.sc.machinery allocator]
         [overtone.sc.machinery.server comms]
         [overtone.sc.util :only [id-mapper]]
-        [overtone.sc.defaults :only [foundation-groups* INTERNAL-POOL]]
-        [clojure.pprint])
-  (:require [clojure.zip :as zip]
+        [overtone.sc.defaults :only [foundation-groups* INTERNAL-POOL]])
+  (:require [clojure.pprint]
+            [clojure.zip :as zip]
             [overtone.config.log :as log]
             [overtone.sc.protocols :as protocols]))
 
@@ -83,6 +83,10 @@
 (derive SynthNode ::node)
 (derive SynthGroup ::node)
 
+(defmethod clojure.pprint/simple-dispatch SynthGroup [s-group]
+  (println
+   (format "#<synth-group[%s]: %s %d>" (name @(:status s-group)) (:group s-group) (:id s-group))))
+
 (defmethod print-method SynthGroup [s-group ^java.io.Writer w]
   (.write w (format "#<synth-group[%s]: %s %d>" (name @(:status s-group)) (:group s-group) (:id s-group))))
 
@@ -154,7 +158,10 @@
     (zipmap (map name-fn (keys arg-map))
             (map val-fn (vals arg-map)))))
 
-
+(defmethod clojure.pprint/simple-dispatch SynthNode [s-node]
+  (println
+   (format "#<synth-node[%s]: %s %d>"
+           (name @(:status s-node)) (:synth s-node) (:id s-node))))
 
 (defmethod print-method SynthNode [s-node ^java.io.Writer w]
   (.write w (format "#<synth-node[%s]: %s %d>"
@@ -876,4 +883,4 @@
 (defn pp-node-tree
   "Pretty print the node tree to *out*"
   ([] (pp-node-tree (:root-group @foundation-groups*)))
-  ([root] (pprint (node-tree root))))
+  ([root] (clojure.pprint/pprint (node-tree root))))

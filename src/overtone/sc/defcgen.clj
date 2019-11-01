@@ -1,12 +1,16 @@
 (ns
     ^{:doc "CGens, or Composite Generators are composite UGens and/or other CGens. These are purely an Overtone abstraction whereas UGens have matching counterparts on SuperCollider Server. CGens allow you to build and share re-usable sub-synth components which act like ugens."
       :author "Sam Aaron"}
-  overtone.sc.defcgen
+    overtone.sc.defcgen
 
   (:use [clojure.walk :as walk]
         [overtone.helpers lib]
         [overtone.sc ugens]
         [overtone.sc.machinery.ugen defaults fn-gen doc]))
+
+;; TODO: add ICgen interface
+;; because proxy and print-method (::cgen this case)
+;; wont play well togeater.
 
 (defn parse-cgen-params
   "Parse a defcgen's param list throwing exceptions where it isn't well-formed
