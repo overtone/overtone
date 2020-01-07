@@ -54,14 +54,14 @@
              version-regex [(re-find #"scsynth\s+(\d+\.\d+)\.\d+" (:out successful))
                             (re-find #"scsynth\s+(\d+\.\d+)" (:out successful))]
              version (->> version-regex (remove nil?) (map second) (filter numeric?) first)]
-         (read-string version))
-       (catch Exception e 3.9)))
+         (mapv #(Integer/parseInt %) (string/split version #"\.")))
+       (catch Exception e [3 9])))
 
 (defn- fix-verbosity-flag
   "If scsynth version is 3.7 or above, upper-case the :flag in the :verbosity
   arg"
   [args]
-  (if (< 3.6 (find-sc-version))
+  (if (neg? (compare [3 6] (find-sc-version)))
     (update-in args [:verbosity] assoc :flag (clojure.string/upper-case (:flag (:verbosity args))))
     args))
 
