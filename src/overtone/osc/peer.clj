@@ -119,7 +119,7 @@
   listeners the source host and port are added to the  message map."
   [all-listeners src msg]
   (let [msg              (assoc msg
-                                :src-host (.getHostName src)
+                                :src-host (.getHostString src)
                                 :src-port (.getPort src))
         listeners        (vals @(:listeners all-listeners))
         default-listener (:default all-listeners)]
