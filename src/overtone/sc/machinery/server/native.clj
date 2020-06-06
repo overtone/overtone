@@ -94,7 +94,7 @@
          (sound-buffer
           :samplerate double
           :sampledur  double
-          :data       float*
+          :data       void*
           :channels   i32
           :samples    i32
           :frames     i32
@@ -173,7 +173,7 @@
          (world-open-udp-port World_OpenUDP [void* constchar* i32])
          (world-open-tcp-port World_OpenTCP [void* constchar* i32 i32 i32])
          (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
-         (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
+         (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* bool bool*] i32)))
 
       (when-not (windows-os?)
         (loadlib libc))
@@ -271,8 +271,15 @@
   "Get a an array of floats for the synthesis sound buffer with the given ID."
   [sc buf-id]
   (let [buf (byref sound-buffer)
-        changed? (byref bool-val)
+        ;; changed? (byref bool-val)
         ;; changed? (java.nio.ByteBuffer/allocate 1)
+        changed? (com.sun.jna.ptr.ByteByReference.)
+        ;floatbuf (java.nio.ByteBuffer/allocate (* 4 2048)) ;; FIXME hardcoded buf size
+                                        ;sndfile (java.nio.ByteBuffer/allocate 1)
         ]
-    (world-copy-sound-buffer (:world sc) buf-id buf 0 changed?)
+   ; (.writeField buf "data" floatbuf)
+   ; (.writeField buf "sndfile" sndfile)
+   ; (println (:world sc) buf-id buf bool-val)
+    (world-copy-sound-buffer (:world sc) buf-id buf false changed?)
+   ; (println (:world sc) buf-id buf)
     (.getFloatArray (.data buf) 0 (.samples buf))))
