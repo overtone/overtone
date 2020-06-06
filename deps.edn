@@ -11,7 +11,7 @@
          commons-net/commons-net {:mvn/version"3.6"}
          javax.jmdns/jmdns {:mvn/version "3.4.1"}
          clj-glob {:mvn/version "1.0.0"}
-         clj-native {:mvn/version "0.9.6-SNAPSHOT"}
+         clj-native {:mvn/version "0.9.6"}
          badigeon/badigeon {:git/url "https://github.com/EwenG/badigeon.git"
                             :sha "e7f62a60d8e890fc84a47bcfdd59137e11ff1c95"
                             :tag "0.0.7"}}}
