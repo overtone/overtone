@@ -1,17 +1,17 @@
 {:mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
              "clojars" {:url "https://repo.clojars.org/"}}
  :paths ["src" "test" "./deps.edn"]
- :deps  {org.clojure/clojure {:mvn/version "1.10.0"}
-         org.clojure/data.json {:mvn/version "0.2.6"}
-         org.clojure/tools.deps.alpha {:mvn/version "0.6.496"}
-         net.java.dev.jna/jna {:mvn/version "4.4.0"}
+ :deps  {org.clojure/clojure {:mvn/version "1.10.1"}
+         org.clojure/data.json {:mvn/version "1.0.0"}
+         org.clojure/tools.deps.alpha {:mvn/version "0.9.745"}
+         net.java.dev.jna/jna {:mvn/version "5.6.0"}
          overtone/ableton-link {:mvn/version "1.0.0-beta1"}
          overtone/scsynth {:mvn/version "3.10.2"}
          overtone/scsynth-extras {:mvn/version "3.10.2"}
          commons-net/commons-net {:mvn/version"3.6"}
          javax.jmdns/jmdns {:mvn/version "3.4.1"}
-         clj-glob {:mvn/version "1.0.0"}
-         clj-native {:mvn/version "0.9.5"}
-         badigeon/badigeon {:git/url "https://github.com/EwenG/badigeon.git"
-                            :sha "e7f62a60d8e890fc84a47bcfdd59137e11ff1c95"
-                            :tag "0.0.7"}}}
+         clj-glob/clj-glob {:mvn/version "1.0.0"}
+         clj-native/clj-native {:mvn/version "0.9.5"}
+         badigeon/badigeon {:git/url "https://github.com/hlolli/badigeon.git"
+                            :sha "e5c87be178bd5e42da4480eae0a714137869537c"
+                            :tag "1.0"}}}

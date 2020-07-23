@@ -2,7 +2,7 @@
   (:require [badigeon.bundle :as bundle]
             [clojure.edn :as edn]
             [clojure.java.io :as io]
-            [clojure.tools.deps.alpha.reader :as deps-reader]
+            [clojure.tools.deps.alpha :as deps]
             [clojure.walk :as walk]
             [overtone.helpers.file :refer [ensure-native]]
             [overtone.helpers.system :refer [get-os]]))
@@ -27,7 +27,7 @@
 
 (defn- slurp-deps-edn []
   (if (.exists (io/file "deps.edn"))
-    (deps-reader/slurp-deps "deps.edn")
+    (deps/slurp-deps (io/file "deps.edn"))
     (-> "deps.edn"
         io/resource
         slurp
