@@ -1,6 +1,7 @@
 {:mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
              "clojars" {:url "https://repo.clojars.org/"}}
- :paths ["src" "test" "./deps.edn"]
+ ;; :paths ["src" "test" "./deps.edn"]
+ :paths ["src-dev" "src-java"]
  :deps  {org.clojure/clojure {:mvn/version "1.10.1"}
          org.clojure/data.json {:mvn/version "1.0.0"}
          org.clojure/tools.deps.alpha {:mvn/version "0.9.745"}
@@ -12,6 +13,7 @@
          javax.jmdns/jmdns {:mvn/version "3.4.1"}
          clj-glob/clj-glob {:mvn/version "1.0.0"}
          clj-native/clj-native {:mvn/version "0.9.5"}
+         techascent/tech.jna {:mvn/version "3.24"}
          badigeon/badigeon {:git/url "https://github.com/EwenG/badigeon.git"
                             :sha "55360471a57ad982ac89792c895933e1d2239625"
                             :tag "1.0"}}}
