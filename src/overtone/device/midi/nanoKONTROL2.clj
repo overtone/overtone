@@ -169,15 +169,12 @@
   control over the device.
 
   To enable external led mode, we need to send send the magical sysex
-  incantation to the nanoKontrol2 midi-out object nko (this was
+  incantation to the nanoKontrol2 midi-out object :out (this was
   determined by recording the sysex messages that the official Korg
-  Kontrol Editor sends to perform this task.)
-
-  On OS X, this is currently broken due to broken Java support for MIDI
-  sysex messages."
-  [nko]
+  Kontrol Editor sends to perform this task.)"
+  [out]
    (doseq [m [sysex-1 sysex-2 sysex-3 sysex-4 sysex-5 sysex-6]]
-     (midi-sysex (:out nko) m)))
+     (midi-sysex out m)))
 
 (defn leds-on-test
   [nko]
