@@ -2,9 +2,7 @@
   (:use [overtone.sc.machinery.ugen common check]))
 
 (def specs
-  [
-
-   {:name "GrainSin"
+  [{:name "GrainSin"
     :args [{:name "num-channels"
             :mode :num-outs
             :default 1
@@ -85,28 +83,72 @@
             :doc "the buffer number containing a singal to use for the
                   grain envelope. -1 uses a built-in Hanning envelope."}
 
-            {:name "max-grains"
-             :default 512
-             :doc "the maximum number of overlapping grains that can be
+           {:name "max-grains"
+            :default 512
+            :doc "the maximum number of overlapping grains that can be
                   used at a given time. This value is set at the UGens
                   init time and can't be modified. This can be set lower
                   for more efficient use of memory." }]
     :rates #{:ar}
     :doc "Granular synthesis with frequency modulated sine tones"}
 
-   ;; GrainBuf : MultiOutUGen {
-   ;;  *ar { arg numChannels = 1, trigger = 0, dur = 1, sndbuf, rate = 1, pos = 0, interp = 2,
-   ;;      pan = 0, envbufnum = -1, mul = 1, add = 0;
-   ;;    ^this.multiNew('audio', numChannels, trigger, dur, sndbuf, rate, pos, interp, pan,
-   ;;      envbufnum).madd(mul, add);
-   ;;    }
+   {:name "GrainBuf"
+    :args [{:name "num-channels"
+            :mode :num-outs
+            :default 1
+            :doc "the number of channels to output. If 1, mono is
+                  returned and pan is ignored." }
 
-   ;;  init { arg argNumChannels ... theInputs;
-   ;;    inputs = theInputs;
-   ;;    ^this.initOutputs(argNumChannels, rate);
-   ;;  }
-   ;;  argNamesInputsOffset { ^2 }
-   ;;  }
+           {:name "trigger"
+            :default 0
+            :doc "a kr or ar trigger to start a new grain. If ar, grains
+                  after the start of the synth are sample accurate." }
+
+           {:name "dur"
+            :default 1
+            :doc "size of the grain (in seconds)."}
+
+           {:name "sndbuf"
+            :default :none
+            :doc "the buffer holding a mono audio signal. If using multi-channel
+                  files, use Buffer.readChannel."}
+
+           {:name "rate"
+            :default 1
+            :doc "the playback rate of the sampled sound" }
+
+           {:name "pos"
+            :default 1
+            :doc "the playback position for the grain to start with (0 is
+                  beginning, 1 is end of file)" }
+
+           {:name "interp"
+            :default 2
+            :doc "the interpolation method used for pitchshifting grains:
+                     1 = no interpolation
+                     2 = linear
+                     4 = cubic interpolation (more computationally intensive)" }
+
+           {:name "pan"
+            :default 0
+            :doc "Determines where to pan the output. If num-channels =
+                  1, no panning is done; if num-channels = 2, panning is
+                  similar to Pan2; if num-channels > 2, pannins is the
+                  same as PanAz." }
+
+           {:name "envbufnum"
+            :default -1
+            :doc "the buffer number containing a singal to use for the
+                  grain envelope. -1 uses a built-in Hanning envelope."                  }
+
+           {:name "max-grains"
+            :default 512
+            :doc "the maximum number of overlapping grains that can be
+                  used at a given time. This value is set at the UGens
+                  init time and can't be modified. This can be set lower
+                  for more efficient use of memory." }]
+    :rates #{:ar}
+    :doc "Granular synthesis with sound stored in a buffer"}
 
    {:name "GrainIn"
     :args [{:name "num-channels"
