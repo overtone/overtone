@@ -53,7 +53,7 @@
                       :else (str (:n-channels b) " channels"))
                     (:id b))))
 
-(def ^:private base-url "https://www.freesound.org/apiv2")
+(def ^:private base-url "https://freesound.org/apiv2")
 
 (defn- freesound-url
   "Generate a freesound.org api url. Accepts an optional map of query-params as the last argument."
