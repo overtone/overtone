@@ -98,10 +98,13 @@
         dir (file dir)]
     (ls-names dir)))
 
+(defn- remove-params [url]
+   (first (split url #"\?")))
+
 (defn asset-path
   "Given a url will return a path to a copy of the asset on the local file
   system. Will download and persist the asset if necessary."
-  ([url] (asset-path url (last (split url #"/"))))
+  ([url] (asset-path url (last (split (remove-params url) #"/"))))
   ([url name]
      (if-let [path (fetch-cached-path url name)]
        path
