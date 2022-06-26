@@ -7,7 +7,6 @@
   options can be kept under `:disabled`."
   {:any
    ["-Xms512m" "-Xmx1g"                 ; Minimum and maximum sizes of the heap
-    "-XX:+CMSConcurrentMTEnabled"       ; Enable multi-threaded concurrent gc work (ParNewGC)
     "-XX:MaxGCPauseMillis=20"           ; Specify a target of 20ms for max gc pauses
     "-XX:MaxNewSize=257m"               ; Specify the max and min size of the new
     "-XX:NewSize=256m"                  ;  generation to be small
