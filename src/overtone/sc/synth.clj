@@ -642,6 +642,36 @@
   (let [[s-name params ugen-form] (synth-form s-name s-form)]
     `(def ~s-name (synth ~s-name ~params ~ugen-form))))
 
+(defn synth-load
+  [file-path]
+  (let [{:keys [pnames params] :as sdef} (load-synth-file file-path)
+        [s-name params _ugen-form] (synth-form (symbol (:name sdef))
+                                               (list (vec (mapcat (fn [pname default-value]
+                                                                    [(symbol (:name pname)) default-value])
+                                                                  pnames params))
+                                                     nil))]
+    (with-meta
+      (map->Synth
+       {:name s-name
+        :sdef sdef})
+      (merge {:overtone.live/to-string #(str (name (:type %)) ":" (:name %))}
+             (meta s-name)))))
+
+(defmacro defsynth-load
+  "Load a synth from a compiled Synthdef file.
+
+  E.g.
+  (defsynth-load my-beep
+   \"/Users/paulo.feodrippe/dev/sonic-pi/etc/synthdefs/compiled/sonic-pi-beep.scsyndef\")
+
+  (my-beep :note 40)"
+  [def-name file-path]
+  (let [smap (synth-load file-path)]
+    `(def ~(with-meta def-name
+             (merge (dissoc (meta smap) :name)
+                    (meta def-name)))
+       ~smap)))
+
 (defn synth?
   "Returns true if s is a synth, false otherwise."
   [s]
