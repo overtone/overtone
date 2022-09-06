@@ -10,9 +10,14 @@
   (when-not (valid-synth-node-pos pos)
     (throw (IllegalArgumentException. (str "Invalid synth node target. Was expecting one of " valid-synth-node-pos ", found: " pos)))))
 
+(def ^:dynamic *target-pos* nil)
+
 (defn- extract-target-pos-args*
   [args default-target default-pos]
-  (let [initial-arg (first args)]
+  (let [args (if *target-pos*
+               (concat [*target-pos*] args)
+               args)
+        initial-arg (first args)]
     (when (some #{initial-arg}
                 [:target :tgt :pos :position])
       (throw (IllegalArgumentException. (str "Specifying :target and :position at the start of the standard synth args is now deprecated. Use new vec form i.e. [:after my-g] or [:tail foo-g]"))))

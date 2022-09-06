@@ -474,9 +474,11 @@
                   consts#       (into [] (set (concat consts# *constants*)))]
               [~sname ~params ugens# consts#])))))
 
+(def ^:dynamic *synth-player-overrides* nil)
+
 (defn synth-player
   [sdef params this & args]
-    "Returns a player function for a named synth.  Used by (synth ...)
+  "Returns a player function for a named synth.  Used by (synth ...)
     internally, but can be used to generate a player for a pre-compiled
     synth.  The function generated will accept a target and position
     vector of two values that must come first (see the node function
@@ -510,25 +512,26 @@
     ;; positional args. Positional args must go first.
     (foo [:head 2] 440 :amp 0.3)
     "
-    (let [arg-names         (map keyword (map :name params))
-          args              (or args [])
-          [target pos args] (extract-target-pos-args args (foundation-default-group) :tail)
-          args              (idify args)
-          args              (map (fn [arg] (if-let [id (:id arg)]
-                                            id
-                                            arg))
-                                 args)
-          defaults          (into {} (map (fn [{:keys [name value]}]
-                                            [(keyword name) @value])
-                                          params))
-          arg-map           (arg-mapper args arg-names defaults)
-          synth-node        (node (:name sdef) arg-map {:position pos :target target} sdef)
-          synth-node        (if (:instance-fn this)
-                              ((:instance-fn this) synth-node)
-                              synth-node)]
-      (when (:instance-fn this)
-        (swap! active-synth-nodes* assoc (:id synth-node) synth-node))
-      synth-node))
+  (let [arg-names         (map keyword (map :name params))
+        args              (or args [])
+        [target pos args] (extract-target-pos-args args (foundation-default-group) :tail)
+        args              (idify args)
+        args              (map (fn [arg] (if-let [id (:id arg)]
+                                           id
+                                           arg))
+                               args)
+        defaults          (into {} (map (fn [{:keys [name value]}]
+                                          [(keyword name) @value])
+                                        params))
+        arg-map           (merge (arg-mapper args arg-names defaults)
+                                 *synth-player-overrides*)
+        synth-node        (node (:name sdef) arg-map {:position pos :target target} sdef)
+        synth-node        (if (:instance-fn this)
+                            ((:instance-fn this) synth-node)
+                            synth-node)]
+    (when (:instance-fn this)
+      (swap! active-synth-nodes* assoc (:id synth-node) synth-node))
+    synth-node))
 
 
 (defn update-tap-data
