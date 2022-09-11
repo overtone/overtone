@@ -173,7 +173,7 @@
          (world-open-udp-port World_OpenUDP [void* constchar* i32])
          (world-open-tcp-port World_OpenTCP [void* constchar* i32 i32 i32])
          (world-send-packet World_SendPacket [void* i32 byte* reply-callback] byte)
-         (world-copy-sound-buffer World_CopySndBuf [void* i32 sound-buffer* byte byte*] i32)))
+         (world-copy-sound-buffer World_CopySndBuf [void* i32 void* byte byte*] i32)))
 
       (when-not (windows-os?)
         (loadlib libc))
@@ -267,12 +267,17 @@
   (flush-all)
   (world-run (:world sc) nil))
 
+(defn- sound-buffer->data
+  [buf]
+  (.getPointer (.getPointer buf) 0x10))
+
 (defn scsynth-get-buffer-data
   "Get a an array of floats for the synthesis sound buffer with the given ID."
   [sc buf-id]
   (let [buf (byref sound-buffer)
-        changed? (byref bool-val)
-        ;; changed? (java.nio.ByteBuffer/allocate 1)
-        ]
-    (world-copy-sound-buffer (:world sc) buf-id buf 0 changed?)
-    (.getFloatArray (.data buf) 0 (.samples buf))))
+        #_ #_changed? (byref bool-val)  ; This gives us an exception.
+        changed? (java.nio.ByteBuffer/allocate 1)]
+    (world-copy-sound-buffer (:world sc) buf-id (.getPointer buf) 0 changed?)
+    ;; Calling `(.data buf)` or `(.samples buf)` is not working, so we
+    ;; access the buffer using more low level operations.
+    (.getFloatArray (sound-buffer->data buf) 0 (.readField buf "samples"))))
