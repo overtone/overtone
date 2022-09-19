@@ -115,17 +115,121 @@
          :n-synths :int16 1
          :synths   [synth-spec])
 
+;;;;;;;;;;;;;;;;;;;;; Synthdef V2 spec
+;; param-name is :
+;;   pstring - the name of the parameter
+;;   int32 - its index in the parameter array
+(defspec param-spec-v2
+  :name  :string
+  :index :int32)
+
+;; input-spec is :
+;;   int32 - index of unit generator or -1 for a constant
+;;   if (unit generator index == -1) {
+;;     int32 - index of constant
+;;   } else {
+;;     int32 - index of unit generator output
+;;   }
+;; end
+(defspec input-spec-v2
+  :src   :int32
+  :index :int32)
+
+;; an output-spec is :
+;;   int8 - calculation rate
+;; end
+(defspec output-spec-v2
+  :rate :int8)
+
+;; ugen-spec is :
+;;   pstring - the name of the SC unit generator class
+;;   int8 - calculation rate
+;;   int32 - number of inputs (I)
+;;   int32 - number of outputs (O)
+;;   int16 - special index
+;;   [input-spec] * I
+;;   [output-spec] * O
+;;
+;;  * special index - custom argument used by some ugens
+;;    - (e.g. UnaryOpUGen and BinaryOpUGen use it to indicate which operator to perform.)
+;;    - If not used it should be set to zero.
+(defspec ugen-spec-v2
+  :name      :string
+  :rate      :int8
+  :n-inputs  :int32
+  :n-outputs :int32
+  :special   :int16 0
+  :inputs    [input-spec-v2]
+  :outputs   [output-spec-v2])
+
+;; variants are a mechanism to store a number of presets for a synthdef
+;;   pstring - name of the variant
+;;   [float32] - an array of preset values, one for each synthdef parameter
+(defspec variant-spec-v2
+  :name   :string
+  :params [:float32])
+
+;; synth-definition (sdef):
+;;   pstring - the name of the synth definition
+;;
+;;   int32 - number of constants (K)
+;;   [float32] * K - constant values
+;;
+;;   int32 - number of parameters (P)
+;;   [float32] * P - initial parameter values
+;;
+;;   int32 - number of parameter names (N)
+;;   [param-name] * N
+;;
+;;   int32 - number of unit generators (U)
+;;   [ugen-spec] * U
+;;
+;;  * constants are static floating point inputs
+;;  * parameters are named input floats that can be dynamically controlled
+;;    - (/s.new, /n.set, /n.setn, /n.fill, /n.map)
+(defspec synth-spec-v2
+  :name         :string
+  :n-constants  :int32
+  :constants    [:float32]
+  :n-params     :int32
+  :params       [:float32]
+  :n-pnames     :int32
+  :pnames       [param-spec-v2]
+  :n-ugens      :int32
+  :ugens        [ugen-spec-v2]
+  :n-variants   :int16 0
+  :variants     [variant-spec-v2])
+
+;; a synth-definition-file is :
+;;   int32 - four byte file type id containing the ASCII characters: "SCgf"
+;;   int32 - file version, currently zero.
+;;   int16 - number of synth definitions in this file (D).
+;;   [synth-definition] * D
+;; end
+
+(def SCGF-MAGIC-V2 "SCgf")
+(def SCGF-VERSION-V2 2)
+
+(defspec synthdef-file-spec-v2
+  :id       :int32 SCGF-MAGIC-V2
+  :version  :int32 SCGF-VERSION-V2
+  :n-synths :int16 1
+  :synths   [synth-spec-v2])
+
 (defn- synthdef-file [& sdefs]
   (with-meta {:n-synths (short (count sdefs))
               :synths sdefs}
-             {:type ::synthdef-file}))
+    {:type ::synthdef-file}))
 
 (defn- synthdef-file? [obj] (= ::synthdef-file (type obj)))
 
 (defn- synthdef-file-bytes [sfile]
   (spec-write-bytes synthdef-file-spec sfile))
 
-(defn synthdef? [obj] (= ::synthdef (type obj)))
+(defn synthdef? [obj]
+  (contains? #{:overtone.sc.machinery.synthdef/synthdef
+               :overtone.sc.machinery.synthdef/imported-synthdef}
+             (type obj)))
 
 (defn ensure-synthdef!
   [obj]
@@ -142,18 +246,29 @@
 
 ;; TODO: byte array shouldn't really be the default here, but I don't
 ;; know how to test for one correctly... (byte-array? data) please?
+(defn- synthdef-read-using-spec
+  "Returns a constructed path to a named synthdef on the current platform"
+  [synthdef-spec data]
+  (first (:synths
+          (cond
+            (keyword? data) (spec-read-url synthdef-spec (java.net.URL. (str "file:" (supercollider-synthdef-path (to-str data)))) )
+            (string? data) (spec-read-url synthdef-spec (java.net.URL. (str "file:" (resolve-tilde-path data))))
+            (instance? java.net.URL data) (spec-read-url synthdef-spec data)
+            (byte-array? data) (spec-read-bytes synthdef-spec data)
+            :default (throw (IllegalArgumentException. (str "synthdef-read expects either a string, a URL, or a byte-array argument.")))))))
+
 (defn synthdef-read
   "Reads synthdef data from either a file specified using a string path
   a URL, or a byte array."
   [data]
   (with-meta
-    (first (:synths
-            (cond
-             (keyword? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" (supercollider-synthdef-path (to-str data)))) )
-             (string? data) (spec-read-url synthdef-file-spec (java.net.URL. (str "file:" (resolve-tilde-path data))))
-             (instance? java.net.URL data) (spec-read-url synthdef-file-spec data)
-             (byte-array? data) (spec-read-bytes synthdef-file-spec data)
-             :default (throw (IllegalArgumentException. (str "synthdef-read expects either a string, a URL, or a byte-array argument."))))))
+    (try
+      ;; Try to read using Synthdef file version 1...
+      (synthdef-read-using-spec synthdef-file-spec data)
+      (catch Exception _
+        ;; ... or version 2.
+        (merge (synthdef-read-using-spec synthdef-file-spec-v2 data)
+               {:version 2})))
     {:type ::imported-synthdef}))
 
 (defn synthdef-write
@@ -251,8 +366,10 @@
 (defn load-synth-file
   "Load a synth definition file onto the audio server."
   [path]
-  (let [path (resolve-tilde-path path)]
-    (snd "/d_recv" (synthdef-bytes (synthdef-read path)))))
+  (let [path (resolve-tilde-path path)
+        sdef (synthdef-read path)]
+    (load-synthdef sdef)
+    sdef))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Synthdef de-compilation
