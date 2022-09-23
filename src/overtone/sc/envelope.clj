@@ -41,7 +41,7 @@
     "Map curve to curve id. If curve is a keyword, assume the curve id
      is a generic shape (0) otherwise, preserve curve id"
     [curve]
-    (if-let [id (get ENV-SHAPES curve)]
+    (if (get ENV-SHAPES curve)
       0
       curve))
 

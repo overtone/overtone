@@ -29,9 +29,9 @@
         runtime-bean (ManagementFactory/getRuntimeMXBean)
         input-args    (.getInputArguments runtime-bean)]
 
-    (when-let [arg (and (re-find #"Tiered" compiler-name)
-                        (some #(re-find #"TieredStopAtLevel=1" %)
-                              input-args))]
+    (when-let [_arg (and (re-find #"Tiered" compiler-name)
+                         (some #(re-find #"TieredStopAtLevel=1" %)
+                               input-args))]
       (println
        (fs "**********************************************************
             WARNING: JVM argument TieredStopAtLevel=1 is active, and may
@@ -47,10 +47,8 @@
             :jvm-opts ^:replace []
               **********************************************************")))))
 
-
-(defn immigrate-overtone-api []
-  (immigrate
-   'overtone.osc
+(def immigrated-namespaces
+  ['overtone.osc
    'overtone.algo.chance
    'overtone.algo.scaling
    'overtone.algo.trig
@@ -110,4 +108,7 @@
    'overtone.libs.asset
    'overtone.libs.event
    'overtone.samples.freesound
-   'overtone.version))
+   'overtone.version])
+
+(defn immigrate-overtone-api []
+  (apply immigrate immigrated-namespaces))

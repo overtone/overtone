@@ -115,7 +115,8 @@
 
    To stop an executing temporal recursion pattern, either redefine the
    function to not call itself, or use (stop)."
-  {:arglists '([ms-time f args* argseq])}
+  {:arglists '([ms-time f args* argseq])
+   :arglists-modified? true}
   [#^clojure.lang.IFn ms-time f & args]
   (let [delay-time (- ms-time *apply-ahead* (now))]
     (if (<= delay-time 0)
@@ -151,7 +152,8 @@
 
    To stop an executing temporal recursion pattern, either redefine the
    function to not call itself, or use (stop)."
-  {:arglists '([ms-time f args* argseq])}
+  {:arglists '([ms-time f args* argseq])
+   :arglists-modified? true}
   [#^clojure.lang.IFn ms-time f & args]
   (let [delay-time (- ms-time (now))]
     (if (<= delay-time 0)

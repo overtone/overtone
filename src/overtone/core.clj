@@ -1,4 +1,5 @@
 (ns overtone.core
+  (:refer-clojure :exclude [abs])
   (:require [overtone.api]))
 
 (overtone.api/immigrate-overtone-api)

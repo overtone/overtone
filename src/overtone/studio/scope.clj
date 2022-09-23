@@ -2,19 +2,23 @@
     ^{:doc "An oscilloscope style waveform viewer"
       :author "Jeff Rose & Sam Aaron"}
     overtone.studio.scope
-  (:import [java.awt Graphics2D Dimension Color BasicStroke BorderLayout RenderingHints LayoutManager]
+  (:import [java.awt Graphics2D Dimension Color BorderLayout RenderingHints LayoutManager]
            [java.awt.event WindowListener ComponentListener]
-           [java.awt.geom Rectangle2D$Float Path2D$Float]
-           [javax.swing JFrame JPanel JSlider]
-           [java.util.concurrent TimeoutException])
+           [javax.swing JFrame JPanel JSlider])
   (:use [clojure.stacktrace]
         [overtone.helpers lib]
         [overtone.libs event deps]
-        [overtone.sc defaults server synth ugens buffer node foundation-groups bus]
-        [overtone.sc.cgens buf-io]
+        [overtone.sc.defaults]
+        [overtone.sc.server]
+        [overtone.sc.ugens]
+        [overtone.sc.buffer]
+        [overtone.sc.node]
+        [overtone.sc.foundation-groups]
+        [overtone.sc.bus]
+        [overtone.sc.synth]
+        [overtone.sc.cgens.buf-io]
         [overtone.studio core util])
-  (:require [clojure.set :as set]
-            [overtone.config.log :as log]
+  (:require [overtone.config.log :as log]
             [overtone.at-at :as at-at]))
 
 (defonce scope-group*     (ref 0))
@@ -49,7 +53,7 @@
   "Updates the scope by reading the current status of the buffer and repainting."
   [s]
 
-  (let [{:keys [buf size width height panel y-arrays x-array]} s
+  (let [{:keys [buf _size width height panel y-arrays _x-array]} s
         frames    (if (buffer-live? buf)
                     (buffer-data buf)
                     [])
@@ -79,7 +83,7 @@
                       (+ 1 (* 0.1 (- s-val 50)))
                       (+ (* 0.02 s-val) 0.01))
           y-shift   (+ (/ height 2.0) Y-PADDING)
-          [y-a y-b] @y-arrays]
+          [y-a _y-b] @y-arrays]
       (doto g
         (.setRenderingHint RenderingHints/KEY_ANTIALIASING
                            RenderingHints/VALUE_ANTIALIAS_ON)
@@ -167,7 +171,6 @@
       :bus-synth bus-synth
       :buf buf)))
 
-
 (defsynth bus-freqs->buf
   [in-bus 0 scope-buf 1 fft-buf-size 2048 rate 1 db-factor 0.02]
   (let [phase     (- 1 (* rate (reciprocal fft-buf-size)))
@@ -183,7 +186,6 @@
         src       (buf-rd 1 fft-buf indexer 1 1)
         freq-vals (+ 1 (* db-factor (ampdb (* src 0.00285))))]
     (record-buf freq-vals scope-buf)))
-
 
 (defn- start-bus-freq-synth
   [bus buf]
@@ -211,7 +213,7 @@
   by handling timeout errors when killing the scope's bus-synth."
   [s]
   (log/info (str "Closing scope: \n" s))
-  (let [{:keys [id bus-synth buf]} s]
+  (let [{:keys [id bus-synth _buf]} s]
     (when (and (not= :buf (:kind s))
                (:buf s))
       (buffer-free (:buf s)))
@@ -219,7 +221,7 @@
                (server-connected?))
       (try
         (kill bus-synth)
-        (catch Exception e)))
+        (catch Exception _e)))
     (dosync (alter scopes* dissoc id))))
 
 (defn- mk-scope
@@ -253,19 +255,19 @@
         _        (reset-data-arrays scope)]
     (.addWindowListener ^JFrame frame
                         (reify WindowListener
-                          (windowActivated [this e])
-                          (windowClosing [this e]
+                          (windowActivated [_this _e])
+                          (windowClosing [_this _e]
                             (scope-close (get @scopes* scope-id)))
-                          (windowDeactivated [this e])
-                          (windowDeiconified [this e])
-                          (windowIconified [this e])
-                          (windowOpened [this e])
-                          (windowClosed [this e])))
+                          (windowDeactivated [_this _e])
+                          (windowDeiconified [_this _e])
+                          (windowIconified [_this _e])
+                          (windowOpened [_this _e])
+                          (windowClosed [_this _e])))
     (comment .addComponentListener frame
              (reify ComponentListener
-               (componentHidden [this e])
-               (componentMoved  [this e])
-               (componentResized [this e]
+               (componentHidden [_this _e])
+               (componentMoved  [_this _e])
+               (componentResized [_this _e]
                  (let [w (.getWidth frame)
                        h (.getHeight frame)
                        xs (int-array w)
@@ -279,7 +281,7 @@
                                    :x-array xs
                                    :y-arrays (atom [ya yb]))]
                       (alter scopes* assoc scope-id s)))))
-               (componentShown [this e])))
+               (componentShown [_this _e])))
 
     (case kind
       :control-bus (scope-bus scope true)
@@ -342,7 +344,7 @@
    (ref-set scopes*
             (reduce (fn [new-scopes [k v]]
                       (let [new-scope (if (= :bus (:kind v))
-                                        (scope-bus v)
+                                        (scope-bus v false)
                                         v)]
                         (assoc new-scopes k new-scope)))
                     {}

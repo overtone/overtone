@@ -1,7 +1,8 @@
 (ns overtone.sc.defaults
-  (:use [overtone.helpers.file :only [dir-exists?]]
+  (:use [overtone.helpers.file]
         [overtone.helpers.lib :only [windows-sc-path]])
-  (:require [overtone.at-at :as at-at]))
+  (:require [overtone.at-at :as at-at]
+            [overtone.config.store]))
 
 (def empty-foundation-groups {:overtone-group          nil
                               :input-group             nil

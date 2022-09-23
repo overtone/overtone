@@ -1,3 +1,6 @@
+(ns overtone.examples.getting-started.pragpub-article
+  {:clj-kondo/config '{:linters {:unresolved-symbol {:level :off}
+                                 :invalid-arity {:level :off}}}})
 ;; Making Music with Clojure
 ;; Live Coding is all the Rage at Raves
 ;; By Sam Aaron
@@ -158,7 +161,8 @@
   (piano 68)
   ;;.
   ;;.
-  ;;. etc...)
+  ;;. etc...
+  )
 
 ;; The main drawback to defining our composition in such a procedural
 ;; manner is not only inelegant but also restricts creative flexibility

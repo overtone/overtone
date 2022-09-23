@@ -1,11 +1,15 @@
 (ns
     ^{:doc "Functions for returning information regarding the connected SC server"
       :author "Sam Aaron"}
-  overtone.sc.info
-  (:use [overtone.libs event counters]
-        [overtone.sc synth ugens node server]
+    overtone.sc.info
+  (:use [overtone.libs.event]
+        [overtone.libs.counters]
+        [overtone.sc.synth]
+        [overtone.sc.ugens]
+        [overtone.sc.node]
+        [overtone.sc.server]
         [overtone.sc.machinery.allocator]
-        [overtone.helpers lib]))
+        [overtone.helpers.lib]))
 
 (defonce output-bus-count*   (atom nil))
 (defonce input-bus-count*    (atom nil))

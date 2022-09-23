@@ -6,12 +6,15 @@
   overtone.examples.workshops.resonate2013.ex03_graph
   (:use [incanter core charts]))
 
+;; You need Incanter to run this.
+
 (defn simple-plot
   "Creates a graph of `f` in the interval `x1` .. `x2`.
   Accepts an optional title."
   ([f x1 x2] (simple-plot f x1 x2 ""))
   ([f x1 x2 title]
-    (view (function-plot f x1 x2 :title title))))
+   #_:clj-kondo/ignore
+   (view (function-plot f x1 x2 :title title))))
 
 (defn plot-harmonics
   "Creates a graph of summing oscillator fn `f` over `n` octaves,

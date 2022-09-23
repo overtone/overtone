@@ -1,14 +1,24 @@
 (ns overtone.studio.inst
   (:refer-clojure :exclude [Inst])
-  (:use [overtone.sc defaults bindings server synth ugens envelope node bus dyn-vars]
-        [overtone.sc.machinery synthdef]
-        [overtone.studio core mixer fx]
-        [overtone.helpers lib]
-        [overtone.libs event])
+  (:use [overtone.sc.defaults]
+        [overtone.sc.bindings]
+        [overtone.sc.server]
+        [overtone.sc.synth]
+        [overtone.sc.ugens]
+        [overtone.sc.envelope]
+        [overtone.sc.node]
+        [overtone.sc.bus]
+        [overtone.sc.dyn-vars]
+        [overtone.sc.machinery.synthdef]
+        [overtone.studio.core]
+        [overtone.studio.mixer]
+        [overtone.studio.fx]
+        [overtone.helpers.lib]
+        [overtone.libs.event])
   (:require [clojure.pprint]
             [overtone.sc.protocols :as protocols]
-            [overtone.sc.util :refer [id-mapper]]
-            [overtone.sc.machinery.server.comms :refer [with-server-sync]] ))
+            [overtone.sc.util]
+            [overtone.sc.machinery.server.comms :refer [with-server-sync]]))
 
 (defonce ^{:private true} __RECORDS__
   (do
@@ -57,7 +67,7 @@
 
 (defn inst-channels
   "Internal fn used for multimethod dispatch on Insts."
-  [inst & args]
+  [inst & _args]
   (let [n-chans (:n-chans inst)]
     (if (> n-chans 1) :stereo :mono)))
 

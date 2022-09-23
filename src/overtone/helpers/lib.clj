@@ -206,6 +206,7 @@
         full-docstring  (str arg-string "\n\n  " indented-doc)]
     `(intern *ns* (with-meta '~fn-name
                     {:doc ~full-docstring
+                     :type ::unk
                      :arglists '(~arg-names-symbs)})
              (fn [& args#]
                (let [{:keys [~@arg-names]}

@@ -2,8 +2,9 @@
   ^{:doc "Util synths"
      :author "Sam Aaron & Jeff Rose"}
   overtone.studio.util
-  (:use [overtone.libs event]
-        [overtone.sc synth ugens]))
+  (:use [overtone.libs.event]
+        [overtone.sc.synth]
+        [overtone.sc.ugens]))
 
 ;; Some utility synths for signal routing and scoping
 (defonce __UTIL-SYNTHS__

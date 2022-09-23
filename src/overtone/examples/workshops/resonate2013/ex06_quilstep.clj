@@ -7,6 +7,8 @@
   (:require [quil.core :as q :refer [defsketch]])
   (:use [overtone.live]))
 
+;; You need `Quil` to run this namespace.
+
 ;; This atom will hold the ID of the currently playing dubstep synth instance
 (def synth-ref (atom 0))
 
@@ -123,19 +125,22 @@
     (q/fill 255 255 0)
     (q/text label (+ x 10) (+ y h -10))))
 
-(defn draw []
+(defn draw
   "Main draw function of the Quil sketch."
+  []
   (q/background 192)
   (doseq [b buttons] (draw-button b))
   (doseq [s (vals @sliders)] (draw-slider s)))
 
-(defn mouse-pressed []
+(defn mouse-pressed
   "Mouse event handler. Checks & updates all GUI elements."
+  []
   (let [x (q/mouse-x) y (q/mouse-y)]
     (doseq [b buttons] (button-handler b x y))
     (doseq [[id s] @sliders] (slider-handler id s x y))))
 
 ;; Define & launch the Quil sketch...
+#_:clj-kondo/ignore
 (defsketch Resonate
   :size [460 180]
   :title "Resonate 2013 Quilstep"

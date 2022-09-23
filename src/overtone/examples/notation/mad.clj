@@ -1,4 +1,5 @@
 (ns overtone.examples.notation.mad
+  {:clj-kondo/config '{:linters {:unresolved-symbol {:level :off}}}}
   (:use overtone.live
         overtone.inst.synth))
 

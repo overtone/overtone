@@ -36,15 +36,13 @@
 (defonce __LOAD_SCSYNTH_NATIVE_LIB__
   (try
     (when-not (windows-os?)
-      (defclib
-        libc
+      (defclib libc
         (:libname "c")
         (:functions
          (fflush fflush [void*] i32))))
 
     (when (native-scsynth-available?)
-      (defclib
-        lib-scsynth
+      (defclib lib-scsynth
         (:libname "scsynth")
         (:structs
          ;; supercollider/include/plugin_interface/SC_Rate.h

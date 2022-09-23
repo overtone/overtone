@@ -2,9 +2,9 @@
   (:use [overtone.helpers lib]
         [overtone.music time]
         [overtone.sc server node]
-        [overtone.studio rig]))
+        #_[overtone.studio rig]))
 
-(defn hit-fn
+#_(defn hit-fn
   "A function that takes a ref (something dereferencable) and returns
   a function that will act as a track player.
 
@@ -26,8 +26,7 @@
           next-bar))
       (apply-by next-tick hit-fn [m next-beat ins]))))
 
-(defn mono-play-fn
-  ""
+#_(defn mono-play-fn
   [note-ref]
   (fn play-fn [m beat ins]
     (let [next-bar @note-ref

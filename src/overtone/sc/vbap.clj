@@ -2,7 +2,8 @@
     and its sc port by Scott Wilson."
       :author "Orm Finnendahl"
       :date "06/06/2015"}
-    overtone.sc.vbap)
+    overtone.sc.vbap
+  (:refer-clojure :exclude [abs]))
 
 ;; VBAP originally created by Ville Pukki
 ;; This version is a complete reimplementation
