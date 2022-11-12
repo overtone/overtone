@@ -474,10 +474,7 @@
                   consts#       (into [] (set (concat consts# *constants*)))]
               [~sname ~params ugens# consts#])))))
 
-(def ^:dynamic *synth-player-overrides* nil)
-
 (defn synth-player
-  [sdef params this & args]
   "Returns a player function for a named synth.  Used by (synth ...)
     internally, but can be used to generate a player for a pre-compiled
     synth.  The function generated will accept a target and position
@@ -512,6 +509,7 @@
     ;; positional args. Positional args must go first.
     (foo [:head 2] 440 :amp 0.3)
     "
+  [sdef params this & args]
   (let [arg-names         (map keyword (map :name params))
         args              (or args [])
         [target pos args] (extract-target-pos-args args (foundation-default-group) :tail)
@@ -523,8 +521,7 @@
         defaults          (into {} (map (fn [{:keys [name value]}]
                                           [(keyword name) @value])
                                         params))
-        arg-map           (merge (arg-mapper args arg-names defaults)
-                                 *synth-player-overrides*)
+        arg-map           (arg-mapper args arg-names defaults)
         synth-node        (node (:name sdef) arg-map {:position pos :target target} sdef)
         synth-node        (if (:instance-fn this)
                             ((:instance-fn this) synth-node)
