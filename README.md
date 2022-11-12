@@ -76,6 +76,11 @@ collaborating with music.  It provides:
                    (lin-lin (lf-tri (line 2 20 5)) -1 1 400 4000)))
 ```
 
+### Linter (clj-kondo)
+Run `overtone.linter/emit!` to emit clj-kondo configuration.
+
+Do **not** commit the generated files, it's a bunch of data.
+
 ### Detailed Instructions
 
 For a more detailed set of setup instructions (including details

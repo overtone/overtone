@@ -186,35 +186,34 @@
     (:kr (sin-osc:kr car-freq (* pm-index (sin-osc:kr mod-freq mod-phase))))
     (:default :ar))"
   [c-name & c-form]
-  (let [[summary doc params bodies default-rate] (cgen-form c-form)]
-    (let [arglists       (list (vec (map #(symbol (name (:name %))) params)))
-          arglists       (list 'quote arglists)
-          rates          (into #{} (keys bodies))
-          categories     [["Composite Ugen"]]
-          full-doc       (generate-full-cgen-doc c-name summary doc categories default-rate params rates)
-          metadata       {:doc full-doc
-                          :arglists arglists
-                          :type ::cgen}
+  (let [[summary doc params bodies default-rate] (cgen-form c-form)
+        arglists       (list (vec (map #(symbol (name (:name %))) params)))
+        arglists       (list 'quote arglists)
+        rates          (into #{} (keys bodies))
+        categories     [["Composite Ugen"]]
+        full-doc       (generate-full-cgen-doc c-name summary doc categories default-rate params rates)
+        metadata       {:doc full-doc
+                        :arglists arglists
+                        :type ::cgen}
 
-          default-c-name (with-meta c-name metadata)
-          rated-defs     (reduce (fn [defs rate]
-                                   (let [body (get bodies rate)
-                                         cgen (mk-cgen c-name summary doc params body categories rate)]
-                                     (assoc defs rate cgen)))
-                                 {}
-                                 rates)
+        default-c-name (with-meta c-name metadata)
+        rated-defs     (reduce (fn [defs rate]
+                                 (let [body (get bodies rate)
+                                       cgen (mk-cgen c-name summary doc params body categories rate)]
+                                   (assoc defs rate cgen)))
+                               {}
+                               rates)
 
-          default-cgen   (mk-default-cgen rated-defs default-rate)
+        default-cgen   (mk-default-cgen rated-defs default-rate)
 
-          default-def    `(def ~default-c-name ~default-cgen)
-          cgen-defs      (list* default-def
-                                (for [rate rates]
-                                  (let [cgen   (get rated-defs rate)
-                                        c-name (symbol (str (name c-name) rate))
-                                        c-name (with-meta c-name metadata)]
-                                    `(def ~c-name ~cgen))))]
-
-    `(do ~@cgen-defs))))
+        default-def    `(def ~default-c-name ~default-cgen)
+        cgen-defs      (list* default-def
+                              (for [rate rates]
+                                (let [cgen   (get rated-defs rate)
+                                      c-name (symbol (str (name c-name) rate))
+                                      c-name (with-meta c-name metadata)]
+                                  `(def ~c-name ~cgen))))]
+    `(do ~@cgen-defs)))
 
 (defmethod print-method ::cgen [cgen ^java.io.Writer w]
   (let [info (meta cgen)]

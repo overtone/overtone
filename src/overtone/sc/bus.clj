@@ -1,12 +1,15 @@
 (ns overtone.sc.bus
-  (:import [java.util.concurrent TimeoutException])
-  (:use [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server comms]
-        [overtone.sc synth ugens defaults server node]
+  (:use [overtone.sc.machinery.allocator]
+        [overtone.sc.machinery.server.comms]
+        [overtone.sc.synth]
+        [overtone.sc.ugens]
+        [overtone.sc.defaults]
+        [overtone.sc.server]
+        [overtone.sc.node]
         [overtone.sc.cgens.tap]
-        [overtone.helpers lib]
+        [overtone.helpers.lib]
         [overtone.sc.foundation-groups :only [foundation-monitor-group]]
-        [overtone.libs.deps            :only [on-deps]])
+        [overtone.libs.deps :only [on-deps]])
   (:require [clojure.pprint]
             [overtone.at-at :as at-at]
             [overtone.sc.info :refer [server-num-input-buses server-num-output-buses]]

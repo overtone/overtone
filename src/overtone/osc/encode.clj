@@ -70,7 +70,7 @@
       (if (osc-msg? item)
         (osc-encode-msg buf item)
         (if send-nested-osc-bundles?
-          (osc-encode-bundle buf item)
+          (osc-encode-bundle buf item true)
           (throw (Exception. "Error - nesting OSC bundles has been disabled. This is functionality is typically disabled to ensure compatibility with some OSC servers (such as SuperCollider) that don't have support for nested OSC bundles"))))
       (let [end-pos (.position buf)]
         (.position buf start-pos)
@@ -81,4 +81,4 @@
 (defn osc-encode-packet
   "Encode OSC packet into buf. Handles both OSC messages and bundles."
   [buf packet]
-  (if (osc-msg? packet) (osc-encode-msg buf packet) (osc-encode-bundle buf packet)))
+  (if (osc-msg? packet) (osc-encode-msg buf packet) (osc-encode-bundle buf packet true)))

@@ -1,22 +1,34 @@
 (ns
   ^{:doc "A virtual studio mixing table."
      :author "Jeff Rose & Sam Aaron"}
-  overtone.studio.mixer
-  (:import (java.awt Toolkit))
-  (:use [overtone.music rhythm pitch]
-        [overtone.libs event deps]
-        [overtone.helpers lib file system]
-        [overtone.sc defaults server synth info
-         ugens envelope node bus buffer]
+    overtone.studio.mixer
+  (:use [overtone.music.rhythm]
+        [overtone.music.pitch]
+        [overtone.libs.event]
+        [overtone.libs.deps]
+        [overtone.helpers.lib]
+        [overtone.helpers.file]
+        [overtone.helpers.system]
+        [overtone.sc.defaults]
+        [overtone.sc.synth]
+        [overtone.sc.server]
+        [overtone.sc.info]
+        [overtone.sc.ugens]
+        [overtone.sc.envelope]
+        [overtone.sc.node]
+        [overtone.sc.bus]
+        [overtone.sc.buffer]
         [overtone.sc.foundation-groups :only [foundation-input-group
                                               foundation-output-group
                                               foundation-root-group
                                               foundation-monitor-group]]
-        [overtone.sc.machinery synthdef]
-        [overtone.sc.machinery.ugen fn-gen defaults sc-ugen]
-        [overtone.sc.machinery.server comms]
-        [overtone.sc.util :only [id-mapper]]
-        [overtone.music rhythm time]
+        [overtone.sc.machinery.synthdef]
+        [overtone.sc.machinery.ugen.fn-gen]
+        [overtone.sc.machinery.ugen.defaults]
+        [overtone.sc.machinery.ugen.sc-ugen]
+        [overtone.sc.machinery.server.comms]
+        [overtone.sc.util]
+        [overtone.music.time]
         overtone.studio.core)
   (:require [overtone.studio fx]
             [overtone.config.log :as log]))
@@ -47,21 +59,21 @@
                     out-bus)
         (replace-out out-bus safe-snd)))
 
-    (comment defsynth out-bus-mixer [out-bus 0
-                             volume 0.5 master-volume (volume)
-                             safe-recovery-time 3]
-      (let [source    (in out-bus)
-            source    (* volume master-volume source)
-            not-safe? (trig1 (a2k (> source 1)) safe-recovery-time)
-            safe-vol  (+ 0.1 (abs (- 1 not-safe?)))
-            safe-vol  (lag2-ud safe-vol 1 0.1)
-            snd-idx   (< safe-vol 0.5)
-            snd       (select snd-idx [source (pink-noise)])
-            safe-snd  (* safe-vol (clip2 snd 1))]
-        (send-reply not-safe?
-                    "/server-audio-clipping-rogue-vol"
-                    out-bus)
-        (replace-out out-bus safe-snd)))
+    #_(defsynth out-bus-mixer [out-bus 0
+                               volume 0.5 master-volume (volume)
+                               safe-recovery-time 3]
+        (let [source    (in out-bus)
+              source    (* volume master-volume source)
+              not-safe? (trig1 (a2k (> source 1)) safe-recovery-time)
+              safe-vol  (+ 0.1 (abs (- 1 not-safe?)))
+              safe-vol  (lag2-ud safe-vol 1 0.1)
+              snd-idx   (< safe-vol 0.5)
+              snd       (select snd-idx [source (pink-noise)])
+              safe-snd  (* safe-vol (clip2 snd 1))]
+          (send-reply not-safe?
+                      "/server-audio-clipping-rogue-vol"
+                      out-bus)
+          (replace-out out-bus safe-snd)))
 
     (defsynth in-bus-mixer [in-bus 0
                             gain 1 master-gain (:input-gain @studio*)]
@@ -73,11 +85,11 @@
 (defn- clear-msg-queue-and-groups
   "Clear message queue and ALL groups. Catches exceptions in case the
   server has died. Meant for use in a :shutdown callback"
-  [event-info]
+  [_event-info]
   (try
     (clear-msg-queue)
     (group-deep-clear 0)
-    (catch Exception e
+    (catch Exception _
       (log/error "Can't clear message queue and groups - server might have died."))))
 
 (on-deps [:server-connected :foundation-groups-created :synthdefs-loaded :hw-audio-buses-reserved] ::signal-server-ready
@@ -221,26 +233,29 @@
 
 (defn reset-instruments
   "Frees all synth notes for each of the current instruments"
-  [event-info]
-  (doseq [[name inst] (:instruments @studio*)]
+  [_event-info]
+  (doseq [[_name inst] (:instruments @studio*)]
     (group-clear (:instance-group inst))))
 
 (on-sync-event :reset reset-instruments ::reset-instruments)
 
-(defn add-instrument [inst]
-  "Add an instrument to the session."
+(defn add-instrument
+    "Add an instrument to the session."
+  [inst]
   (let [i-name (:name inst)]
     (swap! studio* update-in [:instruments i-name] (fn [_] inst))
     i-name))
 
-(defn remove-instrument [i-name]
+(defn remove-instrument
   "Remove an instrument from the session."
+  [i-name]
   (swap! studio* (fn [s]
                    (let [insts (:instruments s)
                          insts (dissoc insts (name i-name))]
                      (assoc s :instruments insts))))
   (event :inst-removed :inst-name i-name))
 
-(defn clear-instruments []
+(defn clear-instruments
   "Clear all instruments from the session."
+  []
   (swap! studio* assoc :instruments {}))

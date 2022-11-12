@@ -1,4 +1,5 @@
 (ns overtone.examples.notation.mad2
+  {:clj-kondo/config '{:linters {:unresolved-symbol {:level :off}}}}
   (:use overtone.live
         overtone.inst.synth))
 
@@ -25,7 +26,7 @@
                     (octave-note octave sharp)))
         (when-let [flat (get NOTES (keyword (str n-char "b")))]
           (defpitch (symbol (str n-char "b" octave))
-                    (octave-note octave flat)))))))
+            (octave-note octave flat)))))))
 
 (def-pitches)
 

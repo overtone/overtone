@@ -1,7 +1,11 @@
 (ns overtone.inst.drum
-  (:use [overtone.sc ugens envelope synth]
-        [overtone.sc.cgens mix oscillators]
-        [overtone.studio mixer inst]))
+  (:use [overtone.sc.ugens]
+        [overtone.sc.envelope]
+        [overtone.sc.synth]
+        [overtone.sc.cgens.mix]
+        [overtone.sc.cgens.oscillators]
+        [overtone.studio.mixer]
+        [overtone.studio.inst]))
 
 ;;; Kick Drums
 

@@ -1,9 +1,12 @@
 (ns overtone.inst.synth
-  (:use [overtone.sc ugens envelope]
-        [overtone.sc.cgens mix line]
+  (:use [overtone.sc.ugens]
+        [overtone.sc.envelope]
+        [overtone.sc.cgens.mix]
+        [overtone.sc.cgens.line]
         [overtone.sc.machinery.ugen.fn-gen]
-        [overtone.music pitch]
-        [overtone.studio mixer inst]
+        [overtone.music.pitch]
+        [overtone.studio.mixer]
+        [overtone.studio.inst]
         [overtone.algo.chance :only [ranged-rand]]))
 
 ;; translated from: https://github.com/supercollider-quarks/SynthDefPool/blob/master/pool/apad_mh.scd
@@ -241,7 +244,7 @@
 ; * Two octaves and a fifth over root
 ; * Three octaves over root
 ; Work in progress...  just getting started
-(comment definst b3
+#_(definst b3
   [note 60 a 0.01 d 3 s 1 r 0.01]
   (let [freq  (midicps note)
         waves (sin-osc [(* 0.5 freq)
@@ -347,7 +350,7 @@
     zout))
 
 ; // Originally from the STK instrument models...
-(comment definst bowed
+#_(definst bowed
   [note 60 velocity 80 gate 1 amp 1
    bow-offset 0 bow-slope 0.5 bow-position 0.75 vib-freq 6.127 vib-gain 0.2]
   (let [freq         (midicps note)
@@ -371,7 +374,7 @@
    (local-out (+ [bridge-refl nut-refl] new-vel))
    (resonz (* bridge 0.5) 500 0.85)))
 
-(comment definst flute
+#_(definst flute
   [gate 1 freq 440 amp 1.0 endreflection 0.5 jetreflection 0.5
    jetratio 0.32 noise-gain 0.15 vibfreq 5.925 vib-gain 0.0 amp 1.0]
   (let [nenv           (env-gen (linen 0.2 0.03 0.5 0.5) gate :action FREE)
