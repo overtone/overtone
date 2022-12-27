@@ -55,7 +55,7 @@ collaborating with music.  It provides:
 
     # add the following dependencies to insane-noises/project.clj
     # [org.clojure/clojure "1.9.0"]
-    # [overtone "0.10.6"]
+    # [overtone/overtone "0.10.6"]
 
     $ cd insane-noises
     $ lein repl
