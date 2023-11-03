@@ -48,7 +48,7 @@
   :lein-tools-deps/config {:config-files [:install :user :project]}
   :plugins [[lein-tools-deps "0.4.5"]]
 
-  :profiles {:test {:dependencies [[bultitude "0.2.0"]
+  :profiles {:test {:dependencies [[bultitude "0.2.8"]
                                    [polynome "0.2.2"]]}}
 
   :test-selectors {:core (fn [m] (not (some m [:gui :hw])))
