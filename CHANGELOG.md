@@ -1,15 +1,30 @@
 # Change Log
 ## Master
-* Fix printing of huge map when calling instruments with Cider #432
-* Fix size checks to multichannel buffer writes #338
-* Add clj-kondo support #493
+* Fix `overtone.music.pitch/dec-last` (#437)
+* Return notes in ascending order in `overtone.music.pitch/chord`
+* Fix printing of huge map when calling instruments with Cider (#432)
+* Fix size checks to multichannel buffer writes (#338)
+* Add clj-kondo support (#493)
+* Fix broken version comparison in args/SC-ARG-INFO (#449)
+* OSC: use #getHostScript to fallback on hostname string (#450)
+* Upgrade dependencies (#456)
+* Add support for the `grain-buf` ugen (#470)
+* use canonical URL for freesound API (#479)
+* Fix window paths to allow downloading samples (#487)
+* Removed obsolete JVM option CMSConcurrentMTEnabled (#488)
+* Read synthdef files correctly (#489) 
+* Fix buffer reading (#490)
+* Add clj-kondo support (see `overtone.linter`) (#493)
+* Qualify the overtone ns in lein example (#495)
+
+With thanks to contributors: Andréas Kündig, dvc, Hlöðver Sigurðsson, Lee Araneta, Markku Rontu, Matt Kelly, Nada Amin, Paulo Rafael Feodrippe, Perry Fraser, Phillip Mates, Wesley Merkel
 
 ## Version 0.10.6 (19th May 2019)
 * major bug fix: make sure that deps.edn is loaded from the classpath if it's not found locally (version 0.10.5 will crash when used with leiningen)
 
 ## Version 0.10.5 (18th May 2019)
 * overtone can now be used with tools.deps
-* fix classException for note and chord function $428
+* fix classException for note and chord function #428
 * failures in the test runner fixed
 * alert linux users in case jack server wasn't started prior to external-server connection runner
 
