@@ -36,3 +36,4 @@ target/
 .nrepl-port
 *~
 .clj-kondo/.cache
+pom.xml.asc
