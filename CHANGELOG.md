@@ -2,6 +2,9 @@
 
 ## Added
 
+- Added `set-fret` and `slide-string` to `overtone.synth.stringed`
+- Add an example file for the stringed synths
+
 ## Fixed
 
 ## Changed
