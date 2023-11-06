@@ -174,8 +174,8 @@
   ([deps] (wait-until-deps-satisfied deps 20 0.1))
   ([deps timeout] (wait-until-deps-satisfied deps timeout 0.1))
   ([deps timeout wait-time]
-     (let [timeout-ms (* 1000 timeout)
-           wait-time  (* 1000 wait-time)]
+     (let [timeout-ms (long (* 1000 timeout))
+           wait-time  (long (* 1000 wait-time))]
        (if (<= timeout-ms 0)
          (while (not (deps-satisfied? deps))
            (Thread/sleep wait-time))
