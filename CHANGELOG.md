@@ -2,10 +2,13 @@
 
 ## Added
 
-- Added `set-fret` and `slide-string` to `overtone.synth.stringed`
-- Add an example file for the stringed synths
+- Added `set-fret` and `slide-string` to `overtone.synth.stringed` (#287)
+- Add an example file for the stringed synths (#287)
 
 ## Fixed
+
+- Fix an issue where Clojure fails to resolve the right `Thread/sleep`
+  implementation on newer JVMs
 
 ## Changed
 
