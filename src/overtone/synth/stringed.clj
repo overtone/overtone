@@ -189,6 +189,42 @@
   ([chord-fret-map the-strings the-inst the-chord]
      (strum-strings chord-fret-map the-strings the-inst the-chord
                     :down 0.05 (now+))))
+;; ======================================================================
+;; Set's a fret on the-inst
+(defn- set-fret [the-inst string-index fret]
+  "Sets fret for the-inst on string-index"
+  (let [the-note (fret-to-note (nth guitar-string-notes string-index) fret)]
+    (if (= the-note -1) ;mute it
+      (ctl the-inst (mkarg "gate" string-index) 0)
+    )
+    (if (>= the-note 0) ; set other note on string-index
+      (ctl the-inst (mkarg "note" string-index) the-note) 
+    )
+  )
+)
+
+(defn slide-string
+  "slides the-string of the-inst from fret start-fret to fret end-fret.
+  Every note inbetween sounds for duration time.
+  if keep is set the last note will be fret end-fret
+  otherwise the string gets muted"
+  [the-inst the-string start-fret end-fret start duration keep-note]
+  (at start (guitar-pick the-inst the-string start-fret))
+  (let [i (atom 1)] ; used to calculate the offset between the sub-slides
+    (doseq 
+      [fret (if (< end-fret start-fret) 
+              (reverse (range end-fret (dec start-fret)))
+              (range start-fret (inc end-fret))
+            )
+      ]
+      (at (+ (* @i duration) start) (set-fret the-inst the-string fret))
+      (if (and (= end-fret fret) (zero? keep-note) ) 
+          (at (+ (* (inc @i)  duration) start) (set-fret the-inst the-string -1))
+      )
+      (swap! i inc)
+    )
+  )
+)
 
 ;; ======================================================================
 ;; The Guitar Instrument Code
