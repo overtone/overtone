@@ -1,10 +1,9 @@
-(ns
-    ^{:doc "The ugen functions create a data structure representing a synthesizer
-         graph that can be executed on the synthesis server.  This is the logic
-         to \"compile\" these clojure data structures into a form that can be
-         serialized by the byte-spec defined in synthdef.clj."
-      :author "Jeff Rose"}
-    overtone.sc.synth
+(ns    overtone.sc.synth
+  "The ugen functions create a data structure representing a synthesizer graph
+  that can be executed on the synthesis server. This is the logic to \"compile\"
+  these clojure data structures into a form that can be serialized by the
+  byte-spec defined in synthdef.clj."
+  {:author "Jeff Rose"}
   (:use [overtone.helpers lib old-contrib synth]
         [overtone.libs event counters]
         [overtone.music time]
@@ -338,7 +337,7 @@
   "Returns a list of param name symbols and control proxies"
   [params]
   (mapcat (fn [param] [(symbol (:name param))
-                      `(control-proxy ~(:name param) ~(:default param) ~(:rate param))])
+                       `(control-proxy ~(:name param) ~(:default param) ~(:rate param))])
           params))
 
 (defn- gen-synth-name
@@ -575,10 +574,11 @@
         ugen-form       (concat '(do) (next s-form))
         param-names     (list (vec (map #(symbol (:name %)) params)))
         md              (assoc (meta s-name)
-                          :name s-name
-                          :type ::synth
-                          :arglists (list 'quote param-names))]
+                               :name s-name
+                               :type ::synth
+                               :arglists (list 'quote param-names))]
     [(with-meta s-name md) params ugen-form]))
+
 
 (defmacro defsynth
   "Define a synthesizer and return a player function. The synth

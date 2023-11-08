@@ -323,13 +323,13 @@
               (if (= partials i)
                 z
                 (let [f (clip:kr (mul-add
-                                   (lf-noise1:kr [(+ 6 (rand 4))
-                                                  (+ 6 (rand 4))])
-                                   0.2 offset))
+                                  (lf-noise1:kr [(+ 6 (rand 4))
+                                                 (+ 6 (rand 4))])
+                                  0.2 offset))
                       src  (f-sin-osc (* freq (inc i)))
                       newz (mul-add src f z)]
                   (recur newz (inc i)))))]
-    (out 10 (pan2 (* amp snd)))))
+    (pan2 (* amp snd))))
 
 (definst whoahaha
   [freq 440 dur 5 osc 100 mul 1000]
