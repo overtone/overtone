@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Generate euclidean rhythm vectors with bjorklunds algorithm"
-      :author "Mackenzie Starr and Colin Robinson"}
-    overtone.algo.euclidean-rhythm)
+(ns overtone.algo.euclidean-rhythm
+  "Generate euclidean rhythm vectors with bjorklunds algorithm"
+  {:author "Mackenzie Starr and Colin Robinson"})
 
 (defn- build [level counts remainders]
   (let [pattern ((fn _build [pattern level]
