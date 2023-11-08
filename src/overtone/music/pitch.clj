@@ -1,9 +1,8 @@
-(ns ^{:doc "Functions to help generate and manipulate frequencies and
-    sets of related frequencies. This is the place for functions
-    representing general musical knowledge, like scales, chords,
-    intervals, etc."
-      :author "Jeff Rose, Sam Aaron & Marius Kempe"}
-  overtone.music.pitch
+(ns overtone.music.pitch
+  "Functions to help generate and manipulate frequencies and sets of related
+  frequencies. This is the place for functions representing general musical
+  knowledge, like scales, chords, intervals, etc."
+  {:author "Jeff Rose, Sam Aaron & Marius Kempe"}
   (:use [overtone.helpers old-contrib]
         [overtone.helpers.map :only [reverse-get]]
         [overtone.algo chance])
