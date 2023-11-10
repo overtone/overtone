@@ -136,10 +136,8 @@
 
 (defmacro defunk-env [fn-name docstring args & body]
   `(do
-
      (defunk ~(symbol (str "env-" fn-name)) ~docstring ~args ~@body)
-     (defunk ~fn-name ~docstring ~args ~@body)
-     ))
+     (defunk ~fn-name ~docstring ~args ~@body)))
 
 (defunk-env triangle
   "Create a triangle envelope description array suitable for use with the
