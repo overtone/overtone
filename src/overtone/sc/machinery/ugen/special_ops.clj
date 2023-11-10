@@ -121,7 +121,7 @@
 
 ;;the following are Clojure fns that can only take numerical args
 (def NUMERICAL-CLOJURE-FNS
-  #{"+" "*" "-" "/" "<" ">" "<=" ">=" "min" "max" "mod"})
+  #{"+" "*" "-" "/" "<" ">" "<=" ">=" "min" "max" "mod" "abs"})
 
 (def REVERSE-BINARY-OPS (zipmap (vals BINARY-OPS) (keys BINARY-OPS)))
 
