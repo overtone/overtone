@@ -170,6 +170,8 @@
   (with-overloaded-ugens
     (envelope [0 level level 0] [attack sustain release] curve)))
 
+(def lin-env lin) ;; support legacy code
+
 (defunk-env cutoff
   "Create a cutoff envelope description suitable for use with the env-gen ugen"
   [release 0.1 level 1 curve :linear]
