@@ -139,13 +139,18 @@
      clojure.lang.IFn
      ~@(map (fn [n]
               (let [args (for [i (range n)] (symbol (str "arg" i)))]
-                (if (empty? args)
+                (cond
+                  (empty? args)
                   `(~'invoke [this#]
-                             (~invoke_fn this#))
+                    (~invoke_fn this#))
+                  (= 21 n)
                   `(~'invoke [this# ~@args]
-                             (~invoke_fn this# ~@args))))) (range 21))
+                    (apply ~invoke_fn this# ~@args))
+                  :else
+                  `(~'invoke [this# ~@args]
+                    (~invoke_fn this# ~@args))))) (range 22))
      (~'applyTo [this# args#]
-       (apply ~invoke_fn this# args#))))
+      (apply ~invoke_fn this# args#))))
 
 (defn- syms-to-keywords [coll]
   (map #(if (symbol? %)

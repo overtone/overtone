@@ -1,7 +1,7 @@
-(ns ^{:doc    "An API for interacting with the awesome free online sample resource
-            freesound.org"
-      :author "Sam Aaron, Kevin Neaton"}
-    overtone.samples.freesound
+(ns overtone.samples.freesound
+  "An API for interacting with the awesome free online sample resource
+  freesound.org"
+  {:author "Sam Aaron, Kevin Neaton"}
   (:use [overtone.samples.freesound.url]
         [overtone.samples.freesound.search-results]
         [overtone.sc.node])

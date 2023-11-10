@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Util fns useful for interacting with sc stuff (both internally and externally)"
-      :author "Sam Aaron"}
-    overtone.sc.util)
+(ns overtone.sc.util
+  "Util fns useful for interacting with sc stuff (both internally and externally)"
+  {:author "Sam Aaron"})
 
 (defn id-mapper
   "Map all elements of col which are associative and have an :id key to the
