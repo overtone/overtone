@@ -2,21 +2,22 @@
   "An API for interacting with the awesome free online sample resource
   freesound.org"
   {:author "Sam Aaron, Kevin Neaton"}
-  (:use [overtone.samples.freesound.url]
-        [overtone.samples.freesound.search-results]
+  (:use [overtone.samples.freesound.search-results]
+        [overtone.samples.freesound.url]
         [overtone.sc.node])
   (:require [clojure.data.json :as json]
             [clojure.java.browse]
             [clojure.pprint]
-            [overtone.libs.asset :as asset]
-            [overtone.sc.sample :as samp]
-            [overtone.sc.buffer :as buffer]
+            [overtone.config.store :as config]
+            [overtone.helpers.file :refer [*authorization-header* file-extension]]
             [overtone.helpers.lib :refer [defrecord-ifn]]
-            [overtone.helpers.file :refer [*authorization-header* file-extension]]))
+            [overtone.libs.asset :as asset]
+            [overtone.sc.buffer :as buffer]
+            [overtone.sc.sample :as samp]))
 
 (def ^:dynamic *client-id* "ea6297be42e9de76d47c")
 (def ^:dynamic *api-key* "32da10a118819877ec041752680588c62684c0b2")
-(def ^:dynamic *access-token* (atom false))
+(def ^:dynamic *access-token* (atom (config/store-get :freesound-token)))
 
 (defonce ^{:private true} __RECORDS__
   (do
@@ -97,7 +98,8 @@
               :client_secret *api-key*
               :grant_type "authorization_code"
               :code code})))]
-    (reset! *access-token* r)))
+    (reset! *access-token* r)
+    (config/store-set! :freesound-token r)))
 
 (defn authorization-instructions []
   (let [url
