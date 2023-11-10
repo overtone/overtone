@@ -1,7 +1,6 @@
-(ns
-  ^{:doc "Library initialization and configuration."
-     :author "Jeff Rose"}
-  overtone.config.store
+(ns overtone.config.store
+  "Library initialization and configuration."
+  {:author "Jeff Rose"}
   (:use [overtone.config.file-store]
         [overtone.helpers.string :only [capitalize]]
         [overtone.helpers.system :only [get-os system-user-name]]

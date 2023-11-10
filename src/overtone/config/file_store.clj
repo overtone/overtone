@@ -1,13 +1,11 @@
-(ns ^{:doc "Provides a simple key/value store which will automatically
-            persist to a file on disk. The file is serialized clojure
-            code which can be easily edited as text."
-      :author "Jeff Rose, Kevin Neaton"}
-  overtone.config.file-store
+(ns overtone.config.file-store
+  "Provides a simple key/value store which will automatically persist to a file on
+  disk. The file is serialized clojure code which can be easily edited as text."
+  {:author "Jeff Rose, Kevin Neaton"}
   (:use [clojure.pprint])
   (:require [overtone.helpers.file :as file-helpers])
-  (:import [java.io FileOutputStream FileInputStream])
+  (:import [java.io FileOutputStream FileInputStream]))
 
-)
 ;; This should be temporary...
 (def storage (constantly :file))
 
