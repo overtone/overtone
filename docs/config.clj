@@ -26,6 +26,8 @@
                     ; :debug - logs :error, :warn, :info and
                     ;          diagnostic information
 
+ :sc-path "/usr/bin/scsynth" ; Where to find the SuperCollider server executable
+
  :sc-args           ; Argument map used to boot the SuperCollider server
                     ; with the following arguments:
  {

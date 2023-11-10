@@ -1,11 +1,10 @@
-(ns ^{:doc "Namespace containing fns to generate UGens, or Unit
-    Generators. These are the functions that act as DSP nodes in the
-    synthesizer definitions used by SuperCollider.  We generate the UGen
-    functions based on hand written metadata about each ugen (ugen
-    directory). (Eventually we hope to get this information dynamically
-    from the server.)"
-      :author "Jeff Rose & Christophe McKeon"}
-  overtone.sc.ugens
+(ns overtone.sc.ugens
+  "Namespace containing fns to generate UGens, or Unit Generators. These are the
+  functions that act as DSP nodes in the synthesizer definitions used by
+  SuperCollider. We generate the UGen functions based on hand written metadata
+  about each ugen (ugen directory). (Eventually we hope to get this information
+  dynamically from the server.)"
+  {:author "Jeff Rose & Christophe McKeon"}
   (:use [overtone.sc.machinery.ugen fn-gen]))
 
 ;; Done actions are typically executed when an envelope ends, or a sample ends

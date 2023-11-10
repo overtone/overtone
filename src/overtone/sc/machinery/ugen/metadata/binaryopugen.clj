@@ -2,9 +2,7 @@
   (:use [overtone.helpers lib]))
 
 (def unnormalized-binaryopugen-docspecs
-
-  {
-   "+"           {:summary "Signal summing"
+  {"+"           {:summary "Signal summing"
                   :doc "Merges two signals by adding them together."}
 
    "-"           {:summary "Signal subtraction"
@@ -111,6 +109,7 @@
 
                         This should not be used for simulating a doppler
                         shift because it is discontinuous. Use hypot."}
+
    "pow"         {:summary "exponentiation"
                   :doc "Returns a to the power of b
 
@@ -186,8 +185,7 @@
                   :doc "folds input wave a to +/- b"}
 
    "wrap2"       {:summary "Bilateral wrapping"
-                  :doc "wraps input wave to +/- b"}
-   })
+                  :doc "wraps input wave to +/- b"}})
 
 (def binaryopugen-docspecs
   (into {} (map

@@ -4,11 +4,16 @@
 
 - Added `set-fret` and `slide-string` to `overtone.synth.stringed` (#287)
 - Add an example file for the stringed synths (#287)
+- Add an alias `lin-env` for `lin`, for backwards compatibility
+- On the generated docstring for ugens that collide with Clojure built-ins, mention that you can add a final `:force-ugen` argument as a hint to treat it as a ugen
 
 ## Fixed
 
 - Fix an issue where Clojure fails to resolve the right `Thread/sleep`
-  implementation on newer JVMs
+  implementation on newer JVMs (#502)
+- Fix calling synths/instruments with 21 arguments or more (#504)
+- Fix the namespace `overtone.inst.synth` on Clojure 1.11
+- Mark `abs` as a Clojure numerical function, to make sure it is treated as a UGen when its arguments are not numerical
 
 ## Changed
 
