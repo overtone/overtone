@@ -321,7 +321,7 @@
   (assoc doc-spec :doc
          (str
           (:doc doc-spec)
-          "\n\nThis ugen's name collides with the existing fn " collider ". When calling this fn within a synth definition, " collider " will be called unless the argument list suggests that this is a ugen call. " ugen-collide-ns-str  "/" (str op-name) " will therefore only be called if the arg list is a single map or at least one of the args is a ugen and the rest consist only of numbers, sequentials, keywords and other ugens. "
+          "\n\nThis ugen's name collides with the existing fn " collider ". When calling this fn within a synth definition, " collider " will be called unless the argument list suggests that this is a ugen call. " ugen-collide-ns-str  "/" (str op-name) " will therefore only be called if the arg list is a single map or at least one of the args is a ugen and the rest consist only of numbers, sequentials, keywords and other ugens. Add `:force-ugen` as a final argument to always treat it as a ugen. "
           (when (NUMERICAL-CLOJURE-FNS (str op-name))
             "Also, as this fn has been labelled as numerical, it will also be treated as a ugen if any of the args are not numbers."))))
 
