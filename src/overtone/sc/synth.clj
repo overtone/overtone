@@ -363,6 +363,7 @@
         [params ugen-form] (if (vector? (first args))
                              [(first args) (rest args)]
                              [[] args])
+        params (parse-params params)
         param-proxies (control-proxies params)]
     [sname params param-proxies ugen-form]))
 
@@ -573,9 +574,8 @@
         _               (when (not (symbol? s-name))
                           (throw (IllegalArgumentException. (str "You need to specify a name for your synth using a symbol"))))
         params          (first s-form)
-        params          (parse-params params)
         ugen-form       (concat '(do) (next s-form))
-        param-names     (list (vec (map #(symbol (:name %)) params)))
+        param-names     (list (vec (map #(symbol (:name %)) (parse-params params))))
         md              (assoc (meta s-name)
                                :name s-name
                                :type ::synth
