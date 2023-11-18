@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Read and decorate ugen metadata to create final UGEN-SPECS"
-      :author "Jeff Rose"}
-  overtone.sc.machinery.ugen.specs
+(ns overtone.sc.machinery.ugen.specs
+  "Read and decorate ugen metadata to create final UGEN-SPECS"
+  {:author "Jeff Rose"}
   (:use [clojure.pprint]
         [clojure.set :only [difference]]
         [overtone.helpers lib]
@@ -15,7 +14,7 @@
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
     ff-osc fft info noise pan trig line input filter random
-    
+
     extras.mda
     extras.stk
     extras.glitch

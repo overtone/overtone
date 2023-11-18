@@ -452,9 +452,9 @@
     (count ids)))
 
 (defmacro pre-synth
-  "Resolve a synth def to a list of its name, params, ugens (nested if
-   necessary) and constants. Sets the lexical bindings of the param
-   names to control proxies within the synth definition"
+  "Resolve a synth def to a list of its name, params, ugens (nested if necessary)
+  and constants. Sets the lexical bindings of the param names to control proxies
+  within the synth definition"
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
@@ -486,7 +486,7 @@
     ;; call foo player with default args:
     (foo)
 
-    ;; call foo player specifyign node should be at the tail of group 0
+    ;; call foo player specifying node should be at the tail of group 0
     (foo [:tail 0])
 
     ;; call foo player with positional arguments
