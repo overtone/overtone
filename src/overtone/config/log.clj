@@ -1,12 +1,12 @@
-(ns
-  ^{:doc "Basic logging functionality."
-     :author "Jeff Rose"}
-  overtone.config.log
-  (:import [java.util.logging Logger Level ConsoleHandler FileHandler
-            StreamHandler Formatter LogRecord]
-           [java.util Date])
-  (:use [overtone.config store]
-        [clojure.pprint :only (pprint)]))
+(ns overtone.config.log
+  "Basic logging functionality."
+  {:author "Jeff Rose"}
+  (:require
+   [clojure.pprint :refer [pprint]]
+   [overtone.config.store :as store])
+  (:import
+   (java.util Date)
+   (java.util.logging ConsoleHandler FileHandler Formatter Level Logger LogManager LogRecord StreamHandler)))
 
 (def ^:private LOG-APPEND true)
 (def ^:private LOG-LIMIT 5000000)
@@ -20,11 +20,11 @@
 
 (defonce ^:private LOGGER (Logger/getLogger "overtone"))
 (defonce ^:private LOG-CONSOLE (ConsoleHandler.))
-(defonce ^:private LOG-FILE-HANDLER (FileHandler. OVERTONE-LOG-FILE LOG-LIMIT LOG-COUNT LOG-APPEND))
+(defonce ^:private LOG-FILE-HANDLER (FileHandler. store/OVERTONE-LOG-FILE LOG-LIMIT LOG-COUNT LOG-APPEND))
 
 (defn- initial-log-level
   []
-  (or (config-get :log-level)
+  (or (store/config-get :log-level)
       DEFAULT-LOG-LEVEL))
 
 (defn- log-formatter []
@@ -63,7 +63,7 @@
   config. Use one of :debug, :info, :warn or :error"
   [level]
   (set-level! level)
-  (config-set! :log-level level)
+  (store/config-set! :log-level level)
   level)
 
 (defn debug
@@ -99,6 +99,7 @@
 ;;setup logger
 (defonce ^:private __setup-logs__
   (do
+    (.reset (LogManager/getLogManager))
     (set-level! (initial-log-level))
     (.setFormatter LOG-FILE-HANDLER (log-formatter))
     (.addHandler LOGGER LOG-FILE-HANDLER)))
