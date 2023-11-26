@@ -357,8 +357,7 @@
                      (Thread. #(external-booter cmd)))]
      (.setDaemon sc-thread true)
      (println "--> Booting external SuperCollider server...")
-     (log/info "SuperCollider Server Command: " (str/join " " (map shellquote cmd)))
-     (log/debug (str "Booting SuperCollider server (scsynth) with cmd: " (apply str (interleave cmd (repeat " ")))))
+     (log/info (str "Booting SuperCollider server (scsynth) with cmd: " (str/join " " (map shellquote cmd))))
      (.start sc-thread)
      (dosync (ref-set server-thread* sc-thread)
              (alter connection-info* assoc :opts full-opts))

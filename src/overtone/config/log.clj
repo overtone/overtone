@@ -36,8 +36,7 @@
   (proxy [Formatter] []
     (format [^LogRecord log-rec]
       (str #_(.format TIME-FORMATTER (.getInstant log-rec)) #_" "
-           "[" (.getLoggerName log-rec) "] [" (.getLevel log-rec) "] " (.getMessage log-rec)
-           "\n"))))
+           "[" (.getLoggerName log-rec) "] [" (.getLevel log-rec) "] " (.getMessage log-rec)))))
 
 (defn- print-handler []
   (let [formatter (log-formatter)]

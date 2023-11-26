@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Utility functions for the generation of docstrings"
-      :author "Sam Aaron"}
-  overtone.helpers.doc
+(ns overtone.helpers.doc
+  "Utility functions for the generation of docstrings"
+  {:author "Sam Aaron"}
   (:require [clojure.string :as str]))
 
 (def DOC-WIDTH 50)
