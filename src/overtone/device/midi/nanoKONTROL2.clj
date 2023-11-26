@@ -175,9 +175,9 @@
 
   On OS X, this is currently broken due to broken Java support for MIDI
   sysex messages."
-  [nko]
-   (doseq [m [sysex-1 sysex-2 sysex-3 sysex-4 sysex-5 sysex-6]]
-     (midi-sysex (:out nko) m)))
+  [nko-or-out]
+  (doseq [m [sysex-1 sysex-2 sysex-3 sysex-4 sysex-5 sysex-6]]
+    (midi-sysex (:out nko-or-out nko-or-out) m)))
 
 (defn leds-on-test
   [nko]
