@@ -8,8 +8,6 @@
         test-helper))
 
 (comment
-  ;; Use a single internal server for all tests in this ns.
-  (use-fixtures :once with-internal-server)
 
   ;; Wait for all osc messages to be processed before moving on.
   ;; Trigger a synchronous reset to cleanup after each test

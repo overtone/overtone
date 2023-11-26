@@ -56,7 +56,7 @@
 (def SC-PATHS
   "Default system paths to an externally installed SuperCollider server for
   various operating systems."
-  {:linux ["scsynth"]
+  {:linux ["/usr/bin/scsynth"]
    :windows [(str (windows-sc-path) "\\scsynth.exe")]
    :mac  ["/Applications/SuperCollider/scsynth"
           "/Applications/SuperCollider.app/Contents/Resources/scsynth"

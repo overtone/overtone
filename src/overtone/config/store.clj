@@ -14,7 +14,7 @@
 (def CONFIG-DEFAULTS
   {:os (get-os)
    :user-name (capitalize (system-user-name))
-   :server :internal
+   :server :external
    :sc-args {}})
 
 (defn- file-store-get
@@ -77,10 +77,10 @@
        :assets assets
        :speech speech}))
 
-(def OVERTONE-CONFIG-FILE     (mk-path (:root   OVERTONE-DIRS) "config.clj"))
-(def OVERTONE-USER-STORE-FILE (mk-path (:root   OVERTONE-DIRS) "user-store.clj"))
-(def OVERTONE-ASSETS-FILE     (mk-path (:assets OVERTONE-DIRS) "assets.clj"))
-(def OVERTONE-LOG-FILE        (mk-path (:log    OVERTONE-DIRS) "overtone.log"))
+(def ^String OVERTONE-CONFIG-FILE     (mk-path (:root   OVERTONE-DIRS) "config.clj"))
+(def ^String OVERTONE-USER-STORE-FILE (mk-path (:root   OVERTONE-DIRS) "user-store.clj"))
+(def ^String OVERTONE-ASSETS-FILE     (mk-path (:assets OVERTONE-DIRS) "assets.clj"))
+(def ^String OVERTONE-LOG-FILE        (mk-path (:log    OVERTONE-DIRS) "overtone.log"))
 
 (defn- ensure-dir-structure
   []

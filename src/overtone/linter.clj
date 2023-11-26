@@ -528,16 +528,7 @@
                   {:linters {:inline-def {:level :off}}}
 
                   overtone.sc.ugens
-                  {:linters {:inline-def {:level :off}}}
-
-                  overtone.sc.machinery.server.native
-                  {:linters {:unresolved-symbol {:exclude [world-run
-                                                           world-new
-                                                           world-cleanup
-                                                           world-open-tcp-port
-                                                           world-open-udp-port
-                                                           world-send-packet
-                                                           world-copy-sound-buffer]}}}}}
+                  {:linters {:inline-def {:level :off}}}}}
         cfg-file (io/file ".clj-kondo" "overtone" "do_not_commit_me" "config.edn")
         hooks-file (io/file ".clj-kondo" "overtone" "do_not_commit_me" "overtone" "overtone" "clj_kondo_hooks.clj")]
     (io/make-parents cfg-file)

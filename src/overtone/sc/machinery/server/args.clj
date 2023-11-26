@@ -6,7 +6,7 @@
   (:require [clojure.string :as string]
             [overtone.helpers.math :as math]
             [overtone.helpers.string :refer [numeric?]]
-            [overtone.jna-path]))
+            ))
 
 (def SC-ARG-INFO
   "Default arguments for starting up a SuperCollider process. Does not
@@ -138,32 +138,6 @@
    :ugens-paths              arg-identity
    :restricted-path          arg-identity})
 
-(def native-arg-defaults
-  {:pwd                      ""
-   :in-streams               ""
-   :out-streams              ""
-   :restricted-path          ""
-   :nrt-cmd-filename         ""
-   :nrt-input-filename       ""
-   :nrt-output-filename      ""
-   :nrt-output-header-format ""
-   :nrt-output-sample-foramt ""
-   :hw-device-name           ""
-   :hw-out-device-name       ""})
-
-
-
-(def non-modifiable-native-scsynth-options
-  {:mBufLength                        64
-   :mNumSharedControls                0
-   :mSharedControls                   nil
-   :mMemoryLocking                    0
-   :mPreferredSampleRate              0
-   :mPreferredHardwareBufferFrameSize 0
-   :mSharedMemoryID                   0
-   ;; ugens-plugins-path needs to be seperated from libscsynth paths
-   :mUGensPluginPath (str (System/getProperty "jna.library.path") "/plugins")})
-
 (defn- cleanup-sc-args
   [args]
   (into {} (map (fn [[k v]] [k ((get SC-ARG-INFO-CLEANUP-FNS k (fn [k v] v))  k v)]) args)))
@@ -187,29 +161,6 @@
                      (config-get :sc-args {})
                      user-opts)]
      (cleanup-sc-args opts))))
-
-(defn ensure-native-sc-args-valid!
-  [args]
-  (doseq [[k v] args]
-    (when (and (nil? v)
-               (not (= :mSharedControls k))) ;;:mSharedControls is allowed to be nil
-      (throw (Exception. (str "Error - native sc-arg " k " was nil")))
-      ))
-  args)
-
-(defn merge-native-sc-args
-  [user-opts]
-  (let [args (merge-sc-args user-opts)
-        args (merge args non-modifiable-native-scsynth-options)
-        args (into {} (map (fn [[k v]]
-                             [k (if (and (nil? v)
-                                         (contains? native-arg-defaults k))
-                                  (get native-arg-defaults k)
-                                  v)])
-                           args))
-        args (linux-jack-device-name args)]
-    (ensure-native-sc-args-valid! args)
-    args))
 
 ;;TODO ensure bitsets use the correct sizes based on user options
 (defn sc-arg-default

@@ -254,11 +254,11 @@
                \colouredbox{grey}{
                  \section{Server}
                  \begin{tabularx}{\hsize}{lX}
-                   Startup&\cmd{boot-server boot-internal-server boot-external-server connect-external-server}\\
+                   Startup&\cmd{boot-server boot-server connect-external-server}\\
                    Shutdown&\cmd{kill-server}\\
                    Control& \cmd{stop clear stop-all clear-all}\\
                    OSC Communication& \cmd{snd recv clear-msg-queue at snd-immediately}\\
-                   Diagnostic& \cmd{server-status server-info server-opts server-connected? server-disconnected? server-connecting? internal-server? external-server? connection-info server-sample-rate server-num-output-buses server-num-input-buses server-num-audio-buses server-num-buffers ensure-connected!}\\
+                   Diagnostic& \cmd{server-status server-info server-opts server-connected? server-disconnected? server-connecting? connection-info server-sample-rate server-num-output-buses server-num-input-buses server-num-audio-buses server-num-buffers ensure-connected!}\\
                    Debug& \cmd{sc-osc-log-on sc-osc-log-off sc-osc-log sc-debug-on sc-debug-off external-server-log sc-osc-debug-on sc-osc-debug-off}\\
                  \end{tabularx}
                }

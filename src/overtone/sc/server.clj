@@ -39,11 +39,6 @@
   []
   (= :disconnected @connection-status*))
 
-(defn internal-server?
-  "Returns true if the server is internal"
-  []
-  (= :internal (:connection-type (connection-info))))
-
 (defn external-server?
   "Returns true if the server is external"
   []
@@ -115,15 +110,17 @@
        (throw (Exception. "Unable to receive messages from a disconnected server. Please boot or connect to a server.")))
      (server-recv path matcher-fn)))
 
-(defn connect-external-server
+(defn connect-server
   "Connect to an externally running SC audio server listening to port
   on host.  Host defaults to localhost and port defaults to 57110."
-  ([] (connect-external-server 57110))
-  ([port] (connect-external-server "127.0.0.1" port))
+  ([] (connect-server 57110))
+  ([port] (connect-server "127.0.0.1" port))
   ([host port]
-     (connect host port)
-     (wait-until-deps-satisfied :server-ready)
-     :happy-hacking))
+   (connect host port)
+   (wait-until-deps-satisfied :server-ready)
+   :happy-hacking))
+
+(def ^:legacy connect-external-server connect-server)
 
 (defn boot-external-server
   "Boot an external server by starting up an external process and connecting to
@@ -132,15 +129,8 @@
   ([] (boot-external-server (+ (rand-int 50000) 2000)))
   ([port] (boot-external-server port {}))
   ([port opts]
-     (boot :external port opts)
-     :happy-hacking))
-
-(defn boot-internal-server
-  "Boot an internal server in the same process as overtone itself. Not
-  currently available on all platforms"
-  []
-  (boot :internal)
-  :happy-hacking)
+   (boot :external port opts)
+   :happy-hacking))
 
 (defn boot-server
   "Boot the default server."

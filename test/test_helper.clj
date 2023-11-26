@@ -82,17 +82,6 @@
 
 (def with-server-sync #'overtone.sc.machinery.server.comms/with-server-sync)
 
-(defn with-internal-server
-  "Fixture. Ensures that a fresh scsynth server is booted before
-  running your tests. Kill's any pre-existing server and cleans up
-  when done."
-  [f]
-  (kill-server)
-  (boot-internal-server)
-  (wait-until-mixer-booted)
-  (f)
-  (kill-server))
-
 (defn with-sync-reset
   "Fixture. Ensures that the server gets reset after each test.
   Synchronously stops active nodes in the default foundation-group,

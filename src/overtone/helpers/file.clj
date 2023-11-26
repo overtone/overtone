@@ -361,6 +361,13 @@
         f (file path)]
     (and (.exists f) (.isFile f))))
 
+(defn file-can-execute?
+  "Returns true if a file specified by path exists"
+  [path]
+  (let [path (resolve-tilde-path path)
+        f (file path)]
+    (and (.exists f) (.isFile f) (.canExecute f))))
+
 (defn dir-exists?
   "Returns true if a directory specified by path exists"
   [path]
@@ -479,18 +486,3 @@
   ([url path timeout n-retries wait-t]
    (print-download-file url)
    (download-file* url path timeout n-retries wait-t)))
-
-
-(defn ensure-native
-  "To use Overtone's native resources like internal native synth and
-   ableton-link, there needs to be a native directory in the project
-   root. This can be done by setting `:native-paths \"native\"` in
-   leiningen. If this configuration is missing, this function will
-   attempt to copy over the native dir from the target directory if
-   present."
-  []
-  (let [native-dir        (str (System/getProperty "user.dir") "/native")
-        target-native-dir (str (System/getProperty "user.dir") "/target/native")]
-    (when (and (not (.exists (file native-dir)))
-               (.exists (file target-native-dir)))
-      (copy-dir! target-native-dir native-dir))))

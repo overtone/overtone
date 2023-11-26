@@ -2,15 +2,9 @@
              "clojars" {:url "https://repo.clojars.org/"}}
  :paths ["src" "test" "./deps.edn"]
  :deps  {org.clojure/clojure {:mvn/version "1.11.1"}
+         overtone/at-at {:mvn/version "1.3.58"}
          org.clojure/data.json {:mvn/version "2.4.0"}
-         org.clojure/tools.deps.alpha {:mvn/version "0.15.1254"}
-         net.java.dev.jna/jna {:mvn/version "5.13.0"}
          overtone/ableton-link {:mvn/version "1.0.0-beta11"}
-         overtone/scsynth {:mvn/version "3.10.2"}
-         overtone/scsynth-extras {:mvn/version "3.10.2"}
          commons-net/commons-net {:mvn/version"3.10.0"}
          javax.jmdns/jmdns {:mvn/version "3.4.1"}
-         clj-glob/clj-glob {:mvn/version "1.0.0"}
-         clj-native/clj-native {:mvn/version "0.9.5"}
-         badigeon/badigeon {:git/url "https://github.com/EwenG/badigeon.git"
-                            :sha "fc11d6d86f33f5569f2e45ed3eadcc385cb9a36c"}}}
+         clj-glob/clj-glob {:mvn/version "1.0.0"}}}
