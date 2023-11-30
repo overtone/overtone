@@ -1,10 +1,9 @@
-(ns
-    ^{:doc "An interface to the SuperCollider synthesis server.
-          This is at heart an OSC client library for the SuperCollider
-          scsynth DSP engine."
-      :author "Jeff Rose"}
-  overtone.sc.server
-  (:import [java.util.concurrent TimeoutException])
+(ns overtone.sc.server
+  "An interface to the SuperCollider synthesis server.
+  This is at heart an OSC client library for the SuperCollider scsynth
+  DSP engine."
+  {:author "Jeff Rose"}
+  (:import (java.util.concurrent TimeoutException))
   (:use [overtone.libs event deps]
         [overtone.sc dyn-vars]
         [overtone.sc.machinery allocator]
@@ -76,7 +75,7 @@
   [time-ms & body]
   `(with-inactive-modification-error :silent
      (without-node-blocking
-      (in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))))
+       (in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))))
 
 (defmacro snd-immediately
   [& body]

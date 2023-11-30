@@ -1,7 +1,6 @@
-(ns
-  ^{:doc "A virtual studio mixing table."
-     :author "Jeff Rose & Sam Aaron"}
-    overtone.studio.mixer
+(ns overtone.studio.mixer
+  "A virtual studio mixing table."
+  {:author "Jeff Rose & Sam Aaron"}
   (:use [overtone.music.rhythm]
         [overtone.music.pitch]
         [overtone.libs.event]

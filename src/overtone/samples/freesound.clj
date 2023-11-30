@@ -2,18 +2,19 @@
   "An API for interacting with the awesome free online sample resource
   freesound.org"
   {:author "Sam Aaron, Kevin Neaton"}
-  (:use [overtone.samples.freesound.search-results]
-        [overtone.samples.freesound.url]
-        [overtone.sc.node])
-  (:require [clojure.data.json :as json]
-            [clojure.java.browse]
-            [clojure.pprint]
-            [overtone.config.store :as config]
-            [overtone.helpers.file :refer [*authorization-header* file-extension]]
-            [overtone.helpers.lib :refer [defrecord-ifn]]
-            [overtone.libs.asset :as asset]
-            [overtone.sc.buffer :as buffer]
-            [overtone.sc.sample :as samp]))
+  (:require
+   [clojure.data.json :as json]
+   [clojure.java.browse]
+   [clojure.pprint]
+   [overtone.samples.freesound.search-results :refer :all]
+   [overtone.samples.freesound.url :refer :all]
+   [overtone.sc.node :refer :all]
+   [overtone.config.store :as config]
+   [overtone.helpers.file :refer [*authorization-header* file-extension]]
+   [overtone.helpers.lib :refer [defrecord-ifn]]
+   [overtone.libs.asset :as asset]
+   [overtone.sc.buffer :as buffer]
+   [overtone.sc.sample :as samp]))
 
 (def ^:dynamic *client-id* "ea6297be42e9de76d47c")
 (def ^:dynamic *api-key* "32da10a118819877ec041752680588c62684c0b2")

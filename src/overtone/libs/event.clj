@@ -290,3 +290,6 @@
   "Return a set of all the keys of most recently seen events."
   []
   (into #{} (keys @monitor*)))
+
+(defn registered-handlers []
+  (keys @(:handlers handler-pool)))

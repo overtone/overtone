@@ -1,19 +1,19 @@
-(ns
-    ^{:doc    "Useful file manipulation fns"
-      :author "Sam Aaron"}
-    overtone.helpers.file
-  (:import [java.net URL]
-           [java.io StringWriter]
-           ;; Requires Java7
-           [java.nio.file Files Paths
-            SimpleFileVisitor StandardCopyOption
-            FileVisitResult LinkOption CopyOption]
-           [java.nio.file.attribute FileAttribute])
-  (:use [overtone.helpers.string]
-        [clojure.java.io]
-        [overtone.helpers.system :only [windows-os?]])
-  (:require [org.satta.glob :as satta-glob]
-            [clojure.string :as str]))
+(ns overtone.helpers.file
+  "Useful file manipulation fns"
+  {:author "Sam Aaron"}
+  (:require
+   [clojure.java.io :refer :all]
+   [clojure.string :as str]
+   [org.satta.glob :as satta-glob]
+   [overtone.helpers.string :refer :all]
+   [overtone.helpers.system :refer [windows-os?]])
+  (:import
+   (java.io StringWriter)
+   (java.net URL)
+   (java.nio.file Files Paths
+                  SimpleFileVisitor StandardCopyOption
+                  FileVisitResult LinkOption CopyOption)
+   (java.nio.file.attribute FileAttribute)))
 
 (def ^{:dynamic true} *verbose-overtone-file-helpers* false)
 (def ^{:dynamic true} *authorization-header* false)

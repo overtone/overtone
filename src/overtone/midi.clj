@@ -1,10 +1,11 @@
 (ns overtone.midi
-  #^{:author "Jeff Rose"
-     :doc "A higher-level API on top of the Java MIDI apis.  It makes
-           it easier to configure midi input/output devices, route
-           between devices, read/write control messages to devices,
-           play notes, etc."}
+  "A higher-level API on top of the Java MIDI apis. It makes it easier to
+  configure midi input/output devices, route between devices, read/write control
+  messages to devices, play notes, etc."
+  {:author "Jeff Rose"}
   (:import
+   (java.awt.event MouseAdapter)
+   (java.util.concurrent FutureTask ScheduledThreadPoolExecutor TimeUnit)
    (java.util.regex Pattern)
    (javax.sound.midi Sequencer Synthesizer
                      MidiSystem MidiDevice Receiver Transmitter MidiEvent
@@ -12,11 +13,10 @@
                      InvalidMidiDataException MidiUnavailableException
                      MidiDevice$Info)
    (javax.swing JFrame JScrollPane JList
-                DefaultListModel ListSelectionModel)
-   (java.awt.event MouseAdapter)
-   (java.util.concurrent FutureTask ScheduledThreadPoolExecutor TimeUnit))
-  (:use clojure.set)
-  (:require [overtone.at-at :as at-at]))
+                DefaultListModel ListSelectionModel))
+  (:require
+   [clojure.set :refer :all]
+   [overtone.at-at :as at-at]))
 
 ;; Java MIDI returns -1 when a port can support any number of transmitters or
 ;; receivers, we use max int.

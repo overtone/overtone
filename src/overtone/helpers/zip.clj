@@ -1,13 +1,13 @@
-(ns
-    ^{:doc "Useful zip manipulation fns"
-      :author "Sam Aaron"}
-  overtone.helpers.zip
-  (:import [java.util.zip ZipFile ZipEntry ZipInputStream]
-           [java.io StringWriter  FileInputStream FileOutputStream])
-  (:use [clojure.java.io :only [file]]
-        [overtone.helpers file])
-  (:require [org.satta.glob :as satta-glob]
-            [clojure.java.io :as io]))
+(ns overtone.helpers.zip
+  "Useful zip manipulation fns"
+  {:author "Sam Aaron"}
+  (:require
+   [clojure.java.io :as io]
+   [clojure.java.io :refer [file]]
+   [overtone.helpers.file :refer :all])
+  (:import
+   (java.io StringWriter FileInputStream FileOutputStream)
+   (java.util.zip ZipFile ZipEntry ZipInputStream)))
 
 (defn zip-file
   "Returns an open java.util.zip.ZipFile object representing the zip file

@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Audio effects library"
-      :author "Jeff Rose"}
-  overtone.studio.fx
+(ns overtone.studio.fx
+  "Audio effects library"
+  {:author "Jeff Rose"}
   (:use [overtone.libs.event]
         [overtone.sc.synth]
         [overtone.sc.ugens]))
@@ -15,8 +14,8 @@
    clamp-time 0.01 relax-time 0.1]
   (let [source (in bus)
         gated (compander source source threshold
-                    slope-below slope-above
-                    clamp-time relax-time)]
+                         slope-below slope-above
+                         clamp-time relax-time)]
     (replace-out bus gated)))
 
 (defsynth fx-compressor
@@ -26,9 +25,9 @@
    clamp-time 0.01 relax-time 0.01]
   (let [source (in bus)]
     (replace-out bus
-         (compander source source threshold
-                    slope-below slope-above
-                    clamp-time relax-time))))
+                 (compander source source threshold
+                            slope-below slope-above
+                            clamp-time relax-time))))
 
 (defsynth fx-limiter
   "A limiter sets a maximum threshold for the audio amplitude, and anything above this threshold is quickly clamped down to within it."
@@ -37,9 +36,9 @@
    clamp-time 0.01 relax-time 0.01]
   (let [source (in bus)]
     (replace-out bus
-         (compander source source threshold
-                    slope-below slope-above
-                    clamp-time relax-time))))
+                 (compander source source threshold
+                            slope-below slope-above
+                            clamp-time relax-time))))
 
 (defsynth fx-sustainer
   [bus 0 threshold 0.2
@@ -47,9 +46,9 @@
    clamp-time 0.01 relax-time 0.01]
   (let [source (in bus)]
     (replace-out bus
-         (compander source source threshold
-                    slope-below slope-above
-                    clamp-time relax-time))))
+                 (compander source source threshold
+                            slope-below slope-above
+                            clamp-time relax-time))))
 
 (defsynth fx-freeverb
   "Uses the free-verb ugen."
@@ -94,9 +93,9 @@
   (let [src (in bus)]
     (replace-out bus (distort (* boost (clip2 src level))))))
 
-; Equation for distortion:
-; k = 2*amount/(1-amount)
-; f(x) = (1+k)*x/(1+k*abs(x))
+                                        ; Equation for distortion:
+                                        ; k = 2*amount/(1-amount)
+                                        ; f(x) = (1+k)*x/(1+k*abs(x))
 (defsynth fx-distortion2
   [bus 0 amount 0.5]
   (let [src (in bus)

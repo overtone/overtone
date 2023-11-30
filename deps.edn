@@ -1,10 +1,13 @@
-{:mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
-             "clojars" {:url "https://repo.clojars.org/"}}
- :paths ["src" "test" "./deps.edn"]
- :deps  {org.clojure/clojure {:mvn/version "1.11.1"}
-         overtone/at-at {:mvn/version "1.3.58"}
-         org.clojure/data.json {:mvn/version "2.4.0"}
-         overtone/ableton-link {:mvn/version "1.0.0-beta11"}
-         commons-net/commons-net {:mvn/version"3.10.0"}
-         javax.jmdns/jmdns {:mvn/version "3.4.1"}
-         clj-glob/clj-glob {:mvn/version "1.0.0"}}}
+{:paths
+ ["src" "test"]
+
+ :deps
+ {overtone/at-at          {:mvn/version "1.3.61"}
+  org.clojure/data.json   {:mvn/version "2.4.0"}  ; Freesound
+  commons-net/commons-net {:mvn/version "3.10.0"} ; Decode OSC timetag
+  javax.jmdns/jmdns       {:mvn/version "3.4.1"}  ; ZeroConf support
+  clj-glob/clj-glob       {:mvn/version "1.0.0"}} ; overtone.helpers.file/{glob,ls*}
+
+ :mvn/repos
+ {"central" {:url "https://repo1.maven.org/maven2/"}
+  "clojars" {:url "https://repo.clojars.org/"}}}

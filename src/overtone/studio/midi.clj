@@ -1,16 +1,12 @@
 (ns overtone.studio.midi
-  #^{:author "Sam Aaron and Jeff Rose"
-     :doc "A high level MIDI API for sending and receiving messages with
-           external MIDI devices and automatically hooking into
-           Overtone's event system." }
-  (:use [overtone.sc.dyn-vars]
-        [overtone.libs event counters]
-        [overtone.sc.defaults :only [INTERNAL-POOL]]
-        [overtone.helpers.system :only [mac-os?]]
-        [overtone.config.store :only [config-get]]
-        )
-  (:require [overtone.config.log :as log]
-            [overtone.midi :as midi]))
+  "A high level MIDI API for sending and receiving messages with external MIDI
+  devices and automatically hooking into Overtone's event system."
+  {:author "Sam Aaron and Jeff Rose"}
+  (:require
+   [overtone.config.log :as log]
+   [overtone.libs.counters :refer :all]
+   [overtone.libs.event :refer :all]
+   [overtone.midi :as midi]))
 
 (defonce midi-control-agents* (atom {}))
 (defonce poly-players* (atom {}))
@@ -121,19 +117,19 @@
 
 (defn midi-player-stop
   ([]
-     (remove-event-handler [::midi-poly-player :midi :note-on])
-     (remove-event-handler [::midi-poly-player :midi :note-off]))
+   (remove-event-handler [::midi-poly-player :midi :note-on])
+   (remove-event-handler [::midi-poly-player :midi :note-off]))
   ([player-or-key]
-     (if (keyword? player-or-key)
-       (midi-player-stop (get @poly-players* player-or-key))
-       (let [player player-or-key]
-         (when-not (= :overtone.studio.midi-player/midi-poly-player (type player))
-           (throw (IllegalArgumentException. (str "Expected a midi-poly-player. Got: " (prn-str (type player))))))
-         (remove-event-handler (:on-key player))
-         (remove-event-handler (:off-key player))
-         (reset! (:playing? player) false)
-         (swap! poly-players* dissoc (:player-key player))
-         player))))
+   (if (keyword? player-or-key)
+     (midi-player-stop (get @poly-players* player-or-key))
+     (let [player player-or-key]
+       (when-not (= :overtone.studio.midi-player/midi-poly-player (type player))
+         (throw (IllegalArgumentException. (str "Expected a midi-poly-player. Got: " (prn-str (type player))))))
+       (remove-event-handler (:on-key player))
+       (remove-event-handler (:off-key player))
+       (reset! (:playing? player) false)
+       (swap! poly-players* dissoc (:player-key player))
+       player))))
 
 
 (defn midi-capture-next-control-input
@@ -146,19 +142,19 @@
   resulting map."
   ([] (midi-capture-next-control-input false))
   ([with-key?]
-     (let [p (promise)]
-       (oneshot-event [:midi :control-change]
-                      (fn [msg]
-                        (let [{controller :data1 val :data2} msg
-                              device-name                    (get-in msg [:device :name])
-                              res {:controller controller :value val}
-                              res (if with-key?
-                                    (assoc res :key (midi-mk-full-device-event-key (:device msg) :control-change))
-                                    res)]
+   (let [p (promise)]
+     (oneshot-event [:midi :control-change]
+                    (fn [msg]
+                      (let [{controller :data1 val :data2} msg
+                            device-name                    (get-in msg [:device :name])
+                            res {:controller controller :value val}
+                            res (if with-key?
+                                  (assoc res :key (midi-mk-full-device-event-key (:device msg) :control-change))
+                                  res)]
 
-                          (deliver p res)))
-                      ::print-next-control-input)
-       @p)))
+                        (deliver p res)))
+                    ::print-next-control-input)
+     @p)))
 
 (defn midi-capture-next-controller-key
   "Returns a vector representing the unique key for the next modified
@@ -275,8 +271,8 @@
           (fn [dev]
             (try
               (midi/midi-handle-events (midi/midi-in dev)
-                                  #(handle-incoming-midi-event dev %1)
-                                  #(handle-incoming-midi-sysex dev %1))
+                                       #(handle-incoming-midi-event dev %1)
+                                       #(handle-incoming-midi-sysex dev %1))
               true
               (catch Exception e
                 (log/warn "Can't listen to midi device: " dev "\n" e)
@@ -341,25 +337,25 @@
   "Send a MIDI control msg to the receiver. See midi-connected-receivers
    for a full list of available receivers."
   ([rcv ctl-num val]
-     (midi/midi-control rcv ctl-num val))
+   (midi/midi-control rcv ctl-num val))
   ([rcv ctl-num val channel]
-     (midi/midi-control rcv ctl-num val channel)))
+   (midi/midi-control rcv ctl-num val channel)))
 
 (defn midi-note-on
   "Send a MIDI note on msg to the receiver. See midi-connected-receivers
    for a full list of available receivers."
   ([rcv note-num vel]
-     (midi/midi-note-on rcv note-num vel))
+   (midi/midi-note-on rcv note-num vel))
   ([rcv note-num vel channel]
-     (midi/midi-note-on rcv note-num vel channel)))
+   (midi/midi-note-on rcv note-num vel channel)))
 
 (defn midi-note-off
   "Send a MIDI note off msg to the receiver. See midi-connected-receivers
    for a full list of available receivers."
   ([rcv note-num]
-     (midi/midi-note-off rcv note-num))
+   (midi/midi-note-off rcv note-num))
   ([rcv note-num channel]
-     (midi/midi-note-off rcv note-num channel)))
+   (midi/midi-note-off rcv note-num channel)))
 
 (defn midi-note
   "Send a midi on/off msg pair to the receiver. The off message will be
@@ -368,6 +364,6 @@
 
    See midi-connected-receivers for a full list of available receivers."
   ([rcv note-num vel dur]
-     (midi/midi-note rcv note-num vel dur))
+   (midi/midi-note rcv note-num vel dur))
   ([rcv note-num vel dur channel]
-     (midi/midi-note rcv note-num vel dur channel)))
+   (midi/midi-note rcv note-num vel dur channel)))

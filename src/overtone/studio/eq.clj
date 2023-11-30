@@ -1,6 +1,6 @@
 (ns overtone.studio.eq
-  ^{:doc "Audio equalizer effect synths."
-    :author "Jeff Rose"}
+  "Audio equalizer effect synths."
+  {:author "Jeff Rose"}
   (:use [overtone.sc.ugens]
         [overtone.sc.envelope]
         [overtone.sc.synth]))
