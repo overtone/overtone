@@ -34,6 +34,7 @@
     (for [[i s] (map-indexed vector cur-pattern)]
       (when (contains? ud-keywords s)
         [(* i beats-per-strum) (ud-keywords s)]))))
+
 (defn strum-pattern [the-guitar metro cur-measure cur-chord cur-pattern]
   (let [cur-beat (* 4 cur-measure)]
     (doall

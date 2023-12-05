@@ -114,30 +114,30 @@
   (keyword (format "%s-%d" s i)))
 
 (defn- now+
-  "add an epsilon of time to (now) to avoid lots of 'late' error messages"
+  "Add an epsilon of time to (now) to avoid lots of 'late' error messages"
   []
   (+ (now) 21)) ;; 21ms seems to get rid of most for me.
 
 ;; ======================================================================
 ;; Main helper functions used to play the instrument: pick or strum
 (defn pick-string
-  "pick the instrument's string depending on the fret selected.  A
+  "Pick the instrument's string depending on the fret selected.  A
    fret value less than -1 will cause no event; -1 or greater causes
    the previous note to be silenced; 0 or greater will also cause a
    new note event."
   ([the-strings the-inst string-index fret t]
-     (let [the-note (fret-to-note (nth the-strings string-index) fret)]
-       ;; turn off the previous note
-       (if (>= the-note -1)
-         (at t (ctl the-inst (mkarg "gate" string-index) 0)))
-       ;; NOTE: there needs to be some time between these
-       ;; FIXME: +50 seems conservative.  Find minimum.
-       (if (>= the-note 0)
-         (at (+ t 50) (ctl the-inst
-                           (mkarg "note" string-index) the-note
-                           (mkarg "gate" string-index) 1)))))
+   (let [the-note (fret-to-note (nth the-strings string-index) fret)]
+     ;; turn off the previous note
+     (if (>= the-note -1)
+       (at t (ctl the-inst (mkarg "gate" string-index) 0)))
+     ;; NOTE: there needs to be some time between these
+     ;; FIXME: +50 seems conservative.  Find minimum.
+     (if (>= the-note 0)
+       (at (+ t 50) (ctl the-inst
+                         (mkarg "note" string-index) the-note
+                         (mkarg "gate" string-index) 1)))))
   ([the-chord-frets the-inst string-index fret]
-     (pick-string the-chord-frets the-inst string-index fret (now+))))
+   (pick-string the-chord-frets the-inst string-index fret (now+))))
 
 ;; ======================================================================
 (defn strum-strings
@@ -288,8 +288,23 @@
 
 ;; ======================================================================
 ;; Main helper functions.  Use pick or strum to play the instrument.
-(def guitar-pick (partial pick-string guitar-string-notes))
-(def guitar-strum (partial strum-strings guitar-chord-frets guitar-string-notes))
+(def guitar-pick
+  "Pick a single string, takes the instrument, a string number, fret number, and
+  timestamp.
+
+  (def g (guitar))
+  (guitar-pick g 4 1 (now)) ; play a C, first fret on the B string
+  "
+  (partial pick-string guitar-string-notes))
+
+(def guitar-strum
+  "Strum a given chord, takes the instrument, a chord, strum direction, and time
+  between notes.
+
+  (def g (guitar))
+  (guitar-strum g :E :down 0.25)
+  "
+  (partial strum-strings guitar-chord-frets guitar-string-notes))
 
 ;; ======================================================================
 ;; Set's a fret on the-inst

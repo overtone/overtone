@@ -1,4 +1,10 @@
 (ns overtone.inst.sampled-flute
+  "Transverse Flute sample pack (vibrato and non-vibrato)
+
+  - https://freesound.org/people/Carlos_Vaquero/packs/9548/
+  - https://freesound.org/people/Carlos_Vaquero/packs/9549/
+
+  License: Creative Commons, Attribution-NonCommercial (CC-By-NC)"
   (:use [overtone.core]
         [overtone.samples.flute :only [vibrato-index-buffer
                                        non-vibrato-index-buffer]]))

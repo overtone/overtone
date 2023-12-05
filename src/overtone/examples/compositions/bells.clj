@@ -1,10 +1,9 @@
 (ns overtone.examples.compositions.bells
   (:use [overtone.live]))
 
-;;http://computermusicresource.com/Simple.bell.tutorial.html
+;; http://computermusicresource.com/Simple.bell.tutorial.html
 (def dull-partials
-  [
-   0.56
+  [0.56
    0.92
    1.19
    1.71
@@ -17,8 +16,7 @@
 ;; http://www.soundonsound.com/sos/Aug02/articles/synthsecrets0802.asp
 ;; (fig 8)
 (def partials
-  [
-   0.5
+  [0.5
    1
    3
    4.2

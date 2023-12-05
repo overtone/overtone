@@ -5,15 +5,17 @@
          serialized by the byte-spec defined in synthdef.clj."
       :author "Jeff Rose"}
     overtone.sc.synth
-  (:use [overtone.helpers lib old-contrib synth]
-        [overtone.libs event counters]
-        [overtone.music time]
-        [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
-        [overtone.sc.machinery synthdef]
-        [overtone.sc bindings ugens server node foundation-groups dyn-vars]
-        [overtone.helpers seq]
-        [clojure.pprint]
-        [overtone.helpers.string :only [hash-shorten]])
+  (:use
+   [clojure.walk :as walk]
+   [overtone.helpers lib old-contrib synth]
+   [overtone.libs event counters]
+   [overtone.music time]
+   [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
+   [overtone.sc.machinery synthdef]
+   [overtone.sc bindings ugens server node foundation-groups dyn-vars]
+   [overtone.helpers seq]
+   [clojure.pprint]
+   [overtone.helpers.string :only [hash-shorten]])
 
   (:require [overtone.config.log]
             [clojure.set :as set]
@@ -575,9 +577,9 @@
         ugen-form       (concat '(do) (next s-form))
         param-names     (list (vec (map #(symbol (:name %)) params)))
         md              (assoc (meta s-name)
-                          :name s-name
-                          :type ::synth
-                          :arglists (list 'quote param-names))]
+                               :name s-name
+                               :type ::synth
+                               :arglists (list 'quote param-names))]
     [(with-meta s-name md) params ugen-form]))
 
 (defmacro defsynth
