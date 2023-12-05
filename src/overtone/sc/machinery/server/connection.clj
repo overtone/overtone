@@ -197,19 +197,6 @@
   [buf]
   (event/event [:overtone :osc-msg-received] :msg (osc-decode-packet buf)))
 
-(defn- sc-log-external
-  "Pull audio server log data from a pipe and store for later printing."
-  [^java.io.BufferedInputStream stream read-buf]
-  (while (pos? (.available stream))
-    (let [n   (min (count read-buf) (.available stream))
-          _   (.read stream read-buf 0 n)
-          msg (String. ^"[B" read-buf 0 n)
-          error? (re-find #"World_OpenUDP" msg)]
-      (swap! external-server-log* conj msg)
-      (if error?
-        (log/error msg)
-        (log/info msg)))))
-
 (defn pipe-scsynth-output
   "Prefix output from scsynth with `[scsynth]`"
   [^java.lang.Process proc]
@@ -244,8 +231,6 @@
                         (.directory (io/file working-dir)))
          proc         (pipe-scsynth-output (.start proc-builder))]
      (while (not (= :disconnected @connection-status*))
-       (sc-log-external in-stream read-buf)
-       (sc-log-external err-stream read-buf)
        (Thread/sleep 250))
      (.destroy ^Process proc))))
 
