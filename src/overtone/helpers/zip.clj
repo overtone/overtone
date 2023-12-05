@@ -73,7 +73,7 @@
           entries (doall (enumeration-seq entries))]
       (dorun
        (map
-        (fn [^java.io.File entry]
+        (fn [^java.util.zip.ZipEntry entry]
           (let [name           (.getName entry)
                 full-dest-path (mk-path dest-path name)
                 ^java.lang.String full-dest-path (canonical-path full-dest-path)]
