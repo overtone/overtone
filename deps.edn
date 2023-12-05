@@ -2,7 +2,7 @@
  ["src" "test"]
 
  :deps
- {overtone/at-at          {:mvn/version "1.3.61"}
+ {overtone/at-at          {:mvn/version "1.3.58"}
   org.clojure/data.json   {:mvn/version "2.4.0"}  ; Freesound
   commons-net/commons-net {:mvn/version "3.10.0"} ; Decode OSC timetag
   javax.jmdns/jmdns       {:mvn/version "3.4.1"}  ; ZeroConf support
