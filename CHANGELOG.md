@@ -2,11 +2,12 @@
 
 This is the first version without the internal SuperCollider server
 (libscsynth). See [this mailing list post](https://groups.google.com/g/overtone/c/qndjDV5FS9Y/m/lPo4QFYpAAAJ)
-for the reasoning behind that change.
+for the reasoning behind that change. This also means we could drop the bulk of our dependencies, 
+making Overtone much lighter.
 
-Our work to keep Overtone relevant for years to come. We've fixed a bunch of
-other long standing issues large and small, modernized the release tooling, and
-improved and added many docstrings.
+Our work continues to keep Overtone relevant for years to come. We've fixed a
+bunch of other long standing issues large and small, modernized the release
+tooling, and improved and added many docstrings.
 
 Since Linux users in particular face a rather confusing audio landscape, we've
 added a [Linux Audio Primer](https://github.com/overtone/overtone/wiki/Linux-Audio-Primer) to the
@@ -16,6 +17,7 @@ wiki, to help you get situated.
 
 - Remove embedded (internal) SuperCollider server 
 - Remove `project.clj`, switch to full Clojure CLI based tooling (see `bin/proj`)
+- Use `at-at` from Clojars, rather than inlining it here
 
 ## Added
 
