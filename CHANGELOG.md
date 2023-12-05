@@ -16,6 +16,7 @@ wiki, to help you get situated.
 ## Changed
 
 - Remove embedded (internal) SuperCollider server 
+- Provide clearer output about what it's doing when starting an external `scsynth`
 - Remove `project.clj`, switch to full Clojure CLI based tooling (see `bin/proj`)
 - Use `at-at` from Clojars, rather than inlining it here
 
