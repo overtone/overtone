@@ -82,8 +82,11 @@
    This is useful to do before attemting external
    server connection on Linux, as not to fail silently"
   []
-  (let [exit-code (:exit (shell/sh "jack_lsp"))]
-    (zero? exit-code)))
+  (try
+    (let [exit-code (:exit (shell/sh "jack_lsp"))]
+      (zero? exit-code))
+    (catch Exception _
+      false)))
 
 (defn- connect-jack-ports
   "Connect the jack input and output ports as best we can.  If jack
@@ -92,21 +95,23 @@
   users)"
   ([] (connect-jack-ports 2))
   ([n-channels]
-   (let [port-list      (logged-sh "jack_lsp")
-         sc-ins         (re-seq #"Overtone.*:in_[0-9]*" port-list)
-         sc-outs        (re-seq #"Overtone.*:out_[0-9]*" port-list)
-         system-ins     (re-seq #"system:capture_[0-9]*" port-list)
-         system-outs    (re-seq #"system:playback_[0-9]*" port-list)
-         interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
-         interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
-         connections    (partition 2 (concat
-                                      (interleave sc-outs system-outs)
-                                      (interleave sc-outs interface-outs)
-                                      (interleave system-ins sc-ins)
-                                      (interleave interface-ins sc-ins)))]
-     (doseq [[src dest] connections]
-       (logged-sh "jack_connect" src dest)
-       (log/info "jack_connect " src " " dest)))))
+   (try
+     (let [port-list      (logged-sh "jack_lsp")
+           sc-ins         (re-seq #"Overtone.*:in_[0-9]*" port-list)
+           sc-outs        (re-seq #"Overtone.*:out_[0-9]*" port-list)
+           system-ins     (re-seq #"system:capture_[0-9]*" port-list)
+           system-outs    (re-seq #"system:playback_[0-9]*" port-list)
+           interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
+           interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
+           connections    (partition 2 (concat
+                                        (interleave sc-outs system-outs)
+                                        (interleave sc-outs interface-outs)
+                                        (interleave system-ins sc-ins)
+                                        (interleave interface-ins sc-ins)))]
+       (doseq [[src dest] connections]
+         (logged-sh "jack_connect" src dest)
+         (log/info "jack_connect " src " " dest)))
+     (catch Exception _))))
 
 (when (linux-os?)
   (deps/on-deps :server-connected
