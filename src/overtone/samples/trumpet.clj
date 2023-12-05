@@ -1,4 +1,14 @@
 (ns overtone.samples.trumpet
+  "Trumpet sample pack by the Music Technology Group (MTG) of the Universitat Pompeu Fabra in Barcelona.
+
+  https://freesound.org/people/MTG/packs/20232/
+
+  Clean up by decadednizen:
+
+  https://freesound.org/people/decadenizen/packs/27542/
+
+  License: CC-BY-3.0 (Share with attribution)
+  "
   {:author "Karl Thorssen"}
   (:require [overtone.core :as overtone]))
 

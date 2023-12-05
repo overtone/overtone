@@ -6,7 +6,7 @@
   {:author "Karl Thorssen"}
   (:require
    [overtone.core :as overtone]
-   [overtone.samples.trumpet :only [trumpet-index-buffer]]))
+   [overtone.samples.trumpet :refer [trumpet-index-buffer]]))
 
 (overtone/definst sampled-trumpet
   "Trumpet based on samples from freesound.org
