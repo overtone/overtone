@@ -7,6 +7,8 @@
    [overtone.config.store :as config]
    [overtone.helpers.file :as file :refer [dir-exists? resolve-tilde-path]]
    [overtone.helpers.lib :refer [deref! print-ascii-art-overtone-logo windows-sc-path]]
+   [overtone.helpers.process-info :as process-info]
+   [overtone.helpers.shell :refer [shellquote]]
    [overtone.helpers.system :refer [get-os linux-os? windows-os?]]
    [overtone.libs.deps :as deps]
    [overtone.libs.event :as event]
@@ -77,16 +79,23 @@
       (log/error "Subprocess error: " (:err res)))
     (:out res)))
 
-(defn- jack-is-running?
+(defn- check-for-jack-or-pipewire!
   "Query the jack ports to see if it's running.
-   This is useful to do before attemting external
-   server connection on Linux, as not to fail silently"
+  This is useful to do before attemting external server connection on Linux, as
+  not to fail silently"
   []
-  (try
-    (let [exit-code (:exit (shell/sh "jack_lsp"))]
-      (zero? exit-code))
-    (catch Exception _
-      false)))
+  (let [ps (filter #(some->> % :command (re-find #"/(pipewire|jackd|jackdbus)$")) (process-info/ps))]
+    (if (seq ps)
+      (do
+        (log/info "Found Jack-compatible server process:")
+        (doseq [{:keys [command user pid arguments]} ps]
+          (log/info (format "%7d %8s %s %s"
+                            pid
+                            user
+                            (shellquote command)
+                            (shellquote arguments)))))
+      (do
+        (log/warn "Could not find Jack or Pipewire, starting SuperCollider (scsynth) will likely fail")))))
 
 (defn- connect-jack-ports
   "Connect the jack input and output ports as best we can.  If jack
@@ -139,8 +148,7 @@
 (defn- external-connection-runner
   [host port]
   (when (linux-os?)
-    (assert (jack-is-running?)
-            "Jack Server should be running before connecting to an external server."))
+    (check-for-jack-or-pipewire!))
   (println  "--> Connecting to external SuperCollider server:" (str host ":" port))
   (log/debug "Connecting to external SuperCollider server: " host ":" port)
   (let [sc-server (osc/osc-client host port false)]
@@ -315,23 +323,6 @@
   [opts]
   (into-array String (cons (scsynth-path) (scsynth-arglist opts))))
 
-(defn shellquote [a]
-  (cond
-    (and (str/includes? a "\"")
-         (str/includes? a "'"))
-    (str "'"
-         (str/replace a "'" "'\"'\"'")
-         "'")
-
-    (str/includes? a "'")
-    (str "\"" a "\"")
-
-    (re-find #"\s|\"" a)
-    (str "'" a "'")
-
-    :else
-    a))
-
 (defn- boot-server
   "Boot the audio server in an external process and tell it to listen on a
   specific port."
@@ -347,7 +338,7 @@
                      (Thread. #(external-booter cmd)))]
      (.setDaemon sc-thread true)
      (println "--> Booting external SuperCollider server...")
-     (log/info (str "Booting SuperCollider server (scsynth) with cmd: " (str/join " " (map shellquote cmd))))
+     (log/info (str "Booting SuperCollider server (scsynth) with cmd: " (shellquote cmd)))
      (.start sc-thread)
      (dosync (ref-set server-thread* sc-thread)
              (alter connection-info* assoc :opts full-opts))
