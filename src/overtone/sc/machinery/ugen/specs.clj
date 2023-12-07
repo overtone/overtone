@@ -496,23 +496,23 @@
    by recursively reducing the specs to support arbitrary levels of derivation."
   ([specs] (derive-ugen-specs specs {} 0))
   ([children adults depth]
-     ;; Make sure a bogus UGen doesn't spin us off into infinity... ;-)
-     {:pre [(< depth 8)]}
+   ;; Make sure a bogus UGen doesn't spin us off into infinity... ;-)
+   {:pre [(< depth 8)]}
 
-     (let [[adults children]
-           (reduce (fn [[full-specs new-children] spec]
-                     (if (derived? spec)
-                       (if (contains? full-specs (:extends spec))
-                         [(assoc full-specs (:name spec)
-                                 (merge (get full-specs (:extends spec)) spec))
-                          new-children]
-                         [full-specs (conj new-children spec)])
-                       [(assoc full-specs (:name spec) spec) new-children]))
-                   [adults []]
-                   children)]
-       (if (empty? children)
-         (vals adults)
-         (recur children adults (inc depth))))))
+   (let [[adults children]
+         (reduce (fn [[full-specs new-children] spec]
+                   (if (derived? spec)
+                     (if (contains? full-specs (:extends spec))
+                       [(assoc full-specs (:name spec)
+                               (merge (get full-specs (:extends spec)) spec))
+                        new-children]
+                       [full-specs (conj new-children spec)])
+                     [(assoc full-specs (:name spec) spec) new-children]))
+                 [adults []]
+                 children)]
+     (if (empty? children)
+       (vals adults)
+       (recur children adults (inc depth))))))
 
 (defn- load-ugen-specs [namespaces]
   "Perform the derivations and setup defaults for rates, names

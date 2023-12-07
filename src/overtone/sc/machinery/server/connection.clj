@@ -242,16 +242,6 @@
        (Thread/sleep 250))
      (.destroy ^Process proc))))
 
-(defn- find-executable
-  "Look for a file on the system's PATH."
-  [program-name]
-  (some
-   (fn [dir]
-     (let [f (File. ^String dir ^String program-name)]
-       (when (file/file-can-execute? f)
-         f)))
-   (.split (System/getenv "PATH") File/pathSeparator)))
-
 (defn- find-well-known-sc-path
   "Find the path for SuperCollider by checking common locations."
   []
@@ -298,7 +288,7 @@
 
 (defn scsynth-path []
   (let [sc-config (config/config-get :sc-path)
-        sc-path (find-executable "scsynth")
+        sc-path (file/find-executable "scsynth")
         sc-wellknown (find-well-known-sc-path)
         match (or sc-config sc-path sc-wellknown)]
     (when-not match
@@ -317,11 +307,25 @@
               ")")
     (str match)))
 
+(defn- has-pipewire? []
+  (some #(some->> % :command (re-find #"/pipewire$")) (process-info/ps)))
+(defn- has-jackd? []
+  (some #(some->> % :command (re-find #"/(jackd|jackdbus)$")) (process-info/ps)))
+(defn- has-pw-jack? []
+  (file/find-executable "pw-jack"))
+
 (defn- sc-command
   "Creates a string array representing the sc command to execute in an external
-  process (typically with #'external-booter)"
+  process (typically with #'external-booter)."
   [opts]
-  (into-array String (cons (scsynth-path) (scsynth-arglist opts))))
+  (into-array String
+              (cond->> (cons (scsynth-path) (scsynth-arglist opts))
+                ;; pw-jack adds PipeWire's Jack implementation to the
+                ;; LD_LIBRARY_PATH, so that Jack applications work with PipeWire
+                ;; instead of looking for original jackd. This might save some
+                ;; people some head scratchers.
+                (and (linux-os?) (has-pipewire?) (has-pw-jack?) (not (has-jackd?)))
+                (cons "pw-jack"))))
 
 (defn- boot-server
   "Boot the audio server in an external process and tell it to listen on a

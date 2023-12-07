@@ -486,3 +486,13 @@
   ([url path timeout n-retries wait-t]
    (print-download-file url)
    (download-file* url path timeout n-retries wait-t)))
+
+(defn find-executable
+  "Look for a file on the system's PATH."
+  [program-name]
+  (some
+   (fn [dir]
+     (let [f (java.io.File. ^String dir ^String program-name)]
+       (when (file-can-execute? f)
+         f)))
+   (.split (System/getenv "PATH") java.io.File/pathSeparator)))
