@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>overtone</groupId>
   <artifactId>overtone</artifactId>
-  <version>0.11.3150</version>
+  <version>0.11.3151</version>
   <name>overtone</name>
   <description>Collaborative Programmable Music.</description>
   <url>https://github.com/overtone/overtone</url>
@@ -25,7 +25,7 @@
     <url>https://github.com/overtone/overtone</url>
     <connection>scm:git:git://github.com/overtone/overtone.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/overtone/overtone.git</developerConnection>
-    <tag>b73b18640f20556fc857510fc9986943d73dcceb</tag>
+    <tag>5b509ad53924395f75271b2cfc43684242566e17</tag>
   </scm>
   <dependencies>
     <dependency>
@@ -60,9 +60,6 @@
       <resource>
         <directory>src</directory>
       </resource>
-      <resource>
-        <directory>test</directory>
-      </resource>
     </resources>
     <plugins>
       <plugin>
@@ -81,7 +78,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <git-revision>b73b18640f20556fc857510fc9986943d73dcceb</git-revision>
+              <git-revision>5b509ad53924395f75271b2cfc43684242566e17</git-revision>
             </manifestEntries>
           </archive>
         </configuration>
@@ -105,16 +102,6 @@
   <repositories>
     <repository>
       <id>clojars</id>
-      <url>https://repo.clojars.org/</url>
-    </repository>
-    <repository>
-      <id>central</id>
-      <name>central</name>
-      <url>https://repo1.maven.org/maven2/</url>
-    </repository>
-    <repository>
-      <id>clojars</id>
-      <name>clojars</name>
       <url>https://repo.clojars.org/</url>
     </repository>
   </repositories>
