@@ -15,7 +15,7 @@
 (def ^:private LOG-APPEND true)
 (def ^:private LOG-LIMIT 5000000)
 (def ^:private LOG-COUNT 2)
-(def ^:private DEFAULT-LOG-LEVEL :warn)
+(def ^:private DEFAULT-LOG-LEVEL :info)
 (def ^:private LOG-LEVELS {:debug Level/FINE
                            :info  Level/INFO
                            :warn  Level/WARNING
@@ -105,7 +105,7 @@
 ;;setup logger
 (defonce ^:private __setup-logs__
   (do
-    #_(.reset (LogManager/getLogManager))
+    (.reset (LogManager/getLogManager))
     (set-level! (initial-log-level))
     (.setFormatter LOG-FILE-HANDLER (log-formatter))
     (console)
