@@ -19,7 +19,6 @@ src/external
 *.log
 *.tmproj
 .DS_Store
-pom.xml
 *.jar
 *.aux
 *.dvi
