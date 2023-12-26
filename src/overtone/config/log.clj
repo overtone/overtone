@@ -105,7 +105,7 @@
 ;;setup logger
 (defonce ^:private __setup-logs__
   (do
-    (.reset (LogManager/getLogManager))
+    #_(.reset (LogManager/getLogManager))
     (set-level! (initial-log-level))
     (.setFormatter LOG-FILE-HANDLER (log-formatter))
     (console)
