@@ -1,3 +1,11 @@
+# Unreleased
+
+## Added
+
+## Fixed
+
+## Changed
+
 # 0.12.3152 (2023-12-26 / 7bad685)
 
 This is the first version without the internal SuperCollider server
