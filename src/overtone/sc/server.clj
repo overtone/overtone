@@ -119,7 +119,7 @@
    (wait-until-deps-satisfied :server-ready)
    :happy-hacking))
 
-(def ^:legacy connect-external-server connect-server)
+(def ^:deprecated connect-external-server connect-server)
 
 (defn boot-external-server
   "Boot an external server by starting up an external process and connecting to
