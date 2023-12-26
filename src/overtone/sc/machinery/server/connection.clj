@@ -349,7 +349,6 @@
      (connect "127.0.0.1" port)
      :booting)))
 
-(def ^:deprecated boot-external-server boot-server)
 (defn ^:deprecated boot-internal-server [& args]
   (log/warn "Overtone no longer contains an internal server, booting external server instead.")
   (apply boot-server args))
