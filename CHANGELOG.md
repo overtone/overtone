@@ -1,4 +1,4 @@
-# Unreleased
+# 0.12.3152 (2023-12-26 / 7bad685)
 
 This is the first version without the internal SuperCollider server
 (libscsynth). See [this mailing list post](https://groups.google.com/g/overtone/c/qndjDV5FS9Y/m/lPo4QFYpAAAJ)

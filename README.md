@@ -42,7 +42,7 @@ collaborating with music.  It provides:
     # https://clojure.org/guides/getting_started
 
     # Create a deps.edn file with a minimum
-    # {:deps {overtone/overtone {:mvn/version "0.10.6"}}}
+    # {:deps {overtone/overtone {:mvn/version "0.12.3152"}}}
     $ clojure
     $ (use 'overtone.live)
 ```
@@ -55,7 +55,7 @@ collaborating with music.  It provides:
 
     # add the following dependencies to insane-noises/project.clj
     # [org.clojure/clojure "1.9.0"]
-    # [overtone/overtone "0.10.6"]
+    # [overtone/overtone "0.12.3152"]
 
     $ cd insane-noises
     $ lein repl
@@ -198,7 +198,7 @@ Overtone and its dependencies are on http://clojars.org, and the
 dependency for your `deps.edn` is:
 
 ```Clojure
-    {overtone/overtone {:mvn/version "0.10.6"}}
+    {overtone/overtone {:mvn/version "0.12.3152"}}
 ```
 
 or for your `project.clj` (Leiningen)
