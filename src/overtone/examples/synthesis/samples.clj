@@ -1,6 +1,5 @@
 (ns overtone.examples.synthesis.samples
-  (:use overtone.live
-        [overtone.studio.scope :only [pscope]]))
+  (:use overtone.live))
 
 ;;; Read me, and evaluate line by line as you go.  To evaluate a form
 ;;; highlight it with the mouse and type <control-e>, using the "e" for
@@ -23,11 +22,6 @@
 ;; download...
 
 (def flute (freesound 35809))
-
-;; Now the audio data for the sample is loaded into a buffer.  You can
-;; view the buffer in the scope window too.  Click in the scope tab on
-;; the right, and evaluate this.
-(pscope flute)
 
 ;; You can play the sample by calling it like a function:
 

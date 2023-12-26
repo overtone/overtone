@@ -8,9 +8,7 @@
 ;;* same as above for the same-rate-as-first-input check
 
 (def specs
-  [
-
-   {:name "TWindex"
+  [{:name "TWindex"
     :summary "Triggered window"
     :args [{:name "trig"
             :doc "Trigger - can be any signal. A trigger happens when

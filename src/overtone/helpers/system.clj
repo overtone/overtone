@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Useful system information fns"
-      :author "Sam Aaron and Jeff Rose"}
-  overtone.helpers.system)
+(ns overtone.helpers.system
+  "Useful system information fns"
+  {:author "Sam Aaron and Jeff Rose"})
 
 (defn system-user-name
   "returns the name of the current user"
@@ -30,6 +29,8 @@
 
 (defn classpath-seq
   "Return the classpath as a seq"
+  {:deprecated "This functions make certain assumptions about the class loaders
+                present, which will in many cases not be accurate."}
   []
   (map (memfn ^java.io.File getPath)
        (seq (.getURLs ^java.net.URLClassLoader (.getClassLoader clojure.lang.RT)))))

@@ -1,8 +1,7 @@
-(ns
-    ^{:doc "A basic dependency system for specifying the execution of
-           fns once dependencies have been met."
-      :author "Sam Aaron & Jeff Rose"}
-  overtone.libs.deps
+(ns overtone.libs.deps
+  "A basic dependency system for specifying the execution of fns once dependencies
+  have been met."
+  {:author "Sam Aaron & Jeff Rose"}
   (:require [clojure.set :as set]
             [overtone.config.log :as log]))
 

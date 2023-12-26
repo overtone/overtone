@@ -1,10 +1,9 @@
-(ns ^{:doc "Records and fns for representing SCUgens. These are to be
-            distinguished from ugens which are Overtone functions which
-            compile down into SCUGens. Trees of SCUGens can then, in
-            turn, be compiled down into a binary synth format for
-            shipping to SCServer."
-      :author "Sam Aaron"}
-    overtone.sc.machinery.ugen.sc-ugen
+(ns overtone.sc.machinery.ugen.sc-ugen
+  "Records and fns for representing SCUgens. These are to be distinguished from
+  ugens which are Overtone functions which compile down into SCUGens. Trees of
+  SCUGens can then, in turn, be compiled down into a binary synth format for
+  shipping to SCServer."
+  {:author "Sam Aaron"}
   (:use [overtone.sc.machinery.ugen defaults]
         [overtone.helpers lib])
   (:require [clojure.pprint]))
@@ -16,7 +15,6 @@
     (defrecord ControlProxy [name value rate rate-name])
 
     (defrecord OutputProxy [name ugen rate rate-name index])))
-
 
 (derive ControlProxy ::control-proxy)
 (derive ::control-proxy ::sc-ugen)

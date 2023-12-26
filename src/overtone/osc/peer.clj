@@ -221,7 +221,9 @@
   (let [{:keys [chan addr]} peer]
     (when-not @addr
       (throw (Exception. (str "No address to send message to."))))
-    (.send ^DatagramChannel chan send-buf @addr)))
+    (try
+      (.send ^DatagramChannel chan send-buf @addr)
+      (catch java.nio.channels.AsynchronousCloseException _))))
 
 (defn bind-chan!
   "Bind a channel's datagram socket to its local port or the specified one if

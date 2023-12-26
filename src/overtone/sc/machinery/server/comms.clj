@@ -7,7 +7,6 @@
 (defonce osc-debug*       (atom false))
 (defonce server-osc-peer* (ref nil))
 
-
 ;; The base handler for receiving osc messages just forwards the message on
 ;; as an event using the osc path as the event key.
 (on-sync-event [:overtone :osc-msg-received]

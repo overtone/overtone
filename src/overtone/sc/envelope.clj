@@ -119,20 +119,20 @@
 
   ;;See prAsArray in supercollider/SCClassLibrary/Common/Audio/Env.sc
   ([levels durations]
-     (envelope levels durations :linear))
+   (envelope levels durations :linear))
   ([levels durations curves]
-     (envelope levels durations curves -99))
+   (envelope levels durations curves -99))
   ([levels durations curves release-node]
-     (envelope levels durations curves release-node -99))
+   (envelope levels durations curves release-node -99))
   ([levels durations curves release-node loop-node]
-     (let [curves    (if (sequential? curves)
-                       curves
-                       [curves])
-           shape-ids (curves->shape-ids curves)
-           curve-ids (curves->curve-ids curves)]
-       (apply vector
-              (concat [(first levels) (count durations) release-node loop-node]
-                      (interleave (rest levels) durations shape-ids curve-ids))))))
+   (let [curves    (if (sequential? curves)
+                     curves
+                     [curves])
+         shape-ids (curves->shape-ids curves)
+         curve-ids (curves->curve-ids curves)]
+     (apply vector
+            (concat [(first levels) (count durations) release-node loop-node]
+                    (interleave (rest levels) durations shape-ids curve-ids))))))
 
 (defmacro defunk-env [fn-name docstring args & body]
   `(do

@@ -32,8 +32,8 @@
 (defn wavetable
   ([num-waves] (wavetable num-waves WAVEFORM-LENGTH))
   ([num-waves size]
-     (when-not (power-of-two? size)
-       (throw (IllegalArgumentException. (str "size is not a power of 2. Got: " size))))
+   (when-not (power-of-two? size)
+     (throw (IllegalArgumentException. (str "size is not a power of 2. Got: " size))))
    (with-meta
      {:size num-waves
       :waveforms (repeatedly num-waves #(buffer size))}

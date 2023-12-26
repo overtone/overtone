@@ -3,7 +3,7 @@
         [overtone.libs event counters]
         [overtone.sc server info defaults node dyn-vars]
         [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection comms native]
+        [overtone.sc.machinery.server connection comms]
         [overtone.sc server info]
         [overtone.helpers audio-file lib file doc]
         [overtone.sc.util :only [id-mapper]]
@@ -588,16 +588,6 @@
 (defmethod buffer-size ::buffer [buf] (:size buf))
 (defmethod buffer-size ::buffer-info [buf-info] (:size buf-info))
 
-(defn buffer-data
-  "Get the floating point data for a buffer on the internal server."
-  [buf]
-  (when-not (internal-server?)
-    (throw (Exception. (str "Only able to fetch buffer data directly from an internal server. Try #'buffer-read instead."))))
-  (ensure-buffer-active! buf)
-  (let [buf-id (buffer-id buf)
-        snd-buf (scsynth-get-buffer-data @sc-world* buf-id)]
-    snd-buf))
-
 ;;TODO Check to see if this can be removed
 (defn sample-info [s]
   (buffer-info (:buf s)))
@@ -636,9 +626,8 @@
   [& args]
   (let [data (first args)]
     (cond
-     (= :overtone.sc.buffer/buffer (type data)) ::buffer
-     (sequential? data) ::sequence)))
-
+      (= :overtone.sc.buffer/buffer (type data)) ::buffer
+      (sequential? data) ::sequence)))
 
 (defmulti write-wav
   "Write data as a wav file. Accepts either a buffer or a sequence of values.
@@ -651,39 +640,6 @@
   seq    [data path frame-rate n-channels]"
   resolve-data-type)
 
-
-(defmethod write-wav ::buffer
-  [data path]
-  (write-audio-file-from-seq (buffer-data data) path (:rate data) (:n-channels data)))
-
 (defmethod write-wav ::sequence
   [data path frame-rate n-channels]
   (write-audio-file-from-seq data path frame-rate n-channels))
-
-(defn buffer-mix-to-mono
-  "Synchronously create a new buffer with only one channel by mixing
-   buffer b down. Mixing is implemented simply by summing successive
-   samples from each channel and dividing by the number of
-   channels. Therefore, for a stereo buffer, the first sample for the
-   left channel is added to the first sample for the right channel and
-   the result is divided by two - and so on for each sample.
-
-   Useful for creating buffers to use with the t-grains ugen.
-
-   Original buffer is left unaffected. Requires internal server."
-  [b]
-  (ensure-buffer-active! b)
-  (let [n-chans (:n-channels b)
-        rate    (:rate b)]
-    (cond
-     (= 1 n-chans) b
-     :else
-     (let [data          (buffer-data b)
-           partitioned   (partition n-chans (seq data))
-           mixed         (mapv (fn [samps] (/ (apply + samps) n-chans)) partitioned)
-           tmp-file-path (mk-path (mk-tmp-dir!) "mono-file.wav")]
-
-       (write-wav mixed tmp-file-path rate 1)
-       (let [new-b (buffer-alloc-read tmp-file-path)]
-         (future (rm-rf! tmp-file-path))
-         new-b)))))

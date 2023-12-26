@@ -296,7 +296,6 @@
         (throw (IllegalArgumentException. err-string))))
     (apply osc-send host path args)))
 
-
 (defn validated-snd
   "Send an scsynth osc message. Validates message. Raises an exception
   if the message is unknown or is not well formed according to the

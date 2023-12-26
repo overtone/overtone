@@ -1,13 +1,12 @@
 (ns overtone.byte-spec
+  "A DSL for specifying the layout of binary data formats.
+  Look at synthdef.clj that defines the format for SuperCollider
+  synthesizer definition (.scsyndef) files for an example of usage."
   (:import (java.net URL)
            (java.io FileInputStream FileOutputStream
                     DataInputStream DataOutputStream
                     BufferedInputStream BufferedOutputStream
                     ByteArrayOutputStream ByteArrayInputStream)))
-
-;; This file implements a DSL for specifying the layout of binary data formats.
-;; Look at synthdef.clj that defines the format for SuperCollider
-;; synthesizer definition (.scsyndef) files for an example of usage.
 
 (def ^{:dynamic true} *spec-out* nil)
 (def ^{:dynamic true} *spec-in*  nil)

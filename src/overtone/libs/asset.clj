@@ -1,11 +1,9 @@
-(ns
-    ^{:doc "A simple local file system-cached asset management system. Assets
-           are specified as URLs which are then cached by being copied to a
-           centralised place in the file system if not already there. This
-           allows assets to be shared by multiple projects on the same system
-           without needing to duplicate them"
-      :author "Sam Aaron"}
-  overtone.libs.asset
+(ns overtone.libs.asset
+  "A simple local file system-cached asset management system. Assets are
+  specified as URLs which are then cached by being copied to a centralised place
+  in the file system if not already there. This allows assets to be shared by
+  multiple projects on the same system without needing to duplicate them"
+  {:author "Sam Aaron"}
   (:use [clojure.java.io :only [file]]
         [clojure.string :only [split]]
         [overtone.helpers file zip string]

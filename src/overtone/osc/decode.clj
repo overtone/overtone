@@ -1,16 +1,21 @@
 (ns overtone.osc.decode
-  (:import [org.apache.commons.net.ntp TimeStamp])
-  (:use [overtone.osc.util]))
+  (:require
+   [overtone.osc.util :refer :all])
+  (:import
+   (org.apache.commons.net.ntp TimeStamp)
+   (java.nio Buffer ByteBuffer)))
+
+(set! *warn-on-reflection* true)
 
 (defn osc-align
   "Jump the current position to a 4 byte boundary for OSC compatible alignment."
-  [buf]
+  [^Buffer buf]
   (.position buf (bit-and (bit-not 3) (+ 3 (.position buf)))))
 
 (defn- decode-string
   "Decode string from current pos in buf. OSC strings are terminated by a null
   char."
-  [buf]
+  [^ByteBuffer buf]
   (let [start (.position buf)]
     (while (not (zero? (.get buf))) nil)
     (let [end (.position buf)
@@ -24,7 +29,7 @@
 (defn- decode-blob
   "Decode binary blob from current pos in buf. Size of blob is determined by the
   first int found in buffer."
-  [buf]
+  [^ByteBuffer buf]
   (let [size (.getInt buf)
         blob (byte-array size)]
     (.get buf blob 0 size)
@@ -33,7 +38,7 @@
 
 (defn- decode-msg
   "Pull data out of the message according to the type tag."
-  [buf]
+  [^ByteBuffer buf]
   (let [path (decode-string buf)
         type-tag (decode-string buf)
         args (reduce (fn [mem t]
@@ -51,7 +56,7 @@
 
 (defn- decode-timetag
   "Decode OSC timetag from current pos in buf."
-  [buf]
+  [^ByteBuffer buf]
   (let [tag (.getLong buf)]
     (if (= tag OSC-TIMETAG-NOW)
       OSC-TIMETAG-NOW
@@ -59,7 +64,7 @@
 
 (defn- osc-bundle-buf?
   "Check whether there is an osc bundle at the current position in buf."
-  [buf]
+  [^ByteBuffer buf]
   (let [start-char (char (.get buf))]
     (.position buf (- (.position buf) 1))
     (= \# start-char)))
@@ -68,7 +73,7 @@
 
 (defn- decode-bundle-items
   "Pull out all the message packets within bundle from current buf position."
-  [buf]
+  [^ByteBuffer buf]
   (loop [items []]
     (if (.hasRemaining buf)
       (let [item-size (.getInt buf)

@@ -1,4 +1,14 @@
 (ns overtone.helpers.sc-lang
+  "Convert a subset of sclang to Overtone
+
+  Convert strings of SuperCollider's built-in language to Overtone forms. Fairly
+  minimal, does not support assignements, code blocks, etc. But can handle basic
+  combinations of UGens. Useful when porting synths, could even be used to embed
+  snippet of sc-lang directly inside Overtone synth definitions.
+
+  (macroexpand '(sc-lang \"Out.ar(0, SinOsc.ar(440))\"))
+  ;; => (do (out:ar 0 (sin-osc:ar 440)))
+  "
   (:use [overtone.helpers lib])
   (:require [clojure.zip :as z]))
 
@@ -87,7 +97,7 @@
              (z/seq-zip tokens))))
 
 (defmacro sc-lang [code]
-    (-> code
+  (-> code
       tokenize
       despace
       infix

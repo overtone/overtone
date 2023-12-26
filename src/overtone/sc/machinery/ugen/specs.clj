@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Read and decorate ugen metadata to create final UGEN-SPECS"
-      :author "Jeff Rose"}
-  overtone.sc.machinery.ugen.specs
+(ns overtone.sc.machinery.ugen.specs
+  "Read and decorate ugen metadata to create final UGEN-SPECS"
+  {:author "Jeff Rose"}
   (:use [clojure.pprint]
         [clojure.set :only [difference]]
         [overtone.helpers lib]
@@ -15,7 +14,7 @@
   '[basicops buf-io compander delay envgen fft2 fft-unpacking grain
     io machine-listening misc osc beq-suite chaos control demand
     ff-osc fft info noise pan trig line input filter random
-    
+
     extras.mda
     extras.stk
     extras.glitch
@@ -497,23 +496,23 @@
    by recursively reducing the specs to support arbitrary levels of derivation."
   ([specs] (derive-ugen-specs specs {} 0))
   ([children adults depth]
-     ;; Make sure a bogus UGen doesn't spin us off into infinity... ;-)
-     {:pre [(< depth 8)]}
+   ;; Make sure a bogus UGen doesn't spin us off into infinity... ;-)
+   {:pre [(< depth 8)]}
 
-     (let [[adults children]
-           (reduce (fn [[full-specs new-children] spec]
-                     (if (derived? spec)
-                       (if (contains? full-specs (:extends spec))
-                         [(assoc full-specs (:name spec)
-                                 (merge (get full-specs (:extends spec)) spec))
-                          new-children]
-                         [full-specs (conj new-children spec)])
-                       [(assoc full-specs (:name spec) spec) new-children]))
-                   [adults []]
-                   children)]
-       (if (empty? children)
-         (vals adults)
-         (recur children adults (inc depth))))))
+   (let [[adults children]
+         (reduce (fn [[full-specs new-children] spec]
+                   (if (derived? spec)
+                     (if (contains? full-specs (:extends spec))
+                       [(assoc full-specs (:name spec)
+                               (merge (get full-specs (:extends spec)) spec))
+                        new-children]
+                       [full-specs (conj new-children spec)])
+                     [(assoc full-specs (:name spec) spec) new-children]))
+                 [adults []]
+                 children)]
+     (if (empty? children)
+       (vals adults)
+       (recur children adults (inc depth))))))
 
 (defn- load-ugen-specs [namespaces]
   "Perform the derivations and setup defaults for rates, names

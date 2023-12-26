@@ -1,16 +1,16 @@
 (ns overtone.sc.node
-  (:use [overtone.helpers lib]
-        [overtone.helpers.seq :only [zipper-seq]]
-        [overtone.libs event deps counters]
-        [overtone.sc server defaults dyn-vars]
-        [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server comms]
-        [overtone.sc.util :only [id-mapper]]
-        [overtone.sc.defaults :only [foundation-groups* INTERNAL-POOL]])
-  (:require [clojure.pprint]
-            [clojure.zip :as zip]
-            [overtone.config.log :as log]
-            [overtone.sc.protocols :as protocols]))
+  (:require
+   [clojure.pprint]
+   [clojure.zip :as zip]
+   [overtone.config.log :as log]
+   [overtone.helpers.lib :refer :all]
+   [overtone.helpers.seq :refer :all]
+   [overtone.libs.counters :refer :all]
+   [overtone.libs.event :refer :all]
+   [overtone.sc.defaults :refer :all]
+   [overtone.sc.dyn-vars :refer :all]
+   [overtone.sc.protocols :as protocols]
+   [overtone.sc.server :refer :all]))
 
 ;; The root group is implicitly allocated
 (defonce _root-group_ (next-id :node))

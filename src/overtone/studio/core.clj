@@ -1,7 +1,6 @@
-(ns
-  ^{:doc "Higher level instrument and studio abstractions."
-     :author "Jeff Rose & Sam Aaron"}
-  overtone.studio.core
+(ns overtone.studio.core
+  "Higher level instrument and studio abstractions."
+  {:author "Jeff Rose & Sam Aaron"}
   (:use [overtone.sc defaults server])
   (:require [overtone.config.log :as log]))
 

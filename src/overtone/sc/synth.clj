@@ -5,15 +5,17 @@
          serialized by the byte-spec defined in synthdef.clj."
       :author "Jeff Rose"}
     overtone.sc.synth
-  (:use [overtone.helpers lib old-contrib synth]
-        [overtone.libs event counters]
-        [overtone.music time]
-        [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
-        [overtone.sc.machinery synthdef]
-        [overtone.sc bindings ugens server node foundation-groups dyn-vars]
-        [overtone.helpers seq]
-        [clojure.pprint]
-        [overtone.helpers.string :only [hash-shorten]])
+  (:use
+   [clojure.walk :as walk]
+   [overtone.helpers lib old-contrib synth]
+   [overtone.libs event counters]
+   [overtone.music time]
+   [overtone.sc.machinery.ugen fn-gen defaults common specs sc-ugen]
+   [overtone.sc.machinery synthdef]
+   [overtone.sc bindings ugens server node foundation-groups dyn-vars]
+   [overtone.helpers seq]
+   [clojure.pprint]
+   [overtone.helpers.string :only [hash-shorten]])
 
   (:require [overtone.config.log]
             [clojure.set :as set]
@@ -361,6 +363,7 @@
         [params ugen-form] (if (vector? (first args))
                              [(first args) (rest args)]
                              [[] args])
+        params (parse-params params)
         param-proxies (control-proxies params)]
     [sname params param-proxies ugen-form]))
 
@@ -450,9 +453,9 @@
     (count ids)))
 
 (defmacro pre-synth
-  "Resolve a synth def to a list of its name, params, ugens (nested if
-   necessary) and constants. Sets the lexical bindings of the param
-   names to control proxies within the synth definition"
+  "Resolve a synth def to a list of its name, params, ugens (nested if necessary)
+  and constants. Sets the lexical bindings of the param names to control proxies
+  within the synth definition"
   [& args]
   (let [[sname params param-proxies ugen-form] (normalize-synth-args args)]
     `(let [~@param-proxies]
@@ -484,7 +487,7 @@
     ;; call foo player with default args:
     (foo)
 
-    ;; call foo player specifyign node should be at the tail of group 0
+    ;; call foo player specifying node should be at the tail of group 0
     (foo [:tail 0])
 
     ;; call foo player with positional arguments
@@ -571,13 +574,12 @@
         _               (when (not (symbol? s-name))
                           (throw (IllegalArgumentException. (str "You need to specify a name for your synth using a symbol"))))
         params          (first s-form)
-        params          (parse-params params)
         ugen-form       (concat '(do) (next s-form))
-        param-names     (list (vec (map #(symbol (:name %)) params)))
+        param-names     (list (vec (map #(symbol (:name %)) (parse-params params))))
         md              (assoc (meta s-name)
-                          :name s-name
-                          :type ::synth
-                          :arglists (list 'quote param-names))]
+                               :name s-name
+                               :type ::synth
+                               :arglists (list 'quote param-names))]
     [(with-meta s-name md) params ugen-form]))
 
 (defmacro defsynth

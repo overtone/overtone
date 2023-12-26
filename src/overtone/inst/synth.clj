@@ -349,7 +349,7 @@
         zout (comb-n src :decay-time 4)]
     zout))
 
-; // Originally from the STK instrument models...
+;; // Originally from the STK instrument models...
 #_(definst bowed
   [note 60 velocity 80 gate 1 amp 1
    bow-offset 0 bow-slope 0.5 bow-position 0.75 vib-freq 6.127 vib-gain 0.2]

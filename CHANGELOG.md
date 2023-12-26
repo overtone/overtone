@@ -1,8 +1,31 @@
 # Unreleased
 
+This is the first version without the internal SuperCollider server
+(libscsynth). See [this mailing list post](https://groups.google.com/g/overtone/c/qndjDV5FS9Y/m/lPo4QFYpAAAJ)
+for the reasoning behind that change. This also means we could drop the bulk of our dependencies, 
+making Overtone much lighter.
+
+Our work continues to keep Overtone relevant for years to come. We've fixed a
+bunch of other long standing issues large and small, modernized the release
+tooling, and improved and added many docstrings.
+
+Since Linux users in particular face a rather confusing audio landscape, we've
+added a [Linux Audio Primer](https://github.com/overtone/overtone/wiki/Linux-Audio-Primer) to the
+wiki, to help you get situated.
+
+## Changed
+
+- Remove embedded (internal) SuperCollider server 
+- Provide clearer output about what it's doing when starting an external `scsynth`
+- Remove `project.clj`, switch to full Clojure CLI based tooling (see `bin/proj`)
+- Use `at-at` from Clojars, rather than inlining it here
+- Detect PipeWire only systems, and prefix `scynth` with `pw-jack`, if it's available
+
 ## Added
 
+- Add Karl Thorssens sampled trumpet instrument (`overtone.inst.sampled-trumpet`)
 - Added `set-fret` and `slide-string` to `overtone.synth.stringed` (#287)
+- Added `freesound-sample-pack`, for downloading a whole pack at once
 - Add an example file for the stringed synths (#287)
 - Add an alias `lin-env` for `lin`, for backwards compatibility
 - On the generated docstring for ugens that collide with Clojure built-ins, mention that you can add a final `:force-ugen` argument as a hint to treat it as a ugen (#505)
@@ -10,15 +33,19 @@
 
 ## Fixed
 
-- Fix an issue where Clojure fails to resolve the right `Thread/sleep`
-  implementation on newer JVMs (#502)
+- Fix an issue where Clojure fails to resolve the right `Thread/sleep` implementation on newer JVMs (#502)
 - Fix calling synths/instruments with 21 arguments or more (#504)
 - Fix the namespace `overtone.inst.synth` on Clojure 1.11 (#505)
 - Mark `abs` as a Clojure numerical function, to make sure it is treated as a UGen when its arguments are not numerical (#505)
-
-## Changed
+- Make `synth`/`defsynth` and `inst`/`definst` take the same form of params (fixes regression, and makes `synth`/`inst` more useful)
+- Ignore errors in `jack_lsp`. Wayland based systems often don't have this command, in which case people can connect SuperCollider to their audio device manually, we should not fail for that.
+- Handle a 429 "too many requests" from Freesound more gracefully
 
 # 0.11.0 (2023-11-02 / 2907605ba)
+
+The first release in a number of years, and the first step in reviving Overtone,
+and keeping it relevant for years to come.
+
 * Fix `overtone.music.pitch/dec-last` (#437)
 * Return notes in ascending order in `overtone.music.pitch/chord`
 * Fix printing of huge map when calling instruments with Cider (#432)
