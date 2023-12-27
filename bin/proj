@@ -1,6 +1,19 @@
 #!/usr/bin/env bb
 
-(ns proj (:require [lioss.main :as lioss]))
+(ns proj
+  (:require
+   [lioss.main :as lioss]
+   [clojure.string :as str]))
+
+(defn update-version-file [conf]
+  (let [[major minor teeny] (map parse-long (str/split (:version conf) #"\."))]
+    (spit
+     "src/overtone/version.clj"
+     (str/replace
+      (slurp "src/overtone/version.clj")
+      #"\(def OVERTONE-VERSION .*\)"
+      (pr-str
+       `(~'def ~'OVERTONE-VERSION {:major ~major :minor ~minor :patch ~teeny :snapshot false}))))))
 
 (lioss/main
  {:license        :mit
@@ -9,7 +22,11 @@
   :org-name       "Overtone"
   :org-url        "https://overtone.github.io/"
   :inception-year 2009
-  :description    "Sound and music live programming environment."})
+  :description    "Sound and music live programming environment."
+  :pre-release-hook update-version-file
+  :commands ["update-version-file"
+             {:description "Store the current version in overtone/version.clj"
+              :command update-version-file}]})
 
 
 ;; Local Variables:

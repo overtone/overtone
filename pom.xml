@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>overtone</groupId>
   <artifactId>overtone</artifactId>
-  <version>0.12.3152</version>
+  <version>0.12.3156</version>
   <name>overtone</name>
-  <description>Collaborative Programmable Music.</description>
+  <description>Sound and music live programming environment.</description>
   <url>https://github.com/overtone/overtone</url>
-  <inceptionYear>2019</inceptionYear>
+  <inceptionYear>2009</inceptionYear>
   <organization>
     <name>Overtone</name>
     <url>https://overtone.github.io/</url>
@@ -17,15 +17,15 @@
   </properties>
   <licenses>
     <license>
-      <name>Eclipse Public License 1.0</name>
-      <url>https://www.eclipse.org/legal/epl-v10.html</url>
+      <name>The MIT License (MIT)</name>
+      <url>https://opensource.org/licenses/MIT</url>
     </license>
   </licenses>
   <scm>
     <url>https://github.com/overtone/overtone</url>
     <connection>scm:git:git://github.com/overtone/overtone.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/overtone/overtone.git</developerConnection>
-    <tag>a7a2b10e8cfed08dfd58497b5d2a37f585b3e5f6</tag>
+    <tag>361e1e6f44042e8260b55d70098cf5c257ef9ddd</tag>
   </scm>
   <dependencies>
     <dependency>
@@ -78,7 +78,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <git-revision>a7a2b10e8cfed08dfd58497b5d2a37f585b3e5f6</git-revision>
+              <git-revision>361e1e6f44042e8260b55d70098cf5c257ef9ddd</git-revision>
             </manifestEntries>
           </archive>
         </configuration>
