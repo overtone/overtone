@@ -1,0 +1,17 @@
+#!/usr/bin/env bb
+
+(ns proj (:require [lioss.main :as lioss]))
+
+(lioss/main
+ {:license        :mit
+  :group-id       "overtone"
+  :gh-project     "overtone/overtone"
+  :org-name       "Overtone"
+  :org-url        "https://overtone.github.io/"
+  :inception-year 2009
+  :description    "Sound and music live programming environment."})
+
+
+;; Local Variables:
+;; mode:clojure
+;; End:
