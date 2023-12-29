@@ -20,7 +20,7 @@
   [url tmp-file]
   (println "--> Asset not cached - starting download...")
   (binding [*verbose-overtone-file-helpers* 2]
-    (download-file url tmp-file 20000 100 5000)))
+    (download-file url tmp-file 20000 20 5000)))
 
 (defn- safe-url
   "Return a version of url safe for use as a file or directory name. Removes
