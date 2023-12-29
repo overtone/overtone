@@ -2,6 +2,11 @@
 
 ## Added
 
+- Watch for MIDI device plug/unplug, so that adding a device doesn't require a
+  restart. These will also emit events: `:midi-device-connected` /
+  `:midi-device-disconnected` / `:midi-receiver-connected` /
+  `:midi-receiver-disconnected`
+
 ## Fixed
 
 - Make sure we print the correct version when booting
@@ -14,7 +19,6 @@
   instead of relying on `jack_lsp` which may not be available, especially on
   PipeWire-based systems
 - Reduce HTTP retries when downloading samples from 100 to 20
-  
 
 # 0.12.3152 (2023-12-26 / 7bad685)
 
