@@ -119,7 +119,7 @@
    function to not call itself, or use (stop)."
   {:arglists '([ms-time f args* argseq])
    :arglists-modified? true}
-  [#^clojure.lang.IFn ms-time f & args]
+  [ms-time ^clojure.lang.IFn f & args]
   (let [delay-time (- ms-time *apply-ahead* (now))]
     (if (<= delay-time 0)
       (after-delay 0 #(apply f (#'clojure.core/spread args)))
@@ -156,7 +156,7 @@
    function to not call itself, or use (stop)."
   {:arglists '([ms-time f args* argseq])
    :arglists-modified? true}
-  [#^clojure.lang.IFn ms-time f & args]
+  [ms-time ^clojure.lang.IFn f & args]
   (let [delay-time (- ms-time (now))]
     (if (<= delay-time 0)
       (after-delay 0 #(apply f (#'clojure.core/spread args)))
