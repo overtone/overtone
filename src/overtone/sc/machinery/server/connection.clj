@@ -1,5 +1,6 @@
 (ns overtone.sc.machinery.server.connection
   (:require
+   [casa.squid.jack :as jack]
    [clojure.java.io :as io]
    [clojure.java.shell :as shell]
    [clojure.string :as str]
@@ -71,14 +72,6 @@
     (server-snd "/notify" 1)
     (deref! notifications-enabled "whilst turning server notifications on")))
 
-(defn- logged-sh
-  "Run a shell command and log any errors. Returns stdout."
-  [cmd & args]
-  (let [res (apply shell/sh cmd args)]
-    (when-not (zero? (:exit res))
-      (log/error "Subprocess error: " (:err res)))
-    (:out res)))
-
 (defn- check-for-jack-or-pipewire!
   "Query the jack ports to see if it's running.
   This is useful to do before attemting external server connection on Linux, as
@@ -97,30 +90,24 @@
       (do
         (log/warn "Could not find Jack or Pipewire, starting SuperCollider (scsynth) will likely fail")))))
 
+(defn- overtone-ports []
+  (sort (filter #(re-find #"Overtone|SuperCollider" %)
+                (jack/ports @jack/default-client #{:audio :out}))))
+
+(defn- overtone-conns []
+  (map vector
+       (overtone-ports)
+       (sort (jack/ports @jack/default-client #{:audio :physical :in}))))
+
 (defn- connect-jack-ports
-  "Connect the jack input and output ports as best we can.  If jack
-  ports are always different names with different drivers or hardware
-  then we need to find a better strategy to auto-connect. (For Linux
-  users)"
-  ([] (connect-jack-ports 2))
+  "Connect the jack input and output ports as best we can."
+  ([]
+   (connect-jack-ports 2))
   ([n-channels]
    (try
-     (let [port-list      (logged-sh "jack_lsp")
-           sc-ins         (re-seq #"Overtone.*:in_[0-9]*" port-list)
-           sc-outs        (re-seq #"Overtone.*:out_[0-9]*" port-list)
-           system-ins     (re-seq #"system:capture_[0-9]*" port-list)
-           system-outs    (re-seq #"system:playback_[0-9]*" port-list)
-           interface-ins  (re-seq #"system:AC[0-9]*_dev[0-9]*_.*In.*" port-list)
-           interface-outs (re-seq #"system:AP[0-9]*_dev[0-9]*_LineOut.*" port-list)
-           connections    (partition 2 (concat
-                                        (interleave sc-outs system-outs)
-                                        (interleave sc-outs interface-outs)
-                                        (interleave system-ins sc-ins)
-                                        (interleave interface-ins sc-ins)))]
-       (doseq [[src dest] connections]
-         (logged-sh "jack_connect" src dest)
-         (log/info "jack_connect " src " " dest)))
-     (catch Exception _))))
+     (jack/connect (take n-channels (overtone-conns)))
+     (catch Exception e
+       (log/warn (str "Failed connecting SuperCollider to audio device: " (ex-message e)))))))
 
 (when (linux-os?)
   (deps/on-deps :server-connected

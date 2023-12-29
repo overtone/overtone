@@ -9,6 +9,10 @@
 
 ## Changed
 
+- Use JNA Jack (via casa.squid.jack) to connect SuperCollider's audio output,
+  instead of relying on `jack_lsp` which may not be available, especially on
+  PipeWire-based systems
+
 # 0.12.3152 (2023-12-26 / 7bad685)
 
 This is the first version without the internal SuperCollider server
