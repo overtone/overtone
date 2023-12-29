@@ -445,16 +445,25 @@
          (throw (Exception. (str "  --> Aborting! Download failed. File not found: " url ))))
        (catch Exception e
          (rm-rf! path)
-         (if (str/includes? (.getMessage e) "HTTP response code: 429")
-           ;; 429 Too Many Requests
-           (let [wait-t (* 2 wait-t)]
-             (print-if-verbose (format "  --> Too Many Requests, increasing wait time to %.1fs" (double wait-t)))
-             (Thread/sleep wait-t)
-             (download-file* url path timeout n-retries wait-t (inc attempts-made)))
-           (do
-             (print-if-verbose (str "  --> Download timed out. Retry " (inc attempts-made)))
-             (Thread/sleep wait-t)
-             (download-file* url path timeout n-retries wait-t (inc attempts-made)))))))))
+         (let [[_ code] (re-find #"HTTP response code: (\d+)" (.getMessage e))]
+           (cond
+             (= "429" code)
+             ;; 429 Too Many Requests
+             (let [wait-t (* 2 wait-t)]
+               (print-if-verbose (format "  --> Too Many Requests, increasing wait time to %.1fs" (double wait-t)))
+               (Thread/sleep wait-t)
+               (download-file* url path timeout n-retries wait-t (inc attempts-made)))
+
+             (= "401" code)
+             (throw (ex-info (.getMessage e)
+                             {:url url
+                              :response-code 401}
+                             e))
+             :else
+             (do
+               (print-if-verbose (str "  --> Download timed out. Retry " (inc attempts-made) (when code (str " (" code ")"))))
+               (Thread/sleep wait-t)
+               (download-file* url path timeout n-retries wait-t (inc attempts-made))))))))))
 
 (defn- print-download-file
   [url]

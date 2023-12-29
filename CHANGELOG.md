@@ -6,6 +6,7 @@
 
 - Make sure we print the correct version when booting
 - Fix the license information in pom.xml (MIT)
+- Handle a 401 response from Freesound by asking for a new token, instead of retrying
 
 ## Changed
 

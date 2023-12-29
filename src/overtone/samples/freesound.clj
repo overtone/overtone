@@ -117,7 +117,16 @@
                (when (not @*access-token*)
                  (authorization-instructions))
                (str "Bearer " @*access-token*))]
-     ~b))
+     (let [do-request# #(do ~b)]
+       (try
+         (do-request#)
+         (catch clojure.lang.ExceptionInfo e#
+           (if (= 401 (:response-code (ex-data e#)))
+             (do
+               (println "Freesound responded with 401 Unauthorized, your token has likely expired.")
+               (reset! *access-token* nil)
+               (do-request#))
+             (throw e#)))))))
 
 ;; ## Sound Info
 (defn- info-url
