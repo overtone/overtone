@@ -4,6 +4,9 @@
 
 ## Fixed
 
+- Make sure we print the correct version when booting
+- Fix the license information in pom.xml (MIT)
+
 ## Changed
 
 # 0.12.3152 (2023-12-26 / 7bad685)
