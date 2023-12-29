@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Basic stateful keyword indexed integer counters"
-      :author "Jeff Rose and Sam Aaron"}
-    overtone.libs.counters)
+(ns overtone.libs.counters
+  "Basic stateful keyword indexed integer counters"
+  {:author "Jeff Rose and Sam Aaron"})
 
 (defonce counters* (atom {}))
 

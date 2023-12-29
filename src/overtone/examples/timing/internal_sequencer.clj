@@ -11,12 +11,12 @@
 ;; drive both the timing and to also modulate aspects of the synthesis
 ;; so that the modulations are sympathetic to the rhythms being played.
 
-
 ;; First, let's create some sequencer buffers for specifying which beat
 ;; to trigger a sample. This will be our core data structure for a basic
 ;; emulation of an 8-step sequencer. A buffer is like a Clojure vector,
 ;; except it lives on the server and may only contain floats. Buffers
 ;; are initialised to have all values be 0.0
+
 (defonce buf-0 (buffer 8))
 (defonce buf-1 (buffer 8))
 (defonce buf-2 (buffer 8))
@@ -31,6 +31,7 @@
 ;; contain a stream of the current tick count. We then have two of each
 ;; type of bus - one for a high resolution global metronome, and another
 ;; for a division of the global metronome for our beats.
+
 (defonce root-trg-bus (control-bus)) ;; global metronome pulse
 (defonce root-cnt-bus (control-bus)) ;; global metronome count
 (defonce beat-trg-bus (control-bus)) ;; beat pulse (fraction of root)

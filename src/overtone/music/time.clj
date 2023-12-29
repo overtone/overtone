@@ -1,14 +1,15 @@
-(ns
-    ^{:doc "Functions to help manage and structure computation in time."
-      :author "Jeff Rose and Sam Aaron"}
-  overtone.music.time
-  (:use [overtone.libs event]
-        [overtone.helpers lib])
-  (:require [overtone.at-at :as at-at]
-            [overtone.sc.protocols :as protocols]))
+(ns overtone.music.time
+  "Functions to help manage and structure computation in time.
 
-;;Scheduled thread pool (created by at-at) which is to be used by default for
-;;all scheduled musical functions (players).
+  Mostly consists of convenience functions around at-at"
+  {:author "Jeff Rose and Sam Aaron"}
+  (:require
+   [overtone.at-at :as at-at]
+   [overtone.libs.event :as event]
+   [overtone.sc.protocols :as protocols]))
+
+;; Scheduled thread pool (created by at-at) which is to be used by default for
+;; all scheduled musical functions (players).
 (defonce player-pool (at-at/mk-pool))
 
 (defn now
@@ -21,7 +22,7 @@
   defaults to the player-pool."
   ([ms-delay fun] (after-delay ms-delay fun "Overtone delayed fn"))
   ([ms-delay fun description]
-     (at-at/at (+ (now) ms-delay) fun player-pool :desc description)))
+   (at-at/at (+ (now) ms-delay) fun player-pool :desc description)))
 
 (defn periodic
   "Calls fun every ms-period, and takes an optional initial-delay for
@@ -29,11 +30,11 @@
   ([ms-period fun] (periodic ms-period fun 0))
   ([ms-period fun initial-delay] (periodic ms-period fun initial-delay "Overtone periodic fn"))
   ([ms-period fun initial-delay description]
-     (at-at/every ms-period
-                  fun
-                  player-pool
-                  :initial-delay initial-delay
-                  :desc description)))
+   (at-at/every ms-period
+                fun
+                player-pool
+                :initial-delay initial-delay
+                :desc description)))
 
 (defn interspaced
   "Calls fun repeatedly with an interspacing of ms-period, i.e. the next
@@ -43,18 +44,19 @@
   ([ms-period fun] (interspaced ms-period fun 0))
   ([ms-period fun initial-delay] (interspaced ms-period fun initial-delay "Overtone interspaced fn"))
   ([ms-period fun initial-delay description]
-     (at-at/interspaced ms-period
-                        fun
-                        player-pool
-                        :initial-delay initial-delay
-                        :desc description)))
+   (at-at/interspaced ms-period
+                      fun
+                      player-pool
+                      :initial-delay initial-delay
+                      :desc description)))
 
-;;Ensure all scheduled player fns are stopped when Overtone is reset
-;;(typically triggered by a call to stop)
-(on-sync-event :reset
-               (fn [event-info] (at-at/stop-and-reset-pool! player-pool
-                                                           :strategy :kill))
-               ::player-reset)
+;; Ensure all scheduled player fns are stopped when Overtone is reset
+;; (typically triggered by a call to stop)
+(event/on-sync-event
+ :reset
+ (fn [event-info]
+   (at-at/stop-and-reset-pool! player-pool :strategy :kill))
+ ::player-reset)
 
 (defn stop-player
   "Stop scheduled fn gracefully if it hasn't already executed."
@@ -79,7 +81,7 @@
   300)
 
 (defn apply-by
-  "Ahead-of-schedule function appliction. Works identically to
+  "Ahead-of-schedule function application. Works identically to
    apply, except that it takes an additional initial argument:
    ms-time. If ms-time is in the future, function application is delayed
    until *apply-ahead* ms before that time, if ms-time is in the past
