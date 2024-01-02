@@ -87,25 +87,11 @@
                    "This can be configured in overtone config under :sc-args {:max-buffers 2^x}.")))))
 
 (defmethod clojure.pprint/simple-dispatch BufferInfo [b]
-  (println
-   (format "#<buffer-info: %fs %s %d>"
-           (:duration b)
-           (cond
-             (= 1 (:n-channels b)) "mono"
-             (= 2 (:n-channels b)) "stereo"
-             :else                 (str (:n-channels b) " channels"))
-           (:id b))))
+  (print "#overtone/BufferInfo ")
+  (clojure.pprint/pprint (into {} b)))
 
 (defmethod print-method BufferInfo [b ^java.io.Writer w]
-  (.write w (format "#<buffer-info: %fs %s %d>"
-                    (:duration b)
-                    (cond
-                      (= 1 (:n-channels b)) "mono"
-                      (= 2 (:n-channels b)) "stereo"
-                      :else                 (str (:n-channels b) " channels"))
-                    (:id b))))
-
-
+  (.write w (str "#overtone/BufferInfo " (pr-str (into {} b)))))
 
 (defn buffer-info
   "Fetch the information for buffer associated with buf-id (either an

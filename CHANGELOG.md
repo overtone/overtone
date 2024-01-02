@@ -19,6 +19,7 @@
   instead of relying on `jack_lsp` which may not be available, especially on
   PipeWire-based systems
 - Reduce HTTP retries when downloading samples from 100 to 20
+- print `BufferInfo` as a reader conditional + map, to make it clear it's a data object
 
 # 0.12.3152 (2023-12-26 / 7bad685)
 
