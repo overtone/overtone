@@ -415,20 +415,20 @@
   [pnames ugens ug]
   (assoc ug :inputs
          (map
-           (fn [{:keys [src index] :as input}]
-             (if src
-               (let [u-in (nth ugens src)]
-                 (if (= "Control" (:name u-in))
-                   (nth pnames index)
-                   (:sname (nth ugens src))))
-               input))
-           (:inputs ug))))
+          (fn [{:keys [src index] :as input}]
+            (if src
+              (let [u-in (nth ugens src)]
+                (if (= "Control" (:name u-in))
+                  (nth pnames index)
+                  (:sname (nth ugens src))))
+              input))
+          (:inputs ug))))
 
-; In order to do this correctly is a big project because you also have to
-; reverse the process of the various ugen modes.  For example, you need
-; to recognize the ugens that have array arguments which will be
-; appended, and then you need to gather up the inputs and place them into
-; an array at the correct argument location.
+;; In order to do this correctly is a big project because you also have to
+;; reverse the process of the various ugen modes.  For example, you need
+;; to recognize the ugens that have array arguments which will be
+;; appended, and then you need to gather up the inputs and place them into
+;; an array at the correct argument location.
 (defn synthdef-decompile
   "Decompile a parsed SuperCollider synth definition back into clojure
   code that could be used to generate an identical synth.
@@ -447,10 +447,10 @@
         ugens (map (partial reverse-ugen-inputs pnames ugens) ugens)
         ugens (filter #(not= "Control" (:name %)) ugens)
         ugen-forms (map vector
-                     (map :sname ugens)
-                     (map ugen-form ugens))]
-      (print (format "(defsynth %s %s\n  (let [" sname param-vec))
-      (println (ffirst ugen-forms) (second (first ugen-forms)))
-      (doseq [[uname uform] (drop 1 ugen-forms)]
-        (println "       " uname uform))
-      (println (str "       ]\n   " (first (last ugen-forms)) ")"))))
+                        (map :sname ugens)
+                        (map ugen-form ugens))]
+    (print (format "(defsynth %s %s\n  (let [" sname param-vec))
+    (println (ffirst ugen-forms) (second (first ugen-forms)))
+    (doseq [[uname uform] (drop 1 ugen-forms)]
+      (println "       " uname uform))
+    (println (str "       ]\n   " (first (last ugen-forms)) ")"))))

@@ -1,13 +1,17 @@
 (ns overtone.sc.buffer
-  (:use [clojure.java.io :only [file]]
-        [overtone.libs event counters]
-        [overtone.sc server info defaults node dyn-vars]
-        [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection comms]
-        [overtone.sc server info]
-        [overtone.helpers audio-file lib file doc]
-        [overtone.sc.util :only [id-mapper]]
-        [overtone.config.store :refer [config-get]])
+  "Manipulate SuperCollider buffers
+
+  These are server-side objects."
+  (:use
+   [clojure.java.io :only [file]]
+   [overtone.libs event counters]
+   [overtone.sc server info defaults node dyn-vars]
+   [overtone.sc.machinery allocator]
+   [overtone.sc.machinery.server connection comms]
+   [overtone.sc server info]
+   [overtone.helpers audio-file lib file doc]
+   [overtone.sc.util :only [id-mapper]]
+   [overtone.config.store :refer [config-get]])
   (:require [clojure.pprint]))
 
 (defonce ^{:private true} __RECORDS__
@@ -143,9 +147,6 @@
         :rate-scale rate-scale
         :duration duration}))))
 
-
-
-
 (defn buffer
   "Synchronously allocate a new zero filled buffer for storing audio
   data with the specified size and num-channels. Size will be
@@ -191,17 +192,17 @@
          id   (do (assert-less-than-max-buffers :audio-buffer)
                   (next-id :audio-buffer))]
      (snd-immediately
-      (with-server-sync
-        #(snd "/b_allocRead" id path start n-frames)
-        (str "whilst allocating a buffer to contain the contents of file: " path))
-      (let [info                              (buffer-info id)
-            {:keys [id size rate n-channels]} info]
-        (when (every? zero? [size rate n-channels])
-          (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
+       (with-server-sync
+         #(snd "/b_allocRead" id path start n-frames)
+         (str "whilst allocating a buffer to contain the contents of file: " path))
+       (let [info                              (buffer-info id)
+             {:keys [id size rate n-channels]} info]
+         (when (every? zero? [size rate n-channels])
+           (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
 
-        (map->BufferFile
-         (assoc info
-                :status (atom :live))))))))
+         (map->BufferFile
+          (assoc info
+                 :status (atom :live))))))))
 
 (derive BufferInfo ::buffer-info)
 (derive Buffer     ::buffer)
@@ -234,9 +235,9 @@
 (defn ensure-buffer-active!
   ([buf] (ensure-buffer-active! buf "Trying to work with an inactive buffer."))
   ([buf err-msg]
-     (when (and (buffer? buf)
-                (not (buffer-live? buf)))
-       (emit-inactive-buffer-modification-error buf err-msg))))
+   (when (and (buffer? buf)
+              (not (buffer-live? buf)))
+     (emit-inactive-buffer-modification-error buf err-msg))))
 
 (defn buffer-free
   "Synchronously free an audio buffer and the memory it was consuming."
@@ -409,28 +410,28 @@
   the server. Index defaults to 0 if not specified."
   ([buf val] (buffer-set! buf 0 val))
   ([buf index val]
-     (ensure-buffer-active! buf)
-     (assert (buffer? buf))
-     (snd "/b_set" (:id buf) index (double val))
-     buf))
+   (ensure-buffer-active! buf)
+   (assert (buffer? buf))
+   (snd "/b_set" (:id buf) index (double val))
+   buf))
 
 (defn buffer-get
   "Read a single value from a buffer. Index defaults to 0 if not specified."
   ([buf] (buffer-get buf 0))
   ([buf index]
-     (ensure-buffer-active! buf)
-     (assert (buffer? buf))
-     (let [error-msg (str "attempting to receive a single value at index " index " in buffer " (with-out-str (pr buf)))
-           buf-id (:id buf)
-           prom   (recv "/b_set" (fn [msg]
-                                   (let [[msg-buf-id msg-start _] (:args msg)]
-                                     (and (= msg-buf-id buf-id)
-                                          (= msg-start index)))))]
+   (ensure-buffer-active! buf)
+   (assert (buffer? buf))
+   (let [error-msg (str "attempting to receive a single value at index " index " in buffer " (with-out-str (pr buf)))
+         buf-id (:id buf)
+         prom   (recv "/b_set" (fn [msg]
+                                 (let [[msg-buf-id msg-start _] (:args msg)]
+                                   (and (= msg-buf-id buf-id)
+                                        (= msg-start index)))))]
 
-       (with-server-sync
-         #(snd "/b_get" buf-id index)
-         (str "whilst " error-msg))
-       (last (:args (deref! prom error-msg))))))
+     (with-server-sync
+       #(snd "/b_get" buf-id index)
+       (str "whilst " error-msg))
+     (last (:args (deref! prom error-msg))))))
 
 
 
@@ -466,7 +467,7 @@
         {:keys [header samples n-frames start-frame]} arg-map]
 
     (snd "/b_write" (:id buf) path header samples
-                    n-frames start-frame 0)
+         n-frames start-frame 0)
     :buffer-saved))
 
 (defn buffer-stream
@@ -504,10 +505,10 @@
     (snd "/b_write" (:id buf) path header samples -1 0 1)
     (map->BufferOutStream
      (assoc buf
-       :path path
-       :header header
-       :samples samples
-       :open? (atom true)))))
+            :path path
+            :header header
+            :samples samples
+            :open? (atom true)))))
 
 (derive BufferOutStream ::buffer-out-stream)
 (derive ::buffer-out-stream ::file-buffer)
@@ -553,10 +554,10 @@
         buf (buffer-alloc-read path start size)]
     (snd "/b_read" (:id buf) path start -1 0 1)
     (map->BufferInStream
-      (assoc buf
-        :path path
-        :start start
-        :open? (atom true)))))
+     (assoc buf
+            :path path
+            :start start
+            :open? (atom true)))))
 
 (derive BufferInStream ::buffer-in-stream)
 (derive ::buffer-in-stream ::file-buffer)
@@ -569,15 +570,15 @@
   "Moves the start position of a buffer cue to the frame indicated by
   'pos'. Defaults to 0. Returns the buffer when done."
   ([buf-cue]
-     (buffer-cue-pos buf-cue 0))
+   (buffer-cue-pos buf-cue 0))
   ([buf-cue pos]
-     (assert (buffer-in-stream? buf-cue))
-     (when-not @(:open? buf-cue)
-       (throw (Exception. "buffer-in-stream is closed.")))
-     (let [{:keys [id path]} buf-cue]
-       (snd "/b_close" id)
-       (snd "/b_read" id path pos -1 0 1))
-     buf-cue))
+   (assert (buffer-in-stream? buf-cue))
+   (when-not @(:open? buf-cue)
+     (throw (Exception. "buffer-in-stream is closed.")))
+   (let [{:keys [id path]} buf-cue]
+     (snd "/b_close" id)
+     (snd "/b_read" id path pos -1 0 1))
+   buf-cue))
 
 (defn buffer-id
   "Return the id of buffer b. Simply punts out to to-sc-id"

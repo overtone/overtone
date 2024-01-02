@@ -835,7 +835,6 @@
   protocols/IKillable
   {:kill* group-deep-clear*})
 
-
 (extend java.lang.Long
   ISynthGroup
   {:group-prepend-node group-prepend-node*
@@ -849,37 +848,40 @@
 (defn node-tree
   "Returns a data representation of the synth node tree starting at
   the root group."
-  ([] (node-tree (:root-group @foundation-groups*)))
+  ([]
+   (node-tree (:root-group @foundation-groups*)))
   ([root]
-     (ensure-connected!)
-     (group-node-tree (to-sc-id root))))
+   (ensure-connected!)
+   (group-node-tree (to-sc-id root))))
 
 (defn node-tree-zipper
   "Returns a zipper representing the tree of the specified node or
   defaults to the current node tree"
-  ([] (node-tree-zipper (:root-group @foundation-groups*)))
+  ([]
+   (node-tree-zipper (:root-group @foundation-groups*)))
   ([root]
-     (zip/zipper map? :children #(assoc %1 :children %2) (group-node-tree root))))
+   (zip/zipper map? :children #(assoc %1 :children %2) (group-node-tree root))))
 
 (defn node-tree-seq
-  "Returns a lazy seq of a depth-first traversal of the tree of the
-  specified node defaulting to the current node tree"
+  "Returns a lazy seq of a depth-first traversal of the tree of the specified node
+  defaulting to the current node tree"
   ([] (node-tree-seq (:root-group @foundation-groups*)))
   ([root] (zipper-seq (node-tree-zipper root))))
 
 (defn node-tree-matching-synth-ids
-  "Returns a seq of synth ids in the node tree with specific
-  root (defaulting to the entire node tree) that match regexp or
-  strign."
-  ([re-or-str] (node-tree-matching-synth-ids re-or-str (:root-group @foundation-groups*)))
+  "Returns a seq of synth ids in the node tree with specific root (defaulting to
+  the entire node tree) that match regexp or string."
+  ([re-or-str]
+   (node-tree-matching-synth-ids re-or-str (:root-group @foundation-groups*)))
   ([re-or-str root]
-     (let [matcher-fn (if (string? re-or-str)
-                        =
-                        re-matches)]
-       (map :id
-            (filter #(and (:name %)
-                          (matcher-fn re-or-str (:name %)))
-                    (node-tree-seq root))))))
+   (let [matcher-fn (if (string? re-or-str)
+                      =
+                      re-matches)]
+     (map :id
+          (filter #(and (:name %)
+                        (matcher-fn re-or-str (:name %)))
+                  (node-tree-seq root))))))
+
 (defn pp-node-tree
   "Pretty print the node tree to *out*"
   ([] (pp-node-tree (:root-group @foundation-groups*)))
