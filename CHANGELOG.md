@@ -2,6 +2,7 @@
 
 ## Added
 
+- New `loop-buf` UGen, for looping samples (part of sc3-plugins "extras")
 - Watch for MIDI device plug/unplug, so that adding a device doesn't require a
   restart. These will also emit events: `:midi-device-connected` /
   `:midi-device-disconnected` / `:midi-receiver-connected` /
