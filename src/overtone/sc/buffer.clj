@@ -246,29 +246,30 @@
   reading of buffer data with the internal server, see buffer-data."
   ([buf] (buffer-read buf 0 (:size buf)))
   ([buf start len]
-     (ensure-buffer-active! buf)
-     (assert (buffer? buf))
-     (let [buf-id  (:id buf)
-           samples (float-array len)]
-       (loop [n-vals-read 0]
-         (if (< n-vals-read len)
-           (let [n-to-read (min MAX-OSC-SAMPLES (- len n-vals-read))
-                 offset    (+ start n-vals-read)
-                 prom (recv "/b_setn" (fn [msg]
-                                        (let [[msg-buf-id msg-start msg-len & m-args] (:args msg)]
+   (ensure-buffer-active! buf)
+   (assert (buffer? buf))
+   (let [buf-id  (:id buf)
+         samples (float-array len)]
+     (loop [n-vals-read 0]
+       (if (< n-vals-read len)
+         (let [n-to-read (min MAX-OSC-SAMPLES (- len n-vals-read))
+               offset    (+ start n-vals-read)
+               prom (recv "/b_setn" (fn [msg]
+                                      (let [[msg-buf-id msg-start msg-len & m-args] (:args msg)]
 
-                                          (and (= msg-buf-id buf-id)
-                                               (= msg-start offset)
-                                               (= n-to-read (count m-args))))))]
-             (snd "/b_getn" buf-id offset n-to-read)
-             (let [m (deref! prom (str "attempting to read data from buffer " (with-out-str (pr buf))))
-                   [buf-id bstart blen & samps] (:args m)]
-               (dorun
-                (map-indexed (fn [idx el]
-                               (aset-float samples (+ bstart idx) el))
-                             samps))
-               (recur (+ n-vals-read blen))))
-           samples)))))
+                                        (and (= msg-buf-id buf-id)
+                                             (= msg-start offset)
+                                             (= n-to-read (count m-args))))))]
+           (snd "/b_getn" buf-id offset n-to-read)
+           (let [m (deref! prom (str "attempting to read data from buffer " (with-out-str (pr buf))))
+                 [buf-id bstart blen & samps] (:args m)]
+             (prn bstart blen n-vals-read)
+             (dorun
+              (map-indexed (fn [idx el]
+                             (aset-float samples (+ bstart idx (- start)) el))
+                           samps))
+             (recur (+ n-vals-read blen))))
+         samples)))))
 
 (defn buffer-write!
   "Write into a section of an audio buffer which modifies the buffer in
