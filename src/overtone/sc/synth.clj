@@ -543,16 +543,32 @@
 
 (on-event "/overtone/tap" #'update-tap-data ::handle-incoming-tap-data)
 
+(defonce control-proxy-cache
+  (atom {}))
+
+(defn control-proxy-value-atom
+  "Provide the `:value` for a ControlProxy, which is an atom. Attempts to reuse
+  existing atoms in case a synth gets redefined."
+  [full-name param]
+  (let [ref (or (get-in @control-proxy-cache [full-name (:name param)])
+                (atom nil))]
+    (swap! control-proxy-cache assoc-in [full-name (:name param)] ref)
+    (when (or (nil? @ref)
+              (not (<= (:min param 0) @ref (:max param Double/MAX_VALUE))))
+      (reset! ref (:default param)))
+    ref))
+
 (defmacro synth
   "Define a SuperCollider synthesizer using the library of ugen
   functions provided by overtone.sc.ugen. This will return callable
   record which can be used to trigger the synthesizer.
   "
-  [& args]
-  `(let [[sname# params# ugens# constants#] (pre-synth ~@args)
+  [sname & args]
+  `(let [full-name# '~(symbol (str *ns*) (str sname))
+         [sname# params# ugens# constants#] (pre-synth ~sname ~@args)
          sdef#             (synthdef sname# params# ugens# constants#)
          arg-names#        (map :name params#)
-         params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
+         params-with-vals# (map #(assoc % :value (control-proxy-value-atom full-name# %)) params#)
          instance-fn#      (apply comp (map :instance-fn (filter :instance-fn (map meta ugens#))))
          smap# (with-meta
                  (map->Synth

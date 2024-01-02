@@ -152,7 +152,8 @@
 (defmacro inst
   [sname & args]
   (ensure-connected!)
-  `(let [[sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
+  `(let [full-name# '~(symbol (str *ns*) (str sname))
+         [sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
          new-inst# (get (:instruments @studio*) sname#)
          container-group# (or (:group new-inst#)
                               (with-server-sync
@@ -178,7 +179,7 @@
                                     :in-bus inst-bus#))
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
-         params-with-vals# (map #(assoc % :value (atom (:default %))) params#)
+         params-with-vals# (map #(assoc % :value (control-proxy-value-atom full-name# %)) params#)
          fx-chain#  []
          volume#    (atom DEFAULT-VOLUME)
          pan#       (atom DEFAULT-PAN)

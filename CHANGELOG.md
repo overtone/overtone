@@ -14,6 +14,8 @@
 - Fix the license information in pom.xml (MIT)
 - Handle a 401 response from Freesound by asking for a new token, instead of retrying
 - Allow writing buffers that are bigger than MAX-OSC-SAMPLES
+- Reuse param `:value` atoms when re-evaluating a `defsynth`/`definst`, so that
+  your synth settings aren't lost after a change
 
 ## Changed
 
