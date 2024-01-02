@@ -272,25 +272,52 @@
          samples)))))
 
 (defn buffer-write!
-  "Write into a section of an audio buffer which modifies the buffer in
-  place on the server. Data can either be a single number or a
-  collection of numbers.  Accepts an optional param start-idx which
-  specifies an initial offset into the buffer from which to start
-  writing the data (defaults to 0)."
+  "Write into a section of an audio buffer which modifies the buffer in place on
+  the server. Data can either be a single number or a collection of numbers.
+  Other parameters allow specifying the position in the buffer to write, and the
+  offset and length of the data to write.
+
+  * `start-idx`: where in the buffer to starts writing, defaults to the beginning (0)
+  * `offset` / `length`: which slice of `data` to write (default to the full sequence)
+  "
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
-     (let [cnt (count data)]
-       (assert (buffer? buf))
-       (ensure-buffer-active! buf)
-       (assert (<= cnt MAX-OSC-SAMPLES)
-               (fs "Error - the data you attempted to write to the buffer was
-                  too large to be sent via UDP."))
-       (let [data    (if (number? data) [data] data)
-             doubles (map float data)]
-         (if (> (+ start-idx cnt) (:n-samples buf))
-           (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index.")))
-           (apply snd "/b_setn" (:id buf) start-idx cnt doubles))))
-     buf))
+   (buffer-write! buf start-idx (count data) data))
+  ([buf start-idx length data]
+   (buffer-write! buf start-idx 0 length data))
+  ([buf start-idx offset length data]
+   (assert (buffer? buf))
+   (ensure-buffer-active! buf)
+   (let [start-idx (long start-idx)
+         offset    (long offset)
+         length    (long length)
+         data      (if (number? data) [data] data)
+         limit     (+ offset length)
+         page-size MAX-OSC-SAMPLES]
+     (when (< (count data) limit)
+       (throw (ex-info (str "insufficient data to write " length " doubles starting at offset " offset)
+                       {:data-size {:expected limit
+                                    :action   (count data)}
+                        :offset    offset
+                        :length    length})))
+     (when (< (:n-samples buf) (+ start-idx length))
+       (throw (ex-info (str "the data you attempted to write to buffer " (:id buf) " was too large for its capacity. Use a smaller data list and/or a lower start index.")
+                       {:buf-size  (:n-samples buf)
+                        :data-size (+ start-idx length)
+                        :start-idx start-idx
+                        :length    length})))
+     (let [doubles (sequence (comp (drop offset) (map float)) data)]
+       (loop [position  start-idx
+              size      (min page-size length)
+              remaining (- length size)
+              doubles   doubles]
+         (apply snd "/b_setn" (:id buf) position size doubles)
+         (when (< 0 remaining)
+           (recur (+ start-idx size)
+                  (min page-size remaining)
+                  (max 0 (- remaining size))
+                  (drop size doubles)))))
+     buf)))
 
 
 (defn buffer-write-relay!

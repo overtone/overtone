@@ -12,6 +12,7 @@
 - Make sure we print the correct version when booting
 - Fix the license information in pom.xml (MIT)
 - Handle a 401 response from Freesound by asking for a new token, instead of retrying
+- Allow writing buffers that are bigger than MAX-OSC-SAMPLES
 
 ## Changed
 
