@@ -68,7 +68,7 @@ Now you can add `overtone/overtone` as a dependency, and start a Clojure REPL.
 
 ```sh
 mkdir happy-vibes && cd happy-vibes
-echo '{:deps {overtone/overtone {:mvn/version "0.12.3152"}}}' > deps.edn
+echo '{:deps {overtone/overtone {:mvn/version "0.13.3177"}}}' > deps.edn
 clj
 
 Clojure 1.11.1
@@ -216,13 +216,13 @@ Overtone and its dependencies are on http://clojars.org, and the
 dependency for your `deps.edn` is:
 
 ```Clojure
-{overtone/overtone {:mvn/version "0.12.3152"}}
+{overtone/overtone {:mvn/version "0.13.3177"}}
 ```
 
 or for your `project.clj` (Leiningen)
 
 ```Clojure
-[overtone/overtone "0.12.3152"]
+[overtone/overtone "0.13.3177"]
 ```
 
 ## Contributors
