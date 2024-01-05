@@ -1,13 +1,17 @@
 (ns overtone.sc.buffer
-  (:use [clojure.java.io :only [file]]
-        [overtone.libs event counters]
-        [overtone.sc server info defaults node dyn-vars]
-        [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection comms]
-        [overtone.sc server info]
-        [overtone.helpers audio-file lib file doc]
-        [overtone.sc.util :only [id-mapper]]
-        [overtone.config.store :refer [config-get]])
+  "Manipulate SuperCollider buffers
+
+  These are server-side objects."
+  (:use
+   [clojure.java.io :only [file]]
+   [overtone.libs event counters]
+   [overtone.sc server info defaults node dyn-vars]
+   [overtone.sc.machinery allocator]
+   [overtone.sc.machinery.server connection comms]
+   [overtone.sc server info]
+   [overtone.helpers audio-file lib file doc]
+   [overtone.sc.util :only [id-mapper]]
+   [overtone.config.store :refer [config-get]])
   (:require [clojure.pprint]))
 
 (defonce ^{:private true} __RECORDS__
@@ -83,25 +87,11 @@
                    "This can be configured in overtone config under :sc-args {:max-buffers 2^x}.")))))
 
 (defmethod clojure.pprint/simple-dispatch BufferInfo [b]
-  (println
-   (format "#<buffer-info: %fs %s %d>"
-           (:duration b)
-           (cond
-             (= 1 (:n-channels b)) "mono"
-             (= 2 (:n-channels b)) "stereo"
-             :else                 (str (:n-channels b) " channels"))
-           (:id b))))
+  (print "#overtone/BufferInfo ")
+  (clojure.pprint/pprint (into {} b)))
 
 (defmethod print-method BufferInfo [b ^java.io.Writer w]
-  (.write w (format "#<buffer-info: %fs %s %d>"
-                    (:duration b)
-                    (cond
-                      (= 1 (:n-channels b)) "mono"
-                      (= 2 (:n-channels b)) "stereo"
-                      :else                 (str (:n-channels b) " channels"))
-                    (:id b))))
-
-
+  (.write w (str "#overtone/BufferInfo " (pr-str (into {} b)))))
 
 (defn buffer-info
   "Fetch the information for buffer associated with buf-id (either an
@@ -142,9 +132,6 @@
         :n-samples n-samples
         :rate-scale rate-scale
         :duration duration}))))
-
-
-
 
 (defn buffer
   "Synchronously allocate a new zero filled buffer for storing audio
@@ -191,17 +178,49 @@
          id   (do (assert-less-than-max-buffers :audio-buffer)
                   (next-id :audio-buffer))]
      (snd-immediately
-      (with-server-sync
-        #(snd "/b_allocRead" id path start n-frames)
-        (str "whilst allocating a buffer to contain the contents of file: " path))
-      (let [info                              (buffer-info id)
-            {:keys [id size rate n-channels]} info]
-        (when (every? zero? [size rate n-channels])
-          (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
+       (with-server-sync
+         #(snd "/b_allocRead" id path start n-frames)
+         (str "whilst allocating a buffer to contain the contents of file: " path))
+       (let [info                              (buffer-info id)
+             {:keys [id size rate n-channels]} info]
+         (when (every? zero? [size rate n-channels])
+           (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
 
-        (map->BufferFile
-         (assoc info
-                :status (atom :live))))))))
+         (map->BufferFile
+          (assoc info
+                 :status (atom :live))))))))
+
+(defn buffer-alloc-read-channel
+  "Synchronously allocates a buffer, reading specific channel of an audio file,
+  given by 'path'. Reads the number of samples requested ('n-frames') into the
+  buffer, or fewer if the file is smaller than requested. Reads sound file data
+  from the given starting frame ('start') in the file. If 'n-frames' is less
+  than or equal to zero, the entire file is read.
+
+  Ignores OSC scheduling via the at macro; all inner OSC calls are sent
+  immediately."
+  ([path channel]
+   (buffer-alloc-read-channel path channel 0 -1))
+  ([path channel start]
+   (buffer-alloc-read-channel path channel start -1))
+  ([path channel start n-frames]
+   (ensure-path-exists! path)
+   (let [path (canonical-path path)
+         f    (file path)
+         id   (do (assert-less-than-max-buffers :audio-buffer)
+                  (next-id :audio-buffer))]
+     (snd-immediately
+       (with-server-sync
+         #(snd "/b_allocReadChannel" id path start n-frames channel)
+         (str "whilst allocating a buffer to contain the contents of file: " path))
+       (let [info                              (buffer-info id)
+             {:keys [id size rate n-channels]} info]
+         (when (every? zero? [size rate n-channels])
+           (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
+
+         (map->BufferFile
+          (assoc info
+                 :status (atom :live))))))))
 
 (derive BufferInfo ::buffer-info)
 (derive Buffer     ::buffer)
@@ -234,9 +253,9 @@
 (defn ensure-buffer-active!
   ([buf] (ensure-buffer-active! buf "Trying to work with an inactive buffer."))
   ([buf err-msg]
-     (when (and (buffer? buf)
-                (not (buffer-live? buf)))
-       (emit-inactive-buffer-modification-error buf err-msg))))
+   (when (and (buffer? buf)
+              (not (buffer-live? buf)))
+     (emit-inactive-buffer-modification-error buf err-msg))))
 
 (defn buffer-free
   "Synchronously free an audio buffer and the memory it was consuming."
@@ -259,50 +278,78 @@
   reading of buffer data with the internal server, see buffer-data."
   ([buf] (buffer-read buf 0 (:size buf)))
   ([buf start len]
-     (ensure-buffer-active! buf)
-     (assert (buffer? buf))
-     (let [buf-id  (:id buf)
-           samples (float-array len)]
-       (loop [n-vals-read 0]
-         (if (< n-vals-read len)
-           (let [n-to-read (min MAX-OSC-SAMPLES (- len n-vals-read))
-                 offset    (+ start n-vals-read)
-                 prom (recv "/b_setn" (fn [msg]
-                                        (let [[msg-buf-id msg-start msg-len & m-args] (:args msg)]
+   (ensure-buffer-active! buf)
+   (assert (buffer? buf))
+   (let [buf-id  (:id buf)
+         samples (float-array len)]
+     (loop [n-vals-read 0]
+       (if (< n-vals-read len)
+         (let [n-to-read (min MAX-OSC-SAMPLES (- len n-vals-read))
+               offset    (+ start n-vals-read)
+               prom (recv "/b_setn" (fn [msg]
+                                      (let [[msg-buf-id msg-start msg-len & m-args] (:args msg)]
 
-                                          (and (= msg-buf-id buf-id)
-                                               (= msg-start offset)
-                                               (= n-to-read (count m-args))))))]
-             (snd "/b_getn" buf-id offset n-to-read)
-             (let [m (deref! prom (str "attempting to read data from buffer " (with-out-str (pr buf))))
-                   [buf-id bstart blen & samps] (:args m)]
-               (dorun
-                (map-indexed (fn [idx el]
-                               (aset-float samples (+ bstart idx) el))
-                             samps))
-               (recur (+ n-vals-read blen))))
-           samples)))))
+                                        (and (= msg-buf-id buf-id)
+                                             (= msg-start offset)
+                                             (= n-to-read (count m-args))))))]
+           (snd "/b_getn" buf-id offset n-to-read)
+           (let [m (deref! prom (str "attempting to read data from buffer " (with-out-str (pr buf))))
+                 [buf-id bstart blen & samps] (:args m)]
+             (prn bstart blen n-vals-read)
+             (dorun
+              (map-indexed (fn [idx el]
+                             (aset-float samples (+ bstart idx (- start)) el))
+                           samps))
+             (recur (+ n-vals-read blen))))
+         samples)))))
 
 (defn buffer-write!
-  "Write into a section of an audio buffer which modifies the buffer in
-  place on the server. Data can either be a single number or a
-  collection of numbers.  Accepts an optional param start-idx which
-  specifies an initial offset into the buffer from which to start
-  writing the data (defaults to 0)."
+  "Write into a section of an audio buffer which modifies the buffer in place on
+  the server. Data can either be a single number or a collection of numbers.
+  Other parameters allow specifying the position in the buffer to write, and the
+  offset and length of the data to write.
+
+  * `start-idx`: where in the buffer to starts writing, defaults to the beginning (0)
+  * `offset` / `length`: which slice of `data` to write (default to the full sequence)
+  "
   ([buf data] (buffer-write! buf 0 data))
   ([buf start-idx data]
-     (let [cnt (count data)]
-       (assert (buffer? buf))
-       (ensure-buffer-active! buf)
-       (assert (<= cnt MAX-OSC-SAMPLES)
-               (fs "Error - the data you attempted to write to the buffer was
-                  too large to be sent via UDP."))
-       (let [data    (if (number? data) [data] data)
-             doubles (map float data)]
-         (if (> (+ start-idx cnt) (:n-samples buf))
-           (throw (Exception. (str "the data you attempted to write to buffer " (:id buf) "was too large for its capacity. Use a smaller data list and/or a lower start index.")))
-           (apply snd "/b_setn" (:id buf) start-idx cnt doubles))))
-     buf))
+   (buffer-write! buf start-idx (count data) data))
+  ([buf start-idx length data]
+   (buffer-write! buf start-idx 0 length data))
+  ([buf start-idx offset length data]
+   (assert (buffer? buf))
+   (ensure-buffer-active! buf)
+   (let [start-idx (long start-idx)
+         offset    (long offset)
+         length    (long length)
+         data      (if (number? data) [data] data)
+         limit     (+ offset length)
+         page-size MAX-OSC-SAMPLES]
+     (when (< (count data) limit)
+       (throw (ex-info (str "insufficient data to write " length " doubles starting at offset " offset)
+                       {:data-size {:expected limit
+                                    :action   (count data)}
+                        :offset    offset
+                        :length    length})))
+     (when (< (:n-samples buf) (+ start-idx length))
+       (throw (ex-info (str "the data you attempted to write to buffer " (:id buf) " was too large for its capacity. Use a smaller data list and/or a lower start index.")
+                       {:buf-size  (:n-samples buf)
+                        :data-size (+ start-idx length)
+                        :start-idx start-idx
+                        :length    length})))
+     (let [doubles (sequence (comp (drop offset) (map float)) data)]
+       (loop [position  start-idx
+              size      (min page-size length)
+              remaining (- length size)
+              doubles   doubles]
+         (apply snd "/b_setn" (:id buf) position size doubles)
+         (when (< 0 remaining)
+           (recur (+ start-idx size)
+                  (min page-size remaining)
+                  (max 0 (- remaining size))
+                  (drop size doubles)))))
+     buf)))
 
 
 (defn buffer-write-relay!
@@ -409,28 +456,28 @@
   the server. Index defaults to 0 if not specified."
   ([buf val] (buffer-set! buf 0 val))
   ([buf index val]
-     (ensure-buffer-active! buf)
-     (assert (buffer? buf))
-     (snd "/b_set" (:id buf) index (double val))
-     buf))
+   (ensure-buffer-active! buf)
+   (assert (buffer? buf))
+   (snd "/b_set" (:id buf) index (double val))
+   buf))
 
 (defn buffer-get
   "Read a single value from a buffer. Index defaults to 0 if not specified."
   ([buf] (buffer-get buf 0))
   ([buf index]
-     (ensure-buffer-active! buf)
-     (assert (buffer? buf))
-     (let [error-msg (str "attempting to receive a single value at index " index " in buffer " (with-out-str (pr buf)))
-           buf-id (:id buf)
-           prom   (recv "/b_set" (fn [msg]
-                                   (let [[msg-buf-id msg-start _] (:args msg)]
-                                     (and (= msg-buf-id buf-id)
-                                          (= msg-start index)))))]
+   (ensure-buffer-active! buf)
+   (assert (buffer? buf))
+   (let [error-msg (str "attempting to receive a single value at index " index " in buffer " (with-out-str (pr buf)))
+         buf-id (:id buf)
+         prom   (recv "/b_set" (fn [msg]
+                                 (let [[msg-buf-id msg-start _] (:args msg)]
+                                   (and (= msg-buf-id buf-id)
+                                        (= msg-start index)))))]
 
-       (with-server-sync
-         #(snd "/b_get" buf-id index)
-         (str "whilst " error-msg))
-       (last (:args (deref! prom error-msg))))))
+     (with-server-sync
+       #(snd "/b_get" buf-id index)
+       (str "whilst " error-msg))
+     (last (:args (deref! prom error-msg))))))
 
 
 
@@ -466,7 +513,7 @@
         {:keys [header samples n-frames start-frame]} arg-map]
 
     (snd "/b_write" (:id buf) path header samples
-                    n-frames start-frame 0)
+         n-frames start-frame 0)
     :buffer-saved))
 
 (defn buffer-stream
@@ -504,10 +551,10 @@
     (snd "/b_write" (:id buf) path header samples -1 0 1)
     (map->BufferOutStream
      (assoc buf
-       :path path
-       :header header
-       :samples samples
-       :open? (atom true)))))
+            :path path
+            :header header
+            :samples samples
+            :open? (atom true)))))
 
 (derive BufferOutStream ::buffer-out-stream)
 (derive ::buffer-out-stream ::file-buffer)
@@ -553,10 +600,10 @@
         buf (buffer-alloc-read path start size)]
     (snd "/b_read" (:id buf) path start -1 0 1)
     (map->BufferInStream
-      (assoc buf
-        :path path
-        :start start
-        :open? (atom true)))))
+     (assoc buf
+            :path path
+            :start start
+            :open? (atom true)))))
 
 (derive BufferInStream ::buffer-in-stream)
 (derive ::buffer-in-stream ::file-buffer)
@@ -569,15 +616,15 @@
   "Moves the start position of a buffer cue to the frame indicated by
   'pos'. Defaults to 0. Returns the buffer when done."
   ([buf-cue]
-     (buffer-cue-pos buf-cue 0))
+   (buffer-cue-pos buf-cue 0))
   ([buf-cue pos]
-     (assert (buffer-in-stream? buf-cue))
-     (when-not @(:open? buf-cue)
-       (throw (Exception. "buffer-in-stream is closed.")))
-     (let [{:keys [id path]} buf-cue]
-       (snd "/b_close" id)
-       (snd "/b_read" id path pos -1 0 1))
-     buf-cue))
+   (assert (buffer-in-stream? buf-cue))
+   (when-not @(:open? buf-cue)
+     (throw (Exception. "buffer-in-stream is closed.")))
+   (let [{:keys [id path]} buf-cue]
+     (snd "/b_close" id)
+     (snd "/b_read" id path pos -1 0 1))
+   buf-cue))
 
 (defn buffer-id
   "Return the id of buffer b. Simply punts out to to-sc-id"

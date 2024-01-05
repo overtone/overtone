@@ -2,9 +2,31 @@
 
 ## Added
 
+- New `loop-buf` UGen, for looping samples (part of sc3-plugins "extras")
+- Watch for MIDI device plug/unplug, so that adding a device doesn't require a
+  restart. These will also emit events: `:midi-device-connected` /
+  `:midi-device-disconnected` / `:midi-receiver-connected` /
+  `:midi-receiver-disconnected`
+- Add `buffer-alloc-read-channel`, like `buffer-alloc-read` (instruct the SC
+  server to load a sound file), but only reads a single channel. Corresponds
+  with the `/b_allocReadChannel` OSC message.
+
 ## Fixed
 
+- Make sure we print the correct version when booting
+- Fix the license information in pom.xml (MIT)
+- Handle a 401 response from Freesound by asking for a new token, instead of retrying
+- Allow writing buffers that are bigger than MAX-OSC-SAMPLES
+- Reuse param `:value` atoms when re-evaluating a `defsynth`/`definst`, so that
+  your synth settings aren't lost after a change
+
 ## Changed
+
+- Use JNA Jack (via casa.squid.jack) to connect SuperCollider's audio output,
+  instead of relying on `jack_lsp` which may not be available, especially on
+  PipeWire-based systems
+- Reduce HTTP retries when downloading samples from 100 to 20
+- print `BufferInfo` as a reader conditional + map, to make it clear it's a data object
 
 # 0.12.3152 (2023-12-26 / 7bad685)
 

@@ -1,7 +1,6 @@
-(ns
-  ^{:doc "Functions to help work with musical time."
-     :author "Jeff Rose"}
-  overtone.music.rhythm
+(ns overtone.music.rhythm
+  "Functions to help work with musical time."
+  {:author "Jeff Rose"}
   (:require [overtone.at-at :refer [now]]))
 
 (defonce ^{:private true}
@@ -10,44 +9,43 @@
     (defprotocol IMetronome
       (metro-start [metro] [metro start-beat]
         "Returns the start time of the metronome. Also restarts the metronome at
-     'start-beat' if given.")
+         'start-beat' if given.")
       (metro-bar-start [metro] [metro start-bar])
       (metro-tick [metro]
         "Returns the duration of one metronome 'tick' in milleseconds.")
       (metro-tock [metro]
-    "Returns the duration of one bar in milliseconds.")
+        "Returns the duration of one bar in milliseconds.")
       (metro-beat [metro] [metro beat]
         "Returns the next beat number or the timestamp (in milliseconds) of the
-     given beat.")
+         given beat.")
       (metro-beat-phase [metro]
         "Returns the distance traveled into the current beat [0.0, 1.0)")
       (metro-bar [metro] [metro  bar]
-    "Returns the next bar number or the timestamp (in milliseconds) of the
-     given bar")
+        "Returns the next bar number or the timestamp (in milliseconds) of the
+         given bar")
       (metro-bar-phase [metro]
         "Returns the distance traveled into the current bar [0.0, 1.0)")
       (metro-bpb [metro] [metro new-bpb]
-    "Get the current beats per bar or change it to new-bpb")
+        "Get the current beats per bar or change it to new-bpb")
       (metro-bpm [metro] [metro new-bpm]
         "Get the current bpm or change the bpm to 'new-bpm'."))))
 
-; Rhythm
+;; Rhythm
 
-; * a resting heart rate is 60-80 bpm
-; * around 150 induces an excited state
+;; * a resting heart rate is 60-80 bpm
+;; * around 150 induces an excited state
 
-
-; A rhythm system should let us refer to time in terms of rhythmic units like beat, bar, measure,
-; and it should convert these units to real time units (ms) based on the current BPM and signature settings.
+;; A rhythm system should let us refer to time in terms of rhythmic units like beat, bar, measure,
+;; and it should convert these units to real time units (ms) based on the current BPM and signature settings.
 
 (defn beat-ms
   "Convert 'b' beats to milliseconds at the given 'bpm'."
   [b bpm] (* (/ 60000.0 bpm) b))
 
-;(defn bar-ms
-;  "Convert b bars to milliseconds at the current bpm."
-;  ([] (bar 1))
-;  ([b] (* (bar 1) (first @*signature) b)))
+;; (defn bar-ms
+;;   "Convert b bars to milliseconds at the current bpm."
+;;   ([] (bar 1))
+;;   ([b] (* (bar 1) (first @*signature) b)))
 
 (deftype Metronome [start bar-start bpm bpb]
 
@@ -86,16 +84,16 @@
      (ensure bpm)
      (let [ratio (/ (- (now) @start) (metro-tick metro))]
        (- (float ratio) (long ratio)))))
-  (metro-bar   [metro] (dosync
+  (metro-bar [metro] (dosync
+                      (ensure bar-start)
+                      (ensure bpm)
+                      (ensure bpb)
+                      (inc (long (/ (- (now) @bar-start) (metro-tock metro))))))
+  (metro-bar [metro b] (dosync
                         (ensure bar-start)
                         (ensure bpm)
                         (ensure bpb)
-                        (inc (long (/ (- (now) @bar-start) (metro-tock metro))))))
-  (metro-bar   [metro b] (dosync
-                          (ensure bar-start)
-                          (ensure bpm)
-                          (ensure bpb)
-                          (+ (* b (metro-tock metro)) @bar-start)))
+                        (+ (* b (metro-tock metro)) @bar-start)))
   (metro-bar-phase [metro]
     (dosync
      (ensure start)
@@ -103,8 +101,8 @@
      (ensure bpb)
      (let [ratio (/ (- (now) @start) (metro-tock metro))]
        (- (float ratio) (long ratio)))))
-  (metro-bpm   [metro] @bpm)
-  (metro-bpm   [metro new-bpm]
+  (metro-bpm [metro] @bpm)
+  (metro-bpm [metro new-bpm]
     (dosync
      (ensure bpb)
      (let [cur-beat      (metro-beat metro)
@@ -117,8 +115,8 @@
        (ref-set bar-start new-bar-start)
        (ref-set bpm new-bpm)))
     [:bpm new-bpm])
-  (metro-bpb   [metro] @bpb)
-  (metro-bpb   [metro new-bpb]
+  (metro-bpb [metro] @bpb)
+  (metro-bpb [metro new-bpb]
     (dosync
      (ensure bpm)
      (let [cur-bar       (metro-bar metro)
@@ -138,9 +136,9 @@
   (invoke [this] (metro-beat this))
   (invoke [this arg]
     (cond
-     (number? arg) (metro-beat this arg)
-     (= :bpm arg) (metro-bpm this) ;; (bpm this) fails.
-     :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
+      (number? arg) (metro-beat this arg)
+      (= :bpm arg) (metro-bpm this) ;; (bpm this) fails.
+      :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
   (invoke [this _ new-bpm] (metro-bpm this new-bpm)))
 
 (defn metronome
@@ -165,12 +163,12 @@
         bpb   (ref 4)]
     (Metronome. start bar-start bpm bpb)))
 
-;== Grooves
-;
-; A groove represents a pattern of velocities and timing modifications that is
-; applied to a sequence of notes to adjust the feel.
-;
-; * swing
-; * jazz groove, latin groove
-; * techno grooves (hard on beat one)
-; * make something more driving, or more layed back...
+;; == Grooves
+
+;; A groove represents a pattern of velocities and timing modifications that is
+;; applied to a sequence of notes to adjust the feel.
+
+;; * swing
+;; * jazz groove, latin groove
+;; * techno grooves (hard on beat one)
+;; * make something more driving, or more layed back...

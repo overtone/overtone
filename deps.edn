@@ -5,7 +5,8 @@
   org.clojure/data.json   {:mvn/version "2.5.0"}  ; Freesound
   commons-net/commons-net {:mvn/version "3.10.0"} ; Decode OSC timetag
   javax.jmdns/jmdns       {:mvn/version "3.4.1"}  ; ZeroConf support
-  clj-glob/clj-glob       {:mvn/version "1.0.0"}} ; overtone.helpers.file/{glob,ls*}
+  clj-glob/clj-glob       {:mvn/version "1.0.0"} ; overtone.helpers.file/{glob,ls*}
+  casa.squid/jack         {:mvn/version "0.2.12"}}
 
  :aliases
  {:test

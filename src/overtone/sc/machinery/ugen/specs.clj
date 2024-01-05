@@ -15,22 +15,23 @@
     io machine-listening misc osc beq-suite chaos control demand
     ff-osc fft info noise pan trig line input filter random
 
-    extras.mda
-    extras.stk
-    extras.glitch
+    extras.ay
+    extras.bat
+    extras.bbcut2u
+    extras.berlach
     extras.bhob
     extras.blackrain
     extras.distortion
+    extras.dwg
+    extras.glitch
+    extras.loopbuf
+    extras.mda
+    extras.membrane
     extras.sl
-    extras.ay
-    extras.bbcut2u
-    extras.bat
+    extras.stk
+    extras.tju
     extras.vbap
     extras.vosim
-    extras.berlach
-    extras.membrane
-    extras.tju
-    extras.dwg
     ])
 
 (defn- spec-arg-names

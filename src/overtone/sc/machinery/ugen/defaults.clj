@@ -1,6 +1,6 @@
-(ns ^{:doc "Default vals and fns required  to manipulate ugens."
-      :author "Jeff Rose"}
-  overtone.sc.machinery.ugen.defaults
+(ns overtone.sc.machinery.ugen.defaults
+  "Default vals and fns required  to manipulate ugens."
+  {:author "Jeff Rose"}
   (:use [overtone.helpers lib]))
 
 ;; Outputs have a specified calculation rate

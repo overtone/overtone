@@ -37,68 +37,88 @@ collaborating with music.  It provides:
 
 ### Installation
 
-```sh
-    # Install the clojure-cli tools
-    # https://clojure.org/guides/getting_started
+- Install Java, since this is a prerequisite for Clojure
+  - Quite often Java will already be installed, if `java -version` works and
+    shows you a version of 11 or higher you should be good
+  - On Linux, you should be able to use your operating system package manager,
+    for instance on Ubuntu the package will be called something like
+    `openjdk-17-jdk`
+  - On MacOS you can use Homebrew if you have it
+  - [https://adoptium.net/](Adoptium.net) has installers for most operating systems
+  
+- Install the Clojure CLI tools, see [Install Clojure](https://clojure.org/guides/install_clojure)
+  - Also install `rlwrap` if you can, without it `clojure` will work, but `clj`
+    will not, and you won't have history and line editing in your Clojure REPL
+  
+- Install [SuperCollider](https://supercollider.github.io/), preferrably through your operating system's package manager (apt, yum, pacman, homebrew, chocolatey, etc.)
+  - The main package is called `supercollider` everywhere
+  - If there's a package names `sc3-plugins`, then install that as well
 
-    # Create a deps.edn file with a minimum
-    # {:deps {overtone/overtone {:mvn/version "0.12.3152"}}}
-    $ clojure
-    $ (use 'overtone.live)
+At this point you should have `clojure` and `scsynth` available.
+
+```shell
+$ clojure --version
+Clojure CLI version 1.11.1.1413
+
+$ scsynth -v
+scsynth 3.13.0 (Built from  '' [na])
 ```
 
+Now you can add `overtone/overtone` as a dependency, and start a Clojure REPL.
+
 ```sh
-    # Or install leiningen
-    # https://github.com/technomancy/leiningen
+mkdir happy-vibes && cd happy-vibes
+echo '{:deps {overtone/overtone {:mvn/version "0.12.3152"}}}' > deps.edn
+clj
 
-    $ lein new insane-noises
-
-    # add the following dependencies to insane-noises/project.clj
-    # [org.clojure/clojure "1.9.0"]
-    # [overtone/overtone "0.12.3152"]
-
-    $ cd insane-noises
-    $ lein repl
+Clojure 1.11.1
+user=>
 ```
 
 ### Making sounds
 
 
 ```clj
-    ;; boot the server
-    user=> (use 'overtone.live)
+;; boot the server
+user=> (use 'overtone.live)
+--> Loading Overtone...
+[overtone.live] [INFO] Found SuperCollider server: /usr/bin/scsynth (PATH)
+--> Booting external SuperCollider server...
+--> Connecting to external SuperCollider server: 127.0.0.1:26325
+[scynth] SuperCollider 3 server ready.
+--> Connection established
 
-    ;; listen to the joys of a simple sine wave
-    user=> (demo (sin-osc))
+;; listen to the joys of a simple sine wave
+user=> (demo (sin-osc))
 
-    ;; or something more interesting...
-    user=> (demo 7 (lpf (mix (saw [50 (line 100 1600 5) 101 100.5]))
-                   (lin-lin (lf-tri (line 2 20 5)) -1 1 400 4000)))
+;; or something more interesting...
+user=> (demo 7 (lpf (mix (saw [50 (line 100 1600 5) 101 100.5]))
+                    (lin-lin (lf-tri (line 2 20 5)) -1 1 400 4000)))
 ```
 
 ### Linter (clj-kondo)
+
 Run `overtone.linter/emit!` to emit clj-kondo configuration.
 
 Do **not** commit the generated files, it's a bunch of data.
 
 ### Detailed Instructions
 
-For a more detailed set of setup instructions (including details
-specific to Windows and Linux) head over to the
-[Overtone wiki installation page](https://github.com/overtone/overtone/wiki/Installing-Overtone)
+For a more detailed set of setup instructions (including details specific to
+Windows and Linux) head over to the [Overtone wiki installation
+page](https://github.com/overtone/overtone/wiki/Installing-Overtone)
 
-We maintain documentation for all aspects of the system in the
-[project wiki](https://github.com/overtone/overtone/wiki/Home), you'll
-find tutorials and examples on topics such as synthesizing new sounds
-from scratch, live-coding and generating musical scores on the fly. If
-you see anything missing, please feel free to add it yourself, or hit us
-up on the [mailing list](http://groups.google.com/group/overtone) and
-we'll sort something out.
+We maintain documentation for all aspects of the system in the [project
+wiki](https://github.com/overtone/overtone/wiki/Home), you'll find tutorials and
+examples on topics such as synthesizing new sounds from scratch, live-coding and
+generating musical scores on the fly. If you see anything missing, please feel
+free to add it yourself, or hit us up on the [mailing
+list](http://groups.google.com/group/overtone) and we'll sort something out.
 
 ## Cheat Sheet
 
-For a quick glance at all the exciting functionality Overtone puts at
-your musical fingertips check out the cheat sheet:
+For a quick glance at all the exciting functionality Overtone puts at your
+musical fingertips check out the cheat sheet:
 
 https://github.com/overtone/overtone/raw/master/docs/cheatsheet/overtone-cheat-sheet.pdf
 
@@ -113,18 +133,17 @@ A list of bands using Overtone to generate sounds:
 
 ### Mailing List
 
-We encourage you to join the
-[mailing list](http://groups.google.com/group/overtone) to see what
-other people are getting up to with Overtone. Use it to ask questions,
-show off what you've made and even meet fellow Overtoners in your area
-so you can meet up for impromptu jam sessions. All we ask is that you be
-considerate, courteous and respectful and that you share as much of your
-code as possible so we can all learn how to make crazy cool sounds
-together.
+We encourage you to join the [mailing
+list](http://groups.google.com/group/overtone) to see what other people are
+getting up to with Overtone. Use it to ask questions, show off what you've made
+and even meet fellow Overtoners in your area so you can meet up for impromptu
+jam sessions. All we ask is that you be considerate, courteous and respectful
+and that you share as much of your code as possible so we can all learn how to
+make crazy cool sounds together.
 
-### Twitter
+### Clojurians Slack
 
-Follow `@overtone` on Twitter: http://twitter.com/overtone
+You can find us in the `#overtone` channel on [Clojurians Slack](https://clojurians.net).
 
 ### Web
 
@@ -165,9 +184,9 @@ There are also the following tutorials:
 
 ### Interviews
 
-Overtone has generated quite a bit of interest. Here's a list of
-available interviews which go into further depth on the background and
-philosophy of Overtone:
+Overtone has generated quite a bit of interest. Here's a list of available
+interviews which go into further depth on the background and philosophy of
+Overtone:
 
 * http://twit.tv/show/floss-weekly/197
 * http://mostlylazy.com/2011/11/18/episode-0-0-2-sam-aaron-and-overtone-at-clojure-conj-2011/
@@ -181,7 +200,6 @@ philosophy of Overtone:
 * Piotr Jagielski‏: https://www.youtube.com/watch?v=r8YKC7Qugm8
 * Sam Aaron Live @ Arnolfini:  https://vimeo.com/46867490
 * Meta-eX Live @ Music Tech Fest: http://youtu.be/zJqH5bNcIN0?t=15m25s
-
 
 ## Source Repository
 
@@ -198,15 +216,21 @@ Overtone and its dependencies are on http://clojars.org, and the
 dependency for your `deps.edn` is:
 
 ```Clojure
-    {overtone/overtone {:mvn/version "0.12.3152"}}
+{overtone/overtone {:mvn/version "0.12.3152"}}
 ```
 
 or for your `project.clj` (Leiningen)
 
 ```Clojure
-    [overtone "0.10.6"]
+[overtone/overtone "0.12.3152"]
 ```
 
 ## Contributors
 
 See: https://github.com/overtone/overtone/graphs/contributors
+
+## License
+
+The MIT License, see [[LICENSE]].
+
+Copyright &copy; 2009-2024 Jeff Ross, Sam Aaron, and contributors.

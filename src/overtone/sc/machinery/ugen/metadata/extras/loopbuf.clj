@@ -2,10 +2,10 @@
   (:use [overtone.sc.machinery.ugen common check]))
 
 (def specs
-  [
-   {:name "LoopBuf"
+  [{:name "LoopBuf"
     :summary "Sample looping oscillator"
     :args [{:name "n-channels"
+            :mode :num-outs
             :doc "number of channels that the buffer will be.  this must
                   be a fixed integer. The architecture of the synth
                   design cannot change after it is compiled.  warning:

@@ -233,34 +233,34 @@
   [devs]
   (vals (into {} (map (fn [dev] [(:device dev) dev]) devs))))
 
+(defonce dev-num-cache (atom {}))
+
+(defn next-dev-num [counter-key device-map]
+  (or
+   (get @dev-num-cache (:info device-map))
+   (let [num (next-id
+              (str counter-key
+                   (:vendor device-map)
+                   (:name device-map)
+                   (:description device-map)))]
+     (swap! dev-num-cache assoc (:info device-map) num)
+     num)))
+
 (defn- detect-midi-devices
   "Returns a set of MIDI device maps filtered to remove unwanted devices
    such as the Java Real Time Sequencer and duplicates"
   []
-  (let [devs   (midi/midi-sources)
-        devs   (remove-duplicate-devices devs)
-        devs   (map #(assoc % ::dev-num (next-id
-                                         (str "overtone.studio.midi - device - "
-                                              (:vendor %)
-                                              (:name %)
-                                              (:description %))))
-                    devs)
-        devs   (map #(assoc % ::full-device-key (midi-mk-full-device-key %)) devs)]
-    devs))
+  (->> (midi/midi-sources)
+       remove-duplicate-devices
+       (map #(assoc % ::dev-num (next-dev-num "overtone.studio.midi - device - " %)))
+       (map #(assoc % ::full-device-key (midi-mk-full-device-key %)))))
 
 (defn- detect-midi-receivers
   []
-  (let [rcvs   (midi/midi-sinks)
-        rcvs   (remove-duplicate-devices rcvs)
-        rcvs   (map #(assoc % ::dev-num (next-id
-                                         (str "overtone.studio.midi - receiver - "
-                                              (:vendor %)
-                                              (:name %)
-                                              (:description %))))
-                    rcvs)
-
-        rcvs   (map #(assoc % ::full-device-key (midi-mk-full-device-key %)) rcvs)]
-    rcvs))
+  (->> (midi/midi-sinks)
+       remove-duplicate-devices
+       (map #(assoc % ::dev-num (next-dev-num "overtone.studio.midi - receiver - " %)))
+       (map #(assoc % ::full-device-key (midi-mk-full-device-key %)))))
 
 (defn- add-listener-handles!
   "Adds listener handles to send incoming messages to Overtone's event
@@ -284,6 +284,39 @@
 
 (defonce ^:private midi-connected-receivers*
   (map midi/midi-out (detect-midi-receivers)))
+
+(defonce __watch_device_changes__
+  (.start
+   (java.lang.Thread.
+    (fn []
+      (let [by-id #(into {} (map (juxt ::full-device-key identity)) %)]
+        (while true
+          (let [ins  (by-id (detect-midi-devices))
+                outs (by-id (detect-midi-receivers))]
+            (alter-var-root #'midi-connected-devices*
+                            (fn [old-ins]
+                              (let [old-ins (by-id old-ins)
+                                    new-ins (add-listener-handles! (vals (apply dissoc ins (keys old-ins))))]
+                                (doseq [in new-ins]
+                                  (event :midi-device-connected in))
+                                (doseq [in (vals (apply dissoc old-ins (keys ins)))]
+                                  (event :midi-device-disconnected in))
+                                (concat
+                                 (vals (select-keys old-ins (keys ins)))
+                                 new-ins))))
+            (alter-var-root #'midi-connected-receivers*
+                            (fn [old-outs]
+                              (let [old-outs (by-id old-outs)
+                                    new-outs (map midi/midi-out (vals (apply dissoc outs (keys old-outs))))]
+                                (doseq [out new-outs]
+                                  (event :midi-receiver-connected out))
+                                (doseq [out (vals (apply dissoc old-outs (keys outs)))]
+                                  (event :midi-receiver-disconnected out))
+                                (concat
+                                 (vals (select-keys old-outs (keys outs)))
+                                 new-outs))))
+            ;; Scan every 2 seconds. Seems conservative enough. CoreMidi4j does it once every 500ms.
+            (Thread/sleep 2000))))))))
 
 (defn midi-connected-devices
   "Returns a sequence of device maps for all 'connected' MIDI
