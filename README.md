@@ -37,28 +37,30 @@ collaborating with music.  It provides:
 
 ### Installation
 
-```sh
-# Install the clojure-cli tools
-# https://clojure.org/guides/getting_started
+- Install the clojure-cli tools, see [Clojure guides: Getting Started](https://clojure.org/guides/getting_started)
+- Install [SuperCollider](https://supercollider.github.io/), preferrably through your operating system's package manager (apt, yum, pacman, homebrew, chocolatey, etc.)
+  - The main package is called `supercollider` everywhere
+  - If there's a package names `sc3-plugins`, then install that as well
 
-# Create a deps.edn file with a minimum
-# {:deps {overtone/overtone {:mvn/version "0.12.3152"}}}
-$ clojure
-$ (use 'overtone.live)
+At this point you should have `clojure` and `scsynth` available.
+
+```shell
+$ clojure --version
+Clojure CLI version 1.11.1.1413
+
+$ scsynth -v
+scsynth 3.13.0 (Built from  '' [na])
 ```
 
+Now you can add `overtone/overtone` as a dependency, and start a Clojure REPL.
+
 ```sh
-# Or install leiningen
-# https://github.com/technomancy/leiningen
+mkdir happy-vibes && cd happy-vibes
+echo '{:deps {overtone/overtone {:mvn/version "0.12.3152"}}}' > deps.edn
+clj
 
-$ lein new insane-noises
-
-# add the following dependencies to insane-noises/project.clj
-# [org.clojure/clojure "1.9.0"]
-# [overtone/overtone "0.12.3152"]
-
-$ cd insane-noises
-$ lein repl
+Clojure 1.11.1
+user=>
 ```
 
 ### Making sounds
@@ -67,6 +69,12 @@ $ lein repl
 ```clj
 ;; boot the server
 user=> (use 'overtone.live)
+--> Loading Overtone...
+[overtone.live] [INFO] Found SuperCollider server: /usr/bin/scsynth (PATH)
+--> Booting external SuperCollider server...
+--> Connecting to external SuperCollider server: 127.0.0.1:26325
+[scynth] SuperCollider 3 server ready.
+--> Connection established
 
 ;; listen to the joys of a simple sine wave
 user=> (demo (sin-osc))
