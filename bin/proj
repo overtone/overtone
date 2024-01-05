@@ -13,7 +13,8 @@
       (slurp "src/overtone/version.clj")
       #"\(def OVERTONE-VERSION .*\)"
       (pr-str
-       `(~'def ~'OVERTONE-VERSION {:major ~major :minor ~minor :patch ~teeny :snapshot false}))))))
+       `(~'def ~'OVERTONE-VERSION {:major ~major :minor ~minor :patch ~teeny :snapshot false})))))
+  conf)
 
 (lioss/main
  {:license        :mit
