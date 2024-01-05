@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>overtone</groupId>
   <artifactId>overtone</artifactId>
-  <version>0.12.3156</version>
+  <version>0.13.3177</version>
   <name>overtone</name>
   <description>Sound and music live programming environment.</description>
   <url>https://github.com/overtone/overtone</url>
@@ -25,7 +25,7 @@
     <url>https://github.com/overtone/overtone</url>
     <connection>scm:git:git://github.com/overtone/overtone.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/overtone/overtone.git</developerConnection>
-    <tag>361e1e6f44042e8260b55d70098cf5c257ef9ddd</tag>
+    <tag>7b1fb98e0987dd3f9d0700fe9c3a631a855f8002</tag>
   </scm>
   <dependencies>
     <dependency>
@@ -53,6 +53,11 @@
       <artifactId>clj-glob</artifactId>
       <version>1.0.0</version>
     </dependency>
+    <dependency>
+      <groupId>casa.squid</groupId>
+      <artifactId>jack</artifactId>
+      <version>0.2.12</version>
+    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -78,7 +83,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <git-revision>361e1e6f44042e8260b55d70098cf5c257ef9ddd</git-revision>
+              <git-revision>7b1fb98e0987dd3f9d0700fe9c3a631a855f8002</git-revision>
             </manifestEntries>
           </archive>
         </configuration>
