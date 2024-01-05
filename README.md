@@ -37,7 +37,19 @@ collaborating with music.  It provides:
 
 ### Installation
 
-- Install the clojure-cli tools, see [Clojure guides: Getting Started](https://clojure.org/guides/getting_started)
+- Install Java, since this is a prerequisite for Clojure
+  - Quite often Java will already be installed, if `java -version` works and
+    shows you a version of 11 or higher you should be good
+  - On Linux, you should be able to use your operating system package manager,
+    for instance on Ubuntu the package will be called something like
+    `openjdk-17-jdk`
+  - On MacOS you can use Homebrew if you have it
+  - [https://adoptium.net/](Adoptium.net) has installers for most operating systems
+  
+- Install the Clojure CLI tools, see [Install Clojure](https://clojure.org/guides/install_clojure)
+  - Also install `rlwrap` if you can, without it `clojure` will work, but `clj`
+    will not, and you won't have history and line editing in your Clojure REPL
+  
 - Install [SuperCollider](https://supercollider.github.io/), preferrably through your operating system's package manager (apt, yum, pacman, homebrew, chocolatey, etc.)
   - The main package is called `supercollider` everywhere
   - If there's a package names `sc3-plugins`, then install that as well
