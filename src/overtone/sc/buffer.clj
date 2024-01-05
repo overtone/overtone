@@ -190,6 +190,38 @@
           (assoc info
                  :status (atom :live))))))))
 
+(defn buffer-alloc-read-channel
+  "Synchronously allocates a buffer, reading specific channel of an audio file,
+  given by 'path'. Reads the number of samples requested ('n-frames') into the
+  buffer, or fewer if the file is smaller than requested. Reads sound file data
+  from the given starting frame ('start') in the file. If 'n-frames' is less
+  than or equal to zero, the entire file is read.
+
+  Ignores OSC scheduling via the at macro; all inner OSC calls are sent
+  immediately."
+  ([path channel]
+   (buffer-alloc-read-channel path channel 0 -1))
+  ([path channel start]
+   (buffer-alloc-read-channel path channel start -1))
+  ([path channel start n-frames]
+   (ensure-path-exists! path)
+   (let [path (canonical-path path)
+         f    (file path)
+         id   (do (assert-less-than-max-buffers :audio-buffer)
+                  (next-id :audio-buffer))]
+     (snd-immediately
+       (with-server-sync
+         #(snd "/b_allocReadChannel" id path start n-frames channel)
+         (str "whilst allocating a buffer to contain the contents of file: " path))
+       (let [info                              (buffer-info id)
+             {:keys [id size rate n-channels]} info]
+         (when (every? zero? [size rate n-channels])
+           (throw (Exception. (str "Unable to read file - perhaps path is not a valid audio file (only " supported-file-types " supported) : " path))))
+
+         (map->BufferFile
+          (assoc info
+                 :status (atom :live))))))))
+
 (derive BufferInfo ::buffer-info)
 (derive Buffer     ::buffer)
 (derive BufferFile ::file-buffer)

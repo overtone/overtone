@@ -7,6 +7,9 @@
   restart. These will also emit events: `:midi-device-connected` /
   `:midi-device-disconnected` / `:midi-receiver-connected` /
   `:midi-receiver-disconnected`
+- Add `buffer-alloc-read-channel`, like `buffer-alloc-read` (instruct the SC
+  server to load a sound file), but only reads a single channel. Corresponds
+  with the `/b_allocReadChannel` OSC message.
 
 ## Fixed
 

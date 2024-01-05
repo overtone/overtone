@@ -3,20 +3,14 @@
   configure midi input/output devices, route between devices, read/write control
   messages to devices, play notes, etc."
   {:author "Jeff Rose"}
+  (:require
+   [overtone.at-at :as at-at])
   (:import
    (java.awt.event MouseAdapter)
-   (java.util.concurrent FutureTask ScheduledThreadPoolExecutor TimeUnit)
+   (java.util.concurrent FutureTask)
    (java.util.regex Pattern)
-   (javax.sound.midi Sequencer Synthesizer
-                     MidiSystem MidiDevice Receiver Transmitter MidiEvent
-                     MidiMessage ShortMessage SysexMessage
-                     InvalidMidiDataException MidiUnavailableException
-                     MidiDevice$Info)
-   (javax.swing JFrame JScrollPane JList
-                DefaultListModel ListSelectionModel))
-  (:require
-   [clojure.set :refer :all]
-   [overtone.at-at :as at-at]))
+   (javax.sound.midi MidiDevice MidiDevice$Info MidiSystem Receiver Sequencer ShortMessage Synthesizer SysexMessage Transmitter)
+   (javax.swing DefaultListModel JFrame JList JScrollPane ListSelectionModel)))
 
 ;; Java MIDI returns -1 when a port can support any number of transmitters or
 ;; receivers, we use max int.
