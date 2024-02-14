@@ -192,6 +192,9 @@
                  ;; Special case Pitch ugen which may have ar ugens plugged into it
                  (and (= "Pitch" (:name ugen))
                       (= :ar (:rate-name bad-input)))
+                 ;; Special case FreeSelf ugen which may have ar ugens plugged into it
+                 (and (= "FreeSelf" (:name ugen))
+                      (= :ar (:rate-name bad-input)))
 
                  ;; Special case LocalBuf which may have kr ugens plugged in
                  ;; but further modifications aren't honoured
