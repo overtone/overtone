@@ -1,18 +1,17 @@
-(ns
-  ^{:doc "An envelope defines a waveform that will be used to control another
-          component of a synthesizer over time.  It is typical to use envelopes
-          to control the amplitude of a source waveform.  For example, an
-          envelope will dictate that a sound should start quick and loud, but
-          then drop shortly and tail off gently.  Another common usage is to
-          see envelopes controlling filter cutoff values over time.
+(ns overtone.sc.envelope
+  "An envelope defines a waveform that will be used to control another component
+  of a synthesizer over time. It is typical to use envelopes to control the
+  amplitude of a source waveform. For example, an envelope will dictate that a
+  sound should start quick and loud, but then drop shortly and tail off gently.
+  Another common usage is to see envelopes controlling filter cutoff values over
+  time.
 
-          These are the typical envelope functions found in SuperCollider, and
-          they output a series of numbers that is understood by the SC synth
-          engine."
-     :author "Jeff Rose, Sam Aaron"}
-  overtone.sc.envelope
-  (:use [overtone.helpers lib]
-        [overtone.sc ugens]))
+  These are the typical envelope functions found in SuperCollider, and they
+  output a series of numbers that is understood by the SC synth engine."
+  {:author "Jeff Rose, Sam Aaron"}
+  (:use
+   [overtone.helpers lib]
+   [overtone.sc ugens]))
 
 (def ENV-SHAPES
   {:step        0
@@ -27,8 +26,7 @@
    :sqr         6
    :squared     6
    :cub         7
-   :cubed       7
-   })
+   :cubed       7})
 
 (defn- curve->shape-id
     "Map curve to envelope shape. If curve is a keyword, look it up in
@@ -226,11 +224,11 @@
   the envelope enters the release phase, and after
   release time, the amplitude is 0 + bias."
   [attack 0.01 decay 0.3 sustain 1 release 1
-              level 1 curve -4 bias 0]
+   level 1 curve -4 bias 0]
   (with-overloaded-ugens
     (envelope
-      (map #(+ %1 bias) [0 level (* level sustain) 0])
-      [attack decay release] curve 2)))
+     (map #(+ %1 bias) [0 level (* level sustain) 0])
+     [attack decay release] curve 2)))
 
 (defunk-env adsr-ng
   "Create an non-gated attack decay sustain release envelope
@@ -272,7 +270,7 @@
   then enters the release phase.  After release time, the amplitude
   is 0 + bias."
   [attack 0.01 decay 0.3 sustain 1 release 1
-              attack-level 1 level 1 curve :linear bias 0]
+   attack-level 1 level 1 curve :linear bias 0]
   (with-overloaded-ugens
     (envelope
      (map #(+ % bias) [0 attack-level level level 0])

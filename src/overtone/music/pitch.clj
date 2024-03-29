@@ -538,7 +538,7 @@
     (invert-chord [60 64 67] 1) ;=> (64 67 72)
 
     ; second inversion
-    (invert-chord [60 64 67] 1) ;=> (67 72 76)
+    (invert-chord [60 64 67] 2) ;=> (67 72 76)
   "
   [notes shift]
   (cond
