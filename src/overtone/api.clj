@@ -108,7 +108,8 @@
    'overtone.studio.midi-player
    'overtone.studio.mixer
    'overtone.studio.wavetable
-   'overtone.version])
+   'overtone.version
+   #_'overtone.patterns])
 
 (defn immigrate-overtone-api []
   (apply immigrate immigrated-namespaces))

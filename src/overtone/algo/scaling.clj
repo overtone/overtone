@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Handy number scaling and rounding fns"
-      :author "Sam Aaron"}
-  overtone.algo.scaling)
+(ns overtone.algo.scaling
+  "Handy number scaling and rounding fns"
+  {:author "Sam Aaron"})
 
 (defn closest-to
   "Returns either low or hi depending on which is numerically closer
