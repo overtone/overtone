@@ -3,4 +3,4 @@
 
 (def DEFAULT-BPM 128)
 
-(def *clock* (metronome DEFAULT-BPM))
+(def ^:dynamic *clock* (metronome DEFAULT-BPM))

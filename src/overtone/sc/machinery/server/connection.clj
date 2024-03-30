@@ -99,7 +99,7 @@
        (overtone-ports)
        (sort (jack/ports @jack/default-client #{:audio :physical :in}))))
 
-(defn- connect-jack-ports
+(defn connect-jack-ports
   "Connect the jack input and output ports as best we can."
   ([]
    (connect-jack-ports 2))

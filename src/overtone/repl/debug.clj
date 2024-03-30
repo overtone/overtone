@@ -1,10 +1,13 @@
 (ns overtone.repl.debug
-  (:use [clojure.pprint]
-        [overtone.sc.machinery.ugen.defaults]
-        [overtone.sc.machinery.ugen.special-ops]
-        [overtone.sc.machinery.ugen.specs]
-        [overtone.sc.machinery.synthdef]
-        [overtone.helpers seq lib]))
+  (:use
+   clojure.pprint
+   overtone.sc.machinery.ugen.defaults
+   overtone.sc.machinery.ugen.special-ops
+   overtone.sc.machinery.ugen.specs
+   overtone.sc.machinery.synthdef
+   overtone.helpers.seq
+   overtone.helpers.lib
+   overtone.studio.inst))
 
 (defn- control-ugen-name?
   [ug-n]
