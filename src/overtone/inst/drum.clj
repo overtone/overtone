@@ -10,6 +10,8 @@
 ;;; Kick Drums
 
 (definst kick
+  "Kick drum based on a single sine oscillator, with a rapidly dropping
+  frequency from (default) 150 to 50Hz."
   [freq       {:default 50 :min 40 :max 140 :step 1}
    env-ratio  {:default 3 :min 1.2 :max 8.0 :step 0.1}
    freq-decay {:default 0.02 :min 0.001 :max 1.0 :step 0.001}
@@ -18,12 +20,15 @@
         aenv (env-gen (perc 0.005 amp-decay) :action FREE)]
     (* (sin-osc fenv (* 0.5 Math/PI)) aenv)))
 
-(definst kick2 [freq      {:default 80 :min 10 :max 20000 :step 1}
-                amp       {:default 0.8 :min 0.001 :max 1.0 :step 0.001}
-                mod-freq  {:default 5 :min 0.001 :max 10.0 :step 0.01}
-                mod-index {:default 5 :min 0.001 :max 10.0 :step 0.01}
-                sustain   {:default 0.4 :min 0.001 :max 1.0 :step 0.001}
-                noise     {:default 0.025 :min 0.001 :max 1.0 :step 0.001}]
+(definst kick2
+  "Kick drum based on a mix of a FM modulated sine oscillator, and filtered and
+  shaped white noise."
+  [freq      {:default 80 :min 10 :max 20000 :step 1}
+   amp       {:default 0.8 :min 0.001 :max 1.0 :step 0.001}
+   mod-freq  {:default 5 :min 0.001 :max 10.0 :step 0.01}
+   mod-index {:default 5 :min 0.001 :max 10.0 :step 0.01}
+   sustain   {:default 0.4 :min 0.001 :max 1.0 :step 0.001}
+   noise     {:default 0.025 :min 0.001 :max 1.0 :step 0.001}]
   (let [pitch-contour (line:kr (* 2 freq) freq 0.02)
         drum (lpf (sin-osc pitch-contour (sin-osc mod-freq (/ mod-index 1.3))) 1000)
         drum-env (env-gen (perc 0.005 sustain) :action FREE)
@@ -33,6 +38,7 @@
     (* amp (+ (* drum drum-env) (* hit hit-env)))))
 
 (definst kick3
+  "Kick drum based on a sine oscillator mixed with white noise."
   [freq {:default 80 :min 40 :max 140 :step 1}
    amp {:default 0.3 :min 0.001 :max 1 :step 0.001}]
   (let [sub-osc   (sin-osc freq)
@@ -44,6 +50,7 @@
     (* amp (+ sub-out click-out))))
 
 (definst kick4
+  "Kick drum, just a fixed frequency sine wave with an envelope."
   [freq   {:default 80 :min 40 :max 140 :step 1}
    amp    {:default 0.3 :min 0.001 :max 1 :step 0.001}
    attack {:default 0.001 :min 0.001 :max 1.0 :step 0.001}

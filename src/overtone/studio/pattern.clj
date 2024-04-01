@@ -5,6 +5,25 @@
   (:require
    [overtone.algo.chance :as chance]))
 
+(defn pfirst
+  "Like first, but recursively descends into into sequences."
+  [s]
+  (let [v (first s)]
+    (if (sequential? v)
+      (recur v)
+      v)))
+
+(defn pnext
+  "Like next, but lazily flattens nested sequences."
+  [s]
+  (let [[x & xs] s]
+    (if (sequential? x)
+      (recur
+       (if (seq x)
+         (concat x xs)
+         xs))
+      xs)))
+
 (defn- pbind*
   "Internal helper for pbind, complicated by the fact that we want to cycle all
   seqs until we've fully consumed the longest seq, but we can't count because
@@ -12,11 +31,7 @@
   least once (done set)."
   [ks specs seqs done]
   (when-not (= (count done) (count ks))
-    (let [vs (map (fn [v]
-                    (if (sequential? v)
-                      (first v)
-                      v))
-                  seqs)]
+    (let [vs (map #(if (sequential? %) (pfirst %) %) seqs)]
       (cons
        (zipmap ks vs)
        (lazy-seq
@@ -25,7 +40,7 @@
          specs
          (map (fn [v spec]
                 (if (sequential? v)
-                  (let [n (next v)]
+                  (let [n (pnext v)]
                     (if (nil? n)
                       spec
                       n))
@@ -36,7 +51,7 @@
                (remove nil?
                        (map (fn [k s]
                               (when (and (sequential? s)
-                                         (not (next s)))
+                                         (not (pnext s)))
                                 k))
                             ks
                             seqs)))))))))
@@ -48,25 +63,35 @@
   Non-sequential values are retained as-is.
 
   Similar to SuperCollider's `PBind`, part of the Pattern library. "
-  [m]
-  (let [ks (keys m)
-        specs (map m ks)
-        seqs (map (fn [v]
-                    (if (sequential? v)
-                      (seq v)
-                      v))
-                  specs)
-        done (set (remove nil?
-                          (map (fn [k s]
-                                 (when (not (sequential? s))
-                                   k))
-                               ks
-                               seqs)))]
-    (pbind*
-     ks
-     specs
-     seqs
-     done)))
+  ([m repeat]
+   (cond
+     (= 0 repeat)
+     nil
+     (= Float/POSITIVE_INFINITY repeat)
+     (concat (pbind m) (pbind m repeat))
+     :else
+     (concat (pbind m) (pbind m (dec repeat)))))
+  ([m]
+   (let [ks (keys m)
+         specs (map m ks)
+         seqs (map (fn [v]
+                     (if (sequential? v)
+                       (seq v)
+                       v))
+                   specs)
+         done (set (remove nil?
+                           (map (fn [k s]
+                                  (when (not (sequential? s))
+                                    k))
+                                ks
+                                seqs)))]
+     (if  (= (count done) (count ks))
+       [m]
+       (pbind*
+        ks
+        specs
+        seqs
+        done)))))
 
 (defn pwhite
   ([min max]

@@ -115,6 +115,7 @@
    'overtone.version
    'overtone.studio.pattern
    'overtone.studio.event
+   'overtone.studio.transport
    ])
 
 (defn immigrate-overtone-api []

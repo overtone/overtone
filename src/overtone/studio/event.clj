@@ -8,6 +8,8 @@
    [overtone.sc.server :as server]
    [overtone.studio.transport :as transport]))
 
+(defonce pplayers (atom {}))
+
 (def defaults
   {:note
    {:type             :note
@@ -171,8 +173,6 @@
 (event/on-event :note #'handle-note ::note)
 (event/on-event :chord #'handle-chord ::chord)
 
-(def pplayers (atom {}))
-
 (defn- quantize
   "Quantize a beat to a period, made a bit awkward by the fact that beats counts
   from 1, so e.g. a quant of 4 (align to 4/4 bars), yields 1, 5, 9, etc."
@@ -185,17 +185,17 @@
 (defn schedule-next [k]
   (let [pp @pplayers
         {:keys [clock paused? pseq beat proto] :as player} (get pp k)
-        e        (merge (first pseq) proto)
+        e        (merge (pattern/pfirst pseq) proto)
         dur      (eget e :dur)
         type     (eget e :type)
-        next-seq (next pseq)]
-    (if next-seq
-      (do
+        next-seq (pattern/pnext pseq)]
+    (if (and next-seq (not paused?))
+      (let [job (time/apply-by (clock (+ beat dur -0.5)) schedule-next [k])]
         (swap! pplayers update k assoc
+               :job job
                :pseq next-seq
-               :beat (+ beat dur))
-        (time/apply-by (clock (+ beat dur -0.5)) schedule-next [k]))
-      (dissoc pp k))
+               :beat (+ beat dur)))
+      (swap! pplayers dissoc k))
 
     (when (seq pseq)
       (event/event (eget e :type) (assoc e :beat beat :clock clock)))))
@@ -221,26 +221,34 @@
 
 (defn presume [k]
   (let [pp @pplayers
-        {:keys [clock paused? beat quant offset]
+        {:keys [clock paused? beat quant offset job]
          :as   player} (get pp k)
         next-beat (+ (quantize (clock) quant) offset)]
-    (when paused?
-      (time/apply-by (clock (- next-beat 0.5)) schedule-next [k])
+    (when job
+      (time/kill-player job))
+    (let [job (time/apply-by (clock (- next-beat 0.5)) schedule-next [k])]
       (swap! pplayers update k
              assoc
+             :job job
              :paused? false
-             :beat next-beat)
-      pp)))
+             :beat next-beat))))
 
 (defn ppause [k]
-  (swap! pplayers assoc-in [k :paused?] true))
+  (when-let [job (get-in @pplayers [k :job])]
+    (time/kill-player job))
+  (swap! pplayers update k
+         assoc :paused? true :job nil))
 
 (defn pplay [k pattern & args]
   (apply padd k pattern args)
   (presume k))
 
 (defn premove [k]
+  (when-let [job (get-in @pplayers [k :job])]
+    (time/kill-player job))
   (swap! pplayers dissoc k))
 
 (defn pclear []
+  (doseq [job (keep :job (vals @pplayers))]
+    (time/kill-player job))
   (reset! pplayers {}))
