@@ -68,9 +68,9 @@
      (= 0 repeat)
      nil
      (= Float/POSITIVE_INFINITY repeat)
-     (concat (pbind m) (pbind m repeat))
+     (concat (pbind m) (lazy-seq (pbind m repeat)))
      :else
-     (concat (pbind m) (pbind m (dec repeat)))))
+     (concat (pbind m) (lazy-seq (pbind m (dec repeat))))))
   ([m]
    (let [ks (keys m)
          specs (map m ks)
@@ -98,3 +98,17 @@
    (repeatedly #(chance/rrand min max)))
   ([min max repeats]
    (repeatedly repeats #(chance/rrand min max))))
+
+(defmacro pdo [& body]
+  `(repeatedly (fn [] ~@body)))
+
+(defn pseries
+  ([start step]
+   (iterate #(+ step %) start))
+  ([start step size]
+   (if (= Float/POSITIVE_INFINITY size)
+     (pseries start step)
+     (take size (pseries start step)))))
+
+(defn pchoose [& args]
+  (pdo (rand-nth args)))

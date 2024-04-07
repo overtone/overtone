@@ -18,13 +18,15 @@
     :ctranspose       0.0
     :octave           5.0
     :root             0.0
-    :degree           0
-    :scale            :major
+    :degree           1
+    :mode             :major
     :steps-per-octave 12.0
     :detune           0.0
     :harmonic         1.0
     :octave-ratio     2.0
-    :dur              1}
+    :dur              1
+    :swing            0
+    :swing-quant      2}
 
    :chord
    {:type             :chord
@@ -33,16 +35,21 @@
     :ctranspose       0.0
     :octave           5.0
     :root             0.0
-    :degree           0
-    :scale            :major
-    :chord            :major
+    :degree           1
+    :mode             :major
+    :chord            :from-scale
     :inversion        0
+    :chord-size       3
     :steps-per-octave 12.0
     :detune           0.0
     :harmonic         1.0
     :octave-ratio     2.0
     :dur              1
-    }})
+    :strum            0}
+
+   :ctl
+   {:type :ctl
+    :dur  1}})
 
 (declare derivations)
 
@@ -91,7 +98,7 @@
 
    :scale-intervals
    (fn [e]
-     (get pitch/SCALE (eget e :scale)))
+     (get pitch/SCALE (eget e :mode)))
 
    :scale-notes
    (fn [e]
@@ -100,11 +107,12 @@
    :note
    (fn [e]
      (let [degree (eget e :degree)]
-       (if (keyword? degree)
+       (if (#{:_ :rest} degree)
          degree
-         (let [scale (eget e :scale-notes)
+         (let [degree (pitch/degree->int degree)
+               scale (eget e :scale-notes)
                size  (count scale)
-               degree (+ degree
+               degree (+ (dec degree)
                          (eget e :mtranspose))]
            ;; Not too sure about this... would be good to compare results with SC
            (+ (nth scale (mod degree size))
@@ -123,7 +131,11 @@
 
    :start-time
    (fn [e]
-     ((eget e :clock) (eget e :beat)))
+     (let [beat (eget e :beat)
+           sq   (eget e :swing-quant)]
+       ((eget e :clock) (cond-> beat
+                          (= 0 (mod beat sq))
+                          (+ (eget e :swing))))))
 
    :end-time
    (fn [e]
@@ -135,20 +147,24 @@
   value."
   {:freq :detuned-freq})
 
+(defn params-vec [e]
+  (let [i (eget e :instrument)
+        params (or (:params (meta i))
+                   (map (comp keyword :name)
+                        (:pnames (:sdef i))))]
+    (reduce (fn [acc kn]
+              (let [lk (get pname-mapping kn kn)]
+                (if (or (contains? e lk) (contains? derivations lk))
+                  (conj acc kn (eget e lk))
+                  acc)))
+            []
+            params)))
+
 (defn handle-note [e]
-  (locking *out*
-    (prn (map #(eget e %) [:instrument :note :beat])))
   (when-not (keyword? (eget e :freq))
     (let [i (eget e :instrument)
           params (:params i)
-          args (reduce (fn [acc {:keys [name]}]
-                         (let [kn (keyword name)
-                               lk (get pname-mapping kn kn)]
-                           (if (or (contains? e lk) (contains? derivations lk))
-                             (conj acc kn (eget e lk))
-                             acc)))
-                       []
-                       params)
+          args (params-vec e)
           has-gate? (some #{"gate"} (map :name params))
           start (eget e :start-time)
           end (eget e :end-time)]
@@ -159,19 +175,38 @@
               (server/at end (node/ctl h :gate 0))))
           args)))))
 
-(defn handle-chord [{:keys [chord inversion] :as e
-                     :or {inversion 0}}]
-  (let [midinote (eget e :midinote)]
+(defn handle-chord [e]
+  (let [chord  (eget e :chord)
+        inversion (or (eget e :inversion) 0)
+        midinote (eget e :midinote)
+        chord-notes
+        (pitch/invert-chord
+         (if (= :from-scale chord)
+           (pitch/chord-degree (eget e :degree)
+                               (+ (eget e :gtranspose)
+                                  (eget e :root))
+                               (eget e :mode)
+                               (eget e :chord-size))
+           (pitch/resolve-chord chord))
+         inversion)]
     (when-not (keyword? midinote)
-      (doseq [n (-> chord
-                    pitch/resolve-chord
-                    (pitch/invert-chord inversion))]
-        (event/event :note (assoc e
+      (doseq [[n idx] (map vector
+
+                           (range))]
+        (event/event :note (assoc (update e :beat + (* idx (eget e :strum)))
                                   :type :note
                                   :midinote (+ midinote n)))))))
 
+(defn handle-ctl [e]
+  (let [i (eget e :instrument)
+        args (params-vec e)
+        start (eget e :start-time)]
+    (when start
+      (server/at start (apply node/ctl i args)))))
+
 (event/on-event :note #'handle-note ::note)
 (event/on-event :chord #'handle-chord ::chord)
+(event/on-event :ctl #'handle-ctl ::ctl)
 
 (defn- quantize
   "Quantize a beat to a period, made a bit awkward by the fact that beats counts
@@ -231,17 +266,20 @@
              assoc
              :job job
              :paused? false
-             :beat next-beat))))
+             :beat next-beat)))
+  nil)
 
 (defn ppause [k]
   (when-let [job (get-in @pplayers [k :job])]
     (time/kill-player job))
   (swap! pplayers update k
-         assoc :paused? true :job nil))
+         assoc :paused? true :job nil)
+  nil)
 
 (defn pplay [k pattern & args]
   (apply padd k pattern args)
-  (presume k))
+  (presume k)
+  nil)
 
 (defn premove [k]
   (when-let [job (get-in @pplayers [k :job])]

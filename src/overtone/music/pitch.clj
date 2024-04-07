@@ -179,12 +179,12 @@
   [n]
   (cond
     (nil? n) nil
-    (integer? n) (if (>= n 0)
-                   n
-                   (throw (IllegalArgumentException.
-                           (str "Unable to resolve note: "
-                                n
-                                ". Value is out of range. Lowest value is 0"))))
+    (number? n) (if (>= n 0)
+                  n
+                  (throw (IllegalArgumentException.
+                          (str "Unable to resolve note: "
+                               n
+                               ". Value is out of range. Lowest value is 0"))))
     (keyword? n) (note (name n))
     (string? n) (:midi-note (note-info n))
     :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
@@ -355,12 +355,25 @@
              :v     5
              :vi    6
              :vii   7
+             :I     1
+             :II    2
+             :III   3
+             :IV    4
+             :V     5
+             :VI    6
+             :VII   7
              :_     nil})
 
 (defn degree->int
   [degree]
-  (if (some #{degree} (keys DEGREE))
+  (cond
+    (int? degree)
+    degree
+
+    (some #{degree} (keys DEGREE))
     (degree DEGREE)
+
+    :else
     (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
 
 (defn resolve-degree

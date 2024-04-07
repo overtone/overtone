@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Useful monitoring synths"
-      :author "Sam Aaron"}
-  overtone.synth.monitor
+(ns overtone.synth.monitor
+  "Useful monitoring synths"
+  {:author "Sam Aaron"}
   (:use [overtone.core]))
 
 (defsynth mono-audio-bus-level [in-a-bus 0 out-c-bus 0]

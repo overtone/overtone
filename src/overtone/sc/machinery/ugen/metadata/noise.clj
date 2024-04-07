@@ -88,8 +88,11 @@
                :default 0.0
                :doc     "This value will be added to the output."}]
        :rates #{:ar}
-       :doc "Given a density (average number of impulses per second)
-             creates a sequence of random impulses from -1 to +1.
+       :doc "Creates a sequence of random impulses from -1 to +1.
+
+             Generates noise which results from flipping random bits in a word.
+             This type of noise has a high RMS level relative to its peak to
+             peak level. The spectrum is emphasized towards lower frequencies.
 
              Useful for generating percussive sounds such as snares and
              hand claps. Also useful for simulating wind or sea effects,

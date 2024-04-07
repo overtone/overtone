@@ -1,6 +1,5 @@
-(ns
-    ^{:doc "Clones of historical synths.  Add your favorites here."}
-  overtone.synth.retro
+(ns overtone.synth.retro
+  "Clones of historical synths.  Add your favorites here."
   (:use [overtone.core]))
 
 ;; TB-303 clone Supercollider starting point by Dan Stowell

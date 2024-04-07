@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "A port of the synths found in The Thor's The Ixi Lang"
-      :author "Sam Aaron"}
-  overtone.synth.ixi
+(ns overtone.synth.ixi
+  "A port of the synths found in The Thor's The Ixi Lang"
+  {:author "Sam Aaron"}
   (:use [overtone.core]))
 
 (defsynth impulser
