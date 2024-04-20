@@ -13,16 +13,53 @@
       (recur v)
       v)))
 
+(defn subtract-dur [durs durspec amount]
+  (if-not (seq durs)
+    (recur durspec durspec amount)
+    (let [[d & ds] durs]
+      (cond
+        (< amount d)
+        (cons (- d amount) ds)
+        (<= d amount)
+        (recur ds durspec (- amount d))))))
+
+(defn subtract-meta-dur [s dur]
+  (when s
+    (if-not (:durspec (meta s))
+      (recur (vary-meta s (fn [m] (assoc m :durspec (:dur m)))) dur)
+      (vary-meta
+       s
+       (fn [m]
+         (update m :dur subtract-dur (:durspec m) dur))))))
+
 (defn pnext
   "Like next, but lazily flattens nested sequences."
-  [s]
-  (let [[x & xs] s]
-    (if (sequential? x)
-      (recur
-       (if (seq x)
-         (concat x xs)
-         xs))
-      xs)))
+  ([s]
+   (let [[x & xs] s]
+     (cond
+       (sequential? x)
+       (recur
+        (with-meta
+          (if (seq x)
+            (concat x xs)
+            xs)
+          (meta s)))
+
+       (some? xs)
+       (with-meta xs (meta s))
+
+       :else nil)))
+  ([s dur]
+   (if-let [[fdur & ndurs :as sdurs] (:dur (meta s))]
+     (if (<= fdur dur)
+       ;; drop first, recur with next and adjusted dur
+       (recur (-> s
+                  pnext
+                  (subtract-meta-dur dur))
+              (- dur fdur))
+       ;; keep first, adjust dur
+       (subtract-meta-dur s dur))
+     (pnext s))))
 
 (defn- pbind*
   "Internal helper for pbind, complicated by the fact that we want to cycle all
@@ -31,16 +68,17 @@
   least once (done set)."
   [ks specs seqs done]
   (when-not (= (count done) (count ks))
-    (let [vs (map #(if (sequential? %) (pfirst %) %) seqs)]
+    (let [vs (map #(if (sequential? %) (pfirst %) %) seqs)
+          vm (zipmap ks vs)]
       (cons
-       (zipmap ks vs)
+       vm
        (lazy-seq
         (pbind*
          ks
          specs
          (map (fn [v spec]
                 (if (sequential? v)
-                  (let [n (pnext v)]
+                  (let [n (pnext v (:dur vm 1))]
                     (if (nil? n)
                       spec
                       n))
@@ -76,7 +114,8 @@
          specs (map m ks)
          seqs (map (fn [v]
                      (if (sequential? v)
-                       (seq v)
+                       (when-let [s (seq v)]
+                         (with-meta s (meta v)))
                        v))
                    specs)
          done (set (remove nil?
