@@ -106,7 +106,7 @@
   (let [pc (keyword (name pc))]
       (REVERSE-NOTES (NOTES pc))))
 
-(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)" )
+(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)?" )
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
 (def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
 
@@ -128,7 +128,7 @@
 
     (let [[match pictch-class octave-str] matches
           octave (first octave-str)]
-      (when (< (int octave) -1)
+      (when (and octave (< (int octave) -1))
         (throw (IllegalArgumentException.
                 (str "Invalid midi-string: " mk
                      ". Octave is out of range. Lowest octave value is -1")))))
@@ -140,13 +140,15 @@
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
-        octave                     (Integer/parseInt octave)
+        octave                     (when octave (Integer. octave))
         interval                   (NOTES (keyword pitch-class))]
-    {:match       match
-     :pitch-class pitch-class
-     :octave      (Integer. octave)
-     :interval    interval
-     :midi-note   (octave-note octave interval)}))
+    (cond-> {:match       match
+             :pitch-class pitch-class
+             :interval    interval}
+      octave
+      (assoc
+        :octave    octave
+        :midi-note (octave-note octave interval)))))
 
 (defn mk-midi-string
   "Takes a string or keyword representing a pitch and a number
