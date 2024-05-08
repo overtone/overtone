@@ -151,3 +151,14 @@
 
 (defn pchoose [& args]
   (pdo (rand-nth args)))
+
+(defn ppad
+  "Pad the `pattern` with a rest so the total duration of the pattern is a
+  multiple of `beats`."
+  [pattern beats]
+  (let [length (apply + (map #(get % :dur 1) pattern))
+        remain (- beats (mod length beats))]
+    (if (< 0 remain)
+      (concat pattern [{:type :rest
+                        :dur remain}])
+      pattern)))

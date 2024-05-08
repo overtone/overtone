@@ -67,6 +67,9 @@
         (throw (ex-info (str "Missing event key or derivation " k)
                         {:event e}))))))
 
+(defn rest? [o]
+  (#{:_ :rest} o))
+
 (def derivations
   {:detuned-freq
    (fn [e]
@@ -84,17 +87,25 @@
    :midinote
    (fn [e]
      (let [note (eget e :note)]
-       (if (keyword? note)
+       (cond
+         (rest? note)
          note
-         (+ 60
-            (*
-             (+ (eget e :octave) (- 5)
-                (/ (+ note
-                      (eget e :gtranspose)
-                      (eget e :root))
-                   (eget e :steps-per-octave)))
-             12 (/ (Math/log (eget e :octave-ratio))
-                   (Math/log 2)))))))
+         (or (keyword? note) (string? note))
+         (let [{:keys [interval midi-note]} (pitch/note-info note)]
+           (if midi-note
+             midi-note
+             (+ (+ interval
+                   (eget e :gtranspose))
+                (* (eget e :octave) 12))))
+         :else
+         (* (+ (eget e :octave)
+               (/ (+ note
+                     (eget e :gtranspose)
+                     (eget e :root))
+                  (eget e :steps-per-octave)))
+            12
+            (/ (Math/log (eget e :octave-ratio))
+               (Math/log 2))))))
 
    :scale-intervals
    (fn [e]
@@ -162,18 +173,18 @@
 
 (defn handle-note [e]
   (when-not (keyword? (eget e :freq))
-    (let [i (eget e :instrument)
-          params (:params i)
-          args (params-vec e)
+    (let [i         (eget e :instrument)
+          params    (:params i)
+          args      (params-vec e)
           has-gate? (some #{"gate"} (map :name params))
-          start (eget e :start-time)
-          end (eget e :end-time)]
+          start     (eget e :start-time)
+          end       (eget e :end-time)]
       (if start
         (server/at start
-          (let [h (apply i args)]
-            (when (and end has-gate?)
-              (server/at end (node/ctl h :gate 0))))
-          args)))))
+                   (let [h (apply i args)]
+                     (when (and end has-gate?)
+                       (server/at end (node/ctl h :gate 0))))
+                   args)))))
 
 (defn handle-chord [e]
   (let [chord  (eget e :chord)
@@ -284,9 +295,11 @@
 (defn premove [k]
   (when-let [job (get-in @pplayers [k :job])]
     (time/kill-player job))
-  (swap! pplayers dissoc k))
+  (swap! pplayers dissoc k)
+  nil)
 
 (defn pclear []
   (doseq [job (keep :job (vals @pplayers))]
     (time/kill-player job))
-  (reset! pplayers {}))
+  (reset! pplayers {})
+  nil)
