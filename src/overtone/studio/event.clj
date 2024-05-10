@@ -26,7 +26,9 @@
     :octave-ratio     2.0
     :dur              1
     :swing            0
-    :swing-quant      2}
+    :swing-quant      2
+    :clock            nil
+    :bpm              nil}
 
    :chord
    {:type             :chord
@@ -70,6 +72,14 @@
 (defn rest? [o]
   (#{:_ :rest} o))
 
+(defn octave-note [e octave note]
+  (* (+ octave
+        (/ (+ note (eget e :gtranspose))
+           (eget e :steps-per-octave)))
+     12
+     (/ (Math/log (eget e :octave-ratio))
+        (Math/log 2))))
+
 (def derivations
   {:detuned-freq
    (fn [e]
@@ -86,26 +96,24 @@
 
    :midinote
    (fn [e]
-     (let [note (eget e :note)]
+     (let [note (eget e :note)
+           root (eget e :root)]
        (cond
          (rest? note)
          note
+
          (or (keyword? note) (string? note))
-         (let [{:keys [interval midi-note]} (pitch/note-info note)]
-           (if midi-note
-             midi-note
-             (+ (+ interval
-                   (eget e :gtranspose))
-                (* (eget e :octave) 12))))
+         (let [{:keys [interval octave]
+                :or {octave (eget e :octave)}} (pitch/note-info note)]
+           (octave-note e octave interval))
+
+         (or (keyword? root) (string? root))
+         (let [{:keys [interval octave]
+                :or {octave (eget e :octave)}} (pitch/note-info (eget e :root))]
+           (octave-note e octave (+ note interval)))
+
          :else
-         (* (+ (eget e :octave)
-               (/ (+ note
-                     (eget e :gtranspose)
-                     (eget e :root))
-                  (eget e :steps-per-octave)))
-            12
-            (/ (Math/log (eget e :octave-ratio))
-               (Math/log 2))))))
+         (octave-note e (eget e :octave) (eget e :note)))))
 
    :scale-intervals
    (fn [e]
@@ -132,26 +140,24 @@
                    (< degree 0)
                    dec)))))))
 
-   :clock
-   (fn [e]
-     transport/*clock*)
-
    :beat
    (fn [e]
-     ((eget e :clock)))
+     (when-let [clock (eget e :clock)]
+       (clock)))
 
    :start-time
    (fn [e]
-     (let [beat (eget e :beat)
-           sq   (eget e :swing-quant)]
-       ((eget e :clock) (cond-> beat
-                          (= 0 (mod beat sq))
-                          (+ (eget e :swing))))))
+     (when-let [clock (eget e :clock)]
+       (let [beat (eget e :beat)]
+         (clock (cond-> beat
+                  (= 0 (mod beat (eget e :swing-quant)))
+                  (+ (eget e :swing)))))))
 
    :end-time
    (fn [e]
-     ((eget e :clock) (+ (eget e :beat)
-                         (eget e :dur))))})
+     (when-let [clock (eget e :clock)]
+       (clock (+ (eget e :beat)
+                 (eget e :dur)))))})
 
 (def pname-mapping
   "If a synth has a :freq parameter, we actually use the computed :detuned-freq
@@ -178,18 +184,28 @@
           args      (params-vec e)
           has-gate? (some #{"gate"} (map :name params))
           start     (eget e :start-time)
-          end       (eget e :end-time)]
+          end       (if start
+                      (eget e :end-time)
+                      (+ (time/now)
+                         (* (eget e :dur)
+                            60000
+                            (/ 1 (or (eget e :bpm)
+                                     (:bpm (or (eget e :clock)
+                                               transport/*clock*)))))))]
       (if start
         (server/at start
-                   (let [h (apply i args)]
-                     (when (and end has-gate?)
-                       (server/at end (node/ctl h :gate 0))))
-                   args)))))
+          (let [h (apply i args)]
+            (when (and end has-gate?)
+              (server/at end (node/ctl h :gate 0))))
+          args)
+        (let [h (apply i args)]
+          (when (and end has-gate?)
+            (server/at end (node/ctl h :gate 0))))))))
 
 (defn handle-chord [e]
-  (let [chord  (eget e :chord)
+  (let [chord     (eget e :chord)
         inversion (or (eget e :inversion) 0)
-        midinote (eget e :midinote)
+        midinote  (eget e :midinote)
         chord-notes
         (pitch/invert-chord
          (if (= :from-scale chord)
@@ -231,7 +247,9 @@
 (defn schedule-next [k]
   (let [pp @pplayers
         {:keys [clock paused? pseq beat proto] :as player} (get pp k)
-        e        (merge (pattern/pfirst pseq) proto)
+        e        (merge {:clock transport/*clock*}
+                        (pattern/pfirst pseq)
+                        proto)
         dur      (eget e :dur)
         type     (eget e :type)
         next-seq (pattern/pnext pseq)]
