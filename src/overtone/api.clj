@@ -6,6 +6,7 @@
   (:require
    clojure.stacktrace
    [overtone.helpers.doc :refer [fs]]
+   (overtone.helpers rand)
    (overtone version osc speech)
    (overtone.algo chance scaling trig fn lists)
    (overtone.config store)
@@ -116,6 +117,7 @@
    'overtone.studio.pattern
    'overtone.studio.event
    'overtone.studio.transport
+   'overtone.helpers.rand
    ])
 
 (defn immigrate-overtone-api []

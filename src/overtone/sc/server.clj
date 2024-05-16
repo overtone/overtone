@@ -5,14 +5,13 @@
   {:author "Jeff Rose"}
   (:require
    [overtone.config.log :as log]
-   [overtone.libs.event :as event]
-   [overtone.libs.deps :as deps]
-   [overtone.sc.dyn-vars :as dyn-vars]
-   [overtone.sc.machinery.allocator :as allocator]
-   [overtone.sc.machinery.server.connection :as connection]
-   [overtone.sc.machinery.server.comms :as comms]
    [overtone.helpers.lib :as lib]
-   [overtone.osc :as osc])
+   [overtone.libs.deps :as deps]
+   [overtone.libs.event :as event]
+   [overtone.osc :as osc]
+   [overtone.sc.dyn-vars :as dyn-vars]
+   [overtone.sc.machinery.server.comms :as comms]
+   [overtone.sc.machinery.server.connection :as connection])
   (:import
    (java.util.concurrent TimeoutException)))
 

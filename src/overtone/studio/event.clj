@@ -109,11 +109,11 @@
 
          (or (keyword? root) (string? root))
          (let [{:keys [interval octave]
-                :or {octave (eget e :octave)}} (pitch/note-info (eget e :root))]
+                :or {octave (eget e :octave)}} (pitch/note-info root)]
            (octave-note e octave (+ note interval)))
 
          :else
-         (octave-note e (eget e :octave) (eget e :note)))))
+         (octave-note e (eget e :octave) (+ note root)))))
 
    :scale-intervals
    (fn [e]
@@ -150,7 +150,8 @@
      (when-let [clock (eget e :clock)]
        (let [beat (eget e :beat)]
          (clock (cond-> beat
-                  (= 0 (mod beat (eget e :swing-quant)))
+                  ;; beats count from 1
+                  (= 1 (mod beat (eget e :swing-quant)))
                   (+ (eget e :swing)))))))
 
    :end-time
@@ -162,7 +163,8 @@
 (def pname-mapping
   "If a synth has a :freq parameter, we actually use the computed :detuned-freq
   value."
-  {:freq :detuned-freq})
+  {:freq :detuned-freq
+   :note :midinote})
 
 (defn params-vec [e]
   (let [i (eget e :instrument)
@@ -209,20 +211,18 @@
         chord-notes
         (pitch/invert-chord
          (if (= :from-scale chord)
-           (pitch/chord-degree (eget e :degree)
-                               (+ (eget e :gtranspose)
-                                  (eget e :root))
-                               (eget e :mode)
-                               (eget e :chord-size))
-           (pitch/resolve-chord chord))
+           (for [n (range (eget e :chord-size))]
+             (eget (assoc e :degree
+                          (+ (* 2 n)
+                             (pitch/degree->int (eget e :degree))))
+                   :midinote))
+           (map (partial + midinote) (pitch/resolve-chord chord)))
          inversion)]
     (when-not (keyword? midinote)
-      (doseq [[n idx] (map vector
-
-                           (range))]
+      (doseq [[n idx] (map vector chord-notes (range))]
         (event/event :note (assoc (update e :beat + (* idx (eget e :strum)))
                                   :type :note
-                                  :midinote (+ midinote n)))))))
+                                  :midinote n))))))
 
 (defn handle-ctl [e]
   (let [i (eget e :instrument)
