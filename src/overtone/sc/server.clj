@@ -3,40 +3,44 @@
   This is at heart an OSC client library for the SuperCollider scsynth
   DSP engine."
   {:author "Jeff Rose"}
-  (:import (java.util.concurrent TimeoutException))
-  (:use [overtone.libs event deps]
-        [overtone.sc dyn-vars]
-        [overtone.sc.machinery allocator]
-        [overtone.sc.machinery.server connection comms]
-        [overtone.helpers.lib :only [deref!]]
-        [overtone.osc :only [in-osc-bundle without-osc-bundle in-unested-osc-bundle]])
-  (:require [overtone.config.log :as log]))
+  (:require
+   [overtone.config.log :as log]
+   [overtone.libs.event :as event]
+   [overtone.libs.deps :as deps]
+   [overtone.sc.dyn-vars :as dyn-vars]
+   [overtone.sc.machinery.allocator :as allocator]
+   [overtone.sc.machinery.server.connection :as connection]
+   [overtone.sc.machinery.server.comms :as comms]
+   [overtone.helpers.lib :as lib]
+   [overtone.osc :as osc])
+  (:import
+   (java.util.concurrent TimeoutException)))
 
 (defn connection-info
   "Returns connection information regarding the currently connected
   server"
   []
-  @connection-info*)
+  @connection/connection-info*)
 
 (defn server-opts
   "Returns options for currently connected server (if available)"
   []
-  (:opts @connection-info*))
+  (:opts @connection/connection-info*))
 
 (defn server-connected?
   "Returns true if the server is currently connected"
   []
-  (= :connected @connection-status*))
+  (= :connected @connection/connection-status*))
 
 (defn server-connecting?
   "Returns true if the server is connecting"
   []
-  (= :connecting @connection-status*))
+  (= :connecting @connection/connection-status*))
 
 (defn server-disconnected?
   "Returns true if the server is currently disconnected"
   []
-  (= :disconnected @connection-status*))
+  (= :disconnected @connection/connection-status*))
 
 (defn external-server?
   "Returns true if the server is external"
@@ -73,13 +77,13 @@
    fail silently if a server node you wish to control either has been
    since terminated or not had time to be initialised."
   [time-ms & body]
-  `(with-inactive-modification-error :silent
-     (without-node-blocking
-       (in-unested-osc-bundle @server-osc-peer* ~time-ms (do ~@body)))))
+  `(dyn-vars/with-inactive-modification-error :silent
+     (dyn-vars/without-node-blocking
+      (osc/in-unested-osc-bundle @comms/server-osc-peer* ~time-ms (do ~@body)))))
 
 (defmacro snd-immediately
   [& body]
-  `(without-osc-bundle ~@body))
+  `(osc/without-osc-bundle ~@body))
 
 (defn snd
   "Sends an OSC message to the server. If the message path is a known
@@ -91,7 +95,7 @@
   [path & args]
   (when (server-disconnected?)
     (throw (Exception. "Unable to send messages to a disconnected server. Please boot or connect to a server.")))
-  (apply server-snd path args))
+  (apply comms/server-snd path args))
 
 (defn recv
   "Register your intent to wait for a message associated with given
@@ -105,18 +109,20 @@
   accept one arg which is the incoming event info."
   ([path] (recv path nil))
   ([path matcher-fn]
-     (when-not (server-connected?)
-       (throw (Exception. "Unable to receive messages from a disconnected server. Please boot or connect to a server.")))
-     (server-recv path matcher-fn)))
+   (when-not (server-connected?)
+     (throw (Exception. "Unable to receive messages from a disconnected server. Please boot or connect to a server.")))
+   (comms/server-recv path matcher-fn)))
 
 (defn connect-server
   "Connect to an externally running SC audio server listening to port
   on host.  Host defaults to localhost and port defaults to 57110."
-  ([] (connect-server 57110))
-  ([port] (connect-server "127.0.0.1" port))
+  ([]
+   (connect-server 57110))
+  ([port]
+   (connect-server "127.0.0.1" port))
   ([host port]
-   (connect host port)
-   (wait-until-deps-satisfied :server-ready)
+   (connection/connect host port)
+   (deps/wait-until-deps-satisfied :server-ready)
    :happy-hacking))
 
 (def ^:deprecated connect-external-server connect-server)
@@ -125,50 +131,52 @@
   "Boot an external server by starting up an external process and connecting to
   it. Requires SuperCollider to be installed in the standard location for your
   OS."
-  ([] (boot-external-server (+ (rand-int 50000) 2000)))
-  ([port] (boot-external-server port {}))
+  ([]
+   (boot-external-server (+ (rand-int 50000) 2000)))
+  ([port]
+   (boot-external-server port {}))
   ([port opts]
-   (boot :external port opts)
+   (connection/boot :external port opts)
    :happy-hacking))
 
 (defn boot-server
   "Boot the default server."
   []
-  (boot)
+  (connection/boot)
   :happy-hacking)
 
 (defn kill-server
   "Shutdown the running server"
   []
-  (shutdown-server)
+  (connection/shutdown-server)
   :server-killed)
 
 (defn external-server-log
   "Print the external server log."
   []
-  (doseq [msg @external-server-log*]
+  (doseq [msg @connection/external-server-log*]
     (print msg)))
 
 (defn- parse-status
   "Returns a map representing the server status"
   [_ ugens synths groups loaded avg peak nominal actual]
-    {:n-ugens ugens
-     :n-synths synths
-     :n-groups groups
-     :n-loaded-synths loaded
-     :avg-cpu avg
-     :peak-cpu peak
-     :nominal-sample-rate nominal
-     :actual-sample-rate actual})
+  {:n-ugens ugens
+   :n-synths synths
+   :n-groups groups
+   :n-loaded-synths loaded
+   :avg-cpu avg
+   :peak-cpu peak
+   :nominal-sample-rate nominal
+   :actual-sample-rate actual})
 
 (defn server-status
   "Check the status of the audio server."
   []
   (if (server-connected?)
-    (let [p (server-recv "/status.reply")]
+    (let [p (comms/server-recv "/status.reply")]
       (snd "/status")
       (try
-        (apply parse-status (:args (deref! p "attempting to get the server status. Perhaps the server is down?")))
+        (apply parse-status (:args (lib/deref! p "attempting to get the server status. Perhaps the server is down?")))
         (catch TimeoutException t
           :timeout)))
     :disconnected))
@@ -185,15 +193,15 @@
   synths/insts you may have defined, rather it just stops any of them
   that are currently playing. Groups are left unaffected."
   []
-  (event :reset))
+  (event/event :reset))
 
 (defn clear
   "Stop all running synths and metronomes. This does not remove any
   synths/insts you may have defined, rather it just stops any of them
   that are currently playing. Subgroups are cleared out and removed."
   []
-  (event :reset)
-  (event :clear))
+  (event/event :reset)
+  (event/event :clear))
 
 (defn stop-all
   "Stop all running synths and metronomes including those in the safe
@@ -201,8 +209,8 @@
   have defined, rather it just stops any of them that are currently
   playing. Groups are left unaffected"
   []
-  (event :reset)
-  (event :reset-safe))
+  (event/event :reset)
+  (event/event :reset-safe))
 
 (defn clear-all
   "Stop all running synths and metronomes including those in the safe
@@ -210,20 +218,20 @@
   have defined, rather it just stops any of them that are currently
   playing. Subgroups are cleared out and removed."
   []
-  (event :reset)
-  (event :reset-safe)
-  (event :clear)
-  (event :clear-safe))
+  (event/event :reset)
+  (event/event :reset-safe)
+  (event/event :clear)
+  (event/event :clear-safe))
 
 (defn sc-osc-debug-on
   "Log and print out all outgoing OSC messages"
   []
-  (reset! osc-debug* true ))
+  (reset! comms/osc-debug* true ))
 
 (defn sc-osc-debug-off
   "Turns off OSC debug messages (see sc-osc-debug-on)"
   []
-  (reset! osc-debug* false))
+  (reset! comms/osc-debug* false))
 
 (defn sc-debug-on
   "Turn on output from both the Overtone and the audio server."
@@ -245,9 +253,12 @@
   (when-not (server-connected?)
     (throw (Exception. "Server needs to be connected before you can perform this action."))))
 
-(on-sync-event [:overtone :osc-msg-received]
-               (fn [{{path :path args :args} :msg}]
-                 (let [poll-path "/overtone/internal/poll/"]
-                   (when (.startsWith ^java.lang.String path poll-path)
-                     (println "-->" (.substring ^java.lang.String path (count poll-path)) (nth args 2)))))
-               ::handle-incoming-poll-messages)
+(event/on-sync-event
+ [:overtone :osc-msg-received]
+ (fn [{{path :path args :args} :msg}]
+   (let [poll-path "/overtone/internal/poll/"]
+     (when (.startsWith ^java.lang.String path poll-path)
+       (println "-->" (.substring ^java.lang.String path (count poll-path)) (nth args 2)))))
+ ::handle-incoming-poll-messages)
+
+(def connect-jack-ports #'connection/connect-jack-ports)
