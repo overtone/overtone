@@ -6,14 +6,17 @@
    [overtone.algo.chance :as chance]))
 
 (defn pfirst
-  "Like first, but recursively descends into into sequences."
+  "Like first, but with \"pattern semantics\". Recursively descends into into
+  sequences. Returns its argument when given something that isn't sequential."
   [s]
-  (let [v (first s)]
-    (if (sequential? v)
-      (recur v)
-      v)))
+  (if (sequential? s)
+    (let [v (first s)]
+      (if (sequential? v)
+        (recur v)
+        v))
+    s))
 
-(defn subtract-dur [durs durspec amount]
+(defn- subtract-dur [durs durspec amount]
   (if-not (seq durs)
     (recur durspec durspec amount)
     (let [[d & ds] durs]
@@ -23,7 +26,7 @@
         (<= d amount)
         (recur ds durspec (- amount d))))))
 
-(defn subtract-meta-dur [s dur]
+(defn- subtract-meta-dur [s dur]
   (when s
     (if-not (:durspec (meta s))
       (recur (vary-meta s (fn [m] (assoc m :durspec (:dur m)))) dur)
@@ -33,32 +36,42 @@
          (update m :dur subtract-dur (:durspec m) dur))))))
 
 (defn pnext
-  "Like next, but lazily flattens nested sequences."
+  "Like next, but with \"pattern semantics\". Lazily flattens nested sequences.
+
+  When called with `dur` argument, will honor the `:dur` in metadata, possibly
+  repeating elements if their duration hasn't finished."
   ([s]
-   (let [[x & xs] s]
-     (cond
-       (sequential? x)
-       (recur
-        (with-meta
-          (if (seq x)
-            (concat x xs)
-            xs)
-          (meta s)))
+   (when (sequential? s)
+     (let [[x & xs] s]
+       (cond
+         (sequential? x)
+         (recur
+          (with-meta
+            (if (seq x)
+              (concat x xs)
+              xs)
+            (meta s)))
 
-       (some? xs)
-       (with-meta xs (meta s))
+         (some? xs)
+         (with-meta xs (meta s))
 
-       :else nil)))
+         :else nil))))
   ([s dur]
-   (if-let [[fdur & ndurs :as sdurs] (:dur (meta s))]
-     (if (<= fdur dur)
-       ;; drop first, recur with next and adjusted dur
-       (recur (-> s
-                  pnext
-                  (subtract-meta-dur dur))
-              (- dur fdur))
-       ;; keep first, adjust dur
-       (subtract-meta-dur s dur))
+   (if-let [sdurs (:dur (meta s))]
+     (let [s     (if (sequential? sdurs)
+                   s
+                   (vary-meta s update :dur vector))
+           sdurs (:dur (meta s))
+           fdur  (pfirst sdurs)
+           ndurs (pnext sdurs)]
+       (if (<= fdur dur)
+         ;; drop first, recur with next and adjusted dur
+         (recur (-> s
+                    pnext
+                    (subtract-meta-dur dur))
+                (- dur fdur))
+         ;; keep first, adjust dur
+         (subtract-meta-dur s dur)))
      (pnext s))))
 
 (defn- pbind*
@@ -68,7 +81,7 @@
   least once (done set)."
   [ks specs seqs done]
   (when-not (= (count done) (count ks))
-    (let [vs (map #(if (sequential? %) (pfirst %) %) seqs)
+    (let [vs (map pfirst seqs)
           vm (zipmap ks vs)]
       (cons
        vm
@@ -89,7 +102,7 @@
                (remove nil?
                        (map (fn [k s]
                               (when (and (sequential? s)
-                                         (not (pnext s)))
+                                         (not (pnext s (:dur vm 1))))
                                 k))
                             ks
                             seqs)))))))))
@@ -133,15 +146,24 @@
         done)))))
 
 (defn pwhite
+  "Repeatedly sample random numbers from a uniform distribution.
+
+  Takes the `min` and `max` of the sampled range, and an optional number of `repeats` (defaults to infinite).
+
+  Using integers for `min` and `max` will yield integers, using float/double
+  values will yield doubles."
   ([min max]
    (repeatedly #(chance/rrand min max)))
   ([min max repeats]
    (repeatedly repeats #(chance/rrand min max))))
 
-(defmacro pdo [& body]
+(defmacro pdo
+  "Macro, wraps a block which gets repeatedly called to yield sequence values."
+  [& body]
   `(repeatedly (fn [] ~@body)))
 
 (defn pseries
+  "Generate a number series with a given start, step, and size."
   ([start step]
    (iterate #(+ step %) start))
   ([start step size]
@@ -149,8 +171,10 @@
      (pseries start step)
      (take size (pseries start step)))))
 
-(defn pchoose [& args]
-  (pdo (rand-nth args)))
+(defn pchoose
+  "Randomly choose value from a collection with `rand-nth`."
+  [coll]
+  (pdo (rand-nth coll)))
 
 (defn ppad
   "Pad the `pattern` with a rest so the total duration of the pattern is a

@@ -305,7 +305,20 @@
          assoc :paused? true :job nil)
   nil)
 
-(defn pplay [k pattern & args]
+(defn pplay
+  "Register a pattern and immediately start playing it. A pattern is
+  a (potentially nested) sequence of event maps, which will get triggered in
+  turn, based on their `:dur` (duration in beats).
+
+  An optional map can be passed as a second argument, which understands the
+  following keys:
+
+  - `:proto` event prototype, a map with common attributes that gets merged into
+    the event maps
+  - `:offset` wait this many beats before starting the pattern
+  - `:quant` start the pattern at a beat number that is a multiple of `:quant`
+  "
+  [k pattern & args]
   (apply padd k pattern args)
   (presume k)
   nil)
