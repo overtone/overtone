@@ -2,9 +2,8 @@
 
 ## Added
 
-## Fixed
-
-## Changed
+- First release of the Pattern Libary, see `docs/event.md`,
+  `docs/event_reference.md`, and `docs/pattern_libary.md`
 
 # 0.13.3177 (2024-01-05 / ccedb1d)
 
