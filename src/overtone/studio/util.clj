@@ -1,7 +1,6 @@
-(ns
-  ^{:doc "Util synths"
-     :author "Sam Aaron & Jeff Rose"}
-  overtone.studio.util
+(ns overtone.studio.util
+  "Util synths"
+  {:author "Sam Aaron & Jeff Rose"}
   (:use [overtone.libs.event]
         [overtone.sc.synth]
         [overtone.sc.ugens]))

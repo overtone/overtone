@@ -33,6 +33,11 @@
              level     (if level-comp?
                          (* level (Math/sqrt (/ 1 (dec n))))
                          level)
-             positions (splay-pan n center spread)
+             positions (for [i (range n)]
+                         (+ center
+                            (* spread
+                               (- (* i
+                                     (/ 2 (dec n)))
+                                  1))))
              pans      (pan2 in-array positions level)]
          (mix pans))))

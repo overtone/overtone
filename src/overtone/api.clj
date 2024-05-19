@@ -1,23 +1,28 @@
 (ns overtone.api
   (:import [java.lang.management ManagementFactory])
-  (:use [overtone.libs boot-msg]
-        [overtone.helpers.ns])
-  (:require clojure.stacktrace
-            [overtone.config store]
-            [overtone version osc speech]
-            [overtone.algo chance scaling trig fn lists]
-            [overtone.sc bindings buffer bus envelope example info
-             ugens defcgen node sample server synth clock
-             foundation-groups dyn-vars trig vbap]
-            [overtone.sc.cgens oscillators demand mix dyn io buf-io env tap
-             line freq beq-suite berlach ;; bhob
-             fx info]
-            [overtone.music rhythm pitch tuning time]
-            [overtone.studio mixer inst util fx wavetable midi midi-player core]
-            [overtone.repl ugens examples shell inst debug graphviz]
-            [overtone.libs asset event]
-            [overtone.samples freesound]
-            [overtone.helpers.doc :refer [fs]]))
+  (:use
+   overtone.helpers.ns
+   overtone.libs.boot-msg)
+  (:require
+   clojure.stacktrace
+   [overtone.helpers.doc :refer [fs]]
+   (overtone.helpers rand)
+   (overtone version osc speech)
+   (overtone.algo chance scaling trig fn lists)
+   (overtone.config store)
+   (overtone.libs asset event)
+   (overtone.music rhythm pitch tuning time)
+   (overtone.repl debug examples graphviz
+                  inst shell ugens)
+   (overtone.samples freesound)
+   (overtone.sc bindings buffer bus envelope example info
+                ugens defcgen node sample server synth clock
+                foundation-groups dyn-vars trig vbap)
+   (overtone.sc.cgens oscillators demand mix dyn io buf-io env tap
+                      line freq beq-suite berlach ;; bhob
+                      fx info)
+   (overtone.studio mixer inst util fx wavetable midi midi-player core
+                    pattern event)))
 
 
 ;; Currently the default lein setting drastically reduces performance in
@@ -108,7 +113,12 @@
    'overtone.studio.midi-player
    'overtone.studio.mixer
    'overtone.studio.wavetable
-   'overtone.version])
+   'overtone.version
+   'overtone.studio.pattern
+   'overtone.studio.event
+   'overtone.studio.transport
+   'overtone.helpers.rand
+   ])
 
 (defn immigrate-overtone-api []
   (apply immigrate immigrated-namespaces))

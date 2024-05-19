@@ -217,7 +217,7 @@
     (let [event-info (if (and (= 1 (count args))
                               (map? (first args)))
                        (first args)
-                       (apply hash-map args))]
+                       (apply hash-map :event-type event-type args))]
       (handlers/event handler-pool event-type event-info))))
 
 (defn sync-event

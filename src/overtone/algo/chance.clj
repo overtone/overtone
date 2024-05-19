@@ -1,7 +1,6 @@
-(ns
-    ^{:doc "Handy probability fns"
-      :author "Sam Aaron"}
-  overtone.algo.chance
+(ns overtone.algo.chance
+  "Handy probability fns"
+  {:author "Sam Aaron"}
   (:use
    [overtone.algo.scaling]))
 
@@ -71,13 +70,35 @@
     (< (rand) n)))
 
 (defn ranged-rand
-  "Returns a random value within the specified range"
+  "Returns a random value within the specified range. Always returns
+  floats (doubles)."
   [min max]
   (scale-range (rand) 0 1 min max))
 
-(defn chosen-from [notes]
-  (let [num-notes (count notes)]
-    (repeatedly #(get notes (rand-int num-notes)))))
+(defn rrand
+  "Range rand, returns a random number between min (inclusive) and
+  max (exclusive). Returns integers if both min and max are integer, floats
+  otherwise."
+  [min max]
+  (+ min ((if (and (int? min) (int? max))
+            rand-int
+            rand)
+          (- max min))))
+
+(defn srand
+  "Signed/symmetric rand, returns a value between -n and n. Integer if n is
+  integer."
+  [n]
+  (rrand (- n) n))
+
+(defn chosen-from
+  "Random infinite sequence chosen from the given collection"
+  ([coll]
+   (let [coll (vec coll)]
+     (repeatedly #(rand-nth coll))))
+  ([coll limit]
+   (let [coll (vec coll)]
+     (repeatedly limit #(rand-nth coll)))))
 
 (defn only
   "Take only the specified notes from the given phrase."

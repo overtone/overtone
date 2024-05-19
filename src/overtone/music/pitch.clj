@@ -106,7 +106,7 @@
   (let [pc (keyword (name pc))]
       (REVERSE-NOTES (NOTES pc))))
 
-(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)" )
+(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)?" )
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
 (def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
 
@@ -128,7 +128,7 @@
 
     (let [[match pictch-class octave-str] matches
           octave (first octave-str)]
-      (when (< (int octave) -1)
+      (when (and octave (< (int octave) -1))
         (throw (IllegalArgumentException.
                 (str "Invalid midi-string: " mk
                      ". Octave is out of range. Lowest octave value is -1")))))
@@ -140,13 +140,15 @@
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
-        octave                     (Integer/parseInt octave)
+        octave                     (when octave (Integer. octave))
         interval                   (NOTES (keyword pitch-class))]
-    {:match       match
-     :pitch-class pitch-class
-     :octave      (Integer. octave)
-     :interval    interval
-     :midi-note   (octave-note octave interval)}))
+    (cond-> {:match       match
+             :pitch-class pitch-class
+             :interval    interval}
+      octave
+      (assoc
+        :octave    octave
+        :midi-note (octave-note octave interval)))))
 
 (defn mk-midi-string
   "Takes a string or keyword representing a pitch and a number
@@ -179,12 +181,12 @@
   [n]
   (cond
     (nil? n) nil
-    (integer? n) (if (>= n 0)
-                   n
-                   (throw (IllegalArgumentException.
-                           (str "Unable to resolve note: "
-                                n
-                                ". Value is out of range. Lowest value is 0"))))
+    (number? n) (if (>= n 0)
+                  n
+                  (throw (IllegalArgumentException.
+                          (str "Unable to resolve note: "
+                               n
+                               ". Value is out of range. Lowest value is 0"))))
     (keyword? n) (note (name n))
     (string? n) (:midi-note (note-info n))
     :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
@@ -355,12 +357,25 @@
              :v     5
              :vi    6
              :vii   7
+             :I     1
+             :II    2
+             :III   3
+             :IV    4
+             :V     5
+             :VI    6
+             :VII   7
              :_     nil})
 
 (defn degree->int
   [degree]
-  (if (some #{degree} (keys DEGREE))
+  (cond
+    (int? degree)
+    degree
+
+    (some #{degree} (keys DEGREE))
     (degree DEGREE)
+
+    :else
     (throw (IllegalArgumentException. (str "Unable to resolve degree: " degree ". Was expecting a roman numeral in the range :i -> :vii or the nil-note symbol :_")))))
 
 (defn resolve-degree
@@ -538,7 +553,7 @@
     (invert-chord [60 64 67] 1) ;=> (64 67 72)
 
     ; second inversion
-    (invert-chord [60 64 67] 1) ;=> (67 72 76)
+    (invert-chord [60 64 67] 2) ;=> (67 72 76)
   "
   [notes shift]
   (cond
