@@ -15,7 +15,7 @@
 ;; ======================================================================
 (defmacro gen-stringed-synth
   "Macro to generate a stringed defsynth with distortion, reverb and
-   a low-pass filter.  Use the pluck-strings and strum-strings helper
+   a low-pass filter.  Use the pick-string and strum-strings helper
   functions to play the instrument.
 
    Note: the strings need to be silenced with a gate -> 0 transition
@@ -51,7 +51,7 @@
        ~(str "a stringed instrument synth with " num-strings
              " strings mixed and sent thru
   distortion and reverb effects followed by a low-pass filter.  Use
-  the pluck-strings and strum-strings helper functions to play the
+  the pick-string and strum-strings helper functions to play the
   instrument. Note: the strings need to be silenced with a gate -> 0
   transition before a gate -> 1 transition activates it."
              (if free-on-silence
