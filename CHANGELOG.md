@@ -1,10 +1,11 @@
 # Unreleased
 
-## Added
-
-## Fixed
-
 ## Changed
+
+- [pattern/event lib] Make it possible to leave synths running so you can
+  modulate parameters (including frequency, e.g. for slide effects with `lag`).
+  This happens automatically if a `:note` event is followed by one or more
+  `:ctl` events, or can be done explicitly with `:keep-node? true`
 
 # 0.14.3199 (2024-05-19 / 5d1c1ed)
 
