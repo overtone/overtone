@@ -182,7 +182,7 @@
 ;; Let's drop our piano and introduce some drums. First up, the mighty
 ;; kick drum:
 
-(def dirty-kick (freesound 30669))
+(def dirty-kick (freesound 252721))
 
 ;; You will notice that evaluating this form for the first time may take
 ;; a few moments to complete. This is because this kick drum is actually
