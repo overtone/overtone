@@ -113,7 +113,10 @@
 ;; back when you've finished giving all your friends a headache...
 
 ;; Hello again. Enough with that new fangled synth nonsense. Let's play
-;; something more traditional. Pull in the piano synth:
+;; something more traditional. Make sure to have the Community Plugins
+;; for SuperCollider installed from
+;; https://supercollider.github.io/sc3-plugins/
+;; and then pull in the piano synth:
 
 (use 'overtone.inst.piano)
 
