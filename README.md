@@ -64,6 +64,10 @@ $ scsynth -v
 scsynth 3.13.0 (Built from  '' [na])
 ```
 
+On macOS, `scsynth` might not be available but it's sufficient to have SuperCollider
+installed at `/Applications/SuperCollider.app`.
+This is homebrew's behavior.
+
 Now you can add `overtone/overtone` as a dependency, and start a Clojure REPL.
 
 ```sh
