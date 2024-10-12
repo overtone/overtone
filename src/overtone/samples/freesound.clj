@@ -125,9 +125,9 @@
     (.addActionListener
       button (proxy [ActionListener] []
                (actionPerformed [event]
+                 ;; using .dispose may close the VM
+                 (.setVisible frame false)
                  (let [pw (String/valueOf (.getPassword password-field))]
-                   ;; using .dispose may close the VM
-                   (.setVisible frame false)
                    (out-fn pw)))))
     (.setVisible frame true)
     (fn [] (.dispose frame))))
