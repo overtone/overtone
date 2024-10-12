@@ -14,7 +14,12 @@
    [overtone.helpers.lib :refer [defrecord-ifn]]
    [overtone.libs.asset :as asset]
    [overtone.sc.buffer :as buffer]
-   [overtone.sc.sample :as samp]))
+   [overtone.sc.sample :as samp])
+  (:import
+   (javax.swing JFrame JPanel JButton JOptionPane WindowConstants
+                JPasswordField)
+   java.awt.GraphicsEnvironment
+   java.awt.event.ActionListener))
 
 (def ^:dynamic *client-id* "ea6297be42e9de76d47c")
 (def ^:dynamic *api-key* "32da10a118819877ec041752680588c62684c0b2")
@@ -102,14 +107,69 @@
     (reset! *access-token* r)
     (config/store-set! :freesound-token r)))
 
-(defn authorization-instructions []
+(defn- dialog-box
+  "Opens a window with a password field and a button to input an auth token.
+  Takes a callback accepting the password as a string."
+  [out-fn]
+  (let [button (JButton. "Authorize")
+        password-field (JPasswordField. 10)
+        panel (doto (JPanel.)
+                (.add password-field)
+                (.add button))
+        frame (doto (JFrame. "Freesound Authorization")
+                (.setSize 200 200)
+                (.setContentPane panel)
+                ;; unsure if this leaks memory but DISPOSE_ON_CLOSE and 
+                ;; EXIT_ON_CLOSE both risk closing the VM
+                (.setDefaultCloseOperation WindowConstants/HIDE_ON_CLOSE))]
+    (.addActionListener
+      button (proxy [ActionListener] []
+               (actionPerformed [event]
+                 (let [pw (String/valueOf (.getPassword password-field))]
+                   (.dispose frame)
+                   (out-fn pw)))))
+    (.setVisible frame true)
+    (fn [] (.dispose frame))))
+
+(defn authorization-instructions
+  "Prints the url of and opens a browser to the freesound oauth2 page.
+  Listens to (read-line) and opens a Swing dialog box (if not headless).
+  Prompts the user to paste token in either, and then uses whichever
+  token was provided first to generate and cache a freesound access token."
+  []
   (let [url
         (freesound-url "/oauth2/authorize/"
                        {:client_id *client-id* :response_type "code"})]
-    (println "Authorize in browser and paste code in Stdin.")
+    (println "Authorize in browser and paste code in Stdin or dialog box.")
     (println url)
     (clojure.java.browse/browse-url url)
-    (access-token (read-line))))
+    (let [done (promise)
+          auth (volatile! nil)
+          interrupt-me (volatile! nil)
+          close-dialog (volatile! (fn []))
+          write (fn [s]
+                  (locking auth
+                    ;; first writer wins
+                    (when (nil? @auth)
+                      (vreset! auth s)
+                      ;; if entered in dialog box, interrupt (read-line) to finish the future
+                      (some-> ^Thread @interrupt-me .interrupt)
+                      ;; if entered via (read-line), close dialog box
+                      (@close-dialog)
+                      (deliver done true))))
+          ;; open dialog box if allowed
+          _ (when (and (not (GraphicsEnvironment/isHeadless))
+                       (not (= "false" (System/getProperty "overtone.samples.freesound.auth-dialog-box"))))
+              (vreset! close-dialog (dialog-box write)))
+          ;; wait for stdin
+          _ (future
+              (vreset! interrupt-me (Thread/currentThread))
+              (try (let [s (read-line)]
+                     (vreset! interrupt-me nil)
+                     (write s))
+                   (catch InterruptedException _)))]
+      @done
+      (access-token @auth))))
 
 (defmacro with-authorization-header [b]
   `(binding [*authorization-header*
@@ -235,7 +295,7 @@
   [id]
   (into
    {}
-   (for [sample-file (file-seq (java.io.File. (freesound-pack-dir id)))
+   (for [sample-file (file-seq (java.io.File. ^String (freesound-pack-dir id)))
          :let [[_ id user sample-name] (re-find #"/(\d+)__([^/\.]+)__([^\.]+).wav" (str sample-file))]
          :when sample-name]
      [(keyword sample-name)
