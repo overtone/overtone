@@ -292,7 +292,9 @@
                                                           sc-wellknown
                                                           (str "well-known location for " (name (get-os))))
               ")")
-    (str match)))
+    (if (coll? match)
+      (mapv str match)
+      [(str match)])))
 
 (defn- has-pipewire? []
   (some #(some->> % :command (re-find #"/pipewire$")) (process-info/ps)))
@@ -306,7 +308,7 @@
   process (typically with #'external-booter)."
   [opts]
   (into-array String
-              (cond->> (cons (scsynth-path) (scsynth-arglist opts))
+              (cond->> (into (scsynth-path) (scsynth-arglist opts))
                 ;; pw-jack adds PipeWire's Jack implementation to the
                 ;; LD_LIBRARY_PATH, so that Jack applications work with PipeWire
                 ;; instead of looking for original jackd. This might save some

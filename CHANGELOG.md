@@ -4,6 +4,16 @@
 
 ## Fixed
 
+- Pattern library: make patterns more easily redefinable while maintaining the
+  same relative position, for smoother live updates
+- Accept `:-` as a rest note, in addition to `:_` and `:rest`
+- Recognize samples in the pattern player, so things like `:amp` work
+- Metronome: also accept `:start` and `:bar-start`, instead of just `:bpm`
+- Allow the default `at-at` threadpool to be overridden by a dynvar
+  (`*current-pool*`)
+- `:sc-path` in `~/.overtone/config.clj` can now be a vector instead of a
+  string, for passing additional arguments
+
 ## Changed
 
 # 0.14.3199 (2024-05-19 / 5d1c1ed)
