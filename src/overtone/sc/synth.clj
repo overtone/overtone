@@ -577,7 +577,7 @@
                    :args arg-names#
                    :params params-with-vals#
                    :instance-fn instance-fn#})
-                 {:overtone.live/to-string #(str (name (:type %)) ":" (:name %))})] ;; TODO what on earth is this?
+                 {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (event :new-synth :synth smap#)
      smap#))
@@ -671,7 +671,7 @@
       (map->Synth
        {:name s-name
         :sdef sdef})
-      (merge {:overtone.live/to-string #(str (name (:type %)) ":" (:name %))}
+      (merge {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))}
              (meta s-name)))))
 
 (defmacro defsynth-load
