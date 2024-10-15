@@ -568,7 +568,7 @@
   `\"Bb4\"`, `60`.
 
   (chord :c4 :major)  ; c major           -> (60 64 67)
-  (chord :a4 :minor)  ; a minor           -> (57 60 64)
+  (chord :a4 :minor)  ; a minor           -> (69 72 76)
   (chord :Bb4 :dim)   ; b flat diminished -> (70 73 76)
   "
   ([root chord-name]
