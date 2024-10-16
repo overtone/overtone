@@ -17,7 +17,7 @@
 (defn foo-pause
   []
   (dotimes [i 10]
-    (foo (* i 220) 1)
+    (foo (* (+ i 1) 220) 1)
     (Thread/sleep 300)))
 
 ;;(foo-pause)
@@ -32,7 +32,7 @@
   (let [n (now)]
     (dotimes [i 10]
       (at (+ n (* i 300))
-          (foo (* i 220) 1)))))
+          (foo (* (+ i 1) 220) 1)))))
 
 ;;(foo-timed)
 
