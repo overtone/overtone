@@ -148,8 +148,8 @@
 
    {:name "StkBeeThree"
     :args [{:name "freq" :default 440.0 :doc ""}
-           {:name "gain" :default 10.0 :doc ""}
-           {:name "gain" :default 20.0 :doc ""}
+           {:name "op4gain" :default 10.0 :doc ""}
+           {:name "op3gain" :default 20.0 :doc ""}
            {:name "lfospeed" :default 64.0 :doc ""}
            {:name "lfodepth" :default 0.0 :doc ""}
            {:name "adsrtarget" :default 64.0 :doc ""}
