@@ -2,6 +2,7 @@
   (:use [overtone.sc.machinery.ugen common check]))
 
 ; NOTE: You will need to have the sc3 plugins installed for this ugen to be available.
+; https://supercollider.github.io/sc3-plugins/
 
 (def specs
   [
