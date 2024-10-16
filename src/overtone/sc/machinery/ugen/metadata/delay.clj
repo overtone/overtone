@@ -18,13 +18,7 @@
 
            {:name "delay" :default 0.0 :doc "A delay time in seconds."}
 
-           {:name "interp" :default 1 :doc "the kind of interpolation to be used. 1 is none, 2 is linear, 4 is cubic."}
-
-           {:name "mul" :default 1.0 :doc ""}
-           
-           {:name "add" :default 0.0 :doc ""}
-
-           ]
+           {:name "interp" :default 1 :doc "the kind of interpolation to be used. 1 is none, 2 is linear, 4 is cubic."}]
 ;;    :check (nth-input-stream? 0)
     :doc "Tap a delay line from a del-tap-wr UGen" }
 
