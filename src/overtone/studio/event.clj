@@ -13,11 +13,12 @@
 (defonce
   ^{:doc "Thread pool for `at-at`, separate from the main pool overtone
   uses so we can control the behavior when `stop` is called (:reset event)"}
+  ^:private
   player-pool (at-at/mk-pool))
 
-(defonce pplayers (atom {}))
+(defonce ^:private pplayers (atom {}))
 
-(def defaults
+(def ^:private event-defaults
   {:note
    {:type             :note
     :mtranspose       0
@@ -77,20 +78,20 @@
   (if (contains? e k)
     (get e k)
     (let [t (:type e :note)
-          d (get defaults t)]
+          d (get event-defaults t)]
       (cond
         (contains? d k)
         (get d k)
-        (contains? derivations k)
-        ((get derivations k) e)
+        (contains? event-derivations k)
+        ((get event-derivations k) e)
         :else
         (throw (ex-info (str "Missing event key or derivation " k)
                         {:event e}))))))
 
-(defn rest? [o]
+(defn- rest? [o]
   (#{:_ :- :rest} o))
 
-(defn- octave-note [e octave note]
+(defn- event-octave-note [e octave note]
   (* (+ octave
         (/ (+ note (eget e :gtranspose))
            (eget e :steps-per-octave)))
@@ -98,7 +99,7 @@
      (/ (Math/log (eget e :octave-ratio))
         (Math/log 2))))
 
-(def derivations
+(def ^:private event-derivations
   {:detuned-freq
    (fn [e]
      (+ (eget e :freq) (eget e :detune)))
@@ -186,8 +187,7 @@
 
 (defn eget-instrument [e]
   (let [i (eget e :instrument)]
-    (if (or (instance? overtone.sc.sample.PlayableSample i)
-            (instance? overtone.samples.freesound.FreesoundSample i))
+    (if (sample? i)
       (case (:n-channels i)
         1 sample/mono-partial-player
         2 sample/stereo-partial-player)
@@ -204,8 +204,8 @@
                 (if (or (contains? e lk) (contains? derivations lk))
                   (conj acc kn (eget e lk))
                   acc)))
-            (if (instance? overtone.sc.sample.PlayableSample i')
-              [:buf (:id i')]
+            (if (sample? i')
+              [:buf (:id i') ]
               [])
             params)))
 
@@ -314,7 +314,6 @@
   (let [[old new] (map k (swap-vals! pplayers update k player-schedule-next))
         {:keys [clock beat playing] :as player} new
         e (:last-event new)]
-    (println (dissoc e :clock))
     (when playing
       (when (not= (:last-event new) (:last-event old))
         (event/event (eget e :type) e))
@@ -322,9 +321,9 @@
   nil)
 
 (defn padd [k pattern & {:keys [quant clock offset] :as opts
-                         :or   {quant 4
+                         :or   {quant  4
                                 offset 0
-                                clock transport/*clock*}}]
+                                clock  transport/*clock*}}]
   (let [pattern (cond-> pattern (map? pattern) pattern/pbind)]
     (swap! pplayers update k
            (fn [p]

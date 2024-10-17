@@ -65,7 +65,7 @@
       (group-free [group]
         "Destroys this group and any containing synths or subgroups."))))
 
-(extend-type java.lang.Long to-sc-id*    (to-sc-id [v] v))
+(extend-type java.lang.Long to-sc-id* (to-sc-id [v] v))
 (extend-type java.lang.Integer to-sc-id* (to-sc-id [v] v))
 (extend-type java.lang.Float to-sc-id* (to-sc-id [v] v))
 
