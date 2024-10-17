@@ -48,7 +48,6 @@
 ;;   ([b] (* (bar 1) (first @*signature) b)))
 
 (deftype Metronome [start bar-start bpm bpb]
-
   IMetronome
   (metro-start [metro] @start)
   (metro-start [metro start-beat]
@@ -139,7 +138,11 @@
       (number? arg) (metro-beat this arg)
       (= :bpm arg) (metro-bpm this) ;; (bpm this) fails.
       :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
-  (invoke [this _ new-bpm] (metro-bpm this new-bpm)))
+  (invoke [this kw new-val]
+    (case kw
+      :bpm (metro-bpm this new-val)
+      :start (metro-start this new-val)
+      :bar-start (metro-bar-start this new-val))))
 
 (defn metronome
   "A metronome is a beat management function.  Tell it what BPM you want,
@@ -155,7 +158,8 @@
   (m)          ; => <next beat number>
   (m 200)      ; => <timestamp of beat 200>
   (m :bpm)     ; => return the current bpm val
-  (m :bpm 140) ; => set bpm to 140"
+  (m :bpm 140) ; => set bpm to 140
+  (m :start 80) ; => set start beat to 80"
   [bpm]
   (let [start (ref (now))
         bar-start (ref @start)

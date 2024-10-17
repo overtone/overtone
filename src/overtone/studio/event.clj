@@ -1,16 +1,24 @@
 (ns overtone.studio.event
   (:require
-   [overtone.studio.pattern :as pattern]
+   [overtone.at-at :as at-at]
    [overtone.libs.event :as event]
    [overtone.music.pitch :as pitch]
    [overtone.music.time :as time]
    [overtone.sc.node :as node]
+   [overtone.sc.sample :as sample]
    [overtone.sc.server :as server]
+   [overtone.studio.pattern :as pattern]
    [overtone.studio.transport :as transport]))
 
-(defonce pplayers (atom {}))
+(defonce
+  ^{:doc "Thread pool for `at-at`, separate from the main pool overtone
+  uses so we can control the behavior when `stop` is called (:reset event)"}
+  ^:private
+  player-pool (at-at/mk-pool))
 
-(def defaults
+(defonce ^:private pplayers (atom {}))
+
+(def ^:private event-defaults
   {:note
    {:type             :note
     :mtranspose       0
@@ -50,8 +58,19 @@
     :strum            0}
 
    :ctl
-   {:type :ctl
-    :dur  1}})
+   {:type   :ctl
+    :dur    1
+    :root   0.0
+    :octave 5.0
+    :gtranspose       0.0
+    :steps-per-octave 12.0
+    :octave-ratio     2.0
+    :harmonic         1.0
+    :ctranspose       0.0
+    :detune           0.0
+    :swing-quant      2
+    :swing            0
+    }})
 
 (declare derivations)
 
@@ -59,20 +78,20 @@
   (if (contains? e k)
     (get e k)
     (let [t (:type e :note)
-          d (get defaults t)]
+          d (get event-defaults t)]
       (cond
         (contains? d k)
         (get d k)
-        (contains? derivations k)
-        ((get derivations k) e)
+        (contains? event-derivations k)
+        ((get event-derivations k) e)
         :else
         (throw (ex-info (str "Missing event key or derivation " k)
                         {:event e}))))))
 
-(defn rest? [o]
-  (#{:_ :rest} o))
+(defn- rest? [o]
+  (#{:_ :- :rest} o))
 
-(defn- octave-note [e octave note]
+(defn- event-octave-note [e octave note]
   (* (+ octave
         (/ (+ note (eget e :gtranspose))
            (eget e :steps-per-octave)))
@@ -80,7 +99,7 @@
      (/ (Math/log (eget e :octave-ratio))
         (Math/log 2))))
 
-(def derivations
+(def ^:private event-derivations
   {:detuned-freq
    (fn [e]
      (+ (eget e :freq) (eget e :detune)))
@@ -166,8 +185,17 @@
   {:freq :detuned-freq
    :note :midinote})
 
+(defn eget-instrument [e]
+  (let [i (eget e :instrument)]
+    (if (sample? i)
+      (case (:n-channels i)
+        1 sample/mono-partial-player
+        2 sample/stereo-partial-player)
+      i)))
+
 (defn params-vec [e]
-  (let [i (eget e :instrument)
+  (let [i' (eget e :instrument)
+        i (eget-instrument e)
         params (or (:params (meta i))
                    (map (comp keyword :name)
                         (:pnames (:sdef i))))]
@@ -176,12 +204,14 @@
                 (if (or (contains? e lk) (contains? derivations lk))
                   (conj acc kn (eget e lk))
                   acc)))
-            []
+            (if (sample? i')
+              [:buf (:id i') ]
+              [])
             params)))
 
 (defn handle-note [e]
   (when-not (keyword? (eget e :freq))
-    (let [i         (eget e :instrument)
+    (let [i         (eget-instrument e)
           params    (:params i)
           args      (params-vec e)
           has-gate? (some #{"gate"} (map :name params))
@@ -225,7 +255,7 @@
                                   :midinote n))))))
 
 (defn handle-ctl [e]
-  (let [i (eget e :instrument)
+  (let [i (eget-instrument e)
         args (params-vec e)
         start (eget e :start-time)]
     (when start
@@ -235,39 +265,65 @@
 (event/on-event :chord #'handle-chord ::chord)
 (event/on-event :ctl #'handle-ctl ::ctl)
 
-(defn- quantize
-  "Quantize a beat to a period, made a bit awkward by the fact that beats counts
-  from 1, so e.g. a quant of 4 (align to 4/4 bars), yields 1, 5, 9, etc."
+(defn- quantize-ceil
+  "Quantize a beat to a period, rounding up.
+
+  Made a bit awkward by the fact that beats counts from 1, so e.g. a quant of
+  4 (align to 4/4 bars), yields 1, 5, 9, etc."
   [beat quant]
   (let [m (mod (dec beat) quant)]
     (if (= 0 m)
       beat
       (+ beat (- quant m)))))
 
-(defn schedule-next [k]
-  (let [pp @pplayers
-        {:keys [clock paused? pseq beat proto] :as player} (get pp k)
-        e        (merge {:clock transport/*clock*}
-                        (pattern/pfirst pseq)
-                        proto)
-        dur      (eget e :dur)
-        type     (eget e :type)
-        next-seq (pattern/pnext pseq)]
-    (if (and next-seq (not paused?))
-      (let [job (time/apply-by (clock (+ beat dur -0.5)) schedule-next [k])]
-        (swap! pplayers update k assoc
-               :job job
-               :pseq next-seq
-               :beat (+ beat dur)))
-      (swap! pplayers dissoc k))
+(defn- quantize-floor
+  "Quantize a beat to a period, rounding up.
 
-    (when (seq pseq)
-      (event/event (eget e :type) (assoc e :beat beat :clock clock)))))
+  Made a bit awkward by the fact that beats counts from 1, so e.g. a quant of
+  4 (align to 4/4 bars), yields 1, 5, 9, etc."
+  [beat quant]
+  (let [m (mod (dec beat) quant)]
+    (if (= 0 m)
+      beat
+      (- beat m))))
+
+(declare schedule-next)
+
+(defn schedule-next-job [clock beat k]
+  (time/with-pool player-pool
+    (time/apply-by (clock (dec beat)) schedule-next [k])))
+
+(defn player-schedule-next [{:keys [clock playing pseq beat proto] :as player}]
+  (if (or (not playing) (not player))
+    player
+    (let [e         (merge {:clock transport/*clock*}
+                           (pattern/pfirst pseq)
+                           proto)
+          dur       (eget e :dur)
+          type      (eget e :type)
+          next-seq  (pattern/pnext pseq)
+          next-beat (+ beat dur)]
+      (if next-seq
+        (assoc player
+               :pseq next-seq
+               :beat next-beat
+               :last-event (assoc e :beat beat :clock clock))
+        nil))))
+
+(defn schedule-next [k]
+  (let [[old new] (map k (swap-vals! pplayers update k player-schedule-next))
+        {:keys [clock beat playing] :as player} new
+        e (:last-event new)]
+    (when playing
+      (when (not= (:last-event new) (:last-event old))
+        (event/event (eget e :type) e))
+      (schedule-next-job clock beat k)))
+  nil)
 
 (defn padd [k pattern & {:keys [quant clock offset] :as opts
-                         :or   {quant 1
+                         :or   {quant  4
                                 offset 0
-                                clock transport/*clock*}}]
+                                clock  transport/*clock*}}]
   (let [pattern (cond-> pattern (map? pattern) pattern/pbind)]
     (swap! pplayers update k
            (fn [p]
@@ -277,32 +333,52 @@
                      :pattern pattern
                      :pseq    pattern
                      :quant   quant
-                     :offset  offset
-                     :paused? (if (some? (:paused? p))
-                                (:paused? p)
-                                true)}
+                     :offset  offset}
                     opts)))))
 
+(defn align-pseq [beat quant pseq]
+  (let [next-beat (mod beat quant)
+        [diff pseq] (loop [nb next-beat
+                           ps pseq]
+                      ;; (prn nb ps)
+                      (if (< 0 nb)
+                        (let [dur (eget (pattern/pfirst ps) :dur)]
+                          (recur (- nb dur) (pattern/pnext ps)))
+                        [nb ps]))]
+    [(- beat diff) pseq]))
+
+(comment
+  (def ps
+    (overtone.studio.pattern/pbind {:note [:a :b :c :d :e]
+                                    :dur [1 1/2 1 1/16 1/32 1/8]}))
+
+  [(= [0 ps] (align-pseq 0 4 ps))
+   (= [1 (next ps)] (align-pseq 1/2 4 ps))
+   (= [3/2 (next (next ps))] (align-pseq 5/4 4 ps))
+   (= [4 ps] (align-pseq 4 4 ps))
+   (= [1 (next ps)] (align-pseq 1 2 ps))
+   (= [5 (next ps)] (align-pseq 5 4 ps))
+   (= [5/2 (drop 3 ps)] (align-pseq 2 4 ps))
+   (= [13/2 (drop 3 ps)] (align-pseq 6 4 ps))])
+
+(defn player-resume [{:keys [clock beat pseq quant offset]
+                      :as   player}]
+  (let [beat (max (or beat 0) (clock))
+        [beat pseq] (align-pseq (dec beat) quant pseq)]
+    (assoc player
+           :playing true
+           :beat (inc beat)
+           :pseq pseq)))
+
 (defn presume [k]
-  (let [pp @pplayers
-        {:keys [clock paused? beat quant offset job]
-         :as   player} (get pp k)
-        next-beat (+ (quantize (clock) quant) offset)]
-    (when job
-      (time/kill-player job))
-    (let [job (time/apply-by (clock (- next-beat 0.5)) schedule-next [k])]
-      (swap! pplayers update k
-             assoc
-             :job job
-             :paused? false
-             :beat next-beat)))
+  (let [[old new] (map k (swap-vals! pplayers update k player-resume))]
+    (when (and (not (:playing old))
+               (:playing new))
+      (schedule-next-job (:clock new) (:beat new) k)))
   nil)
 
 (defn ppause [k]
-  (when-let [job (get-in @pplayers [k :job])]
-    (time/kill-player job))
-  (swap! pplayers update k
-         assoc :paused? true :job nil)
+  (swap! pplayers update k assoc :playing false)
   nil)
 
 (defn pplay
@@ -319,18 +395,37 @@
   - `:quant` start the pattern at a beat number that is a multiple of `:quant`
   "
   [k pattern & args]
-  (apply padd k pattern args)
-  (presume k)
+  (if (= \_ (first (name k)))
+    (ppause (keyword (namespace k) (subs (name k) 1)))
+    (do
+      (apply padd k pattern args)
+      (presume k)))
   nil)
 
+(defn ploop [k pattern & args]
+  (apply pplay k (repeat (pattern/pbind pattern)) args))
+
 (defn premove [k]
-  (when-let [job (get-in @pplayers [k :job])]
-    (time/kill-player job))
   (swap! pplayers dissoc k)
   nil)
 
 (defn pclear []
-  (doseq [job (keep :job (vals @pplayers))]
-    (time/kill-player job))
+  (at-at/stop-and-reset-pool! player-pool :strategy :kill)
   (reset! pplayers {})
   nil)
+
+(event/on-sync-event
+ :reset
+ (fn [event-info]
+   (swap! pplayers
+          (fn [pp]
+            (update-vals pp #(assoc % :playing false))))
+   (at-at/stop-and-reset-pool! player-pool :strategy :kill))
+ ::pplayers-reset)
+
+(comment
+  (update-vals @pplayers #(dissoc % :pseq :pattern))
+
+  (dissoc new :pseq :pattern)
+
+  (at-at/show-schedule player-pool))

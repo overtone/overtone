@@ -8,9 +8,20 @@
    [overtone.libs.event :as event]
    [overtone.sc.protocols :as protocols]))
 
-;; Scheduled thread pool (created by at-at) which is to be used by default for
-;; all scheduled musical functions (players).
-(defonce player-pool (at-at/mk-pool))
+(defonce
+  ^{:doc "Scheduled thread pool (created by at-at) which is to be used by
+  default for all scheduled musical functions (players)."}
+  player-pool
+  (at-at/mk-pool))
+
+(def ^:dynamic *current-pool* player-pool)
+
+(defmacro with-pool
+  "Change the thread pool that is used by any of the scheduling calls in the
+  body."
+  [pool & body]
+  `(binding [*current-pool* ~pool]
+     ~@body))
 
 (defn now
   "Returns the current time in ms"
@@ -20,9 +31,12 @@
 (defn after-delay
   "Schedules fun to be executed after ms-delay milliseconds. Pool
   defaults to the player-pool."
-  ([ms-delay fun] (after-delay ms-delay fun "Overtone delayed fn"))
+  ([ms-delay fun]
+   (after-delay ms-delay fun "Overtone delayed fn"))
   ([ms-delay fun description]
-   (at-at/at (+ (now) ms-delay) fun player-pool :desc description)))
+   (after-delay ms-delay fun *current-pool* description))
+  ([ms-delay fun pool description]
+   (at-at/at (+ (now) ms-delay) fun pool :desc description)))
 
 (defn periodic
   "Calls fun every ms-period, and takes an optional initial-delay for
@@ -32,7 +46,7 @@
   ([ms-period fun initial-delay description]
    (at-at/every ms-period
                 fun
-                player-pool
+                *current-pool*
                 :initial-delay initial-delay
                 :desc description)))
 
@@ -46,7 +60,7 @@
   ([ms-period fun initial-delay description]
    (at-at/interspaced ms-period
                       fun
-                      player-pool
+                      *current-pool*
                       :initial-delay initial-delay
                       :desc description)))
 
@@ -55,14 +69,14 @@
 (event/on-sync-event
  :reset
  (fn [event-info]
-   (at-at/stop-and-reset-pool! player-pool :strategy :kill))
+   (at-at/stop-and-reset-pool! *current-pool* :strategy :kill))
  ::player-reset)
 
 (defn stop-player
   "Stop scheduled fn gracefully if it hasn't already executed."
   [sched-fn]
   (if (number? sched-fn)
-    (at-at/stop sched-fn player-pool)
+    (at-at/stop sched-fn *current-pool*)
     (at-at/stop sched-fn)))
 
 (defn kill-player
@@ -70,7 +84,7 @@
   are also able to specify player by job id - see print-schedule."
   [sched-fn]
   (if (number? sched-fn)
-    (at-at/kill sched-fn player-pool)
+    (at-at/kill sched-fn *current-pool*)
     (at-at/kill sched-fn)))
 
 (def ^{:dynamic true :private true} *apply-ahead*
@@ -165,7 +179,7 @@
 (defn show-schedule
   "Print the schedule of currently running audio players."
   []
-  (at-at/show-schedule player-pool))
+  (at-at/show-schedule *current-pool*))
 
 (extend-protocol protocols/IKillable
   overtone.at_at.RecurringJob

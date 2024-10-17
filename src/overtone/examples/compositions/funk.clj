@@ -1,8 +1,8 @@
 (ns overtone.examples.compositions.funk
-    "This example creates a simple drum and bass pattern, based off of
-    the James Brown classic 'Licking Stick', with Bootsy Collins on bass,
-    and John Jab'o Starks on drums"
-    (:use [overtone.live]))
+  "This example creates a simple drum and bass pattern, based off of
+  the James Brown classic 'Licking Stick', with Bootsy Collins on bass,
+  and John Jab'o Starks on drums"
+  (:use [overtone.live]))
 
 ; model a plucked string, we'll use this for our bass
 (definst string [note 60 amp 1.0 dur 0.5 decay 30 coef 0.3 gate 1]
@@ -22,13 +22,12 @@
 (def close-hihat (sample (freesound-path 802)))
 (def open-hihat (sample (freesound-path 26657)))
 
-
 (defn subdivide
-    "subdivide two time intervals by 4, and return the time interval
+  "subdivide two time intervals by 4, and return the time interval
     at position. this is a cheap hack to schedule 16th notes without
     defining the whole pattern with the metronome firing every 16th note."
-    [a b position]
-    (+ a (* position (/ (- b a) 4) )))
+  [a b position]
+  (+ a (* position (/ (- b a) 4) )))
 
 (defn drums [nome]
     (let [beat (nome)]
