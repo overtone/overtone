@@ -206,8 +206,7 @@
         env  (env-gen (adsr 0.001 0.2 0.9 0.25) gate amp :action FREE)]
     (* snd env)))
 
-(definst grunge-bass
-  [note 48 amp 0.5 dur 0.1 a 0.01 d 0.01 s 0.4 r 0.01]
+(definst grunge-bass [note 48 amp 1 dur 0.1 a 0.01 d 0.01 s 0.4 r 0.01]
   (let [freq    (midicps note)
         env     (env-gen (adsr a d s r) (line:kr 1 0 (+ a d dur r 0.1))
                          :action FREE)
@@ -218,7 +217,7 @@
         meat    (ring4 filt sub)
         sliced  (rlpf meat (* 2 freq) 0.1)
         bounced (free-verb sliced 0.8 0.9 0.2)]
-    (* env bounced)))
+    (* amp env bounced)))
 
 (definst vintage-bass
   [note 40 velocity 80 t 0.6 amp 1 gate 1]
