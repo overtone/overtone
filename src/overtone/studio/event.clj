@@ -395,8 +395,11 @@
   - `:quant` start the pattern at a beat number that is a multiple of `:quant`
   "
   [k pattern & args]
-  (apply padd k pattern args)
-  (presume k)
+  (if (= \_ (first (name k)))
+    (ppause (keyword (namespace k) (subs (name k) 1)))
+    (do
+      (apply padd k pattern args)
+      (presume k)))
   nil)
 
 (defn ploop [k pattern & args]
