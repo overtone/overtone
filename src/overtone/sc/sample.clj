@@ -100,9 +100,10 @@
        NOTE: This was very prone to clicking at the end, so for now it uses
        playbuf until we can figure out a way to make this work without
        clicking. This means start/end/release currently don't do anything."
-      [buf 0 rate 1 start 0 end 1 loop? 0 amp 1 release 0 out-bus 0]
+      [buf 0 rate 1 start 0 end 1 loop? 0 amp 1 pan 0 release 0 out-bus 0]
       (out out-bus
-           (* amp (play-buf 1 buf :loop loop? :rate rate :action FREE)))
+           (pan2
+            (* amp (play-buf 1 buf :loop loop? :rate rate :action FREE))))
       #_(let [n-frames  (buf-frames buf)
               rate      (* rate (buf-rate-scale buf))
               start-pos (* start n-frames)
