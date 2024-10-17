@@ -1,3 +1,5 @@
 (ns overtone.libs.boot-msg)
 
-(println "--> Loading Overtone...")
+(if *compile-files*
+  (println "--> Compiling Overtone...")
+  (println "--> Loading Overtone..."))
