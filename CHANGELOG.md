@@ -13,8 +13,13 @@
   (`*current-pool*`)
 - `:sc-path` in `~/.overtone/config.clj` can now be a vector instead of a
   string, for passing additional arguments
+- `grunge-bass` : make the amp parameter do something
 
 ## Changed
+
+- Changed the implementation of the sample player to a more basic version based
+  on `play-buf`, since the old version caused clicks at the end of the sample.
+  This does mean currently looping is broken.
 
 # 0.14.3199 (2024-05-19 / 5d1c1ed)
 
