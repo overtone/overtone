@@ -72,7 +72,7 @@
 (defn rest? [o]
   (#{:_ :rest} o))
 
-(defn octave-note [e octave note]
+(defn- octave-note [e octave note]
   (* (+ octave
         (/ (+ note (eget e :gtranspose))
            (eget e :steps-per-octave)))
