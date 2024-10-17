@@ -19,8 +19,9 @@
   (:import
    (javax.swing JFrame JPanel JButton JOptionPane WindowConstants
                 JPasswordField)
-   java.awt.GraphicsEnvironment
-   ))
+   java.awt.GraphicsEnvironment))
+
+(set! *warn-on-reflection* true)
 
 (def ^:dynamic *client-id* "ea6297be42e9de76d47c")
 (def ^:dynamic *api-key* "32da10a118819877ec041752680588c62684c0b2")
