@@ -11,6 +11,7 @@
    [overtone.sc.node :refer :all]
    [overtone.config.store :as config]
    [overtone.helpers.file :refer [*authorization-header* file-extension]]
+   [overtone.helpers.gui :as gui]
    [overtone.helpers.lib :refer [defrecord-ifn]]
    [overtone.libs.asset :as asset]
    [overtone.sc.buffer :as buffer]
@@ -19,7 +20,7 @@
    (javax.swing JFrame JPanel JButton JOptionPane WindowConstants
                 JPasswordField)
    java.awt.GraphicsEnvironment
-   java.awt.event.ActionListener))
+   ))
 
 (def ^:dynamic *client-id* "ea6297be42e9de76d47c")
 (def ^:dynamic *api-key* "32da10a118819877ec041752680588c62684c0b2")
@@ -123,8 +124,8 @@
                 ;; EXIT_ON_CLOSE both risk closing the VM
                 (.setDefaultCloseOperation WindowConstants/HIDE_ON_CLOSE))]
     (.addActionListener
-      button (proxy [ActionListener] []
-               (actionPerformed [event]
+      button (gui/action-listener
+               (fn [_event]
                  ;; using .dispose may close the VM
                  (.setVisible frame false)
                  (let [pw (String/valueOf (.getPassword password-field))]
