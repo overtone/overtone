@@ -1,3 +1,5 @@
 #!/bin/bash
 
+# set this to an absolute path on your machine to prove
+# overtone is self-contained
 /Applications/SuperCollider.app/Contents/Resources/scsynth "$@"
