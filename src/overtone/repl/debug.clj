@@ -9,6 +9,8 @@
    overtone.helpers.lib
    overtone.studio.inst))
 
+(set! *warn-on-reflection* true)
+
 (defn- control-ugen-name?
   [ug-n]
   (or (= "trig-control" ug-n)
@@ -120,7 +122,7 @@
         (if (and (= c-name (overtone-ugen-name (:name ug)) )
                  (= rate (REVERSE-RATES (:rate ug))))
           result
-          (recur (+ result (:n-outputs ug)) (rest ugs)))))))
+          (recur (+ result (long (:n-outputs ug))) (rest ugs)))))))
 
 (defn- expand-control-ug
   [ug c-idx sdef]

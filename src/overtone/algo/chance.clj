@@ -4,6 +4,8 @@
   (:use
    [overtone.algo.scaling]))
 
+(set! *warn-on-reflection* true)
+
 (defn choose
   "Choose a random element from col."
   [col]
@@ -42,7 +44,8 @@
            sorted (sort #(< (first %1) (first %2)) paired)
            summed (loop [todo sorted
                          done []
-                         cumulative 0]
+                         ;; probabilities are floats
+                         cumulative 0.0]
                     (if (empty? todo)
                       done
                       (let [f-prob (ffirst todo)

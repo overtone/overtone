@@ -15,6 +15,8 @@
                   FileVisitResult LinkOption CopyOption)
    (java.nio.file.attribute FileAttribute)))
 
+(set! *warn-on-reflection* true)
+
 (def ^{:dynamic true} *verbose-overtone-file-helpers* false)
 (def ^{:dynamic true} *authorization-header* false)
 
@@ -409,7 +411,7 @@
     (visitFile [^java.nio.file.Path file attrs]
       (let [^java.nio.file.Path target (.resolve to (.relativize from file))]
         (Files/copy file target
-                    ^java.nio.file.CopyOption (into-array CopyOption [StandardCopyOption/REPLACE_EXISTING])))
+                    ^"[Ljava.nio.file.CopyOption;" (into-array CopyOption [StandardCopyOption/REPLACE_EXISTING])))
       FileVisitResult/CONTINUE)))
 
 (defn copy-dir!
@@ -435,7 +437,8 @@
                              " attempts. URL attempted to download: "
                              url ))))
 
-   (let [path (resolve-tilde-path path)]
+   (let [wait-t (long wait-t)
+         path (resolve-tilde-path path)]
      (try
        (download-file-with-timeout url path timeout)
        (catch java.io.FileNotFoundException e
