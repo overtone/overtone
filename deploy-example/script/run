@@ -2,4 +2,4 @@
 
 set -ex
 
-PATH="bin" java -Dovertone.home-dir="config" -jar target/deploy-example.jar overtone_deploy.main
+PATH="bin" java -Dovertone.home-dir="config" -jar target/deploy-example.jar
