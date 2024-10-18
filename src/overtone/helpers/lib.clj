@@ -5,11 +5,13 @@
   (:import [java.util ArrayList Collections]
            [java.util.concurrent TimeUnit TimeoutException]
            [java.io File])
+  (:require [clojure.string :as str])
   (:use [clojure.stacktrace]
         [clojure.pprint]
         [overtone.helpers doc]
         [overtone.helpers.system :only [windows-os?]]))
 
+(set! *warn-on-reflection* true)
 
 (defn to-str
   "If val is a keyword, return its name sans :, otherwise return val"
@@ -332,7 +334,7 @@
    SuperCollider names to Overtone names. Most likely needs improvement.
 
   (overtone-ugen-name \"SinOsc\") ;=> \"sin-osc\""
-  [n]
+  [^String n]
   (when-not (string? n)
     (throw (IllegalArgumentException. (str "Cannot convert non-string obj " (with-out-str (pr n)) " to an overtone ugen name"))))
 
@@ -369,7 +371,7 @@
     (let [p-files   (map str (concat
                               (env-files "PROGRAMFILES")
                               (env-files "PROGRAMFILES(X86)")))
-          sc-files  (filter #(.contains % "SuperCollider") p-files)
+          sc-files  (filter #(str/includes? % "SuperCollider") p-files)
           recent-sc (last (sort (seq sc-files)))]
       recent-sc)))
 
