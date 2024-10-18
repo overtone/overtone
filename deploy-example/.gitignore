@@ -2,3 +2,4 @@ target
 config/.overtone/assets
 config/.overtone/speech
 config/.overtone/log
+config/.overtone/user-store.clj
