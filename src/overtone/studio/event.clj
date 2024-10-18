@@ -10,6 +10,8 @@
    [overtone.studio.pattern :as pattern]
    [overtone.studio.transport :as transport]))
 
+(set! *warn-on-reflection* true)
+
 (defonce
   ^{:doc "Thread pool for `at-at`, separate from the main pool overtone
   uses so we can control the behavior when `stop` is called (:reset event)"}
@@ -203,7 +205,7 @@
 (defn- eget-instrument [e]
   (let [i (eget e :instrument)]
     (if (sample/sample? i)
-      (case (:n-channels i)
+      (case (int (:n-channels i))
         1 sample/mono-partial-player
         2 sample/stereo-partial-player)
       i)))
@@ -220,7 +222,7 @@
                                (eget e lk))]
                   (conj acc kn val)
                   acc)))
-            (if (sample? i')
+            (if (sample/sample? i')
               [:buf (:id i') ]
               [])
             params)))
