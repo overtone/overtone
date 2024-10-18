@@ -19,6 +19,8 @@
    [overtone.sc.server :as server]
    [overtone.sc.util :as util]))
 
+(set! *warn-on-reflection* true)
+
 (defonce ^{:private true} __RECORDS__
   (do
     (defrecord BufferInfo [id size n-channels rate n-samples rate-scale duration]
@@ -289,7 +291,8 @@
    (assert (buffer? buf))
    (let [buf-id  (:id buf)
          samples (float-array len)]
-     (loop [n-vals-read 0]
+     (loop [;; boxed due to server/snd
+            n-vals-read (num 0)]
        (if (< n-vals-read len)
          (let [n-to-read (min defaults/MAX-OSC-SAMPLES (- len n-vals-read))
                offset    (+ start n-vals-read)
@@ -302,7 +305,7 @@
            (server/snd "/b_getn" buf-id offset n-to-read)
            (let [m (lib/deref! prom (str "attempting to read data from buffer " (with-out-str (pr buf))))
                  [buf-id bstart blen & samps] (:args m)]
-             (prn bstart blen n-vals-read)
+             ;(prn bstart blen n-vals-read)
              (dorun
               (map-indexed (fn [idx el]
                              (aset-float samples (+ bstart idx (- start)) el))
@@ -346,7 +349,7 @@
                         :start-idx start-idx
                         :length    length})))
      (let [doubles (sequence (comp (drop offset) (map float)) data)]
-       (loop [position  start-idx
+       (loop [position  (num start-idx) ;; boxed due to server/snd
               size      (min page-size length)
               remaining (- length size)
               doubles   doubles]
@@ -367,7 +370,8 @@
    (ensure-buffer-active! buf)
    (assert (buffer? buf))
    (loop [data-left (vec data)
-          idx       0]
+          ;; boxed due to buffer-write! (too many args for prim hint) and subvec
+          idx       (num 0)]
      (let [left-cnt  (min defaults/MAX-OSC-SAMPLES (count data-left))
            to-write  (subvec data-left 0 left-cnt)
            data-left (subvec data-left left-cnt)]
