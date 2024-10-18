@@ -3,3 +3,5 @@ config/assets
 config/speech
 config/log
 config/user-store.clj
+app
+HelloOvertone.app

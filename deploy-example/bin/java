@@ -1,5 +1,0 @@
-#!/bin/bash
-
-# set this to an absolute path on your machine to prove
-# overtone is self-contained
-~/.sdkman/candidates/java/21.0.4-tem/bin/java "$@"

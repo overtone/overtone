@@ -2,4 +2,4 @@
 
 set -ex
 
-PATH="bin" java -Dovertone.config-dir="config" -jar target/deploy-example.jar
+PATH="" ./HelloOvertone.app/Contents/MacOS/HelloOvertone
