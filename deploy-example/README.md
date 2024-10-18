@@ -47,6 +47,9 @@ point to real paths on your computer to try out this project
 (`which java` can be helpful, `bin/scsynth` is probably already correct if
 you have installed SuperCollider).
 
+Note, you can alternatively set the `scsynth` executable with the
+`:sc-path` entry in the `config.clj`.
+
 We execute the uberjar with `PATH=bin` to show this example is self-contained.
 
 In a real deployment, these two scripts would be symbolic links

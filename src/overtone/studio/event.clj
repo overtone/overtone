@@ -220,7 +220,7 @@
                                (eget e lk))]
                   (conj acc kn val)
                   acc)))
-            (if (sample? i')
+            (if (sample/sample? i')
               [:buf (:id i') ]
               [])
             params)))
