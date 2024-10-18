@@ -74,19 +74,32 @@
 
 (declare event-derivations)
 
-(defn eget [e k]
-  (if (contains? e k)
-    (get e k)
-    (let [t (:type e :note)
-          d (get event-defaults t)]
-      (cond
-        (contains? d k)
-        (get d k)
-        (contains? event-derivations k)
-        ((get event-derivations k) e)
-        :else
-        (throw (ex-info (str "Missing event key or derivation " k)
-                        {:event e}))))))
+(defn eget
+  ([e k]
+   (if (contains? e k)
+     (get e k)
+     (let [t (:type e :note)
+           d (get event-defaults t)]
+       (cond
+         (contains? d k)
+         (get d k)
+         (contains? event-derivations k)
+         ((get event-derivations k) e)
+         :else
+         (throw (ex-info (str "Missing event key or derivation " k)
+                         {:event e}))))))
+  ([e k fallback]
+   (if (contains? e k)
+     (get e k)
+     (let [t (:type e :note)
+           d (get event-defaults t)]
+       (cond
+         (contains? d k)
+         (get d k)
+         (contains? event-derivations k)
+         ((get event-derivations k) e)
+         :else
+         fallback)))))
 
 (defn- rest? [o]
   (#{:_ :- :rest} o))
@@ -102,16 +115,18 @@
 (def ^:private event-derivations
   {:detuned-freq
    (fn [e]
-     (+ (eget e :freq) (eget e :detune)))
+     (when (some #(contains? e %) [:freq :midinote :note :degree])
+       (+ (eget e :freq) (eget e :detune))))
 
    :freq
    (fn [e]
-     (let [midinote (eget e :midinote)]
-       (if (keyword? midinote)
-         midinote
-         (* (eget e :harmonic)
-            (pitch/midi->hz
-             (+ midinote (eget e :ctranspose)))))))
+     (when (some #(contains? e %) [:midinote :note :degree])
+       (let [midinote (eget e :midinote)]
+         (if (keyword? midinote)
+           midinote
+           (* (eget e :harmonic)
+              (pitch/midi->hz
+               (+ midinote (eget e :ctranspose))))))))
 
    :midinote
    (fn [e]
@@ -179,17 +194,17 @@
        (clock (+ (eget e :beat)
                  (eget e :dur)))))})
 
-(def pname-mapping
+(def ^:private pname-mapping
   "If a synth has a :freq parameter, we actually use the computed :detuned-freq
   value."
   {:freq :detuned-freq
    :note :midinote})
 
-(defn sample? [i]
+(defn- sample? [i]
   (or (instance? overtone.sc.sample.PlayableSample i)
       (instance? overtone.samples.freesound.FreesoundSample i)))
 
-(defn eget-instrument [e]
+(defn- eget-instrument [e]
   (let [i (eget e :instrument)]
     (if (sample? i)
       (case (:n-channels i)
@@ -197,7 +212,7 @@
         2 sample/stereo-partial-player)
       i)))
 
-(defn params-vec [e]
+(defn- params-vec [e]
   (let [i' (eget e :instrument)
         i (eget-instrument e)
         params (or (:params (meta i))
@@ -205,15 +220,16 @@
                         (:pnames (:sdef i))))]
     (reduce (fn [acc kn]
               (let [lk (get pname-mapping kn kn)]
-                (if (or (contains? e lk) (contains? event-derivations lk))
-                  (conj acc kn (eget e lk))
+                (if-let [val (when (or (contains? e lk) (contains? event-derivations lk))
+                               (eget e lk))]
+                  (conj acc kn val)
                   acc)))
             (if (sample? i')
               [:buf (:id i') ]
               [])
             params)))
 
-(defn handle-note [e]
+(defn- handle-note [e]
   (when-not (keyword? (eget e :freq))
     (let [i         (eget-instrument e)
           params    (:params i)
@@ -238,7 +254,7 @@
           (when (and end has-gate?)
             (server/at end (node/ctl h :gate 0))))))))
 
-(defn handle-chord [e]
+(defn- handle-chord [e]
   (let [chord     (eget e :chord)
         inversion (or (eget e :inversion) 0)
         midinote  (eget e :midinote)
@@ -258,7 +274,7 @@
                                   :type :note
                                   :midinote n))))))
 
-(defn handle-ctl [e]
+(defn- handle-ctl [e]
   (let [i (eget-instrument e)
         args (params-vec e)
         start (eget e :start-time)]
@@ -293,11 +309,11 @@
 
 (declare schedule-next)
 
-(defn schedule-next-job [clock beat k]
+(defn- schedule-next-job [clock beat k]
   (time/with-pool player-pool
     (time/apply-by (clock (dec beat)) schedule-next [k])))
 
-(defn player-schedule-next [{:keys [clock playing pseq beat proto] :as player}]
+(defn- player-schedule-next [{:keys [clock playing pseq beat proto] :as player}]
   (if (or (not playing) (not player))
     player
     (let [e         (merge {:clock transport/*clock*}
@@ -314,7 +330,7 @@
                :last-event (assoc e :beat beat :clock clock))
         nil))))
 
-(defn schedule-next [k]
+(defn- schedule-next [k]
   (let [[old new] (map k (swap-vals! pplayers update k player-schedule-next))
         {:keys [clock beat playing] :as player} new
         e (:last-event new)]
@@ -340,7 +356,7 @@
                      :offset  offset}
                     opts)))))
 
-(defn align-pseq [beat quant pseq]
+(defn- align-pseq [beat quant pseq]
   (let [next-beat (mod beat quant)
         [diff pseq] (loop [nb next-beat
                            ps pseq]
@@ -365,7 +381,7 @@
    (= [5/2 (drop 3 ps)] (align-pseq 2 4 ps))
    (= [13/2 (drop 3 ps)] (align-pseq 6 4 ps))])
 
-(defn player-resume [{:keys [clock beat pseq quant offset]
+(defn- player-resume [{:keys [clock beat pseq quant offset]
                       :as   player}]
   (let [beat (max (or beat 0) (clock))
         [beat pseq] (align-pseq (dec beat) quant pseq)]
@@ -426,10 +442,3 @@
             (update-vals pp #(assoc % :playing false))))
    (at-at/stop-and-reset-pool! player-pool :strategy :kill))
  ::pplayers-reset)
-
-(comment
-  (update-vals @pplayers #(dissoc % :pseq :pattern))
-
-  (dissoc new :pseq :pattern)
-
-  (at-at/show-schedule player-pool))
