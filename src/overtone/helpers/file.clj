@@ -67,7 +67,8 @@
 (defn home-dir
   "Returns the user's home directory"
   []
-  (System/getProperty "user.home"))
+  (or (System/getProperty "overtone.home-dir")
+      (System/getProperty "user.home")))
 
 (declare mk-path)
 

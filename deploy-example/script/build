@@ -1,0 +1,9 @@
+#!/bin/bash
+set -xe
+# clean
+mkdir -p classes target
+rm -r classes/* target/* || true
+# compile
+clojure -M -e "(do (compile 'overtone-deploy.main) (System/exit 0))"
+# package
+clj -Sdeps '{:aliases {:uberjar {:replace-deps {uberdeps/uberdeps {:mvn/version "1.4.0"}} :replace-paths []}}}' -M:uberjar -m uberdeps.uberjar --main-class overtone-deploy.main
