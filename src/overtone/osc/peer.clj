@@ -327,7 +327,7 @@
   Clients also listen for incoming messages (such as responses from the server
   it communicates with."
   ([host port] (client-peer host port true))
-  ([host ^long port send-nested-osc-bundles?]
+  ([host port send-nested-osc-bundles?]
    (when-not (integer? port)
      (throw (Exception. (str "port should be an integer - got: " port))))
    (when-not (string? host)
@@ -340,7 +340,7 @@
        (assoc peer
               :host (ref host)
               :port (ref port)
-              :addr (ref (InetSocketAddress. host port))
+              :addr (ref (InetSocketAddress. host (int port)))
               :send-nested-osc-bundles? send-nested-osc-bundles?)
        {:type ::client}))))
 
