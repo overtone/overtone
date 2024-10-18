@@ -1,5 +1,5 @@
 target
-config/.overtone/assets
-config/.overtone/speech
-config/.overtone/log
-config/.overtone/user-store.clj
+config/assets
+config/speech
+config/log
+config/user-store.clj

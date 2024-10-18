@@ -55,7 +55,7 @@ to executables you have have copied into your deployment package.
 ```
 $ ./script/run
 + PATH=bin
-+ java -Dovertone.home-dir=config -jar target/deploy-example.jar
++ java -Dovertone.config-dir=config -jar target/deploy-example.jar
 --> Loading Overtone...
 [overtone.live] [INFO] Found SuperCollider server: bin/scsynth (PATH)
 --> Booting external SuperCollider server...
@@ -93,7 +93,6 @@ $ ./script/run
 
 Hello UBERJAR, may this be the start of a beautiful music hacking session...
 
-Overtone config file: /Users/overtone/deploy-example/config/.overtone/config.clj
-home dir /Users/overtone/deploy-example/config
+Overtone config file: /Users/overtone/deploy-example/config/config.clj
 --> Initiating shutdown
 ```

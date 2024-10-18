@@ -68,7 +68,8 @@
   @live-store)
 
 (def OVERTONE-DIRS
-  (let [root   (mk-path (home-dir) ".overtone")
+  (let [root   (or (System/getProperty "overtone.config-dir")
+                   (mk-path (home-dir) ".overtone"))
         log    (mk-path root "log")
         assets (mk-path root "assets")
         speech (mk-path root "speech")]
