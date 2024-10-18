@@ -72,7 +72,7 @@
     :swing            0
     }})
 
-(declare derivations)
+(declare event-derivations)
 
 (defn eget [e k]
   (if (contains? e k)
