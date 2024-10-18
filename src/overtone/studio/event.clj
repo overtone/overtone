@@ -124,15 +124,15 @@
          (or (keyword? note) (string? note))
          (let [{:keys [interval octave]
                 :or {octave (eget e :octave)}} (pitch/note-info note)]
-           (octave-note e octave interval))
+           (event-octave-note e octave interval))
 
          (or (keyword? root) (string? root))
          (let [{:keys [interval octave]
                 :or {octave (eget e :octave)}} (pitch/note-info root)]
-           (octave-note e octave (+ note interval)))
+           (event-octave-note e octave (+ note interval)))
 
          :else
-         (octave-note e (eget e :octave) (+ note root)))))
+         (event-octave-note e (eget e :octave) (+ note root)))))
 
    :scale-intervals
    (fn [e]
@@ -185,6 +185,10 @@
   {:freq :detuned-freq
    :note :midinote})
 
+(defn sample? [i]
+  (or (instance? overtone.sc.sample.PlayableSample i)
+      (instance? overtone.samples.freesound.FreesoundSample i)))
+
 (defn eget-instrument [e]
   (let [i (eget e :instrument)]
     (if (sample? i)
@@ -201,7 +205,7 @@
                         (:pnames (:sdef i))))]
     (reduce (fn [acc kn]
               (let [lk (get pname-mapping kn kn)]
-                (if (or (contains? e lk) (contains? derivations lk))
+                (if (or (contains? e lk) (contains? event-derivations lk))
                   (conj acc kn (eget e lk))
                   acc)))
             (if (sample? i')
