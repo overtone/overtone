@@ -41,8 +41,16 @@ which seems to hang otherwise.
 
 Overtone has two dependencies: `java` and `scsynth`.
 
-These are defined in `bin`. You should redefine them to
-point to real paths on your computer/deployment.
+These are defined in `bin/java` and `bin/scsynth`.
+You should redefine these scripts to
+point to real paths on your computer to try out this project
+(`which java` can be helpful, `bin/scsynth` is probably already correct if
+you have installed SuperCollider).
+
+We execute the uberjar with `PATH=bin` to show this example is self-contained.
+
+In a real deployment, these two scripts would be symbolic links
+to executables you have have copied into your deployment package.
 
 ```
 $ ./script/run
