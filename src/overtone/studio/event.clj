@@ -200,13 +200,9 @@
   {:freq :detuned-freq
    :note :midinote})
 
-(defn- sample? [i]
-  (or (instance? overtone.sc.sample.PlayableSample i)
-      (instance? overtone.samples.freesound.FreesoundSample i)))
-
 (defn- eget-instrument [e]
   (let [i (eget e :instrument)]
-    (if (sample? i)
+    (if (sample/sample? i)
       (case (:n-channels i)
         1 sample/mono-partial-player
         2 sample/stereo-partial-player)
