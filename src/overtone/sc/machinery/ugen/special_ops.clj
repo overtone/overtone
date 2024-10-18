@@ -9,7 +9,7 @@
    "not-pos?" 1    ; 0 when a < 0, +1 when a > 0, 1 when a is 0
    ;;"is-nil" 2    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"not-nil" 3   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
-   ;;"bitNot" 4    ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
+   ;;"bit-not" 4    ; (bitNot) Defined in UnaryOpUGens.cpp enum but not implemented on the server
    "abs" 5         ; absolute value
    ;;"asFloat" 6   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
    ;;"asInt"   7   ; Defined in UnaryOpUGens.cpp enum but not implemented on the server
@@ -79,9 +79,9 @@
    ">=" 11           ; Greater than or equal to
    "min" 12          ; minimum
    "max" 13          ; maximum
-   "and" 14          ; and (where pos sig is true)
-   "or" 15           ; or (where pos sig is true
-   "xor" 16          ; xor (where pos sig is true)
+   "bit-and" 14      ; bitAnd, & (bitwise and)
+   "bit-or" 15       ; bitOr, | (bitwise or)
+   "bit-xor" 16      ; bitXor (bitwise exclusive or)
    ;;"lcm" 17        ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
    ;;"gcd" 18        ; Defined in BinaryOpUGens.cpp enum but not implemented on the server
    "round" 19        ; Round to nearest multiple
@@ -117,11 +117,11 @@
    })
 
 (def FOLDABLE-BINARY-OPS
-  #{"+" "-" "*" "/" "<" ">" "<=" ">=" "min" "max" "and" "or"})
+  #{"+" "-" "*" "/" "<" ">" "<=" ">=" "min" "max" "bit-and" "bit-or" "bit-xor"})
 
 ;;the following are Clojure fns that can only take numerical args
 (def NUMERICAL-CLOJURE-FNS
-  #{"+" "*" "-" "/" "<" ">" "<=" ">=" "min" "max" "mod" "abs"})
+  #{"+" "*" "-" "/" "<" ">" "<=" ">=" "min" "max" "mod" "abs" "bit-and" "bit-or" "bit-xor"})
 
 (def REVERSE-BINARY-OPS (zipmap (vals BINARY-OPS) (keys BINARY-OPS)))
 
