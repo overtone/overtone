@@ -350,7 +350,7 @@
 (defn update-peer-target
   "Update the target address of an OSC client so future calls to osc-send
   will go to a new destination. Also updates zeroconf registration."
-  [peer host ^long port]
+  [peer host port]
   (when-not (integer? port)
     (throw (Exception. (str "port should be an integer - got: " port))))
   (when-not (string? host)
@@ -362,7 +362,7 @@
     (dosync
      (ref-set (:host peer) host)
      (ref-set (:port peer) port)
-     (ref-set (:addr peer) (InetSocketAddress. host port)))
+     (ref-set (:addr peer) (InetSocketAddress. host (int port))))
 
     (when (:zero-conf-name peer)
       (register-zero-conf-service (:zero-conf-name peer) port))))
