@@ -10,6 +10,11 @@
 
 (defn -main [& args]
   (try (println "Overtone config file:" (canonical-path store/OVERTONE-CONFIG-FILE))
-       (println "scsynth path" (canonical-path (scsynth-path)))
+       (println "scsynth path" (scsynth-path))
+       (println "scsynth executable" (-> (scsynth-path) first canonical-path))
+       (catch Throwable e
+         (println "Abnormal exit")
+         (prn e)
+         (System/exit 1))
        (finally
          (System/exit 0))))

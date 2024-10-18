@@ -2,4 +2,6 @@
 
 set -ex
 
-PATH="" ./HelloOvertone.app/Contents/MacOS/HelloOvertone
+# FIXME how do we simulate app bundle executing?
+cd HelloOvertone.app/Contents/MacOS
+PATH="" ./HelloOvertone

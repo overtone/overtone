@@ -24,4 +24,4 @@ jpackage --type app-image \
   --mac-package-name HelloOvertone \
   --mac-package-identifier com.github.overtone.HelloOvertone \
   --main-jar deploy-example.jar \
-  --java-options '-Dovertone.config-dir="config"'
+  --java-options '-Dovertone.config-dir="../app/config"'
