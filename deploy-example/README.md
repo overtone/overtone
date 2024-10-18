@@ -7,7 +7,7 @@ that executes the main class `src/overtone_deploy/main.clj`.
 
 ```
 $ pwd
-/Users/overtone
+/Users/overtone/deploy-example
 $ ./script/build
 + mkdir -p classes target
 + rm -r classes/casa classes/clojure classes/org classes/overtone classes/overtone_deploy target/deploy-example.jar
