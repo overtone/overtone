@@ -12,6 +12,8 @@
    (javax.sound.midi MidiDevice MidiDevice$Info MidiSystem Receiver Sequencer ShortMessage Synthesizer SysexMessage Transmitter)
    (javax.swing DefaultListModel JFrame JList JScrollPane ListSelectionModel)))
 
+(set! *warn-on-reflection* true)
+
 ;; Java MIDI returns -1 when a port can support any number of transmitters or
 ;; receivers, we use max int.
 
@@ -353,7 +355,8 @@
    (loop [notes notes
           velocities velocities
           durations durations
-          cur-time  0]
+          ;; boxed due to at-at/after
+          cur-time  (num 0)]
      (if notes
        (let [n (first notes)
              v (first velocities)

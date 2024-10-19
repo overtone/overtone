@@ -8,6 +8,8 @@
         [overtone.algo chance])
   (:require [clojure.string :as string]))
 
+(set! *warn-on-reflection* true)
+
 ;; Notes in a typical scale are related by small, prime number ratios. Of all
 ;; possible 7 note scales, the major scale has the highest number of consonant
 ;; intervals.
@@ -140,7 +142,7 @@
   [midi-string]
   (let [[match pitch-class octave] (validate-midi-string! midi-string)
         pitch-class                (canonical-pitch-class-name pitch-class)
-        octave                     (when octave (Integer. octave))
+        octave                     (when octave (Integer. ^String octave))
         interval                   (NOTES (keyword pitch-class))]
     (cond-> {:match       match
              :pitch-class pitch-class

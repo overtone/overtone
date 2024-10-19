@@ -3,6 +3,7 @@
            [java.util.concurrent TimeUnit TimeoutException PriorityBlockingQueue]
            [java.nio.channels DatagramChannel AsynchronousCloseException ClosedChannelException]
            [java.nio ByteBuffer]
+           [java.io Writer]
            [javax.jmdns JmDNS ServiceListener ServiceInfo])
   (:use [clojure.set :as set]
         [overtone.osc.util]
@@ -11,6 +12,8 @@
         [overtone.osc.pattern :only [matching-handlers]])
   (:require [overtone.at-at :as at-at]
             [clojure.string :as string]))
+
+(set! *warn-on-reflection* true)
 
 (def zero-conf* (agent nil))
 (def zero-conf-services* (atom {}))
@@ -31,7 +34,7 @@
 (defn turn-zero-conf-off
   "Unregister all zeroconf services and close zeroconf down."
   []
-  (send zero-conf* (fn [zero-conf]
+  (send zero-conf* (fn [^JmDNS zero-conf]
                      (when zero-conf
                        (.unregisterAllServices zero-conf)
                        (.close zero-conf))
@@ -41,7 +44,7 @@
 (defn unregister-zero-conf-service
   "Unregister zeroconf service registered with port."
   [port]
-  (send zero-conf* (fn [zero-conf port]
+  (send zero-conf* (fn [^JmDNS zero-conf port]
                      (swap! zero-conf-services* dissoc port)
                      (let [service (get @zero-conf-services* port)]
                        (when (and zero-conf zero-conf)
@@ -52,7 +55,7 @@
 (defn register-zero-conf-service
   "Register zeroconf service with name service-name and port."
   [service-name port]
-  (send zero-conf* (fn [zero-conf service-name port]
+  (send zero-conf* (fn [^JmDNS zero-conf service-name port]
                      (let [service-name (str service-name " : " port)
                            service (ServiceInfo/create "_osc._udp.local"
                                                        service-name port
@@ -117,7 +120,7 @@
   empty list) and :default (the default listener). Each listener is then
   extracted and called with the message as a param. Before invoking the
   listeners the source host and port are added to the  message map."
-  [all-listeners src msg]
+  [all-listeners ^InetSocketAddress src msg]
   (let [msg              (assoc msg
                                 :src-host (.getHostString src)
                                 :src-port (.getPort src))
@@ -147,8 +150,8 @@
   "Loop for the listen thread to execute in order to receive and handle OSC
   messages. Recieves packets from chan using buf and then handles them either
   as messages or bundles - passing the source information and message itself."
-  [^java.nio.channels.DatagramChannel chan buf running? all-listeners]
-  (while (not (.isBound ^java.net.DatagramSocket (.socket chan)))
+  [^DatagramChannel chan buf running? all-listeners]
+  (while (not (.isBound (.socket chan)))
     (Thread/sleep 1))
   (try
     (while @running?
@@ -228,12 +231,12 @@
 (defn bind-chan!
   "Bind a channel's datagram socket to its local port or the specified one if
   explicitly passed in."
-  ([chan]
-   (let [^java.net.DatagramSocket sock (.socket chan)
+  ([^DatagramChannel chan]
+   (let [sock (.socket chan)
          local-port (.getLocalPort sock)]
      (.bind sock (InetSocketAddress. local-port))))
-  ([chan port]
-   (let [^java.net.DatagramSocket sock (.socket chan)]
+  ([^DatagramChannel chan port]
+   (let [^DatagramSocket sock (.socket chan)]
      (.bind sock (InetSocketAddress. port)))))
 
 (defn peer
@@ -316,7 +319,7 @@
   ([peer path]
    (count (peer-handler-paths peer path))))
 
-(defmethod print-method ::peer [peer w]
+(defmethod print-method ::peer [peer ^Writer w]
   (.write w (format "#<osc-peer: open?[%s] listening?[%s] n-listeners[%s] n-handlers[%s]>" @(:running? peer) (if (:listen-thread peer) true false) (num-listeners peer) (num-handlers peer))))
 
 (defn client-peer
@@ -337,11 +340,11 @@
        (assoc peer
               :host (ref host)
               :port (ref port)
-              :addr (ref (InetSocketAddress. host port))
+              :addr (ref (InetSocketAddress. host (int port)))
               :send-nested-osc-bundles? send-nested-osc-bundles?)
        {:type ::client}))))
 
-(defmethod print-method ::client [peer w]
+(defmethod print-method ::client [peer ^Writer w]
   (.write w (format "#<osc-client: destination[%s:%s] open?[%s] n-listeners[%s] n-handlers[%s]>"  @(:host peer) @(:port peer) @(:running? peer) (num-listeners peer) (num-handlers peer))))
 
 (defn update-peer-target
@@ -359,7 +362,7 @@
     (dosync
      (ref-set (:host peer) host)
      (ref-set (:port peer) port)
-     (ref-set (:addr peer) (InetSocketAddress. host port)))
+     (ref-set (:addr peer) (InetSocketAddress. host (int port))))
 
     (when (:zero-conf-name peer)
       (register-zero-conf-service (:zero-conf-name peer) port))))
@@ -385,25 +388,29 @@
               :zero-conf-name zero-conf-name)
        {:type ::server}))))
 
-(defmethod print-method ::server [peer w]
+(defmethod print-method ::server [peer ^Writer w]
   (.write w (format "#<osc-server: n-listeners[%s] n-handlers[%s] port[%s] open?[%s]>"  (num-listeners peer) (num-handlers peer) @(:port peer) @(:running? peer))))
 
 (defn close-peer
-  "Close a peer, also works for clients and servers."
-  [peer & wait]
-  (when (:zero-conf-name peer)
-    (unregister-zero-conf-service (:port peer)))
-  (dosync (ref-set (:running? peer) false))
-  (.close (:chan peer))
-  (when wait
-    (if (:listen-thread peer)
-      (if (integer? wait)
-        (.join (:listen-thread peer) wait)
-        (.join (:listen-thread peer))))
-    (if (:send-thread peer)
-      (if (integer? wait)
-        (.join (:send-thread peer) wait)
-        (.join (:send-thread peer))))))
+  "Close a peer, also works for clients and servers.
+  Joins closed threads if wait is a true value.
+  Sets a timeout for join if wait is an integer."
+  ([peer] (close-peer peer nil))
+  ([peer wait]
+   (let [^DatagramChannel chan (:char peer)]
+     (when (:zero-conf-name peer)
+       (unregister-zero-conf-service (:port peer)))
+     (dosync (ref-set (:running? peer) false))
+     (.close chan)
+     (when wait
+       (when-some [^Thread thread (:listen-thread peer)]
+         (if (integer? wait)
+           (.join thread (long wait))
+           (.join thread)))
+       (when-some [^Thread thread (:send-thread peer)]
+         (if (integer? wait)
+           (.join thread (long wait))
+           (.join thread)))))))
 
 (defn peer-send-bundle
   "Send OSC bundle to peer."
@@ -422,8 +429,8 @@
 (defn peer-reply-msg
   "Send OSC msg to peer"
   [peer msg msg-to-reply-to]
-  (let [host (:src-host msg-to-reply-to)
-        port (:src-port msg-to-reply-to)
+  (let [^String host (:src-host msg-to-reply-to)
+        ^Integer port (:src-port msg-to-reply-to)
         addr (InetSocketAddress. host port)]
     (when @osc-debug*
       (print-debug "osc-reply-msg: " msg " to: " host " : " port))
@@ -446,9 +453,9 @@
       (throw (IllegalArgumentException. (str "OSC handle path should be a string"))))
     (when (contains-pattern-match-chars? path)
       (throw (IllegalArgumentException. (str "OSC handle paths may not contain the following chars: " PATTERN-MATCH-CHARS))))
-    (when (.endsWith path "/")
+    (when (string/ends-with? path "/")
       (throw (IllegalArgumentException. (str "OSC handle needs a method name (i.e. must not end with /)"))))
-    (when-not (.startsWith path "/")
+    (when-not (string/starts-with? path "/")
       (throw (IllegalArgumentException. (str "OSC handle needs to start with /"))))
     (let [handlers (:handlers peer)
           path-parts (split-path path)
@@ -466,7 +473,8 @@
                              :done))
     (let [res (try
                 (if timeout
-                  (.get (future @p) timeout TimeUnit/MILLISECONDS) ; Blocks until
+                  (let [^java.util.concurrent.Future f (future @p)]
+                    (.get f timeout TimeUnit/MILLISECONDS)) ; Blocks until
                   @p)
                 (catch TimeoutException t
                   nil)

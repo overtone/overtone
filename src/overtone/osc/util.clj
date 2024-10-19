@@ -1,6 +1,8 @@
 (ns overtone.osc.util
   (:require [clojure.string :as str]))
 
+(set! *warn-on-reflection* true)
+
 (defn print-debug [& msgs]
   (binding [*out* *err*]
     (apply println msgs)))
@@ -16,7 +18,7 @@
 
 (defn contains-pattern-match-chars?
   "Returns true if str contains any pattern-match characters"
-  [str] (some #(.contains str %) PATTERN-MATCH-CHARS))
+  [str] (some #(str/includes? str %) PATTERN-MATCH-CHARS))
 
 ;; TODO: Figure out how to detect a byte array correctly...
 (defn osc-type-tag
@@ -71,8 +73,8 @@
   * 0 or more args (where the number of args equals the number of types
     in the type tag"
   [path type-tag & args]
-  (let [type-tag (if (and type-tag (.startsWith type-tag ","))
-                   (.substring type-tag 1)
+  (let [type-tag (if (and type-tag (str/starts-with? type-tag ","))
+                   (subs type-tag 1)
                    type-tag)]
     (with-meta {:path path
                 :type-tag type-tag
