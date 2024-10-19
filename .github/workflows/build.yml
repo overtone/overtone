@@ -22,17 +22,10 @@ jobs:
           - {title: "Linux", os: "ubuntu-latest", arch: "x64"}
           #- {title: "Windows", os: "windows-latest", arch: "x64"}
           #- {title: "Mac", os: "macos-latest", arch: "x64"}
-          #- {title: "Mac", os: "macos-latest", arch: "arm64"}
+          - {title: "Mac", os: "macos-latest", arch: "arm64"}
     steps:
       # Get the code
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          path: sonic-pi
-          repository: 'sonic-pi-net/sonic-pi'
-          sparse-checkout: |
-            prebuilt/windows/${{matrix.arch}}
-        if: matrix.os == 'windows-latest'
 
       - uses: actions/cache@v2
         with:
@@ -54,6 +47,15 @@ jobs:
         with:
           cli: latest
 
+      - name: Windows dependencies
+        uses: actions/checkout@v4
+        with:
+          path: sonic-pi
+          repository: 'sonic-pi-net/sonic-pi'
+          sparse-checkout: |
+            prebuilt/windows/${{matrix.arch}}
+        if: matrix.os == 'windows-latest'
+
       - name: Link supercollider on Windows
         shell: powershell
         run: |
@@ -73,14 +75,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
 
       - name: Overtone tests - Mac
-        env:
-          SONIC_PI_ENV: test
         run: ./bin/ci ${{matrix.clojure}}
         if: matrix.os == 'macos-latest'
 
       - name: Overtone tests - Linux
-        env:
-          SONIC_PI_ENV: test
         run: |
           jackd -rd dummy &
           ./bin/ci ${{matrix.clojure}}
