@@ -13,6 +13,16 @@ hopefully you won't see that very often. A bunch of old bugs and issues have
 been addressed, as well as reflection and boxed math warnings, which should help
 with performance.
 
+There are two **breaking changes**. The bitwise ugens have been renamed to
+`bit-{and,or,xor}`, the old ones never worked correctly, so this is unlikely to
+impact users.
+
+The synths used to play samples have been changed to a more basic version, and
+currently do not support looping like the old ones did. On the flip side they
+can play a sample without an audible click at the end, which has been a decade
+old issue. The looping behavior may come back in a future version if we can
+reconcile the two.
+
 ## Breaking Changes
 
 - `{and,or,xor}` ugens have been renamed `bit-{and,or,xor}`
@@ -20,9 +30,10 @@ with performance.
     will no longer shadow/bind `{and,or,xor}` but will now shadow `bit-{and,or,xor}`
   - renamed ugens will overload to `clojure.core/bit-{and,or,xor}` for numeric
     arguments and are foldable
-- Changed the implementation of the sample players to a more basic version based
-  on `play-buf`, since the old version caused clicks at the end of the sample.
-  This does mean currently looping is broken.
+- Changed the implementation of `mono-partial-player` and
+  `stereo-partial-player` (the default synths used to play samples) to a more
+  basic version based on `play-buf` instead of `buf-rd` and `phasor`. The old
+  version has a long standing issue that it causes clicks at the end of the sample.
 
 ## Added
 
