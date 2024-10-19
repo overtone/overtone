@@ -3,7 +3,7 @@
 ## Breaking Changes
 - `{and,or,xor}` ugens have been renamed `bit-{and,or,xor}`
   - `with-overloaded-ugens` and macros that use it (like `def{inst,synth}`)
-    will no longer shadow `{and,or,xor}` but will now shadow `bit-{and,or,xor}`
+    will no longer shadow/bind `{and,or,xor}` but will now shadow `bit-{and,or,xor}`
   - renamed ugens will overload to `clojure.core/bit-{and,or,xor}` for numeric
     arguments
 
