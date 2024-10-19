@@ -14,6 +14,8 @@
 - `:sc-path` in `~/.overtone/config.clj` can now be a vector instead of a
   string, for passing additional arguments
 - `grunge-bass` : make the amp parameter do something
+- `overtone.sc.ugen-collide` can now be safely required to access colliding
+  ugens explicitly.
 
 ## Changed
 
