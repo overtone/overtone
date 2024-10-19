@@ -18,9 +18,9 @@ jobs:
       matrix:
         include:
           - {title: "Linux", os: "ubuntu-latest", arch: "x64"}
-          - {title: "Windows", os: "windows-latest", arch: "x64"}
-          - {title: "Mac", os: "macos-latest", arch: "x64"}
-          - {title: "Mac", os: "macos-latest", arch: "arm64"}
+          #- {title: "Windows", os: "windows-latest", arch: "x64"}
+          #- {title: "Mac", os: "macos-latest", arch: "x64"}
+          #- {title: "Mac", os: "macos-latest", arch: "arm64"}
     steps:
       # Get the code
       - uses: actions/checkout@v4
