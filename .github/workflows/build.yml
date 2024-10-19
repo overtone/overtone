@@ -11,7 +11,7 @@ on:
 jobs:
   # Build Overtone
   build:
-    name: "${{matrix.title}} (${{matrix.os}}, ${{matrix.arch}}, Java ${{matrix.java}})"
+    name: "${{matrix.title}} (${{matrix.os}}, ${{matrix.arch}}, Java ${{matrix.java}}, Clojure ${{matrix.clojure}})"
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
@@ -37,8 +37,9 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/.m2/repository
-          key: ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-${{ matrix.java }}-${{ hashFiles('**/deps.edn') }}
+          key: ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-${{ matrix.java }}-${{ matrix.clojure }}-${{ hashFiles('**/deps.edn') }}
           restore-keys: |
+            ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-${{ matrix.java }}-${{ matrix.clojure }}
             ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-${{ matrix.java }}-
             ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-
 
