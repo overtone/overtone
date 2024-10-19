@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+set -xe
+
+rm -r classes || true
+mkdir -p classes
+
+clojure "-M:test:test-runner:$1"
+clojure -M -e "(do (compile 'overtone.live) (System/exit 0))"
+clojure -M -e "(do (require 'overtone.live) (System/exit 0))"
+
+rm -r classes || true

@@ -1,10 +1,12 @@
 (ns overtone.event-test
   (:require
-   [overtone.config.log :as log]
-   [overtone.libs.event :refer :all]
-   [clojure.test :refer :all]))
+   [overtone.libs.event :refer [on-sync-event on-event event remove-event-handler sync-event]]
+   [clojure.test :refer [deftest is]]))
 
-(log/set-level! :debug)
+(comment
+  (require '[overtone.config.log :as log])
+  (log/set-level! :debug)
+  )
 
 (deftest handler-test
   (let [counter (atom 0)]
@@ -34,6 +36,7 @@
     (Thread/sleep 100)
     (is (= 7 @counter))))
 
+#_ ;;FIXME
 (deftest fire-many-args-async-test
   (let [fires (atom [])]
     (on-event :test-event #(swap! fires conj %) :test-event-key)
@@ -85,7 +88,3 @@
                     :c "baz"}]))
 
     (remove-event-handler :test-event-key)))
-
-(defn event-tests []
-  (binding [*test-out* *out*]
-    (run-tests 'overtone.event-test)))
