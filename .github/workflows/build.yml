@@ -29,7 +29,8 @@ jobs:
           path: sonic-pi
           repository: 'sonic-pi-net/sonic-pi'
           sparse-checkout: |
-            prebuilt
+            prebuilt/windows/${{matrix.arch}}
+        if: matrix.os == 'windows-latest'
 
       - uses: actions/cache@v2
         with:
