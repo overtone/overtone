@@ -68,7 +68,7 @@
         ~'pre-amp   {:default 6.0   :min 0.0 :max 10.0}
         ~'amp       {:default 1.0   :min 0.0 :max 10.0}
         ;; by default, no distortion, no reverb, no low-pass
-        ~'distort'  {:default 0.0   :min 0.0 :max 0.9999999999}
+        ~'distort   {:default 0.0   :min 0.0 :max 0.9999999999}
         ~'rvb-mix   {:default 0.0   :min 0.0 :max 1.0}
         ~'rvb-room  {:default 0.0   :min 0.0 :max 1.0}
         ~'rvb-damp  {:default 0.0   :min 0.0 :max 1.0}
@@ -89,7 +89,7 @@
                            ~note-gate-pairs)
              src# (~'* ~'pre-amp (mix strings#))
              ;; distortion from fx-distortion2
-             k#   (~'/ (~'* 2 ~'distort') (~'- 1 ~'distort'))
+             k#   (~'/ (~'* 2 ~'distort) (~'- 1 ~'distort))
              dis# (~'/ (~'* src# (~'+ 1 k#))
                    (~'+ 1 (~'* k# (~'abs src#))))
              vrb# (free-verb dis# ~'rvb-mix ~'rvb-room ~'rvb-damp)
