@@ -20,6 +20,7 @@
 
 ## Changed
 
+- Bumped at-at to 1.4.65
 - Changed the implementation of the sample player to a more basic version based
   on `play-buf`, since the old version caused clicks at the end of the sample.
   This does mean currently looping is broken.

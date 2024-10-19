@@ -653,8 +653,7 @@
   (:size buf))
 
 (def TWO-PI (* 2 Math/PI))
-
-
+(def TAU (* 2 Math/PI))
 
 (defn create-buffer-data
   "Create a sequence of floats for use as a buffer.  Result will contain
