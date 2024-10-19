@@ -1,0 +1,27 @@
+#!/bin/bash
+# assumes mac
+
+set -xe
+# clean
+mkdir -p classes target
+rm -r classes/* target/* || true
+# compile
+clojure -M -e "(do (compile 'overtone-deploy.main) (System/exit 0))"
+# build jar
+clj -Sdeps '{:aliases {:uberjar {:replace-deps {uberdeps/uberdeps {:mvn/version "1.4.0"}} :replace-paths []}}}' -M:uberjar -m uberdeps.uberjar --main-class overtone-deploy.main
+# package
+# (remove `--type app-image` to make installer)
+rm -r HelloOvertone.app || true
+rm -r app || true
+mkdir -p app
+cp target/deploy-example.jar app
+cp -r bin app
+cp -r config app
+jpackage --type app-image \
+  --input app \
+  --verbose \
+  --name HelloOvertone \
+  --mac-package-name HelloOvertone \
+  --mac-package-identifier com.github.overtone.HelloOvertone \
+  --main-jar deploy-example.jar \
+  --java-options '-Dovertone.config-dir="../app/config"'
