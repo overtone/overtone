@@ -2,6 +2,9 @@
 
 ## Added
 
+- refresh_token handling for Freesound, so you don't need to re-authenticate
+  every single time
+
 ## Fixed
 
 - Pattern library: make patterns more easily redefinable while maintaining the
