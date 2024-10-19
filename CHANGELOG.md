@@ -68,6 +68,8 @@ reconcile the two.
 - [AOT] Add example of how to run from an uberjar
 - [implementation] fix toString overrides for overtone.helpers.lib/callable-map
 - [implementation] fix reflection and boxed math warnings
+- `overtone.sc.ugen-collide` can now be safely required to access colliding
+  ugens explicitly.
 
 ## Changed
 
