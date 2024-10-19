@@ -13,6 +13,17 @@ hopefully you won't see that very often. A bunch of old bugs and issues have
 been addressed, as well as reflection and boxed math warnings, which should help
 with performance.
 
+## Breaking Changes
+
+- `{and,or,xor}` ugens have been renamed `bit-{and,or,xor}`
+  - `with-overloaded-ugens` and macros that use it (like `def{inst,synth}`)
+    will no longer shadow/bind `{and,or,xor}` but will now shadow `bit-{and,or,xor}`
+  - renamed ugens will overload to `clojure.core/bit-{and,or,xor}` for numeric
+    arguments and are foldable
+- Changed the implementation of the sample players to a more basic version based
+  on `play-buf`, since the old version caused clicks at the end of the sample.
+  This does mean currently looping is broken.
+
 ## Added
 
 - [freesound] add a Swing-based dialog box for Freesound auth, fall back to
@@ -50,9 +61,6 @@ with performance.
 ## Changed
 
 - [at-at] Bumped at-at to 1.4.65, which fixes reflection warnings.
-- [BREAKING] Changed the implementation of the sample player to a more basic
-  version based on `play-buf`, since the old version caused clicks at the end of
-  the sample. This does mean currently looping is broken.
 
 # 0.14.3199 (2024-05-19 / 5d1c1ed)
 
