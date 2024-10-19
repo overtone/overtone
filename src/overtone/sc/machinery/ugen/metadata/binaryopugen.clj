@@ -59,16 +59,16 @@
                   :doc "Outputs the largest value of the two inputs a
                         and b"}
 
-   "bit-and"     {:summary "Signal comparison - and"
-                  :doc "Performs a bitwise 'and' on the two input signals a and b.
+   "bit-and"     {:summary "Bitwise AND"
+                  :doc "Performs a bitwise AND on the two input signals a and b.
                        Corresponds to bitAnd and the & operator in sclang."}
 
-   "bit-or"      {:summary "Signal comparison - or"
-                  :doc "Performs a bitwise 'or' on the two input signals a and b.
+   "bit-or"      {:summary "Bitwise OR"
+                  :doc "Performs a bitwise OR on the two input signals a and b.
                        Corresponds to bitOr and the | operator in sclang."}
 
-   "bit-xor"     {:summary "Signal comparison - xor"
-                  :doc "Performs a bitwise 'exclusive or' on the two input signals a and b.
+   "bit-xor"     {:summary "Bitwise XOR"
+                  :doc "Performs a bitwise XOR on the two input signals a and b.
                        Corresponds to bitXor in sclang."}
 
    "round"       {:summary "Rounding - nearest multiple"
