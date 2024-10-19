@@ -106,7 +106,7 @@
 
 (defmacro with-overloaded-ugens
   "Bind symbols for all overloaded ugens (i.e. + - / etc.) to the
-  overloaded fn in the ns overtone.sc.ugen-collider. These fns will
+  overloaded fn in the ns overtone.sc.ugen-collide. These fns will
   revert back to original (Clojure) semantics if not passed with ugen args."
   [& body]
   (let [bindings (flatten (map (fn [[orig overload]]
