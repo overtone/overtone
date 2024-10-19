@@ -1,9 +1,9 @@
-(ns test-helper
+(ns overtone.test-helper
   "Helpful functions and macro's for writing Overtone tests."
-  (:use overtone.core
-        clojure.test)
+  (:require [overtone.libs.event :refer [sync-event]]
+            [overtone.sc.machinery.server.comms :as comms]
+            [overtone.sc.server :as server])
   (:import [java.util.concurrent TimeoutException]))
-
 
 ;; ns helpers
 
@@ -80,59 +80,17 @@
 
 ;; Test Fixtures
 
-(def with-server-sync #'overtone.sc.machinery.server.comms/with-server-sync)
+(defn ensure-server [f]
+  (when-not (server/server-connected?)
+    (server/boot-server))
+  (f))
+
+(def with-server-sync #'comms/with-server-sync)
 
 (defn with-sync-reset
   "Fixture. Ensures that the server gets reset after each test.
   Synchronously stops active nodes in the default foundation-group,
   clears the osc message queue, and kills all scheduled jobs in the
   player-pool if any."
-  [f] (do (f) (sync-event :reset)))
-
-
-;; Some quick tests to verify test-helpers...
-
-(deftest eval-in-temp-ns-test
-  (testing "without errors..."
-    (let [ns *ns*
-          ns-count (count (all-ns))]
-      (eval-in-temp-ns (+ 1 2 3))
-      (is (= ns-count (count (all-ns))) "removes temp-ns when done")
-      (is (= ns *ns*) "restores original ns")))
-
-  (testing "with errors..."
-    (let [ns *ns*
-          ns-count (count (all-ns))]
-      (try (eval-in-temp-ns (/ 1 0))
-           (catch java.lang.ArithmeticException e))
-      (is (= ns-count (count (all-ns))) "removes temp-ns when done")
-      (is (= ns *ns*) "restores original ns"))))
-
-(deftest invoke-timeout-test
-  (testing "invoke-timeout..."
-    (let [n (Thread/activeCount)]
-      (invoke-timeout #(Thread/sleep 100) 1000)
-      (is (= n (Thread/activeCount)) "cleans up threads")
-      (is (thrown? TimeoutException (invoke-timeout #(Thread/sleep 1000) 100))
-          "throws TimeoutException"))))
-
-(deftest wait-while-test
-  (testing "wait-while..."
-
-    (let [done? (atom nil)]
-      (future (Thread/sleep 1000)
-              (reset! done? :done))
-      (wait-while #(not @done?))
-      (is (= :done @done?)
-          "delays the current thread"))
-
-    (let [done? (atom nil)]
-      (future (Thread/sleep 1000)
-              (reset! done? :done))
-      (is (thrown? TimeoutException (wait-while #(not @done?) 100))
-          "throws TimeoutException"))))
-
-
-(comment
-  (run-tests)
-  )
+  [f] (try (f)
+           (finally (sync-event :reset))))

@@ -454,7 +454,7 @@
            name (if par-group-switch (str "Par-" name) name)
            snode  (SynthGroup. name id target position (atom :loading) (promise))]
        (swap! active-synth-nodes* assoc id snode)
-       (snd create-command id pos target)
+       (prn (snd create-command id pos target))
        snode)))
 
 (defn par-group [& args]
