@@ -32,10 +32,10 @@
   (:require [overtone.studio fx]
             [overtone.config.log :as log]))
 
-; An instrument abstracts the more basic concept of a synthesizer used by
-; SuperCollider.  Every instance of an instrument will be placed in the same
-; group, so if you later call (kill my-inst) it will be able to stop all the
-; instances of that group.  (Likewise for controlling them...)
+;; An instrument abstracts the more basic concept of a synthesizer used by
+;; SuperCollider.  Every instance of an instrument will be placed in the same
+;; group, so if you later call (kill my-inst) it will be able to stop all the
+;; instances of that group.  (Likewise for controlling them...)
 
 (on-event "/server-audio-clipping-rogue-vol"
           (fn [msg]
@@ -124,7 +124,7 @@
   []
   (swap! studio* assoc :bus-mixers {:in [] :out []}))
 
-; Setup mixers automatically when the base
+;; Setup mixers automatically when the base
 (on-deps [:foundation-groups-created :synthdefs-loaded] ::start-bus-mixers start-io-mixers)
 (on-sync-event :shutdown ::reset-bus-mixers (fn [_] (clear-io-mixers)))
 
@@ -239,7 +239,7 @@
 (on-sync-event :reset reset-instruments ::reset-instruments)
 
 (defn add-instrument
-    "Add an instrument to the session."
+  "Add an instrument to the session."
   [inst]
   (let [i-name (:name inst)]
     (swap! studio* update-in [:instruments i-name] (fn [_] inst))

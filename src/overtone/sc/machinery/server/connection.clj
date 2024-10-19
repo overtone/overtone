@@ -298,8 +298,10 @@
 
 (defn- has-pipewire? []
   (some #(some->> % :command (re-find #"/pipewire$")) (process-info/ps)))
+
 (defn- has-jackd? []
   (some #(some->> % :command (re-find #"/(jackd|jackdbus)$")) (process-info/ps)))
+
 (defn- has-pw-jack? []
   (file/find-executable "pw-jack"))
 
