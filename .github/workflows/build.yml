@@ -9,7 +9,6 @@ on:
     branches: [master, main]
 
 jobs:
-  # Build Overtone
   build:
     name: "${{matrix.title}} (${{matrix.os}}, ${{matrix.arch}}, Java ${{matrix.java}}, Clojure ${{matrix.clojure}})"
     runs-on: ${{matrix.os}}
@@ -24,7 +23,6 @@ jobs:
           #- {title: "Windows", os: "windows-latest", arch: "x64"}
           #- {title: "Mac", os: "macos-latest", arch: "x64"}
     steps:
-      # Get the code
       - uses: actions/checkout@v4
 
       - uses: actions/cache@v2
@@ -56,7 +54,7 @@ jobs:
             prebuilt/windows/${{matrix.arch}}
         if: matrix.os == 'windows-latest'
 
-      - name: Link supercollider on Windows
+      - name: Add scsynth.exe to PATH on Windows
         shell: powershell
         run: |
           Add-Content $env:GITHUB_PATH "${{github.workspace}}\sonic-pi\prebuilt\windows\${{matrix.arch}}"
