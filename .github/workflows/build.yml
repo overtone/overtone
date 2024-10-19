@@ -19,9 +19,9 @@ jobs:
         clojure: ['1.12']
         include:
           - {title: "Linux", os: "ubuntu-latest", arch: "x64"}
-          - {title: "Mac", os: "macos-latest", arch: "arm64"}
           #- {title: "Windows", os: "windows-latest", arch: "x64"}
           #- {title: "Mac", os: "macos-latest", arch: "x64"}
+          #- {title: "Mac", os: "macos-latest", arch: "arm64"}
     steps:
       - uses: actions/checkout@v4
 
