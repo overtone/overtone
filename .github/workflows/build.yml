@@ -110,6 +110,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: Logs_${{matrix.title}}__${{matrix.os}}__${{matrix.arch}}__${{matrix.java}}
+          name: Logs_${{matrix.title}}__${{matrix.os}}__${{matrix.arch}}__${{matrix.java}}__${{matrix.clojure}}
           path: |
             ~/.overtone/log/*.log
