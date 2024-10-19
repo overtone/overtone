@@ -116,9 +116,9 @@ jobs:
           cli: latest
 
       - name: Link supercollider on Windows
-        shell: bash
+        shell: powershell
         run: |
-          echo "${{github.workspace}}/sonic-pi/prebuilt/windows/${{matrix.arch}}" >> $GITHUB_PATH
+          Add-Content $env:GITHUB_PATH "${{github.workspace}}\sonic-pi\prebuilt\windows\${{matrix.arch}}"
         if: matrix.os == 'windows-latest'
 
       # Install supercollider on MacOS
@@ -165,8 +165,8 @@ jobs:
         if: matrix.os == 'windows-latest'
 
       - name: Overtone tests - Windows
-        shell: bash
-        run: ./bin/kaocha
+        shell: powershell
+        run: ./bin/kaocha.ps1
         if: matrix.os == 'windows-latest'
 
       - name: Archive Logs
