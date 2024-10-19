@@ -121,9 +121,7 @@ jobs:
           Add-Content $env:GITHUB_PATH "${{github.workspace}}\sonic-pi\prebuilt\windows\${{matrix.arch}}"
         if: matrix.os == 'windows-latest'
 
-      # Install supercollider on MacOS
-      - name: Mac Elixir
-        continue-on-error: true
+      - name: Mac dependencies
         run: |
           export HOMEBREW_NO_INSTALL_CLEANUP=1
           brew update

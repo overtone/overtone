@@ -13,7 +13,7 @@
 
 (deftest demo-test
   (eval-in-temp-ns
-   (require '[clojure.test :only [is]])
+   (require '[clojure.test :refer [is]])
    (use 'overtone.live)
 
    (is (and #'defsynth #'definst) "Core macros should be defined")
