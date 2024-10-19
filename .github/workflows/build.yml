@@ -11,12 +11,13 @@ on:
 jobs:
   # Build Overtone
   build:
-    name: "${{matrix.title}} (${{matrix.os}}, ${{matrix.arch}})"
+    name: "${{matrix.title}} (${{matrix.os}}, ${{matrix.arch}}, Java ${{matrix.java}})"
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
         java: ['11']
+        clojure: ['1.12']
         include:
           - {title: "Linux", os: "ubuntu-latest", arch: "x64"}
           #- {title: "Windows", os: "windows-latest", arch: "x64"}
@@ -73,7 +74,7 @@ jobs:
       - name: Overtone tests - Mac
         env:
           SONIC_PI_ENV: test
-        run: ./bin/kaocha
+        run: ./bin/ci ${{matrix.clojure}}
         if: matrix.os == 'macos-latest'
 
       - name: Overtone tests - Linux
@@ -81,7 +82,7 @@ jobs:
           SONIC_PI_ENV: test
         run: |
           jackd -rd dummy &
-          ./bin/kaocha
+          ./bin/ci ${{matrix.clojure}}
         if: matrix.os == 'ubuntu-latest'
 
       - name: API Tests Windows - Install Scream Audio Device
@@ -101,7 +102,7 @@ jobs:
 
       - name: Overtone tests - Windows
         shell: powershell
-        run: ./bin/kaocha.ps1
+        run: clojure -M:test:test-runner:${{matrix.clojure}}
         if: matrix.os == 'windows-latest'
 
       - name: Archive Logs
