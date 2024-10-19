@@ -275,7 +275,10 @@
 
 (defn scsynth-path []
   (let [sc-config (config/config-get :sc-path)
-        sc-path (file/find-executable "scsynth")
+        sc-path (or (when (windows-os?)
+                      (file/find-executable "scsynth.exe"))
+                    ;; should windows look here?
+                    (file/find-executable "scsynth"))
         sc-wellknown (find-well-known-sc-path)
         match (or sc-config sc-path sc-wellknown)]
     (when-not match
