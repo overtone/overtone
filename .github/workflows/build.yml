@@ -14,15 +14,15 @@ jobs:
     name: "${{matrix.title}} (${{matrix.os}}, ${{matrix.arch}}, Java ${{matrix.java}}, Clojure ${{matrix.clojure}})"
     runs-on: ${{matrix.os}}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         java: ['11']
         clojure: ['1.12']
         include:
           - {title: "Linux", os: "ubuntu-latest", arch: "x64"}
+          - {title: "Mac", os: "macos-latest", arch: "arm64"}
           #- {title: "Windows", os: "windows-latest", arch: "x64"}
           #- {title: "Mac", os: "macos-latest", arch: "x64"}
-          - {title: "Mac", os: "macos-latest", arch: "arm64"}
     steps:
       # Get the code
       - uses: actions/checkout@v4
