@@ -11,83 +11,16 @@ on:
 jobs:
   # Build Overtone
   build:
-    name: "${{matrix.title}} (${{matrix.cc}}, ${{matrix.arch}}, ${{matrix.build_type}})"
+    name: "${{matrix.title}} (${{matrix.os}}, ${{matrix.arch}})"
     runs-on: ${{matrix.os}}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {
-              title: "Linux",
-              os: "ubuntu-latest",
-              cc: "clang",
-              arch: "x64",
-              build_type: "Release",
-            }
-          #- {
-          #    title: "Linux",
-          #    os: "ubuntu-latest",
-          #    cc: "clang",
-          #    arch: "x64",
-          #    build_type: "Debug",
-          #  }
-          #- {
-          #    title: "Linux",
-          #    os: "ubuntu-latest",
-          #    cc: "gcc",
-          #    arch: "x64",
-          #    build_type: "Release",
-          #  }
-          #- {
-          #    title: "Linux",
-          #    os: "ubuntu-latest",
-          #    cc: "gcc",
-          #    arch: "x64",
-          #    build_type: "Debug",
-          #  }
-          - {
-              title: "Windows",
-              os: "windows-latest",
-              cc: "vs2022",
-              arch: "x64",
-              build_type: "Release",
-            }
-          #- {
-          #    title: "Windows",
-          #    os: "windows-latest",
-          #    cc: "vs2022",
-          #    arch: "x64",
-          #    build_type: "Debug",
-          #  }
-          - {
-              title: "Mac",
-              os: "macos-latest",
-              cc: "clang",
-              arch: "x64",
-              build_type: "Release",
-            }
-          #- {
-          #    title: "Mac",
-          #    os: "macos-latest",
-          #    cc: "clang",
-          #    arch: "x64",
-          #    build_type: "Debug",
-          #  }
-          - {
-              title: "Mac",
-              os: "macos-latest",
-              cc: "clang",
-              arch: "arm64",
-              build_type: "Release",
-            }
-          #- {
-          #    title: "Mac",
-          #    os: "macos-latest",
-          #    cc: "clang",
-          #    arch: "arm64",
-          #    build_type: "Debug",
-          #  }
-
+          - {title: "Linux", os: "ubuntu-latest", arch: "x64"}
+          - {title: "Windows", os: "windows-latest", arch: "x64"}
+          - {title: "Mac", os: "macos-latest", arch: "x64"}
+          - {title: "Mac", os: "macos-latest", arch: "arm64"}
     steps:
       # Get the code
       - uses: actions/checkout@v4
@@ -171,6 +104,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: Logs_${{matrix.title}}_${{matrix.cc}}_${{matrix.arch}}_${{matrix.build_type}}
+          name: Logs_${{matrix.title}}__${{matrix.os}}__${{matrix.arch}}
           path: |
             ~/.overtone/log/*.log
