@@ -1,7 +1,13 @@
 (ns overtone.music.pitch
   "Functions to help generate and manipulate frequencies and sets of related
   frequencies. This is the place for functions representing general musical
-  knowledge, like scales, chords, intervals, etc."
+  knowledge, like scales, chords, intervals, etc.
+  
+  Scientific pitch notation is used to represent notes as strings
+  https://en.wikipedia.org/wiki/Scientific_pitch_notation
+
+  We assume middle C (60) is C4, with octaves starting at -1.
+  Only single flats and sharps are supported."
   {:author "Jeff Rose, Sam Aaron & Marius Kempe"}
   (:use [overtone.helpers old-contrib]
         [overtone.helpers.map :only [reverse-get]]
@@ -39,7 +45,11 @@
   (* freq (java.lang.Math/pow 2 (/ n-cents 1200))))
 
 ;; MIDI
-(def MIDI-RANGE (range 128))
+(def ^:private MIDI-LOWEST-NOTE 0)
+(def ^:private MIDI-HIGHEST-NOTE 127)
+(def ^:private MIDI-LOWEST-OCTAVE -1)
+(def ^:private MIDI-HIGHEST-OCTAVE 9)
+(def MIDI-RANGE (range MIDI-LOWEST-NOTE (inc MIDI-HIGHEST-NOTE)))
 (def MIDDLE-C 60)
 
 ;; Manipulating pitch using midi note numbers
@@ -70,9 +80,42 @@
   (let [pivot (or pivot (first notes))]
     (for [n notes] (- pivot (- n pivot)))))
 
+(defn- validate-octave! [octave]
+  (when-not (and (int? octave)
+                 (<= MIDI-LOWEST-OCTAVE
+                     octave
+                     MIDI-HIGHEST-OCTAVE))
+    (throw (ex-info (str "Invalid MIDI octave number "
+                         (pr-str octave)
+                         ": must be between "
+                         MIDI-LOWEST-OCTAVE " and " MIDI-HIGHEST-OCTAVE)
+                    {})))
+  octave)
+
+(defn- validate-midi-note-number! [note]
+  (when-not (and (int? note)
+                 (<= MIDI-LOWEST-NOTE
+                     note
+                     MIDI-HIGHEST-NOTE))
+    (throw (ex-info (str "Invalid note number " (pr-str note)
+                         ": must be between " MIDI-LOWEST-NOTE " and " MIDI-HIGHEST-NOTE)
+                    {})))
+  note)
+
 (defn octave-note
   "Convert an octave and interval to a midi note."
   [octave interval]
+  (validate-octave! octave)
+  (if (= MIDI-HIGHEST-OCTAVE octave)
+    (when-not (and (int? interval)
+                   (<= 0 interval 7))
+      (throw (ex-info (str "Invalid interval, must be between 0-7 for highest octave: "
+                           (pr-str interval))
+                      {})))
+    (when-not (and (int? interval)
+                   (<= 0 interval 11))
+      (throw (ex-info (str "Invalid interval, must be betwen 0-11: " (pr-str interval))
+                      {}))))
   (+ (* octave 12) interval 12))
 
 (def NOTES {:C  0  :c  0  :b# 0  :B# 0
@@ -103,7 +146,9 @@
    11 :B})
 
 (defn canonical-pitch-class-name
-  "Returns the canonical version of the specified pitch class pc."
+  "Returns the canonical version of the specified pitch class pc.
+  Canonical notes are the notes of the C major scale
+  plus C#, Eb, F#, Ab, and Bb."
   [pc]
   (let [pc (keyword (name pc))]
       (REVERSE-NOTES (NOTES pc))))
@@ -126,31 +171,44 @@
     (when-not matches
       (throw (IllegalArgumentException.
               (str "Invalid midi-string. " mk
-                   " does not appear to be in MIDI format i.e. C#4"))))
+                   " does not appear to be in MIDI format e.g. C#4"))))
 
-    (let [[match pictch-class octave-str] matches
-          octave (first octave-str)]
-      (when (and octave (< (int octave) -1))
-        (throw (IllegalArgumentException.
-                (str "Invalid midi-string: " mk
-                     ". Octave is out of range. Lowest octave value is -1")))))
+    (let [[match pitch-class ^String octave-str] matches]
+      (when-some [octave (some-> octave-str Integer.)]
+        (when-not (<= MIDI-LOWEST-OCTAVE
+                      octave
+                      MIDI-HIGHEST-OCTAVE)
+          (throw (IllegalArgumentException.
+                   (str "Invalid midi-string: " (pr-str mk)
+                        ". Octave is out of range: must be between "
+                        MIDI-LOWEST-OCTAVE " and " MIDI-HIGHEST-OCTAVE))))))
     matches))
 
+(declare find-note-name)
+
 (defn note-info
-  "Takes a string representing a midi note such as C4 and returns a map
-  of note info"
-  [midi-string]
-  (let [[match pitch-class octave] (validate-midi-string! midi-string)
+  "Takes a simple ident, string, or integer representing a midi note such as C4 and
+  returns a map of note info. If the octave is omitted, :octave and :midi-note are not
+  populated.
+ 
+  :match - the input as a string, or the canonical pitch class if given an integer
+  :pitch-class - the canonical pitch class according to `canonical-pitch-class-name`
+  :interval - the number of descending notes until a C natural is reached.
+              If octave specified, also the number of notes from the beginning of the octave.
+  :octave - the octave number, if octave specified
+  :midi-note - the midi note number, if octave specified"
+  [midi-note]
+  (let [midi-note (cond-> midi-note
+                    (int? midi-note) find-note-name)
+        [match pitch-class octave] (validate-midi-string! midi-note)
         pitch-class                (canonical-pitch-class-name pitch-class)
         octave                     (when octave (Integer. ^String octave))
-        interval                   (NOTES (keyword pitch-class))]
+        interval                   (NOTES (keyword pitch-class))
+        midi-note (some-> octave (octave-note interval))]
     (cond-> {:match       match
              :pitch-class pitch-class
              :interval    interval}
-      octave
-      (assoc
-        :octave    octave
-        :midi-note (octave-note octave interval)))))
+      octave (assoc :octave octave :midi-note midi-note))))
 
 (defn mk-midi-string
   "Takes a string or keyword representing a pitch and a number
@@ -167,7 +225,7 @@
 
 (defn note
   "Resolves note to MIDI number format. Resolves upper and lower-case
-  keywords and strings in MIDI note format. If given an integer or
+  simple idents and strings in MIDI note format. If given an integer or
   nil, returns them unmodified. All other inputs will raise an
   exception.
 
@@ -183,14 +241,13 @@
   [n]
   (cond
     (nil? n) nil
-    (number? n) (if (>= n 0)
-                  n
-                  (throw (IllegalArgumentException.
-                          (str "Unable to resolve note: "
-                               n
-                               ". Value is out of range. Lowest value is 0"))))
-    (keyword? n) (note (name n))
-    (string? n) (:midi-note (note-info n))
+    (int? n) (validate-midi-note-number! n)
+    (simple-ident? n) (note (name n))
+    (string? n) (or (:midi-note (note-info n))
+                    (throw (IllegalArgumentException.
+                             (str "Unable to convert note " (pr-str n)
+                                  " to MIDI number format: "
+                                  "octave is missing"))))
     :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
 
 (defn match-note
@@ -371,7 +428,8 @@
 (defn degree->int
   [degree]
   (cond
-    (int? degree)
+    (and (int? degree)
+         (<= 1 degree 7))
     degree
 
     (some #{degree} (keys DEGREE))
@@ -409,7 +467,6 @@
        {:degree degree
         :octave-shift octave-shift
         :semitone-shift semitone-shift}))))
-
 
 (defn degree->interval
   "Converts the degree of a scale given as a roman numeral keyword and
@@ -455,11 +512,18 @@
   (map #(if (keyword? %) (DEGREE %) %) degrees))
 
 (defn scale
-  "Returns a list of notes for the specified scale. The root must be in any valid
-  midi note format, see [[note]]. e.g. `:C4`, `\"Bb4\"`, `60`.
+  "Returns a list of the first 8 midi note numbers for the specified scale.
+  The root must be in any valid midi note format, see [[note]]. e.g. `:C4`, `\"Bb4\"`, `60`.
+  If degrees is provided, returns a list of midi note numbers starting with
+  the root followed by the 
 
   (scale :c4 :major)  ; c major      -> (60 62 64 65 67 69 71 72)
-  (scale :Bb4 :minor) ; b flat minor -> (70 72 73 75 77 78 80 82)"
+  (scale :Bb4 :minor) ; b flat minor -> (70 72 73 75 77 78 80 82)
+  (scale :c4 :chromatic (range 1 13)) ; one octave chromatic scale
+  -> (60 61 62 63 64 65 66 67 68 69 70 71 72)
+  (scale :c4 :major [2 4 7]) ; c major chord
+  -> (60 64 67 72)
+  "
   ([root scale-name] (scale root scale-name (range 1 8)))
   ([root scale-name degrees]
    (let [root (note root)
@@ -650,16 +714,16 @@
 
 (defn find-scale-name
   "Return the name of the first matching scale found in SCALE
-  or nil if not found
+  or nil if not found.
 
-  ie: (find-scale-name [2 1 2 2 2 2 1]
-  :melodic-minor-asc"
+  (find-scale-name [2 1 2 2 2 2 1])
+  ;=> :melodic-minor-asc OR :melodic-minor"
   [scale]
   (reverse-get SCALE scale))
 
 (defn find-pitch-class-name
   "Given a midi number representing a note, returns the name of the note
-  independent of octave.
+  in C major independent of octave.
 
   (find-pitch-class-name 62) ;=> :D
   (find-pitch-class-name 74) ;=> :D
@@ -670,13 +734,16 @@
 (defn find-note-name
   "Given a midi number representing a note, returns a keyword
   representing the note including octave number. Reverse of the fn note.
+  Returns note if nil.
 
-  (find-note-name 45) ;=> A2
-  (find-note-name 57) ;=> A3
-  (find-note-name 58) ;=> Bb3"
+  (find-note-name 45) ;=> :A2
+  (find-note-name 57) ;=> :A3
+  (find-note-name 58) ;=> :Bb3"
   [note]
-  (when note (let [octave (dec (int (/ note 12)))]
-               (keyword (str (name (find-pitch-class-name note)) octave)))))
+  (when (some? note)
+    (validate-midi-note-number! note)
+    (let [octave (dec (int (/ note 12)))]
+      (keyword (str (name (find-pitch-class-name note)) octave)))))
 
 (defn- fold-note
   "Folds note intervals into a 2 octave range so that chords using
