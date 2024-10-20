@@ -1,5 +1,9 @@
 (ns overtone.studio.fx
-  "Audio effects library"
+  "Audio effects library
+
+  Effects are synths which take a bus-id as their first parameter, read from it
+  with `(in bus-id)`, and use `replace-out` to replace the dry signal with the
+  processed signal."
   {:author "Jeff Rose"}
   (:use [overtone.libs.event]
         [overtone.sc.synth]
@@ -93,9 +97,9 @@
   (let [src (in bus)]
     (replace-out bus (distort (* boost (clip2 src level))))))
 
-                                        ; Equation for distortion:
-                                        ; k = 2*amount/(1-amount)
-                                        ; f(x) = (1+k)*x/(1+k*abs(x))
+;; Equation for distortion:
+;; k = 2*amount/(1-amount)
+;; f(x) = (1+k)*x/(1+k*abs(x))
 (defsynth fx-distortion2
   [bus 0 amount 0.5]
   (let [src (in bus)

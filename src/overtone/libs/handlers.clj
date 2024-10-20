@@ -2,8 +2,10 @@
     ^{:doc "A simple event system that handles both synchronous and asynchronous events."
       :author "Jeff Rose & Sam Aaron"}
     overtone.libs.handlers
-  (:import (java.util.concurrent Executors))
+  (:import (java.util.concurrent Executors ExecutorService))
   (:use [clojure.stacktrace]))
+
+(set! *warn-on-reflection* true)
 
 (defrecord HandlerPool [pool handlers desc])
 
@@ -201,7 +203,7 @@
       (run-handler k handler event-map hp))))
 
 (defn- emhs-handle-async-one-shots
-  [emhs event-map pool hp]
+  [emhs event-map ^ExecutorService pool hp]
   (let [keyed-fns (apply merge (map (fn [emh] (:async-one-shots emh)) emhs))]
     (if *FORCE-SYNC?*
       (run-one-shot-handlers keyed-fns event-map hp)
@@ -216,7 +218,7 @@
   "Runs all async handlers in a thread pool. If binding *FORCE-SYNC?*
   is true, forces async handlers to execute synchronously on the
   current thread."
-  [emhs event-map pool hp]
+  [emhs event-map ^ExecutorService pool hp]
   (let [keyed-fns (apply merge (map (fn [emh] (:asyncs emh)) emhs))]
     (if *FORCE-SYNC?*
       (run-handlers keyed-fns event-map hp)

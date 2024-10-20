@@ -1,25 +1,79 @@
 # Unreleased
 
+This release features a significant update of the Pattern Library introduced in
+0.14. These changes make it more suitable for live programming, improving the
+behavior when patterns which are currently playing are being redefined. The
+pattern libary is still considered alpha and is liable to change, feedback is
+welcome.
+
+There are a bunch of under the hood changes and quality of life improvements.
+There is now a small GUI window that will pop up when doing the OAuth
+authentication flow with Freesound, and since we now correctly refresh tokens
+hopefully you won't see that very often. A bunch of old bugs and issues have
+been addressed, as well as reflection and boxed math warnings, which should help
+with performance.
+
+There are two **breaking changes**. The bitwise ugens have been renamed to
+`bit-{and,or,xor}`, the old ones never worked correctly, so this is unlikely to
+impact users.
+
+The synths used to play samples have been changed to a more basic version, and
+currently do not support looping like the old ones did. On the flip side they
+can play a sample without an audible click at the end, which has been a decade
+old issue. The looping behavior may come back in a future version if we can
+reconcile the two.
+
+## Breaking Changes
+
+- `{and,or,xor}` ugens have been renamed `bit-{and,or,xor}`
+  - `with-overloaded-ugens` and macros that use it (like `def{inst,synth}`)
+    will no longer shadow/bind `{and,or,xor}` but will now shadow `bit-{and,or,xor}`
+  - renamed ugens will overload to `clojure.core/bit-{and,or,xor}` for numeric
+    arguments and are foldable
+- Changed the implementation of `mono-partial-player` and
+  `stereo-partial-player` (the default synths used to play samples) to a more
+  basic version based on `play-buf` instead of `buf-rd` and `phasor`. The old
+  version has a long standing issue that it causes clicks at the end of the sample.
+
 ## Added
+
+- [freesound] add a Swing-based dialog box for Freesound auth, fall back to
+  reading from stdin (#337)
+- [freesound] refresh_token handling, so you don't need to re-authenticate every
+  single time
+- [doc] Explain how to get `mda-piano` from sc3-plugins
+- [doc] Add a tip about scsynth and Homebrew
+- [implementation] Warn when imported functions into `overtone.live` conflict
 
 ## Fixed
 
-- Pattern library: make patterns more easily redefinable while maintaining the
+- [examples] Fix the getting_started examples: `foo`, `foo-pause`
+- [examples] Fix broken freesound link for dirty-kick
+- [pattern library] make patterns more easily redefinable while maintaining the
   same relative position, for smoother live updates
-- Accept `:-` as a rest note, in addition to `:_` and `:rest`
-- Recognize samples in the pattern player, so things like `:amp` work
+- [pattern library] Accept `:-` as a rest note, in addition to `:_` and `:rest`
+- [pattern library] Recognize samples in the pattern player, so things like `:amp` work
 - Metronome: also accept `:start` and `:bar-start`, instead of just `:bpm`
 - Allow the default `at-at` threadpool to be overridden by a dynvar
   (`*current-pool*`)
 - `:sc-path` in `~/.overtone/config.clj` can now be a vector instead of a
   string, for passing additional arguments
-- `grunge-bass` : make the amp parameter do something
+- [instruments] `grunge-bass` : make the amp parameter do something
+- [doc] Change incorrect `pluck-strings` to `pick-string` in docs. (#521)
+- [doc] fix `chord` docstring
+- [ugen] Allow `free-self` UGen to take audio-rate signals (#515)
+- [ugen] Remove ignored mul/add arguments (just use + and *)
+- [ugen] fix stk-bee-three arg names
+- [AOT] Don't boot overtone while compiling
+- [AOT] Add example of how to run from an uberjar
+- [implementation] fix toString overrides for overtone.helpers.lib/callable-map
+- [implementation] fix reflection and boxed math warnings
+- `overtone.sc.ugen-collide` can now be safely required to access colliding
+  ugens explicitly.
 
 ## Changed
 
-- Changed the implementation of the sample player to a more basic version based
-  on `play-buf`, since the old version caused clicks at the end of the sample.
-  This does mean currently looping is broken.
+- [at-at] Bumped at-at to 1.4.65, which fixes reflection warnings.
 
 # 0.14.3199 (2024-05-19 / 5d1c1ed)
 

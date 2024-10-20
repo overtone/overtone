@@ -1,24 +1,27 @@
 (ns overtone.osc.encode
-  (:import [org.apache.commons.net.ntp TimeStamp])
+  (:import [org.apache.commons.net.ntp TimeStamp]
+           [java.nio ByteBuffer])
   (:use [overtone.osc.util]))
+
+(set! *warn-on-reflection* true)
 
 (defn osc-pad
   "Add 0-3 null bytes to make buf position 32-bit aligned."
-  [buf]
+  [^ByteBuffer buf]
   (let [extra (mod (.position buf) 4)]
     (if (pos? extra)
       (.put buf PAD 0 (- 4 extra)))))
 
 (defn encode-string
   "Encode string s into buf. Ensures buffer is correctly padded."
-  [buf s]
+  [^ByteBuffer buf ^String s]
   (.put buf (.getBytes s))
   (.put buf (byte 0))
   (osc-pad buf))
 
 (defn encode-blob
   "Encode binary blob b into buf. Ensures buffer is correctly padded."
-  [buf b]
+  [^ByteBuffer buf ^bytes b]
   (.putInt buf (count b))
   (.put buf b)
   (osc-pad buf))
@@ -27,7 +30,7 @@
   "Encode timetag into buf. Timestamp defaults to (now) if not specifically
   passed. Throws exception if timestamp isn't a number."
   ([buf] (encode-timetag buf OSC-TIMETAG-NOW))
-  ([buf timestamp]
+  ([^ByteBuffer buf timestamp]
    (when-not (number? timestamp)
      (throw (IllegalArgumentException. (str "OSC bundle timestamp needs to be a number. Got: " (type timestamp) " - " timestamp))))
    (if (= timestamp OSC-TIMETAG-NOW)
@@ -38,7 +41,7 @@
 
 (defn osc-encode-msg
   "Encode OSC message msg into buf."
-  [buf msg]
+  [^ByteBuffer buf msg]
   (let [{:keys [path type-tag args]} msg]
     (encode-string buf path)
     (encode-string buf (str "," type-tag))
@@ -57,7 +60,7 @@
 
 (defn osc-encode-bundle
   "Encode bundle into buf."
-  [buf bundle send-nested-osc-bundles?]
+  [^ByteBuffer buf bundle send-nested-osc-bundles?]
   (encode-string buf "#bundle")
   (encode-timetag buf (:timestamp bundle))
   (doseq [item (:items bundle)]

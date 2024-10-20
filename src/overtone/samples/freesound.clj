@@ -97,17 +97,29 @@
     (let [r (.getInputStream con)]
       r)))
 
+(defn handle-token-response [res]
+  (let [{:keys [access_token refresh_token]} (slurp-json res)]
+    (reset! *access-token* access_token)
+    (config/store-set! :freesound-token access_token)
+    (config/store-set! :freesound-refresh-token refresh_token)))
+
 (defn access-token [code]
-  (let [r (:access_token
-           (slurp-json
-            (post-request
-             (freesound-url "/oauth2/access_token/")
-             {:client_id *client-id*
-              :client_secret *api-key*
-              :grant_type "authorization_code"
-              :code code})))]
-    (reset! *access-token* r)
-    (config/store-set! :freesound-token r)))
+  (handle-token-response
+   (post-request
+    (freesound-url "/oauth2/access_token/")
+    {:client_id *client-id*
+     :client_secret *api-key*
+     :grant_type "authorization_code"
+     :code code})))
+
+(defn refresh-token! []
+  (handle-token-response
+   (post-request
+    (freesound-url "/oauth2/access_token/")
+    {:client_id *client-id*
+     :client_secret *api-key*
+     :grant_type "refresh_token"
+     :refresh_token (config/store-get :freesound-refresh-token)})))
 
 (defn- dialog-box
   "Opens a window with a password field and a button to input an auth token.
@@ -121,16 +133,16 @@
         frame (doto (JFrame. "Freesound Authorization")
                 (.setSize 200 200)
                 (.setContentPane panel)
-                ;; unsure if this leaks memory but DISPOSE_ON_CLOSE and 
+                ;; unsure if this leaks memory but DISPOSE_ON_CLOSE and
                 ;; EXIT_ON_CLOSE both risk closing the VM
                 (.setDefaultCloseOperation WindowConstants/HIDE_ON_CLOSE))]
     (.addActionListener
-      button (gui/action-listener
-               (fn [_event]
-                 ;; using .dispose may close the VM
-                 (.setVisible frame false)
-                 (let [pw (String/valueOf (.getPassword password-field))]
-                   (out-fn pw)))))
+     button (gui/action-listener
+             (fn [_event]
+               ;; using .dispose may close the VM
+               (.setVisible frame false)
+               (let [pw (String/valueOf (.getPassword password-field))]
+                 (out-fn pw)))))
     (.setVisible frame true)
     (fn [] (.dispose frame))))
 
@@ -184,12 +196,20 @@
        (try
          (do-request#)
          (catch clojure.lang.ExceptionInfo e#
-           (if (= 401 (:response-code (ex-data e#)))
+           (if (not= 401 (:response-code (ex-data e#)))
+             (throw e#)
              (do
-               (println "Freesound responded with 401 Unauthorized, your token has likely expired.")
-               (reset! *access-token* nil)
-               (do-request#))
-             (throw e#)))))))
+               (println "Freesound token has expired, refreshing.")
+               (refresh-token!)
+               (try
+                 (do-request#)
+                 (catch clojure.lang.ExceptionInfo e#
+                   (if (not= 401 (:response-code (ex-data e#)))
+                     (throw e#)
+                     (do
+                       (println "Refresh didn't help, asking for a new token.")
+                       (reset! *access-token* nil)
+                       (do-request#))))))))))))
 
 ;; ## Sound Info
 (defn- info-url

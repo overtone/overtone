@@ -142,8 +142,6 @@
               n-chans#
               inst-bus#]))))))
 
-
-
 (defn instrument?
   "Returns true if o is an instrument, false otherwise"
   [o]
