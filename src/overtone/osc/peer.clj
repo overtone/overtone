@@ -397,11 +397,11 @@
   Sets a timeout for join if wait is an integer."
   ([peer] (close-peer peer nil))
   ([peer wait]
-   (let [^DatagramChannel chan (:char peer)]
+   (let [^DatagramChannel chan (:chan peer)]
      (when (:zero-conf-name peer)
        (unregister-zero-conf-service (:port peer)))
-     (dosync (ref-set (:running? peer) false))
-     (.close chan)
+     (dosync (some-> (:running? peer) (ref-set false)))
+     (some-> chan .close)
      (when wait
        (when-some [^Thread thread (:listen-thread peer)]
          (if (integer? wait)
