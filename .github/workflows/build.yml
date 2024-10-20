@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-${{ matrix.java }}-${{ matrix.clojure }}-${{ hashFiles('**/deps.edn') }}
@@ -35,7 +35,7 @@ jobs:
             ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-
 
       - name: Prepare java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: ${{matrix.java}}
