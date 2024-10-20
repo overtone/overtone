@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -xe
+
 rm -r classes || true
 mkdir -p classes
 
