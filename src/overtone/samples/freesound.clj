@@ -113,15 +113,13 @@
      :code code})))
 
 (defn refresh-token! []
-  (let [refresh_token (or (config/store-get :freesound-refresh-token)
-                          (throw (ex-info "Missing Freesound refresh token" {})))]
-    (handle-token-response
-      (post-request
-        (freesound-url "/oauth2/access_token/")
-        {:client_id *client-id*
-         :client_secret *api-key*
-         :grant_type "refresh_token"
-         :refresh_token refresh_token}))))
+  (handle-token-response
+   (post-request
+    (freesound-url "/oauth2/access_token/")
+    {:client_id *client-id*
+     :client_secret *api-key*
+     :grant_type "refresh_token"
+     :refresh_token (config/store-get :freesound-refresh-token)})))
 
 (defn- dialog-box
   "Opens a window with a password field and a button to input an auth token.
@@ -200,14 +198,8 @@
         (if (not= 401 (:response-code (ex-data e)))
           (throw e)
           (if (config/store-get :freesound-refresh-token)
-            (do (println "Freesound token has expired, refreshing.")
-                (try (refresh-token!)
-                     (catch Exception e
-                       (prn e)
-                       (println "Error while refreshing token, asking for a new token.")
-                       (do
-                         (authorization-instructions)
-                         (do-request))))
+            (do (println "Freesound access token has expired, refreshing.")
+                (refresh-token!)
                 (try
                   (do-request)
                   (catch clojure.lang.ExceptionInfo e
@@ -218,7 +210,7 @@
                         (authorization-instructions)
                         (do-request))))))
             (do
-              (println "Freesound token has expired, but no refresh token present. Asking for a new token.")
+              (println "Freesound access token has expired, but no refresh token present. Asking for a new access token.")
               (authorization-instructions)
               (do-request))))))))
 
