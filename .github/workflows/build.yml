@@ -88,7 +88,7 @@ jobs:
           ./bin/ci ${{matrix.clojure}}
           rm -r classes || true
           mkdir -p classes
-          clojure -M -e "(do (compile 'overtone-deploy.main) (System/exit 0))"
+          clojure -M -e "(do (compile 'overtone.live) (System/exit 0))"
         if: matrix.os == 'ubuntu-latest'
 
       - name: API Tests Windows - Install Scream Audio Device
