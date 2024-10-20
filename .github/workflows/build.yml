@@ -15,13 +15,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: ['11']
-        clojure: ['1.12']
         include:
-          - {title: "Linux", os: "ubuntu-latest", arch: "x64"}
-          - {title: "Windows", os: "windows-latest", arch: "x64"}
-          - {title: "Mac Intel", os: "macos-latest", arch: "x64"}
-          - {title: "Mac M1", os: "macos-latest", arch: "arm64"}
+          - {title: "Linux", os: "ubuntu-latest", arch: "x64", java: "11", clojure: "1.12"}
+          - {title: "Windows", os: "windows-latest", arch: "x64", java: "11", clojure: "1.12"}
+          - {title: "Mac", os: "macos-latest", arch: "arm64", java: "11", clojure: "1.12"}
     steps:
       - uses: actions/checkout@v4
 
