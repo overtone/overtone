@@ -68,7 +68,7 @@ jobs:
 
       - name: Add scsynth to PATH on macOS
         run: |
-          ls ${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources/scsynth
+          ls "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources/scsynth"
           echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources" >> $GITHUB_PATH
         if: matrix.os == 'macos-latest'
 
