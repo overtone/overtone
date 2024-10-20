@@ -275,9 +275,12 @@
 
 (defn scsynth-path []
   (let [sc-config (config/config-get :sc-path)
-        sc-path (file/find-executable "scsynth")
-        sc-wellknown (find-well-known-sc-path)
-        match (or sc-config sc-path sc-wellknown)]
+        sc-path (delay (or (when (windows-os?)
+                             (file/find-executable "scsynth.exe"))
+                           ;; should windows look here?
+                           (file/find-executable "scsynth")))
+        sc-wellknown (delay (find-well-known-sc-path))
+        match (or sc-config @sc-path @sc-wellknown)]
     (when-not match
       (throw (ex-info (str "Failed to find SuperCollider server executable (scsynth). The file does not exist or is not executable. Places I've looked:\n"
                            "- `:sc-path` in " config/OVERTONE-CONFIG-FILE " (" (pr-str sc-config) ")\n"
@@ -287,9 +290,9 @@
     (log/info "Found SuperCollider server: " match " (" (cond
                                                           sc-config
                                                           (str "configured in " config/OVERTONE-CONFIG-FILE)
-                                                          sc-path
+                                                          @sc-path
                                                           "PATH"
-                                                          sc-wellknown
+                                                          @sc-wellknown
                                                           (str "well-known location for " (name (get-os))))
               ")")
     (if (coll? match)
@@ -329,7 +332,9 @@
          cmd       (sc-command full-opts)
 
          sc-thread (if (windows-os?)
-                     (Thread. #(external-booter cmd (windows-sc-path)))
+                     (Thread. #(external-booter cmd (or (windows-sc-path)
+                                                        ;; if scsynth.exe comes from PATH
+                                                        ".")))
                      (Thread. #(external-booter cmd)))]
      (.setDaemon sc-thread true)
      (println "--> Booting external SuperCollider server...")
