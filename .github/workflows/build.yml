@@ -65,20 +65,27 @@ jobs:
           brew install supercollider
         if: matrix.os == 'macos-latest'
 
-      #- name: Mac dependencies
-      #  with:
-      #    path: sonic-pi
-      #    repository: 'sonic-pi-net/sonic-pi'
-      #    sparse-checkout: |
-      #      prebuilt/macos
-      #  uses: actions/checkout@v4
-      #  if: matrix.os == 'macos-latest'
+      - name: Mac dependencies
+        with:
+          path: sonic-pi
+          repository: 'sonic-pi-net/sonic-pi'
+          sparse-checkout: |
+            prebuilt/macos/universal/supercollider
+        uses: actions/checkout@v4
+        if: matrix.os == 'macos-latest'
 
-      #- name: Add scsynth to PATH on macOS
-      #  run: |
-      #    ls "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources/scsynth"
-      #    echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources" >> $GITHUB_PATH
-      #  if: matrix.os == 'macos-latest'
+      - name: Add scsynth to PATH on macOS
+        run: |
+          echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources" >> $GITHUB_PATH
+          echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Frameworks" >> $GITHUB_PATH
+        if: matrix.os == 'macos-latest'
+
+      - name: Grant microphone access for macos
+        run: |
+          # Temporary fix to fix microphone permission issues for macos when playing sound.
+          # From https://github.com/actions/runner-images/issues/9330
+          sqlite3 $HOME/Library/Application\ Support/com.apple.TCC/TCC.db "INSERT OR IGNORE INTO access VALUES ('kTCCServiceMicrophone','/usr/local/opt/runner/provisioner/provisioner',1,2,4,1,NULL,NULL,0,'UNUSED',NULL,0,1687786159,NULL,NULL,'UNUSED',1687786159);"
+        if: matrix.os == 'macos-latest'
 
       - name: Linux dependencies
         run: |
