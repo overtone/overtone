@@ -186,30 +186,36 @@
       @done
       (access-token @auth))))
 
+(defn with-authorization-header* [do-request]
+  (binding [*authorization-header*
+            (fn []
+              (when (not @*access-token*)
+                (authorization-instructions))
+              (str "Bearer " @*access-token*))]
+    (try
+      (do-request)
+      (catch clojure.lang.ExceptionInfo e
+        (if (not= 401 (:response-code (ex-data e)))
+          (throw e)
+          (if (config/store-get :freesound-refresh-token)
+            (do (println "Freesound access token has expired, refreshing.")
+                (refresh-token!)
+                (try
+                  (do-request)
+                  (catch clojure.lang.ExceptionInfo e
+                    (if (not= 401 (:response-code (ex-data e)))
+                      (throw e)
+                      (do
+                        (println "Refresh didn't help, asking for a new token.")
+                        (authorization-instructions)
+                        (do-request))))))
+            (do
+              (println "Freesound access token has expired, but no refresh token present. Asking for a new access token.")
+              (authorization-instructions)
+              (do-request))))))))
+
 (defmacro with-authorization-header [b]
-  `(binding [*authorization-header*
-             (fn []
-               (when (not @*access-token*)
-                 (authorization-instructions))
-               (str "Bearer " @*access-token*))]
-     (let [do-request# #(do ~b)]
-       (try
-         (do-request#)
-         (catch clojure.lang.ExceptionInfo e#
-           (if (not= 401 (:response-code (ex-data e#)))
-             (throw e#)
-             (do
-               (println "Freesound token has expired, refreshing.")
-               (refresh-token!)
-               (try
-                 (do-request#)
-                 (catch clojure.lang.ExceptionInfo e#
-                   (if (not= 401 (:response-code (ex-data e#)))
-                     (throw e#)
-                     (do
-                       (println "Refresh didn't help, asking for a new token.")
-                       (reset! *access-token* nil)
-                       (do-request#))))))))))))
+  `(with-authorization-header* #(do ~b)))
 
 ;; ## Sound Info
 (defn- info-url
