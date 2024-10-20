@@ -9,7 +9,7 @@
 
 ;; Wait for all osc messages to be processed before moving on.
 ;; Trigger a synchronous reset to cleanup after each test
-(t/use-fixtures :each with-sync-reset with-server-sync)
+(t/use-fixtures :each #_#_with-sync-reset with-server-sync)
 
 (deftest demo-test
   (eval-in-temp-ns
@@ -18,7 +18,6 @@
 
    (is (and #'defsynth #'definst) "Core macros should be defined")
    (is (server-connected?) "Server should be connected")
-   (wait-until-mixer-booted 30)
    (is (mixer-booted?) "Mixer should be booted")
 
    (demo 0.1 (sin-osc))

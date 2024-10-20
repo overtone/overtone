@@ -194,9 +194,8 @@
 (defn wait-until-mixer-booted
   "Makes the current thread sleep until the mixer completed its boot
   process."
-  ([] (wait-until-deps-satisfied MIXER-BOOT-DEPS))
-  ([timeout] (wait-until-deps-satisfied MIXER-BOOT-DEPS timeout))
-  ([timeout wait-time] (wait-until-deps-satisfied MIXER-BOOT-DEPS timeout wait-time)))
+  []
+  (wait-until-deps-satisfied MIXER-BOOT-DEPS))
 
 (defn boot-server-and-mixer
   "Boots the server and waits until the studio mixer has complete set
