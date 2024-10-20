@@ -18,6 +18,7 @@
 
    (is (and #'defsynth #'definst) "Core macros should be defined")
    (is (server-connected?) "Server should be connected")
+   (wait-until-mixer-booted 30)
    (is (mixer-booted?) "Mixer should be booted")
 
    (demo 0.1 (sin-osc))

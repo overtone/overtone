@@ -10,6 +10,7 @@ on:
 
 jobs:
   build:
+    timeout-minutes: 5
     name: "${{matrix.title}} (${{matrix.os}}, ${{matrix.arch}}, Java ${{matrix.java}}, Clojure ${{matrix.clojure}})"
     runs-on: ${{matrix.os}}
     strategy:
