@@ -220,7 +220,7 @@
   STDOUT for log messages."
   ([^"[Ljava.lang.String;" cmd] (external-booter cmd "."))
   ([^"[Ljava.lang.String;" cmd ^java.lang.String working-dir]
-   (log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
+   (println #_log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
    (let [working-dir  (File. working-dir)
          proc-builder (doto (ProcessBuilder. cmd)
                         (.directory (io/file working-dir)))
@@ -332,7 +332,9 @@
          cmd       (sc-command full-opts)
 
          sc-thread (if (windows-os?)
-                     (Thread. #(external-booter cmd (windows-sc-path)))
+                     (Thread. #(external-booter cmd (or (windows-sc-path)
+                                                        ;; if scsynth.exe comes from PATH
+                                                        ".")))
                      (Thread. #(external-booter cmd)))]
      (.setDaemon sc-thread true)
      (println "--> Booting external SuperCollider server...")
