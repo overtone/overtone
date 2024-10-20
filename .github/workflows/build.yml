@@ -95,20 +95,20 @@ jobs:
           ./bin/ci ${{matrix.clojure}}
         if: matrix.os == 'ubuntu-latest'
 
-      - name: API Tests Windows - Install Scream Audio Device
-        shell: powershell
-        run: |
-          Start-Service audio*
-          Invoke-WebRequest https://github.com/duncanthrax/scream/releases/download/3.6/Scream3.6.zip -OutFile C:\Scream3.6.zip
-          Expand-7ZipArchive -Path C:\Scream3.6.zip -DestinationPath C:\Scream
-          $cert = (Get-AuthenticodeSignature C:\Scream\Install\driver\Scream.sys).SignerCertificate
-          $store = [System.Security.Cryptography.X509Certificates.X509Store]::new("TrustedPublisher", "LocalMachine")
-          $store.Open("ReadWrite")
-          $store.Add($cert)
-          $store.Close()
-          cd C:\Scream\Install\driver
-          C:\Scream\Install\helpers\devcon install Scream.inf *Scream
-        if: matrix.os == 'windows-latest'
+      #- name: API Tests Windows - Install Scream Audio Device
+      #  shell: powershell
+      #  run: |
+      #    Start-Service audio*
+      #    Invoke-WebRequest https://github.com/duncanthrax/scream/releases/download/3.6/Scream3.6.zip -OutFile C:\Scream3.6.zip
+      #    Expand-7ZipArchive -Path C:\Scream3.6.zip -DestinationPath C:\Scream
+      #    $cert = (Get-AuthenticodeSignature C:\Scream\Install\driver\Scream.sys).SignerCertificate
+      #    $store = [System.Security.Cryptography.X509Certificates.X509Store]::new("TrustedPublisher", "LocalMachine")
+      #    $store.Open("ReadWrite")
+      #    $store.Add($cert)
+      #    $store.Close()
+      #    cd C:\Scream\Install\driver
+      #    C:\Scream\Install\helpers\devcon install Scream.inf *Scream
+      #  if: matrix.os == 'windows-latest'
 
       - name: Overtone tests - Windows
         shell: powershell
