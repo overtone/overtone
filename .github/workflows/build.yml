@@ -58,20 +58,27 @@ jobs:
           Add-Content $env:GITHUB_PATH "${{github.workspace}}\sonic-pi\prebuilt\windows\${{matrix.arch}}"
         if: matrix.os == 'windows-latest'
 
-      - name: Mac dependencies
-        with:
-          path: sonic-pi
-          repository: 'sonic-pi-net/sonic-pi'
-          sparse-checkout: |
-            prebuilt/macos
-        uses: actions/checkout@v4
-        if: matrix.os == 'macos-latest'
+        - name: Mac dependencies
+          run: |
+            export HOMEBREW_NO_INSTALL_CLEANUP=1
+            brew update
+            brew install supercollider
+          if: matrix.os == 'macos-latest'
 
-      - name: Add scsynth to PATH on macOS
-        run: |
-          ls "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources/scsynth"
-          echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources" >> $GITHUB_PATH
-        if: matrix.os == 'macos-latest'
+        #- name: Mac dependencies
+        #  with:
+        #    path: sonic-pi
+        #    repository: 'sonic-pi-net/sonic-pi'
+        #    sparse-checkout: |
+        #      prebuilt/macos
+        #  uses: actions/checkout@v4
+        #  if: matrix.os == 'macos-latest'
+
+        #- name: Add scsynth to PATH on macOS
+        #  run: |
+        #    ls "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources/scsynth"
+        #    echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources" >> $GITHUB_PATH
+        #  if: matrix.os == 'macos-latest'
 
       - name: Linux dependencies
         run: |
