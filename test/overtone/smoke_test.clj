@@ -4,12 +4,7 @@
   (:require [overtone.config.log :as log]
             [clojure.string :as str]
             [clojure.test :as t :refer [deftest is]]
-            [overtone.sc.machinery.server.comms :refer [with-server-sync]]
-            [overtone.test-helper :refer [eval-in-temp-ns with-sync-reset]]))
-
-;; Wait for all osc messages to be processed before moving on.
-;; Trigger a synchronous reset to cleanup after each test
-(t/use-fixtures :each #_#_with-sync-reset with-server-sync)
+            [overtone.test-helper :refer [eval-in-temp-ns]]))
 
 (deftest demo-test
   (eval-in-temp-ns
