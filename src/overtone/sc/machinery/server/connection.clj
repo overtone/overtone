@@ -220,7 +220,7 @@
   STDOUT for log messages."
   ([^"[Ljava.lang.String;" cmd] (external-booter cmd "."))
   ([^"[Ljava.lang.String;" cmd ^java.lang.String working-dir]
-   (println #_log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
+   (log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
    (let [working-dir  (File. working-dir)
          proc-builder (doto (ProcessBuilder. cmd)
                         (.directory (io/file working-dir)))
