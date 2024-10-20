@@ -58,12 +58,12 @@ jobs:
           Add-Content $env:GITHUB_PATH "${{github.workspace}}\sonic-pi\prebuilt\windows\${{matrix.arch}}"
         if: matrix.os == 'windows-latest'
 
-        - name: Mac dependencies
-          run: |
-            export HOMEBREW_NO_INSTALL_CLEANUP=1
-            brew update
-            brew install supercollider
-          if: matrix.os == 'macos-latest'
+      - name: Mac dependencies
+        run: |
+          export HOMEBREW_NO_INSTALL_CLEANUP=1
+          brew update
+          brew install supercollider
+        if: matrix.os == 'macos-latest'
 
       #- name: Mac dependencies
       #  with:
