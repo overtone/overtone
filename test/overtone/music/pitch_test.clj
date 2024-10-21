@@ -8,6 +8,7 @@
     (is (= (sut/invert-chord notes -3) '(4 7 11 12)))))
 
 (deftest chord-inversion-is-correct
+  (is (= (sut/chord :F3 :major 0) '(53 57 60)))
   (is (= (sut/chord :F3 :major 1) '(57 60 65)))
   (is (= (sut/chord :F3 :major 2) '(60 65 69))))
 
@@ -34,7 +35,8 @@
   ;; with the division between note letters ‘B’ and ‘C’, thus:
   (testing (str "B-1 and all of its possible variants (Bdouble flat, B♭, B, B♯, Bdouble sharp)"
                 "would properly be designated as being in octave -1")
-    (is (thrown? Exception (sut/note-info :B#-2)))
+    (testing "B#-2 is not C-1"
+      (is (thrown? Exception (sut/note-info :B#-2))))
     (is (= {:match "B-1", :pitch-class :B, :interval 11, :octave -1, :midi-note 11}
            (sut/note-info :B-1))))
   (testing (str "C-1 and all of its possible variants (Cdouble flat, C♭, C, C♯, Cdouble sharp)"
@@ -42,20 +44,23 @@
     (is (= {:match "C-1", :pitch-class :C, :interval 0, :octave -1, :midi-note 0}
            (sut/note-info 0)
            (sut/note-info :C-1)))
-    (is (= {:match "Cb-1", :pitch-class :B, :interval 11, :octave -1, :midi-note 11}
-           (sut/note-info :Cb-1))))
-  (testing "highest note number is 127"
+    (testing "Cb-1 is not B-2"
+      (is (= {:match "Cb-1", :pitch-class :B, :interval 11, :octave -1, :midi-note 11}
+             (sut/note-info :Cb-1)))))
+  (testing "notes numbers are between 0 and 127"
     (is (= {:match "G9", :pitch-class :G, :interval 7, :octave 9, :midi-note 127}
            (sut/note-info 127)
            (sut/note-info :G9)))
-    (sut/note-info :B9)
-    (doseq [invalid [128 :B9]]
+    (testing "B#9 is C9"
+      (is (= {:match "B#9", :pitch-class :C, :interval 0, :octave 9, :midi-note 120}
+             (sut/note-info :B#9))))
+    (doseq [invalid [-1 128 :G#9 :Ab9 :A9 :A#9 :Bb9 :B9]]
       (testing (pr-str invalid)
         (is (thrown? Exception (sut/note-info invalid))))))
-  (doseq [invalid [-1 128
-                   :C-2 :C10 :C#100]]
-    (testing (pr-str invalid)
-      (is (thrown? Exception (sut/note-info invalid)))))
+  (testing "octaves are betwen -1 and 9"
+    (doseq [invalid [:C-2 :C10 :C#100]]
+      (testing (pr-str invalid)
+        (is (thrown? Exception (sut/note-info invalid))))))
   (is (= {:match "E#4", :pitch-class :F, :interval 5, :octave 4, :midi-note 65}
          (sut/note-info :E#4)))
   (is (= {:match "B4", :pitch-class :B, :interval 11, :octave 4, :midi-note 71}
