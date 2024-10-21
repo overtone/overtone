@@ -98,3 +98,22 @@
 
 (deftest degree->int-test
   )
+
+(deftest scale-field-test
+  (is (= 0 (first (sut/scale-field :c))))
+  (is (= 127 (peek (sut/scale-field :c))))
+  (is (= 75 (count (sut/scale-field :c))))
+  (is (= (sut/scale-field :c)
+         (sut/scale-field :b#)
+         (sut/scale-field :c4)
+         (sut/scale-field :c9)
+         (sut/scale-field 0)
+         (sut/scale-field 12)
+         (sut/scale-field 120)))
+  (is (= 128 (count (sut/scale-field :C :chromatic))))
+  (is (apply = (map #(sut/scale-field % :chromatic) (range 128))))
+  (testing "fields contain valid MIDI notes"
+    (doseq [note (range 128)
+            field (sut/scale-field 120)]
+      (testing (pr-str note)
+        (is (<= 0 field 127))))))

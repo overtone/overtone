@@ -6,7 +6,7 @@
   Scientific pitch notation is used to represent notes as strings
   https://en.wikipedia.org/wiki/Scientific_pitch_notation
 
-  We assume middle C (60) is C4, with octaves starting at -1.
+  We demote Middle C (60) as C4, with octaves ranging from -1 to 9.
   Only single flats and sharps are supported."
   {:author "Jeff Rose, Sam Aaron & Marius Kempe"}
   (:use [overtone.helpers old-contrib]
@@ -228,9 +228,9 @@
   (midi-string :F 7)  ;=> \"F7\"
   (midi-string :Eb 3) ;=> \"Eb3\""
   [pitch-key octave]
-  (let [res (str (name pitch-key) octave)]
-    (validate-midi-string! res)
-    res))
+  (validate-midi-string! pitch-key)
+  (validate-octave! octave)
+  (str (name pitch-key) octave))
 
 (defn note
   "Resolves note to MIDI number format. Resolves upper and lower-case
@@ -388,7 +388,7 @@
   [scale]
   (if (keyword? scale)
     (or (SCALE scale)
-        (throw (ex-info (str "Unknown scale " (pr-str scale)) {})))
+        (throw (ex-info (str "Unknown scale: " (pr-str scale)) {})))
     (validate-scale! scale)))
 
 (defn scale-field
@@ -397,16 +397,24 @@
   name (defaulting to :major):
   (scale-field :g)
   (scale-field :g :minor)"
-  [skey & [sname]]
-  (let [base (NOTES skey)
-        sname (or sname :major)
-        intervals (SCALE sname)]
-    (reverse (next
-              (reduce (fn [mem interval]
-                        (let [new-note (+ (first mem) interval)]
-                          (conj mem new-note)))
-                      (list base)
-                      (take (* 8 12) (cycle intervals)))))))
+  ([root] (scale-field root nil))
+  ([root scale]
+   (let [base (:interval (note-info root))
+         intervals (vec (resolve-scale (or scale :major)))
+         nintervals (count intervals)]
+     (loop [field []
+            next-note (- base 12)
+            interval-idx (num 0)]
+       (let [new-note (+ next-note (nth intervals interval-idx))]
+         (if (<= MIDI-LOWEST-NOTE new-note)
+           (if (<= new-note MIDI-HIGHEST-NOTE)
+             (recur (conj field new-note)
+                    new-note
+                    (mod (inc interval-idx) nintervals))
+             field)
+           (recur field
+                  new-note
+                  (mod (inc interval-idx) nintervals))))))))
 
 (defn nth-interval
   "Return the count of semitones for the nth degree from the start of
