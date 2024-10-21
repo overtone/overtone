@@ -403,17 +403,17 @@
          intervals (vec (resolve-scale (or scale :major)))
          nintervals (count intervals)]
      (loop [field []
-            next-note (- base 12)
+            note (- base 12) ;; start 1-12 notes below MIDI-LOWEST-NOTE
             interval-idx (num 0)]
-       (let [new-note (+ next-note (nth intervals interval-idx))]
-         (if (<= MIDI-LOWEST-NOTE new-note)
-           (if (<= new-note MIDI-HIGHEST-NOTE)
-             (recur (conj field new-note)
-                    new-note
+       (let [note (+ note (nth intervals interval-idx))]
+         (if (<= MIDI-LOWEST-NOTE note)
+           (if (<= note MIDI-HIGHEST-NOTE)
+             (recur (conj field note)
+                    note
                     (mod (inc interval-idx) nintervals))
              field)
            (recur field
-                  new-note
+                  note
                   (mod (inc interval-idx) nintervals))))))))
 
 (defn nth-interval
