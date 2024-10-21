@@ -52,20 +52,19 @@
     (doseq [invalid [128 :B9]]
       (testing (pr-str invalid)
         (is (thrown? Exception (sut/note-info invalid))))))
-  (is (thrown? Exception (sut/note-info -1)))
-  (is (thrown? Exception (sut/note-info 128)))
   (doseq [invalid [-1 128
                    :C-2 :C10 :C#100]]
     (testing (pr-str invalid)
       (is (thrown? Exception (sut/note-info invalid)))))
   (is (= {:match "E#4", :pitch-class :F, :interval 5, :octave 4, :midi-note 65}
          (sut/note-info :E#4)))
-  (sut/note-info :Bb4)
-  (sut/note-info :Cb4)
-  (is (= {:match "B#4", :pitch-class :C, :interval 0, :octave 4, :midi-note 60}
-         (sut/note-info :B#4)))
   (is (= {:match "B4", :pitch-class :B, :interval 11, :octave 4, :midi-note 71}
-         (sut/note-info :B4))))
+         (sut/note-info :B4)))
+  (testing "middle C's"
+    (is (= {:match "B#4", :pitch-class :C, :interval 0, :octave 4, :midi-note 60}
+           (sut/note-info :B#4)))
+    (is (= {:match "C4", :pitch-class :C, :interval 0, :octave 4, :midi-note 60}
+           (sut/note-info :C4)))))
 
 (deftest find-scale-name-test
   (is (#{:melodic-minor :melodic-minor-asc} (sut/find-scale-name [2 1 2 2 2 2 1]))))
