@@ -2,6 +2,20 @@
   (:require [clojure.test :refer [deftest is testing]]
             [overtone.music.pitch :as sut]))
 
+(deftest shift-test
+  (is (= [1 1 3 3] (sut/shift [0 1 2 3] [0 2] 1))))
+
+(deftest mk-midi-string
+  (is (= "F7" (sut/mk-midi-string :F 7)))
+  (is (= "Fb7" (sut/mk-midi-string :Fb 7)))
+  (is (= "Fb7" (sut/mk-midi-string :Fb3 7)))
+  (is (= "C7" (sut/mk-midi-string 0 7)))
+  (testing "invalid note"
+    (is (thrown? Exception (sut/mk-midi-string -1 -1))))
+  (testing "invalid octave"
+    (is (thrown? Exception (sut/mk-midi-string 0 -2)))
+    (is (thrown? Exception (sut/mk-midi-string 0 10)))))
+
 (deftest invert-chord-works-properly
   (let [notes '(12 16 19 23)]
     (is (= (sut/invert-chord notes 2) '(19 23 24 28)))

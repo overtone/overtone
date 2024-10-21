@@ -6,7 +6,7 @@
   Scientific pitch notation is used to represent notes as strings
   https://en.wikipedia.org/wiki/Scientific_pitch_notation
 
-  We demote Middle C (60) as C4, with octaves ranging from -1 to 9.
+  We denote Middle C (60) as C4, with octaves ranging from -1 to 9.
   Only single flats and sharps are supported."
   {:author "Jeff Rose, Sam Aaron & Marius Kempe"}
   (:use [overtone.helpers old-contrib]
@@ -54,14 +54,24 @@
 
 ;; Manipulating pitch using midi note numbers
 
+(defn- validate-midi-note-number! [note]
+  (when-not (and (int? note)
+                 (<= MIDI-LOWEST-NOTE
+                     note
+                     MIDI-HIGHEST-NOTE))
+    (throw (ex-info (str "Invalid note number " (pr-str note)
+                         ": must be between " MIDI-LOWEST-NOTE " and " MIDI-HIGHEST-NOTE)
+                    {})))
+  note)
+
 (defn shift
   "Shift the 'notes' in 'phrase' by a given 'amount' of half-steps."
   [phrase notes amount]
-  (if notes
-    (let [note (first notes)
-          shifted (+ (get phrase note) amount)]
-      (recur (assoc phrase note shifted) (next notes) amount))
-    phrase))
+  (reduce
+    (fn [phrase n]
+      (update phrase n #(validate-midi-note-number!
+                          (+ % amount))))
+    phrase notes))
 
 (defn flat
   "Flatten the specified notes in the phrase."
@@ -92,15 +102,6 @@
                     {})))
   octave)
 
-(defn- validate-midi-note-number! [note]
-  (when-not (and (int? note)
-                 (<= MIDI-LOWEST-NOTE
-                     note
-                     MIDI-HIGHEST-NOTE))
-    (throw (ex-info (str "Invalid note number " (pr-str note)
-                         ": must be between " MIDI-LOWEST-NOTE " and " MIDI-HIGHEST-NOTE)
-                    {})))
-  note)
 
 (defn- validate-scale! [scale]
   (when-not (and (sequential? scale)
@@ -158,9 +159,9 @@
   "Returns the canonical version of the specified pitch class pc.
   Canonical notes are the notes of the C major scale
   plus C#, Eb, F#, Ab, and Bb."
-  [pc]
-  (let [pc (keyword (name pc))]
-      (REVERSE-NOTES (NOTES pc))))
+  [spelling]
+  (let [spelling (keyword (name spelling))]
+    (REVERSE-NOTES (NOTES spelling))))
 
 (def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)?" )
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
@@ -202,6 +203,7 @@
  
   :match - the input as a string, or the canonical pitch class if given an integer
   :pitch-class - the canonical pitch class according to `canonical-pitch-class-name`
+  :spelling - the combination of note name and accidentals most resembling original input
   :interval - the number of descending notes until a C natural is reached.
               If octave specified, also the number of notes from the beginning of the octave.
   :octave - the octave number, if octave specified
@@ -209,28 +211,26 @@
   [midi-note]
   (let [midi-note (cond-> midi-note
                     (int? midi-note) find-note-name)
-        [match pitch-class octave] (validate-midi-string! midi-note)
-        pitch-class                (canonical-pitch-class-name pitch-class)
+        [match spelling octave] (validate-midi-string! midi-note)
+        pitch-class (canonical-pitch-class-name spelling)
         octave                     (when octave (Integer. ^String octave))
         interval                   (NOTES (keyword pitch-class))
         midi-note (some-> octave (octave-note interval))]
     (cond-> {:match       match
+             :spelling    spelling
              :pitch-class pitch-class
              :interval    interval}
       octave (assoc :octave octave :midi-note midi-note))))
 
 (defn mk-midi-string
-  "Takes a string or keyword representing a pitch and a number
-  representing an integer and returns a new string which is a
-  concatanation of the two. Throws an error if the resulting midi
-  string is invalid.
+  "Takes a note and an octave and returns a string representing
+  the note in that octave.
 
-  (midi-string :F 7)  ;=> \"F7\"
-  (midi-string :Eb 3) ;=> \"Eb3\""
-  [pitch-key octave]
-  (validate-midi-string! pitch-key)
+  (mk-midi-string :F 7)  ;=> \"F7\"
+  (mk-midi-string :Eb 3) ;=> \"Eb3\""
+  [note octave]
   (validate-octave! octave)
-  (str (name pitch-key) octave))
+  (str (name (:spelling (note-info note))) octave))
 
 (defn note
   "Resolves note to MIDI number format. Resolves upper and lower-case
