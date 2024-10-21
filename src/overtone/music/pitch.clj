@@ -236,10 +236,11 @@
   "Resolves note to MIDI number format. Resolves upper and lower-case
   simple idents and strings in MIDI note format. If given an integer or
   nil, returns them unmodified. All other inputs will raise an
-  exception.
+  exception. Octave defaults to 4.
 
   Usage examples:
 
+  (note \"C\")   ;=> 60
   (note \"C4\")  ;=> 60
   (note \"C#4\") ;=> 61
   (note \"eb2\") ;=> 39
@@ -252,11 +253,9 @@
     (nil? n) nil
     (int? n) (validate-midi-note-number! n)
     (simple-ident? n) (note (name n))
-    (string? n) (or (:midi-note (note-info n))
-                    (throw (IllegalArgumentException.
-                             (str "Unable to convert note " (pr-str n)
-                                  " to MIDI number format: "
-                                  "octave is missing"))))
+    (string? n) (let [info (note-info n)]
+                  (or (:midi-note info)
+                      (+ 60 (:interval info))))
     :else (throw (IllegalArgumentException. (str "Unable to resolve note: " n ". Wasn't a recognised format (either an integer, keyword, string or nil)")))))
 
 (defn match-note
@@ -534,10 +533,12 @@
 (defn scale
   "Returns a list of the first 8 midi note numbers for the specified scale.
   The root must be in any valid midi note format, see [[note]]. e.g. `:C4`, `\"Bb4\"`, `60`.
-  If degrees is provided as a list of integers, returns a list of midi note numbers starting with
-  the root followed by each of the listed degrees of the scale.
+  If degrees is provided as a list of integers, returns a list of midi note numbers 
+  corresponding to the degrees of the scale. Negative degrees count backwards from root,
+  and degrees beyond the number of notes in the scale in either direction continue with
+  the same scale.
 
-  Octave defaults to 3.
+  Root note defaults to C. Octave defaults to 4.
 
   (scale :c4 :major)  ; c major      -> (60 62 64 65 67 69 71 72)
   (scale :Bb4 :minor) ; b flat minor -> (70 72 73 75 77 78 80 82)
@@ -681,16 +682,27 @@
   bound within the range of the specified root and pitch-range and
   only containing pitches within the specified chord-name. Similar to
   Impromptu's pc:make-chord"
+  ([] (rand-chord MIDDLE-C))
+  ([root] (rand-chord root :major))
+  ([root chord-name] (rand-chord root chord-name 4))
+  ([root chord-name num-pitches]
+   (let [root (note root)]
+     (if (<= MIDI-LOWEST-NOTE (- root 12) (+ root 12) MIDI-HIGHEST-NOTE)
+       (rand-chord (- root 12) :major num-pitches (+ root 12))
+       (if (<= MIDI-LOWEST-NOTE (- root 12))
+         (rand-chord (- root 12) :major num-pitches (+ root 12))
+         (rand-chord root :major num-pitches (+ root 24))))))
   ([root chord-name num-pitches pitch-range]
    (rand-chord root chord-name num-pitches pitch-range 0))
   ([root chord-name num-pitches pitch-range inversion]
    (let [chord (chord root chord-name inversion)
          root (note root)
-         max-pitch (+ pitch-range root)
+         max-pitch (validate-midi-note-number! (+ pitch-range root))
          roots (range 0 max-pitch 12)
          notes (flatten (map (fn [root] (map #(+ root %) chord)) roots))
          notes (take-while #(<= % max-pitch) notes)]
-     (sort (choose-n num-pitches notes)))))
+     (map validate-midi-note-number!
+          (sort (choose-n num-pitches notes))))))
 
 ; midicps
 (defn midi->hz

@@ -123,7 +123,6 @@
     (is (thrown? Exception (doall (sut/scale :c4 :major [-200]))))
     (is (thrown? Exception (doall (sut/scale :c4 :major [200]))))
     (is (thrown? Exception (doall (sut/scale 127 :major)))))
-
   (testing "abbreviations"
     (is (= (sut/scale)
            (sut/scale :major)
@@ -145,6 +144,21 @@
         (is (= (sut/scale 50 scale-name)
                (sut/scale :D3 scale-name)
                (sut/scale :D3 scale-name (range (inc (count (sut/resolve-scale scale-name)))))))))))
+
+(deftest rand-chord-test
+  (sut/rand-chord)
+  (sut/rand-chord :d)
+  (sut/rand-chord :d :major)
+  (sut/rand-chord :d :major 100)
+  (sut/rand-chord :d :major 100)
+  (sut/rand-chord 'd)
+  (sut/rand-chord 'e)
+  (sut/rand-chord 'e4)
+  (sut/rand-chord 'e-1)
+  (sut/rand-chord 'c-1)
+  ;;FIXME
+  (sut/rand-chord 'g9)
+  )
 
 (deftest degree->int-test
   )
