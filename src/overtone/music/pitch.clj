@@ -721,19 +721,19 @@
 
 (defn nth-equal-tempered-freq
   "Returns the frequency of a given scale interval using an
-  equal-tempered tuning i.e. dividing all 12 semi-tones equally across
+  equal-tempered tuning i.e. dividing all 12 semitones equally across
   an octave. This is currently the standard tuning."
   [base-freq interval]
   (* base-freq (java.lang.Math/pow 2 (/ interval 12))))
 
 (defn interval-freq
   "Returns the frequency of the given interval using the specified
-  mode and tuning (defaulting to ionian and equal-tempered
+  scale and tuning (defaulting to ionian and equal-tempered
   respectively)."
   ([base-freq n] (interval-freq base-freq n :ionian :equal-tempered))
-  ([base-freq n mode tuning]
-     (case tuning
-           :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval n mode)))))
+  ([base-freq n scale tuning]
+   (case tuning
+     :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval scale n)))))
 
 (defn find-scale-name
   "Return the name of the first matching scale found in SCALE
