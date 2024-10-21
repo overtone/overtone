@@ -93,6 +93,7 @@
   (is (= [60 61 62 63 64 65 66 67 68 69 70 71 72] (sut/scale :c4 :chromatic (range 1 13))))
   (is (= [:C4 :E4 :G4 :C5] (map sut/find-note-name (sut/scale :c4 :major [2 4 7]))))
   (is (= [:C4 :E4 :G4 :C5] (map sut/find-note-name (sut/scale :c4 :major [200]))))
+  (is (= [:C4 :E4 :G4 :C5] (map sut/find-note-name (sut/scale 127 :major))))
   (is (= [60 62 63 65 67 68 70 72] (sut/scale :c4 :minor))))
 
 (deftest degree->int-test

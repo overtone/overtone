@@ -102,6 +102,15 @@
                     {})))
   note)
 
+(defn- validate-scale! [scale]
+  (when-not (and (sequential? scale)
+                 (every? pos-int? scale)
+                 (= 12 (apply + scale)))
+    (throw (ex-info (str "Invalid scale, must be positive integers that add up to 12: "
+                         (pr-str scale))
+                    {})))
+  scale)
+
 (defn octave-note
   "Convert an octave and interval to a midi note."
   [octave interval]
@@ -372,13 +381,15 @@
 
 (defn resolve-scale
   "Either looks the scale up in the map of SCALEs if it's a keyword or
-  simply returns it unnmodified. Allows users to specify a scale
-  either as a seq such as [2 2 1 2 2 2 1] or by keyword such
-  as :aeolian"
+  simply returns it unmodified after verifying it is a valid scale.
+  Allows users to specify a scale either as a seq such as [2 2 1 2 2 2 1]
+  or by keyword such as :aeolian. Scales must be positive integers that
+  add up to 12."
   [scale]
   (if (keyword? scale)
-    (SCALE scale)
-    scale))
+    (or (SCALE scale)
+        (throw (ex-info (str "Unknown scale " (pr-str scale)) {})))
+    (validate-scale! scale)))
 
 (defn scale-field
   "Create the note field for a given scale.  Scales are specified with
@@ -407,7 +418,7 @@
        start of the scale."
   ([n] (nth-interval :diatonic n))
   ([scale n]
-   (reduce + (take n (cycle (scale SCALE))))))
+   (reduce + (take n (cycle (resolve-scale scale))))))
 
 (def DEGREE {:i     1
              :ii    2
@@ -514,21 +525,33 @@
 (defn scale
   "Returns a list of the first 8 midi note numbers for the specified scale.
   The root must be in any valid midi note format, see [[note]]. e.g. `:C4`, `\"Bb4\"`, `60`.
-  If degrees is provided, returns a list of midi note numbers starting with
-  the root followed by the 
+  If degrees is provided as a list of integers, returns a list of midi note numbers starting with
+  the root followed by each of the listed degrees of the scale.
+
+  Octave defaults to 3.
 
   (scale :c4 :major)  ; c major      -> (60 62 64 65 67 69 71 72)
   (scale :Bb4 :minor) ; b flat minor -> (70 72 73 75 77 78 80 82)
   (scale :c4 :chromatic (range 1 13)) ; one octave chromatic scale
   -> (60 61 62 63 64 65 66 67 68 69 70 71 72)
   (scale :c4 :major [2 4 7]) ; c major chord
-  -> (60 64 67 72)
-  "
-  ([root scale-name] (scale root scale-name (range 1 8)))
-  ([root scale-name degrees]
+  -> (60 64 67 72)"
+  ([] (scale :major))
+  ([scale-name]
+   (let [root MIDDLE-C
+         scale (resolve-scale scale-name)
+         degrees (resolve-degrees scale-name)]
+     (cons root (map #(+ root (nth-interval scale-name %)) degrees))))
+  ([root scale-name]
+   (when-not (= 7 (count (SCALE scale-name)))
+     (println (str "WARNING: " (pr-str scale-name) " has "
+                   (count (SCALE scale-name)) " notes "
+                   "but scale will return the first 8")))
+   (scale root scale-name (range 1 8)))
+  ([root scale degrees]
    (let [root (note root)
          degrees (resolve-degrees degrees)]
-     (cons root (map #(+ root (nth-interval scale-name %)) degrees)))))
+     (cons root (map #(+ root (nth-interval scale %)) degrees)))))
 
 (def CHORD
   (let [major  #{0 4 7}
