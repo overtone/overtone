@@ -733,7 +733,9 @@
   ([base-freq n] (interval-freq base-freq n :ionian :equal-tempered))
   ([base-freq n scale tuning]
    (case tuning
-     :equal-tempered (nth-equal-tempered-freq base-freq (nth-interval scale n)))))
+     :equal-tempered (nth-equal-tempered-freq base-freq
+                                              ;;TODO unit test, these args were backwards
+                                              (nth-interval scale n)))))
 
 (defn find-scale-name
   "Return the name of the first matching scale found in SCALE
