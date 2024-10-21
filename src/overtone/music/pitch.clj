@@ -383,8 +383,8 @@
   "Either looks the scale up in the map of SCALEs if it's a keyword or
   simply returns it unmodified after verifying it is a valid scale.
   Allows users to specify a scale either as a seq such as [2 2 1 2 2 2 1]
-  or by keyword such as :aeolian. Scales must be positive integers that
-  add up to 12."
+  or by keyword such as :aeolian. Scales must contain positive integers that
+  sum to 12."
   [scale]
   (if (keyword? scale)
     (or (SCALE scale)
@@ -421,12 +421,13 @@
   the diatonic scale in the specific mode (or ionian/major by
   default).
 
-  i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2
-       1 therefore the 4th degree is (+ 2 2 1 2) semitones from the
-       start of the scale."
+  i.e. the ionian/major scale has an interval sequence of 2 2 1 2 2 2 1
+       therefore the 4th degree is (+ 2 2 1 2) semitones from the start of the scale."
   ([n] (nth-interval :diatonic n))
   ([scale n]
-   (reduce + (take n (cycle (resolve-scale scale))))))
+   (if (neg? n)
+     (- (reduce + (eduction (take (- n)) (cycle (reverse (resolve-scale scale))))))
+     (reduce + (eduction (take n) (cycle (resolve-scale scale)))))))
 
 (def DEGREE {:i     1
              :ii    2
@@ -540,26 +541,25 @@
 
   (scale :c4 :major)  ; c major      -> (60 62 64 65 67 69 71 72)
   (scale :Bb4 :minor) ; b flat minor -> (70 72 73 75 77 78 80 82)
-  (scale :c4 :chromatic (range 1 13)) ; one octave chromatic scale
+  (scale :c4 :chromatic) ; chromatic scale
   -> (60 61 62 63 64 65 66 67 68 69 70 71 72)
-  (scale :c4 :major [2 4 7]) ; c major chord
+  (scale :c4 :major [0 2 5 12]) ; c major chord
   -> (60 64 67 72)"
   ([] (scale :major))
-  ([scale-name]
-   (let [root MIDDLE-C
-         scale (resolve-scale scale-name)
-         degrees (resolve-degrees scale-name)]
-     (cons root (map #(+ root (nth-interval scale-name %)) degrees))))
+  ([scale-name] (scale MIDDLE-C scale-name))
   ([root scale-name]
-   (when-not (= 7 (count (SCALE scale-name)))
-     (println (str "WARNING: " (pr-str scale-name) " has "
-                   (count (SCALE scale-name)) " notes "
-                   "but scale will return the first 8")))
-   (scale root scale-name (range 1 8)))
-  ([root scale degrees]
-   (let [root (note root)
+   (let [{:keys [midi-note] :as info} (note-info root)
+         root (or midi-note (+ MIDDLE-C (:interval info)))
+         scale (resolve-scale scale-name)]
+     (mapv #(validate-midi-note-number! (+ root (nth-interval scale %)))
+           (range (inc (count scale))))))
+  ([root scale-name degrees]
+   (let [{:keys [midi-note] :as info} (note-info root)
+         root (or midi-note (+ MIDDLE-C (:interval info)))
          degrees (resolve-degrees degrees)]
-     (cons root (map #(+ root (nth-interval scale %)) degrees)))))
+     (map #(validate-midi-note-number!
+             (+ root (nth-interval scale-name %)))
+          degrees))))
 
 (def CHORD
   (let [major  #{0 4 7}

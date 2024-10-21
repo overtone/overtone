@@ -5,6 +5,11 @@
 (deftest shift-test
   (is (= [1 1 3 3] (sut/shift [0 1 2 3] [0 2] 1))))
 
+(deftest nth-interval-test
+  (is (= [0 2 4 5 7 9 11 12] (map sut/nth-interval (range 8))))
+  (is (= [0 -1 -3 -5 -7 -8 -10 -12] (map sut/nth-interval (range 0 -8 -1)))))
+
+
 (deftest mk-midi-string
   (is (= "F7" (sut/mk-midi-string :F 7)))
   (is (= "Fb7" (sut/mk-midi-string :Fb 7)))
@@ -103,12 +108,43 @@
 
 (deftest scale-test
   (is (= [60 62 64 65 67 69 71 72] (sut/scale :c4 :major)))
-  (is (= [60 61 62 63 64 65 66 67] (sut/scale :c4 :chromatic)))
-  (is (= [60 61 62 63 64 65 66 67 68 69 70 71 72] (sut/scale :c4 :chromatic (range 1 13))))
-  (is (= [:C4 :E4 :G4 :C5] (map sut/find-note-name (sut/scale :c4 :major [2 4 7]))))
-  (is (= [:C4 :E4 :G4 :C5] (map sut/find-note-name (sut/scale :c4 :major [200]))))
-  (is (= [:C4 :E4 :G4 :C5] (map sut/find-note-name (sut/scale 127 :major))))
-  (is (= [60 62 63 65 67 68 70 72] (sut/scale :c4 :minor))))
+  (is (= [60 62 64 65 67 69 71 72] (sut/scale :c4 :minor)))
+  (testing "backwards scales"
+    (is (= [72 70 68 67 65 63 62 60] (sut/scale :c4 :minor (range 7 -1 -1)))))
+  (testing "infinite scales"
+    (is (= [60 62 63 65 67 68 70 72 70 68 67 65 63 62 60 60 62 63 65 67]
+           (take 20 (sut/scale :c4 :minor (cycle (concat (range 7) (range 7 -1 -1))))))))
+  (testing "negative degrees"
+    (is (= [60 58 56 55 53 51 50 48 46 46 48 50 51 53 55 56 58 60 60 58]
+           (take 20 (sut/scale :c4 :minor (cycle (concat (range 0 -9 -1) (range -8 1))))))))
+  (is (= [60 61 62 63 64 65 66 67 68 69 70 71 72] (sut/scale :c4 :chromatic)))
+  (is (= [:C4 :E4 :G4 :C5] (map sut/find-note-name (sut/scale :c4 :major [0 2 4 7]))))
+  (testing "out of bounds midi note"
+    (is (thrown? Exception (doall (sut/scale :c4 :major [-200]))))
+    (is (thrown? Exception (doall (sut/scale :c4 :major [200]))))
+    (is (thrown? Exception (doall (sut/scale 127 :major)))))
+
+  (testing "abbreviations"
+    (is (= (sut/scale)
+           (sut/scale :major)
+           (sut/scale 60 :major)
+           (sut/scale sut/MIDDLE-C :major)
+           (sut/scale :C :major)
+           (sut/scale :C4 :major)
+           (sut/scale :C4 :major (range 8))))
+    (doseq [scale-name (keys sut/SCALE)]
+      (testing (pr-str scale-name)
+        (is (= (sut/scale scale-name)
+               (sut/scale 60 scale-name)
+               (sut/scale sut/MIDDLE-C scale-name)
+               (sut/scale :C scale-name)
+               (sut/scale :C4 scale-name)
+               (sut/scale :C4 scale-name (range (inc (count (sut/resolve-scale scale-name)))))))))
+    (doseq [scale-name (keys sut/SCALE)]
+      (testing (pr-str scale-name)
+        (is (= (sut/scale 50 scale-name)
+               (sut/scale :D3 scale-name)
+               (sut/scale :D3 scale-name (range (inc (count (sut/resolve-scale scale-name)))))))))))
 
 (deftest degree->int-test
   )
