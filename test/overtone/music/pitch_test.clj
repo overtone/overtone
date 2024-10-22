@@ -105,7 +105,11 @@
     (is (= {:match "B#4", :spelling "B#" :pitch-class :C, :interval 0, :octave 4, :midi-note 60}
            (sut/note-info :B#4)))
     (is (= {:match "C4", :spelling "C", :pitch-class :C, :interval 0, :octave 4, :midi-note 60}
-           (sut/note-info :C4)))))
+           (sut/note-info :C4))))
+  (testing "double sharps"
+    ;;TODO
+    (is (sut/note-info "Cbb"))
+    ))
 
 (deftest find-scale-name-test
   (is (#{:melodic-minor :melodic-minor-asc} (sut/find-scale-name [2 1 2 2 2 2 1]))))
@@ -186,10 +190,6 @@
     (is (every? #(<= 0 % 24) (sut/rand-chord :c-1 :major 3))))
   ;;FIXME
   ;(sut/rand-chord 'g9)
-  )
-
-(deftest degree->int-test
-  ;;TODO
   )
 
 (deftest degree->interval-test
