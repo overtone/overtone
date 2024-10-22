@@ -238,10 +238,17 @@
 
 (deftest find-note-name-test
   (is (= :C4 (sut/find-note-name :B#4)))
-  (is (= :C-1 (sut/find-note-name :B#-1)))
-  (is (= :C#-1 (sut/find-note-name :Db-1)))
-  (is (= :B4 (sut/find-note-name :Cb4)))
+  (is (= :C-1
+         (sut/find-note-name 0)
+         (sut/find-note-name :B#-1)))
+  (is (= :C#-1
+         (sut/find-note-name 1)
+         (sut/find-note-name :Db-1)))
+  (is (= :B4
+         (sut/find-note-name 71)
+         (sut/find-note-name :Cb4)))
   (is (= :C4
+         (sut/find-note-name 60)
          (sut/find-note-name :C)
          (sut/find-note-name :C4)
          (sut/find-note-name :B#4))))
