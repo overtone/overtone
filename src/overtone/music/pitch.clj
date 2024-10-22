@@ -12,7 +12,8 @@
   (:use [overtone.helpers old-contrib]
         [overtone.helpers.map :only [reverse-get]]
         [overtone.algo chance])
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [overtone.music.pitch :as-alias p]))
 
 (set! *warn-on-reflection* true)
 
@@ -20,22 +21,39 @@
 ;; possible 7 note scales, the major scale has the highest number of consonant
 ;; intervals.
 
-(defmacro defratio [rname ratio]
-  `(defn ~rname [freq#] (* freq# ~ratio)))
+(declare note midi->hz note-info)
+
+(defmacro defratio
+  ([rname ratio] `(defratio ~rname ~(name rname) ~ratio))
+  ([rname doc ratio]
+   (assert (simple-symbol? rname))
+   (assert (string? doc))
+   (assert (number? ratio))
+   (let [constant-name (symbol (str (name rname) "-ratio"))
+         doc (or doc (name rname))]
+     `(do (def ~constant-name
+            ~(str "The ratio of a pair of pitches related by a " doc)
+            ~ratio)
+          (defn ~rname
+            ~(str "Returns the frequency raised by a " doc ".\n"
+                  "If not a number, input will be treated as a note.")
+            {:arglists '([freq-or-note])}
+            [freq#] (* (if (number? freq#)
+                         freq#
+                         (-> freq# note midi->hz))
+                       ~ratio))))))
 
 ;; Perfect consonance
-(defratio unison    1/1)
-(defratio octave    2/1)
-(defratio fifth     3/2)
+(defratio unison 1/1)
+(defratio octave 2/1)
+(defratio fourth "perfect fourth" 4/3)
+(defratio fifth  "perfect fifth" 3/2)
 
 ;; Imperfect consonance
-(defratio sixth     5/3)
-(defratio third     5/4)
-
-;; Dissonance
-(defratio fourth    4/3)
-(defratio min-third 6/5)
-(defratio min-sixth 8/5)
+(defratio sixth "major sixth" 5/3)
+(defratio third "major third" 5/4)
+(defratio min-third "minor third" 6/5)
+(defratio min-sixth "minor sixth" 8/5)
 
 (defn cents
   "Returns a frequency computed by adding n-cents to freq.  A cent is
@@ -112,21 +130,59 @@
                     {})))
   scale)
 
+(defn octave-of
+  "Returns the octave of the note. Defaults to 4.
+  
+  (sut/octave-of 0) => -1  ;; lowest note is in lowest octave
+  (sut/octave-of 127) => 0  ;; highest note is in highest octave
+  (sut/octave-of :C) => 4  ;; defaults to octave 4
+  (sut/octave-of :B8) => 8"
+  [note]
+  (-> note note-info (:octave 4)))
+
+(defn resolve-octave
+  "Coerces input to an octave. If given a number,
+  is treated as an octave identifier. Otherwise,
+  is treated as a note and passed to [[octave-of]].
+  
+  (resolve-octave -1) => -1  ;; lowest octave
+  (resolve-octave 9) => 9    ;; highest octave
+  (resolve-octave :C) => 4   ;; defaults to octave 4
+  (resolve-octave :D8) => 8"
+  [octave-or-note]
+  (if (int? octave-or-note)
+    (validate-octave! octave-or-note)
+    (octave-of octave-or-note)))
+
+(defn pitch-class
+  "Returns a number from 0-11 representing the pitch
+  class of the note, representing the scale degrees
+  of the C chromatic scale."
+  [note]
+  (-> pitch-class note-info :interval))
+
 (defn octave-note
-  "Convert an octave and interval to a midi note."
-  [octave interval]
-  (validate-octave! octave)
-  (if (= MIDI-HIGHEST-OCTAVE octave)
-    (when-not (and (int? interval)
-                   (<= 0 interval 7))
-      (throw (ex-info (str "Invalid interval, must be between 0-7 for highest octave: "
-                           (pr-str interval))
-                      {})))
-    (when-not (and (int? interval)
-                   (<= 0 interval 11))
-      (throw (ex-info (str "Invalid interval, must be betwen 0-11: " (pr-str interval))
-                      {}))))
-  (+ (* octave 12) interval 12))
+  "Convert an octave and pitch class to a midi note. Pitch
+  defaults to 0. Position can be 0-11 for all octaves except
+  octave 9, which must be 0-7.
+  
+  (octave-note -1) => 0    ;; lowest note
+  (octave-note -1 1) => 1  ;; lowest note"
+  ([octave] (octave-note octave 0))
+  ([octave pitch-class]
+   (let [octave (resolve-octave octave)
+         pitch-class (p/pitch-class pitch-class)]
+     (if (= MIDI-HIGHEST-OCTAVE octave)
+       (when-not (and (int? pitch-class)
+                      (<= 0 pitch-class 7))
+         (throw (ex-info (str "Invalid pitch-class, must be between 0-7 for highest octave: "
+                              (pr-str pitch-class))
+                         {})))
+       (when-not (and (int? pitch-class)
+                      (<= 0 pitch-class 11))
+         (throw (ex-info (str "Invalid pitch-class, must be betwen 0-11: " (pr-str pitch-class))
+                         {}))))
+     (+ (* octave 12) pitch-class 12))))
 
 (def NOTES {:C  0  :c  0  :b# 0  :B# 0
             :C# 1  :c# 1  :Db 1  :db 1  :DB 1  :dB 1
@@ -155,13 +211,17 @@
    10 :Bb
    11 :B})
 
+(declare note-info)
+
 (defn canonical-pitch-class-name
-  "Returns the canonical version of the specified pitch class pc.
-  Canonical notes are the notes of the C major scale
+  "Returns the canonical version of pitch class of the provided note.
+  Canonical names are the notes of the C major scale
   plus C#, Eb, F#, Ab, and Bb."
-  [spelling]
-  (let [spelling (keyword (name spelling))]
-    (REVERSE-NOTES (NOTES spelling))))
+  [note]
+  (if (int? note)
+    (REVERSE-NOTES (mod (validate-midi-note-number! note) 12))
+    (or (REVERSE-NOTES (NOTES note))
+        (-> note note-info :pitch-class))))
 
 (def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)?" )
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
@@ -212,9 +272,9 @@
   (let [midi-note (cond-> midi-note
                     (int? midi-note) find-note-name)
         [match spelling octave] (validate-midi-string! midi-note)
-        pitch-class (canonical-pitch-class-name spelling)
+        pitch-class (canonical-pitch-class-name (keyword spelling))
         octave                     (when octave (Integer. ^String octave))
-        interval                   (NOTES (keyword pitch-class))
+        interval                   (NOTES pitch-class)
         midi-note (some-> octave (octave-note interval))]
     (cond-> {:match       match
              :spelling    spelling
@@ -667,8 +727,7 @@
 
   (chord :c4 :major)  ; c major           -> (60 64 67)
   (chord :a4 :minor)  ; a minor           -> (69 72 76)
-  (chord :Bb4 :dim)   ; b flat diminished -> (70 73 76)
-  "
+  (chord :Bb4 :dim)   ; b flat diminished -> (70 73 76)"
   ([root chord-name]
    (chord root chord-name 0))
   ([root chord-name inversion]
@@ -708,16 +767,21 @@
 (defn midi->hz
   "Convert a midi note number to a frequency in hz."
   [note]
-  (* 440.0 (java.lang.Math/pow 2.0 (/ (- note 69.0) 12.0))))
+  (let [note (if (int? note)
+               note ;; SC doesn't check bounds
+               (p/note note))]
+    (* 440.0 (Math/pow 2.0 (/ (- note 69.0) 12.0)))))
 
 ; cpsmidi
 (defn hz->midi
   "Convert from a frequency to the nearest midi note number."
   [freq]
-  (java.lang.Math/round (+ 69
-                 (* 12
-                    (/ (java.lang.Math/log (* freq 0.0022727272727))
-                       (java.lang.Math/log 2))))))
+  ;; SC doesn't check bounds
+  (Math/round
+    (+ 69
+       (* 12
+          (/ (Math/log (* freq 0.0022727272727))
+             (Math/log 2))))))
 
 ; ampdb
 (defn amp->db
@@ -767,8 +831,8 @@
   (reverse-get SCALE scale))
 
 (defn find-pitch-class-name
-  "Given a midi number representing a note, returns the name of the note
-  in C major independent of octave.
+  "Given a midi number representing a note, returns the canonical name of the note
+  independent of octave.
 
   (find-pitch-class-name 62) ;=> :D
   (find-pitch-class-name 74) ;=> :D
@@ -778,8 +842,8 @@
 
 (defn find-note-name
   "Given a midi number representing a note, returns a keyword
-  representing the note including octave number. Reverse of the fn note.
-  Returns note if nil.
+  representing the canonical name of the note including octave number.
+  Reverse of the fn note. Returns note if nil.
 
   (find-note-name 45) ;=> :A2
   (find-note-name 57) ;=> :A3
@@ -834,23 +898,57 @@
       (or (reverse-get CHORD (simplify-chord adjusted-notes))
           (reverse-get CHORD (compress-chord adjusted-notes))))))
 
+(comment
+  (resolve-chord-notes [:C :E :G])
+  )
+
+(defn resolve-chord-notes
+  "Coerces notes to midi note numbers. Notes default to
+  octave 4 and subsequent notes default to being higher than
+  previous ones.
+  
+  (resolve-chord-notes [:C :E :G])
+  "
+  [notes]
+  (if (every? integer? notes)
+    notes
+    (let [;; default to octave 4
+          root (note (first notes))]
+      (reduce (fn [out notes]
+                (let [{:keys [midi-note interval]} (note-info notes)]
+                  (or (some->> midi-note (conj out))
+                      ;; above previous
+                      (let [prev (peek out)
+                            pinfo (note-info prev)
+                            above? (< (:interval pinfo) interval)
+                            ;; can fail, might want custom errors
+                            midi-note (if above?
+                                        (octave-note (:octave pinfo) interval)
+                                        (octave-note (inc (:octave pinfo)) interval))]
+                        (conj out midi-note)))))
+              [root] (next notes)))))
+
 (defn find-chord
   "Find the chord for a given set or sequence of notes.
+  First note will default to octave 4 and subsequent notes
+  default to be higher than previous ones for sequential notes.
+  For sets, all notes default to octave 4.
 
   Usage examples:
 
-  (find-chord [60 64 67]) ;=> {:root :C, :chord-type :M}
-  "
+  (find-chord [60 64 67]) ;=> {:root :C, :chord-type :M}"
   [notes]
-  (loop [note 0]
-    (if (< note (count notes) )
-      (let [mod-notes (select-root notes note)
-            chord  (find-chord-with-low-root mod-notes)
-            root (find-pitch-class-name (first (sort mod-notes)))]
-        (if chord
-          {:root root :chord-type chord}
-          (recur (inc note))))
-      nil)))
+  (let [notes (if (sequential? notes)
+                (resolve-chord-notes notes)
+                (into #{} (map note) notes))]
+    (loop [note 0]
+      (when (< note (count notes))
+        (let [mod-notes (select-root notes note)
+              chord (find-chord-with-low-root mod-notes)
+              root (find-pitch-class-name (first (sort mod-notes)))]
+          (if chord
+            {:root root :chord-type chord}
+            (recur (inc note))))))))
 
 (defn chord-degree
   "Returns the notes constructed by picking thirds in a given scale

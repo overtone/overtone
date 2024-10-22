@@ -31,10 +31,18 @@
   (is (= (sut/chord :F3 :major 1) '(57 60 65)))
   (is (= (sut/chord :F3 :major 2) '(60 65 69))))
 
+(deftest octave-of-test
+  (is (= -1 (sut/octave-of 0)))
+  (is (= 9 (sut/octave-of 127)))
+  (is (= 4 (sut/octave-of :C)))
+  (is (= 4 (sut/octave-of :B)))
+  (is (= 8 (sut/octave-of :C8))))
+
 (deftest octave-note-test
   (testing "octave too low"
     (is (thrown? Exception (sut/octave-note -2 0))))
   (is (= 0 (sut/octave-note -1 0)))
+  (is (= 0 (sut/octave-note :C-1 0)))
   (is (= 12 (sut/octave-note 0 0)))
   (testing "interval too high"
     (is (thrown? Exception (sut/octave-note 0 12))))
@@ -47,6 +55,8 @@
     (is (thrown? Exception (sut/octave-note 9 8))))
   (testing "octave too high"
     (is (thrown? Exception (sut/octave-note 10 0)))))
+
+(sut/octave :C-1)
 
 (deftest note-info-test
   ;; https://en.wikipedia.org/wiki/Scientific_pitch_notation
@@ -162,6 +172,18 @@
 
 (deftest degree->int-test
   )
+
+(deftest resolve-chord-notes-test
+  (is (= [60 64 67]
+         (sut/resolve-chord-notes [:C :E :G])
+         (sut/resolve-chord-notes [:C4 :E :G])
+         (sut/resolve-chord-notes [:C4 :E :G])
+         (sut/resolve-chord-notes [:C4 :E4 :G4])))
+  (is (= [64 67 72]
+         (sut/resolve-chord-notes [:E :G :C])
+         (sut/resolve-chord-notes [:E4 :G :C])
+         (sut/resolve-chord-notes [:E4 :G :C5])
+         (sut/resolve-chord-notes [:E4 :G4 :C5]))))
 
 (deftest scale-field-test
   (is (= 0 (first (sut/scale-field :c))))
