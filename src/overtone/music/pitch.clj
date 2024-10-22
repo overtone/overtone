@@ -37,7 +37,7 @@
           (defn ~rname
             ~(str "Returns the frequency raised by a " doc ".\n"
                   "If not a number, input will be treated as a note.")
-            {:arglists '([freq-or-note])}
+            {:arglists '([~'freq-or-note])}
             [freq#] (* (if (number? freq#)
                          freq#
                          (-> freq# note midi->hz))
@@ -60,7 +60,7 @@
   a logarithmic measurement of pitch, where 1-octave equals 1200
   cents."
   [freq n-cents]
-  (* freq (java.lang.Math/pow 2 (/ n-cents 1200))))
+  (* freq (Math/pow 2 (/ n-cents 1200))))
 
 ;; MIDI
 (def ^:private MIDI-LOWEST-NOTE 0)
