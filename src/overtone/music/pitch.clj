@@ -458,14 +458,20 @@
     (validate-scale! scale)))
 
 (defn scale-field
-  "Create the note field for a given scale.  Scales are specified with
-  a keyword representing the key and an optional scale
-  name (defaulting to :major):
+  "Create the note field for a given scale in the form of a
+  sorted vector containing all valid MIDI note numbers in the
+  scale starting at root. root is resolved with [[pitch-class]]
+  and scale with [[resolve-scale]] (whose input defaults to :major).
+
+  Scales are specified with a keyword representing the key
+  and an optional scale name (defaulting to :major),
+  or any input 
+
   (scale-field :g)
   (scale-field :g :minor)"
   ([root] (scale-field root nil))
   ([root scale]
-   (let [base (:interval (note-info root))
+   (let [base (pitch-class root)
          intervals (vec (resolve-scale (or scale :major)))
          nintervals (count intervals)]
      (loop [field []
