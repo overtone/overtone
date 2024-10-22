@@ -117,7 +117,11 @@
     (is (= {:match "Cbbbbbbbbbbbb", :spelling "Cbbbbbbbbbbbb", :pitch-class :C, :interval 0}
            (sut/note-info "Cbbbbbbbbbbbb")))
     (is (= {:match "Cbbbbbbbbbbbb-1", :spelling "Cbbbbbbbbbbbb", :pitch-class :C, :interval 0, :octave -1, :midi-note 0}
-           (sut/note-info "Cbbbbbbbbbbbb-1")))))
+           (sut/note-info "Cbbbbbbbbbbbb-1"))))
+  ;;FIXME https://en.wikipedia.org/wiki/Scientific_pitch_notation
+  (is (= (sut/note "Cb4")
+         (sut/note "B3")))
+  )
 
 (deftest find-scale-name-test
   (is (#{:melodic-minor :melodic-minor-asc} (sut/find-scale-name [2 1 2 2 2 2 1]))))

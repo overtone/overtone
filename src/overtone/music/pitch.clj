@@ -5,6 +5,8 @@
   
   Scientific pitch notation is used to represent notes as strings:
     https://en.wikipedia.org/wiki/Scientific_pitch_notation
+
+    FIXME
   Octave is always respected, e.g., Cb4 and B4 are enharmonic.
   Also applies when a default octave is documented, e.g., if the
   default octave is 4, Cb and B4 are enharmonic.
