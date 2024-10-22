@@ -221,7 +221,7 @@
   plus C#, Eb, F#, Ab, and Bb."
   [note]
   (if (int? note)
-    (REVERSE-NOTES (mod (validate-midi-note-number! note) 12))
+    (REVERSE-NOTES (pitch-class note))
     (or (REVERSE-NOTES (NOTES note))
         (-> note note-info :pitch-class))))
 
@@ -615,7 +615,9 @@
          root (or midi-note (+ MIDDLE-C (:interval info)))
          scale (resolve-scale scale-name)]
      (mapv #(validate-midi-note-number! (+ root (nth-interval scale %)))
+           ;; fix: don't assume each scale has 7 degrees
            (range (inc (count scale))))))
+  ;; breaking change: don't prepend root
   ([root scale-name degrees]
    (let [{:keys [midi-note] :as info} (note-info root)
          root (or midi-note (+ MIDDLE-C (:interval info)))
@@ -900,17 +902,13 @@
       (or (reverse-get CHORD (simplify-chord adjusted-notes))
           (reverse-get CHORD (compress-chord adjusted-notes))))))
 
-(comment
-  (resolve-chord-notes [:C :E :G])
-  )
-
 (defn resolve-chord-notes
-  "Coerces notes to midi note numbers. Notes default to
-  octave 4 and subsequent notes default to being higher than
-  previous ones.
+  "Coerces notes to midi note numbers. Notes default to being higher than
+  its immediate predecessor, or octave 4 if none.
   
-  (resolve-chord-notes [:C :E :G])
-  "
+  (resolve-chord-notes [:C :E :G]) => [60 64 67]
+  (resolve-chord-notes [:C :E :G :B :D :F]) => [60 64 67 71 74 77]
+  (resolve-chord-notes [:C :E3 :G :B 60 :D :F]) => [60 64 67 71 74 77]"
   [notes]
   (if (every? integer? notes)
     notes

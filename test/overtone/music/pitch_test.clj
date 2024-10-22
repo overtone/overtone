@@ -183,7 +183,9 @@
          (sut/resolve-chord-notes [:E :G :C])
          (sut/resolve-chord-notes [:E4 :G :C])
          (sut/resolve-chord-notes [:E4 :G :C5])
-         (sut/resolve-chord-notes [:E4 :G4 :C5]))))
+         (sut/resolve-chord-notes [:E4 :G4 :C5])))
+  (is (= [60 64 67 71 74 77] (sut/resolve-chord-notes [:C :E :G :B :D :F])))
+  (is (= [60 52 55 59 60 62 65] (sut/resolve-chord-notes [:C :E3 :G :B 60 :D :F]))))
 
 (deftest scale-field-test
   (is (= 0 (first (sut/scale-field :c))))
@@ -203,3 +205,9 @@
             field (sut/scale-field 120)]
       (testing (pr-str note)
         (is (<= 0 field 127))))))
+
+(deftest canonical-pitch-class-name-test
+  (is (= :C (sut/canonical-pitch-class-name 0)))
+  (is (= :B (sut/canonical-pitch-class-name 11)))
+  (is (= :C (sut/canonical-pitch-class-name 12)))
+  (is (thrown? Exception (sut/canonical-pitch-class-name 128))))
