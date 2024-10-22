@@ -3,8 +3,11 @@
   frequencies. This is the place for functions representing general musical
   knowledge, like scales, chords, intervals, etc.
   
-  Scientific pitch notation is used to represent notes as strings
-  https://en.wikipedia.org/wiki/Scientific_pitch_notation
+  Scientific pitch notation is used to represent notes as strings:
+    https://en.wikipedia.org/wiki/Scientific_pitch_notation
+  Octave is always respected, e.g., Cb4 and B4 are enharmonic.
+  Also applies when a default octave is documented, e.g., if the
+  default octave is 4, Cb and B4 are enharmonic.
 
   We denote Middle C (60) as C4, with octaves ranging from -1 to 9."
   {:author "Jeff Rose, Sam Aaron & Marius Kempe"}
@@ -132,10 +135,10 @@
 (defn octave-of
   "Returns the octave of the note. Defaults to 4.
   
-  (sut/octave-of 0) => -1  ;; lowest note is in lowest octave
-  (sut/octave-of 127) => 0  ;; highest note is in highest octave
-  (sut/octave-of :C) => 4  ;; defaults to octave 4
-  (sut/octave-of :B8) => 8"
+  (octave-of 0) => -1  ;; lowest note is in lowest octave
+  (octave-of 127) => 0  ;; highest note is in highest octave
+  (octave-of :C) => 4  ;; defaults to octave 4
+  (octave-of :B8) => 8"
   [note]
   (-> note note-info (:octave 4)))
 
