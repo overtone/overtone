@@ -6,8 +6,7 @@
   Scientific pitch notation is used to represent notes as strings
   https://en.wikipedia.org/wiki/Scientific_pitch_notation
 
-  We denote Middle C (60) as C4, with octaves ranging from -1 to 9.
-  Only single flats and sharps are supported."
+  We denote Middle C (60) as C4, with octaves ranging from -1 to 9."
   {:author "Jeff Rose, Sam Aaron & Marius Kempe"}
   (:use [overtone.helpers old-contrib]
         [overtone.helpers.map :only [reverse-get]]
