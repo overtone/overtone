@@ -159,7 +159,9 @@
   class of the note, representing the scale degrees
   of the C chromatic scale."
   [note]
-  (-> pitch-class note-info :interval))
+  (if (int? note)
+    (mod (validate-midi-note-number! note) 12)
+    (-> note note-info :interval)))
 
 (defn octave-note
   "Convert an octave and pitch class to a midi note. Pitch
@@ -243,7 +245,7 @@
               (str "Invalid midi-string. " mk
                    " does not appear to be in MIDI format e.g. C#4"))))
 
-    (let [[match pitch-class ^String octave-str] matches]
+    (let [[match _pitch-class ^String octave-str] matches]
       (when-some [octave (some-> octave-str Integer.)]
         (when-not (<= MIDI-LOWEST-OCTAVE
                       octave
@@ -328,7 +330,7 @@
            look-ahead  (if post-str (str "(?=" post-str ")") "")
            match       (re-find (re-pattern (str look-behind MIDI-NOTE-RE-STR look-ahead)) s)]
        (when match
-         (let [[match pitch-class octave] match]
+         (let [[match _pitch-class _octave] match]
            (note-info match))))))
 
 
