@@ -9,7 +9,6 @@
   (is (= [0 2 4 5 7 9 11 12] (map sut/nth-interval (range 8))))
   (is (= [0 -1 -3 -5 -7 -8 -10 -12] (map sut/nth-interval (range 0 -8 -1)))))
 
-
 (deftest mk-midi-string
   (is (= "F7" (sut/mk-midi-string :F 7)))
   (is (= "Fb7" (sut/mk-midi-string :Fb 7)))
