@@ -164,16 +164,21 @@
     (-> note note-info :interval)))
 
 (defn octave-note
-  "Convert an octave and pitch class to a midi note. Pitch
-  defaults to 0. Position can be 0-11 for all octaves except
-  octave 9, which must be 0-7.
+  "Convert an octave and pitch class to a midi note. Pitch class
+  defaults to 0 (C). Pitch class can be 0-11 (C-B) for all octaves except
+  octave 9, which must be 0-7 (C-G). If not an integer, will be
+  resolved using [[pitch-class]].
   
   (octave-note -1) => 0    ;; lowest note
-  (octave-note -1 1) => 1  ;; lowest note"
+  (octave-note -1 1) => 1"
   ([octave] (octave-note octave 0))
   ([octave pitch-class]
    (let [octave (resolve-octave octave)
-         pitch-class (p/pitch-class pitch-class)]
+         pitch-class (if (int? pitch-class)
+                       (if (<= 0 pitch-class 11)
+                         pitch-class
+                         (throw (ex-info (str "Pitch class must be between 0-11") {})))
+                       (p/pitch-class pitch-class))]
      (if (= MIDI-HIGHEST-OCTAVE octave)
        (when-not (and (int? pitch-class)
                       (<= 0 pitch-class 7))
@@ -689,6 +694,17 @@
      :dim7       dim7
      :i7         dim7}))
 
+(def ^:private PREFERRED-CHORD-NAMES
+  {:M :major
+   :m :minor
+   :M7 :major7
+   :m7 :minor7
+   :7 :dom7
+   :a :augmented
+   :dim :diminished
+   :dim7 :diminished7
+   :i7 :diminished7})
+
 (defn resolve-chord
   "Either looks the chord up in the map of CHORDs if it's a keyword or
   simply returns it unnmodified. Allows users to specify a chord
@@ -751,10 +767,10 @@
   ([root chord-name num-pitches]
    (let [root (note root)]
      (if (<= MIDI-LOWEST-NOTE (- root 12) (+ root 12) MIDI-HIGHEST-NOTE)
-       (rand-chord (- root 12) :major num-pitches (+ root 12))
+       (rand-chord (- root 12) chord-name num-pitches (+ root 12))
        (if (<= MIDI-LOWEST-NOTE (- root 12))
-         (rand-chord (- root 12) :major num-pitches (+ root 12))
-         (rand-chord root :major num-pitches (+ root 24))))))
+         (rand-chord (- root 12) chord-name num-pitches (+ root 12))
+         (rand-chord root chord-name num-pitches (+ root 24))))))
   ([root chord-name num-pitches pitch-range]
    (rand-chord root chord-name num-pitches pitch-range 0))
   ([root chord-name num-pitches pitch-range inversion]
@@ -835,14 +851,14 @@
   (reverse-get SCALE scale))
 
 (defn find-pitch-class-name
-  "Given a midi number representing a note, returns the canonical name of the note
+  "Given a note, returns the canonical name of the note
   independent of octave.
 
   (find-pitch-class-name 62) ;=> :D
   (find-pitch-class-name 74) ;=> :D
   (find-pitch-class-name 75) ;=> :Eb"
   [note]
-  (REVERSE-NOTES (mod note 12)))
+  (canonical-pitch-class-name note))
 
 (defn find-note-name
   "Given a midi number representing a note, returns a keyword
@@ -867,7 +883,7 @@
      note ))
 
 (defn- simplify-chord
-  "Expects notes to contain 0 (the root note) Reduces all notes into 2
+  "Expects notes to contain 0 (the root note). Reduces all notes into 2
   octaves. This will allow identification of fancy jazz chords, but
   will miss some simple chords if they are spread over more than 1
   octave."
@@ -896,11 +912,12 @@
    Assumes the root note is the lowest note in notes
    notes can be spread over multiple octaves"
   [notes]
-  (if (< 0 (count notes))
+  (when (seq notes)
     (let [root (first (sort notes))
-          adjusted-notes (set (map (fn [x] (- x root)) notes ))]
-      (or (reverse-get CHORD (simplify-chord adjusted-notes))
-          (reverse-get CHORD (compress-chord adjusted-notes))))))
+          adjusted-notes (into #{} (map #(- % root)) notes)
+          res (or (reverse-get CHORD (simplify-chord adjusted-notes))
+                  (reverse-get CHORD (compress-chord adjusted-notes)))]
+      (PREFERRED-CHORD-NAMES res res))))
 
 (defn resolve-chord-notes
   "Coerces notes to midi note numbers. Notes default to being higher than
@@ -917,7 +934,7 @@
       (reduce (fn [out notes]
                 (let [{:keys [midi-note interval]} (note-info notes)]
                   (or (some->> midi-note (conj out))
-                      ;; above previous
+                      ;; above predecessor
                       (let [prev (peek out)
                             pinfo (note-info prev)
                             above? (< (:interval pinfo) interval)
@@ -928,15 +945,18 @@
                         (conj out midi-note)))))
               [root] (next notes)))))
 
+;;TODO provide key signature, utilize note names
 (defn find-chord
-  "Find the chord for a given set or sequence of notes.
+  "Find a chord for a given set or sequence of notes.
   First note will default to octave 4 and subsequent notes
-  default to be higher than previous ones for sequential notes.
-  For sets, all notes default to octave 4.
+  default to be higher than their predecessor for sequential notes.
+  For sets, all notes default to octave 4. Note names are not
+  currently considered in chord names.
 
   Usage examples:
 
-  (find-chord [60 64 67]) ;=> {:root :C, :chord-type :M}"
+  (find-chord [:C :E :G]) ;=> {:root :C, :chord-type :major}
+  (find-chord [:C :E :G :B]) ;=> {:root :C, :chord-type :major7}"
   [notes]
   (let [notes (if (sequential? notes)
                 (resolve-chord-notes notes)
@@ -944,9 +964,11 @@
     (loop [note 0]
       (when (< note (count notes))
         (let [mod-notes (select-root notes note)
+              ;;TODO prioritize simpler chords.
               chord (find-chord-with-low-root mod-notes)
               root (find-pitch-class-name (first (sort mod-notes)))]
           (if chord
+            ;;TODO inversions
             {:root root :chord-type chord}
             (recur (inc note))))))))
 
@@ -956,8 +978,7 @@
   chord progressions. For example:
 
   (chord-degree :i :c4 :ionian) ;=> (60 64 67 71)
-  (chord-degree :ii :c4 :melodic-minor-asc) ;=> (62 65 69 72)
-  "
+  (chord-degree :ii :c4 :melodic-minor-asc) ;=> (62 65 69 72)"
   ([degree root mode]
    (chord-degree degree root mode 4))
   ([degree root mode num-notes]
