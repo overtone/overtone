@@ -189,6 +189,15 @@
   )
 
 (deftest degree->int-test
+  ;;TODO
+  )
+
+(deftest degree->interval-test
+  (is (= 2 (sut/degree->interval :ii :major)))
+  (is (= 2 (sut/degree->interval :ii#b :major)))
+  (is (= 1 (sut/degree->interval :iib :major)))
+  (is (= -1 (sut/degree->interval :iibbb :major)))
+  (is (= 5 (sut/degree->interval :iii# :major)))
   )
 
 (deftest resolve-chord-notes-test
