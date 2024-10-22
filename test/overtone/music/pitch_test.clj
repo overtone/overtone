@@ -106,10 +106,19 @@
            (sut/note-info :B#4)))
     (is (= {:match "C4", :spelling "C", :pitch-class :C, :interval 0, :octave 4, :midi-note 60}
            (sut/note-info :C4))))
-  (testing "double sharps"
-    ;;TODO
-    (is (sut/note-info "Cbb"))
-    ))
+  (testing "repeated accidentals"
+    (is (= {:match "Cbb", :spelling "Cbb", :pitch-class :Bb, :interval 10}
+           (sut/note-info "Cbb")))
+    (is (= {:match "C#b", :spelling "C#b", :pitch-class :C, :interval 0}
+           (sut/note-info "C#b")))
+    (is (= {:match "C##", :spelling "C##", :pitch-class :D, :interval 2}
+           (sut/note-info "C##")))
+    (is (= {:match "Cbb-1", :spelling "Cbb", :pitch-class :Bb, :interval 10, :octave -1, :midi-note 10}
+           (sut/note-info "Cbb-1")))
+    (is (= {:match "Cbbbbbbbbbbbb", :spelling "Cbbbbbbbbbbbb", :pitch-class :C, :interval 0}
+           (sut/note-info "Cbbbbbbbbbbbb")))
+    (is (= {:match "Cbbbbbbbbbbbb-1", :spelling "Cbbbbbbbbbbbb", :pitch-class :C, :interval 0, :octave -1, :midi-note 0}
+           (sut/note-info "Cbbbbbbbbbbbb-1")))))
 
 (deftest find-scale-name-test
   (is (#{:melodic-minor :melodic-minor-asc} (sut/find-scale-name [2 1 2 2 2 2 1]))))
@@ -118,6 +127,7 @@
   (is (= :D (sut/find-pitch-class-name 62)))
   (is (= :D (sut/find-pitch-class-name 74)))
   (is (= :Eb (sut/find-pitch-class-name 75)))
+  (is (= :Bb (sut/find-pitch-class-name :Cbb)))
   (is (= '(:D :Eb :E :F :F# :G :Ab :A :Bb :B :C :C#)
          (map sut/find-pitch-class-name (range 50 (+ 50 12)))))
   )
@@ -130,9 +140,11 @@
 (deftest scale-test
   (is (= [60 62 64 65 67 69 71 72]
          (sut/scale :c :major)
+         (sut/scale :Dbb :major)
          (sut/scale :c4 :major)))
   (is (= [60 62 63 65 67 68 70 72]
          (sut/scale :c :minor)
+         (sut/scale :Bb## :minor)
          (sut/scale :c4 :minor)))
   (testing "backwards scales"
     (is (= [72 70 68 67 65 63 62 60]
@@ -185,6 +197,7 @@
     (is (every? #{:D :F# :A} (map sut/canonical-pitch-class-name (sut/rand-chord :d))))
     (is (every? #{:D :F# :A} (map sut/canonical-pitch-class-name (sut/rand-chord :d :major))))
     (is (every? #{:D :F :A} (map sut/canonical-pitch-class-name (sut/rand-chord :d :minor))))
+    (is (every? #{:D :F :A} (map sut/canonical-pitch-class-name (sut/rand-chord :C## :minor))))
     (is (= 5 (count (sut/rand-chord :d :major 5))))
     (is (every? #(<= 0 % 24) (sut/rand-chord :c-1 :major)))
     (is (every? #(<= 0 % 24) (sut/rand-chord :c-1 :major 3))))
@@ -203,8 +216,10 @@
 (deftest resolve-chord-notes-test
   (is (= [60 64 67]
          (sut/resolve-chord-notes [:C :E :G])
+         (sut/resolve-chord-notes [:Dbb :Fb :Abb])
          (sut/resolve-chord-notes [:C4 :E :G])
          (sut/resolve-chord-notes [:C4 :E :G])
+         (sut/resolve-chord-notes [:Dbb4 :Fb4 :G4])
          (sut/resolve-chord-notes [:C4 :E4 :G4])))
   (is (= [64 67 72]
          (sut/resolve-chord-notes [:E :G :C])
@@ -216,6 +231,8 @@
 
 (deftest find-chord-test
   (is (= {:root :C :chord-type :major} (sut/find-chord [:C :E :G])))
+  ;; TODO Dbb major
+  (is (= {:root :C :chord-type :major} (sut/find-chord [:Dbb :Fb :Abb])))
   ;; TODO C major..
   (is (= {:root :E :chord-type :m+5} (sut/find-chord [:E :G :C])))
   (is (= {:root :C :chord-type :major7} (sut/find-chord [:C :E :G :B]))))
@@ -224,8 +241,12 @@
   (is (= 0 (first (sut/scale-field :c))))
   (is (= 127 (peek (sut/scale-field :c))))
   (is (= 75 (count (sut/scale-field :c))))
+  (is (every? #{:C :D :E :F :G :A :B}
+              (map sut/canonical-pitch-class-name
+                   (sut/scale-field :c))))
   (is (= (sut/scale-field :c)
          (sut/scale-field :b#)
+         (sut/scale-field :Dbb)
          (sut/scale-field :c4)
          (sut/scale-field :c9)
          (sut/scale-field 0)
@@ -243,10 +264,12 @@
   (is (= :C (sut/canonical-pitch-class-name 0)))
   (is (= :B (sut/canonical-pitch-class-name 11)))
   (is (= :C (sut/canonical-pitch-class-name 12)))
+  (is (= :C (sut/canonical-pitch-class-name :Dbb)))
   (is (thrown? Exception (sut/canonical-pitch-class-name 128))))
 
 (deftest find-note-name-test
   (is (= :C4 (sut/find-note-name :B#4)))
+  (is (= :C4 (sut/find-note-name :Dbb4)))
   (is (= :C-1
          (sut/find-note-name 0)
          (sut/find-note-name :B#-1)))

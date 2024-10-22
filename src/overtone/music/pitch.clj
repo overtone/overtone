@@ -218,6 +218,8 @@
    10 :Bb
    11 :B})
 
+(declare ^:private validate-midi-string!)
+
 (defn canonical-pitch-class-name
   "Returns the canonical version of pitch class of the provided note.
   Canonical names are the notes of the C major scale
@@ -225,8 +227,17 @@
   [note]
   (if (int? note)
     (REVERSE-NOTES (pitch-class note))
-    (or (REVERSE-NOTES (NOTES note))
-        (-> note note-info :pitch-class))))
+    (let [[match spelling octave-str] (validate-midi-string! (name note))]
+      (REVERSE-NOTES (reduce (fn [i accidental]
+                               (mod (+ i (case (str accidental)
+                                           "𝄫" -2
+                                           ("♭" "b" "B") -1
+                                           "♮" 0
+                                           ("♯" "#") 1
+                                           "𝄪" 2))
+                                    12))
+                             (NOTES (keyword (str (first spelling))))
+                             (next spelling))))))
 
 (def MIDI-NOTE-RE-STR "([a-gA-G][♭♮♯𝄫𝄪#bB]*)([-0-9]+)?")
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
