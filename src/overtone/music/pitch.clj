@@ -250,7 +250,7 @@
               (str "Invalid midi-string. " mk
                    " does not appear to be in MIDI format e.g. C#4"))))
 
-    (let [[match _pitch-class ^String octave-str] matches]
+    (let [[match spelling ^String octave-str] matches]
       (when-some [octave (some-> octave-str Integer.)]
         (when-not (<= MIDI-LOWEST-OCTAVE
                       octave
@@ -269,7 +269,7 @@
   populated.
  
   :match - the input as a string, or the canonical pitch class if given an integer
-  :pitch-class - the canonical pitch class according to `canonical-pitch-class-name`
+  :pitch-class - the canonical pitch class keyword according to `canonical-pitch-class-name`
   :spelling - the combination of note name and accidentals most resembling original input
   :interval - the number of descending notes until a C natural is reached.
               If octave specified, also the number of notes from the beginning of the octave.
@@ -869,16 +869,22 @@
 (defn find-note-name
   "Given a midi number representing a note, returns a keyword
   representing the canonical name of the note including octave number.
-  Reverse of the fn note. Returns note if nil.
+  Reverse of the fn note. Octave defaults to 4. Returns note if nil.
 
   (find-note-name 45) ;=> :A2
   (find-note-name 57) ;=> :A3
   (find-note-name 58) ;=> :Bb3"
   [note]
   (when (some? note)
-    (validate-midi-note-number! note)
-    (let [octave (dec (int (/ note 12)))]
-      (keyword (str (name (find-pitch-class-name note)) octave)))))
+    (if (int? note)
+      (do (validate-midi-note-number! note)
+          (let [octave (dec (int (/ note 12)))]
+            (keyword (str (name (find-pitch-class-name note)) octave))))
+      (let [{:keys [pitch-class octave]} (note-info note)]
+        ;; https://en.wikipedia.org/wiki/Scientific_pitch_notation
+        ;; :B#4 => :C4
+        ;; :Cb4 => :B4
+        (keyword (str (name pitch-class) (or octave 4)))))))
 
 (defn- fold-note
   "Folds note intervals into a 2 octave range so that chords using
@@ -886,7 +892,7 @@
   [note]
   (if (or (< 21 note) (contains? #{20 19 16 12} note))
     (fold-note (- note 12))
-     note ))
+     note))
 
 (defn- simplify-chord
   "Expects notes to contain 0 (the root note). Reduces all notes into 2

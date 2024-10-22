@@ -235,3 +235,13 @@
   (is (= :B (sut/canonical-pitch-class-name 11)))
   (is (= :C (sut/canonical-pitch-class-name 12)))
   (is (thrown? Exception (sut/canonical-pitch-class-name 128))))
+
+(deftest find-note-name-test
+  (is (= :C4 (sut/find-note-name :B#4)))
+  (is (= :C-1 (sut/find-note-name :B#-1)))
+  (is (= :C#-1 (sut/find-note-name :Db-1)))
+  (is (= :B4 (sut/find-note-name :Cb4)))
+  (is (= :C4
+         (sut/find-note-name :C)
+         (sut/find-note-name :C4)
+         (sut/find-note-name :B#4))))
