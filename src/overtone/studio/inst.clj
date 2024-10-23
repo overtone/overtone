@@ -188,11 +188,11 @@
          volume#    (atom DEFAULT-VOLUME)
          pan#       (atom DEFAULT-PAN)
          inst#      (with-meta
-                      (Inst. sname# params-with-vals# arg-names# sdef#
-                             container-group# instance-group# fx-group#
-                             imixer# inst-bus# fx-chain#
-                             volume# pan#
-                             n-chans#)
+                      (->Inst sname# params-with-vals# arg-names# sdef#
+                              container-group# instance-group# fx-group#
+                              imixer# inst-bus# fx-chain#
+                              volume# pan#
+                              n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (add-instrument inst#)
