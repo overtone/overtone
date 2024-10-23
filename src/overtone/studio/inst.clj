@@ -45,7 +45,10 @@
        out-bus 0
        volume  DEFAULT-VOLUME
        pan     DEFAULT-PAN]
-      (let [snd (in in-bus)]
+      (let [snd (in in-bus)
+            snd (select (check-bad-values snd 0 0)
+                        [snd (dc 0) (dc 0) snd])
+            snd (limiter snd)]
         (out out-bus (pan2 snd pan volume))))
 
     (defsynth stereo-inst-mixer
@@ -54,6 +57,9 @@
        volume  DEFAULT-VOLUME
        pan     DEFAULT-PAN]
       (let [snd  (in in-bus 2)
+            snd (select (check-bad-values snd 0 0)
+                        [snd (dc 0) (dc 0) snd])
+            snd (limiter snd)
             sndl (select 0 snd)
             sndr (select 1 snd)]
         (out out-bus (balance2 sndl sndr pan volume))))))

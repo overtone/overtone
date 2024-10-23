@@ -44,6 +44,7 @@ reconcile the two.
 - [doc] Explain how to get `mda-piano` from sc3-plugins
 - [doc] Add a tip about scsynth and Homebrew
 - [implementation] Warn when imported functions into `overtone.live` conflict
+- [studio] The instrument mixers now contains safety precautions: limiter+check-bad-values
 
 ## Fixed
 
