@@ -324,7 +324,7 @@
           type      (eget e :type)
           next-seq  (pattern/pnext pseq)
           next-beat (+ beat dur)]
-      (if next-seq
+      (if pseq
         (assoc player
                :pseq next-seq
                :beat next-beat
@@ -382,10 +382,25 @@
    (= [5/2 (drop 3 ps)] (align-pseq 2 4 ps))
    (= [13/2 (drop 3 ps)] (align-pseq 6 4 ps))])
 
-(defn- player-resume [{:keys [clock beat pseq quant offset]
-                      :as   player}]
-  (let [beat (max (or beat 0) (clock))
-        [beat pseq] (align-pseq (dec beat) quant pseq)]
+(defn- player-resume [{:keys [clock beat pseq quant align offset]
+                       :or {align :quant}
+                       :as player}]
+  ;; TODO: this is not yet taking :offset into account
+  ;; FIXME: the clock restart leads to some weirdness when starting multiple
+  ;; loops at the same time
+  (let [playing (some :playing (vals @pplayers))
+        _ (when-not playing
+            (clock :start 0))
+        beat (if playing
+               (max (or beat 0) (clock))
+               (clock))
+        [beat pseq] (if playing
+                      (case align
+                        :quant
+                        (align-pseq (dec beat) quant pseq)
+                        :wait
+                        [(quantize-ceil beat quant) pseq])
+                      [(dec beat) pseq])]
     (assoc player
            :playing true
            :beat (inc beat)
@@ -399,7 +414,9 @@
   nil)
 
 (defn ppause [k]
-  (swap! pplayers update k assoc :playing false)
+  (swap! pplayers update k (fn [p] (-> p
+                                       (dissoc :beat)
+                                       (assoc :playing false))))
   nil)
 
 (defn pplay
@@ -440,6 +457,6 @@
  (fn [event-info]
    (swap! pplayers
           (fn [pp]
-            (update-vals pp #(assoc % :playing false))))
+            (update-vals pp #(assoc (dissoc % :beat) :playing false))))
    (at-at/stop-and-reset-pool! player-pool :strategy :kill))
  ::pplayers-reset)
