@@ -242,7 +242,7 @@
   "Add an instrument to the session."
   [inst]
   (let [i-name (:name inst)]
-    (swap! studio* update-in [:instruments i-name] (fn [_] inst))
+    (swap! studio* assoc-in [:instruments i-name] inst)
     i-name))
 
 (defn remove-instrument
@@ -257,4 +257,11 @@
 (defn clear-instruments
   "Clear all instruments from the session."
   []
-  (swap! studio* assoc :instruments {}))
+  (let [[{:keys [instruments]} _]
+        (swap-vals! studio* assoc :instruments {})]
+    (doseq [[_name inst] instruments]
+      (group-free (:instance-group inst)))))
+
+(comment
+  (group-clear (:instrument-group @studio*))
+  (pp-node-tree))

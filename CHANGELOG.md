@@ -77,6 +77,7 @@ reconcile the two.
 
 - [at-at] Bumped at-at to 1.4.65, which fixes reflection warnings.
 - [insts] sampled-piano now takes an `:amp` arg, as per synth/inst conventions
+- [studio] `clear-instruments` now also frees the instruments on the server
 
 # 0.14.3199 (2024-05-19 / 5d1c1ed)
 
