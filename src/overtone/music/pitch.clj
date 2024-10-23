@@ -39,7 +39,11 @@
   (* freq (java.lang.Math/pow 2 (/ n-cents 1200))))
 
 ;; MIDI
-(def MIDI-RANGE (range 128))
+(def ^:private MIDI-LOWEST-NOTE 0)
+(def ^:private MIDI-HIGHEST-NOTE 127)
+(def ^:private MIDI-LOWEST-OCTAVE -1)
+(def ^:private MIDI-HIGHEST-OCTAVE 9)
+(def MIDI-RANGE (range MIDI-LOWEST-NOTE (inc MIDI-HIGHEST-NOTE)))
 (def MIDDLE-C 60)
 
 ;; Manipulating pitch using midi note numbers
@@ -329,16 +333,25 @@
   name (defaulting to :major):
   (scale-field :g)
   (scale-field :g :minor)"
-  [skey & [sname]]
-  (let [base (NOTES skey)
-        sname (or sname :major)
-        intervals (SCALE sname)]
-    (reverse (next
-              (reduce (fn [mem interval]
-                        (let [new-note (+ (first mem) interval)]
-                          (conj mem new-note)))
-                      (list base)
-                      (take (* 8 12) (cycle intervals)))))))
+  ([root] (scale-field root nil))
+  ([root scale]
+   (let [base (NOTES root)
+         intervals (vec (resolve-scale (or scale :major)))
+         nintervals (count intervals)]
+     (loop [field []
+            note (- base 12) ;; start 1-12 notes below MIDI-LOWEST-NOTE
+            interval-idx (num 0)]
+       (let [note (+ note (nth intervals interval-idx))]
+         (if (<= MIDI-LOWEST-NOTE note)
+           (if (<= note MIDI-HIGHEST-NOTE)
+             (recur (conj field note)
+                    note
+                    (mod (inc interval-idx) nintervals))
+             field)
+           (recur field
+                  note
+                  (mod (inc interval-idx) nintervals))))))))
+
 
 (defn nth-interval
   "Return the count of semitones for the nth degree from the start of
