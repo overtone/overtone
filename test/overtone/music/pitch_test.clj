@@ -1,5 +1,5 @@
 (ns overtone.music.pitch-test
-  (:use overtone.music.pitch
+  (:use [overtone.music.pitch :as sut]
         clojure.test))
 
 (deftest invert-chord-works-properly
@@ -10,3 +10,31 @@
 (deftest chord-inversion-is-correct
   (is (= (chord :F3 :major 1) '(57 60 65)))
   (is (= (chord :F3 :major 2) '(60 65 69))))
+
+(deftest scale-field-test
+  (is (= 0 (first (sut/scale-field :c))))
+  (is (= 0 (first (sut/scale-field :db))))
+  (is (= 127 (peek (sut/scale-field :c))))
+  (is (= 127 (peek (sut/scale-field :G))))
+  (is (= 75 (count (sut/scale-field :c))))
+  (doseq [no-accidentals [[:c]
+                          [:c :major]
+                          [:d :dorian]
+                          [:e :phrygian]
+                          [:a :minor]
+                          [:a :minor-pentatonic]]]
+    (testing (pr-str no-accidentals)
+      (is (every? #{:C :D :E :F :G :A :B}
+                  (map (comp :pitch-class
+                             sut/note-info
+                             sut/find-note-name)
+                       (apply sut/scale-field no-accidentals))))))
+  (is (= (sut/scale-field :b#) (sut/scale-field :c)))
+  (is (= (sut/scale-field :e#) (sut/scale-field :f)))
+  (is (= 128 (count (sut/scale-field :C :chromatic))))
+  (is (apply = (map #(sut/scale-field % :chromatic) (keys sut/NOTES))))
+  (testing "fields contain valid MIDI notes"
+    (doseq [note (keys sut/NOTES)
+            field (sut/scale-field note)]
+      (testing (pr-str note)
+        (is (<= 0 field 127))))))
