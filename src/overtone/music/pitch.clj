@@ -352,7 +352,6 @@
                   note
                   (mod (inc interval-idx) nintervals))))))))
 
-
 (defn nth-interval
   "Return the count of semitones for the nth degree from the start of
   the diatonic scale in the specific mode (or ionian/major by
