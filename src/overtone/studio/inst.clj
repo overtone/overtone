@@ -97,21 +97,21 @@
   inst-channels)
 
 (defmethod inst-fx! :mono
-  [inst fx]
+  [inst fx & args]
   (ensure-node-active! inst)
   (let [fx-group (:fx-group inst)
         bus      (:bus inst)
-        fx-id    (fx [:tail fx-group] :bus bus)]
+        fx-id    (apply fx [:tail fx-group] :bus bus args)]
     fx-id))
 
 (defmethod inst-fx! :stereo
-  [inst fx]
+  [inst fx & args]
   (ensure-node-active! inst)
   (let [fx-group (:fx-group inst)
         bus-l    (to-sc-id (:bus inst))
         bus-r    (inc bus-l)
-        fx-ids   [(fx [:tail fx-group] :bus bus-l)
-                  (fx [:tail fx-group] :bus bus-r)]]
+        fx-ids   [(apply fx [:tail fx-group] :bus bus-l args)
+                  (apply fx [:tail fx-group] :bus bus-r args)]]
     fx-ids))
 
 (defn clear-fx

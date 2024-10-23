@@ -45,6 +45,7 @@ reconcile the two.
 - [doc] Add a tip about scsynth and Homebrew
 - [implementation] Warn when imported functions into `overtone.live` conflict
 - [studio] The instrument mixers now contains safety precautions: limiter+check-bad-values
+- [studio] Allow passing additional arguments to `inst-fx!`
 
 ## Fixed
 
