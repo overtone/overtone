@@ -3,6 +3,7 @@
    [overtone.at-at :as at-at]
    [overtone.libs.event :as event]
    [overtone.music.pitch :as pitch]
+   [overtone.music.rhythm :as rhythm]
    [overtone.music.time :as time]
    [overtone.sc.node :as node]
    [overtone.sc.sample :as sample]
@@ -117,7 +118,9 @@
 (def ^:private event-derivations
   {:detuned-freq
    (fn [e]
-     (when (some #(contains? e %) [:freq :midinote :note :degree])
+     (when (and (some #(contains? e %) [:freq :midinote :note :degree])
+                (eget e :freq)
+                (eget e :detune))
        (+ (eget e :freq) (eget e :detune))))
 
    :freq
@@ -162,7 +165,7 @@
    :note
    (fn [e]
      (let [degree (eget e :degree)]
-       (if (#{:_ :rest} degree)
+       (if (rest? degree)
          degree
          (let [degree (pitch/degree->int degree)
                scale (eget e :scale-notes)
@@ -210,7 +213,7 @@
         2 sample/stereo-partial-player)
       i)))
 
-(defn- params-vec [e]
+(defn event-params-vec [e]
   (let [i' (eget e :instrument)
         i (eget-instrument e)
         params (or (:params (meta i))
@@ -231,7 +234,7 @@
   (when-not (keyword? (eget e :freq))
     (let [i         (eget-instrument e)
           params    (:params i)
-          args      (params-vec e)
+          args      (event-params-vec e)
           has-gate? (some #{"gate"} (map :name params))
           start     (eget e :start-time)
           end       (if start
@@ -274,7 +277,7 @@
 
 (defn- handle-ctl [e]
   (let [i (eget-instrument e)
-        args (params-vec e)
+        args (event-params-vec e)
         start (eget e :start-time)]
     (when start
       (server/at start (apply node/ctl i args)))))
