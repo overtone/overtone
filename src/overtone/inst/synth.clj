@@ -309,8 +309,8 @@
         osc-b (* amp (sin-osc (* (mouse-y 3000 0) osc-a)))]
     osc-a))
 
-; From the SC2 examples included with SC
-; Don't think it's quite there, but almost...
+;; From the SC2 examples included with SC
+;; Don't think it's quite there, but almost...
 (definst harmonic-swimming
   [amp 0.5]
   (let [freq     100
@@ -322,9 +322,9 @@
               (if (= partials i)
                 z
                 (let [f (clip:kr (mul-add
-                                   (lf-noise1:kr [(+ 6 (rand 4))
-                                                  (+ 6 (rand 4))])
-                                   0.2 offset))
+                                  (lf-noise1:kr [(+ 6 (rand 4))
+                                                 (+ 6 (rand 4))])
+                                  0.2 offset))
                       src  (f-sin-osc (* freq (inc i)))
                       newz (mul-add src f z)]
                   (recur newz (inc i)))))]
