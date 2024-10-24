@@ -358,7 +358,8 @@
                     opts)))))
 
 (defn- align-pseq [beat quant pseq]
-  (let [next-beat (mod beat quant)
+  (let [beat (dec beat) ;; 0-based, so we can do modulo
+        next-beat (mod beat quant)
         [diff pseq] (loop [nb next-beat
                            ps pseq]
                       ;; (prn nb ps)
@@ -366,7 +367,25 @@
                         (let [dur (eget (pattern/pfirst ps) :dur)]
                           (recur (- nb dur) (pattern/pnext ps)))
                         [nb ps]))]
-    [(- beat diff) pseq]))
+    [;; convert back to 1-based beat index
+     (inc (- beat diff))
+     pseq]))
+
+(defn- take-pseq [len pseq]
+  (loop [pseq pseq
+         rem len
+         res []]
+    (let [e (pattern/pfirst pseq)
+          dur (eget e :dur)]
+      (cond
+        (nil? e)
+        (conj res {:type :rest :dur rem})
+        (<= rem dur)
+        (conj res (assoc e :dur rem))
+        :else
+        (recur (pattern/pnext pseq)
+               (- rem dur)
+               (conj res e))))))
 
 (comment
   (def ps
@@ -382,36 +401,69 @@
    (= [5/2 (drop 3 ps)] (align-pseq 2 4 ps))
    (= [13/2 (drop 3 ps)] (align-pseq 6 4 ps))])
 
-(defn- player-resume [{:keys [clock beat pseq quant align offset]
-                       :or {align :quant}
-                       :as player}]
+(defn- player-resume [{:keys [clock beat quant align offset]
+                       :or {clock transport/*clock*}
+                       old-pseq :pseq
+                       :as player}
+                      pseq
+                      opts]
   ;; TODO: this is not yet taking :offset into account
   ;; FIXME: the clock restart leads to some weirdness when starting multiple
   ;; loops at the same time
-  (let [playing (some :playing (vals @pplayers))
+  (let [align (:align opts (:align player :quant))
+        quant (:quant opts (:quant player 4))
+        playing (some :playing (vals @pplayers))
         _ (when-not playing
-            (clock :start 1))
+            (clock :start 0))
         beat (if playing
                (max (or beat 1) (clock))
                (clock))
-        [beat pseq] (if playing
-                      (case align
-                        :quant
-                        (align-pseq (dec beat) quant pseq)
-                        :wait
-                        [(quantize-ceil beat quant) pseq])
-                      [(dec beat) pseq])]
-    (assoc player
-           :playing true
-           :beat (inc beat)
-           :pseq pseq)))
+        ;; _ (println 'some-playing? playing 'us-playing? (:playing player)
+        ;;            'align align)
+        [beat pseq] (if-not playing
+                      ;; nothing is currently playing, so just start
+                      ;; immediatedly
+                      [beat pseq]
 
-(defn presume [k]
-  (let [[old new] (map k (swap-vals! pplayers update k player-resume))]
-    (when (and (not (:playing old))
-               (:playing new))
-      (schedule-next-job (:clock new) (:beat new) k)))
-  nil)
+                      ;; Other player(s) are already playing, make sure we are
+                      ;; in sync
+                      (case align
+                        ;; Honor the quant value, but switch immediately,
+                        ;; possibly skipping over notes
+                        :quant
+                        (align-pseq beat quant pseq)
+                        :wait
+                        (if-not (:playing player)
+                          ;; we aren't playing yet, so start the sequence at the
+                          ;; next available sync point (e.g. bar)
+                          [(quantize-ceil beat quant) pseq]
+                          ;; We are already playing, let the old pattern play
+                          ;; out until we are ready to switch
+                          (let [switch (quantize-ceil beat quant)]
+                            [beat (concat (take-pseq (- switch beat) old-pseq)
+                                                pseq)]))
+                        ;; Base case, just start at the next beat
+                        [beat pseq])
+)]
+    (assoc player
+           :clock clock
+           :playing true
+           :beat beat
+           :pseq pseq
+           :quant quant)))
+
+(defn presume
+  ([k]
+   (presume k (:pseq (get @pplayers k))))
+  ([k new-pseq]
+   (presume k new-pseq nil))
+  ([k new-pseq opts]
+   (let [new-pseq (cond-> new-pseq (map? new-pseq) pattern/pbind)
+         [old new] (map k (swap-vals! pplayers update k player-resume new-pseq opts))]
+     (when (and (not (:playing old))
+                (:playing new))
+       (schedule-next-job (:clock new) (:beat new) k)))
+   nil))
 
 (defn ppause [k]
   (swap! pplayers update k (fn [p] (-> p
@@ -432,13 +484,14 @@
   - `:offset` wait this many beats before starting the pattern
   - `:quant` start the pattern at a beat number that is a multiple of `:quant`
   "
-  [k pattern & args]
+  [k pattern & {:as opts}]
   (if (= \_ (first (name k)))
     (ppause (keyword (namespace k) (subs (name k) 1)))
     (do
-      (apply padd k pattern args)
-      (presume k)))
+      #_(apply padd k pattern args)
+      (presume k pattern opts)))
   nil)
+
 
 (defn ploop [k pattern & args]
   (apply pplay k (repeat (pattern/pbind pattern)) args))
@@ -460,3 +513,7 @@
             (update-vals pp #(assoc (dissoc % :beat) :playing false))))
    (at-at/stop-and-reset-pool! player-pool :strategy :kill))
  ::pplayers-reset)
+
+(comment
+(into {} (map #(dissoc % :pseq :pattern)) @@pplayers)
+  )
