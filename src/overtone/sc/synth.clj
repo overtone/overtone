@@ -670,9 +670,12 @@
     (with-meta
       (map->Synth
        {:name s-name
-        :sdef sdef})
-      (merge {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))}
-             (meta s-name)))))
+        :sdef sdef
+        :args params})
+      (merge {:overtone.live/to-string #(str (name (:type %)) ":" (:name %))}
+             (-> (meta s-name)
+                 ;; Eval so we can get rid of the extra quote.
+                 (update :arglists eval))))))
 
 (defmacro defsynth-load
   "Load a synth from a compiled Synthdef file.
@@ -683,11 +686,11 @@
 
   (my-beep :note 40)"
   [def-name file-path]
-  (let [smap (synth-load file-path)]
-    `(def ~(with-meta def-name
-             (merge (dissoc (meta smap) :name)
-                    (meta def-name)))
-       ~smap)))
+  `(let [smap# (synth-load ~file-path)]
+     (def ~def-name
+       smap#)
+     (alter-meta! (var ~def-name) merge (meta ~def-name))
+     (var ~def-name)))
 
 (defn synth?
   "Returns true if s is a synth, false otherwise."
