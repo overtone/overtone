@@ -1,4 +1,4 @@
-# Unreleased
+# 0.15.3295 (2024-10-24 / d354b4f)
 
 This release features a significant update of the Pattern Library introduced in
 0.14. These changes make it more suitable for live programming, improving the
