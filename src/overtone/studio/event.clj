@@ -390,9 +390,9 @@
   ;; loops at the same time
   (let [playing (some :playing (vals @pplayers))
         _ (when-not playing
-            (clock :start 0))
+            (clock :start 1))
         beat (if playing
-               (max (or beat 0) (clock))
+               (max (or beat 1) (clock))
                (clock))
         [beat pseq] (if playing
                       (case align
