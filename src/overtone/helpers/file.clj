@@ -5,8 +5,7 @@
    [clojure.java.io :refer :all]
    [clojure.string :as str]
    [org.satta.glob :as satta-glob]
-   [overtone.helpers.string :refer :all]
-   [overtone.helpers.system :refer [windows-os?]])
+   [overtone.helpers.string :refer :all])
   (:import
    (java.io StringWriter)
    (java.net URL)
