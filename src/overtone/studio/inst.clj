@@ -48,7 +48,7 @@
       (let [snd (in in-bus)
             snd (select (check-bad-values snd 0 0)
                         [snd (dc 0) (dc 0) snd])
-            snd (limiter snd)]
+            snd (limiter snd 0.99 0.001)]
         (out out-bus (pan2 snd pan volume))))
 
     (defsynth stereo-inst-mixer
@@ -59,7 +59,7 @@
       (let [snd  (in in-bus 2)
             snd (select (check-bad-values snd 0 0)
                         [snd (dc 0) (dc 0) snd])
-            snd (limiter snd)
+            snd (limiter snd 0.99 0.001)
             sndl (select 0 snd)
             sndr (select 1 snd)]
         (out out-bus (balance2 sndl sndr pan volume))))))
