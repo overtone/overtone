@@ -46,6 +46,7 @@ reconcile the two.
 - [implementation] Warn when imported functions into `overtone.live` conflict
 - [studio] The instrument mixers now contains safety precautions: limiter+check-bad-values
 - [studio] Allow passing additional arguments to `inst-fx!`
+- [studio] Add "aux send" API (`aux-bus`, `aux-ctl`)
 
 ## Fixed
 

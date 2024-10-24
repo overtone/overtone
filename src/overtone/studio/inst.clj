@@ -22,7 +22,7 @@
 
 (defonce ^{:private true} __RECORDS__
   (do
-    (defrecord-ifn Inst [name params args sdef
+    (defrecord-ifn Inst [name full-name params args sdef
                          group instance-group fx-group
                          mixer bus fx-chain
                          volume pan
@@ -127,13 +127,14 @@
        (binding [*ugens*     []
                  *constants* #{}]
          (with-overloaded-ugens
-           (let [form#               ~@ugen-form
+           (let [full-name# '~(symbol (str *ns*) (str sname))
+                 form#               ~@ugen-form
                  ;; form# can be a map, or a sequence of maps. We use
                  ;; `sequence?` because `coll?` applies to maps (which
                  ;; are not sequential) and `seq?` does not apply to
                  ;; vectors (which are sequential).
                  n-chans#            (if (sequential? form#) (count form#) 1)
-                 inst-bus#           (or (:bus (get (:instruments @studio*) ~sname))
+                 inst-bus#           (or (:bus (get (:instruments @studio*) full-name#))
                                          (audio-bus n-chans#))
                  [ugens# constants#] (gather-ugens-and-constants (out inst-bus# form#))
                  ugens#              (topological-sort-ugens ugens#)
@@ -142,6 +143,7 @@
                  ugens#              (concat ugens# side-tree#)
                  constants#          (into [] (set (concat constants# *constants*)))]
              [~sname
+              full-name#
               ~params
               ugens#
               constants#
@@ -156,9 +158,8 @@
 (defmacro inst
   [sname & args]
   (ensure-connected!)
-  `(let [full-name# '~(symbol (str *ns*) (str sname))
-         [sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
-         new-inst# (get (:instruments @studio*) sname#)
+  `(let [[sname# full-name# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
+         new-inst# (get (:instruments @studio*) full-name#)
          container-group# (or (:group new-inst#)
                               (with-server-sync
                                 #(group (str "Inst " sname# " Container")
@@ -188,7 +189,7 @@
          volume#    (atom DEFAULT-VOLUME)
          pan#       (atom DEFAULT-PAN)
          inst#      (with-meta
-                      (->Inst sname# params-with-vals# arg-names# sdef#
+                      (->Inst sname# full-name# params-with-vals# arg-names# sdef#
                               container-group# instance-group# fx-group#
                               imixer# inst-bus# fx-chain#
                               volume# pan#
