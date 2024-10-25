@@ -321,9 +321,16 @@
                            (pattern/pfirst pseq)
                            proto)
           dur       (eget e :dur)
-          type      (eget e :type)
           next-seq  (pattern/pnext pseq)
-          next-beat (+ beat dur)]
+          dur       (eget e :dur)
+          next-e    (pattern/pfirst next-seq)
+          next-start-beat (some-> next-e
+                                  (eget :start-time)
+                                  (- (rhythm/metro-start clock))
+                                  (/ (rhythm/metro-tick clock)))
+          next-beat (or next-start-beat
+                        (eget next-e :beat)
+                        (+ beat dur))]
       (if pseq
         (assoc player
                :pseq next-seq
