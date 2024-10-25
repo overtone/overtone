@@ -584,18 +584,24 @@
 
 (defn synth-form
   "Internal function used to prepare synth meta-data."
-  [s-name s-form]
-  (let [[s-name s-form] (name-with-attributes s-name s-form)
-        _               (when (not (symbol? s-name))
-                          (throw (IllegalArgumentException. (str "You need to specify a name for your synth using a symbol"))))
-        params          (first s-form)
-        ugen-form       (concat '(do) (next s-form))
-        param-names     (list (vec (map #(symbol (:name %)) (parse-params params))))
-        md              (assoc (meta s-name)
-                               :name s-name
-                               :type ::synth
-                               :arglists (list 'quote param-names))]
-    [(with-meta s-name md) params ugen-form]))
+  ([s-name s-form]
+   (synth-form s-name s-form {}))
+  ([s-name s-form {:keys [compile-time?]
+                   :or {compile-time? true}}]
+   (let [[s-name s-form] (name-with-attributes s-name s-form)
+         _               (when (not (symbol? s-name))
+                           (throw (IllegalArgumentException. (str "You need to specify a name for your synth using a symbol"))))
+         params          (first s-form)
+         ugen-form       (concat '(do) (next s-form))
+         param-names     (list (vec (map #(symbol (:name %)) (parse-params params))))
+         md              (assoc (meta s-name)
+                                :name s-name
+                                :type ::synth
+                                ;; At run-time, we don't need the extra `quote`.
+                                :arglists (if compile-time?
+                                            (list 'quote param-names)
+                                            param-names))]
+     [(with-meta s-name md) params ugen-form])))
 
 (defmacro defsynth
   "Define a synthesizer and return a player function. The synth
@@ -666,16 +672,15 @@
                                                (list (vec (mapcat (fn [pname default-value]
                                                                     [(symbol (:name pname)) default-value])
                                                                   pnames params))
-                                                     nil))]
+                                                     nil)
+                                               {:compile-time? false})]
     (with-meta
       (map->Synth
        {:name s-name
         :sdef sdef
         :args params})
       (merge {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))}
-             (-> (meta s-name)
-                 ;; Get rid of the extra quote in `:arglists`.
-                 (update :arglists #(-> % rest first)))))))
+             (meta s-name)))))
 
 (defmacro defsynth-load
   "Load a synth from a compiled Synthdef file.
