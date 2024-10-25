@@ -22,7 +22,7 @@
 
 (defonce ^{:private true} __RECORDS__
   (do
-    (defrecord-ifn Inst [name params args sdef
+    (defrecord-ifn Inst [name full-name params args sdef
                          group instance-group fx-group
                          mixer bus fx-chain
                          volume pan
@@ -45,7 +45,10 @@
        out-bus 0
        volume  DEFAULT-VOLUME
        pan     DEFAULT-PAN]
-      (let [snd (in in-bus)]
+      (let [snd (in in-bus)
+            snd (select (check-bad-values snd 0 0)
+                        [snd (dc 0) (dc 0) snd])
+            snd (limiter snd 0.99 0.001)]
         (out out-bus (pan2 snd pan volume))))
 
     (defsynth stereo-inst-mixer
@@ -54,6 +57,9 @@
        volume  DEFAULT-VOLUME
        pan     DEFAULT-PAN]
       (let [snd  (in in-bus 2)
+            snd (select (check-bad-values snd 0 0)
+                        [snd (dc 0) (dc 0) snd])
+            snd (limiter snd 0.99 0.001)
             sndl (select 0 snd)
             sndr (select 1 snd)]
         (out out-bus (balance2 sndl sndr pan volume))))))
@@ -91,21 +97,21 @@
   inst-channels)
 
 (defmethod inst-fx! :mono
-  [inst fx]
+  [inst fx & args]
   (ensure-node-active! inst)
   (let [fx-group (:fx-group inst)
         bus      (:bus inst)
-        fx-id    (fx [:tail fx-group] :bus bus)]
+        fx-id    (apply fx [:tail fx-group] :bus bus args)]
     fx-id))
 
 (defmethod inst-fx! :stereo
-  [inst fx]
+  [inst fx & args]
   (ensure-node-active! inst)
   (let [fx-group (:fx-group inst)
         bus-l    (to-sc-id (:bus inst))
         bus-r    (inc bus-l)
-        fx-ids   [(fx [:tail fx-group] :bus bus-l)
-                  (fx [:tail fx-group] :bus bus-r)]]
+        fx-ids   [(apply fx [:tail fx-group] :bus bus-l args)
+                  (apply fx [:tail fx-group] :bus bus-r args)]]
     fx-ids))
 
 (defn clear-fx
@@ -121,13 +127,14 @@
        (binding [*ugens*     []
                  *constants* #{}]
          (with-overloaded-ugens
-           (let [form#               ~@ugen-form
+           (let [full-name# '~(symbol (str *ns*) (str sname))
+                 form#               ~@ugen-form
                  ;; form# can be a map, or a sequence of maps. We use
                  ;; `sequence?` because `coll?` applies to maps (which
                  ;; are not sequential) and `seq?` does not apply to
                  ;; vectors (which are sequential).
                  n-chans#            (if (sequential? form#) (count form#) 1)
-                 inst-bus#           (or (:bus (get (:instruments @studio*) ~sname))
+                 inst-bus#           (or (:bus (get (:instruments @studio*) full-name#))
                                          (audio-bus n-chans#))
                  [ugens# constants#] (gather-ugens-and-constants (out inst-bus# form#))
                  ugens#              (topological-sort-ugens ugens#)
@@ -136,6 +143,7 @@
                  ugens#              (concat ugens# side-tree#)
                  constants#          (into [] (set (concat constants# *constants*)))]
              [~sname
+              full-name#
               ~params
               ugens#
               constants#
@@ -150,9 +158,8 @@
 (defmacro inst
   [sname & args]
   (ensure-connected!)
-  `(let [full-name# '~(symbol (str *ns*) (str sname))
-         [sname# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
-         new-inst# (get (:instruments @studio*) sname#)
+  `(let [[sname# full-name# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
+         new-inst# (get (:instruments @studio*) full-name#)
          container-group# (or (:group new-inst#)
                               (with-server-sync
                                 #(group (str "Inst " sname# " Container")
@@ -182,11 +189,11 @@
          volume#    (atom DEFAULT-VOLUME)
          pan#       (atom DEFAULT-PAN)
          inst#      (with-meta
-                      (Inst. sname# params-with-vals# arg-names# sdef#
-                             container-group# instance-group# fx-group#
-                             imixer# inst-bus# fx-chain#
-                             volume# pan#
-                             n-chans#)
+                      (->Inst sname# full-name# params-with-vals# arg-names# sdef#
+                              container-group# instance-group# fx-group#
+                              imixer# inst-bus# fx-chain#
+                              volume# pan#
+                              n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
      (load-synthdef sdef#)
      (add-instrument inst#)

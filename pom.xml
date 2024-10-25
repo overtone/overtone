@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>overtone</groupId>
   <artifactId>overtone</artifactId>
-  <version>0.14.3199</version>
+  <version>0.15.3295</version>
   <name>overtone</name>
   <description>Sound and music live programming environment.</description>
   <url>https://github.com/overtone/overtone</url>
@@ -25,13 +25,13 @@
     <url>https://github.com/overtone/overtone</url>
     <connection>scm:git:git://github.com/overtone/overtone.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/overtone/overtone.git</developerConnection>
-    <tag>1ddb047d13ed20ea201faafc42c93071fd01ce14</tag>
+    <tag>0b5a855919976e353003be705df6a6ab00b6cee1</tag>
   </scm>
   <dependencies>
     <dependency>
       <groupId>overtone</groupId>
       <artifactId>at-at</artifactId>
-      <version>1.3.58</version>
+      <version>1.4.65</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
@@ -83,7 +83,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <git-revision>1ddb047d13ed20ea201faafc42c93071fd01ce14</git-revision>
+              <git-revision>0b5a855919976e353003be705df6a6ab00b6cee1</git-revision>
             </manifestEntries>
           </archive>
         </configuration>

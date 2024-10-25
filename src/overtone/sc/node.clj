@@ -425,37 +425,37 @@
   (group \"bar\" :head my-g) ;=> Creates a named group at the head of
                                group my-g"
   ([]
-     (group :tail (:default-group @foundation-groups*)))
+   (group :tail (:default-group @foundation-groups*)))
 
   ([name-or-position]
-     (let [id (next-id :node)]
-       (if (string? name-or-position)
-         (group name-or-position id :tail (:default-group @foundation-groups*))
-         (group (str "Group-" id) id name-or-position (:default-group @foundation-groups*)))))
+   (let [id (next-id :node)]
+     (if (string? name-or-position)
+       (group name-or-position id :tail (:default-group @foundation-groups*))
+       (group (str "Group-" id) id name-or-position (:default-group @foundation-groups*)))))
 
   ([name-or-position position-or-target]
-     (let [id (next-id :node)]
-       (if (string? name-or-position)
-         (group name-or-position id position-or-target (:default-group @foundation-groups*))
-         (group (str "Group-" id) id name-or-position position-or-target))))
+   (let [id (next-id :node)]
+     (if (string? name-or-position)
+       (group name-or-position id position-or-target (:default-group @foundation-groups*))
+       (group (str "Group-" id) id name-or-position position-or-target))))
 
   ([name position target]
-     (group name (next-id :node) position target))
+   (group name (next-id :node) position target))
 
   ([name id position target]
-     (ensure-connected!)
-     (ensure-node-active! target "using node as a target for a group")
-     (when-not target
-       (throw (IllegalArgumentException. (str "The target for this group must exist."))))
-     (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
-           target (to-sc-id target)
-           pos    (or pos 1)
-           create-command (if par-group-switch "/p_new" "/g_new")
-           name (if par-group-switch (str "Par-" name) name)
-           snode  (SynthGroup. name id target position (atom :loading) (promise))]
-       (swap! active-synth-nodes* assoc id snode)
-       (snd create-command id pos target)
-       snode)))
+   (ensure-connected!)
+   (ensure-node-active! target "using node as a target for a group")
+   (when-not target
+     (throw (IllegalArgumentException. (str "The target for this group must exist."))))
+   (let [pos    (if (keyword? position) (get NODE-POSITION position) position)
+         target (to-sc-id target)
+         pos    (or pos 1)
+         create-command (if par-group-switch "/p_new" "/g_new")
+         name (if par-group-switch (str "Par-" name) name)
+         snode  (SynthGroup. name id target position (atom :loading) (promise))]
+     (swap! active-synth-nodes* assoc id snode)
+     (snd create-command id pos target)
+     snode)))
 
 (defn par-group [& args]
   (binding [par-group-switch true]
