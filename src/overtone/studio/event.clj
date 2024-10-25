@@ -415,13 +415,9 @@
                       pseq
                       opts]
   ;; TODO: this is not yet taking :offset into account
-  ;; FIXME: the clock restart leads to some weirdness when starting multiple
-  ;; loops at the same time
   (let [align (:align opts (:align player :quant))
         quant (:quant opts (:quant player 4))
         playing (some :playing (vals @pplayers))
-        _ (when-not playing
-            (clock :start 0))
         beat (if playing
                (max (or beat 1) (clock))
                (clock))
