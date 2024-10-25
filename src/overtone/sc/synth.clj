@@ -672,10 +672,10 @@
        {:name s-name
         :sdef sdef
         :args params})
-      (merge {:overtone.live/to-string #(str (name (:type %)) ":" (:name %))}
+      (merge {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))}
              (-> (meta s-name)
-                 ;; Eval so we can get rid of the extra quote.
-                 (update :arglists eval))))))
+                 ;; Get rid of the extra quote in `:arglists`.
+                 (update :arglists #(-> % rest first)))))))
 
 (defmacro defsynth-load
   "Load a synth from a compiled Synthdef file.
