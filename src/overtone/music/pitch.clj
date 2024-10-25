@@ -472,7 +472,10 @@
 
   (scale :c4 :major)  ; c major      -> (60 62 64 65 67 69 71 72)
   (scale :Bb4 :minor) ; b flat minor -> (70 72 73 75 77 78 80 82)"
-  ([root scale-name] (scale root scale-name (range 1 8)))
+  ([root scale-name]
+   (let [root (note root)
+         scale-length (count (SCALE scale-name))]
+     (map #(+ root (nth-interval scale-name %)) (range (inc scale-length)))))
   ([root scale-name degrees]
    (let [root (note root)
          degrees (resolve-degrees degrees)]
