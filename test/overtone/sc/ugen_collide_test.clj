@@ -1,6 +1,7 @@
 (ns overtone.sc.ugen-collide-test
   (:require [clojure.test :refer [deftest is testing]]
             [overtone.sc.ugens :as u :refer [gate:kr]]
+            [overtone.sc.ugen-collide :as sut]
             [overtone.sc.machinery.ugen.sc-ugen :as urep]))
 
 ;; there used to be ugens called and/or (originally sig-{and,or,xor}).
@@ -51,3 +52,9 @@
     (is (= 1 (u/with-overloaded-ugens (bit-xor 1 2 3 4 5))))
     (is (urep/sc-ugen? (u/with-overloaded-ugens (bit-xor 1 2 (gate:kr) 4 5))))
     (is (urep/sc-ugen? (u/with-overloaded-ugens (bit-xor 1 2 (gate:kr) 4 5 :force-ugen))))))
+
+(deftest divide-test
+  (is (= 5/2 (u/with-overloaded-ugens (/ 5 2))))
+  (is (urep/sc-ugen? (u/with-overloaded-ugens (/ 5 2 :force-ugen))))
+  (is (= 5/2 (sut// 5 2)))
+  (is (urep/sc-ugen? (sut// 5 2 :force-ugen))))

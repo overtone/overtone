@@ -288,7 +288,7 @@
   with-overloaded-ugens"
   [src-ns target-ns ugen-name ugen-fn kind]
   (let [original-fn   (ns-resolve src-ns ugen-name)
-        overload-name (if (= '/ ugen-name) 'binary-div-op ugen-name)
+        overload-name ugen-name
         ugen-name-str (str ugen-name)
         overloaded-fn (case kind
                         :unary (mk-overloaded-ugen-fn ugen-name-str ugen-fn)
