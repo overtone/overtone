@@ -400,15 +400,7 @@
     (println (ugen-arg-info spec ugen))
     (println "=========================\n")))
 
-(defn- with-init-fn
-  "Creates the final argument initialization function which is applied to
-  arguments at runtime to do things like re-ordering and automatic filling in
-  of arguments. Typically appending input arrays as the last argument and
-  filling in the number of in or out channels for those ugens that need it.
-
-  If an init function is already present it will get called after doing the
-  mapping and mode transformations."
-  [spec]
+(defn- ->init [spec ugen]
   (let [defaulter        (partial add-default-args spec)
         mapper           (partial map-ugen-args spec)
         init-fn          (if (contains? spec :init)
@@ -427,26 +419,33 @@
         bespoke-checker  (partial with-ugen-checker-fn spec checker-fn)
         sanity-checker   (partial with-ugen-checker-fn spec sanity-checker-fn)
         arg-name-checker (partial with-ugen-checker-fn spec arg-name-checker-fn)]
+    (->> ugen
+         (with-debugging (partial print-args-pre-processing spec))
+         defaulter
+         mapper
+         initer
+         n-outputer
+         floater
+         appender
+         auto-rater
+         nil-arg-checker
+         bespoke-checker
+         associative->id
+         rate-checker
+         sanity-checker
+         arg-name-checker
+         (with-debugging (partial print-args-post-processing spec)))))
 
-    (assoc spec :init
+(defn- with-init-fn
+  "Creates the final argument initialization function which is applied to
+  arguments at runtime to do things like re-ordering and automatic filling in
+  of arguments. Typically appending input arrays as the last argument and
+  filling in the number of in or out channels for those ugens that need it.
 
-           (fn [ugen]
-             (->> ugen
-                  (with-debugging (partial print-args-pre-processing spec))
-                  defaulter
-                  mapper
-                  initer
-                  n-outputer
-                  floater
-                  appender
-                  auto-rater
-                  nil-arg-checker
-                  bespoke-checker
-                  associative->id
-                  rate-checker
-                  sanity-checker
-                  arg-name-checker
-                  (with-debugging (partial print-args-post-processing spec)))))))
+  If an init function is already present it will get called after doing the
+  mapping and mode transformations."
+  [spec]
+  (assoc spec :init #(->init spec %)))
 
 (defn- with-fn-names
   "Generates all the function names for this ugen and adds a :fn-names map

@@ -40,36 +40,54 @@
 (defn- expandable? [arg]
   (sequential? arg))
 
-(defn- multichannel-expand
+(defn multichannel-expand
   "Does sc style multichannel expansion.
   * does not expand seqs flagged infinite
-  * note that this returns a list even in the case of a single expansion
-
-  Takes expand-flags, a seq of boolean values representing whether a given arg
-  should be expanded. Each nth expand-flag boolean corresponds to each nth arg
-  where arg is a seq of arguments passed into the ugen fn.
-  "
-  [expand-flags args]
+  * note that this returns a list even in the case of a single expansion"
+  [spec args]
   (if (zero? (count args))
     [[]]
-    (let [gc-seqs (fn [[gcount seqs flags] arg]
-                    (cond
-                     ;; Infinite seqs can be used to generate values for expansion
-                     (inf? arg) [gcount
-                                 (conj seqs arg)
-                                 (next flags)]
+    (let [fixed-expand-flags (mapv #(:expands? %) (:args spec))
+          kw->expand-flag (into {} (map (fn [{:keys [name expands?]}]
+                                          [(keyword name) expands?]))
+                                (:args spec))
+          gc-seqs (fn [[gcount seqs fixed-flags k seen-kv] arg]
+                    (if (keyword? arg)
+                      [gcount
+                       (conj seqs (repeat arg))
+                       fixed-flags
+                       arg
+                       true]
+                      (do
+                        (when (and seen-kv (not k))
+                          (throw (ex-info (str "Cannot mix fixed and keyword arguments: " (pr-str args))
+                                          {:args args})))
+                        (cond
+                          ;; Infinite seqs can be used to generate values for expansion
+                          (inf? arg) [gcount
+                                      (conj seqs arg)
+                                      (cond-> fixed-flags (not seen-kv) next)
+                                      nil
+                                      seen-kv]
 
-                     ;; Regular, non-infinite and non-map collections get expanded
-                     (and (expandable? arg)
-                          (first flags)) [(max gcount (count arg))
-                                          (conj seqs (cycle arg))
-                                          (next flags)]
+                          ;; Regular, non-infinite and non-map collections get expanded
+                          (and (expandable? arg)
+                               (if seen-kv
+                                 (kw->expand-flag k)
+                                 (first fixed-flags)))
+                          [(max gcount (count arg))
+                           (conj seqs (cycle arg))
+                           (cond-> fixed-flags (not seen-kv) next)
+                           nil
+                           seen-kv]
 
                           :else ;; Basic values get used for all expansions
                           [gcount
                            (conj seqs (repeat arg))
-                           (next flags)]))
-          [greatest-count seqs _] (reduce gc-seqs [1 [] expand-flags] args)]
+                           (cond-> fixed-flags (not seen-kv) next)
+                           nil
+                           seen-kv]))))
+          [greatest-count seqs _] (reduce gc-seqs [1 [] fixed-expand-flags nil false] args)]
       (take greatest-count (parallel-seqs seqs)))))
 
 (defn mk-scugen
@@ -118,9 +136,9 @@
 (defn make-expanding
   "Takes a function and returns a multi-channel-expanding version of the
   function."
-  [f expand-flags]
+  [f spec]
   (fn [& args]
-    (let [expanded (mapply f (multichannel-expand expand-flags args))]
+    (let [expanded (mapply f (multichannel-expand spec args))]
       (if (= (count expanded) 1)
         (first expanded)
         expanded))))
@@ -134,25 +152,31 @@
 
 (defn unwrap-map-arg
   "Returns a fn which checks to see if its args is a list containing a map,
-  and if so unwraps it. Otherwise applies f directly with args"
+  and if so unwraps it into keyword arguments. Otherwise applies f directly with args"
   [f]
   (fn [& args]
     (if (and
          (= 1 (count args))
          (not (sc-ugen? (first args)))
          (map? (first args)))
-      (apply f (flatten (seq (first args))))
+      (apply f (apply concat (first args)))
       (apply f args))))
+
+(defn- ugen-fn
+  [spec rate special args]
+  (apply (idify-args
+           (unwrap-map-arg
+             (make-expanding
+               (ugen-base-fn spec rate special)
+               spec)))
+         args))
 
 (defn- make-ugen-fn
   "Make a function representing the given ugen that will fill in default
   arguments, rates, etc."
   [spec rate special]
-  (let [expand-flags (map #(:expands? %) (:args spec))]
-    (idify-args
-     (unwrap-map-arg
-      (make-expanding
-       (ugen-base-fn spec rate special) expand-flags)))))
+  (fn [& args]
+    (ugen-fn spec rate special args)))
 
 ;; TODO: Figure out the complete list of control types
 ;; This is used to determine the controls we list in the synthdef, so we need

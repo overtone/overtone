@@ -3,6 +3,9 @@
 ## Added
 
 ## Fixed
+- [#556](https://github.com/overtone/overtone/issues/556)
+  - multichannel expanding logic for ugens now correctly handles keyword arguments
+  - don't `flatten` single map arguments passed to ugens, use `apply concat` instead
 
 ## Changed
 
