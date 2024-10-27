@@ -211,14 +211,14 @@
         arg-string      (str arg-string "[" arg-pairs-str "]")
         indented-doc    (indented-str-block docstring 55 2)
         full-docstring  (str arg-string "\n\n  " indented-doc)]
-    `(intern *ns* (with-meta '~fn-name
-                    {:doc ~full-docstring
-                     :type ::unk
-                     :arglists '(~arg-names-symbs)})
-             (fn [& args#]
-               (let [{:keys [~@arg-names]}
-                     (arg-mapper args# ~arg-keys ~default-map)]
-                 ~@body)))))
+    `(def ~(with-meta fn-name
+                      {:doc full-docstring
+                       :type ::unk
+                       :arglists (list 'quote (list arg-names-symbs))})
+       (fn [& args#]
+         (let [{:keys [~@arg-names]}
+               (arg-mapper args# ~arg-keys ~default-map)]
+           ~@body)))))
 
 (defn invert-map
   "Takes a map m and returns a new map that's keys are the m's vals and
