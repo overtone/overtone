@@ -3,6 +3,7 @@
 ## Added
 
 ## Fixed
+- [#557](https://github.com/overtone/overtone/issues/557): envelope description array generators have line numbers for jump-to-definition purposes
 
 ## Changed
 
