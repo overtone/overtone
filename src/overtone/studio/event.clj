@@ -321,9 +321,16 @@
                            (pattern/pfirst pseq)
                            proto)
           dur       (eget e :dur)
-          type      (eget e :type)
           next-seq  (pattern/pnext pseq)
-          next-beat (+ beat dur)]
+          dur       (eget e :dur)
+          next-e    (pattern/pfirst next-seq)
+          next-start-beat (some-> next-e
+                                  (eget :start-time)
+                                  (- (rhythm/metro-start clock))
+                                  (/ (rhythm/metro-tick clock)))
+          next-beat (or next-start-beat
+                        (eget next-e :beat)
+                        (+ beat dur))]
       (if pseq
         (assoc player
                :pseq next-seq
@@ -408,13 +415,9 @@
                       pseq
                       opts]
   ;; TODO: this is not yet taking :offset into account
-  ;; FIXME: the clock restart leads to some weirdness when starting multiple
-  ;; loops at the same time
   (let [align (:align opts (:align player :quant))
         quant (:quant opts (:quant player 4))
         playing (some :playing (vals @pplayers))
-        _ (when-not playing
-            (clock :start 0))
         beat (if playing
                (max (or beat 1) (clock))
                (clock))
