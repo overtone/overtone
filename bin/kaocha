@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+clojure -M:test:test-runner "$@"

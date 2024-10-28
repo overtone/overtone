@@ -1,0 +1,131 @@
+# based on Sonic Pi's build
+name: Build
+
+on:
+  # Do it on every push or PR on these branches
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  build:
+    timeout-minutes: 5
+    name: "${{matrix.title}} (${{matrix.os}}, ${{matrix.arch}}, Java ${{matrix.java}}, Clojure ${{matrix.clojure}})"
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {title: "Linux", os: "ubuntu-latest", arch: "x64", java: "11", clojure: "1.12"}
+          - {title: "Windows", os: "windows-latest", arch: "x64", java: "11", clojure: "1.12"}
+          - {title: "Mac", os: "macos-latest", arch: "arm64", java: "11", clojure: "1.12"}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-${{ matrix.java }}-${{ matrix.clojure }}-${{ hashFiles('**/deps.edn') }}
+          restore-keys: |
+            ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-${{ matrix.java }}-${{ matrix.clojure }}
+            ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-${{ matrix.java }}-
+            ${{ env.ACTION_CACHE_VERSION }}-${{ runner.os }}-maven-
+
+      - name: Prepare java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{matrix.java}}
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: latest
+
+      - name: Windows dependencies
+        uses: actions/checkout@v4
+        with:
+          path: sonic-pi
+          repository: 'sonic-pi-net/sonic-pi'
+          sparse-checkout: |
+            prebuilt/windows/${{matrix.arch}}
+        if: matrix.os == 'windows-latest'
+
+      - name: Add scsynth.exe to PATH on Windows
+        shell: powershell
+        run: |
+          Add-Content $env:GITHUB_PATH "${{github.workspace}}\sonic-pi\prebuilt\windows\${{matrix.arch}}"
+        if: matrix.os == 'windows-latest'
+
+      - name: Mac dependencies
+        run: |
+          export HOMEBREW_NO_INSTALL_CLEANUP=1
+          brew update
+          brew install supercollider
+        if: matrix.os == 'macos-latest'
+
+      - name: Mac dependencies
+        with:
+          path: sonic-pi
+          repository: 'sonic-pi-net/sonic-pi'
+          sparse-checkout: |
+            prebuilt/macos/universal/supercollider
+        uses: actions/checkout@v4
+        if: matrix.os == 'macos-latest'
+
+      - name: Add scsynth to PATH on macOS
+        run: |
+          echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources" >> $GITHUB_PATH
+          echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Frameworks" >> $GITHUB_PATH
+        if: matrix.os == 'macos-latest'
+
+      - name: Grant microphone access for macos
+        run: |
+          # Temporary fix to fix microphone permission issues for macos when playing sound.
+          # From https://github.com/actions/runner-images/issues/9330
+          sqlite3 $HOME/Library/Application\ Support/com.apple.TCC/TCC.db "INSERT OR IGNORE INTO access VALUES ('kTCCServiceMicrophone','/usr/local/opt/runner/provisioner/provisioner',1,2,4,1,NULL,NULL,0,'UNUSED',NULL,0,1687786159,NULL,NULL,'UNUSED',1687786159);"
+        if: matrix.os == 'macos-latest'
+
+      - name: Linux dependencies
+        run: |
+          sudo apt-get install -y pulseaudio dbus-x11 libssl-dev supercollider-server sc3-plugins-server alsa-base alsa-utils jackd2 libjack-jackd2-dev libjack-jackd2-0 libasound2-dev librtmidi-dev pulseaudio-module-jack
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Overtone tests - Mac
+        run: ./bin/ci ${{matrix.clojure}}
+        if: matrix.os == 'macos-latest'
+
+      - name: Overtone tests - Linux
+        run: |
+          jackd -rd dummy &
+          ./bin/ci ${{matrix.clojure}}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: API Tests Windows - Install Scream Audio Device
+        shell: powershell
+        run: |
+          Start-Service audio*
+          Invoke-WebRequest https://github.com/duncanthrax/scream/releases/download/3.6/Scream3.6.zip -OutFile C:\Scream3.6.zip
+          Expand-7ZipArchive -Path C:\Scream3.6.zip -DestinationPath C:\Scream
+          $cert = (Get-AuthenticodeSignature C:\Scream\Install\driver\Scream.sys).SignerCertificate
+          $store = [System.Security.Cryptography.X509Certificates.X509Store]::new("TrustedPublisher", "LocalMachine")
+          $store.Open("ReadWrite")
+          $store.Add($cert)
+          $store.Close()
+          cd C:\Scream\Install\driver
+          C:\Scream\Install\helpers\devcon install Scream.inf *Scream
+        if: matrix.os == 'windows-latest'
+
+      - name: Overtone tests - Windows
+        shell: powershell
+        run: clojure -M:test:test-runner:${{matrix.clojure}}
+        if: matrix.os == 'windows-latest'
+
+      #- name: Archive Logs
+      #  uses: actions/upload-artifact@v4
+      #  if: ${{ always() }}
+      #  with:
+      #    name: Logs_${{matrix.os}}__${{matrix.arch}}__${{matrix.java}}__${{matrix.clojure}}
+      #    path: |
+      #      ~/.overtone/log
