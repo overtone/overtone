@@ -21,7 +21,7 @@
    (overtone.sc.cgens oscillators demand mix dyn io buf-io env tap
                       line freq beq-suite berlach ;; bhob
                       fx info)
-   (overtone.studio aux mixer inst util fx wavetable midi midi-player core
+   (overtone.studio aux-bus mixer inst util fx wavetable midi midi-player core
                     pattern event)))
 
 
@@ -106,7 +106,7 @@
    'overtone.sc.ugens
    'overtone.sc.vbap
    'overtone.speech
-   'overtone.studio.aux
+   'overtone.studio.aux-bus
    'overtone.studio.core
    'overtone.studio.fx
    'overtone.studio.inst
