@@ -1,4 +1,4 @@
-(ns overtone.studio.aux
+(ns overtone.studio.aux-bus
   "Model the concept of an AUX bus, as found on analog mixing consoles. From each
   instrument you can 'send' some of the signal to the AUX bus, forming a
   separate mix.
