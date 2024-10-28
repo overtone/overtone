@@ -12,6 +12,8 @@
 
 
 ## Changed
+- `overtone.sc.ugen-collide/binary-div-op` ugen has been renamed `overtone.sc.ugen-collide//`
+  - no change under `with-overloaded-ugens`
 
 # 0.15.3295 (2024-10-24 / d354b4f)
 
