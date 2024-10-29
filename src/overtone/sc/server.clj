@@ -9,6 +9,7 @@
    [overtone.libs.deps :as deps]
    [overtone.libs.event :as event]
    [overtone.osc :as osc]
+   [overtone.osc.dyn-vars :as osc-dyn-vars]
    [overtone.sc.dyn-vars :as dyn-vars]
    [overtone.sc.machinery.server.comms :as comms]
    [overtone.sc.machinery.server.connection :as connection])
@@ -78,7 +79,39 @@
   [time-ms & body]
   `(dyn-vars/with-inactive-modification-error :silent
      (dyn-vars/without-node-blocking
-      (osc/in-unested-osc-bundle @comms/server-osc-peer* ~time-ms (do ~@body)))))
+      (binding [osc-dyn-vars/*at-time* ~time-ms]
+        (osc/in-unested-osc-bundle @comms/server-osc-peer* ~time-ms (do ~@body))))))
+
+(def min-at-offset-ms 20)
+
+(defmacro at-offset
+  "Schedule server communication - specify that communication messages
+   execute on the server at a specific time in the future relative to
+   the current time:
+
+   ```
+   ;; control synth foo to change :freq to 150 one second from now:
+   (at-offset 1000 (ctl foo :freq 150))
+   ```
+
+   See `overtone.sc.server/at` for more details."
+  [offset-ms & body]
+  `(let [immediate?# (and (nil? osc-dyn-vars/*at-time*)
+                          (<= ~offset-ms min-at-offset-ms))
+         now# (or osc-dyn-vars/*at-time* (System/currentTimeMillis))
+         t# (+ now# ~offset-ms)
+         body# #(do ~@body)]
+     (if immediate?#
+       ;; Callers of `at-offset` do not know whether they are sendng
+       ;; events relative to now or some future `*at-time*`.
+       ;; In case it's now and the offset is small, <20ms, we don't have enough
+       ;; time to schedule messages - they will be late on the server.
+       ;; Instead, we send them immediately to achieve (nearly) the intended
+       ;; timing with no late warning.
+       (dyn-vars/with-inactive-modification-error :silent
+         (dyn-vars/without-node-blocking
+          (body#)))
+       (at t# (body#)))))
 
 (defmacro snd-immediately
   [& body]
