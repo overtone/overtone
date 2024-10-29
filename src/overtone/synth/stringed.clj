@@ -113,11 +113,6 @@
   [s i]
   (keyword (format "%s-%d" s i)))
 
-(defn- now+
-  "Add an epsilon of time to (now) to avoid lots of 'late' error messages"
-  []
-  (+ (now) 21)) ;; 21ms seems to get rid of most for me.
-
 ;; ======================================================================
 ;; Main helper functions used to play the instrument: pick or strum
 (defn pick-string
@@ -125,19 +120,22 @@
    fret value less than -1 will cause no event; -1 or greater causes
    the previous note to be silenced; 0 or greater will also cause a
    new note event."
-  ([the-strings the-inst string-index fret t]
-   (let [the-note (fret-to-note (nth the-strings string-index) fret)]
+  ([the-chord-frets the-inst string-index fret t]
+   (at t (pick-string the-chord-frets the-inst string-index fret)))
+  ([the-chord-frets the-inst string-index fret]
+   (let [the-note (fret-to-note (nth the-chord-frets string-index) fret)]
      ;; turn off the previous note
-     (if (>= the-note -1)
-       (at t (ctl the-inst (mkarg "gate" string-index) 0)))
+     (when (>= the-note -1)
+       ;; Use at-offset here for immediate call to disable non-existant
+       ;; node warniings
+       (at-offset 0 (ctl the-inst (mkarg "gate" string-index) 0)))
      ;; NOTE: there needs to be some time between these
      ;; FIXME: +50 seems conservative.  Find minimum.
-     (if (>= the-note 0)
-       (at (+ t 50) (ctl the-inst
-                         (mkarg "note" string-index) the-note
-                         (mkarg "gate" string-index) 1)))))
-  ([the-chord-frets the-inst string-index fret]
-   (pick-string the-chord-frets the-inst string-index fret (now+))))
+     (when (>= the-note 0)
+       (at-offset 50
+                  (ctl the-inst
+                       (mkarg "note" string-index) the-note
+                       (mkarg "gate" string-index) 1))))))
 
 ;; ======================================================================
 (defn strum-strings
@@ -145,6 +143,9 @@
    a strum duration of strum-time at t.  If the-chord is a vector, use
    it directly for fret indexes."
   ([chord-fret-map the-strings the-inst the-chord direction strum-time t]
+   (at t (strum-strings chord-fret-map the-strings the-inst the-chord
+                        direction strum-time)))
+  ([chord-fret-map the-strings the-inst the-chord direction strum-time]
    (let [num-strings (count (chord-fret-map :A))
          ;; ex: [-1 3 2 0 1 0]
          chord-frets (if (vector? the-chord)
@@ -177,18 +178,15 @@
              fret-delta (if (= direction :up)
                           (- max-t (nth fret-times j))
                           (nth fret-times i))]
-         (pick-string the-strings the-inst j
-                      (nth chord-frets j)
-                      (+ t (* fret-delta dt)))))))
-  ([chord-fret-map the-strings the-inst the-chord direction strum-time]
-   (strum-strings chord-fret-map the-strings the-inst the-chord
-                  direction strum-time (now+)))
+         (at-offset (* fret-delta dt)
+                    (pick-string the-strings the-inst j
+                                 (nth chord-frets j)))))))
   ([chord-fret-map the-strings the-inst the-chord direction]
    (strum-strings chord-fret-map the-strings the-inst the-chord
-                  direction 0.05 (now+)))
+                  direction 0.05))
   ([chord-fret-map the-strings the-inst the-chord]
    (strum-strings chord-fret-map the-strings the-inst the-chord
-                  :down 0.05 (now+))))
+                  :down 0.05)))
 
 ;; ======================================================================
 ;; The Guitar Instrument Code
@@ -313,25 +311,28 @@
   "Sets fret for the-inst on string-index"
   [the-inst string-index fret]
   (let [the-note (fret-to-note (nth guitar-string-notes string-index) fret)]
-    (if (= the-note -1) ;mute it
-      (ctl the-inst (mkarg "gate" string-index) 0))
-    (if (>= the-note 0) ; set other note on string-index
+    (cond
+      (= the-note -1) ;mute it
+      (ctl the-inst (mkarg "gate" string-index) 0)
+
+      (>= the-note 0) ; set other note on string-index
       (ctl the-inst (mkarg "note" string-index) the-note))))
 
 (defn slide-string
   "Slides the-string of the-inst from fret start-fret to fret end-fret.
   Every note in between sounds for duration time. If keep is set the last note
   will be fret end-fret otherwise the string gets muted."
-  [the-inst the-string start-fret end-fret start duration keep-note]
-  (at start (guitar-pick the-inst the-string start-fret))
-  (let [i (atom 1)] ; used to calculate the offset between the sub-slides
-    (doseq [fret (if (< end-fret start-fret)
-                   (reverse (range end-fret (dec start-fret)))
-                   (range start-fret (inc end-fret)))]
-      (at (+ (* @i duration) start) (set-fret the-inst the-string fret))
-      (if (and (= end-fret fret) (zero? keep-note) )
-        (at (+ (* (inc @i)  duration) start) (set-fret the-inst the-string -1)))
-      (swap! i inc))))
+  ([the-inst the-string start-fret end-fret start duration keep-note]
+   (at start (slide-string the-inst the-string start-fret end-fret duration keep-note)))
+  ([the-inst the-string start-fret end-fret duration keep-note]
+   (at-offset 0 (guitar-pick the-inst the-string start-fret))
+   (doseq [i (range (inc (java.lang.Math/abs (- end-fret start-fret))))
+           :let [fret (if (< end-fret start-fret)
+                        (- start-fret i)
+                        (+ start-fret i))]]
+     (at-offset (* (inc i) duration) (set-fret the-inst the-string fret))
+     (when (and (= end-fret fret) (zero? keep-note))
+       (at-offset (* (+ i 2) duration) (set-fret the-inst the-string -1))))))
 
 ;; ======================================================================
 ;; Create the guitar defsynth.  Note that it is persistent and will
