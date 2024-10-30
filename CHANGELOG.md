@@ -10,6 +10,7 @@
 
 - [#557](https://github.com/overtone/overtone/issues/557): envelope description array generators have line numbers for jump-to-definition purposes
 
+- fix double-eval for `overtone.sc.server/at{-offset}` macros
 
 ## Changed
 - `overtone.sc.ugen-collide/binary-div-op` ugen has been renamed `overtone.sc.ugen-collide//`

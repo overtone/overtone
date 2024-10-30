@@ -2,7 +2,8 @@
   "Helpful functions and macro's for writing Overtone tests."
   (:require [overtone.libs.event :refer [sync-event]]
             [overtone.sc.machinery.server.comms :as comms]
-            [overtone.sc.server :as server])
+            [overtone.sc.server :as server]
+            [overtone.studio.mixer :as mixer])
   (:import [java.util.concurrent TimeoutException]))
 
 ;; ns helpers
@@ -82,7 +83,7 @@
 
 (defn ensure-server [f]
   (when-not (server/server-connected?)
-    (server/boot-server))
+    (mixer/boot-server-and-mixer))
   (f))
 
 (def with-server-sync #'comms/with-server-sync)
