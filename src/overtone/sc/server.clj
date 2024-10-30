@@ -79,8 +79,9 @@
   [time-ms & body]
   `(dyn-vars/with-inactive-modification-error :silent
      (dyn-vars/without-node-blocking
-      (binding [osc-dyn-vars/*at-time* ~time-ms]
-        (osc/in-unested-osc-bundle @comms/server-osc-peer* ~time-ms (do ~@body))))))
+      (let [time-ms# ~time-ms]
+        (binding [osc-dyn-vars/*at-time* time-ms#]
+          (osc/in-unested-osc-bundle @comms/server-osc-peer* time-ms# (do ~@body)))))))
 
 (def min-at-offset-ms 20)
 
@@ -96,10 +97,10 @@
 
    See `overtone.sc.server/at` for more details."
   [offset-ms & body]
-  `(let [immediate?# (and (nil? osc-dyn-vars/*at-time*)
-                          (<= ~offset-ms min-at-offset-ms))
-         now# (or osc-dyn-vars/*at-time* (System/currentTimeMillis))
-         t# (+ now# ~offset-ms)
+  `(let [at-time# osc-dyn-vars/*at-time*
+         offset-ms# ~offset-ms
+         immediate?# (and (nil? at-time#)
+                          (<= offset-ms# min-at-offset-ms))
          body# #(do ~@body)]
      (if immediate?#
        ;; Callers of `at-offset` do not know whether they are sendng
@@ -111,7 +112,9 @@
        (dyn-vars/with-inactive-modification-error :silent
          (dyn-vars/without-node-blocking
           (body#)))
-       (at t# (body#)))))
+       (let [now# (or at-time# (System/currentTimeMillis))
+             t# (+ now# offset-ms#)]
+         (at t# (body#))))))
 
 (defmacro snd-immediately
   [& body]
