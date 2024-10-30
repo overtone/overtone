@@ -16,6 +16,7 @@
    [clojure.pprint]
    [overtone.helpers.string :only [hash-shorten]])
   (:require
+   [overtone.sc.machinery.synthdef :as synthdef]
    [overtone.config.log]
    [clojure.set :as set]
    [overtone.sc.cgens.env :refer [hold]]
@@ -666,8 +667,14 @@
     `(def ~s-name (synth ~s-name ~params ~ugen-form))))
 
 (defn synth-load
-  [file-path]
-  (let [{:keys [pnames params] :as sdef} (load-synth-file file-path)
+  "Load synthdef data from either a file specified using a string path
+  a URL (e.g. resource), or a byte array."
+  [data]
+  (let [{:keys [pnames params] :as sdef} (if (string? data)
+                                           (synthdef/load-synth-file data)
+                                           (let [sdef (synthdef/synthdef-read data)]
+                                             (synthdef/load-synthdef sdef)
+                                             sdef))
         [s-name params _ugen-form] (synth-form (symbol (:name sdef))
                                                (list (vec (mapcat (fn [pname default-value]
                                                                     [(symbol (:name pname)) default-value])
@@ -683,15 +690,21 @@
              (meta s-name)))))
 
 (defmacro defsynth-load
-  "Load a synth from a compiled Synthdef file.
+  "Load a synth from a compiled Synthdef file string, URL (e.g. resource) or
+  byte array.
 
   E.g.
   (defsynth-load my-beep
    \"/Users/paulo.feodrippe/dev/sonic-pi/etc/synthdefs/compiled/sonic-pi-beep.scsyndef\")
 
-  (my-beep :note 40)"
-  [def-name file-path]
-  `(let [smap# (synth-load ~file-path)]
+  (my-beep :note 40)
+
+    or, with an example using a resource,
+
+  (defsynth-load my-synth
+    (io/resource \"event.scsyndef\"))"
+  [def-name data]
+  `(let [smap# (synth-load ~data)]
      (def ~def-name
        smap#)
      (alter-meta! (var ~def-name) merge (meta ~def-name))
