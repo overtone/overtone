@@ -22,6 +22,7 @@
 
 - fix double-eval for `overtone.sc.server/at{-offset}` macros
 - setup studio groups only after foundational groups
+- ensure later events in dep-state* go after earlier events in `:history`
 
 ## Changed
 - `overtone.sc.ugen-collide/binary-div-op` ugen has been renamed `overtone.sc.ugen-collide//`
