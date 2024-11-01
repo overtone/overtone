@@ -228,7 +228,7 @@
   []
   (setup-studio-groups))
 
-(on-deps :server-ready ::setup-studio-groups setup-studio)
+(on-deps :foundation-groups-created ::setup-studio-groups setup-studio)
 
 (defn reset-instruments
   "Frees all synth notes for each of the current instruments"
