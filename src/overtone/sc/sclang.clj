@@ -232,7 +232,7 @@
 
 (defn- check-proc!
   [proc args]
-  (loop [counter 5]
+  (loop [counter 15]
     (cond
       (zero? counter)
       (throw (ex-info (str "Process had an error, check the stdout, also check "
@@ -255,10 +255,10 @@
     :as args}]
   (if (and (io/resource resource-path)
            (io/resource metadata-resource-path)
-           (= (hash sc-clj) (-> (io/resource metadata-resource-path)
-                                slurp
-                                edn/read-string
-                                :code-hash)))
+           (= sc-clj (-> (io/resource metadata-resource-path)
+                         slurp
+                         edn/read-string
+                         :sc-clj)))
     ;; Use the resource directly if the code is the same.
     (io/resource resource-path)
     ;; Code is not cached, let's run sclang.
@@ -288,7 +288,9 @@
       ;; can use it for caching. Also, people who don't have sclang available
       ;; on their computers will be able to load the synthdef anyway as it's
       ;; a normal file (assuming the ugens for external plugins are loaded ofc).
-      (spit metadata-file-path {:code-hash (hash sc-clj)})
+      (spit metadata-file-path (binding [*print-length* nil
+                                         *print-level* nil]
+                                 (pr-str {:sc-clj sc-clj})))
 
       (io/resource resource-path))))
 
