@@ -8,23 +8,26 @@
    [overtone.sc.machinery.server.connection :as ov.conn]
    [overtone.sc.synth :as ov.synth]))
 
+(defonce *sclang-user-path (atom nil))
+
 (defn sclang-path
   "The user must have SuperCollider installed.
 
   For sclang location in each OS, see
   https://github.com/supercollider/supercollider/wiki/Path-searching#scide-finds-sclang"
   []
-  (cond
-    (mac-os?)
-    "/Applications/SuperCollider.app/Contents/MacOS/sclang"
-    ;; It's simply `sclang` in non OSX environments,
-    ;; https://github.com/supercollider/supercollider/wiki/Path-searching#scide-finds-sclang
-    ;; TODO Someone should test on Linux and Windows to confirm that this works.
-    (windows-os?)
-    "sclang.exe"
+  (or @*sclang-user-path
+      (cond
+        (mac-os?)
+        "/Applications/SuperCollider.app/Contents/MacOS/sclang"
+        ;; It's simply `sclang` in non OSX environments,
+        ;; https://github.com/supercollider/supercollider/wiki/Path-searching#scide-finds-sclang
+        ;; TODO Someone should test on Linux and Windows to confirm that this works.
+        (windows-os?)
+        "sclang.exe"
 
-    :else
-    "sclang"))
+        :else
+        "sclang")))
 
 (defn transpile
   "Converts hiccup-like syntax to a SC string."
@@ -353,6 +356,9 @@
   for caching. As long you distribute the generated .scsyndef file in the right location and you don't
   modify `sc-clj`, the final user won't need to have `sclang` or SuperCollider installed
   on their machines.
+
+  Check `sclang-path` code for the default locations. You can also set the
+  `*sclang-user-path` atom to use an arbitrary `sclang` location.
 
   --------------------
   ;; Example.
