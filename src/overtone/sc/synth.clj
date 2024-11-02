@@ -713,7 +713,7 @@
 (defn synth?
   "Returns true if s is a synth, false otherwise."
   [s]
-  (= overtone.sc.synth.Synth (type s)))
+  (instance? Synth s))
 
 (def ^{:dynamic true} *demo-time* 2000)
 

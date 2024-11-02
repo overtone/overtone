@@ -4,9 +4,13 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
+   [overtone.config.store :as config]
    [overtone.helpers.system :refer [get-os linux-os? mac-os? windows-os?]]
+   [overtone.helpers.file :as file]
+   [overtone.sc.defaults :as defaults]
    [overtone.sc.machinery.server.connection :as ov.conn]
-   [overtone.sc.synth :as ov.synth]))
+   [overtone.sc.synth :as ov.synth])
+  (:import java.awt.GraphicsEnvironment))
 
 (defonce *sclang-user-path (atom nil))
 
@@ -17,17 +21,16 @@
   https://github.com/supercollider/supercollider/wiki/Path-searching#scide-finds-sclang"
   []
   (or @*sclang-user-path
-      (cond
-        (mac-os?)
-        "/Applications/SuperCollider.app/Contents/MacOS/sclang"
-        ;; It's simply `sclang` in non OSX environments,
-        ;; https://github.com/supercollider/supercollider/wiki/Path-searching#scide-finds-sclang
-        ;; TODO Someone should test on Linux and Windows to confirm that this works.
-        (windows-os?)
-        "sclang.exe"
+      (config/config-get :sclang-path)
+      (or (when (windows-os?)
+            (file/find-executable "sclang.exe"))
+          (file/find-executable "sclang"))
+      (file/find-well-known-sc-path defaults/SCLANG-PATHS)))
 
-        :else
-        "sclang")))
+(defn munge-synthdef-name [synthdef-name]
+  (-> synthdef-name
+      (str/replace #"\." "_")
+      (str/replace #"/" "_")))
 
 (defn transpile
   "Converts hiccup-like syntax to a SC string."
@@ -43,9 +46,7 @@
                synthdef-name :name}
               (first body)
 
-              synthdef-name (-> synthdef-name
-                                (str/replace #"\." "_")
-                                (str/replace #"/" "_"))
+              synthdef-name (munge-synthdef-name synthdef-name)
 
               resource-prefix "sc/synthdef"
               file-dir (str resources-dir "/" resource-prefix)
@@ -245,7 +246,7 @@
 
 (defn- check-proc!
   [proc args]
-  (loop [counter 15]
+  (loop [counter 100]
     (cond
       (zero? counter)
       (throw (ex-info (str "Process had an error, check the stdout, also check "
@@ -289,7 +290,12 @@
       ;; Stop existing running processes (if any).
       (stop-procs!)
       ;; Run process.
-      (check-proc! (proc/process {:out *out* :err :out} (sclang-path) temp-scd) args)
+      (-> (proc/process {:out *out* :err :out
+                         :extra-env (when (and (linux-os?)
+                                               (GraphicsEnvironment/isHeadless))
+                                      {"QT_QPA_PLATFORM" "offscreen"})}
+                        (sclang-path) temp-scd)
+          (check-proc! args))
 
       (when-not (io/resource resource-path)
         (throw (ex-info (str "Error when defining a synthdef, resource not found.\nCheck the stdout, also check "
