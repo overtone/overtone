@@ -352,7 +352,22 @@
   This will call your SuperColliders's `sclang` command at the first time while using `sc-clj`
   for caching. As long you distribute the generated .scsyndef file in the right location and you don't
   modify `sc-clj`, the final user won't need to have `sclang` or SuperCollider installed
-  on their machines."
+  on their machines.
+
+  --------------------
+  ;; Example.
+  ;; When you evaluate the form below, you should see new files in
+  ;; `resources/sc/synthdef`.
+  (sclang/defsynth my-synth
+    \"Some synth.\"
+    [freq 440, amp 0.5, pan 0.0]
+    [:vars :env]
+    [:= :env [:EnvGen.ar [:Env [0 1 1 0] [0.01 0.1 0.2]] {:doneAction 2}]]
+    [:Out.ar 0 [:Pan2.ar [:* [:Blip.ar :freq] :env :amp]
+                :pan]])
+
+  ;; Run it
+  (my-synth :freq 220)"
   [s-name & s-form]
   {:arglists '([name doc-string? opts-map? params sc-clj])}
   (let [[doc-string opts-map params sc-clj] (cond
