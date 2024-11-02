@@ -61,8 +61,17 @@
                                 "(" (str "\"" synthdef-name "\"" ",") " {\n"
                                 (->> [(str "arg "
                                            (->> args
-                                                (mapv (fn [[arg-identifier default]]
-                                                        (str (name arg-identifier) "=" default)))
+                                                (mapv (fn [k-or-seq]
+                                                        (let [[arg-identifier default] (if (sequential? k-or-seq)
+                                                                                         k-or-seq
+                                                                                         [k-or-seq])]
+                                                          (if default
+                                                            (str (name arg-identifier)
+                                                                 "="
+                                                                 "("
+                                                                 (transpile default)
+                                                                 ")")
+                                                            (name arg-identifier)))))
                                                 (str/join ", "))
                                            ";")
 

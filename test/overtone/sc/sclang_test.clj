@@ -12,7 +12,7 @@
     (is (= '{:sc-clj
              [:SynthDef
               {:name overtone.sc.sclang-test/event,
-               :args [[:freq 120] [:amp 0.5] [:pan 0.0]]}
+               :args [[:freq] [:amp 0.5] :pan]}
               [:vars :env]
               [:=
                :env
@@ -29,7 +29,7 @@
              "sc/synthdef/overtone_sc_sclang-test_event.edn",
              :synthdef-str
              "SynthDef(\"overtone_sc_sclang-test_event\", {
-  arg freq=120, amp=0.5, pan=0.0;
+  arg freq, amp=(0.5), pan;
   var env;
   env = EnvGen.ar( Env( [0, 1, 1, 0], [0.01, 0.1, 0.2] ), doneAction: 2 );
   0.postln; \"eita\".postln;
@@ -37,7 +37,7 @@
 }).writeDefFile(\"resources/sc/synthdef\").add;",
              :synthdef-str-vec
              ["SynthDef(\"overtone_sc_sclang-test_event\", {"
-              "  arg freq=120, amp=0.5, pan=0.0;"
+              "  arg freq, amp=(0.5), pan;"
               "  var env;"
               "  env = EnvGen.ar( Env( [0, 1, 1, 0], [0.01, 0.1, 0.2] ), doneAction: 2 );"
               "  0.postln; \"eita\".postln;"
@@ -46,7 +46,7 @@
            (sclang/transpile
             (sclang/SynthDef
              {:name `event
-              :args [[:freq 120] [:amp 0.5] [:pan 0.0]]}
+              :args [[:freq] [:amp 0.5] :pan]}
              [:vars :env]
              [:= :env [:EnvGen.ar
                        [:Env [0 1 1 0] [0.01 0.1 0.2]]
