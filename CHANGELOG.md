@@ -2,6 +2,11 @@
 
 ## Added
 
+- Add `overtone.sc.sclang` namespace to interact with the `sclang` commands
+  and to use `sclang` generated synthdefs
+  - Even if the final user doesn't have  `sclang` available on their machine,
+    as long as the resource was generated previously, it should work transparently
+
 ## Fixed
 
 - [#556](https://github.com/overtone/overtone/issues/556)
@@ -140,7 +145,7 @@ reconcile the two.
 
 This is the first version without the internal SuperCollider server
 (libscsynth). See [this mailing list post](https://groups.google.com/g/overtone/c/qndjDV5FS9Y/m/lPo4QFYpAAAJ)
-for the reasoning behind that change. This also means we could drop the bulk of our dependencies, 
+for the reasoning behind that change. This also means we could drop the bulk of our dependencies,
 making Overtone much lighter.
 
 Our work continues to keep Overtone relevant for years to come. We've fixed a
@@ -153,7 +158,7 @@ wiki, to help you get situated.
 
 ## Changed
 
-- Remove embedded (internal) SuperCollider server 
+- Remove embedded (internal) SuperCollider server
 - Provide clearer output about what it's doing when starting an external `scsynth`
 - Remove `project.clj`, switch to full Clojure CLI based tooling (see `bin/proj`)
 - Use `at-at` from Clojars, rather than inlining it here
@@ -196,7 +201,7 @@ and keeping it relevant for years to come.
 * use canonical URL for freesound API (#479)
 * Fix window paths to allow downloading samples (#487)
 * Removed obsolete JVM option CMSConcurrentMTEnabled (#488)
-* Read synthdef files correctly (#489) 
+* Read synthdef files correctly (#489)
 * Fix buffer reading (#490)
 * Add clj-kondo support (see `overtone.linter`) (#493)
 * Qualify the overtone ns in lein example (#495)
