@@ -101,6 +101,10 @@
                           (name var-identifier)))
                   (str/join ", ")))
 
+        (= :raw op)
+        (->> body
+             (str/join "; "))
+
         (and (keyword? op) body)
         (str (name op)
              "( "

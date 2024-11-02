@@ -17,6 +17,7 @@
               [:=
                :env
                [:EnvGen.ar [:Env [0 1 1 0] [0.01 0.1 0.2]] {:doneAction 2}]]
+              [:raw "0.postln" "\"eita\".postln"]
               [:Out.ar 0 [:Pan2.ar [:* [:Blip.ar :freq] :env :amp] :pan]]],
              :synthdef-name "overtone_sc_sclang-test_event",
              :file-path
@@ -31,6 +32,7 @@
   arg freq=120, amp=0.5, pan=0.0;
   var env;
   env = EnvGen.ar( Env( [0, 1, 1, 0], [0.01, 0.1, 0.2] ), doneAction: 2 );
+  0.postln; \"eita\".postln;
   Out.ar( 0, Pan2.ar( Blip.ar( freq ) * env * amp, pan ) );
 }).writeDefFile(\"resources/sc/synthdef\").add;",
              :synthdef-str-vec
@@ -38,6 +40,7 @@
               "  arg freq=120, amp=0.5, pan=0.0;"
               "  var env;"
               "  env = EnvGen.ar( Env( [0, 1, 1, 0], [0.01, 0.1, 0.2] ), doneAction: 2 );"
+              "  0.postln; \"eita\".postln;"
               "  Out.ar( 0, Pan2.ar( Blip.ar( freq ) * env * amp, pan ) );"
               "}).writeDefFile(\"resources/sc/synthdef\").add;"]}
            (sclang/transpile
@@ -48,5 +51,6 @@
              [:= :env [:EnvGen.ar
                        [:Env [0 1 1 0] [0.01 0.1 0.2]]
                        {:doneAction 2}]]
+             [:raw "0.postln" "\"eita\".postln"]
              [:Out.ar 0 [:Pan2.ar [:* [:Blip.ar :freq] :env :amp]
                          :pan]]))))))
