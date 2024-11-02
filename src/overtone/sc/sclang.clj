@@ -389,6 +389,8 @@
 
   ;; Run it
   (my-synth :freq 220)"
+  {:clj-kondo/ignore [:unresolved-symbol]
+   :clj-kondo/lint-as 'clojure.core/def}
   [s-name & s-form]
   {:arglists '([name doc-string? opts-map? params sc-clj])}
   (let [[doc-string opts-map params sc-clj] (cond
