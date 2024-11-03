@@ -2,13 +2,17 @@
 
 ## Added
 
-- Add `overtone.sc.sclang` namespace to interact with the `sclang` commands
-  and to use `sclang` generated synthdefs
-  - Even if the final user doesn't have  `sclang` available on their machine,
-    as long as the resource was generated previously, it should work transparently
-- Add `:sclang-path` config to set `sclang` executable location
+- [567](https://github.com/overtone/overtone/pull/567)
+  - Add `overtone.sc.sclang` namespace to interact with the `sclang` commands
+    and to use `sclang` generated synthdefs
+    - Even if the final user doesn't have  `sclang` available on their machine,
+      as long as the resource was generated previously, it should work transparently
+  - Add `:sclang-path` config to set `sclang` executable location
 
 ## Fixed
+
+- [567](https://github.com/overtone/overtone/pull/567)
+  - `resources` directory is included in Overtone's jar and deps.edn path (adds `overtone-logo.png` back to class path)
 
 - [#556](https://github.com/overtone/overtone/issues/556)
   - multichannel expanding logic for ugens now correctly handles keyword arguments
