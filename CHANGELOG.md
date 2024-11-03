@@ -6,6 +6,7 @@
   and to use `sclang` generated synthdefs
   - Even if the final user doesn't have  `sclang` available on their machine,
     as long as the resource was generated previously, it should work transparently
+- Add `:sclang-path` config to set `sclang` executable location
 
 ## Fixed
 
