@@ -229,13 +229,6 @@
        (Thread/sleep 250))
      (.destroy ^Process proc))))
 
-(defn- find-well-known-sc-path
-  "Find the path for SuperCollider by checking common locations."
-  []
-  (let [os    (get-os)
-        paths (defaults/SC-PATHS os)]
-    (first (filter #(file/file-can-execute? %) paths))))
-
 (defn- find-sc-arg-flag!
   "Retrieves the SC argument flag for sc-arg. Throws exception if flag
    can't be found."
@@ -279,7 +272,7 @@
                              (file/find-executable "scsynth.exe"))
                            ;; should windows look here?
                            (file/find-executable "scsynth")))
-        sc-wellknown (delay (find-well-known-sc-path))
+        sc-wellknown (delay (file/find-well-known-sc-path defaults/SC-PATHS))
         match (or sc-config @sc-path @sc-wellknown)]
     (when-not match
       (throw (ex-info (str "Failed to find SuperCollider server executable (scsynth). The file does not exist or is not executable. Places I've looked:\n"

@@ -62,4 +62,11 @@
           "/Applications/SuperCollider.app/Contents/Resources/scsynth"
           "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth"]})
 
+(def SCLANG-PATHS
+  "Default system paths to an externally installed SuperCollider server for
+  various operating systems."
+  {:linux ["/usr/bin/sclang"]
+   :windows [(str (windows-sc-path) "\\sclang.exe")]
+   :mac  ["/Applications/SuperCollider.app/Contents/MacOS/sclang"]})
+
 (def SC-MAX-FLOAT-VAL (Math/pow 2 24))

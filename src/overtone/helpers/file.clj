@@ -5,7 +5,8 @@
    [clojure.java.io :refer :all]
    [clojure.string :as str]
    [org.satta.glob :as satta-glob]
-   [overtone.helpers.string :refer :all])
+   [overtone.helpers.string :refer :all]
+   [overtone.helpers.system :refer [get-os]])
   (:import
    (java.io StringWriter)
    (java.net URL)
@@ -507,3 +508,10 @@
        (when (file-can-execute? f)
          f)))
    (.split (System/getenv "PATH") java.io.File/pathSeparator)))
+
+(defn find-well-known-sc-path
+  "Find the path for SuperCollider by checking common locations."
+  [default-paths]
+  (let [os    (get-os)
+        paths (get default-paths os)]
+    (first (filter #(file-can-execute? %) paths))))

@@ -6,7 +6,6 @@ on:
   push:
     branches: [master, main]
   pull_request:
-    branches: [master, main]
 
 jobs:
   build:
@@ -44,18 +43,18 @@ jobs:
           cli: latest
 
       - name: Windows dependencies
-        uses: actions/checkout@v4
-        with:
-          path: sonic-pi
-          repository: 'sonic-pi-net/sonic-pi'
-          sparse-checkout: |
-            prebuilt/windows/${{matrix.arch}}
+        shell: bash
+        run: |
+          mkdir ../sc-install
+          cd ../sc-install
+          curl -L -o ./SuperCollider.zip https://github.com/supercollider/supercollider/releases/download/Version-3.13.0/SuperCollider-3.13.0-win64.zip
+          unzip SuperCollider.zip
         if: matrix.os == 'windows-latest'
 
-      - name: Add scsynth.exe to PATH on Windows
+      - name: Add sc{synth,lang}.exe to PATH on Windows
         shell: powershell
         run: |
-          Add-Content $env:GITHUB_PATH "${{github.workspace}}\sonic-pi\prebuilt\windows\${{matrix.arch}}"
+          Add-Content $env:GITHUB_PATH "${{github.workspace}}\..\sc-install\SuperCollider"
         if: matrix.os == 'windows-latest'
 
       - name: Mac dependencies
@@ -63,21 +62,6 @@ jobs:
           export HOMEBREW_NO_INSTALL_CLEANUP=1
           brew update
           brew install supercollider
-        if: matrix.os == 'macos-latest'
-
-      - name: Mac dependencies
-        with:
-          path: sonic-pi
-          repository: 'sonic-pi-net/sonic-pi'
-          sparse-checkout: |
-            prebuilt/macos/universal/supercollider
-        uses: actions/checkout@v4
-        if: matrix.os == 'macos-latest'
-
-      - name: Add scsynth to PATH on macOS
-        run: |
-          echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Resources" >> $GITHUB_PATH
-          echo "${{github.workspace}}/sonic-pi/prebuilt/macos/universal/supercollider/Frameworks" >> $GITHUB_PATH
         if: matrix.os == 'macos-latest'
 
       - name: Grant microphone access for macos
@@ -89,7 +73,7 @@ jobs:
 
       - name: Linux dependencies
         run: |
-          sudo apt-get install -y pulseaudio dbus-x11 libssl-dev supercollider-server sc3-plugins-server alsa-base alsa-utils jackd2 libjack-jackd2-dev libjack-jackd2-0 libasound2-dev librtmidi-dev pulseaudio-module-jack
+          sudo apt-get install -y pulseaudio dbus-x11 libssl-dev supercollider-language supercollider-server sc3-plugins-server alsa-base alsa-utils jackd2 libjack-jackd2-dev libjack-jackd2-0 libasound2-dev librtmidi-dev pulseaudio-module-jack
         if: matrix.os == 'ubuntu-latest'
 
       - name: Overtone tests - Mac

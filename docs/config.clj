@@ -27,6 +27,7 @@
                     ;          diagnostic information
 
  :sc-path "/usr/bin/scsynth" ; Where to find the SuperCollider server executable
+ :sclang-path "/usr/bin/sclang" ; Where to find the SuperCollider language executable
 
  :sc-args           ; Argument map used to boot the SuperCollider server
                     ; with the following arguments:
