@@ -244,9 +244,11 @@
   (exec! [:. obj-k :help]))
 #_(help :SynthDef)
 
+(def ^:dynamic *-check-proc-max-count* 15)
+
 (defn- check-proc!
   [proc args]
-  (loop [counter 100]
+  (loop [counter *-check-proc-max-count*]
     (cond
       (zero? counter)
       (throw (ex-info (str "Process had an error, check the stdout, also check "

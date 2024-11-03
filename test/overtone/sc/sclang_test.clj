@@ -72,7 +72,8 @@
                                       (sclang/munge-synthdef-name (name g))))
             scsyndef-file (io/file (format "resources/sc/synthdef/overtone_sc_sclang-test_%s.scsyndef"
                                            (sclang/munge-synthdef-name (name g))))]
-        (try (let [f (binding [*ns* (the-ns this-ns)]
+        (try (let [f (binding [*ns* (the-ns this-ns)
+                               sclang/*-check-proc-max-count* 100]
                        (eval `(sclang/defsynth ~g
                                 "Some synth."
                                 [~'freq 440, ~'amp 0.5, ~'pan 0.0]
