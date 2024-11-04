@@ -6,12 +6,13 @@
             [overtone.config.log :as log]))
 
 ;; A representation of the state of the dependencies:
-;; :satisified - a set of keywords representing ids for each of the satisfied
+;; :satisfied  - a set of keywords representing ids for each of the satisfied
 ;;               dependencies
-;; :todo       - a list of functions with associated dependencies which need
+;; :todo       - a vector of functions with associated dependencies which need
 ;;               to be executed when those dependencies are met
-;; :done       - a list of functions with associated dependencies which have
+;; :done       - a vector of functions with associated dependencies which have
 ;;               already been executed as their dependencies have been met
+;; :history    - a vector logging past mutations of dep-state*
 (defonce dep-state* (agent {:satisfied #{}
                             :todo      []
                             :done      []
@@ -25,43 +26,34 @@
   "Returns a new deps map containing either processed handler or it
   placed in the todo list"
   [dep-state key deps task]
-  (apply assoc dep-state
-         (if (set/superset? (:satisfied dep-state) deps)
-           (do
-             (task)
-             [:done (conj (:done dep-state)
-                          [key deps task])
-              :history (conj (:history dep-state)
-                             {:action :processed
-                              :ts     (now)
-                              :key    key
-                              :deps   deps})])
-
-           [:todo (conj (:todo dep-state)
-                        [key deps task])
-            :history (conj (:history dep-state)
-                           {:action :registered-todo
-                            :ts     (now)
-                            :key    key
-                            :deps   deps})])))
+  (let [immediate? (set/superset? (:satisfied dep-state) deps)]
+    (when immediate?
+      (task))
+    (-> dep-state
+        (update :history conj {:action (if immediate? :processed :registered-todo)
+                               :ts     (now)
+                               :key    key
+                               :deps   deps})
+        (update (if immediate? :done :todo) conj [key deps task]))))
 
 (defn- replace-handler
-  "Replace all occurances of handers with the given key with the new
+  "Replace all occurrences of handers with the given key with the new
   handler and deps set"
   [dep-state key deps task]
-  (let [replacer-fn #(if (= key (first %))
-                       [key deps task]
-                       %)]
-    {:satisfied (:satisfied dep-state)
-     :todo      (map replacer-fn (:todo dep-state))
-     :done      (map replacer-fn (:done dep-state))
-     :history   (:history dep-state)}))
+  (let [replacer (fn [v]
+                   (mapv #(if (= key (first %))
+                            [key deps task]
+                            %)
+                         v))]
+    (-> dep-state
+        (update :todo replacer)
+        (update :done replacer))))
 
 (defn- key-known?
   "Returns true or false depending on whether this key is associated
   with a handler in either the completed or todo lists."
   [dep-state key]
-  (some #(= key (first %)) (concat (:done dep-state) (:todo dep-state))))
+  (boolean (some #(= key (first %)) (concat (:done dep-state) (:todo dep-state)))))
 
 (defn- on-deps*
   "If a handler with this key has already been registered, just replace
@@ -91,13 +83,12 @@
                                                                                                :key key
                                                                                                :deps deps})])
                             [final-done (conj final-todo [key deps task]) new-history]))
-        [t-done t-todo new-history] (reduce execute-tasks [done [] []] todo)]
+        [t-done t-todo new-history] (reduce execute-tasks [done [] (:history dep-state)] todo)]
     (log/info "deps-satisfied: " satisfied)
     {:satisfied satisfied
      :done      t-done
      :todo      t-todo
-     :history (concat (:history dep-state)
-                      new-history)}))
+     :history   new-history}))
 
 (defn- deps->set
   "Converts deps to a deps-set. Deals with single elements or
@@ -105,16 +96,16 @@
   [deps]
   (if (coll? deps)
     (set deps)
-    (set [deps])))
+    #{deps}))
 
 (defn on-deps
-  "Specify that a function should be called once one or more
+  "Specify that a function should be called once all
    dependencies have been satisfied. The function is run immediately if
    the deps have already been satisfied, otherwise it will run as soon
    as they are.
 
    If a dep handler has already been registered with the same key, a
-   second registration with just replace the first.
+   second registration will just replace the first.
 
    Uses an agent so it's safe to call this from within a transaction."
   [deps key handler]
@@ -146,7 +137,7 @@
   []
   (send dep-state* (fn [deps]
                      {:satisfied #{}
-                      :todo      (concat (deps :todo) (deps :done))
+                      :todo      (into (deps :todo) (deps :done))
                       :done      []
                       :history   (conj (:history deps)
                                        {:ts (now)
