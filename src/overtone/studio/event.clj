@@ -415,7 +415,7 @@
                       pseq
                       opts]
   ;; TODO: this is not yet taking :offset into account
-  (let [align (:align opts (:align player :quant))
+  (let [align (:align opts (:align player :wait))
         quant (:quant opts (:quant player 4))
         playing (some :playing (vals @pplayers))
         beat (if playing
@@ -444,10 +444,9 @@
                           ;; out until we are ready to switch
                           (let [switch (quantize-ceil beat quant)]
                             [beat (concat (take-pseq (- switch beat) old-pseq)
-                                                pseq)]))
+                                          pseq)]))
                         ;; Base case, just start at the next beat
-                        [beat pseq])
-)]
+                        [beat pseq]))]
     (assoc player
            :clock clock
            :playing true
@@ -518,5 +517,5 @@
  ::pplayers-reset)
 
 (comment
-(into {} (map #(dissoc % :pseq :pattern)) @@pplayers)
+  (into {} (map #(dissoc % :pseq :pattern)) @@pplayers)
   )
