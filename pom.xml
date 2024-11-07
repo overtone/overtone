@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>overtone</groupId>
   <artifactId>overtone</artifactId>
-  <version>0.15.3295</version>
+  <version>0.16.3331</version>
   <name>overtone</name>
   <description>Sound and music live programming environment.</description>
   <url>https://github.com/overtone/overtone</url>
@@ -25,7 +25,7 @@
     <url>https://github.com/overtone/overtone</url>
     <connection>scm:git:git://github.com/overtone/overtone.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/overtone/overtone.git</developerConnection>
-    <tag>0b5a855919976e353003be705df6a6ab00b6cee1</tag>
+    <tag>7d2a2f8465c7b867e1ad1c4f69c0884ed47ed79f</tag>
   </scm>
   <dependencies>
     <dependency>
@@ -58,6 +58,11 @@
       <artifactId>jack</artifactId>
       <version>0.2.12</version>
     </dependency>
+    <dependency>
+      <groupId>babashka</groupId>
+      <artifactId>process</artifactId>
+      <version>0.5.22</version>
+    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -86,7 +91,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <git-revision>0b5a855919976e353003be705df6a6ab00b6cee1</git-revision>
+              <git-revision>7d2a2f8465c7b867e1ad1c4f69c0884ed47ed79f</git-revision>
             </manifestEntries>
           </archive>
         </configuration>
