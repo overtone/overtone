@@ -8,6 +8,8 @@
     - Even if the final user doesn't have  `sclang` available on their machine,
       as long as the resource was generated previously, it should work transparently
   - Add `:sclang-path` config to set `sclang` executable location
+- Add `at-offset` as an addition to the `at-at` based scheduling API
+- Add support for URL and byte arrays in `synth-load`
 
 ## Fixed
 
@@ -23,10 +25,15 @@
 - fix double-eval for `overtone.sc.server/at{-offset}` macros
 - setup studio groups only after foundational groups
 - ensure later events in dep-state* go after earlier events in `:history`
+- Fix `defsynth-load` macro, handle arguments that aren't a string literal
+- `overtone.music.pitch/scale` : correctly handle scales that contain more than 8 notes 
+- Support setting `:beat` or `:start-time` in note events
 
 ## Changed
 - `overtone.sc.ugen-collide/binary-div-op` ugen has been renamed `overtone.sc.ugen-collide//`
   - no change under `with-overloaded-ugens`
+- `overtone.studio.aux` is now named `aux-bus` instead, can't have files named "AUX" on windows
+- Pattern library: make the default behavior to wait for the next sync point (`:align :wait`)
 
 # 0.15.3295 (2024-10-24 / d354b4f)
 
