@@ -387,6 +387,7 @@
   ;; Example.
   ;; When you evaluate the form below, you should see new files in
   ;; `resources/sc/synthdef`.
+  ;; The .scd file will be stored in .overtone/sc/, should you wish to inspect it
   (sclang/defsynth my-synth
     \"Some synth.\"
     [freq 440, amp 0.5, pan 0.0]
