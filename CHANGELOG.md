@@ -3,6 +3,7 @@
 ## Added
 
 ## Fixed
+- [573](https://github.com/overtone/overtone/pull/573): reduce likelihood of choosing a used random port for `scsynth`
 
 ## Changed
 
