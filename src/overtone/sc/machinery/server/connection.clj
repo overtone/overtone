@@ -20,8 +20,8 @@
    [overtone.sc.machinery.server.comms :refer [server-osc-peer* server-recv server-snd]]
    [overtone.version :as version])
   (:import
-   (java.io BufferedInputStream File InputStream OutputStream)
-   (java.lang Process ProcessBuilder)))
+   (java.io File InputStream OutputStream)
+   (java.net ServerSocket)))
 
 (set! *warn-on-reflection* true)
 
@@ -215,10 +215,16 @@
           (recur))))
     proc))
 
+;; there's no way to have scsynth pick a free port and then report which it picked.
+;; this is more reliable than choosing a random port.
+(defn- get-free-port []
+  (with-open [socket (ServerSocket. 0)]
+    (.getLocalPort socket)))
+
 (defn- external-booter
   "Boot thread to start the external audio server process and hook up to
   STDOUT for log messages."
-  ([^"[Ljava.lang.String;" cmd] (external-booter cmd "."))
+  ([cmd] (external-booter cmd "."))
   ([^"[Ljava.lang.String;" cmd ^java.lang.String working-dir]
    (log/info "Booting external audio server with cmd: " (seq cmd) ", and working directory: " working-dir)
    (let [working-dir  (File. working-dir)
@@ -374,7 +380,7 @@
       (ref-set connection-info*
                (transient-connection-info connection-type port)))
 
-     (let [port (if (nil? port) (+ (rand-int 50000) 2000) port)]
+     (let [port (or port (get-free-port))]
        (when (not= :external connection-type)
          (log/warn "Only :external connection type is supported, :connection-type " connection-type " ignored. (" config/OVERTONE-CONFIG-FILE ")"))
        (boot-server port opts)

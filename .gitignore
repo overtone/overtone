@@ -35,3 +35,4 @@ target/
 *~
 .clj-kondo/.cache
 pom.xml.asc
+/.overtone
