@@ -38,9 +38,9 @@ jobs:
           java-version: ${{matrix.java}}
 
       - name: Install clojure tools
-        uses: DeLaGuardo/setup-clojure@12.5
+        uses: DeLaGuardo/setup-clojure@12.6
         with:
-          cli: latest
+          cli: 1.12.0.1479
 
       - name: Windows dependencies
         shell: bash
@@ -57,11 +57,11 @@ jobs:
           Add-Content $env:GITHUB_PATH "${{github.workspace}}\..\sc-install\SuperCollider"
         if: matrix.os == 'windows-latest'
 
-      - name: Mac dependencies
-        run: |
-          export HOMEBREW_NO_INSTALL_CLEANUP=1
-          brew update
-          brew install supercollider
+      - uses: tecolicom/actions-use-homebrew-tools@v1
+        with:
+          tools: 'supercollider'
+          # TODO doesn't seem to restore /Applications/SuperCollider.app
+          cache: no
         if: matrix.os == 'macos-latest'
 
       - name: Grant microphone access for macos
