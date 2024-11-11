@@ -5,6 +5,7 @@
 ## Fixed
 - [573](https://github.com/overtone/overtone/pull/573): reduce likelihood of choosing a used random port for `scsynth`
 - [578](https://github.com/overtone/overtone/pull/578): Fixed `overtone.sc.synth/buzz` instrument.
+- [577](https://github.com/overtone/overtone/pull/577): Fix `/cmd` validation
 
 ## Changed
 
@@ -36,7 +37,7 @@
 - setup studio groups only after foundational groups
 - ensure later events in dep-state* go after earlier events in `:history`
 - Fix `defsynth-load` macro, handle arguments that aren't a string literal
-- `overtone.music.pitch/scale` : correctly handle scales that contain more than 8 notes 
+- `overtone.music.pitch/scale` : correctly handle scales that contain more than 8 notes
 - Support setting `:beat` or `:start-time` in note events
 
 ## Changed
