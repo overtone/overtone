@@ -186,7 +186,10 @@
   (let [lpf-lev (* (+ 1 (lf-noise1:kr 10)) 400)
         a       (lpf (saw (midicps pitch)) lpf-lev)
         b       (sin-osc (midicps (- pitch 12)))
-        env     (env-gen 1 1 0 1 2 (perc 0.01 (/ dur 1000)))]
+        ;; the previous declaration of env segfaulted for several users
+        ;; the new version below works, but it isnt know if it matches the original intent
+        env     (env-gen (perc 0.01 (/ dur 1000)) :action FREE)
+        ]
     (* env (+ a b))))
 
 (definst bass
