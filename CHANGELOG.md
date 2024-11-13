@@ -4,6 +4,7 @@
 
 ## Fixed
 - [573](https://github.com/overtone/overtone/pull/573): reduce likelihood of choosing a used random port for `scsynth`
+- [578](https://github.com/overtone/overtone/pull/578): Fixed `overtone.sc.synth/buzz` instrument.
 
 ## Changed
 
