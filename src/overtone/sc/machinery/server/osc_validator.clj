@@ -126,7 +126,7 @@
    "/quit"               []
    "/notify"             [:zero-or-one]
    "/status"             []
-   "/cmd"                [:int :anything*]
+   "/cmd"                [:cmd-name :anything*]
    "/dumpOSC"            [:zero-to-three]
    "/sync"               [:int]
    "/clearSched"         []
