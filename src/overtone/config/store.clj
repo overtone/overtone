@@ -4,7 +4,7 @@
   (:use [overtone.config.file-store]
         [overtone.helpers.string :only [capitalize]]
         [overtone.helpers.system :only [get-os system-user-name]]
-        [overtone.helpers.file :only [mkdir! file-exists? path-exists? mv! mk-path]]
+        [overtone.helpers.file :only [mkdir! file-exists? path-exists? mv! mk-path home-dir]]
         [overtone version]
         [clojure.java.io :only [delete-file]]))
 
@@ -68,7 +68,8 @@
   @live-store)
 
 (def OVERTONE-DIRS
-  (let [root   (mk-path (System/getProperty "user.home") ".overtone")
+  (let [root   (or (System/getProperty "overtone.config-dir")
+                   (mk-path (home-dir) ".overtone"))
         log    (mk-path root "log")
         assets (mk-path root "assets")
         speech (mk-path root "speech")]
