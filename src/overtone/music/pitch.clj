@@ -362,7 +362,10 @@
        start of the scale."
   ([n] (nth-interval :diatonic n))
   ([scale n]
-   (reduce + (take n (cycle (scale SCALE))))))
+   (let [s (scale SCALE)]
+     (if (< n 0)
+       (- (nth-interval scale (+ n (count s))) 12)
+       (reduce + (take n (cycle s)))))))
 
 (def DEGREE {:i     1
              :ii    2
