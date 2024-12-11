@@ -24,7 +24,7 @@
   (do
     (defrecord-ifn Inst [name full-name params args sdef
                          group instance-group fx-group
-                         mixer bus fx-chain
+                         mixer bus
                          volume pan
                          n-chans]
       (fn [this & args]
@@ -185,13 +185,12 @@
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (control-proxy-value-atom full-name# %)) params#)
-         fx-chain#  []
          volume#    (atom DEFAULT-VOLUME)
          pan#       (atom DEFAULT-PAN)
          inst#      (with-meta
                       (->Inst sname# full-name# params-with-vals# arg-names# sdef#
                               container-group# instance-group# fx-group#
-                              imixer# inst-bus# fx-chain#
+                              imixer# inst-bus#
                               volume# pan#
                               n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
@@ -275,8 +274,8 @@
     (inst-pan! bar 1 -1)   ;ch1 right, ch2 left.
     (inst-volume! bar 0 1) ;mute ch1.
 
-  * Each instrument has an fx-chain to which you can add any number of
-    'fx synths' using the inst-fx function.
+  * Each instrument has an fx-group to which you can add any number of
+    'fx synths' using the inst-fx! function.
   "
   {:arglists '([name doc-string? params ugen-form])}
   [i-name & inst-form]
