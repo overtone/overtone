@@ -13,6 +13,7 @@
         [overtone.studio.core]
         [overtone.studio.mixer]
         [overtone.studio.fx]
+        [overtone.helpers.atom]
         [overtone.helpers.lib]
         [overtone.libs.event])
   (:require [clojure.pprint]
@@ -24,7 +25,7 @@
   (do
     (defrecord-ifn Inst [name full-name params args sdef
                          group instance-group fx-group
-                         mixer bus
+                         mixer mixer-params bus
                          volume pan
                          n-chans]
       (fn [this & args]
@@ -64,12 +65,40 @@
             sndr (select 1 snd)]
         (out out-bus (balance2 sndl sndr pan volume))))))
 
-(defn inst-mixer
+(defn default-get-inst-mixer
   "Instantiate a mono or stereo inst-mixer synth."
-  [n-chans & args]
+  [n-chans]
   (if (> n-chans 1)
-    (apply stereo-inst-mixer args)
-    (apply mono-inst-mixer args)))
+    stereo-inst-mixer
+    mono-inst-mixer))
+
+(defn inst-mixer
+  "Instantiate an instrument mixer."
+  [n-chans & args]
+  (let [get-mixer (get @studio* ::get-inst-mixer default-get-inst-mixer)
+        mixer-synth (get-mixer n-chans)]
+    (apply mixer-synth args)))
+
+(defn replace-inst-mixer!
+  "Replace the mixer synth in an instrument."
+  [{:keys [n-chans mixer bus mixer-params] :as inst} new-get-inst-mixer & {:as params}]
+  (ensure-node-active! inst)
+  (let [mixer-synth (new-get-inst-mixer n-chans)
+        synth-params (->> (merge (some-> mixer-params deref) params)
+                          ;; Flatten to :key1 val1 :key2 val2 ...
+                          (mapcat identity))
+        new-mixer (apply mixer-synth
+                         [:replace @mixer]
+                         :in-bus bus
+                         synth-params)]
+    (reset! mixer new-mixer)))
+
+(defn replace-all-inst-mixer!
+  "Replace the mixer synth in all current and future instruments."
+  [new-get-inst-mixer & params]
+  (swap! studio* assoc ::get-inst-mixer new-get-inst-mixer)
+  (doseq [[_name inst] (:instruments @studio*)]
+    (apply replace-inst-mixer! inst new-get-inst-mixer params)))
 
 (defn inst-channels
   "Internal fn used for multimethod dispatch on Insts."
@@ -81,14 +110,14 @@
   "Control the volume of a single instrument."
   [inst vol]
   (ensure-node-active! inst)
-  (ctl (:mixer inst) :volume vol)
+  (ctl @(:mixer inst) :volume vol)
   (reset! (:volume inst) vol))
 
 (defn inst-pan!
   "Control the pan setting of a single instrument."
   [inst pan]
   (ensure-node-active! inst)
-  (ctl (:mixer inst) :pan pan)
+  (ctl @(:mixer inst) :pan pan)
   (reset! (:pan inst) pan))
 
 (defmulti inst-fx!
@@ -179,18 +208,19 @@
                                 "whilst creating an inst fx group"))
 
          imixer#    (or (:mixer new-inst#)
-                        (inst-mixer n-chans#
-                                    [:tail container-group#]
-                                    :in-bus inst-bus#))
+                        (atom (inst-mixer n-chans#
+                                          [:tail container-group#]
+                                          :in-bus inst-bus#)))
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (control-proxy-value-atom full-name# %)) params#)
-         volume#    (atom DEFAULT-VOLUME)
-         pan#       (atom DEFAULT-PAN)
+         mixer-params# (atom {})
+         volume#    (atom-view mixer-params# :volume DEFAULT-VOLUME)
+         pan#       (atom-view mixer-params# :pan DEFAULT-PAN)
          inst#      (with-meta
                       (->Inst sname# full-name# params-with-vals# arg-names# sdef#
                               container-group# instance-group# fx-group#
-                              imixer# inst-bus#
+                              imixer# mixer-params# inst-bus#
                               volume# pan#
                               n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
@@ -305,7 +335,7 @@
     (doseq [sub-node [(:fx-group inst)
                       (:group inst)
                       (:instance-group inst)
-                      (:mixer inst)]]
+                      @(:mixer inst)]]
       (node-block-until-ready sub-node))))
 
 (defn- inst-status*
@@ -313,7 +343,7 @@
   (let [sub-nodes [(:fx-group inst)
                    (:group inst)
                    (:instance-group inst)
-                   (:mixer inst)]]
+                   @(:mixer inst)]]
     (cond
      (some #(= :loading @(:status %)) sub-nodes) :loading
      (some #(= :destroyed @(:status %)) sub-nodes) :destroyed
