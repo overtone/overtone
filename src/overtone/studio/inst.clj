@@ -120,6 +120,13 @@
   (ctl @(:mixer inst) :pan pan)
   (reset! (:pan inst) pan))
 
+(defn inst-mixer-ctl!
+  "Control a named parameters of the output mixer of a single instrument."
+  [inst & args]
+  (ensure-node-active! inst)
+  (apply ctl @(:mixer inst) args)
+  (swap! (:mixer-params inst) #(apply assoc % args)))
+
 (defmulti inst-fx!
   "Append an effect to an instrument channel. Returns a SynthNode or a
   vector of SynthNodes representing the effect instance."
