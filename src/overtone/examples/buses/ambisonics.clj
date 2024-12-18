@@ -1,35 +1,40 @@
 (ns overtone.examples.buses.ambisonics
   (:use overtone.live))
 
-;; SuperCollider has decent support for Ambisonics, a means of representing
-;; spatial audio. See https://en.wikipedia.org/wiki/Ambisonics
-;; This exmple file is a demonstration of how to create a complete
-;; First Order Ambisonic (FOA) audio pipeline in Overtone.
+;; Ambisonics is a full-sphere surround sound format.
+;; See https://en.wikipedia.org/wiki/Ambisonics
 
-;; Overtone's definst assumes a stereo output pipeline.
+;; SuperCollider has some support for full First Order Ambisonics (3D), using 4
+;; channels (W, X, Y, and Z). However, it has only a 2D rendering function,
+;; `decode-b2` that takes just 3 channels as input (W, X, and Y). 2D audio means
+;; that all audio sources are assumed to be placed in the plane of the listener's
+;; ears, horizontal to the ground, with no varying elevation.
+
+;; This example file is a demonstration of how to create a complete
+;; 2D Ambisonic audio pipeline in Overtone.
+
+;; Overtone's default definst assumes a stereo output pipeline.
 ;; Instrument output is controlled by one of two mixers created when the
 ;; instrument is defined, either mono-inst-mixer or stereo-inst-mixer.
 ;; These mixers take volume and pan parameters.
 
 ;; To support Ambisonic instruments, we replace the default instrument
-;; mixer with spatial mixers that place the instrument in a two or three
-;; dimensional space. The simplest mixer represents audio positions in polar
-;; coordinate, azimuth, elevation, and gain. One could build on the polar
-;; coordinate mixer to support other coordinate systems. And of course, the
-;; location of an instrument in space may be as dynamic as anything else in
-;; Overtone.
+;; mixer with Ambisonic-aware mixers that place the instrument in a plane.
+;; The basic 2D mixer represents audio positions in polar coordinates, using
+;; azimuth and gain. One could build on the polar coordinate mixer to support
+;; Cartesian coordinates, and of course, the location of an instrument in
+;; the plane may be as dynamic as anything else in Overtone.
 
-;; The output of the spatial mixers is 3 channels of Ambisonic audio, for
-;; 2D. 2D audio means that all audio sources are assumed to be placed in
-;; the plane of the listener's ears, horizontal to the ground. The Ambisonic
-;; audio channels from all sources are mixed together and then rendered into
-;; the output speaker configuration. `decode-b2` handles 2D rendering, with
+;; The output of the polar mixers is 3 channels of Ambisonic audio: W, X, and Y.
+;; These Ambisonic audio channels from all instruments are mixed together onto
+;; the foa-output-bus. The contents of this three channel bus is then rendered
+;; into the output speaker configuration. `decode-b2` handles 2D rendering, with
 ;; any number of speakers evenly spaced in a circle around the listener.
 ;; `start-foa` configures the studio with a given number of speakers,
-;; starts the foa-output synth, and replaces the default instrument mixer
+;; starts the foa-output-synth, and replaces the default instrument mixer
 ;; with Ambisonic mixers.
 
-(def n-foa-channels 3)
+(def n-foa-channels 3)  ;; 3 channels for 2D First Order Ambisonics (FOA)
 
 (defonce foa-output-bus (audio-bus n-foa-channels "ambisonic-output"))
 
@@ -95,9 +100,9 @@
 (defn stop-foa
   "Restore the default Overtone output pipeline."
   []
-  (when-let [running-output (get @studio* ::running-output)]
-    (kill running-output)
-    (swap! studio* dissoc ::running-output))
+  (when-let [output-mixer (get @studio* ::output-mixer)]
+    (kill output-mixer)
+    (swap! studio* dissoc ::output-mixer))
   (replace-all-inst-mixer! default-get-inst-mixer))
 
 (defn start-foa
@@ -105,12 +110,12 @@
   [n-speakers & {:keys [orientation]
                  :or {orientation 0.5}}]
   (def-foa-output-synth n-speakers orientation)
-  (when-let [running-output (get @studio* ::running-output)]
-    (kill running-output))
+  (when-let [output-mixer (get @studio* ::output-mixer)]
+    (kill output-mixer))
   ;; Start FOA output synth before the real output group but after
   ;; instrument nodes and safe from stopping with `stop`.
   (let [output-synth (foa-output [:head (foundation-safe-post-default-group)])]
-    (swap! studio* assoc ::running-output output-synth))
+    (swap! studio* assoc ::output-mixer output-synth))
   (replace-all-inst-mixer! create-ambisonic-mixer))
 
 (comment
