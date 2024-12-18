@@ -84,7 +84,7 @@
   [{:keys [n-chans mixer bus mixer-params] :as inst} new-get-inst-mixer & {:as params}]
   (ensure-node-active! inst)
   (let [mixer-synth (new-get-inst-mixer n-chans)
-        synth-params (->> (merge (some-> mixer-params deref) params)
+        synth-params (->> (merge @mixer-params params)
                           ;; Flatten to :key1 val1 :key2 val2 ...
                           (mapcat identity))
         new-mixer (apply mixer-synth
