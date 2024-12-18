@@ -4,29 +4,39 @@
 
 (defn atom-view
   "Create atom-like presentation of a single key in an atom."
-  ([a k] (atom-view a k nil))
-  ([a k v]
-   (swap! a assoc k v)
-   (reify
-     clojure.lang.IDeref
-     (deref [_this] (get @a k))
+  [a k]
+  (reify
+    clojure.lang.IDeref
+    (deref [_this] (get @a k))
 
-     clojure.lang.IAtom
-     (swap [_this ^clojure.lang.IFn f]
-       (-> (swap! a #(update % k f))
-           (get k)))
-     (swap [_this ^clojure.lang.IFn f ^java.lang.Object a1]
-       (-> (swap! a #(update % k f a1))
-           (get k)))
-     (swap [_this ^clojure.lang.IFn f ^java.lang.Object a1 ^java.lang.Object a2]
-       (-> (swap! a #(update % k f a1 a2))
-           (get k)))
-     (swap [_this ^clojure.lang.IFn f ^java.lang.Object a1 ^java.lang.Object a2 ^clojure.lang.ISeq args]
-       (-> (swap! a #(apply update % k f a1 a2 args))
-           (get k)))
-     (reset [_this ^java.lang.Object newval]
-       (-> (swap! a assoc k newval)
-           (get k))))))
+    clojure.lang.IAtom
+    (swap [_this ^clojure.lang.IFn f]
+      (-> (swap! a update k f)
+          (get k)))
+    (swap [_this ^clojure.lang.IFn f ^java.lang.Object a1]
+      (-> (swap! a update k f a1)
+          (get k)))
+    (swap [_this ^clojure.lang.IFn f ^java.lang.Object a1 ^java.lang.Object a2]
+      (-> (swap! a update k f a1 a2)
+          (get k)))
+    (swap [_this ^clojure.lang.IFn f ^java.lang.Object a1 ^java.lang.Object a2 ^clojure.lang.ISeq args]
+      (-> (swap! a #(apply update % k f a1 a2 args))
+          (get k)))
+    (^boolean compareAndSet
+      [_this ^java.lang.Object oldval ^java.lang.Object newval]
+      (loop []
+        (let [old @a
+              curval (get old k)]
+          (cond
+            (not= curval oldval)
+            false
+            (compare-and-set! a old (assoc old k newval))
+            true
+            :else
+            (recur)))))
+    (reset [_this ^java.lang.Object newval]
+      (-> (swap! a assoc k newval)
+          (get k)))))
 
 (comment
   (do (def a (atom {:key 1}))
