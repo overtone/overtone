@@ -54,14 +54,14 @@
   `az` and `gain` are defined as in pan-b2.
   `spread` has the same units as azimuth (`radians/pi`), 0 has the left and
   right channels coming from the same source, 0.5 places them 90 degrees
-  from each other, and 1.0 places them diametrically opposite."
+  from each other, and 1.0 places them diametrically opposite (like the
+  built-in `bi-pan-b2` function does)."
   [in-bus 0 az 0 gain 1 spread 0.5]
   (let [[left right] (in :bus in-bus :num-channels 2)
         half-spread (* spread 0.5)
         left-amb (pan-b2 :in left :azimuth (wrap (- az half-spread) -1 1) :gain gain)
         right-amb (pan-b2 :in right :azimuth (wrap (+ az half-spread) -1 1) :gain gain)]
-    (->> (map vector left-amb right-amb)
-         (map sum)
+    (->> (+ left-amb right-amb)
          (out foa-output-bus))))
 
 (defsynth mix-direct-foa
