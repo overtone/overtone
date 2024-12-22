@@ -73,6 +73,7 @@ jobs:
 
       - name: Linux dependencies
         run: |
+          sudo apt-get update
           sudo apt-get install -y pulseaudio dbus-x11 libssl-dev supercollider-language supercollider-server sc3-plugins-server alsa-base alsa-utils jackd2 libjack-jackd2-dev libjack-jackd2-0 libasound2-dev librtmidi-dev pulseaudio-module-jack
         if: matrix.os == 'ubuntu-latest'
 
