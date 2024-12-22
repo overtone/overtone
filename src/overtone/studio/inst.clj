@@ -67,23 +67,23 @@
 
 (defn default-get-inst-mixer
   "Instantiate a mono or stereo inst-mixer synth."
-  [n-chans]
+  [{:keys [n-chans] :as _inst}]
   (if (> n-chans 1)
     stereo-inst-mixer
     mono-inst-mixer))
 
 (defn inst-mixer
   "Instantiate an instrument mixer."
-  [n-chans & args]
+  [inst & args]
   (let [get-mixer (get @studio* ::get-inst-mixer default-get-inst-mixer)
-        mixer-synth (get-mixer n-chans)]
+        mixer-synth (get-mixer inst)]
     (apply mixer-synth args)))
 
 (defn replace-inst-mixer!
   "Replace the mixer synth in an instrument."
   [{:keys [n-chans mixer bus mixer-params] :as inst} new-get-inst-mixer & {:as params}]
   (ensure-node-active! inst)
-  (let [mixer-synth (new-get-inst-mixer n-chans)
+  (let [mixer-synth (new-get-inst-mixer inst)
         synth-params (->> (merge @mixer-params params)
                           ;; Flatten to :key1 val1 :key2 val2 ...
                           (mapcat identity))
@@ -215,9 +215,7 @@
                                 "whilst creating an inst fx group"))
 
          imixer#    (or (:mixer new-inst#)
-                        (atom (inst-mixer n-chans#
-                                          [:tail container-group#]
-                                          :in-bus inst-bus#)))
+                        (atom ::uninitialized-mixer))
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (control-proxy-value-atom full-name# %)) params#)
@@ -231,6 +229,13 @@
                               volume# pan#
                               n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
+     (when (= ::uninitialized-mixer @imixer#)
+       ;; Briefly delayed mixer creation to support passing the realized inst# to
+       ;; the mixer selection function.
+       (reset! imixer#
+               (inst-mixer inst#
+                           [:tail container-group#]
+                           :in-bus inst-bus#)))
      (load-synthdef sdef#)
      (add-instrument inst#)
      (event :new-inst :inst inst#)

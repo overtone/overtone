@@ -71,7 +71,7 @@
   (->> (in :bus in-bus :num-channels n-foa-channels)
        (out foa-output-bus)))
 
-(defn create-ambisonic-mixer [n-chans & params]
+(defn create-ambisonic-mixer [{:keys [n-chans] :as _inst} & params]
   (cond
     (= n-chans 1)
     mix-polar-mono
