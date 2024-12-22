@@ -417,6 +417,7 @@
   ;; TODO: this is not yet taking :offset into account
   (let [align (:align opts (:align player :wait))
         quant (:quant opts (:quant player 4))
+        proto (:proto opts (:proto player))
         playing (some :playing (vals @pplayers))
         beat (if playing
                (max (or beat 1) (clock))
@@ -452,7 +453,8 @@
            :playing true
            :beat beat
            :pseq pseq
-           :quant quant)))
+           :quant quant
+           :proto proto)))
 
 (defn presume
   ([k]
