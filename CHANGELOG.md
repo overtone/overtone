@@ -6,6 +6,7 @@
 - [573](https://github.com/overtone/overtone/pull/573): reduce likelihood of choosing a used random port for `scsynth`
 - [578](https://github.com/overtone/overtone/pull/578): Fixed `overtone.sc.synth/buzz` instrument.
 - [577](https://github.com/overtone/overtone/pull/577): Fix `/cmd` validation
+- [582](https://github.com/overtone/overtone/pull/582): Enable insts to be loaded before server startup
 
 ## Changed
 
