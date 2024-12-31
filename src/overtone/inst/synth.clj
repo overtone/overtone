@@ -195,10 +195,13 @@
         src  (saw [freq (* 0.98 freq) (* 2.015 freq)])
         src  (clip2 (* 1.3 src) 0.8)
         sub  (sin-osc (/ freq 2))
-        filt (resonz (rlpf src (* 4.4 freq) 0.09) (* 2.0 freq) 2.9)]
-    (* env amp (fold:ar (distort (* 1.3 (+ filt sub))) 0.08))))
+        filt (resonz (rlpf src (* 4.4 freq) 0.09) (* 2.0 freq) 2.9)
+        fld  (fold:ar (distort (* 1.3 (+ filt sub))) 0.08)]
+    ;; Three distinct audio channels created in `saw` above need to be
+    ;; mixed down to one for output
+    (* env amp (mix fld))))
 
-(definst daf-bass [freq 440 gate 1 amp 1 out-bus 0]
+(definst daf-bass [freq 440 gate 1 amp 1]
   (let [harm [1 1.01 2 2.02 3.5 4.01 5.501]
         harm (concat harm (map #(* 2 %) harm))
         snd  (* 2 (distort (sum (sin-osc (* freq harm)))))
@@ -217,7 +220,7 @@
         meat    (ring4 filt sub)
         sliced  (rlpf meat (* 2 freq) 0.1)
         bounced (free-verb sliced 0.8 0.9 0.2)]
-    (* amp env bounced)))
+    (* amp env (mix bounced))))
 
 (definst vintage-bass
   [note 40 velocity 80 t 0.6 amp 1 gate 1]
