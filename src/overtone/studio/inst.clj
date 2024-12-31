@@ -122,9 +122,9 @@
 
 (defn inst-mixer-ctl!
   "Control a named parameters of the output mixer of a single instrument."
-  [inst & args]
+  [inst & {:as args}]
   (ensure-node-active! inst)
-  (apply ctl @(:mixer inst) args)
+  (apply ctl @(:mixer inst) (-> args seq flatten))
   (swap! (:mixer-params inst) #(apply assoc % args)))
 
 (defmulti inst-fx!
