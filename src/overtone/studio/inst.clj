@@ -123,7 +123,7 @@
   [inst & {:as args}]
   (ensure-node-active! inst)
   (apply ctl @(:mixer inst) (-> args seq flatten))
-  (swap! (:mixer-params inst) #(apply assoc % args)))
+  (swap! (:mixer-params inst) merge args))
 
 (defmulti inst-fx!
   "Append an effect to an instrument channel. Returns a SynthNode or a
