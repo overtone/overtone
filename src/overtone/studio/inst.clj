@@ -109,14 +109,14 @@
   [inst vol]
   (ensure-node-active! inst)
   (ctl @(:mixer inst) :volume vol)
-  (swap! (:mixer-params inst) update :volume vol))
+  (swap! (:mixer-params inst) assoc :volume vol))
 
 (defn inst-pan!
   "Control the pan setting of a single instrument."
   [inst pan]
   (ensure-node-active! inst)
   (ctl @(:mixer inst) :pan pan)
-  (swap! (:mixer-params inst) update :pan pan))
+  (swap! (:mixer-params inst) assoc :pan pan))
 
 (defn inst-mixer-ctl!
   "Control a named parameters of the output mixer of a single instrument."
