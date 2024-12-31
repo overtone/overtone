@@ -13,7 +13,6 @@
         [overtone.studio.core]
         [overtone.studio.mixer]
         [overtone.studio.fx]
-        [overtone.helpers.atom]
         [overtone.helpers.lib]
         [overtone.libs.event])
   (:require [clojure.pprint]
@@ -26,7 +25,6 @@
     (defrecord-ifn Inst [name full-name params args sdef
                          group instance-group fx-group
                          mixer mixer-params bus
-                         volume pan
                          n-chans]
       (fn [this & args]
         (apply synth-player sdef params this [:tail instance-group] args))
@@ -111,14 +109,14 @@
   [inst vol]
   (ensure-node-active! inst)
   (ctl @(:mixer inst) :volume vol)
-  (reset! (:volume inst) vol))
+  (swap! (:mixer-params inst) update :volume vol))
 
 (defn inst-pan!
   "Control the pan setting of a single instrument."
   [inst pan]
   (ensure-node-active! inst)
   (ctl @(:mixer inst) :pan pan)
-  (reset! (:pan inst) pan))
+  (swap! (:mixer-params inst) update :pan pan))
 
 (defn inst-mixer-ctl!
   "Control a named parameters of the output mixer of a single instrument."
@@ -219,14 +217,12 @@
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (control-proxy-value-atom full-name# %)) params#)
-         mixer-params# (atom {})
-         volume#    (atom-view mixer-params# :volume DEFAULT-VOLUME)
-         pan#       (atom-view mixer-params# :pan DEFAULT-PAN)
+         mixer-params# (atom {:volume DEFAULT-VOLUME
+                              :pan    DEFAULT-PAN})
          inst#      (with-meta
                       (->Inst sname# full-name# params-with-vals# arg-names# sdef#
                               container-group# instance-group# fx-group#
                               imixer# mixer-params# inst-bus#
-                              volume# pan#
                               n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
      (when (= ::uninitialized-mixer @imixer#)
