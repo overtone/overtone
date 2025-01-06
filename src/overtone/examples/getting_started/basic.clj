@@ -121,12 +121,9 @@
 
 (defn play-chords [b]
   (let [tick (* 2 (choose [125 500 250 250 500 250 500 250]))
-        next-beat (inc b)
-        notes (chord-notes)]
-    (println (format "play-chords beat: %s, notes: %s tick: %d" b notes tick))
+        next-beat (inc b)]
     (at (metro2 b)
-        (doseq [note notes]
-          (println (format "  note: %s" note))
+        (doseq [note (map #(- %  12) (chord-notes))]
           (overpad note 0.3 (/ tick 1020))))
     (apply-by (metro2 next-beat) #'play-chords [next-beat])))
 
