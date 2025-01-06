@@ -44,10 +44,12 @@
   (play (after 8 metro) notes)
   (play (after 16 metro) notes))
 
-;(play (metronome 120) melody)
-;(play-round (metronome 120) melody)
+(comment
+  (play (metronome 120) melody)
+  (play-round (metronome 120) melody)
+  )
 
-(defn -main [& args]
+(defn -main [& _args]
   (let [metro (metronome 120)]
 
     ;; play the melody
@@ -55,4 +57,9 @@
     (play-round (after 16 metro) melody)
 
     ;; wait for the melody to finish
-    (Thread/sleep (- (metro 48) (now)))))
+    (let [sleep-duration (-> (metro 48)
+                             (- (now))
+                             (long))]
+      (println "sleeping for " sleep-duration " milliseconds to allow melody to play")
+      (Thread/sleep sleep-duration)
+      (System/exit 0))))
