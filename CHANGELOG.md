@@ -9,7 +9,7 @@
 - [577](https://github.com/overtone/overtone/pull/577): Fix `/cmd` validation
 
 ## Changed
-- [581](https://github.com/overtone/overtone/pull/581): Instrument `:mixer` field is now an atom to support replacable output mixers. `:volume` and `:pan` atoms are removed from Instruments. Their values are tracked in `:volume` and `:pan` keys of the map state of the new `:mixer-params` atom.
+- [581](https://github.com/overtone/overtone/pull/581): Instrument `:mixer` field is now an atom to support replacable output mixers. A new `:mixer-params` field holds an atom whose value is a map with any number of mixer parameters. To avoid breaking change while consolidating mixer parameters in `:mixer-params`, `:volume` and `:pan` atoms are now lentes derived atoms that track the keys in `:mixer-params`.
 
 # 0.16.3331 (2024-11-07 / 09b1fca)
 

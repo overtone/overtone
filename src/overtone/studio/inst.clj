@@ -16,6 +16,7 @@
         [overtone.helpers.lib]
         [overtone.libs.event])
   (:require [clojure.pprint]
+            [lentes.core :as l]
             [overtone.sc.protocols :as protocols]
             [overtone.sc.util]
             [overtone.sc.machinery.server.comms :refer [with-server-sync]]))
@@ -24,7 +25,7 @@
   (do
     (defrecord-ifn Inst [name full-name params args sdef
                          group instance-group fx-group
-                         mixer mixer-params bus
+                         mixer mixer-params volume pan bus
                          n-chans]
       (fn [this & args]
         (apply synth-player sdef params this [:tail instance-group] args))
@@ -109,14 +110,14 @@
   [inst vol]
   (ensure-node-active! inst)
   (ctl @(:mixer inst) :volume vol)
-  (swap! (:mixer-params inst) assoc :volume vol))
+  (reset! (:volume inst) vol))
 
 (defn inst-pan!
   "Control the pan setting of a single instrument."
   [inst pan]
   (ensure-node-active! inst)
   (ctl @(:mixer inst) :pan pan)
-  (swap! (:mixer-params inst) assoc :pan pan))
+  (reset! (:pan inst) pan))
 
 (defn inst-mixer-ctl!
   "Control a named parameters of the output mixer of a single instrument."
@@ -219,10 +220,12 @@
          params-with-vals# (map #(assoc % :value (control-proxy-value-atom full-name# %)) params#)
          mixer-params# (atom {:volume DEFAULT-VOLUME
                               :pan    DEFAULT-PAN})
+         volume#    (l/derive (l/key :volume) mixer-params#)
+         pan#       (l/derive (l/key :pan) mixer-params#)
          inst#      (with-meta
                       (->Inst sname# full-name# params-with-vals# arg-names# sdef#
                               container-group# instance-group# fx-group#
-                              imixer# mixer-params# inst-bus#
+                              imixer# mixer-params# volume# pan# inst-bus#
                               n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
      (when (= ::uninitialized-mixer @imixer#)
