@@ -347,25 +347,29 @@
       (schedule-next-job clock beat k)))
   nil)
 
-(defn padd [k pattern & {:keys [quant clock offset] :as opts
-                         :or   {quant  4
-                                offset 0
-                                clock  transport/*clock*}}]
+(defn padd
+  "Add a pattern to the player pool or merge parameters if the player already
+   exists. Does not change whether the player is playing or not."
+  [k pattern & {:as opts}]
   (let [pattern (cond-> pattern (map? pattern) pattern/pbind)]
     (swap! pplayers update k
-           (fn [p]
-             (merge p
-                    {:key     k
-                     :clock   clock
-                     :pattern pattern
-                     :pseq    pattern
-                     :quant   quant
-                     :offset  offset}
-                    opts)))))
 
 (defn- align-pseq [beat quant pseq]
   (let [beat (dec beat) ;; 0-based, so we can do modulo
         next-beat (mod beat quant)
+           (fn [player]
+             (let [align (:align opts (:align player :wait))
+                   quant (:quant opts (:quant player 4))
+                   offset (:offset opts (:offset player 0))
+                   clock (:clock opts (:clock player transport/*clock*))
+                   proto (:proto opts (:proto player))]
+               (merge player
+                      {:clock   clock
+                       :pseq    pattern
+                       :align   align
+                       :quant   quant
+                       :offset  offset
+                       :proto   proto}))))))
         [diff pseq] (loop [nb next-beat
                            ps pseq]
                       ;; (prn nb ps)
@@ -415,6 +419,7 @@
   ;; TODO: this is not yet taking :offset into account
   (let [align (:align opts (:align player :wait))
         quant (:quant opts (:quant player 4))
+        offset (:offset opts (:offset player 0))
         clock (:clock opts (:clock player transport/*clock*))
         proto (:proto opts (:proto player))
         playing (some :playing (vals @pplayers))
@@ -452,7 +457,9 @@
            :playing true
            :beat beat
            :pseq pseq
+           :align align
            :quant quant
+           :offset offset
            :proto proto)))
 
 (defn presume
