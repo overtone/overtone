@@ -353,10 +353,6 @@
   [k pattern & {:as opts}]
   (let [pattern (cond-> pattern (map? pattern) pattern/pbind)]
     (swap! pplayers update k
-
-(defn- align-pseq [beat quant pseq]
-  (let [beat (dec beat) ;; 0-based, so we can do modulo
-        next-beat (mod beat quant)
            (fn [player]
              (let [align (:align opts (:align player :wait))
                    quant (:quant opts (:quant player 4))
@@ -370,6 +366,10 @@
                        :quant   quant
                        :offset  offset
                        :proto   proto}))))))
+
+(defn- align-pseq [beat quant pseq]
+  (let [beat (dec beat) ;; 0-based, so we can do modulo
+        next-beat (mod beat quant)
         [diff pseq] (loop [nb next-beat
                            ps pseq]
                       ;; (prn nb ps)
