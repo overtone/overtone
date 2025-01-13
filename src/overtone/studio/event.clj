@@ -19,7 +19,7 @@
   ^:private
   player-pool (at-at/mk-pool))
 
-(defonce ^:private pplayers (atom {}))
+(defonce pplayers (atom {}))
 
 (def ^:private event-defaults
   {:note
