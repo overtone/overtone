@@ -9,6 +9,8 @@
    [overtone.studio.transport :as transport]
    [overtone.sc.node]))
 
+(def dummy-instrument (reify overtone.sc.node/IControllableNode
+                        (node-control [_this _params])))
 (def dummy-pattern [{:type :ctl
                      :instrument dummy-instrument
                      :dur 4}])
