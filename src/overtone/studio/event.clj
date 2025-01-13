@@ -310,7 +310,7 @@
 
 (declare schedule-next)
 
-(defn- schedule-next-job [clock beat k]
+(defn schedule-next-job [clock beat k]
   (time/with-pool player-pool
     (time/apply-by (clock (dec beat)) schedule-next [k])))
 
