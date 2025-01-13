@@ -287,23 +287,17 @@
 (event/on-event :ctl #'handle-ctl ::ctl)
 
 (defn- quantize-ceil
-  "Quantize a beat to a period, rounding up.
-
-  Made a bit awkward by the fact that beats counts from 1, so e.g. a quant of
-  4 (align to 4/4 bars), yields 1, 5, 9, etc."
-  [beat quant]
-  (let [m (mod (dec beat) quant)]
+  "Quantize a beat to a period, rounding up."
+  [beat quant quant-base]
+  (let [m (mod (- beat quant-base) quant)]
     (if (= 0 m)
       beat
       (+ beat (- quant m)))))
 
 (defn- quantize-floor
-  "Quantize a beat to a period, rounding up.
-
-  Made a bit awkward by the fact that beats counts from 1, so e.g. a quant of
-  4 (align to 4/4 bars), yields 1, 5, 9, etc."
-  [beat quant]
-  (let [m (mod (dec beat) quant)]
+  "Quantize a beat to a period, rounding down."
+  [beat quant quant-base]
+  (let [m (mod (- beat quant-base) quant)]
     (if (= 0 m)
       beat
       (- beat m))))
@@ -364,9 +358,13 @@
                      :offset  offset}
                     opts)))))
 
-(defn- align-pseq [beat quant pseq]
-  (let [beat (dec beat) ;; 0-based, so we can do modulo
-        next-beat (mod beat quant)
+(defn- align-pseq
+  "Quantize pattern to the most recent quantized beat, current or past.
+
+   When not on the current quantized beat, removes events from the pseq
+   as though they had played starting at the last quantized beat."
+  [beat quant quant-base pseq]
+  (let [next-beat (mod (- beat quant-base) quant)
         [diff pseq] (loop [nb next-beat
                            ps pseq]
                       ;; (prn nb ps)
@@ -374,8 +372,7 @@
                         (let [dur (eget (pattern/pfirst ps) :dur)]
                           (recur (- nb dur) (pattern/pnext ps)))
                         [nb ps]))]
-    [;; convert back to 1-based beat index
-     (inc (- beat diff))
+    [(- beat diff)
      pseq]))
 
 (defn- take-pseq [len pseq]
@@ -417,7 +414,17 @@
   ;; TODO: this is not yet taking :offset into account
   (let [align (:align opts (:align player :wait))
         quant (:quant opts (:quant player 4))
-        playing (some :playing (vals @pplayers))
+        offset (:offset opts (:offset player 0))
+        clock (:clock opts (:clock player transport/*clock*))
+        proto (:proto opts (:proto player))
+        ;; Atomically determine both whether any player is playing and the
+        ;; earliest quantization base.
+        [playing quant-base] (reduce (fn [[playing quant-base] [k p]]
+                                       (if (:playing p)
+                                         [true (min quant-base (:quant-base p))]
+                                         [playing quant-base]))
+                                     [false (clock)]
+                                     @pplayers)
         beat (if playing
                (max (or beat 1) (clock))
                (clock))
@@ -434,15 +441,15 @@
                         ;; Honor the quant value, but switch immediately,
                         ;; possibly skipping over notes
                         :quant
-                        (align-pseq beat quant pseq)
+                        (align-pseq beat quant quant-base pseq)
                         :wait
                         (if-not (:playing player)
                           ;; we aren't playing yet, so start the sequence at the
                           ;; next available sync point (e.g. bar)
-                          [(quantize-ceil beat quant) pseq]
+                          [(quantize-ceil beat quant quant-base) pseq]
                           ;; We are already playing, let the old pattern play
                           ;; out until we are ready to switch
-                          (let [switch (quantize-ceil beat quant)]
+                          (let [switch (quantize-ceil beat quant quant-base)]
                             [beat (concat (take-pseq (- switch beat) old-pseq)
                                           pseq)]))
                         ;; Base case, just start at the next beat
@@ -452,7 +459,11 @@
            :playing true
            :beat beat
            :pseq pseq
-           :quant quant)))
+           :align align
+           :quant quant
+           :offset offset
+           :quant-base quant-base
+           :proto proto)))
 
 (defn presume
   ([k]
