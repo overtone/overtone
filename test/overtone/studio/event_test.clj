@@ -6,6 +6,7 @@
    [com.gfredericks.test.chuck.clojure-test :refer [checking for-all] :as prop]
    [overtone.music.rhythm :refer [metronome metro-start]]
    [overtone.studio.event :as event]
+   [overtone.studio.pattern :as pattern]
    [overtone.studio.transport :as transport]
    [overtone.sc.node]))
 
@@ -16,7 +17,7 @@
                      :dur 4}])
 
 (defspec quantization 10
-  (let [align      (gen/elements [:wait #_:quant #_:none])
+  (let [align      (gen/elements [:wait :quant :none])
         quant      (gen/choose 1 10)
         offset     (gen/choose 0 10)
         pattern    (gen/return dummy-pattern)
@@ -49,24 +50,23 @@
                (let [{:keys [align quant offset]} params
                      {next-beat-a :beat} (::a @event/pplayers)
                      {next-beat-b :beat
-                      next-seq-b :pseq}  (::b @event/pplayers)]
+                      next-seq-b :pseq}  (::b @event/pplayers)
+                     b-start (+ start-beat start-after)]
                  (is (= start-beat next-beat-a))
                  (case align
-                   :wait  (let [b-start (+ start-beat start-after)
-                                q-mod   (mod (- quant (mod start-after quant)) quant)
-                                quantized-b-start (+ b-start q-mod #_offset)]
-                            #_(future (prn [:start-beat start-beat
-                                            :start-after start-after
-                                            :b-start b-start
-                                            :quant quant
-                                            :offset offset
-                                            :quantized quantized-b-start
-                                            :next-beat-b next-beat-b
-                                            :pseq-b-start-fix pseq-b-start-fix
-                                            :fixed-quant (+ quantized-b-start
-                                                            (if (zero? start-after)
-                                                              pseq-b-start-fix
-                                                              0))]))
+                   :wait  (let [q-mod (mod (- quant (mod start-after quant)) quant)
+                                quantized-b-start (+ b-start q-mod offset)]
                             (is (= quantized-b-start next-beat-b)))
-                   :quant (is (= 1 1))
-                   :none  (is (= 1 1))))))))
+                   :quant (let [beats-to-remove (- (mod start-after quant) offset)
+                                [diff pseq] (loop [to-remove beats-to-remove
+                                                   pseq pseq-b]
+                                              (cond
+                                                (<= to-remove 0) [to-remove pseq]
+                                                (empty? pseq) [0 pseq]
+                                                :else
+                                                (let [dur (event/eget (pattern/pfirst pseq) :dur)]
+                                                  (recur (- to-remove dur) (pattern/pnext pseq)))))
+                                quantized-b-start (- b-start diff)]
+                            (is (= quantized-b-start next-beat-b))
+                            (is (= pseq next-seq-b)))
+                   :none  (is (= b-start next-beat-b))))))))

@@ -363,8 +363,8 @@
 
    When not on the current quantized beat, removes events from the pseq
    as though they had played starting at the last quantized beat."
-  [beat quant quant-base pseq]
-  (let [next-beat (mod (- beat quant-base) quant)
+  [beat quant-base quant offset pseq]
+  (let [next-beat (- (mod (- beat quant-base) quant) offset)
         [diff pseq] (loop [nb next-beat
                            ps pseq]
                       ;; (prn nb ps)
@@ -372,6 +372,7 @@
                         (let [dur (eget (pattern/pfirst ps) :dur)]
                           (recur (- nb dur) (pattern/pnext ps)))
                         [nb ps]))]
+    ;; diff is always 0 or negative, so returned beat is beat or later
     [(- beat diff)
      pseq]))
 
@@ -441,7 +442,7 @@
                         ;; Honor the quant value, but switch immediately,
                         ;; possibly skipping over notes
                         :quant
-                        (align-pseq beat quant quant-base pseq)
+                        (align-pseq beat quant-base quant offset pseq)
                         :wait
                         (if-not (:playing player)
                           ;; we aren't playing yet, so start the sequence at the
