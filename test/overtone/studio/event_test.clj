@@ -16,7 +16,7 @@
                      :instrument dummy-instrument
                      :dur 4}])
 
-(defspec quantization 10
+(defspec quantization 10000
   (let [align      (gen/elements [:wait :quant :none])
         quant      (gen/choose 1 10)
         offset     (gen/choose 0 10)
