@@ -288,7 +288,7 @@
 
 (defn- quantize-ceil
   "Quantize a beat to a period, rounding up."
-  [beat quant quant-base]
+  [beat quant-base quant]
   (let [m (mod (- beat quant-base) quant)]
     (if (= 0 m)
       beat
@@ -296,7 +296,7 @@
 
 (defn- quantize-floor
   "Quantize a beat to a period, rounding down."
-  [beat quant quant-base]
+  [beat quant-base quant]
   (let [m (mod (- beat quant-base) quant)]
     (if (= 0 m)
       beat
@@ -444,7 +444,7 @@
                         :quant
                         (align-pseq beat quant-base quant offset pseq)
                         :wait
-                        (let [switch (+ (quantize-ceil beat quant quant-base) offset)]
+                        (let [switch (+ (quantize-ceil beat quant-base quant) offset)]
                           (if-not (:playing player)
                             ;; we aren't playing yet, so start the sequence at the
                             ;; next available sync point (e.g. bar)
