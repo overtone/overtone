@@ -444,13 +444,13 @@
                         :quant
                         (align-pseq beat quant-base quant offset pseq)
                         :wait
-                        (if-not (:playing player)
-                          ;; we aren't playing yet, so start the sequence at the
-                          ;; next available sync point (e.g. bar)
-                          [(quantize-ceil beat quant quant-base) pseq]
-                          ;; We are already playing, let the old pattern play
-                          ;; out until we are ready to switch
-                          (let [switch (quantize-ceil beat quant quant-base)]
+                        (let [switch (+ (quantize-ceil beat quant quant-base) offset)]
+                          (if-not (:playing player)
+                            ;; we aren't playing yet, so start the sequence at the
+                            ;; next available sync point (e.g. bar)
+                            [switch pseq]
+                            ;; We are already playing, let the old pattern play
+                            ;; out until we are ready to switch
                             [beat (concat (take-pseq (- switch beat) old-pseq)
                                           pseq)]))
                         ;; Base case, just start at the next beat
