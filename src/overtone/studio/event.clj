@@ -367,11 +367,12 @@
   (let [next-beat (- (mod (- beat quant-base) quant) offset)
         [diff pseq] (loop [nb next-beat
                            ps pseq]
-                      ;; (prn nb ps)
-                      (if (< 0 nb)
+                      (cond
+                        (>= 0 nb) [nb ps]
+                        (empty? ps) [0 ps]
+                        :else
                         (let [dur (eget (pattern/pfirst ps) :dur)]
-                          (recur (- nb dur) (pattern/pnext ps)))
-                        [nb ps]))]
+                          (recur (- nb dur) (pattern/pnext ps)))))]
     ;; diff is always 0 or negative, so returned beat is beat or later
     [(- beat diff)
      pseq]))

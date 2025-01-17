@@ -20,20 +20,28 @@
   (let [align      (gen/elements [:wait :quant :none])
         quant      (gen/choose 1 10)
         offset     (gen/choose 0 10)
-        pattern    (gen/return dummy-pattern)
+        duration   gen/ratio
+        pattern    (gen/bind
+                    (gen/choose 1 20)
+                    (fn [n]
+                      (gen/vector
+                       (gen/hash-map
+                        :type (gen/return :ctl)
+                        :instrument (gen/return dummy-instrument)
+                        :dur duration)
+                       1 n)))
         clock      (gen/return (metronome 1))
 
         params (gen/hash-map
                 :align align
                 :quant quant
                 :offset offset
-                :clock clock)
-
-        pseq-a dummy-pattern]
-    (for-all [start-beat (gen/choose 1 100)
+                :clock clock)]
+    (for-all [start-beat  (gen/choose 1 100)
               start-after (gen/choose 0 10)
-              params     params
-              pseq-b     pattern]
+              params      params
+              pseq-a      pattern
+              pseq-b      pattern]
              (with-redefs [event/schedule-next-job (fn [_clock _beat _k])]
                ;; Clear players
                (event/pclear)
@@ -58,6 +66,8 @@
                                 quantized-b-start (+ b-start q-mod offset)]
                             (is (= quantized-b-start next-beat-b)))
                    :quant (let [beats-to-remove (- (mod start-after quant) offset)
+                                ;; The following repeats the implementation of align-pseq
+                                ;; How could this be tested without doing that?
                                 [diff pseq] (loop [to-remove beats-to-remove
                                                    pseq pseq-b]
                                               (cond
@@ -65,7 +75,8 @@
                                                 (empty? pseq) [0 pseq]
                                                 :else
                                                 (let [dur (event/eget (pattern/pfirst pseq) :dur)]
-                                                  (recur (- to-remove dur) (pattern/pnext pseq)))))
+                                                  (recur (- to-remove dur)
+                                                         (pattern/pnext pseq)))))
                                 quantized-b-start (- b-start diff)]
                             (is (= quantized-b-start next-beat-b))
                             (is (= pseq next-seq-b)))
