@@ -3,7 +3,7 @@
    [clojure.test :refer [deftest testing is are]]
    [clojure.test.check.clojure-test :refer [defspec]]
    [clojure.test.check.generators :as gen]
-   [com.gfredericks.test.chuck.clojure-test :refer [checking for-all] :as prop]
+   [clojure.test.check.properties :refer [for-all]]
    [overtone.music.rhythm :refer [metronome metro-start]]
    [overtone.studio.event :as event]
    [overtone.studio.pattern :as pattern]
