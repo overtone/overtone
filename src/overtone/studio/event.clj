@@ -377,7 +377,7 @@
     [(- beat diff)
      pseq]))
 
-(defn- take-pseq [len pseq]
+(defn take-pseq [len pseq]
   (loop [pseq pseq
          rem len
          res []]
