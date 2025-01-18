@@ -413,7 +413,6 @@
                        :as player}
                       pseq
                       opts]
-  ;; TODO: this is not yet taking :offset into account
   (let [align (:align opts (:align player :wait))
         quant (:quant opts (:quant player 4))
         offset (:offset opts (:offset player 0))
