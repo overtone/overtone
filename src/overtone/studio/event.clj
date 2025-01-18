@@ -393,20 +393,6 @@
                (- rem dur)
                (conj res e))))))
 
-(comment
-  (def ps
-    (overtone.studio.pattern/pbind {:note [:a :b :c :d :e]
-                                    :dur [1 1/2 1 1/16 1/32 1/8]}))
-
-  [(= [0 ps] (align-pseq 0 4 ps))
-   (= [1 (next ps)] (align-pseq 1/2 4 ps))
-   (= [3/2 (next (next ps))] (align-pseq 5/4 4 ps))
-   (= [4 ps] (align-pseq 4 4 ps))
-   (= [1 (next ps)] (align-pseq 1 2 ps))
-   (= [5 (next ps)] (align-pseq 5 4 ps))
-   (= [5/2 (drop 3 ps)] (align-pseq 2 4 ps))
-   (= [13/2 (drop 3 ps)] (align-pseq 6 4 ps))])
-
 (defn- player-resume [{:keys [clock beat quant align offset]
                        :or {clock transport/*clock*}
                        old-pseq :pseq
