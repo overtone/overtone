@@ -377,7 +377,10 @@
     [(- beat diff)
      pseq]))
 
-(defn take-pseq [len pseq]
+(defn take-pseq
+  "Return a sequence of exactly `len` beats from the beginning of `pseq`,
+   padding with a rest or shortening the last event as necessary."
+  [len pseq]
   (loop [pseq pseq
          rem len
          res []]
