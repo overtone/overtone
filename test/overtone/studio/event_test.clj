@@ -97,7 +97,9 @@
                          remaining-beats (- (pseq-dur pseq-b) beats-to-remove)]
                      (is (= (max remaining-beats 0)
                             (pseq-dur next-seq-b)))
-                     (is (= b-start next-beat-b)))
+                     (is (= b-start next-beat-b))
+                     (is (= (event/drop-pseq beats-to-remove pseq-b)
+                            next-seq-b)))
 
                    :none
                    ;; Start immediately with no quantization
