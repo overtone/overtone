@@ -14,25 +14,26 @@
         [overtone.studio.mixer]
         [overtone.studio.fx]
         [overtone.helpers.lib]
-        [overtone.libs.event])
+        [overtone.libs.event]
+        [potemkin :refer [def-map-type]])
   (:require [clojure.pprint]
             [overtone.sc.protocols :as protocols]
             [overtone.sc.util]
+            [overtone.helpers.lib :as ov.lib]
             [overtone.sc.machinery.server.comms :refer [with-server-sync]]
             [overtone.libs.deps :as ov.deps]))
 
-(defonce ^{:private true} __RECORDS__
-  (do
-    (defrecord-ifn Inst [name full-name params args sdef
-                         group instance-group fx-group
-                         mixer bus fx-chain
-                         volume pan
-                         n-chans]
-      (fn [this & args]
-        (apply synth-player sdef params this [:tail @instance-group] args))
+(ov.lib/defrecord-ifn-2 Inst [name full-name params args sdef
+                              ^:deref group ^:deref instance-group
+                              ^:deref fx-group ^:deref mixer
+                              bus fx-chain
+                              volume pan
+                              n-chans]
+  (fn [this & args]
+    (apply synth-player sdef params this [:tail @instance-group] args))
 
-      to-sc-id*
-      (to-sc-id [_] (to-sc-id @instance-group)))))
+  to-sc-id*
+  (to-sc-id [_] (to-sc-id @instance-group)))
 
 (derive Inst :overtone.sc.node/node)
 
@@ -82,14 +83,14 @@
   "Control the volume of a single instrument."
   [inst vol]
   (ensure-node-active! inst)
-  (ctl @(:mixer inst) :volume vol)
+  (ctl (:mixer inst) :volume vol)
   (reset! (:volume inst) vol))
 
 (defn inst-pan!
   "Control the pan setting of a single instrument."
   [inst pan]
   (ensure-node-active! inst)
-  (ctl @(:mixer inst) :pan pan)
+  (ctl (:mixer inst) :pan pan)
   (reset! (:pan inst) pan))
 
 (defmulti inst-fx!
@@ -100,7 +101,7 @@
 (defmethod inst-fx! :mono
   [inst fx & args]
   (ensure-node-active! inst)
-  (let [fx-group @(:fx-group inst)
+  (let [fx-group (:fx-group inst)
         bus      (:bus inst)
         fx-id    (apply fx [:tail fx-group] :bus bus args)]
     fx-id))
@@ -108,7 +109,7 @@
 (defmethod inst-fx! :stereo
   [inst fx & args]
   (ensure-node-active! inst)
-  (let [fx-group @(:fx-group inst)
+  (let [fx-group (:fx-group inst)
         bus-l    (to-sc-id (:bus inst))
         bus-r    (inc bus-l)
         fx-ids   [(apply fx [:tail fx-group] :bus bus-l args)
@@ -118,7 +119,7 @@
 (defn clear-fx
   [inst]
   (ensure-node-active! inst)
-  (group-clear @(:fx-group inst))
+  (group-clear (:fx-group inst))
   :clear)
 
 (defmacro pre-inst
@@ -165,7 +166,7 @@
 (defmacro inst
   [sname & args]
   `(let [[sname# full-name# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
-         new-inst# (get (:instruments @studio*) full-name#)
+         new-inst# (ov.lib/ov-raw-map (get (:instruments @studio*) full-name#))
 
          container-group# (or (:group new-inst#)
                               (with-server-sync-atom
@@ -212,21 +213,24 @@
 
 (defn- load-all-insts
   []
-  (doseq [[sname {:keys [instance-group fx-group mixer n-chans bus]
-                  container-group :group}]
-          (:instruments @studio*)]
-    (reset! container-group (group (str "Inst " sname " Container")
-                                   :tail (:instrument-group @studio*)))
+  ;; TODO Get atoms using something else.
+  (doseq [-inst (:instruments @studio*)]
+    (let [sname (first -inst)
 
-    (reset! instance-group (group (str "Inst " sname)
-                                  :head @container-group))
+          {:keys [instance-group fx-group mixer n-chans bus] container-group :group}
+          (ov.lib/ov-raw-map (second -inst))]
+      (reset! container-group (group (str "Inst " sname " Container")
+                                     :tail (:instrument-group @studio*)))
 
-    (reset! fx-group (group (str "Inst " sname " FX")
-                            :tail @container-group))
+      (reset! instance-group (group (str "Inst " sname)
+                                    :head @container-group))
 
-    (reset! mixer (inst-mixer n-chans
-                              [:tail @container-group]
-                              :in-bus bus)))
+      (reset! fx-group (group (str "Inst " sname " FX")
+                              :tail @container-group))
+
+      (reset! mixer (inst-mixer n-chans
+                                [:tail @container-group]
+                                :in-bus bus))))
 
   (ov.deps/satisfy-deps :insts-loaded))
 
@@ -335,18 +339,18 @@
 (defn- inst-block-until-ready*
   [inst]
   (when (block-node-until-ready?)
-    (doseq [sub-node [@(:fx-group inst)
-                      @(:group inst)
-                      @(:instance-group inst)
-                      @(:mixer inst)]]
+    (doseq [sub-node [(:fx-group inst)
+                      (:group inst)
+                      (:instance-group inst)
+                      (:mixer inst)]]
       (node-block-until-ready sub-node))))
 
 (defn- inst-status*
   [inst]
-  (let [sub-nodes [@(:fx-group inst)
-                   @(:group inst)
-                   @(:instance-group inst)
-                   @(:mixer inst)]]
+  (let [sub-nodes [(:fx-group inst)
+                   (:group inst)
+                   (:instance-group inst)
+                   (:mixer inst)]]
     (cond
      (some #(= :loading @(:status %)) sub-nodes) :loading
      (some #(= :destroyed @(:status %)) sub-nodes) :destroyed
@@ -369,7 +373,7 @@
    :node-map-n-controls    node-map-n-controls*}
 
   protocols/IKillable
-  {:kill* (fn [this] (group-deep-clear @(:instance-group this)))}
+  {:kill* (fn [this] (group-deep-clear (:instance-group this)))}
 
   ISynthNodeStatus
   {:node-status            inst-status*

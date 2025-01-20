@@ -235,7 +235,7 @@
   "Frees all synth notes for each of the current instruments"
   [_event-info]
   (doseq [[_name inst] (:instruments @studio*)]
-    (group-clear @(:instance-group inst))))
+    (group-clear (:instance-group inst))))
 
 (on-sync-event :reset reset-instruments ::reset-instruments)
 
@@ -258,4 +258,4 @@
   (let [[{:keys [instruments]} _]
         (swap-vals! studio* assoc :instruments {})]
     (doseq [[_name inst] instruments]
-      (group-free @(:group inst)))))
+      (group-free (:group inst)))))

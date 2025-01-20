@@ -10,7 +10,10 @@
 
   ;; For processes, it supports Windows well and it has some niceties that
   ;; clojure.java.shell doesn't have.
-  babashka/process {:mvn/version "0.5.22"}}
+  babashka/process {:mvn/version "0.5.22"}
+
+  ;; For custom data structures.
+  potemkin/potemkin {:mvn/version "0.4.7"}}
 
  :aliases
  {:test

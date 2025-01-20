@@ -38,8 +38,7 @@
               :instance-group nil
               :fx-group nil
               :mixer nil}
-             (-> (select-keys kick [:group :instance-group :fx-group :mixer])
-                 (update-vals deref))))))
+             (select-keys kick [:group :instance-group :fx-group :mixer])))))
 
   (testing "after starting server"
     (with-sync-reset
@@ -55,5 +54,4 @@
                 {:instance-group some?
                  :fx-group some?
                  :mixer some?}
-                (-> (select-keys kick [:instance-group :fx-group :mixer])
-                    (update-vals deref))))))))))
+                (select-keys kick [:instance-group :fx-group :mixer])))))))))
