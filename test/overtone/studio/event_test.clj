@@ -16,6 +16,11 @@
   (when-let [e (pattern/pfirst ps)]
     (cons e (lazy-seq (pseq (pattern/pnext ps))))))
 
+(defn pseq-dur [ps]
+  (->> (pseq ps)
+       (map #(event/eget % :dur))
+       (reduce +)))
+
 (defspec quantization 1000
   (let [align     (gen/elements [:wait :quant :none])
         quant     (gen/choose 1 10)
@@ -73,11 +78,8 @@
                      (let [q-mod (mod (- quant (mod start-after quant)) quant)
                            quantized-offset (+ q-mod offset)
                            overlap-a (event/take-pseq quantized-offset pseq-a)
-                           dur-overlap-a (->> (pseq overlap-a)
-                                              (map #(event/eget % :dur))
-                                              (reduce +))
                            expected-pseq (concat overlap-a pseq-b)]
-                       (is (= quantized-offset dur-overlap-a))
+                       (is (= quantized-offset (pseq-dur overlap-a)))
                        (is (= b-start next-beat-b))
                        (is (= expected-pseq next-seq-b)))
                      ;; Starting ::b with ::a playing.
@@ -91,21 +93,12 @@
                    ;; Start sequence now or prior quantization beat, trimming events
                    ;; as necessary such that the first new event is in the future.
                    (let [beats-to-remove (- (mod start-after quant) offset)
-                         ;; The following repeats the implementation of align-pseq
-                         ;; How could this be tested without doing that?
-                         [diff expected-pseq]
-                         (loop [to-remove beats-to-remove
-                                pseq pseq-b]
-                           (cond
-                             (<= to-remove 0) [to-remove pseq]
-                             (empty? pseq) [0 pseq]
-                             :else
-                             (let [dur (event/eget (pattern/pfirst pseq) :dur)]
-                               (recur (- to-remove dur)
-                                      (pattern/pnext pseq)))))
-                         quantized-b-start (- b-start diff)]
-                     (is (= quantized-b-start next-beat-b))
-                     (is (= expected-pseq next-seq-b)))
+                         remaining-beats (- (pseq-dur pseq-b) beats-to-remove)]
+                     (if (< remaining-beats 0)
+                       (is (zero? (pseq-dur next-seq-b)))
+                       (is (= remaining-beats
+                              (pseq-dur next-seq-b))))
+                     (is (= b-start next-beat-b)))
 
                    :none
                    ;; Start immediately with no quantization

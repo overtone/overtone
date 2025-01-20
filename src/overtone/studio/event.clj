@@ -358,24 +358,17 @@
                      :offset  offset}
                     opts)))))
 
-(defn- align-pseq
-  "Quantize pattern to the most recent quantized beat, current or past.
-
-   When not on the current quantized beat, removes events from the pseq
-   as though they had played starting at the last quantized beat."
-  [beat quant-base quant offset pseq]
-  (let [next-beat (- (mod (- beat quant-base) quant) offset)
-        [diff pseq] (loop [nb next-beat
-                           ps pseq]
-                      (cond
-                        (>= 0 nb) [nb ps]
-                        (empty? ps) [0 ps]
-                        :else
-                        (let [dur (eget (pattern/pfirst ps) :dur)]
-                          (recur (- nb dur) (pattern/pnext ps)))))]
-    ;; diff is always 0 or negative, so returned beat is beat or later
-    [(- beat diff)
-     pseq]))
+(defn drop-pseq
+  "Drop `len` beats from `pseq`. Insert a rest to guarantee dropping exactly
+   `len` beats when the last event duration overshoots."
+  [len pseq]
+  (cond
+    (zero? len) pseq
+    (< len 0) (cons {:type :rest :dur (- len)} pseq)
+    (empty? pseq) pseq
+    :else
+    (let [dur (eget (pattern/pfirst pseq) :dur)]
+      (recur (- len dur) (pattern/pnext pseq)))))
 
 (defn take-pseq
   "Return a sequence of exactly `len` beats from the beginning of `pseq`,
@@ -428,10 +421,12 @@
                       ;; Other player(s) are already playing, make sure we are
                       ;; in sync
                       (case align
-                        ;; Honor the quant value, but switch immediately,
-                        ;; possibly skipping over notes
+                        ;; Play as though the sequence started at the prior
+                        ;; quant beat. We skip beats between then and now to
+                        ;; arrive at what starts playing now.
                         :quant
-                        (align-pseq beat quant-base quant offset pseq)
+                        (let [skip-beats (- (mod (- beat quant-base) quant) offset)]
+                          [beat (drop-pseq skip-beats pseq)])
                         :wait
                         (let [switch (+ (quantize-ceil beat quant-base quant) offset)]
                           (if-not (:playing player)
