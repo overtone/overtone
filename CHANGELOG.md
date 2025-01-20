@@ -10,7 +10,7 @@
 - [583](https://github.com/overtone/overtone/pull/583): `bass` and `grunge-bass` in `overtone.inst.synth` both now mix 3 audio channels (center freq and detuned high and low) to a single channel.
 
 ## Breaking Changes
-- [582](https://github.com/overtone/overtone/pull/582) adds the potemkin lib, now insts accept up to 21 arguments
+- [582](https://github.com/overtone/overtone/pull/582) adds the potemkin lib, which makes Inst accept up to 21 arguments if you use `apply`, also the Inst class has two more params (`m` and `mta`) for its constructor
 
 ## Changed
 
