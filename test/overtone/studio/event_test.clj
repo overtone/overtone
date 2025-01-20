@@ -90,14 +90,13 @@
                        (is (= pseq-b next-seq-b))))
 
                    :quant
-                   ;; Start sequence now or prior quantization beat, trimming events
-                   ;; as necessary such that the first new event is in the future.
+                   ;; Start sequence now or at prior quantization beat, trimming events
+                   ;; as necessary such that the first new event from pseq is in the future.
+                   ;; next-seq-b may have a `:rest` inserted at the start to align first event.
                    (let [beats-to-remove (- (mod start-after quant) offset)
                          remaining-beats (- (pseq-dur pseq-b) beats-to-remove)]
-                     (if (< remaining-beats 0)
-                       (is (zero? (pseq-dur next-seq-b)))
-                       (is (= remaining-beats
-                              (pseq-dur next-seq-b))))
+                     (is (= (max remaining-beats 0)
+                            (pseq-dur next-seq-b)))
                      (is (= b-start next-beat-b)))
 
                    :none
