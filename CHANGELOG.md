@@ -1,6 +1,7 @@
 # Unreleased
 
 ## Added
+- [588](https://github.com/overtone/overtone/pull/588): Support `offset` quantization parameter in `pplay`, `padd`, and `presume`. Added quantization tests.
 
 ## Fixed
 - [573](https://github.com/overtone/overtone/pull/573): reduce likelihood of choosing a used random port for `scsynth`
