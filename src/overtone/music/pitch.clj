@@ -112,7 +112,7 @@
   (let [pc (keyword (name pc))]
       (REVERSE-NOTES (NOTES pc))))
 
-(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9]+)?" )
+(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9])?" )
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
 (def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
 
@@ -133,12 +133,17 @@
                    " does not appear to be in MIDI format i.e. C#4"))))
 
     (let [[match pictch-class octave-str] matches
-          octave (first octave-str)]
+          octave (case pictch-class
+                   ("b#" "B#") (inc (Integer/parseInt octave-str))
+                   ("cb" "cB" "Cb" "CB") (dec (Integer/parseInt octave-str))
+                   (Integer/parseInt octave-str))]
       (when (and octave (< (int octave) -1))
         (throw (IllegalArgumentException.
                 (str "Invalid midi-string: " mk
-                     ". Octave is out of range. Lowest octave value is -1")))))
-    matches))
+                     ". Octave is out of range. Lowest octave value is -1"))))
+      (assoc matches
+             2
+             (str octave)))))
 
 (defn note-info
   "Takes a string representing a midi note such as C4 and returns a map
