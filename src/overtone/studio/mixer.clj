@@ -215,9 +215,10 @@
                             "whilst creating the Studio group")
         insts-with-groups (map-vals (fn [val]
                                       (assoc val :group
-                                             (with-server-sync
-                                               #(group (str "Recreated Inst Group") :tail g)
-                                               "whist creating the Recreated Inst Group")))
+                                             (atom
+                                              (with-server-sync
+                                                #(group (str "Recreated Inst Group") :tail g)
+                                                "whist creating the Recreated Inst Group"))))
                                     (:instruments @studio*))]
     (swap! studio* assoc
            :instrument-group g

@@ -14,24 +14,26 @@
         [overtone.studio.mixer]
         [overtone.studio.fx]
         [overtone.helpers.lib]
-        [overtone.libs.event])
+        [overtone.libs.event]
+        [potemkin :refer [def-map-type]])
   (:require [clojure.pprint]
             [overtone.sc.protocols :as protocols]
             [overtone.sc.util]
-            [overtone.sc.machinery.server.comms :refer [with-server-sync]]))
+            [overtone.helpers.lib :as ov.lib]
+            [overtone.sc.machinery.server.comms :refer [with-server-sync]]
+            [overtone.libs.deps :as ov.deps]))
 
-(defonce ^{:private true} __RECORDS__
-  (do
-    (defrecord-ifn Inst [name full-name params args sdef
-                         group instance-group fx-group
-                         mixer bus fx-chain
-                         volume pan
-                         n-chans]
-      (fn [this & args]
-        (apply synth-player sdef params this [:tail instance-group] args))
+(ov.lib/defrecord-ifn-2 Inst [name full-name params args sdef
+                              ^:deref group ^:deref instance-group
+                              ^:deref fx-group ^:deref mixer
+                              bus fx-chain
+                              volume pan
+                              n-chans]
+  (fn [this & args]
+    (apply synth-player sdef params this [:tail @instance-group] args))
 
-      to-sc-id*
-      (to-sc-id [_] (to-sc-id instance-group)))))
+  to-sc-id*
+  (to-sc-id [_] (to-sc-id @instance-group)))
 
 (derive Inst :overtone.sc.node/node)
 
@@ -155,33 +157,42 @@
   [o]
   (= overtone.studio.inst.Inst (type o)))
 
+(defmacro with-server-sync-atom
+  [action-fn error-msg]
+  `(atom
+    (when (server-connected?)
+      (with-server-sync ~action-fn ~error-msg))))
+
 (defmacro inst
   [sname & args]
-  (ensure-connected!)
   `(let [[sname# full-name# params# ugens# constants# n-chans# inst-bus#] (pre-inst ~sname ~@args)
-         new-inst# (get (:instruments @studio*) full-name#)
+         new-inst# (ov.lib/ov-raw-map (get (:instruments @studio*) full-name#))
+
          container-group# (or (:group new-inst#)
-                              (with-server-sync
+                              (with-server-sync-atom
                                 #(group (str "Inst " sname# " Container")
                                         :tail (:instrument-group @studio*))
                                 "whilst creating an inst container group"))
 
-         instance-group#  (or (:instance-group new-inst#)
-                              (with-server-sync
-                                #(group (str "Inst " sname#)
-                                        :head container-group#)
-                                "whilst creating an inst instance group"))
+         instance-group# (or (:instance-group new-inst#)
+                             (with-server-sync-atom
+                               #(group (str "Inst " sname#)
+                                       :head @container-group#)
+                               "whilst creating an inst instance group"))
 
          fx-group#        (or (:fx-group new-inst#)
-                              (with-server-sync
+                              (with-server-sync-atom
                                 #(group (str "Inst " sname# " FX")
-                                        :tail container-group#)
+                                        :tail @container-group#)
                                 "whilst creating an inst fx group"))
 
          imixer#    (or (:mixer new-inst#)
-                        (inst-mixer n-chans#
-                                    [:tail container-group#]
-                                    :in-bus inst-bus#))
+                        (with-server-sync-atom
+                          #(inst-mixer n-chans#
+                                       [:tail @container-group#]
+                                       :in-bus inst-bus#)
+                          "whilst creating an inst imixer"))
+
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (control-proxy-value-atom full-name# %)) params#)
@@ -199,6 +210,31 @@
      (add-instrument inst#)
      (event :new-inst :inst inst#)
      inst#))
+
+(defn- load-all-insts
+  []
+  ;; TODO Get atoms using something else.
+  (doseq [-inst (:instruments @studio*)]
+    (let [sname (first -inst)
+
+          {:keys [instance-group fx-group mixer n-chans bus] container-group :group}
+          (ov.lib/ov-raw-map (second -inst))]
+      (reset! container-group (group (str "Inst " sname " Container")
+                                     :tail (:instrument-group @studio*)))
+
+      (reset! instance-group (group (str "Inst " sname)
+                                    :head @container-group))
+
+      (reset! fx-group (group (str "Inst " sname " FX")
+                              :tail @container-group))
+
+      (reset! mixer (inst-mixer n-chans
+                                [:tail @container-group]
+                                :in-bus bus))))
+
+  (ov.deps/satisfy-deps :insts-loaded))
+
+(ov.deps/on-deps :studio-setup-completed ::load-all-insts load-all-insts)
 
 (defmacro definst
   "Define an instrument and return a player function. The instrument
