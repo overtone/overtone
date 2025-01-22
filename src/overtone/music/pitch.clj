@@ -112,7 +112,7 @@
   (let [pc (keyword (name pc))]
       (REVERSE-NOTES (NOTES pc))))
 
-(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)([-0-9])?" )
+(def MIDI-NOTE-RE-STR "([a-gA-G][#bB]?)(-?[0-9])?" )
 (def MIDI-NOTE-RE (re-pattern MIDI-NOTE-RE-STR))
 (def ONLY-MIDI-NOTE-RE (re-pattern (str "\\A" MIDI-NOTE-RE-STR "\\Z")))
 
