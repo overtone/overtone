@@ -347,6 +347,21 @@
       (schedule-next-job clock beat k)))
   nil)
 
+(defn- popts
+  "Merge player with default values and options"
+  [player opts]
+  (merge-with
+   ;; merge key fn ensures nil value doesn't override an existing value
+   #(if (nil? %2) %1 %2)
+   ;; Default values
+   {:align  :wait
+    :quant  4
+    :offset 0
+    :clock  transport/*clock*
+    :proto nil}
+   player
+   opts))
+
 (defn padd
   "Add a pattern to the player pool or merge parameters if the player already
    exists. Does not change whether the player is playing or not."
@@ -354,18 +369,8 @@
   (let [pattern (cond-> pattern (map? pattern) pattern/pbind)]
     (swap! pplayers update k
            (fn [player]
-             (let [align (:align opts (:align player :wait))
-                   quant (:quant opts (:quant player 4))
-                   offset (:offset opts (:offset player 0))
-                   clock (:clock opts (:clock player transport/*clock*))
-                   proto (:proto opts (:proto player))]
-               (merge player
-                      {:clock   clock
-                       :pseq    pattern
-                       :align   align
-                       :quant   quant
-                       :offset  offset
-                       :proto   proto}))))))
+             (merge (popts player opts)
+                    {:pseq    pattern})))))
 
 (defn- align-pseq [beat quant pseq]
   (let [beat (dec beat) ;; 0-based, so we can do modulo
@@ -411,17 +416,11 @@
    (= [5/2 (drop 3 ps)] (align-pseq 2 4 ps))
    (= [13/2 (drop 3 ps)] (align-pseq 6 4 ps))])
 
-(defn- player-resume [{:keys [clock beat quant align offset]
-                       old-pseq :pseq
-                       :as player}
-                      pseq
-                      opts]
+(defn- player-resume [player pseq opts]
   ;; TODO: this is not yet taking :offset into account
-  (let [align (:align opts (:align player :wait))
-        quant (:quant opts (:quant player 4))
-        offset (:offset opts (:offset player 0))
-        clock (:clock opts (:clock player transport/*clock*))
-        proto (:proto opts (:proto player))
+  (let [{:keys [clock beat quant align offset]
+         old-pseq :pseq
+         :as player} (popts player opts)
         playing (some :playing (vals @pplayers))
         beat (if playing
                (max (or beat 1) (clock))
@@ -453,14 +452,9 @@
                         ;; Base case, just start at the next beat
                         [beat pseq]))]
     (assoc player
-           :clock clock
            :playing true
            :beat beat
-           :pseq pseq
-           :align align
-           :quant quant
-           :offset offset
-           :proto proto)))
+           :pseq pseq)))
 
 (defn presume
   ([k]
