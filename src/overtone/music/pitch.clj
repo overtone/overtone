@@ -132,8 +132,8 @@
               (str "Invalid midi-string. " mk
                    " does not appear to be in MIDI format i.e. C#4"))))
 
-    (let [[match pictch-class octave-str] matches
-          octave (case pictch-class
+    (let [[match pitch-class octave-str] matches
+          octave (case pitch-class
                    ("b#" "B#") (inc (Integer/parseInt octave-str))
                    ("cb" "cB" "Cb" "CB") (dec (Integer/parseInt octave-str))
                    (Integer/parseInt octave-str))]
