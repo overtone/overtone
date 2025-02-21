@@ -56,13 +56,14 @@
        out-bus 0
        volume  DEFAULT-VOLUME
        pan     DEFAULT-PAN]
-      (let [sndl (in in-bus 1)
+      (let [zero (dc 0)
+            sndl (in in-bus 1)
             sndl (select (check-bad-values sndl 0 0)
-                         [sndl (dc 0) (dc 0) sndl])
+                         [sndl zero zero sndl])
             sndl (limiter sndl 0.99 0.001)
             sndr (in (+ in-bus 1) 1)
             sndr (select (check-bad-values sndr 0 0)
-                         [sndr (dc 0) (dc 0) sndr])
+                         [sndr zero zero sndr])
             sndr (limiter sndr 0.99 0.001)]
         (out out-bus (balance2 sndl sndr pan volume))))))
 
