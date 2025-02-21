@@ -358,7 +358,7 @@
     :quant  4
     :offset 0
     :clock  transport/*clock*
-    :proto nil}
+    :proto  nil}
    player
    opts))
 
@@ -370,7 +370,7 @@
     (swap! pplayers update k
            (fn [player]
              (merge (popts player opts)
-                    {:pseq    pattern})))))
+                    {:pseq pattern})))))
 
 (defn- align-pseq [beat quant pseq]
   (let [beat (dec beat) ;; 0-based, so we can do modulo
