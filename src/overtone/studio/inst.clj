@@ -58,12 +58,15 @@
        out-bus 0
        volume  DEFAULT-VOLUME
        pan     DEFAULT-PAN]
-      (let [snd  (in in-bus 2)
-            snd (select (check-bad-values snd 0 0)
-                        [snd (dc 0) (dc 0) snd])
-            snd (limiter snd 0.99 0.001)
-            sndl (select 0 snd)
-            sndr (select 1 snd)]
+      (let [zero (dc 0)
+            sndl (in in-bus 1)
+            sndl (select (check-bad-values sndl 0 0)
+                         [sndl zero zero sndl])
+            sndl (limiter sndl 0.99 0.001)
+            sndr (in (+ in-bus 1) 1)
+            sndr (select (check-bad-values sndr 0 0)
+                         [sndr zero zero sndr])
+            sndr (limiter sndr 0.99 0.001)]
         (out out-bus (balance2 sndl sndr pan volume))))))
 
 (defn inst-mixer
