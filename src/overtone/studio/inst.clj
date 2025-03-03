@@ -114,21 +114,21 @@
   "Control the volume of a single instrument."
   [inst vol]
   (ensure-node-active! inst)
-  (ctl @(:mixer inst) :volume vol)
+  (ctl (:mixer inst) :volume vol)
   (reset! (:volume inst) vol))
 
 (defn inst-pan!
   "Control the pan setting of a single instrument."
   [inst pan]
   (ensure-node-active! inst)
-  (ctl @(:mixer inst) :pan pan)
+  (ctl (:mixer inst) :pan pan)
   (reset! (:pan inst) pan))
 
 (defn inst-mixer-ctl!
   "Control a named parameters of the output mixer of a single instrument."
   [inst & {:as args}]
   (ensure-node-active! inst)
-  (apply ctl @(:mixer inst) (-> args seq flatten))
+  (apply ctl (:mixer inst) (-> args seq flatten))
   (swap! (:mixer-params inst) merge args))
 
 (defmulti inst-fx!
@@ -259,7 +259,7 @@
   ;; TODO Get atoms using something else.
   (doseq [-inst (:instruments @studio*)]
     (let [sname (first -inst)
-          {:keys [instance-group fx-group mixer n-chans bus] container-group :group}
+          {:keys [instance-group fx-group mixer bus] container-group :group}
           (ov.lib/ov-raw-map (second -inst))]
       (reset! container-group (group (str "Inst " sname " Container")
                                      :tail (:instrument-group @studio*)))
@@ -384,7 +384,7 @@
     (doseq [sub-node [(:fx-group inst)
                       (:group inst)
                       (:instance-group inst)
-                      @(:mixer inst)]]
+                      (:mixer inst)]]
       (node-block-until-ready sub-node))))
 
 (defn- inst-status*
@@ -392,7 +392,7 @@
   (let [sub-nodes [(:fx-group inst)
                    (:group inst)
                    (:instance-group inst)
-                   @(:mixer inst)]]
+                   (:mixer inst)]]
     (cond
      (some #(= :loading @(:status %)) sub-nodes) :loading
      (some #(= :destroyed @(:status %)) sub-nodes) :destroyed
