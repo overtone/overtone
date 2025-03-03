@@ -378,12 +378,13 @@
 ;;   The eventual goal is to be able to take any SuperCollider scsyndef
 ;;   file, and produce equivalent clojure code that can be re-edited.
 
-(defn- param-vector [params pnames]
+(defn- param-vector
   "Create a synthdef parameter vector."
+  [params pnames]
   (vec (flatten
-         (map #(list (symbol (:name %1))
-                     (nth params (:index %1)))
-              pnames))))
+        (map #(list (symbol (:name %1))
+                    (nth params (:index %1)))
+             pnames))))
 
 (defn- ugen-form
   "Create a ugen form."
@@ -436,7 +437,7 @@
   While this probably won't create a synth definition that can
   directly compile, it can still be helpful when trying to reverse
   engineer a synth."
-  [{:keys [name constants params pnames ugens] :as sdef}]
+  [{:keys [name constants params pnames ugens] :as _sdef}]
   (let [sname (symbol name)
         param-vec (param-vector params pnames)
         ugens (map #(assoc % :sname %2)
