@@ -1,17 +1,22 @@
 (ns ^{:doc "Library of general purpose utility functions for Overtone
             internals."
       :author "Jeff Rose and Sam Aaron"}
-  overtone.helpers.lib
-  (:import [java.util ArrayList Collections]
-           [java.util.concurrent TimeUnit TimeoutException]
-           [java.io File])
-  (:require [clojure.string :as str])
-  (:use [clojure.stacktrace]
-        [clojure.pprint]
-        [overtone.helpers doc]
-        [overtone.helpers.system :only [windows-os?]]))
+    overtone.helpers.lib
+    (:import [java.util ArrayList Collections]
+             [java.util.concurrent TimeUnit TimeoutException]
+             [java.io File])
+    (:require [clojure.string :as str]
+              [potemkin :refer [def-map-type def-derived-map]])
+    (:use [clojure.stacktrace]
+          [clojure.pprint]
+          [overtone.helpers doc]
+          [overtone.helpers.system :only [windows-os?]]))
 
 (set! *warn-on-reflection* true)
+
+(defonce ^:private __PROTOCOLS__
+  (defprotocol IOvMap
+    (ov-raw-map [this])))
 
 (defn to-str
   "If val is a keyword, return its name sans :, otherwise return val"
@@ -153,6 +158,129 @@
                     (~invoke_fn this# ~@args))))) (range 22))
      (~'applyTo [this# args#]
       (apply ~invoke_fn this# args#))))
+
+(extend-protocol IOvMap
+  nil
+  (ov-raw-map [_] nil))
+
+(defonce *ov-record-cache (atom {}))
+
+(defmacro defrecord-ifn-2
+  "A helper macro for creating callable records with a var-args
+   function.  It generates all arities of invoke, calling the function.
+   Besides generating the clojure.lang.IFn implementation, you can
+   declare any other implementations as you would normally with
+   defrecord.
+
+  This is just like `defrecord-ifn`, but any key marked with `^:deref` is now
+  deferred once before being returned (e.g. useful for mutable fields that are atoms).
+  If you need the raw map (with no automatic derefing), use `ov-raw-map`.
+
+  Besides the `->MyRecord` function, it will also create a `map->MyRecord`."
+  [rec-name fields invoke-fn & body]
+  (let [k-fields (mapv keyword fields)
+        derefable-k-fields-set (->> fields
+                                    (filter (comp :deref meta))
+                                    (mapv keyword)
+                                    set)
+        params-sym (gensym)
+        record-hash (hash [rec-name fields (mapv meta fields) invoke-fn body])]
+    (or (get @*ov-record-cache record-hash)
+        `(do
+           (declare ~(symbol (str "map->" rec-name)))
+           (declare ~(symbol (str "->" rec-name)))
+
+           ;; We expose the fields here in the `def-map-type` params so the in-scope
+           ;; functions can refer to them directly.
+           (def-map-type ~rec-name [~@fields ~'m-- ~'mta--]
+
+             (~'get [_# k# default-value#]
+              (cond
+                (contains? ~'m-- k#)
+                (let [v# (get ~'m-- k#)]
+                  (if (contains? ~derefable-k-fields-set k#)
+                    @v#
+                    v#))
+
+                (contains? ~(set k-fields) k#)
+                (let [v# (get ~(zipmap k-fields fields) k#)]
+                  (if (contains? ~derefable-k-fields-set k#)
+                    @v#
+                    v#))
+
+                :else
+                default-value#))
+
+             (~'assoc [_# k# v#]
+              (~(symbol (str "map->" rec-name))
+               (merge
+                ~(zipmap k-fields fields)
+                {:m-- (assoc ~'m-- k# v#)
+                 :mta-- ~'mta--})))
+
+             ;; Just like `defrecord`, if you dissoc some key that's a field, the
+             ;; result will be just a simple clojure hash map.
+             (~'dissoc [_# k#]
+              (if (contains? ~(set k-fields) k#)
+                (-> (merge
+                     ~(zipmap k-fields fields)
+                     ~'m--)
+                    (dissoc k#)
+                    (with-meta ~'mta--))
+                (~(symbol (str "map->" rec-name))
+                 (merge
+                  ~(zipmap k-fields fields)
+                  {:m-- (dissoc ~'m-- k#)
+                   :mta-- ~'mta--}))))
+
+             (~'keys [_#]
+              (set (concat ~k-fields (keys ~'m--))))
+
+             (~'meta [_#]
+              ~'mta--)
+
+             (~'with-meta [_# mta#]
+              (~(symbol (str "map->" rec-name))
+               (merge
+                ~(zipmap k-fields fields)
+                {:m-- ~'m--
+                 :mta-- mta#})))
+
+             ~@body
+
+             IOvMap
+             (ov-raw-map [_]
+                         (merge
+                          ~(zipmap k-fields fields)
+                          ~'m--))
+
+             clojure.lang.IFn
+             ~@(map (fn [n]
+                      (let [args (for [i (range n)] (symbol (str "arg" i)))]
+                        (cond
+                          (empty? args)
+                          `(~'invoke [this#]
+                            (~invoke-fn this#))
+                          (= 21 n)
+                          `(~'invoke [this# ~@args]
+                            (apply ~invoke-fn this# ~@args))
+                          :else
+                          `(~'invoke [this# ~@args]
+                            (~invoke-fn this# ~@args)))))
+                    (range 22)))
+
+           (defn ~(symbol (str "->" rec-name)) [~@fields]
+             (new ~rec-name ~@fields {} nil))
+
+           (defn ~(symbol (str "map->" rec-name)) [~params-sym]
+             (~(symbol (str "->" rec-name))
+              ~@(->> k-fields
+                     (mapv (fn [k]
+                             `(~k ~params-sym))))))
+
+           (swap! *ov-record-cache assoc ~record-hash ~rec-name)
+
+           ~rec-name))))
 
 (defn- syms-to-keywords [coll]
   (map #(if (symbol? %)

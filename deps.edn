@@ -11,12 +11,20 @@
 
   ;; For processes, it supports Windows well and it has some niceties that
   ;; clojure.java.shell doesn't have.
-  babashka/process {:mvn/version "0.5.22"}}
+  babashka/process {:mvn/version "0.5.22"}
+
+  ;; For custom data structures.
+  potemkin/potemkin {:mvn/version "0.4.7"}}
 
  :aliases
  {:test
-  {:extra-paths ["test"]}
+  {:extra-paths ["test"]
+   :extra-deps {nubank/matcher-combinators {:mvn/version "3.9.1"}}}
+
   :test-runner
-  {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
+  {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
+                nubank/matcher-combinators {:mvn/version "3.9.1"}}
    :main-opts ["-m" "kaocha.runner"]}
-  :1.12 {:extra-deps {org.clojure/clojure {:mvn/version "1.12.0"}}}}}
+
+  :1.12
+  {:extra-deps {org.clojure/clojure {:mvn/version "1.12.0"}}}}}
