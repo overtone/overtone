@@ -224,7 +224,7 @@
                                         :tail @container-group#)
                                 "whilst creating an inst fx group"))
 
-         imixer#    (or (:mixer (ov.lib/ov-raw-map new-inst#))
+         imixer#    (or (:mixer new-inst#)
                         (atom ::uninitialized-mixer))
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
