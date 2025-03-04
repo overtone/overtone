@@ -1,6 +1,7 @@
 # Unreleased
 
 ## Added
+- [581](https://github.com/overtone/overtone/pull/581): Replaceable instrument output mixers with `replace-inst-mixer!` and `replace-all-inst-mixer!`. Control new mixers parameter values with `inst-mixer-ctl!`. Included an Ambisonic studio example use case.
 
 ## Fixed
 - [573](https://github.com/overtone/overtone/pull/573): reduce likelihood of choosing a used random port for `scsynth`
@@ -8,11 +9,13 @@
 - [577](https://github.com/overtone/overtone/pull/577): Fix `/cmd` validation
 - [582](https://github.com/overtone/overtone/pull/582): Enable insts to be loaded before server startup
 - [583](https://github.com/overtone/overtone/pull/583): `bass` and `grunge-bass` in `overtone.inst.synth` both now mix 3 audio channels (center freq and detuned high and low) to a single channel.
+- [592](https://github.com/overtone/overtone/pull/592): The output mixer for stereo instruments now includes both channels in the balance.
 
 ## Breaking Changes
 - [582](https://github.com/overtone/overtone/pull/582) adds the potemkin lib, which makes Inst accept up to 21 arguments if you use `apply`, also the Inst class has two more params (`m` and `mta`) for its constructor
 
 ## Changed
+- [581](https://github.com/overtone/overtone/pull/581): Instrument has a new `:mixer-params` field that holds an atom whose value is a map with any number of mixer parameters. To avoid breaking change while consolidating mixer parameters in `:mixer-params`, `:volume` and `:pan` atoms are now lentes derived atoms that track the keys in `:mixer-params`.
 
 # 0.16.3331 (2024-11-07 / 09b1fca)
 
