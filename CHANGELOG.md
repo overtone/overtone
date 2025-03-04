@@ -11,6 +11,7 @@
 - [582](https://github.com/overtone/overtone/pull/582): Enable insts to be loaded before server startup
 - [583](https://github.com/overtone/overtone/pull/583): `bass` and `grunge-bass` in `overtone.inst.synth` both now mix 3 audio channels (center freq and detuned high and low) to a single channel.
 - [592](https://github.com/overtone/overtone/pull/592): The output mixer for stereo instruments now includes both channels in the balance.
+- [551](https://github.com/overtone/overtone/issues/551): Fix MIDI number calculation beyond octave boundaries
 
 ## Breaking Changes
 - [582](https://github.com/overtone/overtone/pull/582) adds the potemkin lib, which makes Inst accept up to 21 arguments if you use `apply`, also the Inst class has two more params (`m` and `mta`) for its constructor
