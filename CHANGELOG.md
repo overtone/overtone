@@ -1,6 +1,7 @@
 # Unreleased
 
 ## Added
+- [588](https://github.com/overtone/overtone/pull/588): Support `offset` quantization parameter in `pplay`, `padd`, and `presume`. Added quantization tests.
 - [581](https://github.com/overtone/overtone/pull/581): Replaceable instrument output mixers with `replace-inst-mixer!` and `replace-all-inst-mixer!`. Control new mixers parameter values with `inst-mixer-ctl!`. Included an Ambisonic studio example use case.
 
 ## Fixed

@@ -287,30 +287,24 @@
 (event/on-event :ctl #'handle-ctl ::ctl)
 
 (defn- quantize-ceil
-  "Quantize a beat to a period, rounding up.
-
-  Made a bit awkward by the fact that beats counts from 1, so e.g. a quant of
-  4 (align to 4/4 bars), yields 1, 5, 9, etc."
-  [beat quant]
-  (let [m (mod (dec beat) quant)]
+  "Quantize a beat to a period, rounding up."
+  [beat quant-base quant]
+  (let [m (mod (- beat quant-base) quant)]
     (if (= 0 m)
       beat
       (+ beat (- quant m)))))
 
 (defn- quantize-floor
-  "Quantize a beat to a period, rounding up.
-
-  Made a bit awkward by the fact that beats counts from 1, so e.g. a quant of
-  4 (align to 4/4 bars), yields 1, 5, 9, etc."
-  [beat quant]
-  (let [m (mod (dec beat) quant)]
+  "Quantize a beat to a period, rounding down."
+  [beat quant-base quant]
+  (let [m (mod (- beat quant-base) quant)]
     (if (= 0 m)
       beat
       (- beat m))))
 
 (declare schedule-next)
 
-(defn- schedule-next-job [clock beat k]
+(defn schedule-next-job [clock beat k]
   (time/with-pool player-pool
     (time/apply-by (clock (dec beat)) schedule-next [k])))
 
@@ -372,21 +366,22 @@
              (merge (popts player opts)
                     {:pseq pattern})))))
 
-(defn- align-pseq [beat quant pseq]
-  (let [beat (dec beat) ;; 0-based, so we can do modulo
-        next-beat (mod beat quant)
-        [diff pseq] (loop [nb next-beat
-                           ps pseq]
-                      ;; (prn nb ps)
-                      (if (< 0 nb)
-                        (let [dur (eget (pattern/pfirst ps) :dur)]
-                          (recur (- nb dur) (pattern/pnext ps)))
-                        [nb ps]))]
-    [;; convert back to 1-based beat index
-     (inc (- beat diff))
-     pseq]))
+(defn drop-pseq
+  "Drop `len` beats from `pseq`. Insert a rest to guarantee dropping exactly
+   `len` beats when the last event duration overshoots."
+  [len pseq]
+  (cond
+    (zero? len) pseq
+    (< len 0) (cons {:type :rest :dur (- len)} pseq)
+    (empty? pseq) pseq
+    :else
+    (let [dur (eget (pattern/pfirst pseq) :dur)]
+      (recur (- len dur) (pattern/pnext pseq)))))
 
-(defn- take-pseq [len pseq]
+(defn take-pseq
+  "Return a sequence of exactly `len` beats from the beginning of `pseq`,
+   padding with a rest or shortening the last event as necessary."
+  [len pseq]
   (loop [pseq pseq
          rem len
          res []]
@@ -402,31 +397,21 @@
                (- rem dur)
                (conj res e))))))
 
-(comment
-  (def ps
-    (overtone.studio.pattern/pbind {:note [:a :b :c :d :e]
-                                    :dur [1 1/2 1 1/16 1/32 1/8]}))
-
-  [(= [0 ps] (align-pseq 0 4 ps))
-   (= [1 (next ps)] (align-pseq 1/2 4 ps))
-   (= [3/2 (next (next ps))] (align-pseq 5/4 4 ps))
-   (= [4 ps] (align-pseq 4 4 ps))
-   (= [1 (next ps)] (align-pseq 1 2 ps))
-   (= [5 (next ps)] (align-pseq 5 4 ps))
-   (= [5/2 (drop 3 ps)] (align-pseq 2 4 ps))
-   (= [13/2 (drop 3 ps)] (align-pseq 6 4 ps))])
-
 (defn- player-resume [player pseq opts]
-  ;; TODO: this is not yet taking :offset into account
-  (let [{:keys [clock beat quant align offset]
+  (let [{:keys [clock beat quant align offset proto]
          old-pseq :pseq
          :as player} (popts player opts)
-        playing (some :playing (vals @pplayers))
+        ;; Atomically determine both whether any player is playing and the
+        ;; earliest quantization base.
+        [playing quant-base] (reduce (fn [[playing quant-base] [k p]]
+                                       (if (:playing p)
+                                         [true (min quant-base (:quant-base p))]
+                                         [playing quant-base]))
+                                     [false (clock)]
+                                     @pplayers)
         beat (if playing
                (max (or beat 1) (clock))
                (clock))
-        ;; _ (println 'some-playing? playing 'us-playing? (:playing player)
-        ;;            'align align)
         [beat pseq] (if-not playing
                       ;; nothing is currently playing, so just start
                       ;; immediatedly
@@ -435,18 +420,20 @@
                       ;; Other player(s) are already playing, make sure we are
                       ;; in sync
                       (case align
-                        ;; Honor the quant value, but switch immediately,
-                        ;; possibly skipping over notes
+                        ;; Play as though the sequence started at the prior
+                        ;; quant beat. We skip beats between then and now to
+                        ;; arrive at what starts playing now.
                         :quant
-                        (align-pseq beat quant pseq)
+                        (let [skip-beats (- (mod (- beat quant-base) quant) offset)]
+                          [beat (drop-pseq skip-beats pseq)])
                         :wait
-                        (if-not (:playing player)
-                          ;; we aren't playing yet, so start the sequence at the
-                          ;; next available sync point (e.g. bar)
-                          [(quantize-ceil beat quant) pseq]
-                          ;; We are already playing, let the old pattern play
-                          ;; out until we are ready to switch
-                          (let [switch (quantize-ceil beat quant)]
+                        (let [switch (+ (quantize-ceil beat quant-base quant) offset)]
+                          (if-not (:playing player)
+                            ;; we aren't playing yet, so start the sequence at the
+                            ;; next available sync point (e.g. bar)
+                            [switch pseq]
+                            ;; We are already playing, let the old pattern play
+                            ;; out until we are ready to switch
                             [beat (concat (take-pseq (- switch beat) old-pseq)
                                           pseq)]))
                         ;; Base case, just start at the next beat
@@ -454,7 +441,12 @@
     (assoc player
            :playing true
            :beat beat
-           :pseq pseq)))
+           :pseq pseq
+           :align align
+           :quant quant
+           :offset offset
+           :quant-base quant-base
+           :proto proto)))
 
 (defn presume
   ([k]
