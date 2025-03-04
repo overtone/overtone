@@ -85,9 +85,10 @@
 
 (defn replace-inst-mixer!
   "Replace the mixer synth in an instrument."
-  [{:keys [n-chans mixer bus mixer-params] :as inst} new-get-inst-mixer & {:as params}]
+  [{:keys [bus mixer-params] :as inst} new-get-inst-mixer & {:as params}]
   (ensure-node-active! inst)
-  (let [mixer-synth (new-get-inst-mixer inst)
+  (let [{:keys [mixer]} (ov.lib/ov-raw-map inst)
+        mixer-synth (new-get-inst-mixer inst)
         synth-params (->> (merge @mixer-params params)
                           ;; Flatten to :key1 val1 :key2 val2 ...
                           (mapcat identity))
