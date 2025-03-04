@@ -403,6 +403,7 @@
                               (with-out-str (doseq [n sub-nodes] (pr n))))))))
 
 (extend Inst
+
   ISynthNode
   {:node-free  node-free*
    :node-pause node-pause*
