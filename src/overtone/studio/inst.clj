@@ -17,6 +17,7 @@
         [overtone.libs.event]
         [potemkin :refer [def-map-type]])
   (:require [clojure.pprint]
+            [lentes.core :as l]
             [overtone.sc.protocols :as protocols]
             [overtone.sc.util]
             [overtone.helpers.lib :as ov.lib]
@@ -25,9 +26,8 @@
 
 (ov.lib/defrecord-ifn-2 Inst [name full-name params args sdef
                               ^:deref group ^:deref instance-group
-                              ^:deref fx-group ^:deref mixer
-                              bus fx-chain
-                              volume pan
+                              ^:deref fx-group
+                              ^:deref mixer mixer-params volume pan bus
                               n-chans]
   (fn [this & args]
     (apply synth-player sdef params this [:tail @instance-group] args))
@@ -69,12 +69,41 @@
             sndr (limiter sndr 0.99 0.001)]
         (out out-bus (balance2 sndl sndr pan volume))))))
 
-(defn inst-mixer
+(defn default-get-inst-mixer
   "Instantiate a mono or stereo inst-mixer synth."
-  [n-chans & args]
+  [{:keys [n-chans] :as _inst}]
   (if (> n-chans 1)
-    (apply stereo-inst-mixer args)
-    (apply mono-inst-mixer args)))
+    stereo-inst-mixer
+    mono-inst-mixer))
+
+(defn inst-mixer
+  "Instantiate an instrument mixer."
+  [inst & args]
+  (let [get-mixer (get @studio* ::get-inst-mixer default-get-inst-mixer)
+        mixer-synth (get-mixer inst)]
+    (apply mixer-synth args)))
+
+(defn replace-inst-mixer!
+  "Replace the mixer synth in an instrument."
+  [{:keys [bus mixer-params] :as inst} new-get-inst-mixer & {:as params}]
+  (ensure-node-active! inst)
+  (let [{:keys [mixer]} (ov.lib/ov-raw-map inst)
+        mixer-synth (new-get-inst-mixer inst)
+        synth-params (->> (merge @mixer-params params)
+                          ;; Flatten to :key1 val1 :key2 val2 ...
+                          (mapcat identity))
+        new-mixer (apply mixer-synth
+                         [:replace @mixer]
+                         :in-bus bus
+                         synth-params)]
+    (reset! mixer new-mixer)))
+
+(defn replace-all-inst-mixer!
+  "Replace the mixer synth in all current and future instruments."
+  [new-get-inst-mixer & params]
+  (swap! studio* assoc ::get-inst-mixer new-get-inst-mixer)
+  (doseq [[_name inst] (:instruments @studio*)]
+    (apply replace-inst-mixer! inst new-get-inst-mixer params)))
 
 (defn inst-channels
   "Internal fn used for multimethod dispatch on Insts."
@@ -95,6 +124,13 @@
   (ensure-node-active! inst)
   (ctl (:mixer inst) :pan pan)
   (reset! (:pan inst) pan))
+
+(defn inst-mixer-ctl!
+  "Control a named parameters of the output mixer of a single instrument."
+  [inst & {:as args}]
+  (ensure-node-active! inst)
+  (apply ctl (:mixer inst) (-> args seq flatten))
+  (swap! (:mixer-params inst) merge args))
 
 (defmulti inst-fx!
   "Append an effect to an instrument channel. Returns a SynthNode or a
@@ -190,25 +226,30 @@
                                 "whilst creating an inst fx group"))
 
          imixer#    (or (:mixer new-inst#)
-                        (with-server-sync-atom
-                          #(inst-mixer n-chans#
-                                       [:tail @container-group#]
-                                       :in-bus inst-bus#)
-                          "whilst creating an inst imixer"))
-
+                        (atom ::uninitialized-mixer))
          sdef#      (synthdef sname# params# ugens# constants#)
          arg-names# (map :name params#)
          params-with-vals# (map #(assoc % :value (control-proxy-value-atom full-name# %)) params#)
-         fx-chain#  []
-         volume#    (atom DEFAULT-VOLUME)
-         pan#       (atom DEFAULT-PAN)
+         mixer-params# (atom {:volume DEFAULT-VOLUME
+                              :pan    DEFAULT-PAN})
+         volume#    (l/derive (l/key :volume) mixer-params#)
+         pan#       (l/derive (l/key :pan) mixer-params#)
          inst#      (with-meta
                       (->Inst sname# full-name# params-with-vals# arg-names# sdef#
                               container-group# instance-group# fx-group#
-                              imixer# inst-bus# fx-chain#
-                              volume# pan#
+                              imixer# mixer-params# volume# pan# inst-bus#
                               n-chans#)
                       {:overtone.helpers.lib/to-string #(str (name (:type %)) ":" (:name %))})]
+     (when (= ::uninitialized-mixer @imixer#)
+       ;; Briefly delayed mixer creation to support passing the realized inst# to
+       ;; the mixer selection function.
+       (reset! imixer#
+               (when (server-connected?)
+                 (with-server-sync
+                   #(inst-mixer inst#
+                                [:tail @container-group#]
+                                :in-bus inst-bus#)
+                   "whilst creating an inst imixer"))))
      (load-synthdef sdef#)
      (add-instrument inst#)
      (event :new-inst :inst inst#)
@@ -219,8 +260,7 @@
   ;; TODO Get atoms using something else.
   (doseq [-inst (:instruments @studio*)]
     (let [sname (first -inst)
-
-          {:keys [instance-group fx-group mixer n-chans bus] container-group :group}
+          {:keys [instance-group fx-group mixer bus] container-group :group}
           (ov.lib/ov-raw-map (second -inst))]
       (reset! container-group (group (str "Inst " sname " Container")
                                      :tail (:instrument-group @studio*)))
@@ -231,7 +271,7 @@
       (reset! fx-group (group (str "Inst " sname " FX")
                               :tail @container-group))
 
-      (reset! mixer (inst-mixer n-chans
+      (reset! mixer (inst-mixer (second -inst)
                                 [:tail @container-group]
                                 :in-bus bus))))
 
@@ -314,8 +354,8 @@
     (inst-pan! bar 1 -1)   ;ch1 right, ch2 left.
     (inst-volume! bar 0 1) ;mute ch1.
 
-  * Each instrument has an fx-chain to which you can add any number of
-    'fx synths' using the inst-fx function.
+  * Each instrument has an fx-group to which you can add any number of
+    'fx synths' using the inst-fx! function.
   "
   {:arglists '([name doc-string? params ugen-form])}
   [i-name & inst-form]
@@ -363,6 +403,7 @@
                               (with-out-str (doseq [n sub-nodes] (pr n))))))))
 
 (extend Inst
+
   ISynthNode
   {:node-free  node-free*
    :node-pause node-pause*
