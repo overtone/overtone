@@ -1,7 +1,9 @@
 ;; Example Overtone Config.
 ;; ========================
 ;;
-;; This lives in ~/.overtone/config.clj
+;; This lives in ~/.overtone/config.clj. The containing folder can
+;; by configured with the overtone.config-dir jvm property (defaults
+;; to "<HOME>/.overtone").
 ;;
 ;; This example shouldn't be perceived as being typical - it's a
 ;; contrived example which uses all the possible keys (typically with

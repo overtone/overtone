@@ -1,0 +1,3 @@
+{:paths ["src" "classes"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.0"}
+        overtone/overtone {:local/root ".."}}}
