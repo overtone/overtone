@@ -12,7 +12,7 @@
          'start-beat' if given.")
       (metro-bar-start [metro] [metro start-bar])
       (metro-tick [metro]
-        "Returns the duration of one metronome 'tick' in milleseconds.")
+        "Returns the duration of one metronome 'tick' in milliseconds.")
       (metro-tock [metro]
         "Returns the duration of one bar in milliseconds.")
       (metro-beat [metro] [metro beat]
@@ -40,12 +40,8 @@
 
 (defn beat-ms
   "Convert 'b' beats to milliseconds at the given 'bpm'."
-  [b bpm] (* (/ 60000.0 bpm) b))
-
-;; (defn bar-ms
-;;   "Convert b bars to milliseconds at the current bpm."
-;;   ([] (bar 1))
-;;   ([b] (* (bar 1) (first @*signature) b)))
+  ([bpm] (beat-ms 1 bpm))
+  ([b bpm] (* (/ 60000.0 bpm) b)))
 
 (deftype Metronome [start bar-start bpm bpb]
   IMetronome
@@ -53,61 +49,48 @@
   (metro-start [metro start-beat]
     (dosync
      (ensure bpm)
-     (let [new-start (- (now) (* start-beat (metro-tick metro)))]
-       (ref-set start new-start)
-       new-start)))
+     (ref-set start (- (now) (* start-beat (metro-tick metro))))))
   (metro-bar-start [metro] @bar-start)
   (metro-bar-start [metro start-bar]
     (dosync
      (ensure bpm)
      (ensure bpb)
-     (let [new-bar-start (- (now) (* start-bar (metro-tock metro)))]
-       (ref-set bar-start new-bar-start)
-       new-bar-start)))
-  (metro-tick  [metro] (beat-ms 1 @bpm))
+     (ref-set bar-start (- (now) (* start-bar (metro-tock metro))))))
+  (metro-tick  [metro] (beat-ms @bpm))
   (metro-tock  [metro] (dosync
-                        (ensure bpm)
-                        (ensure bpb)
-                        (beat-ms @bpb @bpm)))
+                        (beat-ms (ensure bpb) (ensure bpm))))
   (metro-beat  [metro] (dosync
-                        (ensure start)
                         (ensure bpm)
-                        (inc (long (/ (- (now) @start) (metro-tick metro))))))
+                        (inc (long (/ (- (now) (ensure start)) (metro-tick metro))))))
   (metro-beat  [metro b] (dosync
-                          (ensure start)
                           (ensure bpm)
-                          (+ (* b (metro-tick metro)) @start)))
+                          (+ (* b (metro-tick metro)) (ensure start))))
   (metro-beat-phase [metro]
     (dosync
-     (ensure start)
      (ensure bpm)
-     (let [ratio (/ (- (now) @start) (metro-tick metro))]
+     (let [ratio (/ (- (now) (ensure start)) (metro-tick metro))]
        (- (float ratio) (long ratio)))))
   (metro-bar [metro] (dosync
-                      (ensure bar-start)
                       (ensure bpm)
                       (ensure bpb)
-                      (inc (long (/ (- (now) @bar-start) (metro-tock metro))))))
+                      (inc (long (/ (- (now) (ensure bar-start)) (metro-tock metro))))))
   (metro-bar [metro b] (dosync
-                        (ensure bar-start)
                         (ensure bpm)
                         (ensure bpb)
-                        (+ (* b (metro-tock metro)) @bar-start)))
+                        (+ (* b (metro-tock metro)) (ensure bar-start))))
   (metro-bar-phase [metro]
     (dosync
-     (ensure start)
      (ensure bpm)
      (ensure bpb)
-     (let [ratio (/ (- (now) @start) (metro-tock metro))]
+     (let [ratio (/ (- (now) (ensure start)) (metro-tock metro))]
        (- (float ratio) (long ratio)))))
   (metro-bpm [metro] @bpm)
   (metro-bpm [metro new-bpm]
     (dosync
-     (ensure bpb)
      (let [cur-beat      (metro-beat metro)
            cur-bar       (metro-bar metro)
-           new-tick      (beat-ms 1 new-bpm)
-           new-tock      (* @bpb new-tick)
+           new-tick      (beat-ms new-bpm)
+           new-tock      (* (ensure bpb) new-tick)
            new-start     (- (metro-beat metro cur-beat) (* new-tick cur-beat))
            new-bar-start (- (metro-bar metro cur-bar) (* new-tock cur-bar))]
        (ref-set start new-start)
@@ -117,9 +100,8 @@
   (metro-bpb [metro] @bpb)
   (metro-bpb [metro new-bpb]
     (dosync
-     (ensure bpm)
      (let [cur-bar       (metro-bar metro)
-           new-tock      (beat-ms new-bpb @bpm)
+           new-tock      (beat-ms new-bpb (ensure bpm))
            new-bar-start (- (metro-bar metro cur-bar) (* new-tock cur-bar))]
        (ref-set bar-start new-bar-start)
        (ref-set bpb new-bpb))))
@@ -136,7 +118,7 @@
   (invoke [this arg]
     (cond
       (number? arg) (metro-beat this arg)
-      (= :bpm arg) (metro-bpm this) ;; (bpm this) fails.
+      (= :bpm arg) (metro-bpm this)
       :else (throw (Exception. (str "Unsupported metronome arg: " arg)))))
   (invoke [this kw new-val]
     (case kw
@@ -161,8 +143,9 @@
   (m :bpm 140) ; => set bpm to 140
   (m :start 80) ; => set start beat to 80"
   [bpm]
-  (let [start (ref (now))
-        bar-start (ref @start)
+  (let [cur-now (now)
+        start (ref cur-now)
+        bar-start (ref cur-now)
         bpm   (ref bpm)
         bpb   (ref 4)]
     (Metronome. start bar-start bpm bpb)))

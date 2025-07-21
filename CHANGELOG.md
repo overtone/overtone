@@ -3,6 +3,8 @@
 ## Added
 - [588](https://github.com/overtone/overtone/pull/588): Support `offset` quantization parameter in `pplay`, `padd`, and `presume`. Added quantization tests.
 - [581](https://github.com/overtone/overtone/pull/581): Replaceable instrument output mixers with `replace-inst-mixer!` and `replace-all-inst-mixer!`. Control new mixers parameter values with `inst-mixer-ctl!`. Included an Ambisonic studio example use case.
+- [594](https://github.com/overtone/overtone/pull/594): Add 1-arity to `overtone.music.rhythm/beat-ms` for the number of milliseconds during 1 beat.
+- [594](https://github.com/overtone/overtone/pull/594): Add unit tests for `overtone.music.rhythm/beat-ms`.
 
 ## Fixed
 - [573](https://github.com/overtone/overtone/pull/573): reduce likelihood of choosing a used random port for `scsynth`
@@ -18,6 +20,10 @@
 
 ## Changed
 - [581](https://github.com/overtone/overtone/pull/581): Instrument has a new `:mixer-params` field that holds an atom whose value is a map with any number of mixer parameters. To avoid breaking change while consolidating mixer parameters in `:mixer-params`, `:volume` and `:pan` atoms are now lentes derived atoms that track the keys in `:mixer-params`.
+
+## Improvements
+- [594](https://github.com/overtone/overtone/pull/594): Update cheatsheet.
+- [594](https://github.com/overtone/overtone/pull/594): Update metronome implementation to take advantage of `ref-set`/`ensure` return value, and avoid unecessary `ref` dereferences.
 
 # 0.16.3331 (2024-11-07 / 09b1fca)
 
