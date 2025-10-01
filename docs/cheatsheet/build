@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Dependencies (debian):
+#   apt install texlive
+set -e
+pdflatex overtone-cheat-sheet.tex
+pdflatex overtone-cheat-sheet.tex
+pdflatex overtone-cheat-sheet.tex

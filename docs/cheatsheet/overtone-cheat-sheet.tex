@@ -72,61 +72,68 @@
                \begin{document}
 
 
-               {\Large{\textbf{Overtone Cheat Sheet 0.9.1}}}
+               {\Large{\textbf{Overtone Cheat Sheet 0.16.3331}}}
 
                \colouredbox{green}{
-                 \section{Instruments (need to be manually referred)}
-                 \subsection{overtone.inst.drum }
+                 \section{Instruments}
+                 \subsection{(use 'overtone.inst.drum)}
                  \begin{tabularx}{\hsize}{lX}
-                   Drums  & \cmd{kick kick2 kick3 kick4 dub-kick dry-kick small-hat closed-hat close-hat2 open-hat hat3 soft-hat noise-hat round-kick snare snare2 noise-snare tone-snare tom clap bing dance-kick quick-kick haziti-clap} \\
+                   Kick Drums & \cmd{kick kick2 kick3 kick4 dub-kick dance-kick dry-kick quick-kick
+                   %TODO round-kick
+                   } \\
+                   Hi-hats & \cmd{small-hat closed-hat close-hat2 open-hat hat3 soft-hat
+                   %TODO noise-hat bell-hat
+                   hat-demo} \\
+                   Snares & \cmd{snare snare2 noise-snare tone-snare } \\
+                   Percussive elements & \cmd{tom clap haziti-clap bing } \\
                  \end{tabularx}
-                 \subsection{overtone.inst.piano }
+                 \subsection{(use 'overtone.inst.piano)}
                  \begin{tabularx}{\hsize}{lX}
                    Piano & \cmd{piano}\\
                  \end{tabularx}
-                 \subsection{overtone.inst.sampled-piano }
+                 \subsection{(use 'overtone.inst.sampled-piano)}
                  \begin{tabularx}{\hsize}{lX}
                    Sampled Piano & \cmd{sampled-piano}\\
                  \end{tabularx}
-                 \subsection{overtone.inst.sampler }
+                 %\subsection{(use 'overtone.inst.sampler)}
+                 % TODO
+                 %\begin{tabularx}{\hsize}{lX}
+                 %  Sampler  & \cmd{granular}\\
+                 %\end{tabularx}
+                 \subsection{(use 'overtone.inst.synth)}
                  \begin{tabularx}{\hsize}{lX}
-                   Sampler  & \cmd{granular}\\
+                   Synth  & \cmd{ticker ping tb303 mooger rise-fall-pad pad overpad buzz ks1 ks1-demo ks-stringer fm-demo harmonic-swimming whoahaha bubbles supersaw cs80lead simple-flute
+                   %TODO b3 bowed flute
+                   }\\
+                   Bass  & \cmd{grunge-bass bass vintage-bass daf-bass}\\
                  \end{tabularx}
-                 \subsection{overtone.inst.bass }
+                 \subsection{(use 'overtone.inst.io)}
                  \begin{tabularx}{\hsize}{lX}
-                   Bass  & \cmd{bass grunge-bass vintage-bass daf-bass}\\
-                 \end{tabularx}
-                 \subsection{overtone.inst.synth }
-                 \begin{tabularx}{\hsize}{lX}
-                   Synth  & \cmd{ticker ping tb303 mooger rise-fall-pad pad overpad buzz  ks1 ks-stringer fm-demo harmonic-swimming whoahaha bubbles supersaw cs80lead simple-flute}\\
-                 \end{tabularx}
-                 \subsection{overtone.inst.io }
-                 \begin{tabularx}{\hsize}{lX}
-                   IO   & \cmd{mic} \\
+                   I/O   & \cmd{mic} \\
                  \end{tabularx}
 
                }
 
                  \colouredbox{green}{
-                 \section{Synths (need to be manually referred)}
+                 \section{Synths}
 
-                 \subsection {overtone.synth.sampled-piano)}
+                 \subsection {(use 'overtone.synth.sampled-piano)}
                  \begin{tabularx}{\hsize}{lX}
                    Sampled Piano  & \cmd{sampled-piano}\\
                  \end{tabularx}
-                 \subsection{overtone.synth.stringed }
+                 \subsection{(use 'overtone.synth.stringed)}
                  \begin{tabularx}{\hsize}{lX}
-                   Stringed s & \cmd{guitar}\\
+                   Stringed & \cmd{guitar ektara}\\
                  \end{tabularx}
-                 \subsection{overtone.synth.ixi }
+                 \subsection{(use 'overtone.synth.ixi)}
                  \begin{tabularx}{\hsize}{lX}
-                   Ixi  & \cmd{impulser kick kick2 kick3}\\
+                   Ixi  & \cmd{impulser kick kick2 kick3 snare}\\
                  \end{tabularx}
-                 \subsection{overtone.synth.retro }
+                 \subsection{(use 'overtone.synth.retro)}
                  \begin{tabularx}{\hsize}{lX}
                    Retro  & \cmd{tb-303}\\
                  \end{tabularx}
-                 \subsection{overtone.synth.sts }
+                 \subsection{(use 'overtone.synth.sts) }
                  \begin{tabularx}{\hsize}{lX}
                    STS  & \cmd{prophet}\\
                  \end{tabularx}
@@ -156,8 +163,8 @@
 
                  \subsection{Metronome}
                  \begin{tabularx}{\hsize}{lX}
-                   Create & \cmd{metronome } \\
-                   Manipulate & \cmd{metro-start metro-tick metro-beat metro-bpm metro-tock metro-bar metro-bpb}\\
+                   Create & \cmd{metronome} \\
+                   Manipulate & \cmd{metro-start metro-bar-start metro-tick metro-beat metro-bpm metro-tock metro-bar metro-bpb}\\
                    bps & \cmd{beat-ms}\\
                  \end{tabularx}
 
@@ -425,7 +432,7 @@
                \colouredbox{blue}{
                  \section{Binary UGens}
                  \begin{tabularx}{\hsize}{lX}
-                   & \cmd{+ - * / mod = not= < > <= >= min max and or xor round round-up round-down atan2 hypot hypot-aprox pow ring1 ring2 ring3 ring4 difsqr sumsqr sqrsum sqrdif absdif thresh amclip scale-neg clip2 excess fold2 wrap2}\\
+                   & \cmd{+ - * / mod = not= < > <= >= min max bit-and bit-or bit-xor round round-up round-down atan2 hypot hypot-aprox pow ring1 ring2 ring3 ring4 difsqr sumsqr sqrsum sqrdif absdif thresh amclip scale-neg clip2 excess fold2 wrap2}\\
                  \end{tabularx}
                }
 
@@ -702,8 +709,9 @@
                \begin{flushright}
                  \footnotesize
                  \rule{0.7\linewidth}{0.25pt}
-                 \verb!Revision: 0.9.1.2, Date: 17th December, 2013!\\
-                 \verb!Sam Aaron (sam.aaron gmail com)!
+                 \verb!Revision: 0.16.3331.0, Date: 22nd July, 2025!\\
+                 \verb!Sam Aaron (sam.aaron gmail com)!\\
+                 \verb!Ambrose Bonnaire-Sergeant!
                \end{flushright}
 
                % history
