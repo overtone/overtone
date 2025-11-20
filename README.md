@@ -1,4 +1,14 @@
-                                                              888
+# This Repository has Moved!
+
+  Due to the fact that GitHub is hosting the files on privately owned
+  servers located in the USA, this repository has been moved to
+  [Codeberg](https://codeberg.org/ormf/overtone//) in November of
+  2025. It will not receive further updates or patches. Issues and
+  pull requests will not be looked at here either, please submit your
+  patches and issue tickets on Codeberg, or send them directly via
+  good old email patches to the author.
+
+  Thanks.                                                              888
                                                               888
              _ooooooooo._                                     888
           ,o888PP""""PP88   .d88b.  888  888  .d88b.  888d888 888888 .d88b.  88888b.   .d88b.
