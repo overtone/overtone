@@ -14,7 +14,8 @@
   babashka/process {:mvn/version "0.5.22"}
 
   ;; For custom data structures.
-  potemkin/potemkin {:mvn/version "0.4.7"}}
+  potemkin/potemkin {:git/url "https://github.com/plexus/potemkin"
+                     :git/sha "b6222866c0161f64bd556dcd9af3d5cdbe07bdba"}}
 
  :aliases
  {:test
