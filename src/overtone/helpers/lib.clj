@@ -267,7 +267,10 @@
                           :else
                           `(~'invoke [this# ~@args]
                             (~invoke-fn this# ~@args)))))
-                    (range 22)))
+                    (range 22))
+
+             (~'applyTo [this# args#]
+              (apply ~invoke-fn this# args#)))
 
            (defn ~(symbol (str "->" rec-name)) [~@fields]
              (new ~rec-name ~@fields {} nil))
